@@ -42,7 +42,7 @@ app.UseOpenIdConnectAuthorizationServer(new OpenIdConnectServerOptions
 
 ## Testing the middleware
 
-To test the OIDC-Server start the app and use something like fiddler to access 
+To test the Server start the sample-application and use something like fiddler to access 
 
 	http://localhost:18001/Katana.Sandbox.WebServer/auth.cshtml?response_type=code+id_token&client_id=myClient&state=xyz&redirect_uri=http%3A%2F%2Flocalhost%3A6980%2Foidc&nonce=1234&scope=openid&response_mode=form_post
 
