@@ -1,0 +1,25 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title></title>
+</head>
+<body>
+    
+    <form name="frm" method="post" action="@Request.QueryString["redirect_uri"]">
+
+        <input type="hidden" name="code" value="@Request.QueryString["code"]" />
+        <input type="hidden" name="id_token" value="@Request.QueryString["id_token"]" />
+        <input type="hidden" name="state" value="@Request.QueryString["state"]" />
+
+        <noscript>
+            <input type="submit" value="Click here, to redirect to the application" />
+        </noscript>
+
+    </form>
+    <script>
+        document.frm.submit();
+    </script> 
+
+</body>
+</html>
