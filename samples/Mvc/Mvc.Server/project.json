@@ -1,0 +1,27 @@
+{
+    "webroot": "wwwroot",
+    "exclude": "wwwroot/**/*.*",
+    "resources": "Certificate.pfx",
+
+    "version": "1.0.0-beta1-*",
+
+    "dependencies": {
+        "EntityFramework": "7.0.0-*",
+        "EntityFramework.InMemory": "7.0.0-*",
+
+        "Microsoft.AspNet.Mvc": "6.0.0-*",
+        "Microsoft.AspNet.Security.Cookies": "1.0.0-*",
+        "Microsoft.AspNet.Security.Google": "1.0.0-*",
+        "Microsoft.AspNet.Server.IIS": "1.0.0-*",
+
+        "AspNet.Security.OpenIdConnect.Server": ""
+    },
+
+    "frameworks": {
+        "aspnet50": {
+            "frameworkAssemblies": {
+                "System.IdentityModel": ""
+            }
+        }
+    }
+}
