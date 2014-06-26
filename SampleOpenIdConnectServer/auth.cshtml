@@ -29,7 +29,7 @@
 
     Response.StatusCode = 200;
 
-    var auth = Request.GetOwinContext().Authentication;
+    var auth = Request.GetOwinContext().Authentication; 
     var authProps = new AuthenticationProperties();
     authProps.IssuedUtc = DateTime.Now.ToUniversalTime();
     authProps.ExpiresUtc = DateTime.Now.AddDays(1).ToUniversalTime();
