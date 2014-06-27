@@ -50,7 +50,7 @@ You should get back an id_token using post to the url that is included in this c
 
 ## Use the middleware with Microsoft's OpenId-Connect-Client-Middleware
 
-The following listing shows a Owin-Configuration that configures Microsoft's OpenId-Connect-Client-Middleware (NuGet-Package _Microsoft.Owin.Security.OpenIdConnect_) for the usage with the here described Server-Middleware. Have a look at the sample-project _SampleOpenIdConnectClient_ for more infos.
+The following listing shows an Owin-Configuration that configures Microsoft's OpenId-Connect-Client-Middleware (NuGet-Package _Microsoft.Owin.Security.OpenIdConnect_) for the usage with the here described Server-Middleware. Have a look at the sample-project _SampleOpenIdConnectClient_ for more infos.
 
 ```C#
 app.UseExternalSignInCookie("ExternalCookie");
@@ -92,7 +92,7 @@ if (result == null)
 
 ## Using Digital-Signatures
 
-The samples above uses an HMAC to "digitaly sign" the id_token. The following samples shows, how to use RSA with a cert within your windows cert-store. You can use the showed _SigningCredentials_-Object for the middleware's Property _SigningCredentials_.
+The samples above uses an HMAC to "digitally sign" the id_token. The following samples shows, how to use RSA with a key that is installed within your Windows Certificate Store. You can use the showed _SigningCredentials_-Object for the middleware's Property _SigningCredentials_.
 
 ```C#
 var cert = LoadCertByThumbprint("e324095b1ea96996ca5d89c7774b8674d13ca423");   
@@ -101,7 +101,7 @@ var key = new X509AsymmetricSecurityKey(cert);
 var cred = new SigningCredentials(key, SecurityAlgorithms.RsaSha256Signature, SecurityAlgorithms.Sha256Digest); 
 ```
 
-The next sample shows how to load a key from the cert-store.
+The next sample shows how to load a key from Windows Certificate Store.
 
 ```C#
 private const string OPEN_ID_CONNECT_CERT_TUMB_PRINT = 
