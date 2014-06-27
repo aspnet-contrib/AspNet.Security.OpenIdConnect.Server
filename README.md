@@ -48,3 +48,44 @@ To test the Server start the sample-application and use something like fiddler t
 
 You should get back an id_token using post to the url that is included in this call.
 
+## Use the middleware with Microsoft's OpenId-Connect-Client-Middleware
+
+The following listing shows a Owin-Configuration that configures Microsoft's OpenId-Connect-Client-Middleware (NuGet-Package Microsoft.Owin.Security.OpenIdConnect) for the usage with the here described Server-Middleware. Have a look at the sample-project SampleOpenIdConnectClient for more infos.
+
+```C#
+app.UseExternalSignInCookie("ExternalCookie");
+
+var key = new InMemorySymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes("secret_secret_secret"));
+
+app.UseOpenIdConnectAuthentication(new OpenIdConnectAuthenticationOptions {
+    AuthenticationMode = AuthenticationMode.Active,
+    AuthenticationType = "OIDC",
+    SignInAsAuthenticationType = "ExternalCookie",
+    ClientId = "myClient",
+    ClientSecret = "secret_secret_secret",
+    RedirectUri = "http://localhost:57264/oidc",
+    Scope = "openid",
+    Configuration = new OpenIdConnectConfiguration
+    {
+        AuthorizationEndpoint = "http://localhost:59504/auth.cshtml",
+        TokenEndpoint = "http://localhost:59504/token"
+    },
+    TokenValidationParameters = new TokenValidationParameters()
+    {
+        ValidAudience = "myClient",
+        ValidIssuer = "urn:authServer",
+        IssuerSigningKey = key
+    }
+});
+```
+
+You can use the following snipped within the application-code to authenticate the user with the middleware. After a successful authentication, the variable _result_ provides a ClaimsIdentity describing the current user via it's property Identity.
+
+```C#
+var result = Request.GetOwinContext().Authentication.AuthenticateAsync("ExternalCookie").Result;
+
+if (result == null)
+{
+    Request.GetOwinContext().Authentication.Challenge("OIDC");
+}
+```
