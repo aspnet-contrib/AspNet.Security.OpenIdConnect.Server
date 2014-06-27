@@ -33,8 +33,9 @@ namespace Owin
             }
 
             var currentProvider = options.Provider;
-            if (currentProvider == null) throw new ArgumentException("options.Provider");
-            if (options.ServerClaimsMapper == null) throw new ArgumentException("options.ServerClaimsMapper");
+            if (currentProvider == null) throw new ArgumentNullException("options.Provider");
+            if (options.ServerClaimsMapper == null) throw new ArgumentNullException("options.ServerClaimsMapper");
+            if (options.SigningCredentials == null) throw new ArgumentNullException("options.SigningCredentials");
             if (string.IsNullOrWhiteSpace(options.IssuerName)) throw new ArgumentException("options.IssuerName");
 
             var newProvider = WrapProvider(currentProvider);
