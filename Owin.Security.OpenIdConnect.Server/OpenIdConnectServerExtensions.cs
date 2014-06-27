@@ -116,30 +116,19 @@ namespace Owin
             {
                 outputClaims.Add(new Claim(JwtRegisteredClaimNames.Nonce, nonce));
             }
-            
-            var iat = EpochTime.GetIntDate(DateTime.Now.ToUniversalTime()).ToString();
+
+            var iat = EpochTime.GetIntDate(options.SystemClock.UtcNow.UtcDateTime).ToString();
             outputClaims.Add(new Claim("iat", iat));
 
-            DateTime notBefore;
-            DateTime expires;
-
-            if (authProperties.IssuedUtc.HasValue)
-            {
-                notBefore = authProperties.IssuedUtc.Value.UtcDateTime;
-                expires = notBefore.Add(options.IdTokenExpireTimeSpan);
-            }
-            else
-            {
-                notBefore = DateTime.Now.ToUniversalTime();
-                expires = DateTime.Now.Add(options.IdTokenExpireTimeSpan).ToUniversalTime();
-            }
+            DateTimeOffset notBefore = authProperties.IssuedUtc ?? options.SystemClock.UtcNow;
+            DateTimeOffset expires = authProperties.ExpiresUtc ?? notBefore.Add(options.IdTokenExpireTimeSpan);
 
             var jwt = options.TokenHandler.CreateToken(
                 issuer: options.IssuerName,
                 signingCredentials: options.SigningCredentials,
                 audience: clientId,
-                notBefore: notBefore,
-                expires: expires,
+                notBefore: notBefore.UtcDateTime,
+                expires: expires.UtcDateTime,
                 signatureProvider: options.SignatureProvider
             );
 
