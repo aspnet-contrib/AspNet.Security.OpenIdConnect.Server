@@ -99,7 +99,7 @@ namespace Owin
             var outputClaims = options.ServerClaimsMapper(inputClaims).ToList();
 
             var hashGenerator = new OpenIdConnectHashGenerator();
-
+            
             if (!string.IsNullOrEmpty(authorizationCode))
             {
                 var cHash = hashGenerator.GenerateHash(authorizationCode, options.SigningCredentials.DigestAlgorithm);
@@ -116,6 +116,9 @@ namespace Owin
             {
                 outputClaims.Add(new Claim(JwtRegisteredClaimNames.Nonce, nonce));
             }
+            
+            var iat = EpochTime.GetIntDate(DateTime.Now.ToUniversalTime()).ToString();
+            outputClaims.Add(new Claim("iat", iat));
 
             DateTime notBefore;
             DateTime expires;

@@ -31,7 +31,7 @@ namespace SampleOpenIdConnectServer
         public override Task ValidateClientRedirectUri(OAuthValidateClientRedirectUriContext context)
         {
             if (context.ClientId == "myClient" &&
-                            context.RedirectUri == "http://localhost:6980/oidc")
+                            context.RedirectUri == "http://localhost:57264/oidc")
             {
                 context.Validated();
             }
