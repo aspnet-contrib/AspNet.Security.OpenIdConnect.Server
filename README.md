@@ -89,3 +89,46 @@ if (result == null)
     Request.GetOwinContext().Authentication.Challenge("OIDC");
 }
 ```
+
+## Using Digital-Signatures
+
+The samples above uses an HMAC to "digitaly sign" the id_token. The following samples shows, how to use RSA with a cert within your windows cert-store. You can use the showed _SigningCredentials_-Object for the middleware's Property _SigningCredentials_.
+
+```C#
+var cert = LoadCertByThumbprint("e324095b1ea96996ca5d89c7774b8674d13ca423");   
+var key = new X509AsymmetricSecurityKey(cert);  
+
+var cred = new SigningCredentials(key, SecurityAlgorithms.RsaSha256Signature, SecurityAlgorithms.Sha256Digest); 
+```
+
+The next sample shows how to load a key from the cert-store.
+
+```C#
+private const string OPEN_ID_CONNECT_CERT_TUMB_PRINT = 
+                         "d4efb6bcebbad897bb2f4a9d9617716301fe6c9c";
+
+private X509Certificate2 LoadCertByThumbprint(string thumbprint)
+{
+    X509Store store = null;
+    X509Certificate2 cert = null;
+
+    try
+    {
+        store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
+        store.Open(OpenFlags.ReadOnly);
+
+        cert = store.Certificates.Find(
+                        X509FindType.FindByThumbprint,
+                        thumbprint,
+                        false)[0];
+
+    }
+    finally
+    {
+        store.Close();
+    }
+
+    return cert;
+
+}
+```
