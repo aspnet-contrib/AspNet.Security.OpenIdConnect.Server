@@ -13,12 +13,12 @@ The final version will use the final build of Katana V3.
 
 ## Register Middleware
 
-The following sample shows how to register this middleware. Have a look at the project SampleOpenIdConnectServer to find
-more information about the following referenced classes and cshtml-files: auth.cshtml, FormPost.cshtml, TestAuthenticationTokenProvider and CustomOAuthProvider. 
+The following sample shows how to register this middleware. Have a look at the sample-project _SampleOpenIdConnectServer_ to find
+more information about the following referenced classes and cshtml-files: _auth.cshtml,_ _FormPost.cshtml_, _TestAuthenticationTokenProvider_ and _CustomOAuthProvider_. 
 
-The file auth.cshtml logs in a demo-user. In a real-world-implementation, this file would show a login-form. 
+The file _auth.cshtml_ logs in a demo-user. In a real-world-implementation, this file would show a login-form. 
 
-The file FormPost.cshtml is used to implement response_mode=form_post. Further versions of Katana's OAuth-Implementation may not need/ support this property and implement form_post in a more direct way.
+The file _FormPost.cshtml_ is used to implement response_mode=form_post. Further versions of Katana's OAuth-Implementation may not need/ support this property and implement form_post in a more direct way.
 
 ```C#
 var key = new InMemorySymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes("secret_secret_secret"));
@@ -50,7 +50,7 @@ You should get back an id_token using post to the url that is included in this c
 
 ## Use the middleware with Microsoft's OpenId-Connect-Client-Middleware
 
-The following listing shows a Owin-Configuration that configures Microsoft's OpenId-Connect-Client-Middleware (NuGet-Package Microsoft.Owin.Security.OpenIdConnect) for the usage with the here described Server-Middleware. Have a look at the sample-project SampleOpenIdConnectClient for more infos.
+The following listing shows a Owin-Configuration that configures Microsoft's OpenId-Connect-Client-Middleware (NuGet-Package _Microsoft.Owin.Security.OpenIdConnect_) for the usage with the here described Server-Middleware. Have a look at the sample-project _SampleOpenIdConnectClient_ for more infos.
 
 ```C#
 app.UseExternalSignInCookie("ExternalCookie");
@@ -79,7 +79,7 @@ app.UseOpenIdConnectAuthentication(new OpenIdConnectAuthenticationOptions {
 });
 ```
 
-You can use the following snipped within the application-code to authenticate the user with the middleware. After a successful authentication, the variable _result_ provides a ClaimsIdentity describing the current user via it's property Identity.
+You can use the following snipped within the application-code to authenticate the user with the middleware. After a successful authentication, the variable _result_ provides a _ClaimsIdentity_ describing the current user via it's property _Identity_.
 
 ```C#
 var result = Request.GetOwinContext().Authentication.AuthenticateAsync("ExternalCookie").Result;
