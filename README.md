@@ -13,12 +13,12 @@ The final version will use the final build of Katana V3.
 
 ## Register Middleware
 
-The following sample shows how to register this middleware. Have a look at the project SampleOpenIdConnectServer to find
-more information about the following referenced classes and cshtml-files: auth.cshtml, FormPost.cshtml, TestAuthenticationTokenProvider and CustomOAuthProvider. 
+The following sample shows how to register this middleware. Have a look at the sample-project _SampleOpenIdConnectServer_ to find
+more information about the following referenced classes and cshtml-files: _auth.cshtml,_ _FormPost.cshtml_, _TestAuthenticationTokenProvider_ and _CustomOAuthProvider_. 
 
-The file auth.cshtml logs in a demo-user. In a real-world-implementation, this file would show a login-form. 
+The file _auth.cshtml_ logs in a demo-user. In a real-world-implementation, this file would show a login-form. 
 
-The file FormPost.cshtml is used to implement response_mode=form_post. Further versions of Katana's OAuth-Implementation may not need/ support this property and implement form_post in a more direct way.
+The file _FormPost.cshtml_ is used to implement response_mode=form_post. Further versions of Katana's OAuth-Implementation may not need/ support this property and implement form_post in a more direct way.
 
 ```C#
 var key = new InMemorySymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes("secret_secret_secret"));
@@ -48,3 +48,87 @@ To test the Server start the sample-application and use something like fiddler t
 
 You should get back an id_token using post to the url that is included in this call.
 
+## Use the middleware with Microsoft's OpenId-Connect-Client-Middleware
+
+The following listing shows an Owin-Configuration that configures Microsoft's OpenId-Connect-Client-Middleware (NuGet-Package _Microsoft.Owin.Security.OpenIdConnect_) for the usage with the here described Server-Middleware. Have a look at the sample-project _SampleOpenIdConnectClient_ for more infos.
+
+```C#
+app.UseExternalSignInCookie("ExternalCookie");
+
+var key = new InMemorySymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes("secret_secret_secret"));
+
+app.UseOpenIdConnectAuthentication(new OpenIdConnectAuthenticationOptions {
+    AuthenticationMode = AuthenticationMode.Active,
+    AuthenticationType = "OIDC",
+    SignInAsAuthenticationType = "ExternalCookie",
+    ClientId = "myClient",
+    ClientSecret = "secret_secret_secret",
+    RedirectUri = "http://localhost:57264/oidc",
+    Scope = "openid",
+    Configuration = new OpenIdConnectConfiguration
+    {
+        AuthorizationEndpoint = "http://localhost:59504/auth.cshtml",
+        TokenEndpoint = "http://localhost:59504/token"
+    },
+    TokenValidationParameters = new TokenValidationParameters()
+    {
+        ValidAudience = "myClient",
+        ValidIssuer = "urn:authServer",
+        IssuerSigningKey = key
+    }
+});
+```
+
+You can use the following snipped within the application-code to authenticate the user with the middleware. After a successful authentication, the variable _result_ provides a _ClaimsIdentity_ describing the current user via it's property _Identity_.
+
+```C#
+var result = Request.GetOwinContext().Authentication.AuthenticateAsync("ExternalCookie").Result;
+
+if (result == null)
+{
+    Request.GetOwinContext().Authentication.Challenge("OIDC");
+}
+```
+
+## Using Digital Signatures
+
+The samples above uses an HMAC to "digitally sign" the id_token. The following samples shows, how to use RSA with a key that is installed within your Windows Certificate Store. You can use the showed _SigningCredentials_-Object for the middleware's Property _SigningCredentials_.
+
+```C#
+var cert = LoadCertByThumbprint("e324095b1ea96996ca5d89c7774b8674d13ca423");   
+var key = new X509AsymmetricSecurityKey(cert);  
+
+var cred = new SigningCredentials(key, SecurityAlgorithms.RsaSha256Signature, SecurityAlgorithms.Sha256Digest); 
+```
+
+The next sample shows how to load a key from Windows Certificate Store.
+
+```C#
+private const string OPEN_ID_CONNECT_CERT_TUMB_PRINT = 
+                         "d4efb6bcebbad897bb2f4a9d9617716301fe6c9c";
+
+private X509Certificate2 LoadCertByThumbprint(string thumbprint)
+{
+    X509Store store = null;
+    X509Certificate2 cert = null;
+
+    try
+    {
+        store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
+        store.Open(OpenFlags.ReadOnly);
+
+        cert = store.Certificates.Find(
+                        X509FindType.FindByThumbprint,
+                        thumbprint,
+                        false)[0];
+
+    }
+    finally
+    {
+        store.Close();
+    }
+
+    return cert;
+
+}
+```
