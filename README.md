@@ -92,7 +92,7 @@ if (result == null)
 
 ## Using Digital Signatures
 
-The samples above uses an HMAC to "digitally sign" the id_token. The following samples shows, how to use RSA with a key that is installed within your Windows Certificate Store. You can use the showed _SigningCredentials_-Object for the middleware's Property _SigningCredentials_.
+The samples above use an HMAC to "digitally sign" the id_token. The following sample shows, how to use RSA with a key that is installed within your Windows Certificate Store. You can use the showed _SigningCredentials_-Object for the middleware's Property _SigningCredentials_.
 
 ```C#
 var cert = LoadCertByThumbprint("e324095b1ea96996ca5d89c7774b8674d13ca423");   
