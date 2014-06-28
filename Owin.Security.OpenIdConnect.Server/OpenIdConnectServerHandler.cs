@@ -1,20 +1,24 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
-using System.IO;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Owin.Infrastructure;
-using Microsoft.Owin.Logging;
-using Microsoft.Owin.Security.Infrastructure;
-using Microsoft.Owin.Security.OpenIdConnect.Server.Messages;
-using Newtonsoft.Json;
-
 namespace Microsoft.Owin.Security.OpenIdConnect.Server
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
+    using System.Globalization;
+    using System.IdentityModel.Tokens;
+    using System.IO;
+    using System.Linq;
+    using System.Security.Claims;
+    using System.Text;
+    using System.Threading.Tasks;
+    using Microsoft.IdentityModel.Protocols;
+    using Microsoft.Owin.Infrastructure;
+    using Microsoft.Owin.Logging;
+    using Microsoft.Owin.Security.Infrastructure;
+    using Microsoft.Owin.Security.OpenIdConnect.Server.Messages;
+    using Newtonsoft.Json;
+
     internal class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions>
     {
         private readonly ILogger _logger;
@@ -214,6 +218,17 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
                                 null,
                                 code);
 
+                if (_authorizeEndpointRequest.ContainsGrantType(OpenIdConnectResponseTypes.IdToken) &&
+                    _authorizeEndpointRequest.Scope.Contains(OpenIdConnectScopes.OpenId))
+                {
+                    var idToken = CreateIdToken(
+                        authResponseContext.Identity, authResponseContext.Properties,
+                        authResponseContext.AuthorizeEndpointRequest.ClientId, authResponseContext.AccessToken,
+                        authResponseContext.AuthorizationCode, authResponseContext.Request.Query["nonce"]);
+
+                    authResponseContext.AdditionalResponseParameters.Add(OpenIdConnectResponseTypes.IdToken, idToken);
+                }
+
                 await Options.Provider.AuthorizationEndpointResponse(authResponseContext);
 
                 foreach (var parameter in authResponseContext.AdditionalResponseParameters)
@@ -294,6 +309,17 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
                                 _authorizeEndpointRequest,
                                 accessToken,
                                 null);
+
+                if (_authorizeEndpointRequest.ContainsGrantType(OpenIdConnectResponseTypes.IdToken) &&
+                    _authorizeEndpointRequest.Scope.Contains(OpenIdConnectScopes.OpenId))
+                {
+                    var idToken = CreateIdToken(
+                        authResponseContext.Identity, authResponseContext.Properties,
+                        authResponseContext.AuthorizeEndpointRequest.ClientId, authResponseContext.AccessToken,
+                        authResponseContext.AuthorizationCode, authResponseContext.Request.Query["nonce"]);
+
+                    authResponseContext.AdditionalResponseParameters.Add(OpenIdConnectResponseTypes.IdToken, idToken);
+                }
 
                 await Options.Provider.AuthorizationEndpointResponse(authResponseContext);
 
@@ -435,6 +461,11 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
                 tokenEndpointRequest,
                 accessToken,
                 tokenEndpointContext.AdditionalResponseParameters);
+
+            var idToken = CreateIdToken(
+                tokenEndpointResponseContext.Identity, tokenEndpointResponseContext.Properties,
+                tokenEndpointResponseContext.TokenEndpointRequest.ClientId, tokenEndpointResponseContext.AccessToken);
+            tokenEndpointResponseContext.AdditionalResponseParameters.Add(OpenIdConnectResponseTypes.IdToken, idToken);
 
             await Options.Provider.TokenEndpointResponse(tokenEndpointResponseContext);
 
@@ -673,6 +704,68 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
                 grantContext,
                 grantContext.Ticket,
                 Constants.Errors.UnsupportedGrantType);
+        }
+
+        private string CreateIdToken(ClaimsIdentity identity, AuthenticationProperties authProperties, string clientId, string accessToken = null, string authorizationCode = null, string nonce = null)
+        {
+            var inputClaims = identity.Claims;
+            var outputClaims = Options.ServerClaimsMapper(inputClaims).ToList();
+
+            var hashGenerator = new OpenIdConnectHashGenerator();
+
+            if (!string.IsNullOrEmpty(authorizationCode))
+            {
+                var cHash = hashGenerator.GenerateHash(authorizationCode, Options.SigningCredentials.DigestAlgorithm);
+                outputClaims.Add(new Claim(JwtRegisteredClaimNames.CHash, cHash));
+            }
+
+            if (!string.IsNullOrEmpty(accessToken))
+            {
+                var atHash = hashGenerator.GenerateHash(accessToken, Options.SigningCredentials.DigestAlgorithm);
+                outputClaims.Add(new Claim("at_hash", atHash));
+            }
+
+            if (!string.IsNullOrEmpty(nonce))
+            {
+                outputClaims.Add(new Claim(JwtRegisteredClaimNames.Nonce, nonce));
+            }
+
+            var iat = EpochTime.GetIntDate(Options.SystemClock.UtcNow.UtcDateTime).ToString();
+            outputClaims.Add(new Claim("iat", iat));
+
+            DateTimeOffset notBefore = Options.SystemClock.UtcNow;
+            DateTimeOffset expires = notBefore.Add(Options.IdTokenExpireTimeSpan);
+
+            string notBeforeString;
+            if (authProperties.Dictionary.TryGetValue("IdTokenIssuedUtc", out notBeforeString))
+            {
+                DateTimeOffset value;
+                if (DateTimeOffset.TryParseExact(notBeforeString, "r", CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out value))
+                    notBefore = value;
+            }
+
+            string expiresString;
+            if (authProperties.Dictionary.TryGetValue("IdTokenExpiresUtc", out expiresString))
+            {
+                DateTimeOffset value;
+                if (DateTimeOffset.TryParseExact(expiresString, "r", CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out value))
+                    expires = value;
+            }
+
+            var jwt = Options.TokenHandler.CreateToken(
+                issuer: Options.IssuerName,
+                signingCredentials: Options.SigningCredentials,
+                audience: clientId,
+                notBefore: notBefore.UtcDateTime,
+                expires: expires.UtcDateTime,
+                signatureProvider: Options.SignatureProvider
+            );
+
+            jwt.Payload.AddClaims(outputClaims);
+
+            var idToken = Options.TokenHandler.WriteToken(jwt);
+
+            return idToken;
         }
 
         private static AuthenticationTicket ReturnOutcome(

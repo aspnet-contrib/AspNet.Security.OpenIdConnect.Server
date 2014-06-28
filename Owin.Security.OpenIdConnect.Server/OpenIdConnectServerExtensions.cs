@@ -13,7 +13,7 @@ namespace Owin
         /// <returns>The application builder</returns>
         public static IAppBuilder UseOpenIdConnectAuthorizationServer(this IAppBuilder app, OpenIdConnectServerOptions options)
         {
-            return app.Use(typeof(OpenIdConnectServerMiddleware), options);
+            return app.Use(typeof(OpenIdConnectServerMiddleware), app, options);
         }
     }
 }

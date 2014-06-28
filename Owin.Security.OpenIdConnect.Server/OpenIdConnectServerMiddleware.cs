@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
 
+using System;
 using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security.DataHandler;
 using Microsoft.Owin.Security.DataProtection;
@@ -67,6 +68,18 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
             if (Options.RefreshTokenProvider == null)
             {
                 Options.RefreshTokenProvider = new AuthenticationTokenProvider();
+            }
+            if (Options.ServerClaimsMapper == null)
+            {
+                throw new ArgumentNullException("options.ServerClaimsMapper");
+            }
+            if (Options.SigningCredentials == null)
+            {
+                throw new ArgumentNullException("options.SigningCredentials");
+            }
+            if (string.IsNullOrWhiteSpace(Options.IssuerName))
+            {
+                throw new ArgumentException("options.IssuerName");
             }
         }
 
