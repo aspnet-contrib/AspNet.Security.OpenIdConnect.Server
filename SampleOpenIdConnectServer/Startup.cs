@@ -40,7 +40,7 @@ namespace SampleOpenIdConnectServer
                 TokenEndpointPath = new PathString("/token"),
                 AuthorizeEndpointPath = new PathString("/auth.cshtml"),
                 FormPostEndpoint = new PathString("/FormPost.cshtml"),
-                Provider = new CustomOAuthProvider(),
+                Provider = new CustomOpenIdConnectServerProvider(),
                 AccessTokenExpireTimeSpan = TimeSpan.FromDays(14),
                 AllowInsecureHttp = true,
                 ApplicationCanDisplayErrors = true,
