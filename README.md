@@ -132,3 +132,9 @@ private X509Certificate2 LoadCertByThumbprint(string thumbprint)
 
 }
 ```
+
+## License
+
+Like Microsoft's Project Katana ("Microsoft.Owin") this project is under apache license. This means, that you can use, modifiy and distribute it within your projects for free. See the following link for more details:
+http://www.apache.org/licenses/LICENSE-2.0.html
+
