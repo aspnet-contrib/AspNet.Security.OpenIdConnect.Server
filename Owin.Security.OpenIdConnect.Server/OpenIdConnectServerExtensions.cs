@@ -13,6 +13,7 @@ using Microsoft.Owin.Security.OAuth;
 using Microsoft.Owin.Security.OpenIdConnect.Server;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin.Security;
+using System.Globalization;
 
 namespace Owin
 {
@@ -33,8 +34,9 @@ namespace Owin
             }
 
             var currentProvider = options.Provider;
-            if (currentProvider == null) throw new ArgumentException("options.Provider");
-            if (options.ServerClaimsMapper == null) throw new ArgumentException("options.ServerClaimsMapper");
+            if (currentProvider == null) throw new ArgumentNullException("options.Provider");
+            if (options.ServerClaimsMapper == null) throw new ArgumentNullException("options.ServerClaimsMapper");
+            if (options.SigningCredentials == null) throw new ArgumentNullException("options.SigningCredentials");
             if (string.IsNullOrWhiteSpace(options.IssuerName)) throw new ArgumentException("options.IssuerName");
 
             var newProvider = WrapProvider(currentProvider);
@@ -116,30 +118,35 @@ namespace Owin
             {
                 outputClaims.Add(new Claim(JwtRegisteredClaimNames.Nonce, nonce));
             }
-            
-            var iat = EpochTime.GetIntDate(DateTime.Now.ToUniversalTime()).ToString();
+
+            var iat = EpochTime.GetIntDate(options.SystemClock.UtcNow.UtcDateTime).ToString();
             outputClaims.Add(new Claim("iat", iat));
 
-            DateTime notBefore;
-            DateTime expires;
+            DateTimeOffset notBefore = options.SystemClock.UtcNow;
+            DateTimeOffset expires = notBefore.Add(options.IdTokenExpireTimeSpan);
 
-            if (authProperties.IssuedUtc.HasValue)
+            string notBeforeString;
+            if (authProperties.Dictionary.TryGetValue("IdTokenIssuedUtc", out notBeforeString))
             {
-                notBefore = authProperties.IssuedUtc.Value.UtcDateTime;
-                expires = notBefore.Add(options.IdTokenExpireTimeSpan);
+                DateTimeOffset value;
+                if (DateTimeOffset.TryParseExact(notBeforeString, "r", CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out value))
+                    notBefore = value;
             }
-            else
+
+            string expiresString;
+            if (authProperties.Dictionary.TryGetValue("IdTokenExpiresUtc", out expiresString))
             {
-                notBefore = DateTime.Now.ToUniversalTime();
-                expires = DateTime.Now.Add(options.IdTokenExpireTimeSpan).ToUniversalTime();
+                DateTimeOffset value;
+                if (DateTimeOffset.TryParseExact(expiresString, "r", CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out value))
+                    expires = value;
             }
 
             var jwt = options.TokenHandler.CreateToken(
                 issuer: options.IssuerName,
                 signingCredentials: options.SigningCredentials,
                 audience: clientId,
-                notBefore: notBefore,
-                expires: expires,
+                notBefore: notBefore.UtcDateTime,
+                expires: expires.UtcDateTime,
                 signatureProvider: options.SignatureProvider
             );
 
