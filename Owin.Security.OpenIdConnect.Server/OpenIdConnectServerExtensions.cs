@@ -13,6 +13,7 @@ using Microsoft.Owin.Security.OAuth;
 using Microsoft.Owin.Security.OpenIdConnect.Server;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin.Security;
+using System.Globalization;
 
 namespace Owin
 {
@@ -121,8 +122,24 @@ namespace Owin
             var iat = EpochTime.GetIntDate(options.SystemClock.UtcNow.UtcDateTime).ToString();
             outputClaims.Add(new Claim("iat", iat));
 
-            DateTimeOffset notBefore = authProperties.IssuedUtc ?? options.SystemClock.UtcNow;
-            DateTimeOffset expires = authProperties.ExpiresUtc ?? notBefore.Add(options.IdTokenExpireTimeSpan);
+            DateTimeOffset notBefore = options.SystemClock.UtcNow;
+            DateTimeOffset expires = notBefore.Add(options.IdTokenExpireTimeSpan);
+
+            string notBeforeString;
+            if (authProperties.Dictionary.TryGetValue("IdTokenIssuedUtc", out notBeforeString))
+            {
+                DateTimeOffset value;
+                if (DateTimeOffset.TryParseExact(notBeforeString, "r", CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out value))
+                    notBefore = value;
+            }
+
+            string expiresString;
+            if (authProperties.Dictionary.TryGetValue("IdTokenExpiresUtc", out expiresString))
+            {
+                DateTimeOffset value;
+                if (DateTimeOffset.TryParseExact(expiresString, "r", CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out value))
+                    expires = value;
+            }
 
             var jwt = options.TokenHandler.CreateToken(
                 issuer: options.IssuerName,
