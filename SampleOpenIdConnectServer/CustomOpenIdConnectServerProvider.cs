@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Owin.Security.OAuth;
-
-namespace SampleOpenIdConnectServer
+﻿namespace SampleOpenIdConnectServer
 {
-    class CustomOAuthProvider : OAuthAuthorizationServerProvider
+    using System.Threading.Tasks;
+    using Microsoft.Owin.Security.OpenIdConnect.Server;
+
+    class CustomOpenIdConnectServerProvider : OpenIdConnectServerProvider
     {
-        public override Task ValidateClientAuthentication(OAuthValidateClientAuthenticationContext context)
+        public override Task ValidateClientAuthentication(OpenIdConnectValidateClientAuthenticationContext context)
         {
 
             if (context.ClientId == null)
@@ -28,7 +24,7 @@ namespace SampleOpenIdConnectServer
 
         }
 
-        public override Task ValidateClientRedirectUri(OAuthValidateClientRedirectUriContext context)
+        public override Task ValidateClientRedirectUri(OpenIdConnectValidateClientRedirectUriContext context)
         {
             if (context.ClientId == "myClient" &&
                             context.RedirectUri == "http://localhost:57264/oidc")
