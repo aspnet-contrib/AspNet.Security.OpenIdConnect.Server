@@ -66,20 +66,48 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server.Messages
 
         /// <summary>
         /// True if the "response_type" query string parameter is "code".
-        /// See also, http://tools.ietf.org/html/rfc6749#section-4.1.1
+        /// See http://tools.ietf.org/html/rfc6749#section-4.1.1
         /// </summary>
         public bool IsAuthorizationCodeGrantType
         {
-            get { return ContainsGrantType(Constants.ResponseTypes.Code); }
+            get { return string.Equals(ResponseType, Constants.ResponseTypes.Code); }
         }
 
         /// <summary>
-        /// True if the "response_type" query string parameter is "token".
-        /// See also, http://tools.ietf.org/html/rfc6749#section-4.2.1
+        /// True if the "response_type" query string parameter
+        /// contains "token" and/or "id_token" but not "code".
+        /// See http://tools.ietf.org/html/rfc6749#section-4.2.1 and
+        /// http://openid.net/specs/openid-connect-core-1_0.html
         /// </summary>
+        /// <remarks>
+        /// The OIDC implicit grant type can be composed of an "id_token" part and a "token" part.
+        /// That said, the OIDC specs are unclear concerning the OAuth2 "token" part alone.
+        /// For the moment, "response_type=token" is considered as a valid implicit grant type.
+        /// </remarks>
         public bool IsImplicitGrantType
         {
-            get { return ContainsGrantType(Constants.ResponseTypes.Token); }
+            get
+            {
+                return !ContainsGrantType(Constants.ResponseTypes.Code) &&
+                    (ContainsGrantType(Constants.ResponseTypes.IdToken) ||
+                     ContainsGrantType(Constants.ResponseTypes.Token));
+            }
+        }
+
+        /// <summary>
+        /// True if the "response_type" query string parameter
+        /// contains "code" and "token" and/or "id_token".
+        /// See http://tools.ietf.org/html/rfc6749#section-4.2.1 and
+        /// http://openid.net/specs/openid-connect-core-1_0.html
+        /// </summary>
+        public bool IsHybridGrantType
+        {
+            get
+            {
+                return ContainsGrantType(Constants.ResponseTypes.Code) &&
+                    (ContainsGrantType(Constants.ResponseTypes.IdToken) ||
+                     ContainsGrantType(Constants.ResponseTypes.Token));
+            }
         }
 
         public bool IsFormPostResponseMode

@@ -134,10 +134,16 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
                 validatingContext.SetError(Constants.Errors.InvalidRequest);
             }
             else if (!authorizeRequest.IsAuthorizationCodeGrantType &&
-                !authorizeRequest.IsImplicitGrantType)
+                !authorizeRequest.IsImplicitGrantType &&
+                !authorizeRequest.IsHybridGrantType)
             {
                 _logger.WriteVerbose("Authorize endpoint request contains unsupported response_type parameter");
                 validatingContext.SetError(Constants.Errors.UnsupportedResponseType);
+            }
+            else if (!authorizeRequest.Scope.Contains(OpenIdConnectScopes.OpenId))
+            {
+                _logger.WriteVerbose("The 'openid' scope part was missing");
+                validatingContext.SetError(Constants.Errors.InvalidRequest);
             }
             else
             {
@@ -177,9 +183,9 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
                 return;
             }
 
-            var returnParameter = new Dictionary<string, string>();
+            var returnParameters = new Dictionary<string, string>();
 
-            if (_authorizeEndpointRequest.IsAuthorizationCodeGrantType)
+            if (_authorizeEndpointRequest.IsAuthorizationCodeGrantType || _authorizeEndpointRequest.IsHybridGrantType)
             {
                 DateTimeOffset currentUtc = Options.SystemClock.UtcNow;
                 signin.Properties.IssuedUtc = currentUtc;
@@ -218,49 +224,49 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
                                 null,
                                 code);
 
-                if (_authorizeEndpointRequest.ContainsGrantType(OpenIdConnectResponseTypes.IdToken) &&
-                    _authorizeEndpointRequest.Scope.Contains(OpenIdConnectScopes.OpenId))
+                if (_authorizeEndpointRequest.ContainsGrantType(OpenIdConnectResponseTypes.IdToken))
                 {
                     var idToken = CreateIdToken(
                         authResponseContext.Identity, authResponseContext.Properties,
                         authResponseContext.AuthorizeEndpointRequest.ClientId, authResponseContext.AccessToken,
                         authResponseContext.AuthorizationCode, authResponseContext.Request.Query["nonce"]);
 
-                    authResponseContext.AdditionalResponseParameters.Add(OpenIdConnectResponseTypes.IdToken, idToken);
+                    returnParameters[Constants.Parameters.IdToken] = idToken;
                 }
 
                 await Options.Provider.AuthorizationEndpointResponse(authResponseContext);
 
                 foreach (var parameter in authResponseContext.AdditionalResponseParameters)
                 {
-                    returnParameter[parameter.Key] = parameter.Value.ToString();
+                    returnParameters[parameter.Key] = parameter.Value.ToString();
                 }
 
-                returnParameter[Constants.Parameters.Code] = code;
+                returnParameters[Constants.Parameters.Code] = code;
 
                 if (!String.IsNullOrEmpty(_authorizeEndpointRequest.State))
                 {
-                    returnParameter[Constants.Parameters.State] = _authorizeEndpointRequest.State;
+                    returnParameters[Constants.Parameters.State] = _authorizeEndpointRequest.State;
                 }
 
                 string location = string.Empty;
                 if (_authorizeEndpointRequest.IsFormPostResponseMode)
                 {
                     location = Options.FormPostEndpoint.ToString();
-                    returnParameter[Constants.Parameters.RedirectUri] = _clientContext.RedirectUri;
+                    returnParameters[Constants.Parameters.RedirectUri] = _clientContext.RedirectUri;
                 }
                 else
                 {
                     location = _clientContext.RedirectUri;
                 }
 
-                foreach (var key in returnParameter.Keys)
+                foreach (var key in returnParameters.Keys)
                 {
-                    location = WebUtilities.AddQueryString(location, key, returnParameter[key]);
+                    location = WebUtilities.AddQueryString(location, key, returnParameters[key]);
                 }
 
                 Response.Redirect(location);
             }
+
             else if (_authorizeEndpointRequest.IsImplicitGrantType)
             {
                 string location = _clientContext.RedirectUri;
@@ -310,15 +316,14 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
                                 accessToken,
                                 null);
 
-                if (_authorizeEndpointRequest.ContainsGrantType(OpenIdConnectResponseTypes.IdToken) &&
-                    _authorizeEndpointRequest.Scope.Contains(OpenIdConnectScopes.OpenId))
+                if (_authorizeEndpointRequest.ContainsGrantType(OpenIdConnectResponseTypes.IdToken))
                 {
                     var idToken = CreateIdToken(
                         authResponseContext.Identity, authResponseContext.Properties,
                         authResponseContext.AuthorizeEndpointRequest.ClientId, authResponseContext.AccessToken,
                         authResponseContext.AuthorizationCode, authResponseContext.Request.Query["nonce"]);
 
-                    authResponseContext.AdditionalResponseParameters.Add(OpenIdConnectResponseTypes.IdToken, idToken);
+                    authResponseContext.AdditionalResponseParameters.Add(Constants.Parameters.IdToken, idToken);
                 }
 
                 await Options.Provider.AuthorizationEndpointResponse(authResponseContext);
@@ -465,7 +470,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
             var idToken = CreateIdToken(
                 tokenEndpointResponseContext.Identity, tokenEndpointResponseContext.Properties,
                 tokenEndpointResponseContext.TokenEndpointRequest.ClientId, tokenEndpointResponseContext.AccessToken);
-            tokenEndpointResponseContext.AdditionalResponseParameters.Add(OpenIdConnectResponseTypes.IdToken, idToken);
+            tokenEndpointResponseContext.AdditionalResponseParameters.Add(Constants.Parameters.IdToken, idToken);
 
             await Options.Provider.TokenEndpointResponse(tokenEndpointResponseContext);
 
