@@ -199,21 +199,25 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
                     signin.Properties.Dictionary[Constants.Extra.RedirectUri] = _authorizeEndpointRequest.RedirectUri;
                 }
 
-                var context = new AuthenticationTokenCreateContext(
-                    Context,
-                    Options.AuthorizationCodeFormat,
-                    new AuthenticationTicket(signin.Identity, signin.Properties));
-
-                await Options.AuthorizationCodeProvider.CreateAsync(context);
-
-                string code = context.Token;
-                if (string.IsNullOrEmpty(code))
+                string code = null;
+                if (_authorizeEndpointRequest.ContainsGrantType(Constants.ResponseTypes.Code))
                 {
-                    _logger.WriteError("response_type code requires an Options.AuthorizationCodeProvider implementing a single-use token.");
-                    var errorContext = new OpenIdConnectValidateAuthorizeRequestContext(Context, Options, _authorizeEndpointRequest, _clientContext);
-                    errorContext.SetError(Constants.Errors.UnsupportedResponseType);
-                    await SendErrorRedirectAsync(_clientContext, errorContext);
-                    return;
+                    var context = new AuthenticationTokenCreateContext(
+                        Context,
+                        Options.AuthorizationCodeFormat,
+                        new AuthenticationTicket(signin.Identity, signin.Properties));
+
+                    await Options.AuthorizationCodeProvider.CreateAsync(context);
+
+                    code = context.Token;
+                    if (string.IsNullOrEmpty(code))
+                    {
+                        _logger.WriteError("response_type code requires an Options.AuthorizationCodeProvider implementing a single-use token.");
+                        var errorContext = new OpenIdConnectValidateAuthorizeRequestContext(Context, Options, _authorizeEndpointRequest, _clientContext);
+                        errorContext.SetError(Constants.Errors.UnsupportedResponseType);
+                        await SendErrorRedirectAsync(_clientContext, errorContext);
+                        return;
+                    }
                 }
 
                 var authResponseContext = new OpenIdConnectAuthorizationEndpointResponseContext(
@@ -241,7 +245,10 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
                     returnParameters[parameter.Key] = parameter.Value.ToString();
                 }
 
-                returnParameters[Constants.Parameters.Code] = code;
+                if (_authorizeEndpointRequest.ContainsGrantType(Constants.ResponseTypes.Code))
+                {
+                    returnParameters[Constants.Parameters.Code] = code;
+                }
 
                 if (!String.IsNullOrEmpty(_authorizeEndpointRequest.State))
                 {
