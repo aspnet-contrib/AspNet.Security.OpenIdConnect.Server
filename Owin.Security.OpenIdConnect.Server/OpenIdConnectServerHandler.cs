@@ -337,7 +337,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
                         authResponseContext.AuthorizeEndpointRequest.ClientId, authResponseContext.AccessToken,
                         authResponseContext.AuthorizationCode, authResponseContext.Request.Query["nonce"]);
 
-                    authResponseContext.AdditionalResponseParameters.Add(Constants.Parameters.IdToken, idToken);
+                    appender.Append(Constants.Parameters.IdToken, idToken);
                 }
 
                 await Options.Provider.AuthorizationEndpointResponse(authResponseContext);
