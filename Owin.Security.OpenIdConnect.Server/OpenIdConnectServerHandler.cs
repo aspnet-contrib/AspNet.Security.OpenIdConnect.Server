@@ -278,31 +278,38 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
                 // associate client_id with access token
                 signin.Properties.Dictionary[Constants.Extra.ClientId] = _authorizeEndpointRequest.ClientId;
 
-                var accessTokenContext = new AuthenticationTokenCreateContext(
-                    Context,
-                    Options.AccessTokenFormat,
-                    new AuthenticationTicket(signin.Identity, signin.Properties));
-
-                await Options.AccessTokenProvider.CreateAsync(accessTokenContext);
-
-                string accessToken = accessTokenContext.Token;
-                if (string.IsNullOrEmpty(accessToken))
-                {
-                    accessToken = accessTokenContext.SerializeTicket();
-                }
-
-                DateTimeOffset? accessTokenExpiresUtc = accessTokenContext.Ticket.Properties.ExpiresUtc;
-
+                string accessToken = null;
                 var appender = new Appender(location, '#');
-                appender
-                    .Append(Constants.Parameters.AccessToken, accessToken)
-                    .Append(Constants.Parameters.TokenType, Constants.TokenTypes.Bearer);
-                if (accessTokenExpiresUtc.HasValue)
+
+                if (_authorizeEndpointRequest.ContainsGrantType(Constants.ResponseTypes.Token))
                 {
-                    TimeSpan? expiresTimeSpan = accessTokenExpiresUtc - currentUtc;
-                    var expiresIn = (long)(expiresTimeSpan.Value.TotalSeconds + .5);
-                    appender.Append(Constants.Parameters.ExpiresIn, expiresIn.ToString(CultureInfo.InvariantCulture));
+                    var accessTokenContext = new AuthenticationTokenCreateContext(
+                        Context,
+                        Options.AccessTokenFormat,
+                        new AuthenticationTicket(signin.Identity, signin.Properties));
+
+                    await Options.AccessTokenProvider.CreateAsync(accessTokenContext);
+
+                    accessToken = accessTokenContext.Token;
+                    if (string.IsNullOrEmpty(accessToken))
+                    {
+                        accessToken = accessTokenContext.SerializeTicket();
+                    }
+
+                    DateTimeOffset? accessTokenExpiresUtc = accessTokenContext.Ticket.Properties.ExpiresUtc;
+
+                    appender
+                        .Append(Constants.Parameters.AccessToken, accessToken)
+                        .Append(Constants.Parameters.TokenType, Constants.TokenTypes.Bearer);
+
+                    if (accessTokenExpiresUtc.HasValue)
+                    {
+                        TimeSpan? expiresTimeSpan = accessTokenExpiresUtc - currentUtc;
+                        var expiresIn = (long)(expiresTimeSpan.Value.TotalSeconds + .5);
+                        appender.Append(Constants.Parameters.ExpiresIn, expiresIn.ToString(CultureInfo.InvariantCulture));
+                    }
                 }
+
                 if (!String.IsNullOrEmpty(_authorizeEndpointRequest.State))
                 {
                     appender.Append(Constants.Parameters.State, _authorizeEndpointRequest.State);
