@@ -14,6 +14,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
             public const string Scope = "scope";
             public const string State = "state";
             public const string Code = "code";
+            public const string IdToken = "id_token";
             public const string RefreshToken = "refresh_token";
             public const string Username = "username";
             public const string Password = "password";
@@ -30,6 +31,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
         public static class ResponseTypes
         {
             public const string Code = "code";
+            public const string IdToken = "id_token";
             public const string Token = "token";
         }
 
