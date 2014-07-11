@@ -57,8 +57,8 @@
         /// If not provided by the application the default data protection provider depends on the host server. 
         /// The SystemWeb host on IIS will use ASP.NET machine key data protection, and HttpListener and other self-hosted
         /// servers will use DPAPI data protection. If a different access token
-        /// provider or format is assigned, a compatible instance must be assigned to the OpenIdConnectBearerAuthenticationOptions.AccessTokenProvider 
-        /// or OpenIdConnectBearerAuthenticationOptions.AccessTokenFormat property of the resource server.
+        /// provider or format is assigned, a compatible instance must be assigned to the OAuthBearerAuthenticationOptions.AccessTokenProvider 
+        /// or OAuthBearerAuthenticationOptions.AccessTokenFormat property of the resource server.
         /// </summary>
         public ISecureDataFormat<AuthenticationTicket> AccessTokenFormat { get; set; }
 
@@ -93,8 +93,8 @@
         /// <summary>
         /// Produces a bearer token the client application will typically be providing to resource server as the authorization bearer 
         /// http request header. If not provided the token produced on the server's default data protection. If a different access token
-        /// provider or format is assigned, a compatible instance must be assigned to the OpenIdConnectBearerAuthenticationOptions.AccessTokenProvider 
-        /// or OpenIdConnectBearerAuthenticationOptions.AccessTokenFormat property of the resource server.
+        /// provider or format is assigned, a compatible instance must be assigned to the OAuthBearerAuthenticationOptions.AccessTokenProvider 
+        /// or OAuthBearerAuthenticationOptions.AccessTokenFormat property of the resource server.
         /// </summary>
         public IAuthenticationTokenProvider AccessTokenProvider { get; set; }
 
