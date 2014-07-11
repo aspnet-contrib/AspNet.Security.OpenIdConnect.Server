@@ -199,7 +199,8 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
                     signin.Properties.Dictionary[Constants.Extra.RedirectUri] = _authorizeEndpointRequest.RedirectUri;
                 }
 
-                string code = null;
+                string code = null, accessToken = null;
+
                 if (_authorizeEndpointRequest.ContainsGrantType(Constants.ResponseTypes.Code))
                 {
                     var context = new AuthenticationTokenCreateContext(
@@ -218,15 +219,41 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
                         await SendErrorRedirectAsync(_clientContext, errorContext);
                         return;
                     }
+
+                    returnParameters[Constants.Parameters.Code] = code;
+                }
+
+                if (_authorizeEndpointRequest.ContainsGrantType(Constants.ResponseTypes.Token))
+                {
+                    var accessTokenContext = new AuthenticationTokenCreateContext(
+                        Context,
+                        Options.AccessTokenFormat,
+                        new AuthenticationTicket(signin.Identity, signin.Properties));
+
+                    await Options.AccessTokenProvider.CreateAsync(accessTokenContext);
+
+                    accessToken = accessTokenContext.Token;
+                    if (string.IsNullOrEmpty(accessToken))
+                    {
+                        accessToken = accessTokenContext.SerializeTicket();
+                    }
+
+                    returnParameters[Constants.Parameters.AccessToken] = accessToken;
+                    returnParameters[Constants.Parameters.TokenType] = Constants.TokenTypes.Bearer;
+
+                    DateTimeOffset? accessTokenExpiresUtc = accessTokenContext.Ticket.Properties.ExpiresUtc;
+
+                    if (accessTokenExpiresUtc.HasValue)
+                    {
+                        TimeSpan? expiresTimeSpan = accessTokenExpiresUtc - currentUtc;
+                        var expiresIn = (long)(expiresTimeSpan.Value.TotalSeconds + .5);
+                        returnParameters[Constants.Parameters.ExpiresIn] = expiresIn.ToString(CultureInfo.InvariantCulture);
+                    }
                 }
 
                 var authResponseContext = new OpenIdConnectAuthorizationEndpointResponseContext(
-                                Context,
-                                Options,
-                                new AuthenticationTicket(signin.Identity, signin.Properties),
-                                _authorizeEndpointRequest,
-                                null,
-                                code);
+                    Context, Options, new AuthenticationTicket(signin.Identity, signin.Properties),
+                    _authorizeEndpointRequest, accessToken, code);
 
                 if (_authorizeEndpointRequest.ContainsGrantType(OpenIdConnectResponseTypes.IdToken))
                 {
@@ -243,11 +270,6 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
                 foreach (var parameter in authResponseContext.AdditionalResponseParameters)
                 {
                     returnParameters[parameter.Key] = parameter.Value.ToString();
-                }
-
-                if (_authorizeEndpointRequest.ContainsGrantType(Constants.ResponseTypes.Code))
-                {
-                    returnParameters[Constants.Parameters.Code] = code;
                 }
 
                 if (!String.IsNullOrEmpty(_authorizeEndpointRequest.State))
