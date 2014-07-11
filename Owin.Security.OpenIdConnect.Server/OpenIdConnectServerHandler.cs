@@ -199,30 +199,61 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
                     signin.Properties.Dictionary[Constants.Extra.RedirectUri] = _authorizeEndpointRequest.RedirectUri;
                 }
 
-                var context = new AuthenticationTokenCreateContext(
-                    Context,
-                    Options.AuthorizationCodeFormat,
-                    new AuthenticationTicket(signin.Identity, signin.Properties));
+                string code = null, accessToken = null;
 
-                await Options.AuthorizationCodeProvider.CreateAsync(context);
-
-                string code = context.Token;
-                if (string.IsNullOrEmpty(code))
+                if (_authorizeEndpointRequest.ContainsGrantType(Constants.ResponseTypes.Code))
                 {
-                    _logger.WriteError("response_type code requires an Options.AuthorizationCodeProvider implementing a single-use token.");
-                    var errorContext = new OpenIdConnectValidateAuthorizeRequestContext(Context, Options, _authorizeEndpointRequest, _clientContext);
-                    errorContext.SetError(Constants.Errors.UnsupportedResponseType);
-                    await SendErrorRedirectAsync(_clientContext, errorContext);
-                    return;
+                    var context = new AuthenticationTokenCreateContext(
+                        Context,
+                        Options.AuthorizationCodeFormat,
+                        new AuthenticationTicket(signin.Identity, signin.Properties));
+
+                    await Options.AuthorizationCodeProvider.CreateAsync(context);
+
+                    code = context.Token;
+                    if (string.IsNullOrEmpty(code))
+                    {
+                        _logger.WriteError("response_type code requires an Options.AuthorizationCodeProvider implementing a single-use token.");
+                        var errorContext = new OpenIdConnectValidateAuthorizeRequestContext(Context, Options, _authorizeEndpointRequest, _clientContext);
+                        errorContext.SetError(Constants.Errors.UnsupportedResponseType);
+                        await SendErrorRedirectAsync(_clientContext, errorContext);
+                        return;
+                    }
+
+                    returnParameters[Constants.Parameters.Code] = code;
+                }
+
+                if (_authorizeEndpointRequest.ContainsGrantType(Constants.ResponseTypes.Token))
+                {
+                    var accessTokenContext = new AuthenticationTokenCreateContext(
+                        Context,
+                        Options.AccessTokenFormat,
+                        new AuthenticationTicket(signin.Identity, signin.Properties));
+
+                    await Options.AccessTokenProvider.CreateAsync(accessTokenContext);
+
+                    accessToken = accessTokenContext.Token;
+                    if (string.IsNullOrEmpty(accessToken))
+                    {
+                        accessToken = accessTokenContext.SerializeTicket();
+                    }
+
+                    returnParameters[Constants.Parameters.AccessToken] = accessToken;
+                    returnParameters[Constants.Parameters.TokenType] = Constants.TokenTypes.Bearer;
+
+                    DateTimeOffset? accessTokenExpiresUtc = accessTokenContext.Ticket.Properties.ExpiresUtc;
+
+                    if (accessTokenExpiresUtc.HasValue)
+                    {
+                        TimeSpan? expiresTimeSpan = accessTokenExpiresUtc - currentUtc;
+                        var expiresIn = (long)(expiresTimeSpan.Value.TotalSeconds + .5);
+                        returnParameters[Constants.Parameters.ExpiresIn] = expiresIn.ToString(CultureInfo.InvariantCulture);
+                    }
                 }
 
                 var authResponseContext = new OpenIdConnectAuthorizationEndpointResponseContext(
-                                Context,
-                                Options,
-                                new AuthenticationTicket(signin.Identity, signin.Properties),
-                                _authorizeEndpointRequest,
-                                null,
-                                code);
+                    Context, Options, new AuthenticationTicket(signin.Identity, signin.Properties),
+                    _authorizeEndpointRequest, accessToken, code);
 
                 if (_authorizeEndpointRequest.ContainsGrantType(OpenIdConnectResponseTypes.IdToken))
                 {
@@ -240,8 +271,6 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
                 {
                     returnParameters[parameter.Key] = parameter.Value.ToString();
                 }
-
-                returnParameters[Constants.Parameters.Code] = code;
 
                 if (!String.IsNullOrEmpty(_authorizeEndpointRequest.State))
                 {
@@ -278,31 +307,38 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
                 // associate client_id with access token
                 signin.Properties.Dictionary[Constants.Extra.ClientId] = _authorizeEndpointRequest.ClientId;
 
-                var accessTokenContext = new AuthenticationTokenCreateContext(
-                    Context,
-                    Options.AccessTokenFormat,
-                    new AuthenticationTicket(signin.Identity, signin.Properties));
-
-                await Options.AccessTokenProvider.CreateAsync(accessTokenContext);
-
-                string accessToken = accessTokenContext.Token;
-                if (string.IsNullOrEmpty(accessToken))
-                {
-                    accessToken = accessTokenContext.SerializeTicket();
-                }
-
-                DateTimeOffset? accessTokenExpiresUtc = accessTokenContext.Ticket.Properties.ExpiresUtc;
-
+                string accessToken = null;
                 var appender = new Appender(location, '#');
-                appender
-                    .Append(Constants.Parameters.AccessToken, accessToken)
-                    .Append(Constants.Parameters.TokenType, Constants.TokenTypes.Bearer);
-                if (accessTokenExpiresUtc.HasValue)
+
+                if (_authorizeEndpointRequest.ContainsGrantType(Constants.ResponseTypes.Token))
                 {
-                    TimeSpan? expiresTimeSpan = accessTokenExpiresUtc - currentUtc;
-                    var expiresIn = (long)(expiresTimeSpan.Value.TotalSeconds + .5);
-                    appender.Append(Constants.Parameters.ExpiresIn, expiresIn.ToString(CultureInfo.InvariantCulture));
+                    var accessTokenContext = new AuthenticationTokenCreateContext(
+                        Context,
+                        Options.AccessTokenFormat,
+                        new AuthenticationTicket(signin.Identity, signin.Properties));
+
+                    await Options.AccessTokenProvider.CreateAsync(accessTokenContext);
+
+                    accessToken = accessTokenContext.Token;
+                    if (string.IsNullOrEmpty(accessToken))
+                    {
+                        accessToken = accessTokenContext.SerializeTicket();
+                    }
+
+                    DateTimeOffset? accessTokenExpiresUtc = accessTokenContext.Ticket.Properties.ExpiresUtc;
+
+                    appender
+                        .Append(Constants.Parameters.AccessToken, accessToken)
+                        .Append(Constants.Parameters.TokenType, Constants.TokenTypes.Bearer);
+
+                    if (accessTokenExpiresUtc.HasValue)
+                    {
+                        TimeSpan? expiresTimeSpan = accessTokenExpiresUtc - currentUtc;
+                        var expiresIn = (long)(expiresTimeSpan.Value.TotalSeconds + .5);
+                        appender.Append(Constants.Parameters.ExpiresIn, expiresIn.ToString(CultureInfo.InvariantCulture));
+                    }
                 }
+
                 if (!String.IsNullOrEmpty(_authorizeEndpointRequest.State))
                 {
                     appender.Append(Constants.Parameters.State, _authorizeEndpointRequest.State);
@@ -323,7 +359,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
                         authResponseContext.AuthorizeEndpointRequest.ClientId, authResponseContext.AccessToken,
                         authResponseContext.AuthorizationCode, authResponseContext.Request.Query["nonce"]);
 
-                    authResponseContext.AdditionalResponseParameters.Add(Constants.Parameters.IdToken, idToken);
+                    appender.Append(Constants.Parameters.IdToken, idToken);
                 }
 
                 await Options.Provider.AuthorizationEndpointResponse(authResponseContext);
