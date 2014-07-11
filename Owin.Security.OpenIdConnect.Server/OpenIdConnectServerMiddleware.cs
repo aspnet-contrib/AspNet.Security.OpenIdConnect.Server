@@ -10,7 +10,7 @@ using Owin;
 namespace Microsoft.Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Authorization Server middleware component which is added to an OWIN pipeline. This class is not
-    /// created by application code directly, instead it is added by calling the the IAppBuilder UseOpenIdConnectAuthorizationServer 
+    /// created by application code directly, instead it is added by calling the the IAppBuilder UseOpenIdConnectServer 
     /// extension method.
     /// </summary>
     public class OpenIdConnectServerMiddleware : AuthenticationMiddleware<OpenIdConnectServerOptions> {
@@ -18,7 +18,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server {
 
         /// <summary>
         /// Authorization Server middleware component which is added to an OWIN pipeline. This constructor is not
-        /// called by application code directly, instead it is added by calling the the IAppBuilder UseOpenIdConnectAuthorizationServer 
+        /// called by application code directly, instead it is added by calling the the IAppBuilder UseOpenIdConnectServer 
         /// extension method.
         /// </summary>
         public OpenIdConnectServerMiddleware(
@@ -31,40 +31,51 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server {
             if (Options.Provider == null) {
                 Options.Provider = new OpenIdConnectServerProvider();
             }
+
             if (Options.AuthorizationCodeFormat == null) {
-                IDataProtector dataProtecter = app.CreateDataProtector(
+                IDataProtector dataProtector = app.CreateDataProtector(
                     typeof(OpenIdConnectServerMiddleware).FullName,
                     "Authentication_Code", "v1");
 
-                Options.AuthorizationCodeFormat = new TicketDataFormat(dataProtecter);
+                Options.AuthorizationCodeFormat = new TicketDataFormat(dataProtector);
             }
+
             if (Options.AccessTokenFormat == null) {
-                IDataProtector dataProtecter = app.CreateDataProtector(
+                IDataProtector dataProtector = app.CreateDataProtector(
                     typeof(OpenIdConnectServerMiddleware).Namespace,
                     "Access_Token", "v1");
-                Options.AccessTokenFormat = new TicketDataFormat(dataProtecter);
+
+                Options.AccessTokenFormat = new TicketDataFormat(dataProtector);
             }
+
             if (Options.RefreshTokenFormat == null) {
-                IDataProtector dataProtecter = app.CreateDataProtector(
+                IDataProtector dataProtector = app.CreateDataProtector(
                     typeof(OpenIdConnectServerMiddleware).Namespace,
                     "Refresh_Token", "v1");
-                Options.RefreshTokenFormat = new TicketDataFormat(dataProtecter);
+
+                Options.RefreshTokenFormat = new TicketDataFormat(dataProtector);
             }
+
             if (Options.AuthorizationCodeProvider == null) {
                 Options.AuthorizationCodeProvider = new AuthenticationTokenProvider();
             }
+
             if (Options.AccessTokenProvider == null) {
                 Options.AccessTokenProvider = new AuthenticationTokenProvider();
             }
+
             if (Options.RefreshTokenProvider == null) {
                 Options.RefreshTokenProvider = new AuthenticationTokenProvider();
             }
+
             if (Options.ServerClaimsMapper == null) {
                 throw new ArgumentNullException("options.ServerClaimsMapper");
             }
+
             if (Options.SigningCredentials == null) {
                 throw new ArgumentNullException("options.SigningCredentials");
             }
+
             if (string.IsNullOrWhiteSpace(Options.IssuerName)) {
                 throw new ArgumentException("options.IssuerName");
             }

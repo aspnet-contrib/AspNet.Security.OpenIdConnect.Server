@@ -20,7 +20,7 @@ namespace SampleOpenIdConnectServer {
             var key = new InMemorySymmetricSecurityKey(Encoding.UTF8.GetBytes("secret_secret_secret"));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature, SecurityAlgorithms.Sha256Digest);
 
-            app.UseOpenIdConnectAuthorizationServer(new OpenIdConnectServerOptions {
+            app.UseOpenIdConnectServer(new OpenIdConnectServerOptions {
                 IdTokenExpireTimeSpan = TimeSpan.FromMinutes(60),
                 IssuerName = "urn:authServer",
                 SigningCredentials = credentials,
