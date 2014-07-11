@@ -2,13 +2,11 @@
 
 using Microsoft.Owin.Security.Provider;
 
-namespace Microsoft.Owin.Security.OpenIdConnect.Server
-{
+namespace Microsoft.Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Specifies the HTTP response header for the bearer authentication scheme.
     /// </summary>
-    public class OpenIdConnectChallengeContext : BaseContext
-    {
+    public class OpenIdConnectChallengeContext : BaseContext {
         /// <summary>
         /// Initializes a new <see cref="OpenIdConnectRequestTokenContext"/>
         /// </summary>
@@ -17,8 +15,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
         public OpenIdConnectChallengeContext(
             IOwinContext context,
             string challenge)
-            : base(context)
-        {
+            : base(context) {
             Challenge = challenge;
         }
 

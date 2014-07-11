@@ -1,12 +1,10 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
 
-namespace Microsoft.Owin.Security.OpenIdConnect.Server
-{
+namespace Microsoft.Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Base class used for certain event contexts
     /// </summary>
-    public abstract class BaseValidatingClientContext : BaseValidatingContext<OpenIdConnectServerOptions>
-    {
+    public abstract class BaseValidatingClientContext : BaseValidatingContext<OpenIdConnectServerOptions> {
         /// <summary>
         /// Initializes base class used for certain event contexts
         /// </summary>
@@ -14,8 +12,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
             IOwinContext context,
             OpenIdConnectServerOptions options,
             string clientId)
-            : base(context, options)
-        {
+            : base(context, options) {
             ClientId = clientId;
         }
 

@@ -20,17 +20,13 @@ using Microsoft.Owin.Security.Cookies;
 
 [assembly: OwinStartup(typeof(Startup))]
 
-namespace SampleOpenIdConnectClient
-{
-    public class Startup
-    {
-        public void Configuration(IAppBuilder app)
-        {
+namespace SampleOpenIdConnectClient {
+    public class Startup {
+        public void Configuration(IAppBuilder app) {
             ConfigureOidcClientDemo(app);
         }
 
-        private static void ConfigureOidcClientDemo(IAppBuilder app)
-        {
+        private static void ConfigureOidcClientDemo(IAppBuilder app) {
             app.UseExternalSignInCookie("ExternalCookie");
 
             var key = new InMemorySymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes("secret_secret_secret"));
@@ -43,20 +39,18 @@ namespace SampleOpenIdConnectClient
                 ClientSecret = "secret_secret_secret",
                 RedirectUri = "http://localhost:57264/oidc",
                 Scope = "openid",
-                Configuration = new OpenIdConnectConfiguration
-                {
+                Configuration = new OpenIdConnectConfiguration {
                     AuthorizationEndpoint = "http://localhost:59504/auth.cshtml",
                     TokenEndpoint = "http://localhost:59504/token"
                 },
-                TokenValidationParameters = new TokenValidationParameters()
-                {
+                TokenValidationParameters = new TokenValidationParameters() {
                     ValidAudience = "myClient",
                     ValidIssuer = "urn:authServer",
                     IssuerSigningKey = key
                 }
             });
 
-            
+
         }
     }
 }

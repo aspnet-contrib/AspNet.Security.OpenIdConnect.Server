@@ -1,12 +1,10 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
 
-namespace Microsoft.Owin.Security.OpenIdConnect.Server
-{
+namespace Microsoft.Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used when handling OpenIdConnect extension grant types.
     /// </summary>
-    public class OpenIdConnectGrantCustomExtensionContext : BaseValidatingTicketContext<OpenIdConnectServerOptions>
-    {
+    public class OpenIdConnectGrantCustomExtensionContext : BaseValidatingTicketContext<OpenIdConnectServerOptions> {
         /// <summary>
         /// Initializes a new instance of the <see cref="OpenIdConnectGrantCustomExtensionContext"/> class
         /// </summary>
@@ -21,8 +19,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
             string clientId,
             string grantType,
             IReadableStringCollection parameters)
-            : base(context, options, null)
-        {
+            : base(context, options, null) {
             ClientId = clientId;
             GrantType = grantType;
             Parameters = parameters;

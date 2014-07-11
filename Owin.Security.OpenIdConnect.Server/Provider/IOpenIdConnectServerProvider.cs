@@ -2,14 +2,12 @@
 
 using System.Threading.Tasks;
 
-namespace Microsoft.Owin.Security.OpenIdConnect.Server
-{
+namespace Microsoft.Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Interface for OpenIdConnectServerOptions.Provider property used by Authorization
     /// Server to communicate with the web application while processing requests.
     /// </summary>
-    public interface IOpenIdConnectServerProvider
-    {
+    public interface IOpenIdConnectServerProvider {
         /// <summary>
         /// Called to determine if an incoming request is treated as an Authorize or Token
         /// endpoint. If Options.AuthorizeEndpointPath or Options.TokenEndpointPath

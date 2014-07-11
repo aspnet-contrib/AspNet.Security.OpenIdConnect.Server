@@ -9,14 +9,12 @@
     /// <summary>
     /// Options class provides information needed to control Authorization Server middleware behavior
     /// </summary>
-    public class OpenIdConnectServerOptions : AuthenticationOptions
-    {
+    public class OpenIdConnectServerOptions : AuthenticationOptions {
         /// <summary>
         /// Creates an instance of authorization server options with default values.
         /// </summary>
         public OpenIdConnectServerOptions()
-            : base(OpenIdConnectDefaults.AuthenticationType)
-        {
+            : base(OpenIdConnectDefaults.AuthenticationType) {
             AuthorizationCodeExpireTimeSpan = TimeSpan.FromMinutes(5);
             AccessTokenExpireTimeSpan = TimeSpan.FromMinutes(20);
             SystemClock = new SystemClock();

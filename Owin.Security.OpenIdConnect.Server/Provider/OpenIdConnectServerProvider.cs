@@ -3,21 +3,18 @@
 using System;
 using System.Threading.Tasks;
 
-namespace Microsoft.Owin.Security.OpenIdConnect.Server
-{
+namespace Microsoft.Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Default implementation of IOpenIdConnectAuthorizationServerProvider used by Authorization
     /// Server to communicate with the web application while processing requests. OpenIdConnectAuthorizationServerProvider provides some default behavior, 
     /// may be used as a virtual base class, and offers delegate properties which may be used to 
     /// handle individual calls without declaring a new class type.
     /// </summary>
-    public class OpenIdConnectServerProvider : IOpenIdConnectServerProvider
-    {
+    public class OpenIdConnectServerProvider : IOpenIdConnectServerProvider {
         /// <summary>
         /// Creates new instance of default provider behavior
         /// </summary>
-        public OpenIdConnectServerProvider()
-        {
+        public OpenIdConnectServerProvider() {
             OnMatchEndpoint = context => Task.FromResult<object>(null);
             OnValidateClientRedirectUri = context => Task.FromResult<object>(null);
             OnValidateClientAuthentication = context => Task.FromResult<object>(null);
@@ -182,8 +179,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task MatchEndpoint(OpenIdConnectMatchEndpointContext context)
-        {
+        public virtual Task MatchEndpoint(OpenIdConnectMatchEndpointContext context) {
             return OnMatchEndpoint.Invoke(context);
         }
 
@@ -196,8 +192,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task ValidateClientRedirectUri(OpenIdConnectValidateClientRedirectUriContext context)
-        {
+        public virtual Task ValidateClientRedirectUri(OpenIdConnectValidateClientRedirectUriContext context) {
             return OnValidateClientRedirectUri.Invoke(context);
         }
 
@@ -211,8 +206,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task ValidateClientAuthentication(OpenIdConnectValidateClientAuthenticationContext context)
-        {
+        public virtual Task ValidateClientAuthentication(OpenIdConnectValidateClientAuthenticationContext context) {
             return OnValidateClientAuthentication.Invoke(context);
         }
 
@@ -223,8 +217,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task ValidateAuthorizeRequest(OpenIdConnectValidateAuthorizeRequestContext context)
-        {
+        public virtual Task ValidateAuthorizeRequest(OpenIdConnectValidateAuthorizeRequestContext context) {
             return OnValidateAuthorizeRequest.Invoke(context);
         }
 
@@ -235,8 +228,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task ValidateTokenRequest(OpenIdConnectValidateTokenRequestContext context)
-        {
+        public virtual Task ValidateTokenRequest(OpenIdConnectValidateTokenRequestContext context) {
             return OnValidateTokenRequest.Invoke(context);
         }
 
@@ -253,8 +245,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task GrantAuthorizationCode(OpenIdConnectGrantAuthorizationCodeContext context)
-        {
+        public virtual Task GrantAuthorizationCode(OpenIdConnectGrantAuthorizationCodeContext context) {
             return OnGrantAuthorizationCode.Invoke(context);
         }
 
@@ -271,8 +262,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task GrantRefreshToken(OpenIdConnectGrantRefreshTokenContext context)
-        {
+        public virtual Task GrantRefreshToken(OpenIdConnectGrantRefreshTokenContext context) {
             return OnGrantRefreshToken.Invoke(context);
         }
 
@@ -288,8 +278,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task GrantResourceOwnerCredentials(OpenIdConnectGrantResourceOwnerCredentialsContext context)
-        {
+        public virtual Task GrantResourceOwnerCredentials(OpenIdConnectGrantResourceOwnerCredentialsContext context) {
             return OnGrantResourceOwnerCredentials.Invoke(context);
         }
 
@@ -304,8 +293,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task GrantClientCredentials(OpenIdConnectGrantClientCredentialsContext context)
-        {
+        public virtual Task GrantClientCredentials(OpenIdConnectGrantClientCredentialsContext context) {
             return OnGrantClientCredentials.Invoke(context);
         }
 
@@ -318,8 +306,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task GrantCustomExtension(OpenIdConnectGrantCustomExtensionContext context)
-        {
+        public virtual Task GrantCustomExtension(OpenIdConnectGrantCustomExtensionContext context) {
             return OnGrantCustomExtension.Invoke(context);
         }
 
@@ -334,8 +321,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task AuthorizeEndpoint(OpenIdConnectAuthorizeEndpointContext context)
-        {
+        public virtual Task AuthorizeEndpoint(OpenIdConnectAuthorizeEndpointContext context) {
             return OnAuthorizeEndpoint.Invoke(context);
         }
 
@@ -346,8 +332,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task TokenEndpoint(OpenIdConnectTokenEndpointContext context)
-        {
+        public virtual Task TokenEndpoint(OpenIdConnectTokenEndpointContext context) {
             return OnTokenEndpoint.Invoke(context);
         }
 
@@ -360,8 +345,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task AuthorizationEndpointResponse(OpenIdConnectAuthorizationEndpointResponseContext context)
-        {
+        public virtual Task AuthorizationEndpointResponse(OpenIdConnectAuthorizationEndpointResponseContext context) {
             return OnAuthorizationEndpointResponse.Invoke(context);
         }
 
@@ -370,8 +354,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        public virtual Task TokenEndpointResponse(OpenIdConnectTokenEndpointResponseContext context)
-        {
+        public virtual Task TokenEndpointResponse(OpenIdConnectTokenEndpointResponseContext context) {
             return OnTokenEndpointResponse.Invoke(context);
         }
     }

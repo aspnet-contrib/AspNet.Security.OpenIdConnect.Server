@@ -3,13 +3,11 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Microsoft.Owin.Security.OpenIdConnect.Server.Messages
-{
+namespace Microsoft.Owin.Security.OpenIdConnect.Server.Messages {
     /// <summary>
     /// Data object used by TokenEndpointRequest when the "grant_type" parameter is "refresh_token".
     /// </summary>
-    public class TokenEndpointRequestRefreshToken
-    {
+    public class TokenEndpointRequestRefreshToken {
         /// <summary>
         /// The value passed to the Token endpoint in the "refresh_token" parameter
         /// </summary>

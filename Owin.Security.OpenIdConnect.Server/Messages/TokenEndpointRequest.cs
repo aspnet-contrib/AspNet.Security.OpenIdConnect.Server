@@ -2,21 +2,17 @@
 
 using System;
 
-namespace Microsoft.Owin.Security.OpenIdConnect.Server.Messages
-{
+namespace Microsoft.Owin.Security.OpenIdConnect.Server.Messages {
     /// <summary>
     /// Data object representing the information contained in form encoded body of a Token endpoint request.
     /// </summary>
-    public class TokenEndpointRequest
-    {
+    public class TokenEndpointRequest {
         /// <summary>
         /// Creates a new instance populated with values from the form encoded body parameters.
         /// </summary>
         /// <param name="parameters">Form encoded body parameters from a request.</param>
-        public TokenEndpointRequest(IReadableStringCollection parameters)
-        {
-            if (parameters == null)
-            {
+        public TokenEndpointRequest(IReadableStringCollection parameters) {
+            if (parameters == null) {
                 throw new ArgumentNullException("parameters");
             }
 
@@ -25,42 +21,32 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server.Messages
             Parameters = parameters;
             GrantType = getParameter(Constants.Parameters.GrantType);
             ClientId = getParameter(Constants.Parameters.ClientId);
-            if (String.Equals(GrantType, Constants.GrantTypes.AuthorizationCode, StringComparison.Ordinal))
-            {
-                AuthorizationCodeGrant = new TokenEndpointRequestAuthorizationCode
-                {
+            if (String.Equals(GrantType, Constants.GrantTypes.AuthorizationCode, StringComparison.Ordinal)) {
+                AuthorizationCodeGrant = new TokenEndpointRequestAuthorizationCode {
                     Code = getParameter(Constants.Parameters.Code),
                     RedirectUri = getParameter(Constants.Parameters.RedirectUri),
                 };
             }
-            else if (String.Equals(GrantType, Constants.GrantTypes.ClientCredentials, StringComparison.Ordinal))
-            {
-                ClientCredentialsGrant = new TokenEndpointRequestClientCredentials
-                {
+            else if (String.Equals(GrantType, Constants.GrantTypes.ClientCredentials, StringComparison.Ordinal)) {
+                ClientCredentialsGrant = new TokenEndpointRequestClientCredentials {
                     Scope = (getParameter(Constants.Parameters.Scope) ?? string.Empty).Split(' ')
                 };
             }
-            else if (String.Equals(GrantType, Constants.GrantTypes.RefreshToken, StringComparison.Ordinal))
-            {
-                RefreshTokenGrant = new TokenEndpointRequestRefreshToken
-                {
+            else if (String.Equals(GrantType, Constants.GrantTypes.RefreshToken, StringComparison.Ordinal)) {
+                RefreshTokenGrant = new TokenEndpointRequestRefreshToken {
                     RefreshToken = getParameter(Constants.Parameters.RefreshToken),
                     Scope = (getParameter(Constants.Parameters.Scope) ?? string.Empty).Split(' ')
                 };
             }
-            else if (String.Equals(GrantType, Constants.GrantTypes.Password, StringComparison.Ordinal))
-            {
-                ResourceOwnerPasswordCredentialsGrant = new TokenEndpointRequestResourceOwnerPasswordCredentials
-                {
+            else if (String.Equals(GrantType, Constants.GrantTypes.Password, StringComparison.Ordinal)) {
+                ResourceOwnerPasswordCredentialsGrant = new TokenEndpointRequestResourceOwnerPasswordCredentials {
                     UserName = getParameter(Constants.Parameters.Username),
                     Password = getParameter(Constants.Parameters.Password),
                     Scope = (getParameter(Constants.Parameters.Scope) ?? string.Empty).Split(' ')
                 };
             }
-            else if (!String.IsNullOrEmpty(GrantType))
-            {
-                CustomExtensionGrant = new TokenEndpointRequestCustomExtension
-                {
+            else if (!String.IsNullOrEmpty(GrantType)) {
+                CustomExtensionGrant = new TokenEndpointRequestCustomExtension {
                     Parameters = parameters,
                 };
             }
@@ -117,8 +103,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server.Messages
         /// True when the "grant_type" is "authorization_code".
         /// See also http://tools.ietf.org/html/rfc6749#section-4.1.3
         /// </summary>    
-        public bool IsAuthorizationCodeGrantType
-        {
+        public bool IsAuthorizationCodeGrantType {
             get { return AuthorizationCodeGrant != null; }
         }
 
@@ -126,8 +111,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server.Messages
         /// True when the "grant_type" is "client_credentials".
         /// See also http://tools.ietf.org/html/rfc6749#section-4.4.2
         /// </summary>  
-        public bool IsClientCredentialsGrantType
-        {
+        public bool IsClientCredentialsGrantType {
             get { return ClientCredentialsGrant != null; }
         }
 
@@ -135,8 +119,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server.Messages
         /// True when the "grant_type" is "refresh_token".
         /// See also http://tools.ietf.org/html/rfc6749#section-6
         /// </summary>    
-        public bool IsRefreshTokenGrantType
-        {
+        public bool IsRefreshTokenGrantType {
             get { return RefreshTokenGrant != null; }
         }
 
@@ -144,8 +127,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server.Messages
         /// True when the "grant_type" is "password".
         /// See also http://tools.ietf.org/html/rfc6749#section-4.3.2
         /// </summary>    
-        public bool IsResourceOwnerPasswordCredentialsGrantType
-        {
+        public bool IsResourceOwnerPasswordCredentialsGrantType {
             get { return ResourceOwnerPasswordCredentialsGrant != null; }
         }
 
@@ -153,8 +135,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server.Messages
         /// True when the "grant_type" is unrecognized.
         /// See also http://tools.ietf.org/html/rfc6749#section-4.5
         /// </summary>
-        public bool IsCustomExtensionGrantType
-        {
+        public bool IsCustomExtensionGrantType {
             get { return CustomExtensionGrant != null; }
         }
     }

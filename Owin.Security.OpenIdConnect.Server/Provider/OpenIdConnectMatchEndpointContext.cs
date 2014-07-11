@@ -2,13 +2,11 @@
 
 using Microsoft.Owin.Security.Provider;
 
-namespace Microsoft.Owin.Security.OpenIdConnect.Server
-{
+namespace Microsoft.Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used when determining the OpenIdConnect flow type based on the request.
     /// </summary>
-    public class OpenIdConnectMatchEndpointContext : EndpointContext<OpenIdConnectServerOptions>
-    {
+    public class OpenIdConnectMatchEndpointContext : EndpointContext<OpenIdConnectServerOptions> {
         /// <summary>
         /// Initializes a new instance of the <see cref="OpenIdConnectMatchEndpointContext"/> class
         /// </summary>
@@ -17,8 +15,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
         public OpenIdConnectMatchEndpointContext(
             IOwinContext context,
             OpenIdConnectServerOptions options)
-            : base(context, options)
-        {
+            : base(context, options) {
         }
 
         /// <summary>
@@ -34,8 +31,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
         /// <summary>
         /// Sets the endpoint type to authorize endpoint.
         /// </summary>
-        public void MatchesAuthorizeEndpoint()
-        {
+        public void MatchesAuthorizeEndpoint() {
             IsAuthorizeEndpoint = true;
             IsTokenEndpoint = false;
         }
@@ -43,8 +39,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
         /// <summary>
         /// Sets the endpoint type to token endpoint.
         /// </summary>
-        public void MatchesTokenEndpoint()
-        {
+        public void MatchesTokenEndpoint() {
             IsAuthorizeEndpoint = false;
             IsTokenEndpoint = true;
         }
@@ -52,8 +47,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
         /// <summary>
         /// Sets the endpoint type to neither authorize nor token.
         /// </summary>
-        public void MatchesNothing()
-        {
+        public void MatchesNothing() {
             IsAuthorizeEndpoint = false;
             IsTokenEndpoint = false;
         }

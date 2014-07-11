@@ -2,13 +2,11 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.Owin.Security.OpenIdConnect.Server
-{
+namespace Microsoft.Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used in handling an OpenIdConnect client credentials grant.
     /// </summary>
-    public class OpenIdConnectGrantClientCredentialsContext : BaseValidatingTicketContext<OpenIdConnectServerOptions>
-    {
+    public class OpenIdConnectGrantClientCredentialsContext : BaseValidatingTicketContext<OpenIdConnectServerOptions> {
         /// <summary>
         /// Initializes a new instance of the <see cref="OpenIdConnectGrantClientCredentialsContext"/> class
         /// </summary>
@@ -21,8 +19,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
             OpenIdConnectServerOptions options,
             string clientId,
             IList<string> scope)
-            : base(context, options, null)
-        {
+            : base(context, options, null) {
             ClientId = clientId;
             Scope = scope;
         }

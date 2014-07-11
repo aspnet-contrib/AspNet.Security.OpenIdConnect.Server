@@ -6,13 +6,11 @@ using System.Security.Claims;
 using Microsoft.Owin.Security.OpenIdConnect.Server.Messages;
 using Microsoft.Owin.Security.Provider;
 
-namespace Microsoft.Owin.Security.OpenIdConnect.Server
-{
+namespace Microsoft.Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used when processing an OpenIdConnect token request.
     /// </summary>
-    public class OpenIdConnectTokenEndpointContext : EndpointContext<OpenIdConnectServerOptions>
-    {
+    public class OpenIdConnectTokenEndpointContext : EndpointContext<OpenIdConnectServerOptions> {
         /// <summary>
         /// Initializes a new instance of the <see cref="OpenIdConnectTokenEndpointContext"/> class
         /// </summary>
@@ -25,10 +23,8 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
             OpenIdConnectServerOptions options,
             AuthenticationTicket ticket,
             TokenEndpointRequest tokenEndpointRequest)
-            : base(context, options)
-        {
-            if (ticket == null)
-            {
+            : base(context, options) {
+            if (ticket == null) {
                 throw new ArgumentNullException("ticket");
             }
 
@@ -69,8 +65,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
         /// </summary>
         /// <param name="identity"></param>
         /// <param name="properties"></param>
-        public void Issue(ClaimsIdentity identity, AuthenticationProperties properties)
-        {
+        public void Issue(ClaimsIdentity identity, AuthenticationProperties properties) {
             Identity = identity;
             Properties = properties;
             TokenIssued = true;
