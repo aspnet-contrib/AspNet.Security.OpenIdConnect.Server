@@ -103,7 +103,6 @@
   <ItemGroup>
     <Content Include="packages.config" />
     <Content Include="auth.cshtml" />
-    <Content Include="FormPost.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
