@@ -20,6 +20,7 @@
             SystemClock = new SystemClock();
             TokenHandler = new JwtSecurityTokenHandler();
             ServerClaimsMapper = claims => claims;
+            IdTokenExpireTimeSpan = TimeSpan.FromMinutes(20);
         }
 
         /// <summary>
