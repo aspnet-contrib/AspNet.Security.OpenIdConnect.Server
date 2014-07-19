@@ -17,7 +17,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
         public OpenIdConnectSendFormPostMarkupContext(
             IOwinContext context,
             IDictionary<string, string> returnParameters,
-            String redirectUri)
+            string redirectUri)
             : base(context)
         {
             if (returnParameters == null)
@@ -30,8 +30,8 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
                 throw new ArgumentNullException("redirectUri");
             }
 
-            this.ReturnParameters = returnParameters;
-            this.RedirectUri = redirectUri;
+            ReturnParameters = returnParameters;
+            RedirectUri = redirectUri;
         }
 
         /// <summary>

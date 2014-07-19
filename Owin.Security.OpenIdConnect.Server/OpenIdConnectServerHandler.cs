@@ -244,7 +244,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server {
                 if (_authorizeEndpointRequest.IsFormPostResponseMode)
                 {
                     var sendFormMarkupContext = new OpenIdConnectSendFormPostMarkupContext(
-                                                        this.Context,
+                                                        Context,
                                                         returnParameters,
                                                         _clientContext.RedirectUri);
 
