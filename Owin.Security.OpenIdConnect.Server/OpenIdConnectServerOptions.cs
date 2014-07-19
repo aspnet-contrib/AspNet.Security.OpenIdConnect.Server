@@ -121,12 +121,6 @@
         /// </summary>
         public bool AllowInsecureHttp { get; set; }
 
-        /// <summary>
-        /// Endpoint responsible for Form Post Response Mode
-        /// See also, http://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html
-        /// </summary>
-        public PathString FormPostEndpoint { get; set; }
-
         public TimeSpan IdTokenExpireTimeSpan { get; set; }
         public string IssuerName { get; set; }
         public Func<IEnumerable<Claim>, IEnumerable<Claim>> ServerClaimsMapper { get; set; }
