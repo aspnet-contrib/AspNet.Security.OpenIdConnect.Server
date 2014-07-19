@@ -3,13 +3,11 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Microsoft.Owin.Security.OpenIdConnect.Server.Messages
-{
+namespace Microsoft.Owin.Security.OpenIdConnect.Server.Messages {
     /// <summary>
     /// Data object used by TokenEndpointRequest when the "grant_type" is "password".
     /// </summary>    
-    public class TokenEndpointRequestResourceOwnerPasswordCredentials
-    {
+    public class TokenEndpointRequestResourceOwnerPasswordCredentials {
         /// <summary>
         /// The value passed to the Token endpoint in the "username" parameter
         /// </summary>

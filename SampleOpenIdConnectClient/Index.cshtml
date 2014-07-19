@@ -1,0 +1,35 @@
+﻿@{
+    Layout = null;
+
+    var result = Request.GetOwinContext().Authentication.AuthenticateAsync("ExternalCookie").Result;
+
+    if (result == null) {
+      Request.GetOwinContext().Authentication.Challenge("OIDC");
+      return;
+    }
+
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+  <meta name="viewport" content="width=device-width" />
+  <title></title>
+</head>
+<body>
+  <div>
+    <h1>Hello, @result.Identity.Name!</h1>
+
+    <table>
+      @foreach (var c in result.Identity.Claims) {
+          <tr>
+            <td>@c.Type</td>
+            <td>@c.Value</td>
+          </tr>
+      }
+    </table>
+
+  </div>
+</body>
+</html>

@@ -2,13 +2,11 @@
 
 using System.Diagnostics.CodeAnalysis;
 
-namespace Microsoft.Owin.Security.OpenIdConnect.Server.Messages
-{
+namespace Microsoft.Owin.Security.OpenIdConnect.Server.Messages {
     /// <summary>
     /// Data object used by TokenEndpointRequest when the "grant_type" is "authorization_code".
     /// </summary>    
-    public class TokenEndpointRequestAuthorizationCode
-    {
+    public class TokenEndpointRequestAuthorizationCode {
         /// <summary>
         /// The value passed to the Token endpoint in the "code" parameter
         /// </summary>

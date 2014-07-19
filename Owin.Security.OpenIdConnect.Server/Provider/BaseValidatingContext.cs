@@ -2,21 +2,18 @@
 
 using Microsoft.Owin.Security.Provider;
 
-namespace Microsoft.Owin.Security.OpenIdConnect.Server
-{
+namespace Microsoft.Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Base class used for certain event contexts
     /// </summary>
-    public abstract class BaseValidatingContext<TOptions> : BaseContext<TOptions>
-    {
+    public abstract class BaseValidatingContext<TOptions> : BaseContext<TOptions> {
         /// <summary>
         /// Initializes base class used for certain event contexts
         /// </summary>
         protected BaseValidatingContext(
             IOwinContext context,
             TOptions options)
-            : base(context, options)
-        {
+            : base(context, options) {
         }
 
         /// <summary>
@@ -52,8 +49,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
         /// Marks this context as validated by the application. IsValidated becomes true and HasError becomes false as a result of calling.
         /// </summary>
         /// <returns>True if the validation has taken effect.</returns>
-        public virtual bool Validated()
-        {
+        public virtual bool Validated() {
             IsValidated = true;
             HasError = false;
             return true;
@@ -62,8 +58,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
         /// <summary>
         /// Marks this context as not validated by the application. IsValidated and HasError become false as a result of calling.
         /// </summary>
-        public virtual void Rejected()
-        {
+        public virtual void Rejected() {
             IsValidated = false;
             HasError = false;
         }
@@ -73,8 +68,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
         /// HasError becomes true and IsValidated becomes false as a result of calling.
         /// </summary>
         /// <param name="error">Assigned to the Error property</param>
-        public void SetError(string error)
-        {
+        public void SetError(string error) {
             SetError(error, null);
         }
 
@@ -85,8 +79,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
         /// <param name="error">Assigned to the Error property</param>
         /// <param name="errorDescription">Assigned to the ErrorDescription property</param>
         public void SetError(string error,
-            string errorDescription)
-        {
+            string errorDescription) {
             SetError(error, errorDescription, null);
         }
 
@@ -100,8 +93,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1054:UriParametersShouldNotBeStrings", MessageId = "2#", Justification = "error_uri is a string value in the protocol")]
         public void SetError(string error,
             string errorDescription,
-            string errorUri)
-        {
+            string errorUri) {
             Error = error;
             ErrorDescription = errorDescription;
             ErrorUri = errorUri;

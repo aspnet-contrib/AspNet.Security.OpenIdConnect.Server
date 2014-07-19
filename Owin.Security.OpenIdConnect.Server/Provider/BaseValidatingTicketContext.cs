@@ -2,13 +2,11 @@
 
 using System.Security.Claims;
 
-namespace Microsoft.Owin.Security.OpenIdConnect.Server
-{
+namespace Microsoft.Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Base class used for certain event contexts
     /// </summary>
-    public abstract class BaseValidatingTicketContext<TOptions> : BaseValidatingContext<TOptions>
-    {
+    public abstract class BaseValidatingTicketContext<TOptions> : BaseValidatingContext<TOptions> {
         /// <summary>
         /// Initializes base class used for certain event contexts
         /// </summary>
@@ -16,8 +14,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
             IOwinContext context,
             TOptions options,
             AuthenticationTicket ticket)
-            : base(context, options)
-        {
+            : base(context, options) {
             Ticket = ticket;
         }
 
@@ -34,8 +31,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
         /// </summary>
         /// <param name="ticket">Assigned to the Ticket property</param>
         /// <returns>True if the validation has taken effect.</returns>
-        public bool Validated(AuthenticationTicket ticket)
-        {
+        public bool Validated(AuthenticationTicket ticket) {
             Ticket = ticket;
             return Validated();
         }
@@ -46,8 +42,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
         /// </summary>
         /// <param name="identity">Assigned to the Ticket.Identity property</param>
         /// <returns>True if the validation has taken effect.</returns>
-        public bool Validated(ClaimsIdentity identity)
-        {
+        public bool Validated(ClaimsIdentity identity) {
             AuthenticationProperties properties = Ticket != null ? Ticket.Properties : new AuthenticationProperties();
             return Validated(new AuthenticationTicket(identity, properties));
         }

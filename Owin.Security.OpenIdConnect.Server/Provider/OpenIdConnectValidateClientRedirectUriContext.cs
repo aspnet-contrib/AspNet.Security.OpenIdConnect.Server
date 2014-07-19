@@ -2,13 +2,11 @@
 
 using System;
 
-namespace Microsoft.Owin.Security.OpenIdConnect.Server
-{
+namespace Microsoft.Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Contains data about the OpenIdConnect client redirect URI
     /// </summary>
-    public class OpenIdConnectValidateClientRedirectUriContext : BaseValidatingClientContext
-    {
+    public class OpenIdConnectValidateClientRedirectUriContext : BaseValidatingClientContext {
         /// <summary>
         /// Initializes a new instance of the <see cref="OpenIdConnectValidateClientRedirectUriContext"/> class
         /// </summary>
@@ -22,8 +20,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
             OpenIdConnectServerOptions options,
             string clientId,
             string redirectUri)
-            : base(context, options, clientId)
-        {
+            : base(context, options, clientId) {
             RedirectUri = redirectUri;
         }
 
@@ -37,10 +34,8 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
         /// Marks this context as validated by the application. IsValidated becomes true and HasError becomes false as a result of calling.
         /// </summary>
         /// <returns></returns>
-        public override bool Validated()
-        {
-            if (String.IsNullOrEmpty(RedirectUri))
-            {
+        public override bool Validated() {
+            if (String.IsNullOrEmpty(RedirectUri)) {
                 // Don't allow default validation when redirect_uri not provided with request
                 return false;
             }
@@ -53,16 +48,13 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
         /// <param name="redirectUri"></param>
         /// <returns></returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1054:UriParametersShouldNotBeStrings", MessageId = "0#", Justification = "redirect_uri is a string parameter")]
-        public bool Validated(string redirectUri)
-        {
-            if (redirectUri == null)
-            {
+        public bool Validated(string redirectUri) {
+            if (redirectUri == null) {
                 throw new ArgumentNullException("redirectUri");
             }
 
             if (!String.IsNullOrEmpty(RedirectUri) &&
-                !String.Equals(RedirectUri, redirectUri, StringComparison.Ordinal))
-            {
+                !String.Equals(RedirectUri, redirectUri, StringComparison.Ordinal)) {
                 // Don't allow validation to alter redirect_uri provided with request
                 return false;
             }

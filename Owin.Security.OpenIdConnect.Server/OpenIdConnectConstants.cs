@@ -1,11 +1,8 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
 
-namespace Microsoft.Owin.Security.OpenIdConnect.Server
-{
-    internal static class Constants
-    {
-        public static class Parameters
-        {
+namespace Microsoft.Owin.Security.OpenIdConnect.Server {
+    internal static class Constants {
+        public static class Parameters {
             public const string ResponseType = "response_type";
             public const string GrantType = "grant_type";
             public const string ClientId = "client_id";
@@ -28,28 +25,24 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
             public const string ResponseMode = "response_mode";
         }
 
-        public static class ResponseTypes
-        {
+        public static class ResponseTypes {
             public const string Code = "code";
             public const string IdToken = "id_token";
             public const string Token = "token";
         }
 
-        public static class GrantTypes
-        {
+        public static class GrantTypes {
             public const string AuthorizationCode = "authorization_code";
             public const string ClientCredentials = "client_credentials";
             public const string RefreshToken = "refresh_token";
             public const string Password = "password";
         }
 
-        public static class TokenTypes
-        {
+        public static class TokenTypes {
             public const string Bearer = "bearer";
         }
 
-        public static class Errors
-        {
+        public static class Errors {
             public const string InvalidRequest = "invalid_request";
             public const string InvalidClient = "invalid_client";
             public const string InvalidGrant = "invalid_grant";
@@ -58,14 +51,12 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
             public const string UnauthorizedClient = "unauthorized_client";
         }
 
-        public static class Extra
-        {
+        public static class Extra {
             public const string ClientId = "client_id";
             public const string RedirectUri = "redirect_uri";
         }
 
-        public static class ResponseModes
-        {
+        public static class ResponseModes {
             public const string FormPost = "form_post";
         }
     }

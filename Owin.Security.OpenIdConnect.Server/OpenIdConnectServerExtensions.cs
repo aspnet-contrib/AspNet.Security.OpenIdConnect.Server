@@ -1,18 +1,14 @@
 ﻿using Microsoft.Owin.Security.OpenIdConnect.Server;
 
-namespace Owin
-{
-    public static class OpenIdConnectServerExtensions
-    {
+namespace Owin {
+    public static class OpenIdConnectServerExtensions {
         /// <summary>
-        /// Adds Open Id Connect Authorization Server capabilities to an OWIN web application. This middleware
-        /// performs the request processing for the Authorize and Token endpoints defined by the OpenId Connect specification.
+        /// Adds a specs-compliant OpenID connect server in the OWIN pipeline.
         /// </summary>
         /// <param name="app">The web application builder</param>
-        /// <param name="options">Options which control the behavior of the Authorization Server.</param>
+        /// <param name="options">Options which control the behavior of the OpenID connect server.</param>
         /// <returns>The application builder</returns>
-        public static IAppBuilder UseOpenIdConnectAuthorizationServer(this IAppBuilder app, OpenIdConnectServerOptions options)
-        {
+        public static IAppBuilder UseOpenIdConnectServer(this IAppBuilder app, OpenIdConnectServerOptions options) {
             return app.Use(typeof(OpenIdConnectServerMiddleware), app, options);
         }
     }

@@ -1,20 +1,15 @@
-﻿namespace SampleOpenIdConnectServer
-{
+﻿namespace SampleOpenIdConnectServer {
     using System.Threading.Tasks;
     using Microsoft.Owin.Security.OpenIdConnect.Server;
 
-    class CustomOpenIdConnectServerProvider : OpenIdConnectServerProvider
-    {
-        public override Task ValidateClientAuthentication(OpenIdConnectValidateClientAuthenticationContext context)
-        {
+    class CustomOpenIdConnectServerProvider : OpenIdConnectServerProvider {
+        public override Task ValidateClientAuthentication(OpenIdConnectValidateClientAuthenticationContext context) {
 
-            if (context.ClientId == null)
-            {
+            if (context.ClientId == null) {
                 string clientId, clientSecret;
                 context.TryGetFormCredentials(out clientId, out clientSecret);
 
-                if (clientId == "myClient" && clientSecret == "secret_secret_secret")
-                {
+                if (clientId == "myClient" && clientSecret == "secret_secret_secret") {
                     context.Validated();
                 }
 
@@ -24,11 +19,9 @@
 
         }
 
-        public override Task ValidateClientRedirectUri(OpenIdConnectValidateClientRedirectUriContext context)
-        {
+        public override Task ValidateClientRedirectUri(OpenIdConnectValidateClientRedirectUriContext context) {
             if (context.ClientId == "myClient" &&
-                            context.RedirectUri == "http://localhost:57264/oidc")
-            {
+                            context.RedirectUri == "http://localhost:57264/oidc") {
                 context.Validated();
             }
 

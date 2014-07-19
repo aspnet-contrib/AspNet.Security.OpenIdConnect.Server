@@ -2,14 +2,12 @@
 
 using System.Threading.Tasks;
 
-namespace Microsoft.Owin.Security.OpenIdConnect.Server
-{
+namespace Microsoft.Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Interface for OpenIdConnectServerOptions.Provider property used by Authorization
     /// Server to communicate with the web application while processing requests.
     /// </summary>
-    public interface IOpenIdConnectServerProvider
-    {
+    public interface IOpenIdConnectServerProvider {
         /// <summary>
         /// Called to determine if an incoming request is treated as an Authorize or Token
         /// endpoint. If Options.AuthorizeEndpointPath or Options.TokenEndpointPath
@@ -45,7 +43,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
 
         /// <summary>
         /// Called for each request to the Authorize endpoint to determine if the request is valid and should continue. 
-        /// The default behavior when using the OpenIdConnectAuthorizationServerProvider is to assume well-formed requests, with 
+        /// The default behavior when using the OpenIdConnectServerProvider is to assume well-formed requests, with 
         /// validated client redirect URI, should continue processing. An application may add any additional constraints.
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
@@ -54,7 +52,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
 
         /// <summary>
         /// Called for each request to the Authorize endpoint to determine if the request is valid and should continue. 
-        /// The default behavior when using the OpenIdConnectAuthorizationServerProvider is to assume well-formed requests, with 
+        /// The default behavior when using the OpenIdConnectServerProvider is to assume well-formed requests, with 
         /// validated client credentials, should continue processing. An application may add any additional constraints.
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
@@ -68,7 +66,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
         /// associated with the authorization code are present in the context.Ticket. The application must call context.Validated to instruct the Authorization
         /// Server middleware to issue an access token based on those claims and properties. The call to context.Validated may be given a different
         /// AuthenticationTicket or ClaimsIdentity in order to control which information flows from authorization code to access token.
-        /// The default behavior when using the OpenIdConnectAuthorizationServerProvider is to flow information from the authorization code to 
+        /// The default behavior when using the OpenIdConnectServerProvider is to flow information from the authorization code to 
         /// the access token unmodified.
         /// See also http://tools.ietf.org/html/rfc6749#section-4.1.3
         /// </summary>
@@ -83,7 +81,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
         /// associated with the refresh token are present in the context.Ticket. The application must call context.Validated to instruct the 
         /// Authorization Server middleware to issue an access token based on those claims and properties. The call to context.Validated may 
         /// be given a different AuthenticationTicket or ClaimsIdentity in order to control which information flows from the refresh token to 
-        /// the access token. The default behavior when using the OpenIdConnectAuthorizationServerProvider is to flow information from the refresh token to 
+        /// the access token. The default behavior when using the OpenIdConnectServerProvider is to flow information from the refresh token to 
         /// the access token unmodified.
         /// See also http://tools.ietf.org/html/rfc6749#section-6
         /// </summary>

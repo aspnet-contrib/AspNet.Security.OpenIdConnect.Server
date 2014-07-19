@@ -2,13 +2,11 @@
 
 using Microsoft.Owin.Security.OpenIdConnect.Server.Messages;
 
-namespace Microsoft.Owin.Security.OpenIdConnect.Server
-{
+namespace Microsoft.Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used in validating an OpenIdConnect authorization request.
     /// </summary>
-    public class OpenIdConnectValidateAuthorizeRequestContext : BaseValidatingContext<OpenIdConnectServerOptions>
-    {
+    public class OpenIdConnectValidateAuthorizeRequestContext : BaseValidatingContext<OpenIdConnectServerOptions> {
         /// <summary>
         /// Initializes a new instance of the <see cref="OpenIdConnectValidateAuthorizeRequestContext"/> class
         /// </summary>
@@ -20,8 +18,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
             IOwinContext context,
             OpenIdConnectServerOptions options,
             AuthorizeEndpointRequest authorizeRequest,
-            OpenIdConnectValidateClientRedirectUriContext clientContext) : base(context, options)
-        {
+            OpenIdConnectValidateClientRedirectUriContext clientContext) : base(context, options) {
             AuthorizeRequest = authorizeRequest;
             ClientContext = clientContext;
         }

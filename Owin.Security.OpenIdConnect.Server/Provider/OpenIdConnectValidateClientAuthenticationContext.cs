@@ -3,13 +3,11 @@
 using System;
 using System.Text;
 
-namespace Microsoft.Owin.Security.OpenIdConnect.Server
-{
+namespace Microsoft.Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Contains information about the client credentials.
     /// </summary>
-    public class OpenIdConnectValidateClientAuthenticationContext : BaseValidatingClientContext
-    {
+    public class OpenIdConnectValidateClientAuthenticationContext : BaseValidatingClientContext {
         /// <summary>
         /// Initializes a new instance of the <see cref="OpenIdConnectValidateClientAuthenticationContext"/> class
         /// </summary>
@@ -20,8 +18,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
             IOwinContext context,
             OpenIdConnectServerOptions options,
             IReadableStringCollection parameters)
-            : base(context, options, null)
-        {
+            : base(context, options, null) {
             Parameters = parameters;
         }
 
@@ -35,8 +32,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
         /// </summary>
         /// <param name="clientId"></param>
         /// <returns></returns>
-        public bool Validated(string clientId)
-        {
+        public bool Validated(string clientId) {
             ClientId = clientId;
 
             return Validated();
@@ -49,32 +45,26 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
         /// <param name="clientSecret"></param>
         /// <returns></returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1021:AvoidOutParameters", MessageId = "0#", Justification = "Optimized for usage")]
-        public bool TryGetBasicCredentials(out string clientId, out string clientSecret)
-        {
+        public bool TryGetBasicCredentials(out string clientId, out string clientSecret) {
             // Client Authentication http://tools.ietf.org/html/rfc6749#section-2.3
             // Client Authentication Password http://tools.ietf.org/html/rfc6749#section-2.3.1
             string authorization = Request.Headers.Get("Authorization");
-            if (!string.IsNullOrWhiteSpace(authorization) && authorization.StartsWith("Basic ", StringComparison.OrdinalIgnoreCase))
-            {
-                try
-                {
+            if (!string.IsNullOrWhiteSpace(authorization) && authorization.StartsWith("Basic ", StringComparison.OrdinalIgnoreCase)) {
+                try {
                     byte[] data = Convert.FromBase64String(authorization.Substring("Basic ".Length).Trim());
                     string text = Encoding.UTF8.GetString(data);
                     int delimiterIndex = text.IndexOf(':');
-                    if (delimiterIndex >= 0)
-                    {
+                    if (delimiterIndex >= 0) {
                         clientId = text.Substring(0, delimiterIndex);
                         clientSecret = text.Substring(delimiterIndex + 1);
                         ClientId = clientId;
                         return true;
                     }
                 }
-                catch (FormatException)
-                {
+                catch (FormatException) {
                     // Bad Base64 string
                 }
-                catch (ArgumentException)
-                {
+                catch (ArgumentException) {
                     // Bad utf-8 string
                 }
             }
@@ -91,11 +81,9 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
         /// <param name="clientSecret"></param>
         /// <returns></returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1021:AvoidOutParameters", MessageId = "0#", Justification = "Optimized for usage")]
-        public bool TryGetFormCredentials(out string clientId, out string clientSecret)
-        {
+        public bool TryGetFormCredentials(out string clientId, out string clientSecret) {
             clientId = Parameters.Get(Constants.Parameters.ClientId);
-            if (!String.IsNullOrEmpty(clientId))
-            {
+            if (!String.IsNullOrEmpty(clientId)) {
                 clientSecret = Parameters.Get(Constants.Parameters.ClientSecret);
                 ClientId = clientId;
                 return true;

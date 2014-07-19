@@ -6,13 +6,11 @@ using System.Security.Claims;
 using Microsoft.Owin.Security.OpenIdConnect.Server.Messages;
 using Microsoft.Owin.Security.Provider;
 
-namespace Microsoft.Owin.Security.OpenIdConnect.Server
-{
+namespace Microsoft.Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information when processing an Authorization Response
     /// </summary>
-    public class OpenIdConnectAuthorizationEndpointResponseContext : EndpointContext<OpenIdConnectServerOptions>
-    {
+    public class OpenIdConnectAuthorizationEndpointResponseContext : EndpointContext<OpenIdConnectServerOptions> {
         /// <summary>
         /// Initializes a new instance of the <see cref="OpenIdConnectAuthorizationEndpointResponseContext"/> class
         /// </summary>
@@ -27,10 +25,8 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
             AuthorizeEndpointRequest authorizeEndpointRequest,
             string accessToken,
             string authorizationCode)
-            : base(context, options)
-        {
-            if (ticket == null)
-            {
+            : base(context, options) {
+            if (ticket == null) {
                 throw new ArgumentNullException("ticket");
             }
 

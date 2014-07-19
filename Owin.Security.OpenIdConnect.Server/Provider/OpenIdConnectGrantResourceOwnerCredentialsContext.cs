@@ -2,13 +2,11 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.Owin.Security.OpenIdConnect.Server
-{
+namespace Microsoft.Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used in handling an OpenIdConnect resource owner grant.
     /// </summary>
-    public class OpenIdConnectGrantResourceOwnerCredentialsContext : BaseValidatingTicketContext<OpenIdConnectServerOptions>
-    {
+    public class OpenIdConnectGrantResourceOwnerCredentialsContext : BaseValidatingTicketContext<OpenIdConnectServerOptions> {
         /// <summary>
         /// Initializes a new instance of the <see cref="OpenIdConnectGrantResourceOwnerCredentialsContext"/> class
         /// </summary>
@@ -25,8 +23,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server
             string userName,
             string password,
             IList<string> scope)
-            : base(context, options, null)
-        {
+            : base(context, options, null) {
             ClientId = clientId;
             UserName = userName;
             Password = password;
