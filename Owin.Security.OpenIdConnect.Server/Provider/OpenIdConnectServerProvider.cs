@@ -73,7 +73,9 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server {
         public Func<OpenIdConnectValidateAuthorizeRequestContext, Task> OnValidateAuthorizeRequest { get; set; }
 
         /// <summary>
-        /// Called for each request to the Authorize endpoint to determine if the request is valid and should continue. 
+        /// Called for each request to the Token endpoint to determine if the request is valid and should continue. 
+        /// If the application supports custom grant types it is entirely responsible for determining if the request 
+        /// should result in an access_token. 
         /// The default behavior when using the OpenIdConnectServerProvider is to assume well-formed requests, with 
         /// validated client credentials, should continue processing. An application may add any additional constraints.
         /// </summary>
@@ -230,7 +232,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server {
         }
 
         /// <summary>
-        /// Called for each request to the Authorize endpoint to determine if the request is valid and should continue. 
+        /// Called for each request to the Token endpoint to determine if the request is valid and should continue. 
         /// The default behavior when using the OpenIdConnectServerProvider is to assume well-formed requests, with 
         /// validated client credentials, should continue processing. An application may add any additional constraints.
         /// </summary>
