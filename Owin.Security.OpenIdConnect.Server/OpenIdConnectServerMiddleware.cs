@@ -42,7 +42,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server {
 
             if (Options.AccessTokenFormat == null) {
                 IDataProtector dataProtector = app.CreateDataProtector(
-                    typeof(OpenIdConnectServerMiddleware).Namespace,
+                    "Microsoft.Owin.Security.OAuth",
                     "Access_Token", "v1");
 
                 Options.AccessTokenFormat = new TicketDataFormat(dataProtector);
