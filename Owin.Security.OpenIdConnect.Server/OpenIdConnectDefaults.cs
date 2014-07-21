@@ -10,5 +10,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server {
         /// OpenIdConnectServerOptions.
         /// </summary>
         public const string AuthenticationType = "Bearer";
+
+        public const string CookieName = "OpenIdConnectServer.Payload";
     }
 }

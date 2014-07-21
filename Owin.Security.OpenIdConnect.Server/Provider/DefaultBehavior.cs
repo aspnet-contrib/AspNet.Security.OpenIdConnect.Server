@@ -31,28 +31,31 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server {
             return Task.FromResult<object>(null);
         };
 
-        internal static readonly Func<OpenIdConnectSendFormPostMarkupContext, Task> OnSendFormPostMarkup = async context =>
-        {
-            var response = context.Response;
-
-            response.ContentType = "text/html";
-
-            await response.WriteAsync("<html>\n");
-            await response.WriteAsync("<body>\n");
-            await response.WriteAsync("<form name='form' method='post' action='" + context.RedirectUri + "'>\n");
-
-            foreach (var param in context.ReturnParameters)
-            {
-                var encodedValue = WebUtility.HtmlEncode(param.Value);
-                var encodedKey = WebUtility.HtmlEncode(param.Key);
-                await response.WriteAsync("<input type='hidden' name='" + encodedKey + "' value='" + encodedValue + "'>\n");
-                await response.WriteAsync("<noscript>Click here to finish login: <input type='submit'></noscript>\n");
+        internal static readonly Func<OpenIdConnectFormPostEndpointContext, Task> FormPostEndpointResponse = async context => {
+            if (!context.Options.UseDefaultForm) {
+                return;
             }
 
-            await response.WriteAsync("</form>\n");
-            await response.WriteAsync("<script>document.form.submit();</script>\n");
-            await response.WriteAsync("</body>\n");
-            await response.WriteAsync("</html>\n");
+            context.Response.ContentType = "text/html";
+
+            await context.Response.WriteAsync("<html>\n");
+            await context.Response.WriteAsync("<body>\n");
+            await context.Response.WriteAsync("<form name='form' method='post' action='" + context.FormPostRequest.RedirectUri + "'>\n");
+
+            foreach (var element in context.FormPostRequest.Payload) {
+                string key = WebUtility.HtmlEncode(element.Key);
+                string value = WebUtility.HtmlEncode(element.Value);
+
+                await context.Response.WriteAsync("<input type='hidden' name='" + key + "' value='" + value + "'>\n");
+                await context.Response.WriteAsync("<noscript>Click here to finish login: <input type='submit'></noscript>\n");
+            }
+
+            await context.Response.WriteAsync("</form>\n");
+            await context.Response.WriteAsync("<script>document.form.submit();</script>\n");
+            await context.Response.WriteAsync("</body>\n");
+            await context.Response.WriteAsync("</html>\n");
+
+            context.RequestCompleted();
         };
     }
 }

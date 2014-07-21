@@ -24,6 +24,11 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server {
         public bool IsAuthorizeEndpoint { get; private set; }
 
         /// <summary>
+        /// Gets whether or not the endpoint is an OpenIdConnect form post endpoint.
+        /// </summary>
+        public bool IsFormPostEndpoint { get; private set; }
+
+        /// <summary>
         /// Gets whether or not the endpoint is an OpenIdConnect token endpoint.
         /// </summary>
         public bool IsTokenEndpoint { get; private set; }
@@ -33,6 +38,16 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server {
         /// </summary>
         public void MatchesAuthorizeEndpoint() {
             IsAuthorizeEndpoint = true;
+            IsFormPostEndpoint = false;
+            IsTokenEndpoint = false;
+        }
+
+        /// <summary>
+        /// Sets the endpoint type to form post endpoint.
+        /// </summary>
+        public void MatchesFormPostEndpoint() {
+            IsAuthorizeEndpoint = false;
+            IsFormPostEndpoint = true;
             IsTokenEndpoint = false;
         }
 
@@ -41,6 +56,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server {
         /// </summary>
         public void MatchesTokenEndpoint() {
             IsAuthorizeEndpoint = false;
+            IsFormPostEndpoint = false;
             IsTokenEndpoint = true;
         }
 
@@ -49,6 +65,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server {
         /// </summary>
         public void MatchesNothing() {
             IsAuthorizeEndpoint = false;
+            IsFormPostEndpoint = false;
             IsTokenEndpoint = false;
         }
     }
