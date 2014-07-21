@@ -17,6 +17,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server {
     using Microsoft.Owin.Security.Infrastructure;
     using Microsoft.Owin.Security.OpenIdConnect.Server.Messages;
     using Newtonsoft.Json;
+    using Owin.Security.OpenIdConnect.Server;
 
     internal class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions> {
         private readonly ILogger _logger;
@@ -240,14 +241,18 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server {
                     returnParameters[Constants.Parameters.State] = _authorizeEndpointRequest.State;
                 }
 
-                string location = string.Empty;
-                if (_authorizeEndpointRequest.IsFormPostResponseMode) {
-                    location = Options.FormPostEndpoint.ToString();
-                    returnParameters[Constants.Parameters.RedirectUri] = _clientContext.RedirectUri;
+                if (_authorizeEndpointRequest.IsFormPostResponseMode)
+                {
+                    var sendFormMarkupContext = new OpenIdConnectSendFormPostMarkupContext(
+                                                        Context,
+                                                        returnParameters,
+                                                        _clientContext.RedirectUri);
+
+                    await Options.Provider.SendFormPostMarkup(sendFormMarkupContext);
+                    return;
                 }
-                else {
-                    location = _clientContext.RedirectUri;
-                }
+                
+                var location = _clientContext.RedirectUri;
 
                 foreach (var key in returnParameters.Keys) {
                     location = WebUtilities.AddQueryString(location, key, returnParameters[key]);

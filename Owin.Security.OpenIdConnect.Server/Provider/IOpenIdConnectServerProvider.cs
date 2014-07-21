@@ -51,7 +51,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server {
         Task ValidateAuthorizeRequest(OpenIdConnectValidateAuthorizeRequestContext context);
 
         /// <summary>
-        /// Called for each request to the Authorize endpoint to determine if the request is valid and should continue. 
+        /// Called for each request to the Token endpoint to determine if the request is valid and should continue. 
         /// The default behavior when using the OpenIdConnectServerProvider is to assume well-formed requests, with 
         /// validated client credentials, should continue processing. An application may add any additional constraints.
         /// </summary>
@@ -166,5 +166,14 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server {
         /// <param name="context"></param>
         /// <returns></returns>
         Task TokenEndpointResponse(OpenIdConnectTokenEndpointResponseContext context);
+
+        /// <summary>
+        /// Sends markup with javascript to the browser, that cares for 
+        /// response_mode=form_post. 
+        /// See also, http://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html
+        /// </summary>
+        /// <param name="context">The context of the event carries information about the parameters that should be send to the client</param>
+        /// <returns></returns>
+        Task SendFormPostMarkup(OpenIdConnectSendFormPostMarkupContext sendFormMarkupContext);
     }
 }
