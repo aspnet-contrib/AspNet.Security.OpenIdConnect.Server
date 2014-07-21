@@ -117,7 +117,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server {
         Task GrantClientCredentials(OpenIdConnectGrantClientCredentialsContext context);
 
         /// <summary>
-        /// Called when a request to the Token andpoint arrives with a "grant_type" of any other value. If the application supports custom grant types
+        /// Called when a request to the Token endpoint arrives with a "grant_type" of any other value. If the application supports custom grant types
         /// it is entirely responsible for determining if the request should result in an access_token. If context.Validated is called with ticket
         /// information the response body is produced in the same way as the other standard grant types. If additional response parameters must be
         /// included they may be added in the final TokenEndpoint call.
@@ -161,19 +161,18 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server {
         Task AuthorizationEndpointResponse(OpenIdConnectAuthorizationEndpointResponseContext context);
 
         /// <summary>
+        /// Called when a requests to the FormPost endpoint arrives. 
+        /// See also, http://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html
+        /// </summary>
+        /// <param name="context">The context of the event carries information about the parameters that should be sent to the client.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        Task FormPostEndpointResponse(OpenIdConnectFormPostEndpointContext context);
+
+        /// <summary>
         /// Called before the TokenEndpoint redirects its response to the caller. 
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
         Task TokenEndpointResponse(OpenIdConnectTokenEndpointResponseContext context);
-
-        /// <summary>
-        /// Sends markup with javascript to the browser, that cares for 
-        /// response_mode=form_post. 
-        /// See also, http://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html
-        /// </summary>
-        /// <param name="context">The context of the event carries information about the parameters that should be send to the client</param>
-        /// <returns></returns>
-        Task SendFormPostMarkup(OpenIdConnectSendFormPostMarkupContext sendFormMarkupContext);
     }
 }

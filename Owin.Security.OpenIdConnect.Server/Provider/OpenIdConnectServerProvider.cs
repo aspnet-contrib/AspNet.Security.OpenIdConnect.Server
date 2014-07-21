@@ -32,10 +32,9 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server {
             OnTokenEndpoint = context => Task.FromResult<object>(null);
 
             OnAuthorizationEndpointResponse = context => Task.FromResult<object>(null);
-
+            OnFormPostEndpointResponse = DefaultBehavior.FormPostEndpointResponse;
             OnTokenEndpointResponse = context => Task.FromResult<object>(null);
 
-            OnSendFormPostMarkup = DefaultBehavior.OnSendFormPostMarkup;
         }
 
         /// <summary>
@@ -169,17 +168,17 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server {
         public Func<OpenIdConnectAuthorizationEndpointResponseContext, Task> OnAuthorizationEndpointResponse { get; set; }
 
         /// <summary>
+        /// Called when a requests to the FormPost endpoint arrives. 
+        /// See also, http://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html
+        /// </summary>
+        public Func<OpenIdConnectFormPostEndpointContext, Task> OnFormPostEndpointResponse { get; set; }
+
+        /// <summary>
         /// Called before the TokenEndpoint redirects its response to the caller. 
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
         public Func<OpenIdConnectTokenEndpointResponseContext, Task> OnTokenEndpointResponse { get; set; }
-
-        /// <summary>
-        /// Sends markup with javascript to the browser, that cares for 
-        /// response_mode=form_post. 
-        /// </summary>
-        public Func<OpenIdConnectSendFormPostMarkupContext, Task> OnSendFormPostMarkup { get; set; }
 
         /// <summary>
         /// Called to determine if an incoming request is treated as an Authorize or Token
@@ -360,24 +359,22 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server {
         }
 
         /// <summary>
+        /// Called when a requests to the FormPost endpoint arrives. 
+        /// See also, http://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html
+        /// </summary>
+        /// <param name="context">The context of the event carries information about the parameters that should be sent to the client.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        public virtual Task FormPostEndpointResponse(OpenIdConnectFormPostEndpointContext context) {
+            return OnFormPostEndpointResponse.Invoke(context);
+        }
+
+        /// <summary>
         /// Called before the TokenEndpoint redirects its response to the caller. 
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
         public virtual Task TokenEndpointResponse(OpenIdConnectTokenEndpointResponseContext context) {
             return OnTokenEndpointResponse.Invoke(context);
-        }
-
-        /// <summary>
-        /// Sends markup with javascript to the browser, that cares for 
-        /// response_mode=form_post. 
-        /// See also, http://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html
-        /// </summary>
-        /// <param name="context">The context of the event carries information about the parameters that should be send to the client</param>
-        /// <returns></returns>
-        public Task SendFormPostMarkup(OpenIdConnectSendFormPostMarkupContext context)
-        {
-            return OnSendFormPostMarkup.Invoke(context);
         }
     }
 }

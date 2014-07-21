@@ -35,31 +35,45 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server {
 
         public override async Task<bool> InvokeAsync() {
             var matchRequestContext = new OpenIdConnectMatchEndpointContext(Context, Options);
+
             if (Options.AuthorizeEndpointPath.HasValue && Options.AuthorizeEndpointPath == Request.Path) {
                 matchRequestContext.MatchesAuthorizeEndpoint();
             }
+
+            else if (Options.FormPostEndpointPath.HasValue && Options.FormPostEndpointPath == Request.Path) {
+                matchRequestContext.MatchesFormPostEndpoint();
+            }
+
             else if (Options.TokenEndpointPath.HasValue && Options.TokenEndpointPath == Request.Path) {
                 matchRequestContext.MatchesTokenEndpoint();
             }
+
             await Options.Provider.MatchEndpoint(matchRequestContext);
+
             if (matchRequestContext.IsRequestCompleted) {
                 return true;
             }
 
-            if (matchRequestContext.IsAuthorizeEndpoint || matchRequestContext.IsTokenEndpoint) {
-                if (!Options.AllowInsecureHttp &&
-                    String.Equals(Request.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase)) {
+            if (matchRequestContext.IsAuthorizeEndpoint || matchRequestContext.IsFormPostEndpoint || matchRequestContext.IsTokenEndpoint) {
+                if (!Options.AllowInsecureHttp && String.Equals(Request.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase)) {
                     _logger.WriteWarning("Authorization server ignoring http request because AllowInsecureHttp is false.");
                     return false;
                 }
+
                 if (matchRequestContext.IsAuthorizeEndpoint) {
                     return await InvokeAuthorizeEndpointAsync();
                 }
+
+                if (matchRequestContext.IsFormPostEndpoint) {
+                    return await InvokeFormPostEndpointAsync();
+                }
+
                 if (matchRequestContext.IsTokenEndpoint) {
                     await InvokeTokenEndpointAsync();
                     return true;
                 }
             }
+
             return false;
         }
 
@@ -157,7 +171,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server {
                 return;
             }
 
-            var returnParameters = new Dictionary<string, string>();
+            var payload = new OpenIdConnectPayload();
 
             if (_authorizeEndpointRequest.IsAuthorizationCodeGrantType || _authorizeEndpointRequest.IsHybridGrantType) {
                 DateTimeOffset currentUtc = Options.SystemClock.UtcNow;
@@ -190,7 +204,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server {
                         return;
                     }
 
-                    returnParameters[Constants.Parameters.Code] = code;
+                    payload[Constants.Parameters.Code] = code;
                 }
 
                 if (_authorizeEndpointRequest.ContainsGrantType(Constants.ResponseTypes.Token)) {
@@ -206,56 +220,60 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server {
                         accessToken = accessTokenContext.SerializeTicket();
                     }
 
-                    returnParameters[Constants.Parameters.AccessToken] = accessToken;
-                    returnParameters[Constants.Parameters.TokenType] = Constants.TokenTypes.Bearer;
+                    payload[Constants.Parameters.AccessToken] = accessToken;
+                    payload[Constants.Parameters.TokenType] = Constants.TokenTypes.Bearer;
 
                     DateTimeOffset? accessTokenExpiresUtc = accessTokenContext.Ticket.Properties.ExpiresUtc;
 
                     if (accessTokenExpiresUtc.HasValue) {
                         TimeSpan? expiresTimeSpan = accessTokenExpiresUtc - currentUtc;
                         var expiresIn = (long) (expiresTimeSpan.Value.TotalSeconds + .5);
-                        returnParameters[Constants.Parameters.ExpiresIn] = expiresIn.ToString(CultureInfo.InvariantCulture);
+                        payload[Constants.Parameters.ExpiresIn] = expiresIn.ToString(CultureInfo.InvariantCulture);
                     }
                 }
 
-                var authResponseContext = new OpenIdConnectAuthorizationEndpointResponseContext(
+                var authorizeResponseContext = new OpenIdConnectAuthorizationEndpointResponseContext(
                     Context, Options, new AuthenticationTicket(signin.Identity, signin.Properties),
                     _authorizeEndpointRequest, accessToken, code);
 
                 if (_authorizeEndpointRequest.ContainsGrantType(OpenIdConnectResponseTypes.IdToken)) {
                     var idToken = CreateIdToken(
-                        authResponseContext.Identity, authResponseContext.Properties,
-                        authResponseContext.AuthorizeEndpointRequest.ClientId, authResponseContext.AccessToken,
-                        authResponseContext.AuthorizationCode, authResponseContext.Request.Query["nonce"]);
+                        authorizeResponseContext.Identity, authorizeResponseContext.Properties,
+                        authorizeResponseContext.AuthorizeEndpointRequest.ClientId, authorizeResponseContext.AccessToken,
+                        authorizeResponseContext.AuthorizationCode, authorizeResponseContext.Request.Query["nonce"]);
 
-                    returnParameters[Constants.Parameters.IdToken] = idToken;
+                    payload[Constants.Parameters.IdToken] = idToken;
                 }
 
-                await Options.Provider.AuthorizationEndpointResponse(authResponseContext);
+                await Options.Provider.AuthorizationEndpointResponse(authorizeResponseContext);
 
-                foreach (var parameter in authResponseContext.AdditionalResponseParameters) {
-                    returnParameters[parameter.Key] = parameter.Value.ToString();
+                foreach (var parameter in authorizeResponseContext.AdditionalResponseParameters) {
+                    payload[parameter.Key] = parameter.Value.ToString();
                 }
 
                 if (!String.IsNullOrEmpty(_authorizeEndpointRequest.State)) {
-                    returnParameters[Constants.Parameters.State] = _authorizeEndpointRequest.State;
-                }
-
-                if (_authorizeEndpointRequest.IsFormPostResponseMode)
-                {
-                    var sendFormMarkupContext = new OpenIdConnectSendFormPostMarkupContext(
-                                                        Context,
-                                                        returnParameters,
-                                                        _clientContext.RedirectUri);
-
-                    await Options.Provider.SendFormPostMarkup(sendFormMarkupContext);
-                    return;
+                    payload[Constants.Parameters.State] = _authorizeEndpointRequest.State;
                 }
                 
                 var location = _clientContext.RedirectUri;
 
-                foreach (var key in returnParameters.Keys) {
-                    location = WebUtilities.AddQueryString(location, key, returnParameters[key]);
+                if (_authorizeEndpointRequest.IsFormPostResponseMode && Options.FormPostEndpointPath.HasValue) {
+                    payload.Add("RedirectUri", _clientContext.RedirectUri);
+
+                    location = Request.Scheme + Uri.SchemeDelimiter + Request.Host +
+                               Request.PathBase + Options.FormPostEndpointPath;
+
+                    Response.Cookies.Append(
+                        key: OpenIdConnectDefaults.CookieName,
+                        value: Options.PayloadFormat.Protect(payload),
+                        options: new CookieOptions { HttpOnly = true, Secure = Request.IsSecure });
+
+                    Response.Redirect(location);
+                    return;
+                }
+
+                foreach (var key in payload.Keys) {
+                    location = WebUtilities.AddQueryString(location, key, payload[key]);
                 }
 
                 Response.Redirect(location);
@@ -304,7 +322,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server {
                     appender.Append(Constants.Parameters.State, _authorizeEndpointRequest.State);
                 }
 
-                var authResponseContext = new OpenIdConnectAuthorizationEndpointResponseContext(
+                var authorizeResponseContext = new OpenIdConnectAuthorizationEndpointResponseContext(
                                 Context,
                                 Options,
                                 new AuthenticationTicket(signin.Identity, signin.Properties),
@@ -314,16 +332,16 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server {
 
                 if (_authorizeEndpointRequest.ContainsGrantType(OpenIdConnectResponseTypes.IdToken)) {
                     var idToken = CreateIdToken(
-                        authResponseContext.Identity, authResponseContext.Properties,
-                        authResponseContext.AuthorizeEndpointRequest.ClientId, authResponseContext.AccessToken,
-                        authResponseContext.AuthorizationCode, authResponseContext.Request.Query["nonce"]);
+                        authorizeResponseContext.Identity, authorizeResponseContext.Properties,
+                        authorizeResponseContext.AuthorizeEndpointRequest.ClientId, authorizeResponseContext.AccessToken,
+                        authorizeResponseContext.AuthorizationCode, authorizeResponseContext.Request.Query["nonce"]);
 
                     appender.Append(Constants.Parameters.IdToken, idToken);
                 }
 
-                await Options.Provider.AuthorizationEndpointResponse(authResponseContext);
+                await Options.Provider.AuthorizationEndpointResponse(authorizeResponseContext);
 
-                foreach (var parameter in authResponseContext.AdditionalResponseParameters) {
+                foreach (var parameter in authorizeResponseContext.AdditionalResponseParameters) {
                     appender.Append(parameter.Key, parameter.Value.ToString());
                 }
 
@@ -668,6 +686,42 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server {
                 grantContext,
                 grantContext.Ticket,
                 Constants.Errors.UnsupportedGrantType);
+        }
+
+        private async Task<bool> InvokeFormPostEndpointAsync() {
+            // Notes: authentication handlers cannot reliabily write in the response stream
+            // from ApplyResponseGrantAsync or ApplyResponseChallengeAsync because these methods
+            // can be invoked from an OnSendingHeaders callback where calling Write or WriteAsync
+            // results in a deadlock on hosts using streamed responses (like Helios or HttpListener).
+            // To work around this limitation, the user-agent is first redirect to an intermediate page
+            // responsible of producing the auto-post form corresponding to response_mode=form.
+            // For more information, see https://github.com/AspNet-OpenIdConnect-Server/Owin.Security.OpenIdConnect.Server/issues/17
+
+            string cookie = Request.Cookies[OpenIdConnectDefaults.CookieName];
+            if (String.IsNullOrWhiteSpace(cookie)) {
+                _logger.WriteError(String.Format(CultureInfo.InvariantCulture, "The '{0}' cookie cannot be found", OpenIdConnectDefaults.CookieName));
+                return false;
+            }
+
+            OpenIdConnectPayload payload = Options.PayloadFormat.Unprotect(cookie);
+            if (payload == null) {
+                _logger.WriteError(String.Format(CultureInfo.InvariantCulture, "The OpenID connect payload can't be extracted from the '{0}' cookie", OpenIdConnectDefaults.CookieName));
+                return false;
+            }
+
+            string redirectUri;
+            if (!payload.TryGetValue("RedirectUri", out redirectUri)) {
+                _logger.WriteError(String.Format(CultureInfo.InvariantCulture, "The {0} cookie doesn't contain the mandatory 'RedirectUri' parameter", OpenIdConnectDefaults.CookieName));
+                return false;
+            }
+
+            Response.Cookies.Delete(OpenIdConnectDefaults.CookieName);
+
+            var formPostRequest = new FormPostEndpointRequest(redirectUri, payload);
+            var formPostEndpointContext = new OpenIdConnectFormPostEndpointContext(Context, Options, formPostRequest);
+
+            await Options.Provider.FormPostEndpointResponse(formPostEndpointContext);
+            return formPostEndpointContext.IsRequestCompleted;
         }
 
         private string CreateIdToken(ClaimsIdentity identity, AuthenticationProperties authProperties, string clientId, string accessToken = null, string authorizationCode = null, string nonce = null) {

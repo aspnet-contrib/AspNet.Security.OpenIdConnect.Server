@@ -61,6 +61,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Messages\AuthorizeEndpointRequest.cs" />
+    <Compile Include="Messages\FormPostEndpointRequest.cs" />
     <Compile Include="Messages\TokenEndpointRequest.cs" />
     <Compile Include="Messages\TokenEndpointRequestAuthorizationCode.cs" />
     <Compile Include="Messages\TokenEndpointRequestClientCredentials.cs" />
@@ -80,7 +81,9 @@
     <Compile Include="Provider\BaseValidatingTicketContext.cs" />
     <Compile Include="Provider\DefaultBehavior.cs" />
     <Compile Include="Provider\IOpenIdConnectServerProvider.cs" />
-    <Compile Include="Provider\OpenIdConnectSendFormPostMarkupContext.cs" />
+    <Compile Include="Provider\OpenIdConnectFormPostEndpointContext.cs" />
+    <Compile Include="Provider\OpenIdConnectPayloadSerializer.cs" />
+    <Compile Include="Provider\OpenIdConnectPayload.cs" />
     <Compile Include="Provider\OpenIdConnectServerProvider.cs" />
     <Compile Include="Provider\OpenIdConnectAuthorizeEndpointContext.cs" />
     <Compile Include="Provider\OpenIdConnectAuthorizeEndpointResponseContext.cs" />

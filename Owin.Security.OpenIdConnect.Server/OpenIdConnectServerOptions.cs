@@ -21,6 +21,8 @@
             TokenHandler = new JwtSecurityTokenHandler();
             ServerClaimsMapper = claims => claims;
             IdTokenExpireTimeSpan = TimeSpan.FromMinutes(20);
+            FormPostEndpointPath = new PathString("/openid/form_post");
+            UseDefaultForm = true;
         }
 
         /// <summary>
@@ -28,6 +30,12 @@
         /// obtain user consent to issue a token. Must begin with a leading slash, like "/Authorize".
         /// </summary>
         public PathString AuthorizeEndpointPath { get; set; }
+
+        /// <summary>
+        /// The intermediate request path where the user-agent is redirect to before being redirect to
+        /// the client application when using response_mode=form. Must begin with a leading slash, like "/FormPost".
+        /// </summary>
+        public PathString FormPostEndpointPath { get; set; }
 
         /// <summary>
         /// The request path client applications communicate with directly as part of the OpenID Connect protocol. 
@@ -128,5 +136,7 @@
         public SignatureProvider SignatureProvider { get; set; }
         public SigningCredentials SigningCredentials { get; set; }
         public JwtSecurityTokenHandler TokenHandler { get; set; }
+        public ISecureDataFormat<OpenIdConnectPayload> PayloadFormat { get; set; }
+        public bool UseDefaultForm { get; set; }
     }
 }

@@ -3,6 +3,7 @@
 using System;
 using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security.DataHandler;
+using Microsoft.Owin.Security.DataHandler.Encoder;
 using Microsoft.Owin.Security.DataProtection;
 using Microsoft.Owin.Security.Infrastructure;
 using Owin;
@@ -46,6 +47,16 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server {
                     "Access_Token", "v1");
 
                 Options.AccessTokenFormat = new TicketDataFormat(dataProtector);
+            }
+
+            if (Options.PayloadFormat == null) {
+                IDataProtector dataProtector = app.CreateDataProtector(
+                    typeof(OpenIdConnectServerMiddleware).Namespace,
+                    "Payload", "v1");
+
+                Options.PayloadFormat = new SecureDataFormat<OpenIdConnectPayload>(
+                    OpenIdConnectPayloadSerializer.Instance,
+                    dataProtector, TextEncodings.Base64Url);
             }
 
             if (Options.RefreshTokenFormat == null) {

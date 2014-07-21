@@ -31,7 +31,7 @@ namespace SampleOpenIdConnectServer {
                 AllowInsecureHttp = true,
                 ApplicationCanDisplayErrors = true,
                 AuthorizationCodeProvider = new TestAuthenticationTokenProvider(),
-                RefreshTokenProvider = new TestAuthenticationTokenProvider(),
+                RefreshTokenProvider = new TestAuthenticationTokenProvider()
             });
         }
     }
