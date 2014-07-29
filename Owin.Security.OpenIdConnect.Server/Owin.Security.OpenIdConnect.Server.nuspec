@@ -1,9 +1,9 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
     <metadata>
         <id>Owin.Security.OpenIdConnect.Server</id>
         <version>1.0.0-alpha2</version>
-        <authors>Kévin Chalet,Manfred Steyer</authors>
+        <authors>Manfred Steyer,Kévin Chalet</authors>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>OpenID connect server implementation for OWIN.</description>
         <dependencies>
