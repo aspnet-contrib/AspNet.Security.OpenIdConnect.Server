@@ -20,8 +20,7 @@
         }
 
         public override Task ValidateClientRedirectUri(OpenIdConnectValidateClientRedirectUriContext context) {
-            if (context.ClientId == "myClient" &&
-                            context.RedirectUri == "http://localhost:57264/oidc") {
+            if (context.ClientId == "myClient" && context.RedirectUri == "http://localhost:57264/oidc") {
                 context.Validated();
             }
 
