@@ -5,6 +5,8 @@ Owin.Security.OpenIdConnect.Server is an __OpenID Connect server middleware__ th
 
 Owin.Security.OpenIdConnect.Server is specs-compliant and can be used with the official __OpenID Connect client middleware__ developed by Microsoft: https://www.nuget.org/packages/Microsoft.Owin.Security.OpenIdConnect
 
+__The latest nighly build can be found here__: https://www.myget.org/F/aspnet-openidconnect-server/
+
 ## Dependencies
 
 The current version relies on a Katana nightly build that can be found in the __aspnetwebstacknightly__ repository: https://www.myget.org/f/aspnetwebstacknightly/
