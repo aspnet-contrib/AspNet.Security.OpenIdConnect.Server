@@ -1,8 +1,9 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
 
+using Microsoft.Owin;
 using Microsoft.Owin.Security.Provider;
 
-namespace Microsoft.Owin.Security.OpenIdConnect.Server {
+namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Specifies the HTTP response header for the bearer authentication scheme.
     /// </summary>

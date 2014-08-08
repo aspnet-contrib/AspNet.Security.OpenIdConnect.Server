@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
 
-namespace Microsoft.Owin.Security.OpenIdConnect.Server {
+using Microsoft.Owin;
+
+namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Base class used for certain event contexts
     /// </summary>

@@ -1,4 +1,4 @@
-﻿using Microsoft.Owin.Security.OpenIdConnect.Server;
+﻿using Owin.Security.OpenIdConnect.Server;
 
 namespace Owin {
     public static class OpenIdConnectServerExtensions {

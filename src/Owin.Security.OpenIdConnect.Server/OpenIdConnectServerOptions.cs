@@ -1,9 +1,11 @@
-﻿namespace Microsoft.Owin.Security.OpenIdConnect.Server {
+﻿namespace Owin.Security.OpenIdConnect.Server {
     using System;
     using System.Collections.Generic;
     using System.IdentityModel.Tokens;
     using System.Security.Claims;
+    using Microsoft.Owin;
     using Microsoft.Owin.Infrastructure;
+    using Microsoft.Owin.Security;
     using Microsoft.Owin.Security.Infrastructure;
 
     /// <summary>

@@ -5,7 +5,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Microsoft.Owin.Security.OpenIdConnect.Server {
+namespace Owin.Security.OpenIdConnect.Server {
     public class OpenIdConnectHashGenerator {
         private static char base64PadCharacter = '=';
         private static char base64Character62 = '+';

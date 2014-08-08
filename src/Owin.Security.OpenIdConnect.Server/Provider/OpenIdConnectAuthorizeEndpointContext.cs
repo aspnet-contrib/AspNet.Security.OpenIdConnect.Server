@@ -1,9 +1,10 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
 
-using Microsoft.Owin.Security.OpenIdConnect.Server.Messages;
+using Owin.Security.OpenIdConnect.Server.Messages;
 using Microsoft.Owin.Security.Provider;
+using Microsoft.Owin;
 
-namespace Microsoft.Owin.Security.OpenIdConnect.Server {
+namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// An event raised after the Authorization Server has processed the request, but before it is passed on to the web application.
     /// Calling RequestCompleted will prevent the request from passing on to the web application.

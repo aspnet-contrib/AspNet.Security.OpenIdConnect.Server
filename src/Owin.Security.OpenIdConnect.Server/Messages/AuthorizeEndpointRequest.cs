@@ -3,8 +3,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.Owin;
 
-namespace Microsoft.Owin.Security.OpenIdConnect.Server.Messages {
+namespace Owin.Security.OpenIdConnect.Server.Messages {
     /// <summary>
     /// Data object representing the information contained in the query string of an Authorize endpoint request.
     /// </summary>

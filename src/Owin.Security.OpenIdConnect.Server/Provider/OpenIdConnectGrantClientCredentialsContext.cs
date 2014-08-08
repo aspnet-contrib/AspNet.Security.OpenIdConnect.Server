@@ -1,8 +1,9 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using Microsoft.Owin;
 
-namespace Microsoft.Owin.Security.OpenIdConnect.Server {
+namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used in handling an OpenIdConnect client credentials grant.
     /// </summary>

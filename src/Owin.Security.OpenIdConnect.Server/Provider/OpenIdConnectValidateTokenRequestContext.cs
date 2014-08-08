@@ -1,8 +1,9 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
 
-using Microsoft.Owin.Security.OpenIdConnect.Server.Messages;
+using Microsoft.Owin;
+using Owin.Security.OpenIdConnect.Server.Messages;
 
-namespace Microsoft.Owin.Security.OpenIdConnect.Server {
+namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used in validating an OpenIdConnect token request.
     /// </summary>

@@ -1,6 +1,9 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
 
-namespace Microsoft.Owin.Security.OpenIdConnect.Server {
+using Microsoft.Owin;
+using Microsoft.Owin.Security;
+
+namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information when handling an OpenIdConnect authorization code grant.
     /// </summary>

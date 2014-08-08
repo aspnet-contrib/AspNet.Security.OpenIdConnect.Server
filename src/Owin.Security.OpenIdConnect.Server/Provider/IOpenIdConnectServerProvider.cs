@@ -2,7 +2,7 @@
 
 using System.Threading.Tasks;
 
-namespace Microsoft.Owin.Security.OpenIdConnect.Server {
+namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Interface for OpenIdConnectServerOptions.Provider property used by Authorization
     /// Server to communicate with the web application while processing requests.

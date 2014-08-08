@@ -8,7 +8,7 @@ namespace SampleOpenIdConnectServer {
     using System.IdentityModel.Tokens;
     using System.Text;
     using Microsoft.Owin;
-    using Microsoft.Owin.Security.OpenIdConnect.Server;
+    using Owin.Security.OpenIdConnect.Server;
     using Owin;
 
     public class Startup {
