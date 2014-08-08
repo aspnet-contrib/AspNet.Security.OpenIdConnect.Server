@@ -19,4 +19,5 @@ IF EXIST packages\Sake goto run
 .nuget\NuGet.exe install Sake -version 0.2 -o packages -ExcludeVersion
 
 :run
+.nuget\NuGet.exe restore
 packages\Sake\tools\Sake.exe -f makefile.shade %*
