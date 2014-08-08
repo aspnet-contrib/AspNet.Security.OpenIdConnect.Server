@@ -163,17 +163,16 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Called before the TokenEndpoint redirects its response to the caller. 
         /// </summary>
-        /// <param name="context"></param>
-        /// <returns></returns>
+        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
         Task TokenEndpointResponse(OpenIdConnectTokenEndpointResponseContext context);
 
         /// <summary>
-        /// Sends markup with javascript to the browser, that cares for 
-        /// response_mode=form_post. 
-        /// See also, http://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html
+        /// Called when the authorization server is asked to return an auto-post form containing
+        /// the required OpenID connect parameters and pointing to the client application.
         /// </summary>
-        /// <param name="context">The context of the event carries information about the parameters that should be send to the client</param>
-        /// <returns></returns>
-        Task SendFormPostMarkup(OpenIdConnectSendFormPostMarkupContext sendFormMarkupContext);
+        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        Task SendFormPostMarkup(OpenIdConnectSendFormPostMarkupContext context);
     }
 }

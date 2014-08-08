@@ -17,13 +17,13 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server {
     using Microsoft.Owin.Security.Infrastructure;
     using Microsoft.Owin.Security.OpenIdConnect.Server.Messages;
     using Newtonsoft.Json;
-    using Owin.Security.OpenIdConnect.Server;
 
     internal class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions> {
         private readonly ILogger _logger;
 
         private AuthorizeEndpointRequest _authorizeEndpointRequest;
         private OpenIdConnectValidateClientRedirectUriContext _clientContext;
+        private bool _headersSent = false;
 
         public OpenIdConnectServerHandler(ILogger logger) {
             _logger = logger;
@@ -143,11 +143,26 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server {
             return authorizeEndpointContext.IsRequestCompleted;
         }
 
-        protected override async Task ApplyResponseGrantAsync() {
+        protected override async Task InitializeCoreAsync() {
+            Response.OnSendingHeaders(state => {
+                var handler = (OpenIdConnectServerHandler) state;
+                handler._headersSent = true;
+            }, this);
+
+            await base.InitializeCoreAsync();
+        }
+        
+        protected override async Task TeardownCoreAsync() {
+            // Disclaimer: authentication handlers cannot reliabily write to the response stream from ApplyResponseGrantAsync
+            // or ApplyResponseChallengeAsync because these methods are susceptible to be invoked from AuthenticationHandler.OnSendingHeaderCallback
+            // where calling Write or WriteAsync on the response stream may result in a deadlock on hosts using streamed responses.
+            // To work around this limitation, OpenIdConnectServerHandler doesn't implement ApplyResponseGrantAsync but TeardownCoreAsync,
+            // which is never called by AuthenticationHandler.OnSendingHeaderCallback. In theory, this would prevent OpenIdConnectServerHandler
+            // from both applying the response grant and allowing the next middleware in the pipeline to alter the response stream but in practice,
+            // the OpenIdConnectServerHandler is assumed to be the only middleware allowed to write to the response stream when a response grant has been applied.
+
             // only successful results of an authorize request are altered
-            if (_clientContext == null ||
-                _authorizeEndpointRequest == null ||
-                Response.StatusCode != 200) {
+            if (_clientContext == null || _authorizeEndpointRequest == null || Response.StatusCode != 200) {
                 return;
             }
 
@@ -157,7 +172,17 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server {
                 return;
             }
 
-            var returnParameters = new Dictionary<string, string>();
+            if (_headersSent) {
+                _logger.WriteCritical(
+                    "OpenIdConnectServerHandler.TeardownCoreAsync cannot be called when " +
+                    "the response headers have already been sent back to the user agent. " +
+                    "Make sure the response body has not been altered and that no middleware " +
+                    "has attempted to write to the response stream during this request.");
+
+                return;
+            }
+
+            var payload = new Dictionary<string, string>();
 
             if (_authorizeEndpointRequest.IsAuthorizationCodeGrantType || _authorizeEndpointRequest.IsHybridGrantType) {
                 DateTimeOffset currentUtc = Options.SystemClock.UtcNow;
@@ -190,7 +215,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server {
                         return;
                     }
 
-                    returnParameters[Constants.Parameters.Code] = code;
+                    payload[Constants.Parameters.Code] = code;
                 }
 
                 if (_authorizeEndpointRequest.ContainsGrantType(Constants.ResponseTypes.Token)) {
@@ -206,56 +231,51 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server {
                         accessToken = accessTokenContext.SerializeTicket();
                     }
 
-                    returnParameters[Constants.Parameters.AccessToken] = accessToken;
-                    returnParameters[Constants.Parameters.TokenType] = Constants.TokenTypes.Bearer;
+                    payload[Constants.Parameters.AccessToken] = accessToken;
+                    payload[Constants.Parameters.TokenType] = Constants.TokenTypes.Bearer;
 
                     DateTimeOffset? accessTokenExpiresUtc = accessTokenContext.Ticket.Properties.ExpiresUtc;
 
                     if (accessTokenExpiresUtc.HasValue) {
                         TimeSpan? expiresTimeSpan = accessTokenExpiresUtc - currentUtc;
                         var expiresIn = (long) (expiresTimeSpan.Value.TotalSeconds + .5);
-                        returnParameters[Constants.Parameters.ExpiresIn] = expiresIn.ToString(CultureInfo.InvariantCulture);
+                        payload[Constants.Parameters.ExpiresIn] = expiresIn.ToString(CultureInfo.InvariantCulture);
                     }
                 }
 
-                var authResponseContext = new OpenIdConnectAuthorizationEndpointResponseContext(
+                var authorizeEndpointResponseContext = new OpenIdConnectAuthorizationEndpointResponseContext(
                     Context, Options, new AuthenticationTicket(signin.Identity, signin.Properties),
                     _authorizeEndpointRequest, accessToken, code);
 
                 if (_authorizeEndpointRequest.ContainsGrantType(OpenIdConnectResponseTypes.IdToken)) {
                     var idToken = CreateIdToken(
-                        authResponseContext.Identity, authResponseContext.Properties,
-                        authResponseContext.AuthorizeEndpointRequest.ClientId, authResponseContext.AccessToken,
-                        authResponseContext.AuthorizationCode, authResponseContext.Request.Query["nonce"]);
+                        authorizeEndpointResponseContext.Identity, authorizeEndpointResponseContext.Properties,
+                        authorizeEndpointResponseContext.AuthorizeEndpointRequest.ClientId, authorizeEndpointResponseContext.AccessToken,
+                        authorizeEndpointResponseContext.AuthorizationCode, authorizeEndpointResponseContext.Request.Query["nonce"]);
 
-                    returnParameters[Constants.Parameters.IdToken] = idToken;
+                    payload[Constants.Parameters.IdToken] = idToken;
                 }
 
-                await Options.Provider.AuthorizationEndpointResponse(authResponseContext);
+                await Options.Provider.AuthorizationEndpointResponse(authorizeEndpointResponseContext);
 
-                foreach (var parameter in authResponseContext.AdditionalResponseParameters) {
-                    returnParameters[parameter.Key] = parameter.Value.ToString();
+                foreach (var parameter in authorizeEndpointResponseContext.AdditionalResponseParameters) {
+                    payload[parameter.Key] = parameter.Value.ToString();
                 }
 
                 if (!String.IsNullOrEmpty(_authorizeEndpointRequest.State)) {
-                    returnParameters[Constants.Parameters.State] = _authorizeEndpointRequest.State;
+                    payload[Constants.Parameters.State] = _authorizeEndpointRequest.State;
                 }
 
-                if (_authorizeEndpointRequest.IsFormPostResponseMode)
-                {
-                    var sendFormMarkupContext = new OpenIdConnectSendFormPostMarkupContext(
-                                                        Context,
-                                                        returnParameters,
-                                                        _clientContext.RedirectUri);
-
+                if (_authorizeEndpointRequest.IsFormPostResponseMode) {
+                    var sendFormMarkupContext = new OpenIdConnectSendFormPostMarkupContext(Context, payload, _clientContext.RedirectUri);
                     await Options.Provider.SendFormPostMarkup(sendFormMarkupContext);
                     return;
                 }
                 
                 var location = _clientContext.RedirectUri;
 
-                foreach (var key in returnParameters.Keys) {
-                    location = WebUtilities.AddQueryString(location, key, returnParameters[key]);
+                foreach (var key in payload.Keys) {
+                    location = WebUtilities.AddQueryString(location, key, payload[key]);
                 }
 
                 Response.Redirect(location);
@@ -304,26 +324,22 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server {
                     appender.Append(Constants.Parameters.State, _authorizeEndpointRequest.State);
                 }
 
-                var authResponseContext = new OpenIdConnectAuthorizationEndpointResponseContext(
-                                Context,
-                                Options,
-                                new AuthenticationTicket(signin.Identity, signin.Properties),
-                                _authorizeEndpointRequest,
-                                accessToken,
-                                null);
+                var authorizeEndpointResponseContext = new OpenIdConnectAuthorizationEndpointResponseContext(Context, Options,
+                    new AuthenticationTicket(signin.Identity, signin.Properties),
+                    _authorizeEndpointRequest, accessToken, authorizationCode: null);
 
                 if (_authorizeEndpointRequest.ContainsGrantType(OpenIdConnectResponseTypes.IdToken)) {
                     var idToken = CreateIdToken(
-                        authResponseContext.Identity, authResponseContext.Properties,
-                        authResponseContext.AuthorizeEndpointRequest.ClientId, authResponseContext.AccessToken,
-                        authResponseContext.AuthorizationCode, authResponseContext.Request.Query["nonce"]);
+                        authorizeEndpointResponseContext.Identity, authorizeEndpointResponseContext.Properties,
+                        authorizeEndpointResponseContext.AuthorizeEndpointRequest.ClientId, authorizeEndpointResponseContext.AccessToken,
+                        authorizeEndpointResponseContext.AuthorizationCode, authorizeEndpointResponseContext.Request.Query["nonce"]);
 
                     appender.Append(Constants.Parameters.IdToken, idToken);
                 }
 
-                await Options.Provider.AuthorizationEndpointResponse(authResponseContext);
+                await Options.Provider.AuthorizationEndpointResponse(authorizeEndpointResponseContext);
 
-                foreach (var parameter in authResponseContext.AdditionalResponseParameters) {
+                foreach (var parameter in authorizeEndpointResponseContext.AdditionalResponseParameters) {
                     appender.Append(parameter.Key, parameter.Value.ToString());
                 }
 
