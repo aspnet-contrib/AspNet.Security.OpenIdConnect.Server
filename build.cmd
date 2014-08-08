@@ -15,9 +15,8 @@ md .nuget
 copy %CACHED_NUGET% .nuget\nuget.exe > nul
 
 :restore
-IF EXIST packages\KoreBuild goto run
-.nuget\NuGet.exe install KoreBuild -ExcludeVersion -o packages -nocache -pre
+IF EXIST packages\Sake goto run
 .nuget\NuGet.exe install Sake -version 0.2 -o packages -ExcludeVersion
 
 :run
-packages\Sake\tools\Sake.exe -I packages\KoreBuild\build -f makefile.shade %*
+packages\Sake\tools\Sake.exe -f makefile.shade %*
