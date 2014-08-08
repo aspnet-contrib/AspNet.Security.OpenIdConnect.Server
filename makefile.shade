@@ -1,0 +1,6 @@
+var VERSION='0.1'
+var FULL_VERSION='0.1'
+var AUTHORS='Chalet Kévin'
+
+use-standard-lifecycle
+use-standard-goals
