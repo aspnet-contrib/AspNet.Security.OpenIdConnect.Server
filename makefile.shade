@@ -1,6 +1,6 @@
-var VERSION='0.1'
-var FULL_VERSION='0.1'
-var AUTHORS='Chalet Kévin'
+var VERSION='1.0.0'
+var FULL_VERSION='1.0.0-alpha3'
+var AUTHORS='Kévin Chalet,Manfred Steyer'
 
 use-standard-lifecycle
-use-standard-goals
+use-standard-goals features='nuget'
