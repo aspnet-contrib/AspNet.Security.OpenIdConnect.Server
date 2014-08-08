@@ -6,10 +6,9 @@ using SampleOpenIdConnectServer;
 namespace SampleOpenIdConnectServer {
     using System;
     using System.IdentityModel.Tokens;
-    using System.Text;
     using Microsoft.Owin;
-    using Owin.Security.OpenIdConnect.Server;
     using Owin;
+    using Owin.Security.OpenIdConnect.Server;
 
     public class Startup {
         public void Configuration(IAppBuilder app) {
@@ -17,7 +16,14 @@ namespace SampleOpenIdConnectServer {
         }
 
         private static void ConfigureOidcServerDemo(IAppBuilder app) {
-            var key = new InMemorySymmetricSecurityKey(Encoding.UTF8.GetBytes("secret_secret_secret"));
+            // You can easily generate a new base64-encoded key using RNGCryptoServiceProvider:
+            //using (var generator = new RNGCryptoServiceProvider()) {
+            //    var buffer = new byte[256 / 8];
+            //    generator.GetBytes(buffer);
+            //    Console.WriteLine(Convert.ToBase64String(buffer));
+            //}
+
+            var key = new InMemorySymmetricSecurityKey(Convert.FromBase64String("Srtjyi8wMFfmP9Ub8U2ieVGAcrP/7gK3VM/K6KfJ/fI="));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature, SecurityAlgorithms.Sha256Digest);
 
             app.UseOpenIdConnectServer(new OpenIdConnectServerOptions {
