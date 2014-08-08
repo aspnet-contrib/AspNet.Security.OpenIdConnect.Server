@@ -1,9 +1,11 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using Microsoft.Owin;
 
-namespace Microsoft.Owin.Security.OpenIdConnect.Server {
+namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Contains information about the client credentials.
     /// </summary>
@@ -44,7 +46,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server {
         /// <param name="clientId"></param>
         /// <param name="clientSecret"></param>
         /// <returns></returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1021:AvoidOutParameters", MessageId = "0#", Justification = "Optimized for usage")]
+        [SuppressMessage("Microsoft.Design", "CA1021:AvoidOutParameters", MessageId = "0#", Justification = "Optimized for usage")]
         public bool TryGetBasicCredentials(out string clientId, out string clientSecret) {
             // Client Authentication http://tools.ietf.org/html/rfc6749#section-2.3
             // Client Authentication Password http://tools.ietf.org/html/rfc6749#section-2.3.1
@@ -80,7 +82,7 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server {
         /// <param name="clientId"></param>
         /// <param name="clientSecret"></param>
         /// <returns></returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1021:AvoidOutParameters", MessageId = "0#", Justification = "Optimized for usage")]
+        [SuppressMessage("Microsoft.Design", "CA1021:AvoidOutParameters", MessageId = "0#", Justification = "Optimized for usage")]
         public bool TryGetFormCredentials(out string clientId, out string clientSecret) {
             clientId = Parameters.Get(Constants.Parameters.ClientId);
             if (!String.IsNullOrEmpty(clientId)) {

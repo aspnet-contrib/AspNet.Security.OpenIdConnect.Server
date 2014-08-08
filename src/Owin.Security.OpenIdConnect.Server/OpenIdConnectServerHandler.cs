@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
 
-namespace Microsoft.Owin.Security.OpenIdConnect.Server {
+namespace Owin.Security.OpenIdConnect.Server {
     using System;
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
@@ -12,11 +12,13 @@ namespace Microsoft.Owin.Security.OpenIdConnect.Server {
     using System.Text;
     using System.Threading.Tasks;
     using Microsoft.IdentityModel.Protocols;
+    using Microsoft.Owin;
     using Microsoft.Owin.Infrastructure;
     using Microsoft.Owin.Logging;
+    using Microsoft.Owin.Security;
     using Microsoft.Owin.Security.Infrastructure;
-    using Microsoft.Owin.Security.OpenIdConnect.Server.Messages;
     using Newtonsoft.Json;
+    using Owin.Security.OpenIdConnect.Server.Messages;
 
     internal class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions> {
         private readonly ILogger _logger;

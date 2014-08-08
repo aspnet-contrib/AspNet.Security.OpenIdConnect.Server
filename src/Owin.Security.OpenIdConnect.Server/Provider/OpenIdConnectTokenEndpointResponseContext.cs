@@ -3,10 +3,12 @@
 using System;
 using System.Collections.Generic;
 using System.Security.Claims;
-using Microsoft.Owin.Security.OpenIdConnect.Server.Messages;
+using Microsoft.Owin;
+using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Provider;
+using Owin.Security.OpenIdConnect.Server.Messages;
 
-namespace Microsoft.Owin.Security.OpenIdConnect.Server {
+namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used at the end of a token-endpoint-request.
     /// </summary>

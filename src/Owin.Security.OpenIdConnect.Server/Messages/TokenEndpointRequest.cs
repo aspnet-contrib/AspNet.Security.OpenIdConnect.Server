@@ -1,8 +1,9 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.Owin;
 
-namespace Microsoft.Owin.Security.OpenIdConnect.Server.Messages {
+namespace Owin.Security.OpenIdConnect.Server.Messages {
     /// <summary>
     /// Data object representing the information contained in form encoded body of a Token endpoint request.
     /// </summary>

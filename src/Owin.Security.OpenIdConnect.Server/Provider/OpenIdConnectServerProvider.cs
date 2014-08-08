@@ -3,7 +3,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace Microsoft.Owin.Security.OpenIdConnect.Server {
+namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Default implementation of IOpenIdConnectServerProvider used by Authorization
     /// Server to communicate with the web application while processing requests. OpenIdConnectServerProvider provides some default behavior, 

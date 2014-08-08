@@ -1,6 +1,6 @@
 ﻿namespace SampleOpenIdConnectServer {
     using System.Threading.Tasks;
-    using Microsoft.Owin.Security.OpenIdConnect.Server;
+    using Owin.Security.OpenIdConnect.Server;
 
     class CustomOpenIdConnectServerProvider : OpenIdConnectServerProvider {
         public override Task ValidateClientAuthentication(OpenIdConnectValidateClientAuthenticationContext context) {
