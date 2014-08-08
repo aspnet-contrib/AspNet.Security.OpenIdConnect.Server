@@ -28,7 +28,7 @@ namespace SampleOpenIdConnectClient {
                 ExpireTimeSpan = TimeSpan.FromMinutes(5)
             });
 
-            var key = new InMemorySymmetricSecurityKey(Encoding.UTF8.GetBytes("secret_secret_secret"));
+            var key = new InMemorySymmetricSecurityKey(Convert.FromBase64String("Srtjyi8wMFfmP9Ub8U2ieVGAcrP/7gK3VM/K6KfJ/fI="));
 
             app.UseOpenIdConnectAuthentication(new OpenIdConnectAuthenticationOptions {
                 AuthenticationMode = AuthenticationMode.Active,

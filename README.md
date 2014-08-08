@@ -26,7 +26,6 @@ app.UseOpenIdConnectServer(new OpenIdConnectServerOptions {
     SigningCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature, SecurityAlgorithms.Sha256Digest),
     TokenEndpointPath = new PathString("/token"),
     AuthorizeEndpointPath = new PathString("/auth.cshtml"),
-    FormPostEndpoint = new PathString("/FormPost.cshtml"),
     Provider = new CustomOAuthProvider(),
     AccessTokenExpireTimeSpan = TimeSpan.FromDays(14),
     AllowInsecureHttp = true,
