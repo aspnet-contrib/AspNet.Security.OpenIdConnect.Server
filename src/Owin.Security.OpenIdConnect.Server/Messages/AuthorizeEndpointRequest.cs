@@ -74,11 +74,6 @@ namespace Owin.Security.OpenIdConnect.Server.Messages {
         /// See http://tools.ietf.org/html/rfc6749#section-4.2.1 and
         /// http://openid.net/specs/openid-connect-core-1_0.html
         /// </summary>
-        /// <remarks>
-        /// The OIDC implicit grant type can be composed of an "id_token" part and a "token" part.
-        /// That said, the OIDC specs are unclear concerning the OAuth2 "token" part alone.
-        /// For the moment, "response_type=token" is considered as a valid implicit grant type.
-        /// </remarks>
         public bool IsImplicitGrantType {
             get {
                 return !ContainsGrantType(Constants.ResponseTypes.Code) &&
@@ -101,6 +96,26 @@ namespace Owin.Security.OpenIdConnect.Server.Messages {
             }
         }
 
+        /// <summary>
+        /// True if the "response_mode" query string parameter is "fragment".
+        /// See http://openid.net/specs/oauth-v2-multiple-response-types-1_0.html
+        /// </summary>
+        public bool IsFragmentResponseMode {
+            get { return string.Equals(ResponseMode, Constants.ResponseModes.Fragment, StringComparison.Ordinal); }
+        }
+
+        /// <summary>
+        /// True if the "response_mode" query string parameter is "query".
+        /// See http://openid.net/specs/oauth-v2-multiple-response-types-1_0.html
+        /// </summary>
+        public bool IsQueryResponseMode {
+            get { return string.Equals(ResponseMode, Constants.ResponseModes.Query, StringComparison.Ordinal); }
+        }
+
+        /// <summary>
+        /// True if the "response_mode" query string parameter is "form_post".
+        /// See http://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html
+        /// </summary>
         public bool IsFormPostResponseMode {
             get { return string.Equals(ResponseMode, Constants.ResponseModes.FormPost, StringComparison.Ordinal); }
         }

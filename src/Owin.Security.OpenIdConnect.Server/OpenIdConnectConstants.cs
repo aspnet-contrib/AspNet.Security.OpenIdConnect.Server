@@ -58,6 +58,8 @@ namespace Owin.Security.OpenIdConnect.Server {
 
         public static class ResponseModes {
             public const string FormPost = "form_post";
+            public const string Fragment = "fragment";
+            public const string Query = "query";
         }
     }
 }
