@@ -32,26 +32,5 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             return Task.FromResult<object>(null);
         };
-
-        internal static readonly Func<OpenIdConnectSendFormPostMarkupContext, Task> SendFormPostMarkup = async context => {
-            context.Response.ContentType = "text/html";
-
-            await context.Response.WriteAsync("<html>\n");
-            await context.Response.WriteAsync("<body>\n");
-            await context.Response.WriteAsync("<form name='form' method='post' action='" + context.RedirectUri + "'>\n");
-
-            foreach (KeyValuePair<string, string> parameter in context.Payload) {
-                var value = WebUtility.HtmlEncode(parameter.Value);
-                var key = WebUtility.HtmlEncode(parameter.Key);
-
-                await context.Response.WriteAsync("<input type='hidden' name='" + key + "' value='" + value + "'>\n");
-            }
-
-            await context.Response.WriteAsync("<noscript>Click here to finish login: <input type='submit'></noscript>\n");
-            await context.Response.WriteAsync("</form>\n");
-            await context.Response.WriteAsync("<script>document.form.submit();</script>\n");
-            await context.Response.WriteAsync("</body>\n");
-            await context.Response.WriteAsync("</html>\n");
-        };
     }
 }

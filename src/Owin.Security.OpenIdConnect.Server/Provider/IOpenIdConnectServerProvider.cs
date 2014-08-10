@@ -141,6 +141,18 @@ namespace Owin.Security.OpenIdConnect.Server {
         Task AuthorizeEndpoint(OpenIdConnectAuthorizeEndpointContext context);
 
         /// <summary>
+        /// Called before the AuthorizationEndpoint redirects its response to the caller.
+        /// The response could contain an access token when using implicit flow or
+        /// an authorization code when using the authorization code flow.
+        /// If the web application wishes to produce the authorization response directly in the AuthorizeEndpoint call it may write to the 
+        /// context.Response directly and should call context.RequestCompleted to stop other handlers from executing.
+        /// This call may also be used to add additional response parameters to the authorization response.
+        /// </summary>
+        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        Task AuthorizeEndpointResponse(OpenIdConnectAuthorizeEndpointResponseContext context);
+
+        /// <summary>
         /// Called at the final stage of a successful Token endpoint request. An application may implement this call in order to do any final 
         /// modification of the claims being used to issue access or refresh tokens. This call may also be used in order to add additional 
         /// response parameters to the Token endpoint's json response body.
@@ -150,29 +162,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         Task TokenEndpoint(OpenIdConnectTokenEndpointContext context);
 
         /// <summary>
-        /// Called before the AuthorizationEndpoint redirects its response to the caller. The response could be the
-        /// token, when using implicit flow or the AuthorizationEndpoint when using authorization code flow.  
-        /// An application may implement this call in order to do any final modification of the claims being used 
-        /// to issue access or refresh tokens. This call may also be used in order to add additional 
-        /// response parameters to the authorization endpoint's response.
-        /// </summary>
-        /// <param name="context">The context of the event carries information in and results out.</param>
-        /// <returns>Task to enable asynchronous execution</returns>
-        Task AuthorizationEndpointResponse(OpenIdConnectAuthorizationEndpointResponseContext context);
-
-        /// <summary>
         /// Called before the TokenEndpoint redirects its response to the caller. 
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
         Task TokenEndpointResponse(OpenIdConnectTokenEndpointResponseContext context);
-
-        /// <summary>
-        /// Called when the authorization server is asked to return an auto-post form containing
-        /// the required OpenID connect parameters and pointing to the client application.
-        /// </summary>
-        /// <param name="context">The context of the event carries information in and results out.</param>
-        /// <returns>Task to enable asynchronous execution</returns>
-        Task SendFormPostMarkup(OpenIdConnectSendFormPostMarkupContext context);
     }
 }

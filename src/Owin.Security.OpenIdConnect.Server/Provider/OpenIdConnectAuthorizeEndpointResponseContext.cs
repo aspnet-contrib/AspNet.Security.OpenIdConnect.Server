@@ -12,15 +12,15 @@ namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information when processing an Authorization Response
     /// </summary>
-    public class OpenIdConnectAuthorizationEndpointResponseContext : EndpointContext<OpenIdConnectServerOptions> {
+    public class OpenIdConnectAuthorizeEndpointResponseContext : EndpointContext<OpenIdConnectServerOptions> {
         /// <summary>
-        /// Initializes a new instance of the <see cref="OpenIdConnectAuthorizationEndpointResponseContext"/> class
+        /// Initializes a new instance of the <see cref="OpenIdConnectAuthorizeEndpointResponseContext"/> class
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="ticket"></param>
         /// <param name="tokenEndpointRequest"></param>
-        public OpenIdConnectAuthorizationEndpointResponseContext(
+        public OpenIdConnectAuthorizeEndpointResponseContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
             AuthenticationTicket ticket,
@@ -35,7 +35,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             Identity = ticket.Identity;
             Properties = ticket.Properties;
             AuthorizeEndpointRequest = authorizeEndpointRequest;
-            AdditionalResponseParameters = new Dictionary<string, object>(StringComparer.Ordinal);
+            AdditionalResponseParameters = new Dictionary<string, string>(StringComparer.Ordinal);
             AccessToken = accessToken;
             AuthorizationCode = authorizationCode;
         }
@@ -58,7 +58,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Enables additional values to be appended to the token response.
         /// </summary>
-        public IDictionary<string, object> AdditionalResponseParameters { get; private set; }
+        public IDictionary<string, string> AdditionalResponseParameters { get; private set; }
 
         /// <summary>
         /// The serialized Access-Token. Depending on the flow, it can be null.
