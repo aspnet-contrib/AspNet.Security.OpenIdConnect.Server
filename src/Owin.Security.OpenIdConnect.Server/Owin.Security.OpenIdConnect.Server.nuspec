@@ -1,21 +1,20 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
     <metadata>
-        <id>Owin.Security.OpenIdConnect.Server</id>
-        <version>1.0.0-alpha3</version>
-        <authors>Kévin Chalet,Manfred Steyer</authors>
+        <id>$id$</id>
+        <version>$version$</version>
+		<title>$title$</title>
+        <authors>$authors$</authors>
+        <owners>$authors$</owners>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>OpenID connect server implementation for OWIN.</description>
         <dependencies>
-            <group targetFramework=".NETFramework4.5">
-                <dependency id="Microsoft.IdentityModel.Protocol.Extensions" version="1.0.0-RC2" />
-                <dependency id="Microsoft.Owin" version="3.0.0-rc3" />
-                <dependency id="Microsoft.Owin.Security" version="3.0.0-rc3" />
-                <dependency id="Newtonsoft.Json" version="6.0.3" />
-                <dependency id="System.IdentityModel.Tokens.Jwt" version="4.0.0-RC2" />
-                <dependency id="Owin" version="1.0" />
-            </group>
-            <group />
+			<dependency id="Microsoft.IdentityModel.Protocol.Extensions" version="1.0.0-RC2" />
+			<dependency id="Microsoft.Owin" version="3.0.0-rc3" />
+			<dependency id="Microsoft.Owin.Security" version="3.0.0-rc3" />
+			<dependency id="Newtonsoft.Json" version="6.0.3" />
+			<dependency id="System.IdentityModel.Tokens.Jwt" version="4.0.0-RC2" />
+			<dependency id="Owin" version="1.0" />
         </dependencies>
     </metadata>
     <files>
