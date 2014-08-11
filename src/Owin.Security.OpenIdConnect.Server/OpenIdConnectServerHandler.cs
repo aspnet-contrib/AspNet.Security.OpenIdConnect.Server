@@ -67,6 +67,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     return true;
                 }
             }
+
             return false;
         }
 
@@ -120,10 +121,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             var validatingContext = new OpenIdConnectValidateAuthorizeRequestContext(
-                Context,
-                Options,
-                authorizationRequest,
-                clientContext);
+                Context, Options, authorizationRequest, clientContext);
 
             if (string.IsNullOrEmpty(authorizationRequest.ResponseType)) {
                 _logger.WriteVerbose("Authorize endpoint request missing required response_type parameter");
@@ -322,8 +320,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                     await writer.WriteLineAsync("<form name='form' method='post' action='" + message.RedirectUri + "'>");
 
                     foreach (KeyValuePair<string, string> parameter in message.Parameters) {
-                        var value = WebUtility.HtmlEncode(parameter.Value);
-                        var key = WebUtility.HtmlEncode(parameter.Key);
+                        string value = WebUtility.HtmlEncode(parameter.Value);
+                        string key = WebUtility.HtmlEncode(parameter.Key);
 
                         await writer.WriteLineAsync("<input type='hidden' name='" + key + "' value='" + value + "'>");
                     }
