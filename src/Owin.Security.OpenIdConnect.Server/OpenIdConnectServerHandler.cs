@@ -41,59 +41,72 @@ namespace Owin.Security.OpenIdConnect.Server {
             if (Options.AuthorizeEndpointPath.HasValue && Options.AuthorizeEndpointPath == Request.Path) {
                 matchRequestContext.MatchesAuthorizeEndpoint();
             }
+
             else if (Options.TokenEndpointPath.HasValue && Options.TokenEndpointPath == Request.Path) {
                 matchRequestContext.MatchesTokenEndpoint();
             }
+
             await Options.Provider.MatchEndpoint(matchRequestContext);
+
             if (matchRequestContext.IsRequestCompleted) {
                 return true;
             }
 
             if (matchRequestContext.IsAuthorizeEndpoint || matchRequestContext.IsTokenEndpoint) {
-                if (!Options.AllowInsecureHttp &&
-                    string.Equals(Request.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase)) {
+                if (!Options.AllowInsecureHttp && string.Equals(Request.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase)) {
                     _logger.WriteWarning("Authorization server ignoring http request because AllowInsecureHttp is false.");
                     return false;
                 }
+
                 if (matchRequestContext.IsAuthorizeEndpoint) {
                     return await InvokeAuthorizeEndpointAsync();
                 }
+
                 if (matchRequestContext.IsTokenEndpoint) {
                     await InvokeTokenEndpointAsync();
                     return true;
                 }
             }
+
             return false;
         }
 
         private async Task<bool> InvokeAuthorizeEndpointAsync() {
-            var authorizeRequest = new AuthorizeEndpointRequest(Request.Query);
+            AuthorizeEndpointRequest authorizationRequest = await ExtractAuthorizationRequestAsync();
+            if (authorizationRequest == null) {
+                return await SendErrorPageAsync(
+                    error: Constants.Errors.InvalidRequest,
+                    errorDescription: "A malformed authorization request has been received: " +
+                        "when using POST, make sure the request contains a 'Content-Type' header " +
+                        "and uses the form-urlencoded ('application/x-www-form-urlencoded') format.",
+                    errorUri: null);
+            }
 
             var clientContext = new OpenIdConnectValidateClientRedirectUriContext(
-                Context,
-                Options,
-                authorizeRequest.ClientId,
-                authorizeRequest.RedirectUri);
+                Context, Options, authorizationRequest.ClientId,
+                authorizationRequest.RedirectUri);
 
-            if (!string.IsNullOrEmpty(authorizeRequest.RedirectUri)) {
+            if (!string.IsNullOrEmpty(authorizationRequest.RedirectUri)) {
                 bool acceptableUri = true;
                 Uri validatingUri;
-                if (!Uri.TryCreate(authorizeRequest.RedirectUri, UriKind.Absolute, out validatingUri)) {
+                if (!Uri.TryCreate(authorizationRequest.RedirectUri, UriKind.Absolute, out validatingUri)) {
                     // The redirection endpoint URI MUST be an absolute URI
                     // http://tools.ietf.org/html/rfc6749#section-3.1.2
                     acceptableUri = false;
                 }
+
                 else if (!string.IsNullOrEmpty(validatingUri.Fragment)) {
                     // The endpoint URI MUST NOT include a fragment component.
                     // http://tools.ietf.org/html/rfc6749#section-3.1.2
                     acceptableUri = false;
                 }
-                else if (!Options.AllowInsecureHttp &&
-                    string.Equals(validatingUri.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase)) {
+
+                else if (!Options.AllowInsecureHttp && string.Equals(validatingUri.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase)) {
                     // The redirection endpoint SHOULD require the use of TLS
                     // http://tools.ietf.org/html/rfc6749#section-3.1.2.1
                     acceptableUri = false;
                 }
+
                 if (!acceptableUri) {
                     clientContext.SetError(Constants.Errors.InvalidRequest);
                     return await SendErrorRedirectAsync(clientContext, clientContext);
@@ -108,32 +121,29 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             var validatingContext = new OpenIdConnectValidateAuthorizeRequestContext(
-                Context,
-                Options,
-                authorizeRequest,
-                clientContext);
+                Context, Options, authorizationRequest, clientContext);
 
-            if (string.IsNullOrEmpty(authorizeRequest.ResponseType)) {
+            if (string.IsNullOrEmpty(authorizationRequest.ResponseType)) {
                 _logger.WriteVerbose("Authorize endpoint request missing required response_type parameter");
                 validatingContext.SetError(Constants.Errors.InvalidRequest);
             }
 
-            else if (!authorizeRequest.IsAuthorizationCodeGrantType &&
-                !authorizeRequest.IsImplicitGrantType &&
-                !authorizeRequest.IsHybridGrantType) {
+            else if (!authorizationRequest.IsAuthorizationCodeGrantType &&
+                !authorizationRequest.IsImplicitGrantType &&
+                !authorizationRequest.IsHybridGrantType) {
                 _logger.WriteVerbose("Authorize endpoint request contains unsupported response_type parameter");
                 validatingContext.SetError(Constants.Errors.UnsupportedResponseType);
             }
 
-            else if (!string.IsNullOrEmpty(authorizeRequest.ResponseMode) &&
-                !authorizeRequest.IsFormPostResponseMode &&
-                !authorizeRequest.IsFragmentResponseMode &&
-                !authorizeRequest.IsQueryResponseMode) {
+            else if (!string.IsNullOrEmpty(authorizationRequest.ResponseMode) &&
+                !authorizationRequest.IsFormPostResponseMode &&
+                !authorizationRequest.IsFragmentResponseMode &&
+                !authorizationRequest.IsQueryResponseMode) {
                 _logger.WriteVerbose("Authorize endpoint request contains unsupported response_mode parameter");
                 validatingContext.SetError(Constants.Errors.InvalidRequest);
             }
 
-            else if (!authorizeRequest.Scope.Contains(OpenIdConnectScopes.OpenId)) {
+            else if (!authorizationRequest.Scope.Contains(OpenIdConnectScopes.OpenId)) {
                 _logger.WriteVerbose("The 'openid' scope part was missing");
                 validatingContext.SetError(Constants.Errors.InvalidRequest);
             }
@@ -148,9 +158,9 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             _clientContext = clientContext;
-            _authorizeEndpointRequest = authorizeRequest;
+            _authorizeEndpointRequest = authorizationRequest;
 
-            var authorizeEndpointContext = new OpenIdConnectAuthorizeEndpointContext(Context, Options, authorizeRequest);
+            var authorizeEndpointContext = new OpenIdConnectAuthorizeEndpointContext(Context, Options, authorizationRequest);
 
             await Options.Provider.AuthorizeEndpoint(authorizeEndpointContext);
 
@@ -167,13 +177,17 @@ namespace Owin.Security.OpenIdConnect.Server {
         }
         
         protected override async Task TeardownCoreAsync() {
-            // Disclaimer: authentication handlers cannot reliabily write to the response stream from ApplyResponseGrantAsync
-            // or ApplyResponseChallengeAsync because these methods are susceptible to be invoked from AuthenticationHandler.OnSendingHeaderCallback
-            // where calling Write or WriteAsync on the response stream may result in a deadlock on hosts using streamed responses.
-            // To work around this limitation, OpenIdConnectServerHandler doesn't implement ApplyResponseGrantAsync but TeardownCoreAsync,
-            // which is never called by AuthenticationHandler.OnSendingHeaderCallback. In theory, this would prevent OpenIdConnectServerHandler
-            // from both applying the response grant and allowing the next middleware in the pipeline to alter the response stream but in practice,
-            // the OpenIdConnectServerHandler is assumed to be the only middleware allowed to write to the response stream when a response grant has been applied.
+            // Disclaimer: authentication handlers cannot reliabily write to the response stream
+            // from ApplyResponseGrantAsync or ApplyResponseChallengeAsync because these methods
+            // are susceptible to be invoked from AuthenticationHandler.OnSendingHeaderCallback
+            // where calling Write or WriteAsync on the response stream may result in a deadlock
+            // on hosts using streamed responses. To work around this limitation, OpenIdConnectServerHandler
+            // doesn't implement ApplyResponseGrantAsync but TeardownCoreAsync,
+            // which is never called by AuthenticationHandler.OnSendingHeaderCallback.
+            // In theory, this would prevent OpenIdConnectServerHandler from both applying
+            // the response grant and allowing the next middleware in the pipeline to alter
+            // the response stream but in practice, the OpenIdConnectServerHandler is assumed to be
+            // the only middleware allowed to write to the response stream when a response grant has been applied.
 
             // only successful results of an authorize request are altered
             if (_clientContext == null || _authorizeEndpointRequest == null || Response.StatusCode != 200) {
@@ -296,17 +310,18 @@ namespace Owin.Security.OpenIdConnect.Server {
 
         private async Task ApplyAuthorizationResponseAsync(OpenIdConnectMessage message, string responseMode) {
             if (string.Equals(responseMode, Constants.ResponseModes.FormPost, StringComparison.Ordinal)) {
-                Response.ContentType = "text/html";
+                byte[] body;
 
-                using (var writer = new StreamWriter(Response.Body, Encoding.UTF8, 4096, leaveOpen: true)) {
+                using (var memory = new MemoryStream())
+                using (var writer = new StreamWriter(memory)) {
                     await writer.WriteLineAsync("<!doctype html>");
                     await writer.WriteLineAsync("<html>");
                     await writer.WriteLineAsync("<body>");
                     await writer.WriteLineAsync("<form name='form' method='post' action='" + message.RedirectUri + "'>");
 
                     foreach (KeyValuePair<string, string> parameter in message.Parameters) {
-                        var value = WebUtility.HtmlEncode(parameter.Value);
-                        var key = WebUtility.HtmlEncode(parameter.Key);
+                        string value = WebUtility.HtmlEncode(parameter.Value);
+                        string key = WebUtility.HtmlEncode(parameter.Key);
 
                         await writer.WriteLineAsync("<input type='hidden' name='" + key + "' value='" + value + "'>");
                     }
@@ -316,7 +331,14 @@ namespace Owin.Security.OpenIdConnect.Server {
                     await writer.WriteLineAsync("<script>document.form.submit();</script>");
                     await writer.WriteLineAsync("</body>");
                     await writer.WriteLineAsync("</html>");
+                    await writer.FlushAsync();
+
+                    body = memory.ToArray();
                 }
+
+                Response.ContentType = "text/html";
+                Response.ContentLength = body.Length;
+                await Response.WriteAsync(body, Request.CallCancelled);
             }
 
             else if (string.Equals(responseMode, Constants.ResponseModes.Fragment, StringComparison.Ordinal)) {
@@ -866,6 +888,33 @@ namespace Owin.Security.OpenIdConnect.Server {
             await Response.WriteAsync(body, Request.CallCancelled);
             // request is handled, does not pass on to application
             return true;
+        }
+
+        private async Task<AuthorizeEndpointRequest> ExtractAuthorizationRequestAsync() {
+            if (string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
+                return new AuthorizeEndpointRequest(Request.Query);
+            }
+
+            if (string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase)) {
+                // See http://openid.net/specs/openid-connect-core-1_0.html#FormSerialization
+                if (string.IsNullOrWhiteSpace(Request.ContentType)) {
+                    _logger.WriteError("Authorization endpoint: the mandatory 'Content-Type' header was missing from the POST request");
+                    return null;
+                }
+
+                // May have media/type; charset=utf-8, allow partial match.
+                if (!Request.ContentType.StartsWith("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase)) {
+                    _logger.WriteError(string.Format(CultureInfo.InvariantCulture,
+                        "Authorization endpoint: the 'Content-Type' header contained an invalid value: {0}.", Request.ContentType));
+                    return null;
+                }
+
+                return new AuthorizeEndpointRequest(await Request.ReadFormAsync());
+            }
+
+            _logger.WriteError(string.Format(CultureInfo.InvariantCulture,
+                "Authorization endpoint: unsupported '{0}' method", Request.Method));
+            return null;
         }
 
         private class Appender {
