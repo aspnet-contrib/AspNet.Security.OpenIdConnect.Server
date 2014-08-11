@@ -312,9 +312,10 @@ namespace Owin.Security.OpenIdConnect.Server {
 
         private async Task ApplyAuthorizationResponseAsync(OpenIdConnectMessage message, string responseMode) {
             if (string.Equals(responseMode, Constants.ResponseModes.FormPost, StringComparison.Ordinal)) {
-                Response.ContentType = "text/html";
+                byte[] body;
 
-                using (var writer = new StreamWriter(Response.Body, Encoding.UTF8, 4096, leaveOpen: true)) {
+                using (var memory = new MemoryStream())
+                using (var writer = new StreamWriter(memory)) {
                     await writer.WriteLineAsync("<!doctype html>");
                     await writer.WriteLineAsync("<html>");
                     await writer.WriteLineAsync("<body>");
@@ -332,7 +333,14 @@ namespace Owin.Security.OpenIdConnect.Server {
                     await writer.WriteLineAsync("<script>document.form.submit();</script>");
                     await writer.WriteLineAsync("</body>");
                     await writer.WriteLineAsync("</html>");
+                    await writer.FlushAsync();
+
+                    body = memory.ToArray();
                 }
+
+                Response.ContentType = "text/html";
+                Response.ContentLength = body.Length;
+                await Response.WriteAsync(body, Request.CallCancelled);
             }
 
             else if (string.Equals(responseMode, Constants.ResponseModes.Fragment, StringComparison.Ordinal)) {
