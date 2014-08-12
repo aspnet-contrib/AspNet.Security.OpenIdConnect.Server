@@ -20,5 +20,6 @@
     <files>
         <file src="Owin.Security.OpenIdConnect.Server.dll" target="lib\net45" />
         <file src="Owin.Security.OpenIdConnect.Server.pdb" target="lib\net45" />
+        <file src="Owin.Security.OpenIdConnect.Server.xml" target="lib\net45" />
     </files>
 </package>
