@@ -214,13 +214,11 @@ namespace Owin.Security.OpenIdConnect.Server {
             message.RedirectUri = _clientContext.RedirectUri;
 
             DateTimeOffset currentUtc = Options.SystemClock.UtcNow;
-            signin.Properties.IssuedUtc = currentUtc;
-            signin.Properties.ExpiresUtc = currentUtc.Add(Options.AuthorizationCodeExpireTimeSpan);
 
-            // associate client_id with all subsequent tickets
+            // Associate client_id with all subsequent tickets
             signin.Properties.Dictionary[Constants.Extra.ClientId] = _authorizeEndpointRequest.ClientId;
             if (!string.IsNullOrEmpty(_authorizeEndpointRequest.RedirectUri)) {
-                // keep original request parameter for later comparison
+                // Keep original request parameter for later comparison
                 signin.Properties.Dictionary[Constants.Extra.RedirectUri] = _authorizeEndpointRequest.RedirectUri;
             }
 
@@ -230,6 +228,9 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             // Determine whether an authorization code should be returned.
             if (_authorizeEndpointRequest.ContainsGrantType(Constants.ResponseTypes.Code)) {
+                signin.Properties.IssuedUtc = currentUtc;
+                signin.Properties.ExpiresUtc = currentUtc.Add(Options.AuthorizationCodeExpireTimeSpan);
+
                 var context = new AuthenticationTokenCreateContext(
                     Context, Options.AuthorizationCodeFormat,
                     new AuthenticationTicket(signin.Identity, signin.Properties));
@@ -249,6 +250,9 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             // Determine whether an access token should be returned.
             if (_authorizeEndpointRequest.ContainsGrantType(Constants.ResponseTypes.Token)) {
+                signin.Properties.IssuedUtc = currentUtc;
+                signin.Properties.ExpiresUtc = currentUtc.Add(Options.AccessTokenExpireTimeSpan);
+
                 var context = new AuthenticationTokenCreateContext(
                     Context, Options.AccessTokenFormat,
                     new AuthenticationTicket(signin.Identity, signin.Properties));
@@ -274,6 +278,9 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             // Determine whether an identity token should be returned.
             if (_authorizeEndpointRequest.ContainsGrantType(Constants.ResponseTypes.IdToken)) {
+                signin.Properties.IssuedUtc = currentUtc;
+                signin.Properties.ExpiresUtc = currentUtc.Add(Options.IdTokenExpireTimeSpan);
+
                 message.IdToken = CreateIdToken(
                     signin.Identity, signin.Properties, _authorizeEndpointRequest.ClientId,
                     message.AccessToken, message.Code, Request.Query["nonce"]);
