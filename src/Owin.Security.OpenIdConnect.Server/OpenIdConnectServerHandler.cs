@@ -186,28 +186,49 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             await base.InitializeCoreAsync();
         }
-        
-        protected override async Task TeardownCoreAsync() {
-            // Disclaimer: authentication handlers cannot reliabily write to the response stream
-            // from ApplyResponseGrantAsync or ApplyResponseChallengeAsync because these methods
-            // are susceptible to be invoked from AuthenticationHandler.OnSendingHeaderCallback
-            // where calling Write or WriteAsync on the response stream may result in a deadlock
-            // on hosts using streamed responses. To work around this limitation, OpenIdConnectServerHandler
-            // doesn't implement ApplyResponseGrantAsync but TeardownCoreAsync,
-            // which is never called by AuthenticationHandler.OnSendingHeaderCallback.
-            // In theory, this would prevent OpenIdConnectServerHandler from both applying
-            // the response grant and allowing the next middleware in the pipeline to alter
-            // the response stream but in practice, the OpenIdConnectServerHandler is assumed to be
-            // the only middleware allowed to write to the response stream when a response grant has been applied.
 
-            // only successful results of an authorize request are altered
-            if (_clientContext == null || _authorizeEndpointRequest == null || Response.StatusCode != 200) {
+        /// <remarks>
+        /// Authentication handlers cannot reliabily write to the response stream
+        /// from ApplyResponseGrantAsync or ApplyResponseChallengeAsync because these methods
+        /// are susceptible to be invoked from AuthenticationHandler.OnSendingHeaderCallback
+        /// where calling Write or WriteAsync on the response stream may result in a deadlock
+        /// on hosts using streamed responses. To work around this limitation, OpenIdConnectServerHandler
+        /// doesn't implement ApplyResponseGrantAsync but TeardownCoreAsync,
+        /// which is never called by AuthenticationHandler.OnSendingHeaderCallback.
+        /// In theory, this would prevent OpenIdConnectServerHandler from both applying
+        /// the response grant and allowing the next middleware in the pipeline to alter
+        /// the response stream but in practice, the OpenIdConnectServerHandler is assumed to be
+        /// the only middleware allowed to write to the response stream when a response grant has been applied.
+        /// </remarks>
+        protected override async Task TeardownCoreAsync() {
+            // Stop processing the current request if InvokeAuthorizeEndpointAsync was not able
+            // to create a client context, either because the request was not an authorization request
+            // or because it was not correctly forged. In the second scenario, the error is supposed
+            // to be handled by the application itself or directly in SendErrorPageAsync:
+            // in both cases, it shouldn't be handled here.
+            if (_clientContext == null || _authorizeEndpointRequest == null) {
                 return;
             }
 
-            // only apply with signin of matching authentication type
-            AuthenticationResponseGrant signin = Helper.LookupSignIn(Options.AuthenticationType);
-            if (signin == null) {
+            // Determine whether an error was reported by the application
+            // and redirect the user agent to the client application if necessary.
+            string error, errorDescription, errorUri;
+            error = Context.GetAuthorizeRequestError(out errorDescription, out errorUri);
+
+            if (!string.IsNullOrWhiteSpace(error)) {
+                var errorContext = new OpenIdConnectValidateAuthorizeRequestContext(
+                    Context, Options, _authorizeEndpointRequest, _clientContext);
+                errorContext.SetError(error, errorDescription, errorUri);
+
+                await SendErrorRedirectAsync(_clientContext, errorContext);
+                return;
+            }
+
+            // Stop processing the request if there's no response grant that matches
+            // the authentication type associated with this middleware instance
+            // or if the response status code doesn't indicate a successful response.
+            var signin = Helper.LookupSignIn(Options.AuthenticationType);
+            if (signin == null || Response.StatusCode != 200) {
                 return;
             }
 
@@ -217,11 +238,10 @@ namespace Owin.Security.OpenIdConnect.Server {
                     "the response headers have already been sent back to the user agent. " +
                     "Make sure the response body has not been altered and that no middleware " +
                     "has attempted to write to the response stream during this request.");
-
                 return;
             }
 
-            var message = new OpenIdConnectMessage(Enumerable.Empty<KeyValuePair<string, string[]>>());
+            var message = new OpenIdConnectMessage(parameters: Enumerable.Empty<KeyValuePair<string, string[]>>());
             message.RedirectUri = _clientContext.RedirectUri;
 
             DateTimeOffset currentUtc = Options.SystemClock.UtcNow;
@@ -810,7 +830,9 @@ namespace Owin.Security.OpenIdConnect.Server {
             return ticket;
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope", Justification = "The MemoryStream is Disposed by the StreamWriter")]
+        [SuppressMessage("Microsoft.Reliability",
+            "CA2000:Dispose objects before losing scope",
+            Justification = "The MemoryStream is Disposed by the StreamWriter")]
         private Task SendErrorAsJsonAsync(
             BaseValidatingContext<OpenIdConnectServerOptions> validatingContext) {
             string error = validatingContext.HasError ? validatingContext.Error : OpenIdConnectConstants.Errors.InvalidRequest;
@@ -880,10 +902,9 @@ namespace Owin.Security.OpenIdConnect.Server {
             Response.Headers.Set("Expires", "-1");
 
             if (Options.ApplicationCanDisplayErrors) {
-                Context.Set("oauth.Error", error);
-                Context.Set("oauth.ErrorDescription", errorDescription);
-                Context.Set("oauth.ErrorUri", errorUri);
-                // request is not handled - pass through to application for rendering
+                Context.SetAuthorizeRequestError(error, errorDescription, errorUri);
+
+                // Request is not handled - pass through to application for rendering.
                 return false;
             }
 
