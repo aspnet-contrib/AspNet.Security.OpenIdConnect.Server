@@ -1,4 +1,8 @@
-// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
+/*
+ * Licensed under the Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ * See https://github.com/AspNet-OpenIdConnect-Server/Owin.Security.OpenIdConnect.Server
+ * for more information concerning the license and the contributors participating to this project.
+ */
 
 using System;
 using System.Diagnostics.CodeAnalysis;
@@ -84,9 +88,9 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <returns></returns>
         [SuppressMessage("Microsoft.Design", "CA1021:AvoidOutParameters", MessageId = "0#", Justification = "Optimized for usage")]
         public bool TryGetFormCredentials(out string clientId, out string clientSecret) {
-            clientId = Parameters.Get(Constants.Parameters.ClientId);
+            clientId = Parameters.Get(OpenIdConnectConstants.Parameters.ClientId);
             if (!String.IsNullOrEmpty(clientId)) {
-                clientSecret = Parameters.Get(Constants.Parameters.ClientSecret);
+                clientSecret = Parameters.Get(OpenIdConnectConstants.Parameters.ClientSecret);
                 ClientId = clientId;
                 return true;
             }
