@@ -1,6 +1,11 @@
-// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
+/*
+ * Licensed under the Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ * See https://github.com/AspNet-OpenIdConnect-Server/Owin.Security.OpenIdConnect.Server
+ * for more information concerning the license and the contributors participating to this project.
+ */
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Owin;
 
 namespace Owin.Security.OpenIdConnect.Server {
@@ -15,7 +20,8 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <param name="options"></param>
         /// <param name="clientId"></param>
         /// <param name="redirectUri"></param>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1054:UriParametersShouldNotBeStrings", MessageId = "3#", Justification = "redirect_uri is a string parameter")]
+        [SuppressMessage("Microsoft.Design", "CA1054:UriParametersShouldNotBeStrings",
+            MessageId = "3#", Justification = "redirect_uri is a string parameter")]
         public OpenIdConnectValidateClientRedirectUriContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
@@ -28,7 +34,9 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the client redirect URI
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1056:UriPropertiesShouldNotBeStrings", Justification = "redirect_uri is a string parameter")]
+        [SuppressMessage("Microsoft.Design",
+            "CA1056:UriPropertiesShouldNotBeStrings",
+            Justification = "redirect_uri is a string parameter")]
         public string RedirectUri { get; private set; }
 
         /// <summary>
@@ -48,7 +56,8 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="redirectUri"></param>
         /// <returns></returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1054:UriParametersShouldNotBeStrings", MessageId = "0#", Justification = "redirect_uri is a string parameter")]
+        [SuppressMessage("Microsoft.Design", "CA1054:UriParametersShouldNotBeStrings",
+            MessageId = "0#", Justification = "redirect_uri is a string parameter")]
         public bool Validated(string redirectUri) {
             if (redirectUri == null) {
                 throw new ArgumentNullException("redirectUri");
