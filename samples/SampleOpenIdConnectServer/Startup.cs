@@ -35,7 +35,7 @@ namespace SampleOpenIdConnectServer {
                 Provider = new CustomOpenIdConnectServerProvider(),
                 AccessTokenExpireTimeSpan = TimeSpan.FromDays(14),
                 AllowInsecureHttp = true,
-                ApplicationCanDisplayErrors = false,
+                ApplicationCanDisplayErrors = true,
                 AuthorizationCodeProvider = new TestAuthenticationTokenProvider(),
                 RefreshTokenProvider = new TestAuthenticationTokenProvider(),
             });

@@ -1,39 +1,44 @@
 ﻿@using System.Collections.Generic
 @using System.Security.Claims
 @using System.Web
-@using Microsoft.Owin.Security
+@using Owin
+@using Owin.Security.OpenIdConnect.Server
+
 @{
     Layout = null;
 
-    var scope = Request.QueryString["scope"];
+    var context = Context.GetOwinContext();
 
-    var claims = new List<Claim>();
-    claims.Add(new Claim(ClaimsIdentity.DefaultNameClaimType, "Max Muster"));
-    claims.Add(new Claim("sub", "Max Muster"));
-    claims.Add(new Claim("user_id", "4711"));
-    claims.Add(new Claim("Role", "Manager"));
-    claims.Add(new Claim("Company", "ACME"));
+    string error, errorDescription, errorUri;
+    if (context.TryGetAuthorizeRequestError(out error, out errorDescription, out errorUri)) {
+        <div>OpenID connect error: @error</div>
 
-    // claims.Add(new Claim("aud", "http://service"));
-    // claims.Add(new Claim("aud", "http://partner-authsvc"));
-    // claims.Add(new Claim("aud", Request.QueryString["client_id"]));
-    // claims.Add(new Claim("iss", "http://authsvc"));
-    if (scope != null)
-    {
-        claims.Add(new Claim("scope", scope));
+        if (!string.IsNullOrWhiteSpace(errorDescription)) {
+            <div>@errorDescription</div>
+        }
+
+        return;
     }
 
-    var claimsId = new ClaimsIdentity("Bearer");
-    claimsId.AddClaims(claims);
+    var request = context.GetAuthorizeEndpointRequest();
+    if (request == null) {
+        return;
+    }
 
-    Response.StatusCode = 200;
+    var identity = new ClaimsIdentity(OpenIdConnectDefaults.AuthenticationType);
 
-    var auth = Request.GetOwinContext().Authentication; 
-    var authProps = new AuthenticationProperties();
-    authProps.IssuedUtc = DateTime.Now.ToUniversalTime();
-    authProps.ExpiresUtc = DateTime.Now.AddDays(1).ToUniversalTime();
+    var claims = new List<Claim> {
+        new Claim(ClaimsIdentity.DefaultNameClaimType, "Max Muster"),
+        new Claim("sub", "Max Muster"), new Claim("user_id", "4711"),
+        new Claim("Role", "Manager"), new Claim("Company", "ACME")
+    };
 
-    auth.SignIn(claimsId);
+    if (request.Scope != null) {
+        claims.Add(new Claim("scope", string.Join(" ", request.Scope)));
+    }
 
+    identity.AddClaims(claims);
 
+    var manager = Request.GetOwinContext().Authentication;
+    manager.SignIn(identity);
 }
