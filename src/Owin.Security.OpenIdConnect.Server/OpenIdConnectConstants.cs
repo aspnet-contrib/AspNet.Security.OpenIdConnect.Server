@@ -25,7 +25,6 @@ namespace Owin.Security.OpenIdConnect.Server {
             public const string ExpiresIn = "expires_in";
             public const string AccessToken = "access_token";
             public const string TokenType = "token_type";
-
             public const string ResponseMode = "response_mode";
         }
 
@@ -33,6 +32,12 @@ namespace Owin.Security.OpenIdConnect.Server {
             public const string Code = "code";
             public const string IdToken = "id_token";
             public const string Token = "token";
+        }
+
+        public static class ResponseModes {
+            public const string FormPost = "form_post";
+            public const string Fragment = "fragment";
+            public const string Query = "query";
         }
 
         public static class GrantTypes {
@@ -60,10 +65,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             public const string RedirectUri = "redirect_uri";
         }
 
-        public static class ResponseModes {
-            public const string FormPost = "form_post";
-            public const string Fragment = "fragment";
-            public const string Query = "query";
+        public static class Environment {
+            public const string AuthorizeEndpointRequest = "oauth.AuthorizeEndpointRequest";
         }
     }
 }

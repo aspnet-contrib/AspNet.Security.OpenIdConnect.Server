@@ -15,14 +15,15 @@ namespace Owin.Security.OpenIdConnect.Server.Messages {
     /// </summary>
     public class AuthorizeEndpointRequest {
         /// <summary>
-        /// Creates a new instance populated with values from the query string parameters.
+        /// Creates a new instance populated with parameters extracted from the ambient request.
         /// </summary>
-        /// <param name="parameters">Query string parameters from a request.</param>
+        /// <param name="parameters">Parameters extracted from the ambient request.</param>
         public AuthorizeEndpointRequest(IReadableStringCollection parameters) {
             if (parameters == null) {
                 throw new ArgumentNullException("parameters");
             }
 
+            Parameters = parameters;
             Scope = new List<string>();
 
             foreach (var parameter in parameters) {
@@ -45,6 +46,11 @@ namespace Owin.Security.OpenIdConnect.Server.Messages {
         /// The "client_id" query string parameter of the Authorize request. 
         /// </summary>
         public string ClientId { get; set; }
+
+        /// <summary>
+        /// The parameters collection used to build the current request.
+        /// </summary>
+        public IReadableStringCollection Parameters { get; private set; }
 
         /// <summary>
         /// The "redirect_uri" query string parameter of the Authorize request. May be absent if the server should use the 
