@@ -4,6 +4,7 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Owin;
 using Microsoft.Owin.Security.Provider;
 
@@ -47,7 +48,8 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// The optional errorUri argument provided when SetError was called on this context. This is eventually
         /// returned to the client app as the OpenIdConnect "error_uri" parameter.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1056:UriPropertiesShouldNotBeStrings", Justification = "error_uri is a string value in the protocol")]
+        [SuppressMessage("Microsoft.Design", "CA1056:UriPropertiesShouldNotBeStrings",
+            Justification = "error_uri is a string value in the protocol")]
         public string ErrorUri { get; private set; }
 
         /// <summary>
@@ -95,7 +97,8 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <param name="error">Assigned to the Error property</param>
         /// <param name="errorDescription">Assigned to the ErrorDescription property</param>
         /// <param name="errorUri">Assigned to the ErrorUri property</param>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1054:UriParametersShouldNotBeStrings", MessageId = "2#", Justification = "error_uri is a string value in the protocol")]
+        [SuppressMessage("Microsoft.Design", "CA1054:UriParametersShouldNotBeStrings",
+            MessageId = "2#", Justification = "error_uri is a string value in the protocol")]
         public void SetError(string error,
             string errorDescription,
             string errorUri) {

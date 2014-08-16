@@ -76,8 +76,8 @@ namespace Owin.Security.OpenIdConnect.Server {
         }
 
         private async Task<bool> InvokeAuthorizeEndpointAsync() {
-            AuthorizeEndpointRequest authorizationRequest = await ExtractAuthorizationRequestAsync();
-            if (authorizationRequest == null) {
+            var authorizeEndpointRequest = await ExtractAuthorizationRequestAsync();
+            if (authorizeEndpointRequest == null) {
                 return await SendErrorPageAsync(
                     error: OpenIdConnectConstants.Errors.InvalidRequest,
                     errorDescription: "A malformed authorization request has been received: " +
@@ -87,13 +87,13 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             var clientContext = new OpenIdConnectValidateClientRedirectUriContext(
-                Context, Options, authorizationRequest.ClientId,
-                authorizationRequest.RedirectUri);
+                Context, Options, authorizeEndpointRequest.ClientId,
+                authorizeEndpointRequest.RedirectUri);
 
-            if (!string.IsNullOrEmpty(authorizationRequest.RedirectUri)) {
+            if (!string.IsNullOrEmpty(authorizeEndpointRequest.RedirectUri)) {
                 bool acceptableUri = true;
                 Uri validatingUri;
-                if (!Uri.TryCreate(authorizationRequest.RedirectUri, UriKind.Absolute, out validatingUri)) {
+                if (!Uri.TryCreate(authorizeEndpointRequest.RedirectUri, UriKind.Absolute, out validatingUri)) {
                     // The redirection endpoint URI MUST be an absolute URI
                     // http://tools.ietf.org/html/rfc6749#section-3.1.2
                     acceptableUri = false;
@@ -125,29 +125,29 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             var validatingContext = new OpenIdConnectValidateAuthorizeRequestContext(
-                Context, Options, authorizationRequest, clientContext);
+                Context, Options, authorizeEndpointRequest, clientContext);
 
-            if (string.IsNullOrEmpty(authorizationRequest.ResponseType)) {
+            if (string.IsNullOrEmpty(authorizeEndpointRequest.ResponseType)) {
                 _logger.WriteVerbose("Authorize endpoint request missing required response_type parameter");
                 validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidRequest);
             }
 
-            else if (!authorizationRequest.IsAuthorizationCodeGrantType &&
-                !authorizationRequest.IsImplicitGrantType &&
-                !authorizationRequest.IsHybridGrantType) {
+            else if (!authorizeEndpointRequest.IsAuthorizationCodeGrantType &&
+                !authorizeEndpointRequest.IsImplicitGrantType &&
+                !authorizeEndpointRequest.IsHybridGrantType) {
                 _logger.WriteVerbose("Authorize endpoint request contains unsupported response_type parameter");
                 validatingContext.SetError(OpenIdConnectConstants.Errors.UnsupportedResponseType);
             }
 
-            else if (!string.IsNullOrEmpty(authorizationRequest.ResponseMode) &&
-                !authorizationRequest.IsFormPostResponseMode &&
-                !authorizationRequest.IsFragmentResponseMode &&
-                !authorizationRequest.IsQueryResponseMode) {
+            else if (!string.IsNullOrEmpty(authorizeEndpointRequest.ResponseMode) &&
+                !authorizeEndpointRequest.IsFormPostResponseMode &&
+                !authorizeEndpointRequest.IsFragmentResponseMode &&
+                !authorizeEndpointRequest.IsQueryResponseMode) {
                 _logger.WriteVerbose("Authorize endpoint request contains unsupported response_mode parameter");
                 validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidRequest);
             }
 
-            else if (!authorizationRequest.Scope.Contains(OpenIdConnectScopes.OpenId)) {
+            else if (!authorizeEndpointRequest.Scope.Contains(OpenIdConnectScopes.OpenId)) {
                 _logger.WriteVerbose("The 'openid' scope part was missing");
                 validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidRequest);
             }
@@ -156,19 +156,26 @@ namespace Owin.Security.OpenIdConnect.Server {
                 await Options.Provider.ValidateAuthorizeRequest(validatingContext);
             }
 
+            // Stop processing the request if Validated was not called.
             if (!validatingContext.IsValidated) {
-                // an invalid request is not processed further
                 return await SendErrorRedirectAsync(clientContext, validatingContext);
             }
 
             _clientContext = clientContext;
-            _authorizeEndpointRequest = authorizationRequest;
+            _authorizeEndpointRequest = authorizeEndpointRequest;
 
-            var authorizeEndpointContext = new OpenIdConnectAuthorizeEndpointContext(Context, Options, authorizationRequest);
-
+            var authorizeEndpointContext = new OpenIdConnectAuthorizeEndpointContext(Context, Options, authorizeEndpointRequest);
             await Options.Provider.AuthorizeEndpoint(authorizeEndpointContext);
 
-            return authorizeEndpointContext.IsRequestCompleted;
+            // Stop processing the request if AuthorizeEndpoint called RequestCompleted.
+            if (authorizeEndpointContext.IsRequestCompleted) {
+                return true;
+            }
+
+            // Insert the AuthorizeEndpointRequest instance in the OWIN context to give
+            // the next middleware an easier access to the ambient authorization request.
+            Context.SetAuthorizeEndpointRequest(authorizeEndpointRequest);
+            return false;
         }
 
         protected override async Task InitializeCoreAsync() {
