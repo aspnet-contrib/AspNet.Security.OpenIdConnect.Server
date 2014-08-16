@@ -62,7 +62,6 @@ namespace Owin {
         /// </summary>
         /// <param name="context">The OWIN context.</param>
         /// <param name="request">The ambient <see cref="AuthorizeEndpointRequest"/>.</param>
-        /// <returns>The <see cref="AuthorizeEndpointRequest"/> associated with the current request.</returns>
         internal static void SetAuthorizeEndpointRequest(this IOwinContext context, AuthorizeEndpointRequest request) {
             const string key = OpenIdConnectConstants.Environment.AuthorizeEndpointRequest;
 
@@ -75,6 +74,71 @@ namespace Owin {
             }
 
             context.Set<IEnumerable<KeyValuePair<string, string[]>>>(key, request.Parameters);
+        }
+
+        /// <summary>
+        /// Retrieves the oauth.Error value associated with the current request from the OWIN context.
+        /// </summary>
+        /// <param name="context">The OWIN context.</param>
+        /// <param name="errorDescription">The oauth.ErrorDescription associated with the current request.</param>
+        /// <param name="errorUri">The oauth.ErrorUri associated with the current request.</param>
+        /// <returns>The oauth.Error associated with the current request.</returns>
+        public static string GetAuthorizeRequestError(this IOwinContext context, out string errorDescription, out string errorUri) {
+            if (context == null) {
+                throw new ArgumentNullException("context");
+            }
+
+            errorDescription = context.Get<string>(OpenIdConnectConstants.Environment.ErrorDescription);
+            errorUri = context.Get<string>(OpenIdConnectConstants.Environment.ErrorUri);
+
+            return context.Get<string>(OpenIdConnectConstants.Environment.Error);
+        }
+
+        /// <summary>
+        /// Determines whether the OWIN context contains an oauth.Error value associated with the current request.
+        /// </summary>
+        /// <param name="context">The OWIN context.</param>
+        /// <param name="error">The oauth.Error associated with the current request.</param>
+        /// <param name="errorDescription">The oauth.ErrorDescription associated with the current request.</param>
+        /// <param name="errorUri">The oauth.ErrorUri associated with the current request.</param>
+        /// <returns>Returns true if the context contains a non-null oauth.Error value.</returns>
+        public static bool TryGetAuthorizeRequestError(this IOwinContext context, out string error, out string errorDescription, out string errorUri) {
+            if (context == null) {
+                throw new ArgumentNullException("context");
+            }
+
+            error = context.Get<string>(OpenIdConnectConstants.Environment.Error);
+            errorDescription = context.Get<string>(OpenIdConnectConstants.Environment.ErrorDescription);
+            errorUri = context.Get<string>(OpenIdConnectConstants.Environment.ErrorUri);
+
+            return !string.IsNullOrWhiteSpace(error);
+        }
+
+        /// <summary>
+        /// Inserts the ambient oauth.Error in the OWIN context.
+        /// </summary>
+        /// <param name="context">The OWIN context.</param>
+        /// <param name="error">The ambient oauth.Error.</param>
+        /// <param name="errorDescription">The ambient oauth.ErrorDescription.</param>
+        /// <param name="errorUri">The ambient oauth.ErrorDescription.</param>
+        public static void SetAuthorizeRequestError(this IOwinContext context, string error, string errorDescription = null, string errorUri = null) {
+            if (context == null) {
+                throw new ArgumentNullException("context");
+            }
+
+            if (string.IsNullOrWhiteSpace(error)) {
+                throw new ArgumentException("error");
+            }
+
+            context.Set(OpenIdConnectConstants.Environment.Error, error);
+
+            if (!string.IsNullOrWhiteSpace(errorDescription)) {
+                context.Set(OpenIdConnectConstants.Environment.ErrorDescription, errorDescription);
+            }
+
+            if (!string.IsNullOrWhiteSpace(errorUri)) {
+                context.Set(OpenIdConnectConstants.Environment.ErrorUri, errorUri);
+            }
         }
 
         /// <summary>
