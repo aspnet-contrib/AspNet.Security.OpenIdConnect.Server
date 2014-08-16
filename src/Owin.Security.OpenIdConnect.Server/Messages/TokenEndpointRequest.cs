@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
+﻿/*
+ * Licensed under the Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ * See https://github.com/AspNet-OpenIdConnect-Server/Owin.Security.OpenIdConnect.Server
+ * for more information concerning the license and the contributors participating to this project.
+ */
 
 using System;
 using Microsoft.Owin;
@@ -20,30 +24,30 @@ namespace Owin.Security.OpenIdConnect.Server.Messages {
             Func<string, string> getParameter = parameters.Get;
 
             Parameters = parameters;
-            GrantType = getParameter(Constants.Parameters.GrantType);
-            ClientId = getParameter(Constants.Parameters.ClientId);
-            if (String.Equals(GrantType, Constants.GrantTypes.AuthorizationCode, StringComparison.Ordinal)) {
+            GrantType = getParameter(OpenIdConnectConstants.Parameters.GrantType);
+            ClientId = getParameter(OpenIdConnectConstants.Parameters.ClientId);
+            if (String.Equals(GrantType, OpenIdConnectConstants.GrantTypes.AuthorizationCode, StringComparison.Ordinal)) {
                 AuthorizationCodeGrant = new TokenEndpointRequestAuthorizationCode {
-                    Code = getParameter(Constants.Parameters.Code),
-                    RedirectUri = getParameter(Constants.Parameters.RedirectUri),
+                    Code = getParameter(OpenIdConnectConstants.Parameters.Code),
+                    RedirectUri = getParameter(OpenIdConnectConstants.Parameters.RedirectUri),
                 };
             }
-            else if (String.Equals(GrantType, Constants.GrantTypes.ClientCredentials, StringComparison.Ordinal)) {
+            else if (String.Equals(GrantType, OpenIdConnectConstants.GrantTypes.ClientCredentials, StringComparison.Ordinal)) {
                 ClientCredentialsGrant = new TokenEndpointRequestClientCredentials {
-                    Scope = (getParameter(Constants.Parameters.Scope) ?? string.Empty).Split(' ')
+                    Scope = (getParameter(OpenIdConnectConstants.Parameters.Scope) ?? string.Empty).Split(' ')
                 };
             }
-            else if (String.Equals(GrantType, Constants.GrantTypes.RefreshToken, StringComparison.Ordinal)) {
+            else if (String.Equals(GrantType, OpenIdConnectConstants.GrantTypes.RefreshToken, StringComparison.Ordinal)) {
                 RefreshTokenGrant = new TokenEndpointRequestRefreshToken {
-                    RefreshToken = getParameter(Constants.Parameters.RefreshToken),
-                    Scope = (getParameter(Constants.Parameters.Scope) ?? string.Empty).Split(' ')
+                    RefreshToken = getParameter(OpenIdConnectConstants.Parameters.RefreshToken),
+                    Scope = (getParameter(OpenIdConnectConstants.Parameters.Scope) ?? string.Empty).Split(' ')
                 };
             }
-            else if (String.Equals(GrantType, Constants.GrantTypes.Password, StringComparison.Ordinal)) {
+            else if (String.Equals(GrantType, OpenIdConnectConstants.GrantTypes.Password, StringComparison.Ordinal)) {
                 ResourceOwnerPasswordCredentialsGrant = new TokenEndpointRequestResourceOwnerPasswordCredentials {
-                    UserName = getParameter(Constants.Parameters.Username),
-                    Password = getParameter(Constants.Parameters.Password),
-                    Scope = (getParameter(Constants.Parameters.Scope) ?? string.Empty).Split(' ')
+                    UserName = getParameter(OpenIdConnectConstants.Parameters.Username),
+                    Password = getParameter(OpenIdConnectConstants.Parameters.Password),
+                    Scope = (getParameter(OpenIdConnectConstants.Parameters.Scope) ?? string.Empty).Split(' ')
                 };
             }
             else if (!String.IsNullOrEmpty(GrantType)) {

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
+﻿/*
+ * Licensed under the Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ * See https://github.com/AspNet-OpenIdConnect-Server/Owin.Security.OpenIdConnect.Server
+ * for more information concerning the license and the contributors participating to this project.
+ */
 
 using System;
 using System.Collections.Generic;
@@ -65,7 +69,7 @@ namespace Owin.Security.OpenIdConnect.Server.Messages {
         /// See http://tools.ietf.org/html/rfc6749#section-4.1.1
         /// </summary>
         public bool IsAuthorizationCodeGrantType {
-            get { return string.Equals(ResponseType, Constants.ResponseTypes.Code); }
+            get { return string.Equals(ResponseType, OpenIdConnectConstants.ResponseTypes.Code); }
         }
 
         /// <summary>
@@ -76,9 +80,9 @@ namespace Owin.Security.OpenIdConnect.Server.Messages {
         /// </summary>
         public bool IsImplicitGrantType {
             get {
-                return !ContainsGrantType(Constants.ResponseTypes.Code) &&
-                    (ContainsGrantType(Constants.ResponseTypes.IdToken) ||
-                     ContainsGrantType(Constants.ResponseTypes.Token));
+                return !ContainsGrantType(OpenIdConnectConstants.ResponseTypes.Code) &&
+                    (ContainsGrantType(OpenIdConnectConstants.ResponseTypes.IdToken) ||
+                     ContainsGrantType(OpenIdConnectConstants.ResponseTypes.Token));
             }
         }
 
@@ -90,9 +94,9 @@ namespace Owin.Security.OpenIdConnect.Server.Messages {
         /// </summary>
         public bool IsHybridGrantType {
             get {
-                return ContainsGrantType(Constants.ResponseTypes.Code) &&
-                    (ContainsGrantType(Constants.ResponseTypes.IdToken) ||
-                     ContainsGrantType(Constants.ResponseTypes.Token));
+                return ContainsGrantType(OpenIdConnectConstants.ResponseTypes.Code) &&
+                    (ContainsGrantType(OpenIdConnectConstants.ResponseTypes.IdToken) ||
+                     ContainsGrantType(OpenIdConnectConstants.ResponseTypes.Token));
             }
         }
 
@@ -101,7 +105,7 @@ namespace Owin.Security.OpenIdConnect.Server.Messages {
         /// See http://openid.net/specs/oauth-v2-multiple-response-types-1_0.html
         /// </summary>
         public bool IsFragmentResponseMode {
-            get { return string.Equals(ResponseMode, Constants.ResponseModes.Fragment, StringComparison.Ordinal); }
+            get { return string.Equals(ResponseMode, OpenIdConnectConstants.ResponseModes.Fragment, StringComparison.Ordinal); }
         }
 
         /// <summary>
@@ -109,7 +113,7 @@ namespace Owin.Security.OpenIdConnect.Server.Messages {
         /// See http://openid.net/specs/oauth-v2-multiple-response-types-1_0.html
         /// </summary>
         public bool IsQueryResponseMode {
-            get { return string.Equals(ResponseMode, Constants.ResponseModes.Query, StringComparison.Ordinal); }
+            get { return string.Equals(ResponseMode, OpenIdConnectConstants.ResponseModes.Query, StringComparison.Ordinal); }
         }
 
         /// <summary>
@@ -117,7 +121,7 @@ namespace Owin.Security.OpenIdConnect.Server.Messages {
         /// See http://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html
         /// </summary>
         public bool IsFormPostResponseMode {
-            get { return string.Equals(ResponseMode, Constants.ResponseModes.FormPost, StringComparison.Ordinal); }
+            get { return string.Equals(ResponseMode, OpenIdConnectConstants.ResponseModes.FormPost, StringComparison.Ordinal); }
         }
 
         /// <summary>
@@ -137,22 +141,22 @@ namespace Owin.Security.OpenIdConnect.Server.Messages {
         }
 
         private void AddParameter(string name, string value) {
-            if (string.Equals(name, Constants.Parameters.ResponseType, StringComparison.Ordinal)) {
+            if (string.Equals(name, OpenIdConnectConstants.Parameters.ResponseType, StringComparison.Ordinal)) {
                 ResponseType = value;
             }
-            else if (string.Equals(name, Constants.Parameters.ClientId, StringComparison.Ordinal)) {
+            else if (string.Equals(name, OpenIdConnectConstants.Parameters.ClientId, StringComparison.Ordinal)) {
                 ClientId = value;
             }
-            else if (string.Equals(name, Constants.Parameters.RedirectUri, StringComparison.Ordinal)) {
+            else if (string.Equals(name, OpenIdConnectConstants.Parameters.RedirectUri, StringComparison.Ordinal)) {
                 RedirectUri = value;
             }
-            else if (string.Equals(name, Constants.Parameters.Scope, StringComparison.Ordinal)) {
+            else if (string.Equals(name, OpenIdConnectConstants.Parameters.Scope, StringComparison.Ordinal)) {
                 Scope = value.Split(' ');
             }
-            else if (string.Equals(name, Constants.Parameters.State, StringComparison.Ordinal)) {
+            else if (string.Equals(name, OpenIdConnectConstants.Parameters.State, StringComparison.Ordinal)) {
                 State = value;
             }
-            else if (string.Equals(name, Constants.Parameters.ResponseMode, StringComparison.Ordinal)) {
+            else if (string.Equals(name, OpenIdConnectConstants.Parameters.ResponseMode, StringComparison.Ordinal)) {
                 ResponseMode = value;
             }
         }

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
+﻿/*
+ * Licensed under the Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ * See https://github.com/AspNet-OpenIdConnect-Server/Owin.Security.OpenIdConnect.Server
+ * for more information concerning the license and the contributors participating to this project.
+ */
 
 using Microsoft.Owin;
 using Microsoft.Owin.Security.Provider;
@@ -9,7 +13,7 @@ namespace Owin.Security.OpenIdConnect.Server {
     /// </summary>
     public class OpenIdConnectChallengeContext : BaseContext {
         /// <summary>
-        /// Initializes a new <see cref="OpenIdConnectRequestTokenContext"/>
+        /// Initializes a new <see cref="OpenIdConnectChallengeContext"/>
         /// </summary>
         /// <param name="context">OWIN environment</param>
         /// <param name="challenge">The www-authenticate header value.</param>

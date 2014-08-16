@@ -1,13 +1,19 @@
-﻿namespace Owin.Security.OpenIdConnect.Server {
-    using System;
-    using System.Collections.Generic;
-    using System.IdentityModel.Tokens;
-    using System.Security.Claims;
-    using Microsoft.Owin;
-    using Microsoft.Owin.Infrastructure;
-    using Microsoft.Owin.Security;
-    using Microsoft.Owin.Security.Infrastructure;
+﻿/*
+ * Licensed under the Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ * See https://github.com/AspNet-OpenIdConnect-Server/Owin.Security.OpenIdConnect.Server
+ * for more information concerning the license and the contributors participating to this project.
+ */
 
+using System;
+using System.Collections.Generic;
+using System.IdentityModel.Tokens;
+using System.Security.Claims;
+using Microsoft.Owin;
+using Microsoft.Owin.Infrastructure;
+using Microsoft.Owin.Security;
+using Microsoft.Owin.Security.Infrastructure;
+
+namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Options class provides information needed to control Authorization Server middleware behavior
     /// </summary>
