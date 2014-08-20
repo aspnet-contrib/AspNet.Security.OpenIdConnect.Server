@@ -32,18 +32,18 @@ namespace Owin.Security.OpenIdConnect.Server.Messages {
         }
 
         /// <summary>
-        /// The "response_type" query string parameter of the Authorize request. Known values are "code" and "token".
+        /// The "response_type" parameter of the Authorize request. Known values are "code" and "token".
         /// </summary>
         public string ResponseType { get; set; }
 
         /// <summary>
-        /// The "response_mode" query string parameter of the Authorize request. Known values are "query", "fragment" and "form_post"
+        /// The "response_mode" parameter of the Authorize request. Known values are "query", "fragment" and "form_post"
         /// See also, http://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html
         /// </summary>
         public string ResponseMode { get; set; }
 
         /// <summary>
-        /// The "client_id" query string parameter of the Authorize request. 
+        /// The "client_id" parameter of the Authorize request. 
         /// </summary>
         public string ClientId { get; set; }
 
@@ -53,25 +53,32 @@ namespace Owin.Security.OpenIdConnect.Server.Messages {
         public IReadableStringCollection Parameters { get; private set; }
 
         /// <summary>
-        /// The "redirect_uri" query string parameter of the Authorize request. May be absent if the server should use the 
+        /// The "redirect_uri" parameter of the Authorize request.
+        /// May be absent if the server should use the 
         /// redirect uri known to be registered to the client id.
         /// </summary>
         [SuppressMessage("Microsoft.Design", "CA1056:UriPropertiesShouldNotBeStrings", Justification = "By design")]
         public string RedirectUri { get; set; }
 
         /// <summary>
-        /// The "scope" query string parameter of the Authorize request. May be absent if the server should use default scopes.
+        /// The "scope" parameter of the Authorize request. May be absent if the server should use default scopes.
         /// </summary>
         public IList<string> Scope { get; private set; }
 
         /// <summary>
-        /// The "scope" query string parameter of the Authorize request. May be absent if the client does not require state to be 
+        /// The "nonce" parameter of the Authorize request.
+        /// </summary>
+        public string Nonce { get; set; }
+
+        /// <summary>
+        /// The "scope" parameter of the Authorize request.
+        /// May be absent if the client does not require state to be 
         /// included when returning to the RedirectUri.
         /// </summary>
         public string State { get; set; }
 
         /// <summary>
-        /// True if the "response_type" query string parameter is "code".
+        /// True if the "response_type" parameter is "code".
         /// See http://tools.ietf.org/html/rfc6749#section-4.1.1
         /// </summary>
         public bool IsAuthorizationCodeGrantType {
@@ -79,7 +86,7 @@ namespace Owin.Security.OpenIdConnect.Server.Messages {
         }
 
         /// <summary>
-        /// True if the "response_type" query string parameter
+        /// True if the "response_type" parameter
         /// contains "token" and/or "id_token" but not "code".
         /// See http://tools.ietf.org/html/rfc6749#section-4.2.1 and
         /// http://openid.net/specs/openid-connect-core-1_0.html
@@ -93,7 +100,7 @@ namespace Owin.Security.OpenIdConnect.Server.Messages {
         }
 
         /// <summary>
-        /// True if the "response_type" query string parameter
+        /// True if the "response_type" parameter
         /// contains "code" and "token" and/or "id_token".
         /// See http://tools.ietf.org/html/rfc6749#section-4.2.1 and
         /// http://openid.net/specs/openid-connect-core-1_0.html
@@ -107,7 +114,7 @@ namespace Owin.Security.OpenIdConnect.Server.Messages {
         }
 
         /// <summary>
-        /// True if the "response_mode" query string parameter is "fragment".
+        /// True if the "response_mode" parameter is "fragment".
         /// See http://openid.net/specs/oauth-v2-multiple-response-types-1_0.html
         /// </summary>
         public bool IsFragmentResponseMode {
@@ -115,7 +122,7 @@ namespace Owin.Security.OpenIdConnect.Server.Messages {
         }
 
         /// <summary>
-        /// True if the "response_mode" query string parameter is "query".
+        /// True if the "response_mode" parameter is "query".
         /// See http://openid.net/specs/oauth-v2-multiple-response-types-1_0.html
         /// </summary>
         public bool IsQueryResponseMode {
@@ -123,7 +130,7 @@ namespace Owin.Security.OpenIdConnect.Server.Messages {
         }
 
         /// <summary>
-        /// True if the "response_mode" query string parameter is "form_post".
+        /// True if the "response_mode" parameter is "form_post".
         /// See http://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html
         /// </summary>
         public bool IsFormPostResponseMode {
@@ -131,7 +138,7 @@ namespace Owin.Security.OpenIdConnect.Server.Messages {
         }
 
         /// <summary>
-        /// True if the "response_type" query string contains the passed responseType.
+        /// True if the "response_type" parameter contains the passed responseType.
         /// See also, http://openid.net/specs/oauth-v2-multiple-response-types-1_0.html
         /// </summary>
         /// <param name="responseType">The responseType that is expected within the "response_type" query string</param>
@@ -158,6 +165,9 @@ namespace Owin.Security.OpenIdConnect.Server.Messages {
             }
             else if (string.Equals(name, OpenIdConnectConstants.Parameters.Scope, StringComparison.Ordinal)) {
                 Scope = value.Split(' ');
+            }
+            else if (string.Equals(name, OpenIdConnectConstants.Parameters.Nonce, StringComparison.Ordinal)) {
+                Nonce = value;
             }
             else if (string.Equals(name, OpenIdConnectConstants.Parameters.State, StringComparison.Ordinal)) {
                 State = value;

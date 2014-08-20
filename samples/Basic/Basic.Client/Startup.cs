@@ -1,18 +1,12 @@
-using Microsoft.Owin;
-using SampleOpenIdConnectClient;
+using System;
+using System.IdentityModel.Tokens;
+using Microsoft.IdentityModel.Protocols;
+using Microsoft.Owin.Security;
+using Microsoft.Owin.Security.Cookies;
+using Microsoft.Owin.Security.OpenIdConnect;
+using Owin;
 
-[assembly: OwinStartup(typeof(Startup))]
-
-namespace SampleOpenIdConnectClient {
-    using System;
-    using System.IdentityModel.Tokens;
-    using System.Text;
-    using Microsoft.IdentityModel.Protocols;
-    using Microsoft.Owin.Security;
-    using Microsoft.Owin.Security.Cookies;
-    using Microsoft.Owin.Security.OpenIdConnect;
-    using Owin;
-
+namespace Basic.Client {
     public class Startup {
         public void Configuration(IAppBuilder app) {
             ConfigureOidcClientDemo(app);
