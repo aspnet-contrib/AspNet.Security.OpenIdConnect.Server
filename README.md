@@ -9,9 +9,17 @@ __The latest nightly build can be found here__: https://www.myget.org/F/aspnet-o
 
 ## Dependencies
 
-The current version relies on a Katana nightly build that can be found in the __aspnetwebstacknightly__ repository: https://www.myget.org/f/aspnetwebstacknightly/
+The current version relies on the latest version of __Katana 3__ and the __OpenID Connect extensions__ managed by Microsoft that can be found on __NuGet.org__:
 
-It also uses a newer version of the OpenID Connect extensions managed by Microsoft on the __azureadwebstacknightly__ repository: http://www.myget.org/F/azureadwebstacknightly/
+https://www.nuget.org/packages/Microsoft.Owin/
+
+https://www.nuget.org/packages/Microsoft.Owin.Security/
+
+https://www.nuget.org/packages/Microsoft.IdentityModel.Protocol.Extensions/
+
+https://www.nuget.org/packages/System.IdentityModel.Tokens.Jwt/
+
+These dependencies are automatically installed in your project if you download __Owin.Security.OpenIdConnect.Server__ via NuGet.
 
 ## Get started
 
