@@ -242,6 +242,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             var message = new OpenIdConnectMessage(parameters: Enumerable.Empty<KeyValuePair<string, string[]>>());
+            message.ClientId = _authorizeEndpointRequest.ClientId;
+            message.Nonce = _authorizeEndpointRequest.Nonce;
             message.RedirectUri = _clientContext.RedirectUri;
 
             DateTimeOffset currentUtc = Options.SystemClock.UtcNow;
@@ -313,8 +315,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                 signin.Properties.ExpiresUtc = currentUtc.Add(Options.IdTokenExpireTimeSpan);
 
                 message.IdToken = CreateIdToken(
-                    signin.Identity, signin.Properties, _authorizeEndpointRequest.ClientId,
-                    message.AccessToken, message.Code, Request.Query["nonce"]);
+                    signin.Identity, signin.Properties, message.ClientId,
+                    message.AccessToken, message.Code, message.Nonce);
             }
 
             var authorizeEndpointResponseContext = new OpenIdConnectAuthorizeEndpointResponseContext(
