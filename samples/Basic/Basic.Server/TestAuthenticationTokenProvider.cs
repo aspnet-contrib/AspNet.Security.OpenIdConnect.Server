@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.Owin.Security.Infrastructure;
 using System.Collections.Concurrent;
+using Microsoft.Owin.Security.Infrastructure;
 
-namespace SampleOpenIdConnectServer {
+namespace Basic.Server {
     /// <summary>
     /// A very simple AuthenticationTokenProvider for testing-scenarios. 
     /// This implementation is not intended to be used within production-code!
@@ -25,7 +22,5 @@ namespace SampleOpenIdConnectServer {
                 context.DeserializeTicket(ticket);
             }
         }
-
     }
-
 }

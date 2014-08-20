@@ -1,15 +1,10 @@
+using System;
+using System.IdentityModel.Tokens;
 using Microsoft.Owin;
-using SampleOpenIdConnectServer;
+using Owin;
+using Owin.Security.OpenIdConnect.Server;
 
-[assembly: OwinStartup(typeof(Startup))]
-
-namespace SampleOpenIdConnectServer {
-    using System;
-    using System.IdentityModel.Tokens;
-    using Microsoft.Owin;
-    using Owin;
-    using Owin.Security.OpenIdConnect.Server;
-
+namespace Basic.Server {
     public class Startup {
         public void Configuration(IAppBuilder app) {
             ConfigureOidcServerDemo(app);
