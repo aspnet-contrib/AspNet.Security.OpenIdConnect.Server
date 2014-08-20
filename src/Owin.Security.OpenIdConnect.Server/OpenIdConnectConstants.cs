@@ -13,6 +13,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             public const string ClientSecret = "client_secret";
             public const string RedirectUri = "redirect_uri";
             public const string Scope = "scope";
+            public const string Nonce = "nonce";
             public const string State = "state";
             public const string Code = "code";
             public const string IdToken = "id_token";
