@@ -12,7 +12,7 @@
 </head>
 <body>
     <div>
-        @if (Model != null && Model.Identity != null && Model.Identity.IsAuthenticated) {
+        @if (Model != null) {
             <div>Welcome, @Model.Identity.Name</div>
             <div><a href="/signout">Sign out</a></div>
         }
