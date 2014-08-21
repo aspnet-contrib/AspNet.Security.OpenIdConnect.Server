@@ -1,0 +1,16 @@
+﻿@using System.Security.Claims
+@using Nancy.ViewEngines.Razor
+
+@inherits NancyRazorViewBase<ClaimsPrincipal>
+
+<div class="jumbotron">
+    @if (Model != null) {
+        <h1>Welcome, @Model.Identity.Name</h1>
+        <a class="btn btn-lg btn-danger" href="/signout">Sign out</a>
+    }
+
+    else {
+        <h1>Welcome, anonymous</h1>
+        <a class="btn btn-lg btn-success" href="/signin">Sign in</a>
+    }
+</div>

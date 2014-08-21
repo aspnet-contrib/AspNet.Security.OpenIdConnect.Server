@@ -1,0 +1,13 @@
+﻿@using Nancy.ViewEngines.Razor
+
+@inherits NancyRazorViewBase<Tuple</* error: */ string, /* errorDescription: */ string, /* errorUri: */ string>>
+
+<div class="jumbotron">
+    <h1>An OpenID connect error has occurred</h1>
+    <p class="lead text-left">
+        <strong>@Model.Item1</strong>
+        @if (!string.IsNullOrWhiteSpace(Model.Item2)) {
+            <small>@Model.Item2</small>
+        }
+    </p>
+</div>
