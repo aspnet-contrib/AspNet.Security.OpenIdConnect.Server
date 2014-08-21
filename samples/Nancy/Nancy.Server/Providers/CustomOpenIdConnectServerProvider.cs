@@ -9,6 +9,10 @@ namespace Nancy.Server.Providers {
     public class CustomOpenIdConnectServerProvider : OpenIdConnectServerProvider {
         public override async Task ValidateClientAuthentication(OpenIdConnectValidateClientAuthenticationContext context) {
             string clientId, clientSecret;
+
+            // Retrieve the client credentials from the request body.
+            // Note: you can also retrieve them from the Authorization
+            // header (basic authentication) using TryGetBasicCredentials.
             context.TryGetFormCredentials(out clientId, out clientSecret);
 
             if (string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(clientSecret)) {
@@ -21,6 +25,7 @@ namespace Nancy.Server.Providers {
             }
 
             using (var db = new ApplicationContext()) {
+                // Retrieve the application details corresponding to the requested client_id.
                 Application application = await (from entity in db.Applications
                                                  where entity.ApplicationID == clientId
                                                  select entity).SingleOrDefaultAsync(context.Request.CallCancelled);
@@ -48,6 +53,7 @@ namespace Nancy.Server.Providers {
 
         public override async Task ValidateClientRedirectUri(OpenIdConnectValidateClientRedirectUriContext context) {
             using (var db = new ApplicationContext()) {
+                // Retrieve the application details corresponding to the requested client_id.
                 Application application = await (from entity in db.Applications
                                                  where entity.ApplicationID == context.ClientId
                                                  select entity).SingleOrDefaultAsync(context.Request.CallCancelled);
