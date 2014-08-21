@@ -3,23 +3,14 @@
 
 @inherits NancyRazorViewBase<ClaimsPrincipal>
 
-<!DOCTYPE html>
+<div class="jumbotron">
+    @if (Model != null) {
+        <h1>Welcome, @Model.Identity.Name</h1>
+        <a class="btn btn-lg btn-danger" href="/signout">Sign out</a>
+    }
 
-<html>
-<head>
-    <meta name="viewport" content="width=device-width" />
-    <title></title>
-</head>
-<body>
-    <div>
-        @if (Model != null) {
-            <div>Welcome, @Model.Identity.Name</div>
-            <div><a href="/signout">Sign out</a></div>
-        }
-
-        else {
-            <div><a href="/signin">Sign in</a></div>
-        }
-    </div>
-</body>
-</html>
+    else {
+        <h1>Welcome, anonymous</h1>
+        <a class="btn btn-lg btn-success" href="/signin">Sign in</a>
+    }
+</div>
