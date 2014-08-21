@@ -47,8 +47,7 @@ namespace Nancy.Server {
                 AccessTokenExpireTimeSpan = TimeSpan.FromDays(14),
                 AllowInsecureHttp = true,
                 ApplicationCanDisplayErrors = true,
-                AuthorizationCodeProvider = new TestAuthenticationTokenProvider(),
-                RefreshTokenProvider = new TestAuthenticationTokenProvider(),
+                AuthorizationCodeProvider = new AuthorizationCodeProvider()
             });
 
             app.UseNancy(options => options.Bootstrapper = new NancyBootstrapper());
