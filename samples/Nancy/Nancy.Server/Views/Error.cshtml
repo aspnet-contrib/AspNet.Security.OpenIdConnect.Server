@@ -2,19 +2,12 @@
 
 @inherits NancyRazorViewBase<Tuple</* error: */ string, /* errorDescription: */ string, /* errorUri: */ string>>
 
-<!DOCTYPE html>
-
-<html>
-<head>
-    <meta name="viewport" content="width=device-width" />
-    <title></title>
-</head>
-<body>
-    <div>
-        An OAuth2/OpenID connect has occurred: @Model.Item1
+<div class="jumbotron">
+    <h1>An OpenID connect error has occurred</h1>
+    <p class="lead text-left">
+        <strong>@Model.Item1</strong>
         @if (!string.IsNullOrWhiteSpace(Model.Item2)) {
-            <div>Details: @Model.Item2</div>
+            <small>@Model.Item2</small>
         }
-    </div>
-</body>
-</html>
+    </p>
+</div>

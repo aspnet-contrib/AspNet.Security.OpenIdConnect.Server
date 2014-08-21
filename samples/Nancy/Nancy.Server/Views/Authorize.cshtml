@@ -4,25 +4,17 @@
 
 @inherits NancyRazorViewBase<Tuple<AuthorizeEndpointRequest, Application>>
 
-<!DOCTYPE html>
+<div class="jumbotron">
+    <h1>Authorization</h1>
+    <p class="lead text-left">Do you wanna grant <strong>@Model.Item2.DisplayName</strong> an access to your resources?</p>
 
-<html>
-<head>
-    <meta name="viewport" content="width=device-width" />
-    <title></title>
-</head>
-<body>
-    <div>
-        <form action="/oauth2/authorize" enctype="application/x-www-form-urlencoded" method="post">
-            @Html.AntiForgeryToken()
+    <form action="/oauth2/authorize" enctype="application/x-www-form-urlencoded" method="post">
+        @Html.AntiForgeryToken()
 
-            @foreach (var parameter in Model.Item1.Parameters) {
-                <input type="hidden" name="@parameter.Key" value="@Model.Item1.Parameters.Get(parameter.Key)" />
-            }
+        @foreach (var parameter in Model.Item1.Parameters) {
+            <input type="hidden" name="@parameter.Key" value="@Model.Item1.Parameters.Get(parameter.Key)" />
+        }
 
-            Do you wanna authorize @Model.Item2.DisplayName?
-            <input type="submit" />
-        </form>
-    </div>
-</body>
-</html>
+        <button class="btn btn-lg btn-success" type="submit">Yeah, sure</button>
+    </form>
+</div>
