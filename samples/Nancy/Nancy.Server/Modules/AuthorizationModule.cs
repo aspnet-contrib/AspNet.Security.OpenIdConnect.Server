@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Linq;
 using System.Security.Claims;
+using System.Data.Entity;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Nancy.Security;
 using Nancy.Server.Extensions;
+using Nancy.Server.Models;
 using Owin;
 using Owin.Security.OpenIdConnect.Server;
 using Owin.Security.OpenIdConnect.Server.Messages;
@@ -11,7 +14,7 @@ using Owin.Security.OpenIdConnect.Server.Messages;
 namespace Nancy.Server.Modules {
     public class AuthorizationModule : NancyModule {
         public AuthorizationModule() {
-            Get["/oauth2/authorize"] = parameters => {
+            Get["/oauth2/authorize", runAsync: true] = async (parameters, cancellationToken) => {
                 this.RequiresMSOwinAuthentication();
                 this.CreateNewCsrfToken();
 
@@ -29,10 +32,27 @@ namespace Nancy.Server.Modules {
 
                 AuthorizeEndpointRequest request = context.GetAuthorizeEndpointRequest();
                 if (request == null) {
-                    return HttpStatusCode.BadRequest;
+                    return View["error.cshtml", Tuple.Create(
+                        /* error: */ "invalid_request",
+                        /* errorDescription: */ "An internal error has occurred",
+                        /* errorUri: */ string.Empty)];
                 }
 
-                return View["authorize.cshtml", request];
+                Application application;
+                using (var db = new ApplicationContext()) {
+                    application = await (from entity in db.Applications
+                                         where entity.ApplicationID == request.ClientId
+                                         select entity).SingleOrDefaultAsync(cancellationToken);
+                }
+
+                if (application == null) {
+                    return View["error.cshtml", Tuple.Create(
+                        /* error: */ "invalid_client",
+                        /* errorDescription: */ "Details concerning the calling client application cannot be found in the database",
+                        /* errorUri: */ string.Empty)];
+                }
+
+                return View["authorize.cshtml", Tuple.Create(request, application)];
             };
 
             Post["/oauth2/authorize"] = parameters => {

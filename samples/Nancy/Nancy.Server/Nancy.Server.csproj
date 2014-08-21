@@ -38,6 +38,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="EntityFramework">
+      <HintPath>..\..\..\packages\EntityFramework.6.1.1\lib\net45\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer">
+      <HintPath>..\..\..\packages\EntityFramework.6.1.1\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Owin">
       <HintPath>..\..\..\packages\Microsoft.Owin.3.0.0\lib\net45\Microsoft.Owin.dll</HintPath>
@@ -119,6 +125,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Extensions\OwinExtensions.cs" />
+    <Compile Include="Models\Application.cs" />
+    <Compile Include="Models\ApplicationContextInitializer.cs" />
+    <Compile Include="Models\ApplicationContext.cs" />
+    <Compile Include="Models\Nonce.cs" />
     <Compile Include="Providers\CustomOpenIdConnectServerProvider.cs" />
     <Compile Include="Extensions\NancyExtensions.cs" />
     <Compile Include="Modules\AuthorizationModule.cs" />
@@ -127,13 +137,16 @@
     <Compile Include="NancyBootstrapper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />
-    <Compile Include="Providers\TestAuthenticationTokenProvider.cs" />
+    <Compile Include="Providers\AuthorizationCodeProvider.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Owin.Security.OpenIdConnect.Server\Owin.Security.OpenIdConnect.Server.csproj">
       <Project>{c3877d8e-db9d-4d6b-ab21-b0b11f50185b}</Project>
       <Name>Owin.Security.OpenIdConnect.Server</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="App_Data\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
