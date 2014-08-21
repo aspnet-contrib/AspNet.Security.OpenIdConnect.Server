@@ -5,6 +5,7 @@ using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
 using Nancy.Owin;
 using Nancy.Server.Providers;
+using NWebsec.Owin;
 using Owin;
 using Owin.Security.OpenIdConnect.Server;
 
@@ -25,6 +26,15 @@ namespace Nancy.Server {
             });
 
             app.UseGoogleAuthentication();
+
+            app.UseCsp(options => options.DefaultSources(configuration => configuration.Self())
+                                         .ScriptSources(configuration => configuration.UnsafeInline()));
+
+            app.UseXContentTypeOptions();
+
+            app.UseXfo(options => options.Deny());
+
+            app.UseXXssProtection(options => options.EnabledWithBlockMode());
 
             app.UseOpenIdConnectServer(new OpenIdConnectServerOptions {
                 AuthenticationType = OpenIdConnectDefaults.AuthenticationType,
