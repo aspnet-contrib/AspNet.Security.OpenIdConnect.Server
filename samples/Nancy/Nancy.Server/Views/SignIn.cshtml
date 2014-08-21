@@ -1,0 +1,25 @@
+﻿@using Microsoft.Owin.Security
+@using Nancy.ViewEngines.Razor
+
+@inherits NancyRazorViewBase<IEnumerable<AuthenticationDescription>>
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title></title>
+</head>
+<body>
+    <div>
+        @foreach (var description in Model) {
+            <form action="/signin" method="post">
+                <input type="hidden" name="Provider" value="@description.AuthenticationType" />
+                <input type="hidden" name="ReturnUrl" value="@ViewBag.ReturnUrl" />
+                
+                <button type="submit">Connect using @description.Caption</button>
+            </form>
+        }
+    </div>
+</body>
+</html>

@@ -1,0 +1,25 @@
+﻿@using System.Security.Claims
+@using Nancy.ViewEngines.Razor
+
+@inherits NancyRazorViewBase<ClaimsPrincipal>
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title></title>
+</head>
+<body>
+    <div>
+        @if (Model != null && Model.Identity != null && Model.Identity.IsAuthenticated) {
+            <div>Welcome, @Model.Identity.Name</div>
+            <div><a href="/signout">Sign out</a></div>
+        }
+
+        else {
+            <div><a href="/signin">Sign in</a></div>
+        }
+    </div>
+</body>
+</html>
