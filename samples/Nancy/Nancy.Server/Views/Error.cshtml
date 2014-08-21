@@ -1,0 +1,20 @@
+﻿@using Nancy.ViewEngines.Razor
+
+@inherits NancyRazorViewBase<Tuple<string, string, string>>
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title></title>
+</head>
+<body>
+    <div>
+        An OAuth2/OpenID connect has occurred: @Model.Item1
+        @if (!string.IsNullOrWhiteSpace(Model.Item2)) {
+            <div>Details: @Model.Item2</div>
+        }
+    </div>
+</body>
+</html>
