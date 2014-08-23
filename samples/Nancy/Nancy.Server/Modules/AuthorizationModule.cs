@@ -14,7 +14,7 @@ using Owin.Security.OpenIdConnect.Server.Messages;
 namespace Nancy.Server.Modules {
     public class AuthorizationModule : NancyModule {
         public AuthorizationModule() {
-            Get["/oauth2/authorize", runAsync: true] = async (parameters, cancellationToken) => {
+            Get["/connect/authorize", runAsync: true] = async (parameters, cancellationToken) => {
                 this.RequiresMSOwinAuthentication();
                 this.CreateNewCsrfToken();
 
@@ -27,7 +27,7 @@ namespace Nancy.Server.Modules {
                 // Note: you can safely remove this part and let Owin.Security.OpenIdConnect.Server automatically
                 // handle the error by switching ApplicationCanDisplayErrors to false in Startup.cs
                 string error, errorDescription, errorUri;
-                error = context.GetAuthorizeRequestError(out errorDescription, out errorUri);
+                error = context.GetAuthorizationRequestError(out errorDescription, out errorUri);
 
                 if (!string.IsNullOrWhiteSpace(error)) {
                     // Note: in a real world application, you'd probably prefer creating a specific view model.
@@ -35,7 +35,7 @@ namespace Nancy.Server.Modules {
                 }
 
                 // Extract the authorization request from the OWIN environment.
-                AuthorizeEndpointRequest request = context.GetAuthorizeEndpointRequest();
+                OpenIdConnectAuthorizationRequest request = context.GetAuthorizationRequest();
                 if (request == null) {
                     return View["error.cshtml", Tuple.Create(
                         /* error: */ "invalid_request",
@@ -68,7 +68,7 @@ namespace Nancy.Server.Modules {
                 return View["authorize.cshtml", Tuple.Create(request, application)];
             };
 
-            Post["/oauth2/authorize"] = parameters => {
+            Post["/connect/authorize"] = parameters => {
                 this.RequiresMSOwinAuthentication();
                 this.ValidateCsrfToken();
 

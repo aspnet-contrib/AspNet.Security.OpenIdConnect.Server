@@ -16,19 +16,21 @@ namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information when processing an Authorization Response
     /// </summary>
-    public class OpenIdConnectAuthorizeEndpointResponseContext : EndpointContext<OpenIdConnectServerOptions> {
+    public class OpenIdConnectAuthorizationEndpointResponseContext : EndpointContext<OpenIdConnectServerOptions> {
         /// <summary>
-        /// Initializes a new instance of the <see cref="OpenIdConnectAuthorizeEndpointResponseContext"/> class
+        /// Initializes a new instance of the <see cref="OpenIdConnectAuthorizationEndpointResponseContext"/> class
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="ticket"></param>
-        /// <param name="tokenEndpointRequest"></param>
-        public OpenIdConnectAuthorizeEndpointResponseContext(
+        /// <param name="authorizationEndpointRequest"></param>
+        /// <param name="accessToken"></param>
+        /// <param name="authorizationCode"></param>
+        public OpenIdConnectAuthorizationEndpointResponseContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
             AuthenticationTicket ticket,
-            AuthorizeEndpointRequest authorizeEndpointRequest,
+            OpenIdConnectAuthorizationRequest authorizationEndpointRequest,
             string accessToken,
             string authorizationCode)
             : base(context, options) {
@@ -38,7 +40,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             Identity = ticket.Identity;
             Properties = ticket.Properties;
-            AuthorizeEndpointRequest = authorizeEndpointRequest;
+            AuthorizationRequest = authorizationEndpointRequest;
             AdditionalResponseParameters = new Dictionary<string, string>(StringComparer.Ordinal);
             AccessToken = accessToken;
             AuthorizationCode = authorizationCode;
@@ -55,9 +57,9 @@ namespace Owin.Security.OpenIdConnect.Server {
         public AuthenticationProperties Properties { get; private set; }
 
         /// <summary>
-        /// Gets information about the authorize endpoint request. 
+        /// Gets information about the authorization request. 
         /// </summary>
-        public AuthorizeEndpointRequest AuthorizeEndpointRequest { get; private set; }
+        public OpenIdConnectAuthorizationRequest AuthorizationRequest { get; private set; }
 
         /// <summary>
         /// Enables additional values to be appended to the token response.

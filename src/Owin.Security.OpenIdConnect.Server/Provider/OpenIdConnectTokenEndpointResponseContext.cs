@@ -30,7 +30,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             IOwinContext context,
             OpenIdConnectServerOptions options,
             AuthenticationTicket ticket,
-            TokenEndpointRequest tokenEndpointRequest,
+            OpenIdConnectTokenRequest tokenEndpointRequest,
             string accessToken,
             IDictionary<string, object> additionalResponseParameters)
             : base(context, options) {
@@ -65,7 +65,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets information about the token endpoint request. 
         /// </summary>
-        public TokenEndpointRequest TokenEndpointRequest { get; set; }
+        public OpenIdConnectTokenRequest TokenEndpointRequest { get; set; }
 
         /// <summary>
         /// Gets whether or not the token should be issued.

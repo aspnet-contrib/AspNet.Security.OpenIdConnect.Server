@@ -1,13 +1,15 @@
-﻿@{
+﻿@using Microsoft.Owin.Security.Cookies
+@using Microsoft.Owin.Security.OpenIdConnect
+
+@{
     Layout = null;
 
-    var result = Request.GetOwinContext().Authentication.AuthenticateAsync("ExternalCookie").Result;
+    var result = Request.GetOwinContext().Authentication.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationType).Result;
 
     if (result == null) {
-      Request.GetOwinContext().Authentication.Challenge("OIDC");
-      return;
+        Request.GetOwinContext().Authentication.Challenge(OpenIdConnectAuthenticationDefaults.AuthenticationType);
+        return;
     }
-
 }
 
 <!DOCTYPE html>
@@ -22,10 +24,10 @@
     <h1>Hello, @result.Identity.Name!</h1>
 
     <table>
-      @foreach (var c in result.Identity.Claims) {
+      @foreach (var claim in result.Identity.Claims) {
           <tr>
-            <td>@c.Type</td>
-            <td>@c.Value</td>
+            <td>@claim.Type</td>
+            <td>@claim.Value</td>
           </tr>
       }
     </table>

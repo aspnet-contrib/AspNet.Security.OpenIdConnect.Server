@@ -14,5 +14,25 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// OpenIdConnectServerOptions.
         /// </summary>
         public const string AuthenticationType = "Bearer";
+
+        /// <summary>
+        /// Default value for OpenIdConnectServerOptions.AuthorizationEndpointPath.
+        /// </summary>
+        public const string AuthorizationEndpointPath = "/connect/authorize";
+
+        /// <summary>
+        /// Default value for OpenIdConnectServerOptions.ConfigurationEndpointPath.
+        /// </summary>
+        public const string ConfigurationEndpointPath = "/.well-known/openid-configuration";
+
+        /// <summary>
+        /// Default value for OpenIdConnectServerOptions.CryptoEndpointPath.
+        /// </summary>
+        public const string CryptoEndpointPath = "/.well-known/jwks";
+
+        /// <summary>
+        /// Default value for OpenIdConnectServerOptions.TokenEndpointPath.
+        /// </summary>
+        public const string TokenEndpointPath = "/connect/token";
     }
 }

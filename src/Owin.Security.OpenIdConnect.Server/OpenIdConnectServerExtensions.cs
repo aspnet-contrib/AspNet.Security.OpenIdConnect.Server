@@ -37,13 +37,13 @@ namespace Owin {
         }
 
         /// <summary>
-        /// Retrieves the <see cref="AuthorizeEndpointRequest"/> instance
+        /// Retrieves the <see cref="OpenIdConnectAuthorizationRequest"/> instance
         /// associated with the current request from the OWIN context.
         /// </summary>
         /// <param name="context">The OWIN context.</param>
-        /// <returns>The <see cref="AuthorizeEndpointRequest"/> associated with the current request.</returns>
-        public static AuthorizeEndpointRequest GetAuthorizeEndpointRequest(this IOwinContext context) {
-            const string key = OpenIdConnectConstants.Environment.AuthorizeEndpointRequest;
+        /// <returns>The <see cref="OpenIdConnectAuthorizationRequest"/> associated with the current request.</returns>
+        public static OpenIdConnectAuthorizationRequest GetAuthorizationRequest(this IOwinContext context) {
+            const string key = OpenIdConnectConstants.Environment.AuthorizationRequest;
 
             if (context == null) {
                 throw new ArgumentNullException("context");
@@ -54,16 +54,16 @@ namespace Owin {
                 return null;
             }
 
-            return new AuthorizeEndpointRequest(request.AsReadableStringCollection());
+            return new OpenIdConnectAuthorizationRequest(request.AsReadableStringCollection());
         }
 
         /// <summary>
-        /// Inserts the ambient <see cref="AuthorizeEndpointRequest"/> in the OWIN context.
+        /// Inserts the ambient <see cref="OpenIdConnectAuthorizationRequest"/> in the OWIN context.
         /// </summary>
         /// <param name="context">The OWIN context.</param>
-        /// <param name="request">The ambient <see cref="AuthorizeEndpointRequest"/>.</param>
-        internal static void SetAuthorizeEndpointRequest(this IOwinContext context, AuthorizeEndpointRequest request) {
-            const string key = OpenIdConnectConstants.Environment.AuthorizeEndpointRequest;
+        /// <param name="request">The ambient <see cref="OpenIdConnectAuthorizationRequest"/>.</param>
+        internal static void SetAuthorizationRequest(this IOwinContext context, OpenIdConnectAuthorizationRequest request) {
+            const string key = OpenIdConnectConstants.Environment.AuthorizationRequest;
 
             if (context == null) {
                 throw new ArgumentNullException("context");
@@ -83,7 +83,7 @@ namespace Owin {
         /// <param name="errorDescription">The oauth.ErrorDescription associated with the current request.</param>
         /// <param name="errorUri">The oauth.ErrorUri associated with the current request.</param>
         /// <returns>The oauth.Error associated with the current request.</returns>
-        public static string GetAuthorizeRequestError(this IOwinContext context, out string errorDescription, out string errorUri) {
+        public static string GetAuthorizationRequestError(this IOwinContext context, out string errorDescription, out string errorUri) {
             if (context == null) {
                 throw new ArgumentNullException("context");
             }
@@ -102,7 +102,7 @@ namespace Owin {
         /// <param name="errorDescription">The oauth.ErrorDescription associated with the current request.</param>
         /// <param name="errorUri">The oauth.ErrorUri associated with the current request.</param>
         /// <returns>Returns true if the context contains a non-null oauth.Error value.</returns>
-        public static bool TryGetAuthorizeRequestError(this IOwinContext context, out string error, out string errorDescription, out string errorUri) {
+        public static bool TryGetAuthorizationRequestError(this IOwinContext context, out string error, out string errorDescription, out string errorUri) {
             if (context == null) {
                 throw new ArgumentNullException("context");
             }
@@ -121,7 +121,7 @@ namespace Owin {
         /// <param name="error">The ambient oauth.Error.</param>
         /// <param name="errorDescription">The ambient oauth.ErrorDescription.</param>
         /// <param name="errorUri">The ambient oauth.ErrorDescription.</param>
-        public static void SetAuthorizeRequestError(this IOwinContext context, string error, string errorDescription = null, string errorUri = null) {
+        public static void SetAuthorizationRequestError(this IOwinContext context, string error, string errorDescription = null, string errorUri = null) {
             if (context == null) {
                 throw new ArgumentNullException("context");
             }

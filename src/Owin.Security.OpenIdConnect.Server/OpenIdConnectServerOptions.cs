@@ -29,18 +29,36 @@ namespace Owin.Security.OpenIdConnect.Server {
             TokenHandler = new JwtSecurityTokenHandler();
             ServerClaimsMapper = claims => claims;
             IdTokenExpireTimeSpan = TimeSpan.FromMinutes(20);
+            AuthorizationEndpointPath = new PathString(OpenIdConnectDefaults.AuthorizationEndpointPath);
+            ConfigurationEndpointPath = new PathString(OpenIdConnectDefaults.ConfigurationEndpointPath);
+            CryptoEndpointPath = new PathString(OpenIdConnectDefaults.CryptoEndpointPath);
+            TokenEndpointPath = new PathString(OpenIdConnectDefaults.TokenEndpointPath);
         }
 
         /// <summary>
         /// The request path where client applications will redirect the user-agent in order to 
-        /// obtain user consent to issue a token. Must begin with a leading slash, like "/Authorize".
+        /// obtain user consent to issue a token. Must begin with a leading slash, like "/connect/authorize".
         /// </summary>
-        public PathString AuthorizeEndpointPath { get; set; }
+        public PathString AuthorizationEndpointPath { get; set; }
+
+        /// <summary>
+        /// The request path where client applications will be able to retrieve the configuration metadata associated
+        /// with this instance. Must begin with a leading slash, like "/.well-known/openid-configuration".
+        /// You can set it to <see cref="PathString.Empty"/> to disable the configuration endpoint.
+        /// </summary>
+        public PathString ConfigurationEndpointPath { get; set; }
+
+        /// <summary>
+        /// The request path where client applications will be able to retrieve the JSON Web Key Set
+        /// associated with this instance. Must begin with a leading slash, like "/.well-known/jwks".
+        /// You can set it to <see cref="PathString.Empty"/> to disable the crypto endpoint.
+        /// </summary>
+        public PathString CryptoEndpointPath { get; set; }
 
         /// <summary>
         /// The request path client applications communicate with directly as part of the OpenID Connect protocol. 
-        /// Must begin with a leading slash, like "/Token". If the client is issued a client_secret, it must
-        /// be provided to this endpoint.
+        /// Must begin with a leading slash, like "/connect/token". If the client is issued a client_secret, it must
+        /// be provided to this endpoint. You can set it to <see cref="PathString.Empty"/> to disable the token endpoint.
         /// </summary>
         public PathString TokenEndpointPath { get; set; }
 
@@ -112,9 +130,9 @@ namespace Owin.Security.OpenIdConnect.Server {
         public IAuthenticationTokenProvider RefreshTokenProvider { get; set; }
 
         /// <summary>
-        /// Set to true if the web application is able to render error messages on the /Authorize endpoint. This is only needed for cases where
+        /// Set to true if the web application is able to render error messages on the authorization endpoint. This is only needed for cases where
         /// the browser is not redirected back to the client application, for example, when the client_id or redirect_uri are incorrect. The 
-        /// /Authorize endpoint should expect to see "oauth.Error", "oauth.ErrorDescription", "oauth.ErrorUri" properties added to the owin environment.
+        /// authorization endpoint should expect to see "oauth.Error", "oauth.ErrorDescription", "oauth.ErrorUri" properties added to the owin environment.
         /// </summary>
         public bool ApplicationCanDisplayErrors { get; set; }
 
@@ -125,13 +143,13 @@ namespace Owin.Security.OpenIdConnect.Server {
         public ISystemClock SystemClock { get; set; }
 
         /// <summary>
-        /// True to allow authorize and token requests to arrive on http URI addresses, and to allow incoming 
-        /// redirect_uri authorize request parameter to have http URI addresses.
+        /// True to allow authorization and token requests to arrive on http URI addresses,
+        /// and to allow incoming redirect_uri parameter to have http URI addresses.
         /// </summary>
         public bool AllowInsecureHttp { get; set; }
 
         public TimeSpan IdTokenExpireTimeSpan { get; set; }
-        public string IssuerName { get; set; }
+        public string Issuer { get; set; }
         public Func<IEnumerable<Claim>, IEnumerable<Claim>> ServerClaimsMapper { get; set; }
         public SignatureProvider SignatureProvider { get; set; }
         public SigningCredentials SigningCredentials { get; set; }
