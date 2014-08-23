@@ -23,12 +23,12 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="ticket"></param>
-        /// <param name="tokenEndpointRequest"></param>
+        /// <param name="tokenRequest"></param>
         public OpenIdConnectTokenEndpointContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
             AuthenticationTicket ticket,
-            OpenIdConnectTokenRequest tokenEndpointRequest)
+            OpenIdConnectTokenRequest tokenRequest)
             : base(context, options) {
             if (ticket == null) {
                 throw new ArgumentNullException("ticket");
@@ -36,8 +36,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             Identity = ticket.Identity;
             Properties = ticket.Properties;
-            TokenEndpointRequest = tokenEndpointRequest;
-            AdditionalResponseParameters = new Dictionary<string, object>(StringComparer.Ordinal);
+            TokenRequest = tokenRequest;
             TokenIssued = Identity != null;
         }
 
@@ -54,17 +53,12 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets information about the token endpoint request. 
         /// </summary>
-        public OpenIdConnectTokenRequest TokenEndpointRequest { get; set; }
+        public OpenIdConnectTokenRequest TokenRequest { get; set; }
 
         /// <summary>
         /// Gets whether or not the token should be issued.
         /// </summary>
         public bool TokenIssued { get; private set; }
-
-        /// <summary>
-        /// Enables additional values to be appended to the token response.
-        /// </summary>
-        public IDictionary<string, object> AdditionalResponseParameters { get; private set; }
 
         /// <summary>
         /// Issues the token.

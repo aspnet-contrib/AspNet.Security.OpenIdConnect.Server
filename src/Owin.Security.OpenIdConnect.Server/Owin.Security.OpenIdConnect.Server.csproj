@@ -82,6 +82,10 @@
     <Compile Include="Provider\BaseValidatingTicketContext.cs" />
     <Compile Include="Provider\DefaultBehavior.cs" />
     <Compile Include="Provider\IOpenIdConnectServerProvider.cs" />
+    <Compile Include="Provider\OpenIdConnectConfigurationEndpointContext.cs" />
+    <Compile Include="Provider\OpenIdConnectCryptoEndpointContext.cs" />
+    <Compile Include="Provider\OpenIdConnectCryptoEndpointResponseContext.cs" />
+    <Compile Include="Provider\OpenIdConnectConfigurationEndpointResponseContext.cs" />
     <Compile Include="Provider\OpenIdConnectServerProvider.cs" />
     <Compile Include="Provider\OpenIdConnectAuthorizationEndpointContext.cs" />
     <Compile Include="Provider\OpenIdConnectAuthorizationEndpointResponseContext.cs" />

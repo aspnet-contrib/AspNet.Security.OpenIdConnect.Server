@@ -41,7 +41,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             Identity = ticket.Identity;
             Properties = ticket.Properties;
             AuthorizationRequest = authorizationEndpointRequest;
-            AdditionalResponseParameters = new Dictionary<string, string>(StringComparer.Ordinal);
+            AdditionalParameters = new Dictionary<string, string>(StringComparer.Ordinal);
             AccessToken = accessToken;
             AuthorizationCode = authorizationCode;
         }
@@ -64,7 +64,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Enables additional values to be appended to the token response.
         /// </summary>
-        public IDictionary<string, string> AdditionalResponseParameters { get; private set; }
+        public IDictionary<string, string> AdditionalParameters { get; private set; }
 
         /// <summary>
         /// The serialized Access-Token. Depending on the flow, it can be null.
