@@ -22,7 +22,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         public OpenIdConnectValidateTokenRequestContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
-            TokenEndpointRequest tokenRequest,
+            OpenIdConnectTokenRequest tokenRequest,
             BaseValidatingClientContext clientContext) : base(context, options) {
             TokenRequest = tokenRequest;
             ClientContext = clientContext;
@@ -31,7 +31,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the token request data.
         /// </summary>
-        public TokenEndpointRequest TokenRequest { get; private set; }
+        public OpenIdConnectTokenRequest TokenRequest { get; private set; }
 
         /// <summary>
         /// Gets information about the client.

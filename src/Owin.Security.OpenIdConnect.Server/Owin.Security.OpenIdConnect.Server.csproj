@@ -67,13 +67,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Messages\AuthorizeEndpointRequest.cs" />
-    <Compile Include="Messages\TokenEndpointRequest.cs" />
-    <Compile Include="Messages\TokenEndpointRequestAuthorizationCode.cs" />
-    <Compile Include="Messages\TokenEndpointRequestClientCredentials.cs" />
-    <Compile Include="Messages\TokenEndpointRequestCustomExtension.cs" />
-    <Compile Include="Messages\TokenEndpointRequestRefreshToken.cs" />
-    <Compile Include="Messages\TokenEndpointRequestResourceOwnerPasswordCredentials.cs" />
+    <Compile Include="Messages\OpenIdConnectAuthorizationRequest.cs" />
+    <Compile Include="Messages\OpenIdConnectTokenRequest.cs" />
     <Compile Include="OpenIdConnectConstants.cs" />
     <Compile Include="OpenIdConnectDefaults.cs" />
     <Compile Include="OpenIdConnectHashGenerator.cs" />
@@ -88,8 +83,8 @@
     <Compile Include="Provider\DefaultBehavior.cs" />
     <Compile Include="Provider\IOpenIdConnectServerProvider.cs" />
     <Compile Include="Provider\OpenIdConnectServerProvider.cs" />
-    <Compile Include="Provider\OpenIdConnectAuthorizeEndpointContext.cs" />
-    <Compile Include="Provider\OpenIdConnectAuthorizeEndpointResponseContext.cs" />
+    <Compile Include="Provider\OpenIdConnectAuthorizationEndpointContext.cs" />
+    <Compile Include="Provider\OpenIdConnectAuthorizationEndpointResponseContext.cs" />
     <Compile Include="Provider\OpenIdConnectChallengeContext.cs" />
     <Compile Include="Provider\OpenIdConnectGrantAuthorizationCodeContext.cs" />
     <Compile Include="Provider\OpenIdConnectGrantClientCredentialsContext.cs" />
@@ -99,7 +94,7 @@
     <Compile Include="Provider\OpenIdConnectMatchEndpointContext.cs" />
     <Compile Include="Provider\OpenIdConnectTokenEndpointContext.cs" />
     <Compile Include="Provider\OpenIdConnectTokenEndpointResponseContext.cs" />
-    <Compile Include="Provider\OpenIdConnectValidateAuthorizeRequestContext.cs" />
+    <Compile Include="Provider\OpenIdConnectValidateAuthorizationRequestContext.cs" />
     <Compile Include="Provider\OpenIdConnectValidateClientAuthenticationContext.cs" />
     <Compile Include="Provider\OpenIdConnectValidateClientRedirectUriContext.cs" />
     <Compile Include="Provider\OpenIdConnectValidateTokenRequestContext.cs" />

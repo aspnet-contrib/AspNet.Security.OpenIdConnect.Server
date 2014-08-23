@@ -2,13 +2,13 @@
 @using Nancy.ViewEngines.Razor
 @using Owin.Security.OpenIdConnect.Server.Messages
 
-@inherits NancyRazorViewBase<Tuple<AuthorizeEndpointRequest, Application>>
+@inherits NancyRazorViewBase<Tuple<OpenIdConnectAuthorizationRequest, Application>>
 
 <div class="jumbotron">
     <h1>Authorization</h1>
     <p class="lead text-left">Do you wanna grant <strong>@Model.Item2.DisplayName</strong> an access to your resources?</p>
 
-    <form action="/oauth2/authorize" enctype="application/x-www-form-urlencoded" method="post">
+    <form action="/connect/authorize" enctype="application/x-www-form-urlencoded" method="post">
         @Html.AntiForgeryToken()
 
         @foreach (var parameter in Model.Item1.Parameters) {

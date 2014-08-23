@@ -24,20 +24,56 @@ namespace Owin.Security.OpenIdConnect.Server {
         }
 
         /// <summary>
-        /// Gets whether or not the endpoint is an OpenIdConnect authorize endpoint.
+        /// Gets whether or not the endpoint is an
+        /// OAuth2/OpenID connect authorization endpoint.
         /// </summary>
-        public bool IsAuthorizeEndpoint { get; private set; }
+        public bool IsAuthorizationEndpoint { get; private set; }
 
         /// <summary>
-        /// Gets whether or not the endpoint is an OpenIdConnect token endpoint.
+        /// Gets whether or not the endpoint is an
+        /// OpenID connect configuration metadata endpoint.
+        /// </summary>
+        public bool IsConfigurationEndpoint { get; private set; }
+
+        /// <summary>
+        /// Gets whether or not the endpoint is an
+        /// OpenID connect JWKS endpoint.
+        /// </summary>
+        public bool IsCryptoEndpoint { get; private set; }
+
+        /// <summary>
+        /// Gets whether or not the endpoint is an
+        /// OAuth2/OpenID connect token endpoint.
         /// </summary>
         public bool IsTokenEndpoint { get; private set; }
 
         /// <summary>
-        /// Sets the endpoint type to authorize endpoint.
+        /// Sets the endpoint type to the authorization endpoint.
         /// </summary>
-        public void MatchesAuthorizeEndpoint() {
-            IsAuthorizeEndpoint = true;
+        public void MatchesAuthorizationEndpoint() {
+            IsAuthorizationEndpoint = true;
+            IsConfigurationEndpoint = false;
+            IsCryptoEndpoint = false;
+            IsTokenEndpoint = false;
+        }
+
+        /// <summary>
+        /// Sets the endpoint type to the configuration endpoint.
+        /// </summary>
+        public void MatchesConfigurationEndpoint() {
+            IsAuthorizationEndpoint = false;
+            IsConfigurationEndpoint = true;
+            IsCryptoEndpoint = false;
+            IsTokenEndpoint = false;
+        }
+
+        /// <summary>
+        /// Sets the endpoint type to the JWKS endpoint.
+        /// </summary>
+        public void MatchesCryptoEndpoint() {
+            IsAuthorizationEndpoint = false;
+            IsConfigurationEndpoint = false;
+            IsCryptoEndpoint = true;
             IsTokenEndpoint = false;
         }
 
@@ -45,15 +81,19 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// Sets the endpoint type to token endpoint.
         /// </summary>
         public void MatchesTokenEndpoint() {
-            IsAuthorizeEndpoint = false;
+            IsAuthorizationEndpoint = false;
+            IsConfigurationEndpoint = false;
+            IsCryptoEndpoint = false;
             IsTokenEndpoint = true;
         }
 
         /// <summary>
-        /// Sets the endpoint type to neither authorize nor token.
+        /// Sets the endpoint type to unknown.
         /// </summary>
         public void MatchesNothing() {
-            IsAuthorizeEndpoint = false;
+            IsAuthorizationEndpoint = false;
+            IsConfigurationEndpoint = false;
+            IsCryptoEndpoint = false;
             IsTokenEndpoint = false;
         }
     }

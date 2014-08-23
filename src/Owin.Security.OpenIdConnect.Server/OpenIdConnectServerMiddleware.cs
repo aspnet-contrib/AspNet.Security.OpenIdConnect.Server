@@ -80,8 +80,40 @@ namespace Owin.Security.OpenIdConnect.Server {
                 throw new ArgumentNullException("options.SigningCredentials");
             }
 
-            if (string.IsNullOrWhiteSpace(Options.IssuerName)) {
-                throw new ArgumentException("options.IssuerName");
+            if (!Options.AuthorizationEndpointPath.HasValue) {
+                throw new ArgumentException("options.AuthorizationEndpointPath must be provided. " +
+                    "Make sure to use a custom value or remove the setter call to use the default value.",
+                    "options.AuthorizationEndpointPath");
+            }
+
+            if (string.IsNullOrWhiteSpace(Options.Issuer)) {
+                throw new ArgumentNullException("options.Issuer");
+            }
+
+            Uri issuer;
+            if (!Uri.TryCreate(Options.Issuer, UriKind.Absolute, out issuer)) {
+                throw new ArgumentException("options.Issuer must be a valid absolute URI.", "options.Issuer");
+            }
+
+            // See http://openid.net/specs/openid-connect-discovery-1_0.html#IssuerDiscovery
+            if (!string.IsNullOrWhiteSpace(issuer.Query) || !string.IsNullOrWhiteSpace(issuer.Fragment)) {
+                throw new ArgumentException("options.Issuer must contain no query and no fragment parts.", "options.Issuer");
+            }
+
+            // Note: while the issuer parameter should be a HTTPS URI, making HTTPS mandatory
+            // in Owin.Security.OpenIdConnect.Server would prevent the end developer from
+            // running the different samples in test environments, where HTTPS is often disabled.
+            // To mitigate this issue, AllowInsecureHttp can be set to true to bypass the HTTPS check.
+            // See http://openid.net/specs/openid-connect-discovery-1_0.html#IssuerDiscovery
+            if (!Options.AllowInsecureHttp && string.Equals(issuer.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase)) {
+                throw new ArgumentException("options.Issuer must be a HTTPS URI when " +
+                    "options.AllowInsecureHttp is not set to true.", "options.Issuer");
+            }
+
+            if (Options.Issuer.EndsWith("/")) {
+                // Remove the trailing slash to make concatenation easier in
+                // OpenIdConnectServerHandler.InvokeConfigurationEndpointAsync.
+                Options.Issuer = Options.Issuer.Substring(0, Options.Issuer.Length - 1);
             }
         }
 

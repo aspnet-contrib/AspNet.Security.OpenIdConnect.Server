@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Owin.Security.OpenIdConnect.Server {
     internal static class DefaultBehavior {
-        internal static readonly Func<OpenIdConnectValidateAuthorizeRequestContext, Task> ValidateAuthorizeRequest = context => {
+        internal static readonly Func<OpenIdConnectValidateAuthorizationRequestContext, Task> ValidateAuthorizationRequest = context => {
             context.Validated();
             return Task.FromResult<object>(null);
         };
