@@ -1,7 +1,6 @@
 using System;
 using System.IdentityModel.Tokens;
 using System.IO;
-using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;

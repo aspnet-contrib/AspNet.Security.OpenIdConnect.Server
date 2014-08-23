@@ -33,9 +33,13 @@ namespace Owin.Security.OpenIdConnect.Server {
             OnGrantCustomExtension = context => Task.FromResult<object>(null);
 
             OnAuthorizationEndpoint = context => Task.FromResult<object>(null);
+            OnConfigurationEndpoint = context => Task.FromResult<object>(null);
+            OnCryptoEndpoint = context => Task.FromResult<object>(null);
             OnTokenEndpoint = context => Task.FromResult<object>(null);
 
             OnAuthorizationEndpointResponse = context => Task.FromResult<object>(null);
+            OnConfigurationEndpointResponse = context => Task.FromResult<object>(null);
+            OnCryptoEndpointResponse = context => Task.FromResult<object>(null);
             OnTokenEndpointResponse = context => Task.FromResult<object>(null);
         }
 
@@ -160,6 +164,34 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// This call may also be used to add additional response parameters to the authorization response.
         /// </summary>
         public Func<OpenIdConnectAuthorizationEndpointResponseContext, Task> OnAuthorizationEndpointResponse { get; set; }
+
+        /// <summary>
+        /// Called by the client applications to retrieve the OpenID connect configuration associated with this instance.
+        /// If the web application wishes to produce the configuration metadata directly in this call, it may write to the 
+        /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
+        /// </summary>
+        public Func<OpenIdConnectConfigurationEndpointContext, Task> OnConfigurationEndpoint { get; set; }
+
+        /// <summary>
+        /// Called before the authorization server starts emitting the OpenID connect configuration associated with this instance.
+        /// If the web application wishes to produce the configuration metadata directly in this call, it may write to the 
+        /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
+        /// </summary>
+        public Func<OpenIdConnectConfigurationEndpointResponseContext, Task> OnConfigurationEndpointResponse { get; set; }
+
+        /// <summary>
+        /// Called by the client applications to retrieve the OpenID connect JSON Web Key set associated with this instance.
+        /// If the web application wishes to produce the JSON Web Key set directly in this call, it may write to the 
+        /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
+        /// </summary>
+        public Func<OpenIdConnectCryptoEndpointContext, Task> OnCryptoEndpoint { get; set; }
+
+        /// <summary>
+        /// Called before the authorization server starts emitting the OpenID connect JSON Web Key set associated with this instance.
+        /// If the web application wishes to produce the JSON Web Key set directly in this call, it may write to the 
+        /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
+        /// </summary>
+        public Func<OpenIdConnectCryptoEndpointResponseContext, Task> OnCryptoEndpointResponse { get; set; }
 
         /// <summary>
         /// Called at the final stage of a successful Token endpoint request. An application may implement this call in order to do any final 
@@ -339,6 +371,50 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <returns>Task to enable asynchronous execution</returns>
         public virtual Task AuthorizationEndpointResponse(OpenIdConnectAuthorizationEndpointResponseContext context) {
             return OnAuthorizationEndpointResponse.Invoke(context);
+        }
+
+        /// <summary>
+        /// Called by the client applications to retrieve the OpenID connect configuration associated with this instance.
+        /// If the web application wishes to produce the configuration metadata directly in this call, it may write to the 
+        /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
+        /// </summary>
+        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        public virtual Task ConfigurationEndpoint(OpenIdConnectConfigurationEndpointContext context) {
+            return OnConfigurationEndpoint.Invoke(context);
+        }
+
+        /// <summary>
+        /// Called before the authorization server starts emitting the OpenID connect configuration associated with this instance.
+        /// If the web application wishes to produce the configuration metadata directly in this call, it may write to the 
+        /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
+        /// </summary>
+        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        public virtual Task ConfigurationEndpointResponse(OpenIdConnectConfigurationEndpointResponseContext context) {
+            return OnConfigurationEndpointResponse.Invoke(context);
+        }
+
+        /// <summary>
+        /// Called by the client applications to retrieve the OpenID connect JSON Web Key set associated with this instance.
+        /// If the web application wishes to produce the JSON Web Key set directly in this call, it may write to the 
+        /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
+        /// </summary>
+        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        public virtual Task CryptoEndpoint(OpenIdConnectCryptoEndpointContext context) {
+            return OnCryptoEndpoint.Invoke(context);
+        }
+
+        /// <summary>
+        /// Called before the authorization server starts emitting the OpenID connect JSON Web Key set associated with this instance.
+        /// If the web application wishes to produce the JSON Web Key set directly in this call, it may write to the 
+        /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
+        /// </summary>
+        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        public virtual Task CryptoEndpointResponse(OpenIdConnectCryptoEndpointResponseContext context) {
+            return OnCryptoEndpointResponse.Invoke(context);
         }
 
         /// <summary>
