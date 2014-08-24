@@ -286,7 +286,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             // Determine whether an authorization code should be returned.
             if (_authorizationRequest.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.Code)) {
                 signin.Properties.IssuedUtc = currentUtc;
-                signin.Properties.ExpiresUtc = currentUtc.Add(Options.AuthorizationCodeExpireTimeSpan);
+                signin.Properties.ExpiresUtc = currentUtc.Add(Options.AuthorizationCodeLifetime);
 
                 var context = new AuthenticationTokenCreateContext(
                     Context, Options.AuthorizationCodeFormat,
@@ -308,7 +308,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             // Determine whether an access token should be returned.
             if (_authorizationRequest.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.Token)) {
                 signin.Properties.IssuedUtc = currentUtc;
-                signin.Properties.ExpiresUtc = currentUtc.Add(Options.AccessTokenExpireTimeSpan);
+                signin.Properties.ExpiresUtc = currentUtc.Add(Options.AccessTokenLifetime);
 
                 var context = new AuthenticationTokenCreateContext(
                     Context, Options.AccessTokenFormat,
@@ -336,7 +336,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             // Determine whether an identity token should be returned.
             if (_authorizationRequest.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.IdToken)) {
                 signin.Properties.IssuedUtc = currentUtc;
-                signin.Properties.ExpiresUtc = currentUtc.Add(Options.IdTokenExpireTimeSpan);
+                signin.Properties.ExpiresUtc = currentUtc.Add(Options.IdTokenLifetime);
 
                 message.IdToken = CreateIdToken(
                     signin.Identity, signin.Properties, message.ClientId,
@@ -460,7 +460,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             // Making it mandatory in Owin.Security.OpenIdConnect.Server would prevent the end developer from
             // using custom security keys and manage himself the token validation parameters in the OIDC client.
             // To avoid this issue, the jwks_uri parameter is only added to the response when the JWKS endpoint
-            // is believed to provide a valid response, which is the case with RsaSecurityKey and X509SecurityKey. 
+            // is believed to provide a valid response, which is the case with RsaSecurityKey,
+            // X509SecurityKey, X509AsymmetricSecurityKey or when using X509SigningCredentials. 
             // See http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
             if (Options.SigningCredentials is X509SigningCredentials ||
                 Options.SigningCredentials.SigningKey is X509SecurityKey ||
@@ -897,7 +898,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             ticket.Properties.IssuedUtc = currentUtc;
-            ticket.Properties.ExpiresUtc = currentUtc.Add(Options.AccessTokenExpireTimeSpan);
+            ticket.Properties.ExpiresUtc = currentUtc.Add(Options.AccessTokenLifetime);
 
             var tokenEndpointContext = new OpenIdConnectTokenEndpointContext(
                 Context, Options, ticket, tokenRequest);
@@ -1182,7 +1183,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             outputClaims.Add(new Claim("iat", iat));
 
             DateTimeOffset notBefore = Options.SystemClock.UtcNow;
-            DateTimeOffset expires = notBefore.Add(Options.IdTokenExpireTimeSpan);
+            DateTimeOffset expires = notBefore.Add(Options.IdTokenLifetime);
 
             string notBeforeString;
             if (authProperties.Dictionary.TryGetValue("IdTokenIssuedUtc", out notBeforeString)) {
