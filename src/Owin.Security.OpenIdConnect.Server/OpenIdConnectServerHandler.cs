@@ -460,13 +460,10 @@ namespace Owin.Security.OpenIdConnect.Server {
             // Making it mandatory in Owin.Security.OpenIdConnect.Server would prevent the end developer from
             // using custom security keys and manage himself the token validation parameters in the OIDC client.
             // To avoid this issue, the jwks_uri parameter is only added to the response when the JWKS endpoint
-            // is believed to provide a valid response, which is the case with RsaSecurityKey,
-            // X509SecurityKey, X509AsymmetricSecurityKey or when using X509SigningCredentials. 
+            // is believed to provide a valid response, which is the case with asymmetric keys supporting RSA-SHA256.
             // See http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
-            if (Options.SigningCredentials is X509SigningCredentials ||
-                Options.SigningCredentials.SigningKey is X509SecurityKey ||
-                Options.SigningCredentials.SigningKey is X509AsymmetricSecurityKey ||
-                Options.SigningCredentials.SigningKey is RsaSecurityKey) {
+            if (Options.SigningCredentials.SigningKey is AsymmetricSecurityKey &&
+                Options.SigningCredentials.SigningKey.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature)) {
                 configurationEndpointResponseContext.CryptoEndpoint = Options.Issuer + Options.CryptoEndpointPath;
             }
 
@@ -640,50 +637,33 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             var cryptoEndpointResponseContext = new OpenIdConnectCryptoEndpointResponseContext(Context, Options);
-            
-            // Skip processing the crypto request if no supported key can be found.
+
+            // Skip processing the metadata request if no supported key can be found.
             // Note: SigningKey is assumed to be never null under normal circonstances,
             // given that an initial check is made by SigningCredentials's constructor.
             // The SigningCredentials property is itself guarded against null values
             // in OpenIdConnectServerMiddleware's constructor.
-            if (!(Options.SigningCredentials is X509SigningCredentials) &&
-                !(Options.SigningCredentials.SigningKey is X509SecurityKey) &&
-                !(Options.SigningCredentials.SigningKey is X509AsymmetricSecurityKey) &&
-                !(Options.SigningCredentials.SigningKey is RsaSecurityKey)) {
+            var asymmetricSecurityKey = Options.SigningCredentials.SigningKey as AsymmetricSecurityKey;
+            if (asymmetricSecurityKey == null) {
                 _logger.WriteError(string.Format(CultureInfo.InvariantCulture,
                     "Crypto endpoint: invalid signing key registered. " +
-                    "The only supported types are '{0}', '{1}' and '{2}'. " +
-                    "You can also provide a SigningCredentials instance deriving from '{3}'.",
-                    typeof(X509SecurityKey).FullName, typeof(X509AsymmetricSecurityKey).FullName,
-                    typeof(RsaSecurityKey).FullName, typeof(X509SigningCredentials).FullName));
+                    "Make sure to provide an asymmetric security key deriving from '{0}'.",
+                    typeof(AsymmetricSecurityKey).FullName));
                 return;
             }
 
-            // Determine whether the security key is a RSA asymmetric key.
-            var rsaSecurityKey = Options.SigningCredentials.SigningKey as RsaSecurityKey;
-            if (rsaSecurityKey != null) {
-                var provider = (RSA) rsaSecurityKey.GetAsymmetricAlgorithm(
-                    algorithm: SecurityAlgorithms.RsaSha256Signature,
-                    requiresPrivateKey: false);
-
-                // Export the RSA public key.
-                var parameters = provider.ExportParameters(includePrivateParameters: false);
-
-                cryptoEndpointResponseContext.Keys.Add(new JsonWebKey {
-                    Kty = JsonWebAlgorithmsKeyTypes.RSA,
-                    Alg = JwtAlgorithms.RSA_SHA256,
-                    Use = JsonWebKeyUseNames.Sig,
-
-                    // Both E and N must be base64url-encoded.
-                    // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#appendix-A.1
-                    E = Base64UrlEncoder.Encode(parameters.Exponent),
-                    N = Base64UrlEncoder.Encode(parameters.Modulus)
-                });
+            if (!asymmetricSecurityKey.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature)) {
+                _logger.WriteError(string.Format(CultureInfo.InvariantCulture,
+                    "Crypto endpoint: invalid signing key registered. " +
+                    "Make sure to provide a '{0}' instance exposing " +
+                    "an asymmetric security key supporting the '{1}' algorithm.",
+                    typeof(SigningCredentials).Name, SecurityAlgorithms.RsaSha256Signature));
+                return;
             }
 
             X509Certificate2 x509Certificate = null;
 
-            // Determine whether the signing credentials are based on a X.509 certificate.
+            // Determine whether the signing credentials are directly based on a X.509 certificate.
             var x509SigningCredentials = Options.SigningCredentials as X509SigningCredentials;
             if (x509SigningCredentials != null) {
                 x509Certificate = x509SigningCredentials.Certificate;
@@ -715,45 +695,54 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
             }
 
-            // x509Certificate may still be null if no X.509 certificate has been
-            // found in X509SigningCredentials or SigningCredentials.SigningKey.
             if (x509Certificate != null) {
-                // Ensure the certificate exposes a RSA public key.
-                if (x509Certificate.PublicKey.Key is RSA) {
-                    cryptoEndpointResponseContext.Keys.Add(new JsonWebKey {
-                        Kty = JsonWebAlgorithmsKeyTypes.RSA,
-                        Alg = JwtAlgorithms.RSA_SHA256,
-                        Use = JsonWebKeyUseNames.Sig,
+                // Create a new JSON Web Key exposing the
+                // certificate instead of its public RSA key.
+                cryptoEndpointResponseContext.Keys.Add(new JsonWebKey {
+                    Kty = JsonWebAlgorithmsKeyTypes.RSA,
+                    Alg = JwtAlgorithms.RSA_SHA256,
+                    Use = JsonWebKeyUseNames.Sig,
 
-                        // x5t must be base64url-encoded.
-                        // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#section-4.8
-                        X5t = Base64UrlEncoder.Encode(x509Certificate.GetCertHash()),
+                    // x5t must be base64url-encoded.
+                    // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#section-4.8
+                    X5t = Base64UrlEncoder.Encode(x509Certificate.GetCertHash()),
 
-                        // Unlike E or N, the certificates contained in x5c
-                        // must be base64-encoded and not base64url-encoded.
-                        // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#section-4.7
-                        X5c = { Convert.ToBase64String(x509Certificate.RawData) }
-                    });
-                }
+                    // Unlike E or N, the certificates contained in x5c
+                    // must be base64-encoded and not base64url-encoded.
+                    // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#section-4.7
+                    X5c = { Convert.ToBase64String(x509Certificate.RawData) }
+                });
+            }
 
-                else {
-                    _logger.WriteError(
-                        "Crypto endpoint: the registered X.509 security key " +
-                        "has been ignored as it uses an unsupported public key type. " +
-                        "Make sure to use a certificate exposing a RSA public key.");
-                }
+            else {
+                // Create a new JSON Web Key exposing the exponent and the modulus of the RSA public key.
+                var asymmetricAlgorithm = (RSA) asymmetricSecurityKey.GetAsymmetricAlgorithm(
+                    algorithm: SecurityAlgorithms.RsaSha256Signature, privateKey: false);
+
+                // Export the RSA public key.
+                var parameters = asymmetricAlgorithm.ExportParameters(
+                    includePrivateParameters: false);
+
+                cryptoEndpointResponseContext.Keys.Add(new JsonWebKey {
+                    Kty = JsonWebAlgorithmsKeyTypes.RSA,
+                    Alg = JwtAlgorithms.RSA_SHA256,
+                    Use = JsonWebKeyUseNames.Sig,
+
+                    // Both E and N must be base64url-encoded.
+                    // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#appendix-A.1
+                    E = Base64UrlEncoder.Encode(parameters.Exponent),
+                    N = Base64UrlEncoder.Encode(parameters.Modulus)
+                });
             }
 
             await Options.Provider.CryptoEndpointResponse(cryptoEndpointResponseContext);
 
-            // Skip processing the crypto request if
-            // RequestCompleted has been called.
+            // Skip processing the crypto request if RequestCompleted has been called.
             if (cryptoEndpointResponseContext.IsRequestCompleted) {
                 return;
             }
 
-            // Ensure at least one key has
-            // been added to context.Keys.
+            // Ensure at least one key has been added to context.Keys.
             if (!cryptoEndpointResponseContext.Keys.Any()) {
                 _logger.WriteError("Crypto endpoint: no JSON Web Key found.");
                 return;
