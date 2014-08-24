@@ -509,6 +509,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                     OpenIdConnectConstants.ResponseTypes.Token);
             }
 
+            configurationEndpointResponseContext.Scopes.Add(OpenIdConnectScopes.OpenId);
+
             configurationEndpointResponseContext.SubjectTypes.Add(OpenIdConnectConstants.SubjectTypes.Public);
             configurationEndpointResponseContext.SubjectTypes.Add(OpenIdConnectConstants.SubjectTypes.Pairwise);
 
@@ -566,6 +568,15 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                 foreach (string type in configurationEndpointResponseContext.SubjectTypes) {
                     writer.WriteValue(type);
+                }
+
+                writer.WriteEndArray();
+
+                writer.WritePropertyName(OpenIdConnectConstants.Metadata.ScopesSupported);
+                writer.WriteStartArray();
+
+                foreach (string algorithm in configurationEndpointResponseContext.Scopes) {
+                    writer.WriteValue(algorithm);
                 }
 
                 writer.WriteEndArray();

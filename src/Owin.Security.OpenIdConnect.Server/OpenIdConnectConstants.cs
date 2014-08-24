@@ -73,6 +73,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             public const string JwksUri = "jwks_uri";
             public const string ResponseModesSupported = "response_modes_supported";
             public const string ResponseTypesSupported = "response_types_supported";
+            public const string ScopesSupported = "scopes_supported";
             public const string SubjectTypesSupported = "subject_types_supported";
             public const string TokenEndpoint = "token_endpoint";
         }
