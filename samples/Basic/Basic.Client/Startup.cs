@@ -1,5 +1,4 @@
 using System;
-using System.IdentityModel.Tokens;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
 using Microsoft.Owin.Security.OpenIdConnect;
@@ -18,12 +17,6 @@ namespace Basic.Client {
                 ExpireTimeSpan = TimeSpan.FromMinutes(5)
             });
 
-            // Note: symmetric keys can only be used when the identity provider and the client applications
-            // trust each other and are part of the same trusted boundary (typically, a website façade and its backend server).
-            // For every other use, use an asymmetric security key like RsaSecurityKey or X509SecurityKey.
-            // See the Nancy.Server sample for a complete sample using a X.509 certificate.
-            var key = new InMemorySymmetricSecurityKey(Convert.FromBase64String("Srtjyi8wMFfmP9Ub8U2ieVGAcrP/7gK3VM/K6KfJ/fI="));
-
             // Insert a new OIDC client middleware in the pipeline.
             app.UseOpenIdConnectAuthentication(new OpenIdConnectAuthenticationOptions {
                 AuthenticationMode = AuthenticationMode.Active,
@@ -35,16 +28,11 @@ namespace Basic.Client {
                 RedirectUri = "http://localhost:57264/oidc",
 
                 Scope = "openid",
-                Authority = "http://localhost:59504/",
 
-                // Note: given that Basic.Server uses a symmetric key that cannot be shared publicly,
-                // the automatic configuration discovery won't be able to retrive the token
-                // validation parameters: you need to set them here explicitly.
-                TokenValidationParameters = new TokenValidationParameters() {
-                    ValidAudience = "myClient",
-                    ValidIssuer = "http://localhost:59504/",
-                    IssuerSigningKey = key
-                }
+                // Note: setting the Authority allows the OIDC client middleware to automatically
+                // retrieve the identity provider's configuration and spare you from setting
+                // the different endpoints URIs or the token validation parameters explicitly.
+                Authority = "http://localhost:59504/"
             });
         }
     }
