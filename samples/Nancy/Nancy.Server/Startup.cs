@@ -26,9 +26,8 @@ namespace Nancy.Server {
                 content = memory.ToArray();
             }
 
-            var certificate = new X509Certificate2(content, "Owin.Security.OpenIdConnect.Server");
-            var key = new X509SecurityKey(certificate);
-            var credentials = new SigningCredentials(key, SecurityAlgorithms.RsaSha256Signature, SecurityAlgorithms.Sha256Digest);
+            var certificate = new X509Certificate2(content, password: "Owin.Security.OpenIdConnect.Server");
+            var credentials = new X509SigningCredentials(certificate);
 
             app.SetDefaultSignInAsAuthenticationType("ServerCookie");
 
