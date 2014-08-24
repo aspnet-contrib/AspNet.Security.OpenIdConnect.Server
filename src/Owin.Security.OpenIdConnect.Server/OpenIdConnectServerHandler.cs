@@ -474,6 +474,11 @@ namespace Owin.Security.OpenIdConnect.Server {
                 configurationEndpointResponseContext.TokenEndpoint = Options.Issuer + Options.TokenEndpointPath;
             }
 
+            configurationEndpointResponseContext.GrantTypes.Add(
+                OpenIdConnectConstants.GrantTypes.AuthorizationCode);
+            configurationEndpointResponseContext.GrantTypes.Add(
+                OpenIdConnectConstants.GrantTypes.Implicit);
+
             configurationEndpointResponseContext.ResponseModes.Add(
                 OpenIdConnectConstants.ResponseModes.FormPost);
             configurationEndpointResponseContext.ResponseModes.Add(
@@ -544,6 +549,15 @@ namespace Owin.Security.OpenIdConnect.Server {
                     writer.WritePropertyName(OpenIdConnectConstants.Metadata.JwksUri);
                     writer.WriteValue(configurationEndpointResponseContext.CryptoEndpoint);
                 }
+
+                writer.WritePropertyName(OpenIdConnectConstants.Metadata.GrantTypesSupported);
+                writer.WriteStartArray();
+
+                foreach (string type in configurationEndpointResponseContext.GrantTypes) {
+                    writer.WriteValue(type);
+                }
+
+                writer.WriteEndArray();
 
                 writer.WritePropertyName(OpenIdConnectConstants.Metadata.ResponseModesSupported);
                 writer.WriteStartArray();

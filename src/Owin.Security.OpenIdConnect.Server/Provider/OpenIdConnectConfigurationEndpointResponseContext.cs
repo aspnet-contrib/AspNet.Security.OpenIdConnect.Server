@@ -23,6 +23,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             OpenIdConnectServerOptions options)
             : base(context, options) {
             AdditionalParameters = new Dictionary<string, object>(StringComparer.Ordinal);
+            GrantTypes = new List<string>();
             ResponseModes = new List<string>();
             ResponseTypes = new List<string>();
             Scopes = new List<string>();
@@ -49,6 +50,12 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// Gets or sets the issuer address.
         /// </summary>
         public string Issuer { get; set; }
+
+        /// <summary>
+        /// Gets a list of the grant types
+        /// supported by the authorization server.
+        /// </summary>
+        public IList<string> GrantTypes { get; private set; }
 
         /// <summary>
         /// Gets a list of the response modes
