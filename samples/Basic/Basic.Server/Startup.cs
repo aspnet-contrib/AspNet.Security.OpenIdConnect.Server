@@ -1,5 +1,7 @@
 using System;
 using System.IdentityModel.Tokens;
+using System.IO;
+using System.Security.Cryptography.X509Certificates;
 using Microsoft.Owin;
 using Owin;
 using Owin.Security.OpenIdConnect.Server;
@@ -7,23 +9,20 @@ using Owin.Security.OpenIdConnect.Server;
 namespace Basic.Server {
     public class Startup {
         public void Configuration(IAppBuilder app) {
-            ConfigureOidcServerDemo(app);
-        }
+            byte[] content;
 
-        private static void ConfigureOidcServerDemo(IAppBuilder app) {
-            // You can easily generate a new base64-encoded 256 bits key using RNGCryptoServiceProvider:
-            //using (var generator = new RNGCryptoServiceProvider()) {
-            //    var buffer = new byte[256 / 8];
-            //    generator.GetBytes(buffer);
-            //    Console.WriteLine(Convert.ToBase64String(buffer));
-            //}
+            // Note: in a real world app, you'd probably prefer storing the X.509 certificate
+            // in the user or machine store. To keep this sample easy to use, the certificate
+            // is extracted from the Certificate.pfx file embedded in this assembly.
+            using (var stream = typeof(Startup).Assembly.GetManifestResourceStream("Basic.Server.Certificate.pfx"))
+            using (var memory = new MemoryStream()) {
+                stream.CopyTo(memory);
+                memory.Flush();
+                content = memory.ToArray();
+            }
 
-            // Note: symmetric keys can only be used when the identity provider and the client applications
-            // trust each other and are part of the same trusted boundary (typically, a website façade and its backend server).
-            // For every other use, use an asymmetric security key like RsaSecurityKey or X509SecurityKey.
-            // See the Nancy.Server sample for a complete sample using a X.509 certificate.
-            var key = new InMemorySymmetricSecurityKey(Convert.FromBase64String("Srtjyi8wMFfmP9Ub8U2ieVGAcrP/7gK3VM/K6KfJ/fI="));
-            var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature, SecurityAlgorithms.Sha256Digest);
+            var certificate = new X509Certificate2(content, password: "Owin.Security.OpenIdConnect.Server");
+            var credentials = new X509SigningCredentials(certificate);
 
             app.UseOpenIdConnectServer(new OpenIdConnectServerOptions {
                 IdTokenExpireTimeSpan = TimeSpan.FromMinutes(60),
