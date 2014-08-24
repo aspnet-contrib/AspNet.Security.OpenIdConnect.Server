@@ -653,20 +653,30 @@ namespace Owin.Security.OpenIdConnect.Server {
             // a X.509 certificate and add the corresponding JSON Web Key in context.Keys.
             var x509SecurityKey = Options.SigningCredentials.SigningKey as X509SecurityKey;
             if (x509SecurityKey != null) {
-                cryptoEndpointResponseContext.Keys.Add(new JsonWebKey {
-                    Kty = JsonWebAlgorithmsKeyTypes.RSA,
-                    Alg = JwtAlgorithms.RSA_SHA256,
-                    Use = JsonWebKeyUseNames.Sig,
+                // Ensure the certificate exposes a RSA public key.
+                if (x509SecurityKey.Certificate.PublicKey.Key is RSA) {
+                    cryptoEndpointResponseContext.Keys.Add(new JsonWebKey {
+                        Kty = JsonWebAlgorithmsKeyTypes.RSA,
+                        Alg = JwtAlgorithms.RSA_SHA256,
+                        Use = JsonWebKeyUseNames.Sig,
 
-                    // x5t must be base64url-encoded.
-                    // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#section-4.8
-                    X5t = Base64UrlEncoder.Encode(x509SecurityKey.Certificate.GetCertHash()),
+                        // x5t must be base64url-encoded.
+                        // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#section-4.8
+                        X5t = Base64UrlEncoder.Encode(x509SecurityKey.Certificate.GetCertHash()),
 
-                    // Unlike E or N, the certificates contained in x5c
-                    // must be base64-encoded and not base64url-encoded.
-                    // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#section-4.7
-                    X5c = { Convert.ToBase64String(x509SecurityKey.Certificate.RawData) }
-                });
+                        // Unlike E or N, the certificates contained in x5c
+                        // must be base64-encoded and not base64url-encoded.
+                        // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#section-4.7
+                        X5c = { Convert.ToBase64String(x509SecurityKey.Certificate.RawData) }
+                    });
+                }
+
+                else {
+                    _logger.WriteError(
+                        "Crypto endpoint: the registered X.509 security key " +
+                        "has been ignored as it uses an unsupported public key type. " +
+                        "Make sure to use a certificate exposing a RSA public key");
+                }
             }
 
             await Options.Provider.CryptoEndpointResponse(cryptoEndpointResponseContext);
