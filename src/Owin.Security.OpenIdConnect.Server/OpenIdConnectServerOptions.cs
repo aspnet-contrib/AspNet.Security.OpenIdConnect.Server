@@ -23,17 +23,33 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         public OpenIdConnectServerOptions()
             : base(OpenIdConnectDefaults.AuthenticationType) {
-            AuthorizationCodeExpireTimeSpan = TimeSpan.FromMinutes(5);
-            AccessTokenExpireTimeSpan = TimeSpan.FromMinutes(20);
+            AuthorizationCodeLifetime = TimeSpan.FromMinutes(5);
+            AccessTokenLifetime = TimeSpan.FromMinutes(20);
+            IdTokenLifetime = TimeSpan.FromMinutes(20);
             SystemClock = new SystemClock();
             TokenHandler = new JwtSecurityTokenHandler();
             ServerClaimsMapper = claims => claims;
-            IdTokenExpireTimeSpan = TimeSpan.FromMinutes(20);
             AuthorizationEndpointPath = new PathString(OpenIdConnectDefaults.AuthorizationEndpointPath);
             ConfigurationEndpointPath = new PathString(OpenIdConnectDefaults.ConfigurationEndpointPath);
             CryptoEndpointPath = new PathString(OpenIdConnectDefaults.CryptoEndpointPath);
             TokenEndpointPath = new PathString(OpenIdConnectDefaults.TokenEndpointPath);
         }
+
+        /// <summary>
+        /// The base address used to uniquely identify the authorization server.
+        /// The URI must be absolute and may contain a path, but no query string or fragment part.
+        /// Unless AllowInsecureHttp has been set to true, an HTTPS address must be provided.
+        /// </summary>
+        public string Issuer { get; set; }
+
+        /// <summary>
+        /// The credentials used to sign id_tokens. You can provide any symmetric (e.g <see cref="InMemorySymmetricSecurityKey"/>)
+        /// or asymmetric (e.g <see cref="RsaSecurityKey"/>, <see cref="X509AsymmetricSecurityKey"/> or <see cref="X509SecurityKey"/>)
+        /// security key, but you're strongly encouraged to use an asymmetric key in production. Note that only keys based on
+        /// <see cref="RsaSecurityKey"/>, <see cref="X509AsymmetricSecurityKey"/> or <see cref="X509SecurityKey"/>
+        /// can be exposed on the configuration metadata endpoint. A <see cref="X509SigningCredentials"/> instance may also be provided.
+        /// </summary>
+        public SigningCredentials SigningCredentials { get; set; }
 
         /// <summary>
         /// The request path where client applications will redirect the user-agent in order to 
@@ -100,13 +116,19 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// This time span must also take into account clock synchronization between servers in a web farm, so a very 
         /// brief value could result in unexpectedly expired tokens.
         /// </summary>
-        public TimeSpan AuthorizationCodeExpireTimeSpan { get; set; }
+        public TimeSpan AuthorizationCodeLifetime { get; set; }
 
         /// <summary>
         /// The period of time the access token remains valid after being issued. The default is twenty minutes.
         /// The client application is expected to refresh or acquire a new access token after the token has expired. 
         /// </summary>
-        public TimeSpan AccessTokenExpireTimeSpan { get; set; }
+        public TimeSpan AccessTokenLifetime { get; set; }
+
+        /// <summary>
+        /// The period of time the identity token remains valid after being issued. The default is twenty minutes.
+        /// The client application is expected to refresh or acquire a new identity token after the token has expired. 
+        /// </summary>
+        public TimeSpan IdTokenLifetime { get; set; }
 
         /// <summary>
         /// Produces a single-use authorization code to return to the client application. For the OpenID Connect server to be secure the
@@ -148,11 +170,23 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         public bool AllowInsecureHttp { get; set; }
 
-        public TimeSpan IdTokenExpireTimeSpan { get; set; }
-        public string Issuer { get; set; }
+        /// <summary>
+        /// The mapper delegate used to filter the claims returned
+        /// in the identity tokens forged by the authorization server.
+        /// </summary>
         public Func<IEnumerable<Claim>, IEnumerable<Claim>> ServerClaimsMapper { get; set; }
+
+        /// <summary>
+        /// The provider used to sign the identity tokens produced by the authorization server.
+        /// Providing an instance is generally not required.
+        /// </summary>
+        /// <seealso cref="SigningCredentials"/>
         public SignatureProvider SignatureProvider { get; set; }
-        public SigningCredentials SigningCredentials { get; set; }
+
+        /// <summary>
+        /// The <see cref="JwtSecurityTokenHandler"/> instance used to forge identity tokens.
+        /// You can replace the default instance to change the way id_tokens are serialized.
+        /// </summary>
         public JwtSecurityTokenHandler TokenHandler { get; set; }
     }
 }

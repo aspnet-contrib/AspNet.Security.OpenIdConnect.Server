@@ -25,13 +25,13 @@ namespace Basic.Server {
             var credentials = new X509SigningCredentials(certificate);
 
             app.UseOpenIdConnectServer(new OpenIdConnectServerOptions {
-                IdTokenExpireTimeSpan = TimeSpan.FromMinutes(60),
+                AccessTokenLifetime = TimeSpan.FromDays(14),
+                IdTokenLifetime = TimeSpan.FromMinutes(60),
                 Issuer = "http://localhost:59504/",
                 SigningCredentials = credentials,
                 TokenEndpointPath = new PathString("/token"),
                 AuthorizationEndpointPath = new PathString("/auth.cshtml"),
                 Provider = new CustomOpenIdConnectServerProvider(),
-                AccessTokenExpireTimeSpan = TimeSpan.FromDays(14),
                 AllowInsecureHttp = true,
                 ApplicationCanDisplayErrors = true,
                 AuthorizationCodeProvider = new TestAuthenticationTokenProvider(),

@@ -62,13 +62,13 @@ namespace Nancy.Server {
 
             app.UseOpenIdConnectServer(new OpenIdConnectServerOptions {
                 AuthenticationType = OpenIdConnectDefaults.AuthenticationType,
-                IdTokenExpireTimeSpan = TimeSpan.FromMinutes(60),
 
                 Issuer = "http://localhost:55938/",
                 SigningCredentials = credentials,
 
                 Provider = new CustomOpenIdConnectServerProvider(),
-                AccessTokenExpireTimeSpan = TimeSpan.FromDays(14),
+                AccessTokenLifetime = TimeSpan.FromDays(14),
+                IdTokenLifetime = TimeSpan.FromMinutes(60),
                 AllowInsecureHttp = true,
 
                 // Note: see AuthorizationModule.cs for more
