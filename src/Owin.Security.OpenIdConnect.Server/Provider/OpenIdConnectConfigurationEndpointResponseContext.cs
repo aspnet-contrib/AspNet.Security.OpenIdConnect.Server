@@ -25,6 +25,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             AdditionalParameters = new Dictionary<string, object>(StringComparer.Ordinal);
             ResponseModes = new List<string>();
             ResponseTypes = new List<string>();
+            Scopes = new List<string>();
             SigningAlgorithms = new List<string>();
             SubjectTypes = new List<string>();
         }
@@ -60,6 +61,12 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// supported by the authorization server.
         /// </summary>
         public IList<string> ResponseTypes { get; private set; }
+
+        /// <summary>
+        /// Gets a list of the scope values
+        /// supported by the authorization server.
+        /// </summary>
+        public IList<string> Scopes { get; private set; }
 
         /// <summary>
         /// Gets a list of the signing algorithms
