@@ -675,7 +675,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     _logger.WriteError(
                         "Crypto endpoint: the registered X.509 security key " +
                         "has been ignored as it uses an unsupported public key type. " +
-                        "Make sure to use a certificate exposing a RSA public key");
+                        "Make sure to use a certificate exposing a RSA public key.");
                 }
             }
 
