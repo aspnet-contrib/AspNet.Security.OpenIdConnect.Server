@@ -44,6 +44,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         public static class GrantTypes {
             public const string AuthorizationCode = "authorization_code";
             public const string ClientCredentials = "client_credentials";
+            public const string Implicit = "implicit";
             public const string RefreshToken = "refresh_token";
             public const string Password = "password";
         }
@@ -71,6 +72,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             public const string IdTokenSigningAlgValuesSupported = "id_token_signing_alg_values_supported";
             public const string Issuer = "issuer";
             public const string JwksUri = "jwks_uri";
+            public const string GrantTypesSupported = "grant_types_supported";
             public const string ResponseModesSupported = "response_modes_supported";
             public const string ResponseTypesSupported = "response_types_supported";
             public const string ScopesSupported = "scopes_supported";
