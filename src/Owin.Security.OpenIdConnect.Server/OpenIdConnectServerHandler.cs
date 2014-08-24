@@ -12,8 +12,10 @@ using System.IdentityModel.Tokens;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Security.Claims;
 using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.IdentityModel.Protocols;
@@ -460,8 +462,10 @@ namespace Owin.Security.OpenIdConnect.Server {
             // To avoid this issue, the jwks_uri parameter is only added to the response when the JWKS endpoint
             // is believed to provide a valid response, which is the case with RsaSecurityKey and X509SecurityKey. 
             // See http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
-            if (Options.SigningCredentials.SigningKey is RsaSecurityKey ||
-                Options.SigningCredentials.SigningKey is X509SecurityKey) {
+            if (Options.SigningCredentials is X509SigningCredentials ||
+                Options.SigningCredentials.SigningKey is X509SecurityKey ||
+                Options.SigningCredentials.SigningKey is X509AsymmetricSecurityKey ||
+                Options.SigningCredentials.SigningKey is RsaSecurityKey) {
                 configurationEndpointResponseContext.CryptoEndpoint = Options.Issuer + Options.CryptoEndpointPath;
             }
 
@@ -616,18 +620,20 @@ namespace Owin.Security.OpenIdConnect.Server {
             // given that an initial check is made by SigningCredentials's constructor.
             // The SigningCredentials property is itself guarded against null values
             // in OpenIdConnectServerMiddleware's constructor.
-            if (!(Options.SigningCredentials.SigningKey is RsaSecurityKey) &&
-                !(Options.SigningCredentials.SigningKey is X509SecurityKey)) {
+            if (!(Options.SigningCredentials is X509SigningCredentials) &&
+                !(Options.SigningCredentials.SigningKey is X509SecurityKey) &&
+                !(Options.SigningCredentials.SigningKey is X509AsymmetricSecurityKey) &&
+                !(Options.SigningCredentials.SigningKey is RsaSecurityKey)) {
                 _logger.WriteError(string.Format(CultureInfo.InvariantCulture,
                     "Crypto endpoint: invalid signing key registered. " +
-                    "The only supported types are '{0}' and '{1}'.",
-                    typeof(RsaSecurityKey).FullName,
-                    typeof(X509SecurityKey).FullName));
+                    "The only supported types are '{0}', '{1}' and '{2}'. " +
+                    "You can also provide a SigningCredentials instance deriving from '{3}'.",
+                    typeof(X509SecurityKey).FullName, typeof(X509AsymmetricSecurityKey).FullName,
+                    typeof(RsaSecurityKey).FullName, typeof(X509SigningCredentials).FullName));
                 return;
             }
 
-            // Determine whether the security key is a RSA asymmetric key
-            // and add the corresponding JSON Web Key in context.Keys.
+            // Determine whether the security key is a RSA asymmetric key.
             var rsaSecurityKey = Options.SigningCredentials.SigningKey as RsaSecurityKey;
             if (rsaSecurityKey != null) {
                 var provider = (RSA) rsaSecurityKey.GetAsymmetricAlgorithm(
@@ -649,12 +655,45 @@ namespace Owin.Security.OpenIdConnect.Server {
                 });
             }
 
-            // Determine whether the security key is an asymmetric key associated with
-            // a X.509 certificate and add the corresponding JSON Web Key in context.Keys.
-            var x509SecurityKey = Options.SigningCredentials.SigningKey as X509SecurityKey;
-            if (x509SecurityKey != null) {
+            X509Certificate2 x509Certificate = null;
+
+            // Determine whether the signing credentials are based on a X.509 certificate.
+            var x509SigningCredentials = Options.SigningCredentials as X509SigningCredentials;
+            if (x509SigningCredentials != null) {
+                x509Certificate = x509SigningCredentials.Certificate;
+            }
+
+            // Skip looking for a X509SecurityKey in SigningCredentials.SigningKey
+            // if a certificate has been found in the SigningCredentials instance.
+            if (x509Certificate == null) {
+                // Determine whether the security key is an asymmetric key embedded in a X.509 certificate.
+                var x509SecurityKey = Options.SigningCredentials.SigningKey as X509SecurityKey;
+                if (x509SecurityKey != null) {
+                    x509Certificate = x509SecurityKey.Certificate;
+                }
+            }
+
+            // Skip looking for a X509AsymmetricSecurityKey in SigningCredentials.SigningKey
+            // if a certificate has been found in SigningCredentials or SigningCredentials.SigningKey.
+            if (x509Certificate == null) {
+                // Determine whether the security key is an asymmetric key embedded in a X.509 certificate.
+                var x509AsymmetricSecurityKey = Options.SigningCredentials.SigningKey as X509AsymmetricSecurityKey;
+                if (x509AsymmetricSecurityKey != null) {
+                    // The X.509 certificate is not directly accessible when using X509AsymmetricSecurityKey.
+                    // Reflection is the only way to get the certificate used to create the security key.
+                    var field = typeof(X509AsymmetricSecurityKey).GetField(
+                        name: "certificate",
+                        bindingAttr: BindingFlags.Instance | BindingFlags.NonPublic);
+
+                    x509Certificate = (X509Certificate2) field.GetValue(x509AsymmetricSecurityKey);
+                }
+            }
+
+            // x509Certificate may still be null if no X.509 certificate has been
+            // found in X509SigningCredentials or SigningCredentials.SigningKey.
+            if (x509Certificate != null) {
                 // Ensure the certificate exposes a RSA public key.
-                if (x509SecurityKey.Certificate.PublicKey.Key is RSA) {
+                if (x509Certificate.PublicKey.Key is RSA) {
                     cryptoEndpointResponseContext.Keys.Add(new JsonWebKey {
                         Kty = JsonWebAlgorithmsKeyTypes.RSA,
                         Alg = JwtAlgorithms.RSA_SHA256,
@@ -662,12 +701,12 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                         // x5t must be base64url-encoded.
                         // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#section-4.8
-                        X5t = Base64UrlEncoder.Encode(x509SecurityKey.Certificate.GetCertHash()),
+                        X5t = Base64UrlEncoder.Encode(x509Certificate.GetCertHash()),
 
                         // Unlike E or N, the certificates contained in x5c
                         // must be base64-encoded and not base64url-encoded.
                         // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#section-4.7
-                        X5c = { Convert.ToBase64String(x509SecurityKey.Certificate.RawData) }
+                        X5c = { Convert.ToBase64String(x509Certificate.RawData) }
                     });
                 }
 
