@@ -10,7 +10,7 @@
     var context = Context.GetOwinContext();
 
     string error, errorDescription, errorUri;
-    if (context.TryGetAuthorizeRequestError(out error, out errorDescription, out errorUri)) {
+    if (context.TryGetAuthorizationRequestError(out error, out errorDescription, out errorUri)) {
         <div>OpenID connect error: @error</div>
 
         if (!string.IsNullOrWhiteSpace(errorDescription)) {
@@ -20,7 +20,7 @@
         return;
     }
 
-    var request = context.GetAuthorizeEndpointRequest();
+    var request = context.GetAuthorizationRequest();
     if (request == null) {
         return;
     }

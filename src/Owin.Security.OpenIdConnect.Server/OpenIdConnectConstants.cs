@@ -44,6 +44,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         public static class GrantTypes {
             public const string AuthorizationCode = "authorization_code";
             public const string ClientCredentials = "client_credentials";
+            public const string Implicit = "implicit";
             public const string RefreshToken = "refresh_token";
             public const string Password = "password";
         }
@@ -66,8 +67,30 @@ namespace Owin.Security.OpenIdConnect.Server {
             public const string RedirectUri = "redirect_uri";
         }
 
+        public static class Metadata {
+            public const string AuthorizationEndpoint = "authorization_endpoint";
+            public const string IdTokenSigningAlgValuesSupported = "id_token_signing_alg_values_supported";
+            public const string Issuer = "issuer";
+            public const string JwksUri = "jwks_uri";
+            public const string GrantTypesSupported = "grant_types_supported";
+            public const string ResponseModesSupported = "response_modes_supported";
+            public const string ResponseTypesSupported = "response_types_supported";
+            public const string ScopesSupported = "scopes_supported";
+            public const string SubjectTypesSupported = "subject_types_supported";
+            public const string TokenEndpoint = "token_endpoint";
+        }
+
+        public static class SubjectTypes {
+            public const string Public = "public";
+            public const string Pairwise = "pairwise";
+        }
+
+        public static class Algorithms {
+            public const string RS256 = "RS256";
+        }
+
         public static class Environment {
-            public const string AuthorizeEndpointRequest = "oauth.AuthorizeEndpointRequest";
+            public const string AuthorizationRequest = "oauth.AuthorizationRequest";
             public const string Error = "oauth.Error";
             public const string ErrorDescription = "oauth.ErrorDescription";
             public const string ErrorUri = "oauth.ErrorUri";

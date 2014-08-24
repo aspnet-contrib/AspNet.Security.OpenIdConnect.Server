@@ -11,14 +11,14 @@ using Microsoft.Owin;
 
 namespace Owin.Security.OpenIdConnect.Server.Messages {
     /// <summary>
-    /// Data object representing the information contained in the query string of an Authorize endpoint request.
+    /// Data object representing the information contained in the query string of an authorization request.
     /// </summary>
-    public class AuthorizeEndpointRequest {
+    public class OpenIdConnectAuthorizationRequest {
         /// <summary>
         /// Creates a new instance populated with parameters extracted from the ambient request.
         /// </summary>
         /// <param name="parameters">Parameters extracted from the ambient request.</param>
-        public AuthorizeEndpointRequest(IReadableStringCollection parameters) {
+        public OpenIdConnectAuthorizationRequest(IReadableStringCollection parameters) {
             if (parameters == null) {
                 throw new ArgumentNullException("parameters");
             }
@@ -32,18 +32,18 @@ namespace Owin.Security.OpenIdConnect.Server.Messages {
         }
 
         /// <summary>
-        /// The "response_type" parameter of the Authorize request. Known values are "code" and "token".
+        /// The "response_type" parameter of the authorization request. Known values are "code" and "token".
         /// </summary>
         public string ResponseType { get; set; }
 
         /// <summary>
-        /// The "response_mode" parameter of the Authorize request. Known values are "query", "fragment" and "form_post"
+        /// The "response_mode" parameter of the authorization request. Known values are "query", "fragment" and "form_post"
         /// See also, http://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html
         /// </summary>
         public string ResponseMode { get; set; }
 
         /// <summary>
-        /// The "client_id" parameter of the Authorize request. 
+        /// The "client_id" parameter of the authorization request. 
         /// </summary>
         public string ClientId { get; set; }
 
@@ -53,25 +53,28 @@ namespace Owin.Security.OpenIdConnect.Server.Messages {
         public IReadableStringCollection Parameters { get; private set; }
 
         /// <summary>
-        /// The "redirect_uri" parameter of the Authorize request.
+        /// The "redirect_uri" parameter of the authorization request.
         /// May be absent if the server should use the 
         /// redirect uri known to be registered to the client id.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1056:UriPropertiesShouldNotBeStrings", Justification = "By design")]
+        [SuppressMessage("Microsoft.Design",
+            "CA1056:UriPropertiesShouldNotBeStrings",
+            Justification = "By design")]
         public string RedirectUri { get; set; }
 
         /// <summary>
-        /// The "scope" parameter of the Authorize request. May be absent if the server should use default scopes.
+        /// The "scope" parameter of the authorization request.
+        /// May be absent if the server should use default scopes.
         /// </summary>
         public IList<string> Scope { get; private set; }
 
         /// <summary>
-        /// The "nonce" parameter of the Authorize request.
+        /// The "nonce" parameter of the authorization request.
         /// </summary>
         public string Nonce { get; set; }
 
         /// <summary>
-        /// The "scope" parameter of the Authorize request.
+        /// The "scope" parameter of the authorization request.
         /// May be absent if the client does not require state to be 
         /// included when returning to the RedirectUri.
         /// </summary>
@@ -81,7 +84,7 @@ namespace Owin.Security.OpenIdConnect.Server.Messages {
         /// True if the "response_type" parameter is "code".
         /// See http://tools.ietf.org/html/rfc6749#section-4.1.1
         /// </summary>
-        public bool IsAuthorizationCodeGrantType {
+        public bool IsAuthorizationCodeFlow {
             get { return string.Equals(ResponseType, OpenIdConnectConstants.ResponseTypes.Code); }
         }
 
@@ -91,11 +94,13 @@ namespace Owin.Security.OpenIdConnect.Server.Messages {
         /// See http://tools.ietf.org/html/rfc6749#section-4.2.1 and
         /// http://openid.net/specs/openid-connect-core-1_0.html
         /// </summary>
-        public bool IsImplicitGrantType {
+        public bool IsImplicitFlow {
             get {
-                return !ContainsGrantType(OpenIdConnectConstants.ResponseTypes.Code) &&
-                    (ContainsGrantType(OpenIdConnectConstants.ResponseTypes.IdToken) ||
-                     ContainsGrantType(OpenIdConnectConstants.ResponseTypes.Token));
+                // Note: while the OIDC specs do not reuse the OAuth2-inherited response_type=token,
+                // it is considered as a valid response_type for the implicit flow, even for pure OIDC requests.
+                return !ContainsResponseType(OpenIdConnectConstants.ResponseTypes.Code) &&
+                    (ContainsResponseType(OpenIdConnectConstants.ResponseTypes.IdToken) ||
+                     ContainsResponseType(OpenIdConnectConstants.ResponseTypes.Token));
             }
         }
 
@@ -105,11 +110,11 @@ namespace Owin.Security.OpenIdConnect.Server.Messages {
         /// See http://tools.ietf.org/html/rfc6749#section-4.2.1 and
         /// http://openid.net/specs/openid-connect-core-1_0.html
         /// </summary>
-        public bool IsHybridGrantType {
+        public bool IsHybridFlow {
             get {
-                return ContainsGrantType(OpenIdConnectConstants.ResponseTypes.Code) &&
-                    (ContainsGrantType(OpenIdConnectConstants.ResponseTypes.IdToken) ||
-                     ContainsGrantType(OpenIdConnectConstants.ResponseTypes.Token));
+                return ContainsResponseType(OpenIdConnectConstants.ResponseTypes.Code) &&
+                    (ContainsResponseType(OpenIdConnectConstants.ResponseTypes.IdToken) ||
+                     ContainsResponseType(OpenIdConnectConstants.ResponseTypes.Token));
             }
         }
 
@@ -138,18 +143,18 @@ namespace Owin.Security.OpenIdConnect.Server.Messages {
         }
 
         /// <summary>
-        /// True if the "response_type" parameter contains the passed responseType.
+        /// True if the "response_type" parameter contains the given responseType.
         /// See also, http://openid.net/specs/oauth-v2-multiple-response-types-1_0.html
         /// </summary>
-        /// <param name="responseType">The responseType that is expected within the "response_type" query string</param>
-        /// <returns>True if the "response_type" query string contains the passed responseType.</returns>
-        public bool ContainsGrantType(string responseType) {
-            var parts = ResponseType.Split(' ');
-            foreach (var part in parts) {
+        /// <param name="responseType">The responseType to look for within the "response_type" parameter.</param>
+        /// <returns>True if the "response_type" query string contains the given responseType.</returns>
+        public bool ContainsResponseType(string responseType) {
+            foreach (var part in ResponseType.Split(' ')) {
                 if (string.Equals(part, responseType, StringComparison.Ordinal)) {
                     return true;
                 }
             }
+
             return false;
         }
 
@@ -157,21 +162,27 @@ namespace Owin.Security.OpenIdConnect.Server.Messages {
             if (string.Equals(name, OpenIdConnectConstants.Parameters.ResponseType, StringComparison.Ordinal)) {
                 ResponseType = value;
             }
+
             else if (string.Equals(name, OpenIdConnectConstants.Parameters.ClientId, StringComparison.Ordinal)) {
                 ClientId = value;
             }
+
             else if (string.Equals(name, OpenIdConnectConstants.Parameters.RedirectUri, StringComparison.Ordinal)) {
                 RedirectUri = value;
             }
+
             else if (string.Equals(name, OpenIdConnectConstants.Parameters.Scope, StringComparison.Ordinal)) {
                 Scope = value.Split(' ');
             }
+
             else if (string.Equals(name, OpenIdConnectConstants.Parameters.Nonce, StringComparison.Ordinal)) {
                 Nonce = value;
             }
+
             else if (string.Equals(name, OpenIdConnectConstants.Parameters.State, StringComparison.Ordinal)) {
                 State = value;
             }
+
             else if (string.Equals(name, OpenIdConnectConstants.Parameters.ResponseMode, StringComparison.Ordinal)) {
                 ResponseMode = value;
             }

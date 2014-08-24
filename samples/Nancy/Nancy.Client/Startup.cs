@@ -1,6 +1,4 @@
 using System;
-using System.IdentityModel.Tokens;
-using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
 using Microsoft.Owin.Security.OpenIdConnect;
@@ -9,10 +7,6 @@ using Owin;
 namespace Nancy.Client {
     public class Startup {
         public void Configuration(IAppBuilder app) {
-            ConfigureOidcClientDemo(app);
-        }
-
-        private static void ConfigureOidcClientDemo(IAppBuilder app) {
             app.SetDefaultSignInAsAuthenticationType("ClientCookie");
 
             // Insert a new cookies middleware in the pipeline to store the user
@@ -23,8 +17,6 @@ namespace Nancy.Client {
                 CookieName = CookieAuthenticationDefaults.CookiePrefix + "ClientCookie",
                 ExpireTimeSpan = TimeSpan.FromMinutes(5)
             });
-
-            var key = new InMemorySymmetricSecurityKey(Convert.FromBase64String("Srtjyi8wMFfmP9Ub8U2ieVGAcrP/7gK3VM/K6KfJ/fI="));
 
             // Insert a new OIDC client middleware in the pipeline.
             app.UseOpenIdConnectAuthentication(new OpenIdConnectAuthenticationOptions {
@@ -40,17 +32,10 @@ namespace Nancy.Client {
 
                 Scope = "openid",
 
-                // Note: these settings must match the endpoints and the token
-                // parameters defined in Startup.cs at the server level.
-                Configuration = new OpenIdConnectConfiguration {
-                    AuthorizationEndpoint = "http://localhost:55938/oauth2/authorize",
-                    TokenEndpoint = "http://localhost:55938/oauth2/access_token"
-                },
-                TokenValidationParameters = new TokenValidationParameters() {
-                    ValidAudience = "myClient",
-                    ValidIssuer = "urn:authServer",
-                    IssuerSigningKey = key
-                }
+                // Note: setting the Authority allows the OIDC client middleware to automatically
+                // retrieve the identity provider's configuration and spare you from setting
+                // the different endpoints URIs or the token validation parameters explicitly.
+                Authority = "http://localhost:55938/"
             });
 
             app.UseNancy(options => options.PerformPassThrough = context => context.Response.StatusCode == HttpStatusCode.NotFound);

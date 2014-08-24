@@ -23,16 +23,15 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="ticket"></param>
-        /// <param name="tokenEndpointRequest"></param>
+        /// <param name="tokenRequest"></param>
         /// <param name="accessToken"></param>
         /// <param name="additionalResponseParameters"></param>
         public OpenIdConnectTokenEndpointResponseContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
             AuthenticationTicket ticket,
-            TokenEndpointRequest tokenEndpointRequest,
-            string accessToken,
-            IDictionary<string, object> additionalResponseParameters)
+            OpenIdConnectTokenRequest tokenRequest,
+            string accessToken)
             : base(context, options) {
             if (ticket == null) {
                 throw new ArgumentNullException("ticket");
@@ -40,11 +39,10 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             Identity = ticket.Identity;
             Properties = ticket.Properties;
-            TokenEndpointRequest = tokenEndpointRequest;
-            AdditionalResponseParameters = new Dictionary<string, object>(StringComparer.Ordinal);
+            TokenRequest = tokenRequest;
+            AdditionalParameters = new Dictionary<string, object>(StringComparer.Ordinal);
             TokenIssued = Identity != null;
             AccessToken = accessToken;
-            AdditionalResponseParameters = additionalResponseParameters;
         }
 
         /// <summary>
@@ -65,7 +63,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets information about the token endpoint request. 
         /// </summary>
-        public TokenEndpointRequest TokenEndpointRequest { get; set; }
+        public OpenIdConnectTokenRequest TokenRequest { get; set; }
 
         /// <summary>
         /// Gets whether or not the token should be issued.
@@ -75,7 +73,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Enables additional values to be appended to the token response.
         /// </summary>
-        public IDictionary<string, object> AdditionalResponseParameters { get; private set; }
+        public IDictionary<string, object> AdditionalParameters { get; private set; }
 
         /// <summary>
         /// Issues the token.

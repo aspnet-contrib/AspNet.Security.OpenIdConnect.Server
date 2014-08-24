@@ -23,7 +23,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             OnValidateClientRedirectUri = context => Task.FromResult<object>(null);
             OnValidateClientAuthentication = context => Task.FromResult<object>(null);
 
-            OnValidateAuthorizeRequest = DefaultBehavior.ValidateAuthorizeRequest;
+            OnValidateAuthorizationRequest = DefaultBehavior.ValidateAuthorizationRequest;
             OnValidateTokenRequest = DefaultBehavior.ValidateTokenRequest;
 
             OnGrantAuthorizationCode = DefaultBehavior.GrantAuthorizationCode;
@@ -32,24 +32,28 @@ namespace Owin.Security.OpenIdConnect.Server {
             OnGrantClientCredentials = context => Task.FromResult<object>(null);
             OnGrantCustomExtension = context => Task.FromResult<object>(null);
 
-            OnAuthorizeEndpoint = context => Task.FromResult<object>(null);
+            OnAuthorizationEndpoint = context => Task.FromResult<object>(null);
+            OnConfigurationEndpoint = context => Task.FromResult<object>(null);
+            OnCryptoEndpoint = context => Task.FromResult<object>(null);
             OnTokenEndpoint = context => Task.FromResult<object>(null);
 
-            OnAuthorizeEndpointResponse = context => Task.FromResult<object>(null);
+            OnAuthorizationEndpointResponse = context => Task.FromResult<object>(null);
+            OnConfigurationEndpointResponse = context => Task.FromResult<object>(null);
+            OnCryptoEndpointResponse = context => Task.FromResult<object>(null);
             OnTokenEndpointResponse = context => Task.FromResult<object>(null);
         }
 
         /// <summary>
-        /// Called to determine if an incoming request is treated as an Authorize or Token
-        /// endpoint. If Options.AuthorizeEndpointPath or Options.TokenEndpointPath
-        /// are assigned values, then handling this event is optional and context.IsAuthorizeEndpoint and context.IsTokenEndpoint
+        /// Called to determine if an incoming request is treated as an authorization or token
+        /// endpoint. If Options.AuthorizationEndpointPath or Options.TokenEndpointPath
+        /// are assigned values, then handling this event is optional and context.IsAuthorizationEndpoint and context.IsTokenEndpoint
         /// will already be true if the request path matches.
         /// </summary>
         public Func<OpenIdConnectMatchEndpointContext, Task> OnMatchEndpoint { get; set; }
 
         /// <summary>
         /// Called to validate that the context.ClientId is a registered "client_id", and that the context.RedirectUri a "redirect_uri" 
-        /// registered for that client. This only occurs when processing the Authorize endpoint. The application MUST implement this
+        /// registered for that client. This only occurs when processing the authorization endpoint. The application MUST implement this
         /// call, and it MUST validate both of those factors before calling context.Validated. If the context.Validated method is called
         /// with a given redirectUri parameter, then IsValidated will only become true if the incoming redirect URI matches the given redirect URI. 
         /// If context.Validated is not called the request will not proceed further. 
@@ -67,11 +71,11 @@ namespace Owin.Security.OpenIdConnect.Server {
         public Func<OpenIdConnectValidateClientAuthenticationContext, Task> OnValidateClientAuthentication { get; set; }
 
         /// <summary>
-        /// Called for each request to the Authorize endpoint to determine if the request is valid and should continue. 
+        /// Called for each request to the authorization endpoint to determine if the request is valid and should continue. 
         /// The default behavior when using the OpenIdConnectServerProvider is to assume well-formed requests, with 
         /// validated client redirect URI, should continue processing. An application may add any additional constraints.
         /// </summary>
-        public Func<OpenIdConnectValidateAuthorizeRequestContext, Task> OnValidateAuthorizeRequest { get; set; }
+        public Func<OpenIdConnectValidateAuthorizationRequestContext, Task> OnValidateAuthorizationRequest { get; set; }
 
         /// <summary>
         /// Called for each request to the Token endpoint to determine if the request is valid and should continue. 
@@ -83,7 +87,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         public Func<OpenIdConnectValidateTokenRequestContext, Task> OnValidateTokenRequest { get; set; }
 
         /// <summary>
-        /// Called when a request to the Token endpoint arrives with a "grant_type" of "authorization_code". This occurs after the Authorize
+        /// Called when a request to the Token endpoint arrives with a "grant_type" of "authorization_code". This occurs after the authorization
         /// endpoint as redirected the user-agent back to the client with a "code" parameter, and the client is exchanging that for an "access_token".
         /// The claims and properties 
         /// associated with the authorization code are present in the context.Ticket. The application must call context.Validated to instruct the Authorization
@@ -141,25 +145,53 @@ namespace Owin.Security.OpenIdConnect.Server {
         public Func<OpenIdConnectGrantCustomExtensionContext, Task> OnGrantCustomExtension { get; set; }
 
         /// <summary>
-        /// Called at the final stage of an incoming Authorize endpoint request before the execution continues on to the web application component 
+        /// Called at the final stage of an incoming authorization endpoint request before the execution continues on to the web application component 
         /// responsible for producing the html response. Anything present in the OWIN pipeline following the Authorization Server may produce the
-        /// response for the Authorize page. If running on IIS any ASP.NET technology running on the server may produce the response for the 
-        /// Authorize page. If the web application wishes to produce the response directly in the AuthorizeEndpoint call it may write to the 
+        /// response for the authorization page. If running on IIS any ASP.NET technology running on the server may produce the response for the 
+        /// authorization page. If the web application wishes to produce the response directly in the AuthorizationEndpoint call it may write to the 
         /// context.Response directly and should call context.RequestCompleted to stop other handlers from executing. If the web application wishes
-        /// to grant the authorization directly in the AuthorizeEndpoint call it cay call context.OwinContext.Authentication.SignIn with the
+        /// to grant the authorization directly in the AuthorizationEndpoint call it cay call context.OwinContext.Authentication.SignIn with the
         /// appropriate ClaimsIdentity and should call context.RequestCompleted to stop other handlers from executing.
         /// </summary>
-        public Func<OpenIdConnectAuthorizeEndpointContext, Task> OnAuthorizeEndpoint { get; set; }
+        public Func<OpenIdConnectAuthorizationEndpointContext, Task> OnAuthorizationEndpoint { get; set; }
 
         /// <summary>
         /// Called before the AuthorizationEndpoint redirects its response to the caller.
         /// The response could contain an access token when using implicit flow or
         /// an authorization code when using the authorization code flow.
-        /// If the web application wishes to produce the authorization response directly in the AuthorizeEndpoint call it may write to the 
+        /// If the web application wishes to produce the authorization response directly in the AuthorizationEndpoint call it may write to the 
         /// context.Response directly and should call context.RequestCompleted to stop other handlers from executing.
         /// This call may also be used to add additional response parameters to the authorization response.
         /// </summary>
-        public Func<OpenIdConnectAuthorizeEndpointResponseContext, Task> OnAuthorizeEndpointResponse { get; set; }
+        public Func<OpenIdConnectAuthorizationEndpointResponseContext, Task> OnAuthorizationEndpointResponse { get; set; }
+
+        /// <summary>
+        /// Called by the client applications to retrieve the OpenID connect configuration associated with this instance.
+        /// If the web application wishes to produce the configuration metadata directly in this call, it may write to the 
+        /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
+        /// </summary>
+        public Func<OpenIdConnectConfigurationEndpointContext, Task> OnConfigurationEndpoint { get; set; }
+
+        /// <summary>
+        /// Called before the authorization server starts emitting the OpenID connect configuration associated with this instance.
+        /// If the web application wishes to produce the configuration metadata directly in this call, it may write to the 
+        /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
+        /// </summary>
+        public Func<OpenIdConnectConfigurationEndpointResponseContext, Task> OnConfigurationEndpointResponse { get; set; }
+
+        /// <summary>
+        /// Called by the client applications to retrieve the OpenID connect JSON Web Key set associated with this instance.
+        /// If the web application wishes to produce the JSON Web Key set directly in this call, it may write to the 
+        /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
+        /// </summary>
+        public Func<OpenIdConnectCryptoEndpointContext, Task> OnCryptoEndpoint { get; set; }
+
+        /// <summary>
+        /// Called before the authorization server starts emitting the OpenID connect JSON Web Key set associated with this instance.
+        /// If the web application wishes to produce the JSON Web Key set directly in this call, it may write to the 
+        /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
+        /// </summary>
+        public Func<OpenIdConnectCryptoEndpointResponseContext, Task> OnCryptoEndpointResponse { get; set; }
 
         /// <summary>
         /// Called at the final stage of a successful Token endpoint request. An application may implement this call in order to do any final 
@@ -174,9 +206,9 @@ namespace Owin.Security.OpenIdConnect.Server {
         public Func<OpenIdConnectTokenEndpointResponseContext, Task> OnTokenEndpointResponse { get; set; }
 
         /// <summary>
-        /// Called to determine if an incoming request is treated as an Authorize or Token
-        /// endpoint. If Options.AuthorizeEndpointPath or Options.TokenEndpointPath
-        /// are assigned values, then handling this event is optional and context.IsAuthorizeEndpoint and context.IsTokenEndpoint
+        /// Called to determine if an incoming request is treated as an authorization or token
+        /// endpoint. If Options.AuthorizationEndpointPath or Options.TokenEndpointPath
+        /// are assigned values, then handling this event is optional and context.IsAuthorizationEndpoint and context.IsTokenEndpoint
         /// will already be true if the request path matches.
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
@@ -187,7 +219,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
         /// <summary>
         /// Called to validate that the context.ClientId is a registered "client_id", and that the context.RedirectUri a "redirect_uri" 
-        /// registered for that client. This only occurs when processing the Authorize endpoint. The application MUST implement this
+        /// registered for that client. This only occurs when processing the authorization endpoint. The application MUST implement this
         /// call, and it MUST validate both of those factors before calling context.Validated. If the context.Validated method is called
         /// with a given redirectUri parameter, then IsValidated will only become true if the incoming redirect URI matches the given redirect URI. 
         /// If context.Validated is not called the request will not proceed further. 
@@ -213,14 +245,14 @@ namespace Owin.Security.OpenIdConnect.Server {
         }
 
         /// <summary>
-        /// Called for each request to the Authorize endpoint to determine if the request is valid and should continue. 
+        /// Called for each request to the authorization endpoint to determine if the request is valid and should continue. 
         /// The default behavior when using the OpenIdConnectServerProvider is to assume well-formed requests, with 
         /// validated client redirect URI, should continue processing. An application may add any additional constraints.
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task ValidateAuthorizeRequest(OpenIdConnectValidateAuthorizeRequestContext context) {
-            return OnValidateAuthorizeRequest.Invoke(context);
+        public virtual Task ValidateAuthorizationRequest(OpenIdConnectValidateAuthorizationRequestContext context) {
+            return OnValidateAuthorizationRequest.Invoke(context);
         }
 
         /// <summary>
@@ -235,7 +267,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         }
 
         /// <summary>
-        /// Called when a request to the Token endpoint arrives with a "grant_type" of "authorization_code". This occurs after the Authorize
+        /// Called when a request to the Token endpoint arrives with a "grant_type" of "authorization_code". This occurs after the authorization
         /// endpoint as redirected the user-agent back to the client with a "code" parameter, and the client is exchanging that for an "access_token".
         /// The claims and properties 
         /// associated with the authorization code are present in the context.Ticket. The application must call context.Validated to instruct the Authorization
@@ -274,7 +306,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// optional "refresh_token". If the web application supports the
         /// resource owner credentials grant type it must validate the context.Username and context.Password as appropriate. To issue an
         /// access token the context.Validated must be called with a new ticket containing the claims about the resource owner which should be associated
-        /// with the access token. The application should take appropriate measures to ensure that the endpoint isn�t abused by malicious callers.
+        /// with the access token. The application should take appropriate measures to ensure that the endpoint isn't abused by malicious callers.
         /// The default behavior is to reject this grant type.
         /// See also http://tools.ietf.org/html/rfc6749#section-4.3.2
         /// </summary>
@@ -289,7 +321,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// application wishes to acquire an "access_token" to interact with protected resources on it's own behalf, rather than on behalf of an authenticated user. 
         /// If the web application supports the client credentials it may assume the context.ClientId has been validated by the ValidateClientAuthentication call.
         /// To issue an access token the context.Validated must be called with a new ticket containing the claims about the client application which should be associated
-        /// with the access token. The application should take appropriate measures to ensure that the endpoint isn�t abused by malicious callers.
+        /// with the access token. The application should take appropriate measures to ensure that the endpoint isn't abused by malicious callers.
         /// The default behavior is to reject this grant type.
         /// See also http://tools.ietf.org/html/rfc6749#section-4.4.2
         /// </summary>
@@ -313,32 +345,76 @@ namespace Owin.Security.OpenIdConnect.Server {
         }
 
         /// <summary>
-        /// Called at the final stage of an incoming Authorize endpoint request before the execution continues on to the web application component 
+        /// Called at the final stage of an incoming authorization endpoint request before the execution continues on to the web application component 
         /// responsible for producing the html response. Anything present in the OWIN pipeline following the Authorization Server may produce the
-        /// response for the Authorize page. If running on IIS any ASP.NET technology running on the server may produce the response for the 
-        /// Authorize page. If the web application wishes to produce the response directly in the AuthorizeEndpoint call it may write to the 
+        /// response for the authorization page. If running on IIS any ASP.NET technology running on the server may produce the response for the 
+        /// authorization page. If the web application wishes to produce the response directly in the AuthorizationEndpoint call it may write to the 
         /// context.Response directly and should call context.RequestCompleted to stop other handlers from executing. If the web application wishes
-        /// to grant the authorization directly in the AuthorizeEndpoint call it cay call context.OwinContext.Authentication.SignIn with the
+        /// to grant the authorization directly in the AuthorizationEndpoint call it cay call context.OwinContext.Authentication.SignIn with the
         /// appropriate ClaimsIdentity and should call context.RequestCompleted to stop other handlers from executing.
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task AuthorizeEndpoint(OpenIdConnectAuthorizeEndpointContext context) {
-            return OnAuthorizeEndpoint.Invoke(context);
+        public virtual Task AuthorizationEndpoint(OpenIdConnectAuthorizationEndpointContext context) {
+            return OnAuthorizationEndpoint.Invoke(context);
         }
 
         /// <summary>
         /// Called before the AuthorizationEndpoint redirects its response to the caller.
         /// The response could contain an access token when using implicit flow or
         /// an authorization code when using the authorization code flow.
-        /// If the web application wishes to produce the authorization response directly in the AuthorizeEndpoint call it may write to the 
+        /// If the web application wishes to produce the authorization response directly in the AuthorizationEndpoint call it may write to the 
         /// context.Response directly and should call context.RequestCompleted to stop other handlers from executing.
         /// This call may also be used to add additional response parameters to the authorization response.
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task AuthorizeEndpointResponse(OpenIdConnectAuthorizeEndpointResponseContext context) {
-            return OnAuthorizeEndpointResponse.Invoke(context);
+        public virtual Task AuthorizationEndpointResponse(OpenIdConnectAuthorizationEndpointResponseContext context) {
+            return OnAuthorizationEndpointResponse.Invoke(context);
+        }
+
+        /// <summary>
+        /// Called by the client applications to retrieve the OpenID connect configuration associated with this instance.
+        /// If the web application wishes to produce the configuration metadata directly in this call, it may write to the 
+        /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
+        /// </summary>
+        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        public virtual Task ConfigurationEndpoint(OpenIdConnectConfigurationEndpointContext context) {
+            return OnConfigurationEndpoint.Invoke(context);
+        }
+
+        /// <summary>
+        /// Called before the authorization server starts emitting the OpenID connect configuration associated with this instance.
+        /// If the web application wishes to produce the configuration metadata directly in this call, it may write to the 
+        /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
+        /// </summary>
+        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        public virtual Task ConfigurationEndpointResponse(OpenIdConnectConfigurationEndpointResponseContext context) {
+            return OnConfigurationEndpointResponse.Invoke(context);
+        }
+
+        /// <summary>
+        /// Called by the client applications to retrieve the OpenID connect JSON Web Key set associated with this instance.
+        /// If the web application wishes to produce the JSON Web Key set directly in this call, it may write to the 
+        /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
+        /// </summary>
+        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        public virtual Task CryptoEndpoint(OpenIdConnectCryptoEndpointContext context) {
+            return OnCryptoEndpoint.Invoke(context);
+        }
+
+        /// <summary>
+        /// Called before the authorization server starts emitting the OpenID connect JSON Web Key set associated with this instance.
+        /// If the web application wishes to produce the JSON Web Key set directly in this call, it may write to the 
+        /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
+        /// </summary>
+        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        public virtual Task CryptoEndpointResponse(OpenIdConnectCryptoEndpointResponseContext context) {
+            return OnCryptoEndpointResponse.Invoke(context);
         }
 
         /// <summary>
