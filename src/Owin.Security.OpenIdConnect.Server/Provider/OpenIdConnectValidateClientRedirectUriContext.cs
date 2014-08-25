@@ -6,6 +6,7 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 
 namespace Owin.Security.OpenIdConnect.Server {
@@ -18,17 +19,14 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
-        /// <param name="clientId"></param>
-        /// <param name="redirectUri"></param>
+        /// <param name="authorizationRequest"></param>
         [SuppressMessage("Microsoft.Design", "CA1054:UriParametersShouldNotBeStrings",
             MessageId = "3#", Justification = "redirect_uri is a string parameter")]
         public OpenIdConnectValidateClientRedirectUriContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
-            string clientId,
-            string redirectUri)
-            : base(context, options, clientId) {
-            RedirectUri = redirectUri;
+            OpenIdConnectMessage authorizationRequest)
+            : base(context, options, authorizationRequest) {
         }
 
         /// <summary>
@@ -37,17 +35,21 @@ namespace Owin.Security.OpenIdConnect.Server {
         [SuppressMessage("Microsoft.Design",
             "CA1056:UriPropertiesShouldNotBeStrings",
             Justification = "redirect_uri is a string parameter")]
-        public string RedirectUri { get; private set; }
+        public string RedirectUri {
+            get { return AuthorizationRequest.RedirectUri; }
+        }
 
         /// <summary>
-        /// Marks this context as validated by the application. IsValidated becomes true and HasError becomes false as a result of calling.
+        /// Marks this context as validated by the application.
+        /// IsValidated becomes true and HasError becomes false as a result of calling.
         /// </summary>
         /// <returns></returns>
         public override bool Validated() {
-            if (String.IsNullOrEmpty(RedirectUri)) {
+            if (string.IsNullOrEmpty(RedirectUri)) {
                 // Don't allow default validation when redirect_uri not provided with request
                 return false;
             }
+
             return base.Validated();
         }
 
@@ -63,13 +65,11 @@ namespace Owin.Security.OpenIdConnect.Server {
                 throw new ArgumentNullException("redirectUri");
             }
 
-            if (!String.IsNullOrEmpty(RedirectUri) &&
-                !String.Equals(RedirectUri, redirectUri, StringComparison.Ordinal)) {
+            if (!string.IsNullOrEmpty(RedirectUri) &&
+                !string.Equals(RedirectUri, redirectUri, StringComparison.Ordinal)) {
                 // Don't allow validation to alter redirect_uri provided with request
                 return false;
             }
-
-            RedirectUri = redirectUri;
 
             return Validated();
         }

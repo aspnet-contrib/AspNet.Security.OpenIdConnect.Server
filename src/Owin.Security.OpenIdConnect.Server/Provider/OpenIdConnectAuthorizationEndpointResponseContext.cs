@@ -7,10 +7,10 @@
 using System;
 using System.Collections.Generic;
 using System.Security.Claims;
+using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Provider;
-using Owin.Security.OpenIdConnect.Server.Messages;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
@@ -23,16 +23,14 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="ticket"></param>
-        /// <param name="authorizationEndpointRequest"></param>
-        /// <param name="accessToken"></param>
-        /// <param name="authorizationCode"></param>
+        /// <param name="authorizationRequest"></param>
+        /// <param name="authorizationResponse"></param>
         public OpenIdConnectAuthorizationEndpointResponseContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
             AuthenticationTicket ticket,
-            OpenIdConnectAuthorizationRequest authorizationEndpointRequest,
-            string accessToken,
-            string authorizationCode)
+            OpenIdConnectMessage authorizationRequest,
+            OpenIdConnectMessage authorizationResponse)
             : base(context, options) {
             if (ticket == null) {
                 throw new ArgumentNullException("ticket");
@@ -40,10 +38,8 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             Identity = ticket.Identity;
             Properties = ticket.Properties;
-            AuthorizationRequest = authorizationEndpointRequest;
-            AdditionalParameters = new Dictionary<string, string>(StringComparer.Ordinal);
-            AccessToken = accessToken;
-            AuthorizationCode = authorizationCode;
+            AuthorizationRequest = authorizationRequest;
+            AuthorizationResponse = authorizationResponse;
         }
 
         /// <summary>
@@ -57,23 +53,31 @@ namespace Owin.Security.OpenIdConnect.Server {
         public AuthenticationProperties Properties { get; private set; }
 
         /// <summary>
-        /// Gets information about the authorization request. 
+        /// Gets the authorization request. 
         /// </summary>
-        public OpenIdConnectAuthorizationRequest AuthorizationRequest { get; private set; }
+        public OpenIdConnectMessage AuthorizationRequest { get; private set; }
 
         /// <summary>
-        /// Enables additional values to be appended to the token response.
+        /// Gets the authorization response. 
         /// </summary>
-        public IDictionary<string, string> AdditionalParameters { get; private set; }
+        public OpenIdConnectMessage AuthorizationResponse { get; private set; }
 
         /// <summary>
-        /// The serialized Access-Token. Depending on the flow, it can be null.
+        /// Get the access code expected to
+        /// be returned to the client application.
+        /// Depending on the flow, it can be null.
         /// </summary>
-        public string AccessToken { get; private set; }
+        public string AccessToken {
+            get { return AuthorizationResponse.AccessToken; }
+        }
 
         /// <summary>
-        /// The created Authorization-Code. Depending on the flow, it can be null.
+        /// Get the authorization code expected to
+        /// be returned to the client application.
+        /// Depending on the flow, it can be null.
         /// </summary>
-        public string AuthorizationCode { get; private set; }
+        public string AuthorizationCode {
+            get { return AuthorizationResponse.Code; }
+        }
     }
 }

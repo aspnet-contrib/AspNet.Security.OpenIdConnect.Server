@@ -19,19 +19,17 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.IdentityModel.Protocols;
-using Microsoft.Owin;
 using Microsoft.Owin.Infrastructure;
 using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Infrastructure;
 using Newtonsoft.Json;
-using Owin.Security.OpenIdConnect.Server.Messages;
+using Owin.Security.OpenIdConnect.Extensions;
 
 namespace Owin.Security.OpenIdConnect.Server {
     internal class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions> {
         private readonly ILogger _logger;
 
-        private OpenIdConnectAuthorizationRequest _authorizationRequest;
         private OpenIdConnectValidateClientRedirectUriContext _clientContext;
         private bool _headersSent = false;
 
@@ -100,24 +98,48 @@ namespace Owin.Security.OpenIdConnect.Server {
         }
 
         private async Task<bool> InvokeAuthorizationEndpointAsync() {
-            var authorizationRequest = await ExtractAuthorizationRequestAsync();
-            if (authorizationRequest == null) {
+            OpenIdConnectMessage request = null;
+
+            if (!string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase)) {
                 return await SendErrorPageAsync(
                     error: OpenIdConnectConstants.Errors.InvalidRequest,
-                    errorDescription: "A malformed authorization request has been received: " +
-                        "when using POST, make sure the request contains a 'Content-Type' header " +
-                        "and uses the form-urlencoded ('application/x-www-form-urlencoded') format.",
-                    errorUri: null);
+                    errorDescription: "A malformed authorization request has been received: make sure to use either GET or POST.");
             }
 
-            var clientContext = new OpenIdConnectValidateClientRedirectUriContext(
-                Context, Options, authorizationRequest.ClientId,
-                authorizationRequest.RedirectUri);
+            if (string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
+                request = new OpenIdConnectMessage(Request.Query);
+            }
 
-            if (!string.IsNullOrEmpty(authorizationRequest.RedirectUri)) {
+            else {
+                // See http://openid.net/specs/openid-connect-core-1_0.html#FormSerialization
+                if (string.IsNullOrWhiteSpace(Request.ContentType)) {
+                    return await SendErrorPageAsync(
+                        error: OpenIdConnectConstants.Errors.InvalidRequest,
+                        errorDescription: "A malformed authorization request has been received: " +
+                            "the mandatory 'Content-Type' header was missing from the POST request.");
+                }
+
+                // May have media/type; charset=utf-8, allow partial match.
+                if (!Request.ContentType.StartsWith("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase)) {
+                    return await SendErrorPageAsync(
+                        error: OpenIdConnectConstants.Errors.InvalidRequest,
+                        errorDescription: "A malformed authorization request has been received: " +
+                            "the 'Content-Type' header contained an unexcepted value. " +
+                            "Make sure to use 'application/x-www-form-urlencoded'.");
+                }
+
+                request = new OpenIdConnectMessage(await Request.ReadFormAsync());
+            }
+
+            request.RequestType = OpenIdConnectRequestType.AuthenticationRequest;
+
+            var clientContext = new OpenIdConnectValidateClientRedirectUriContext(Context, Options, request);
+
+            if (!string.IsNullOrEmpty(request.RedirectUri)) {
                 bool acceptableUri = true;
                 Uri validatingUri;
-                if (!Uri.TryCreate(authorizationRequest.RedirectUri, UriKind.Absolute, out validatingUri)) {
+                if (!Uri.TryCreate(request.RedirectUri, UriKind.Absolute, out validatingUri)) {
                     // The redirection endpoint URI MUST be an absolute URI
                     // http://tools.ietf.org/html/rfc6749#section-3.1.2
                     acceptableUri = false;
@@ -137,41 +159,41 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                 if (!acceptableUri) {
                     clientContext.SetError(OpenIdConnectConstants.Errors.InvalidRequest);
-                    return await SendErrorRedirectAsync(clientContext, clientContext);
+                    return await SendErrorRedirectAsync(request, clientContext, clientContext);
                 }
             }
 
             await Options.Provider.ValidateClientRedirectUri(clientContext);
 
             if (!clientContext.IsValidated) {
+                request.RedirectUri = null;
+
                 _logger.WriteVerbose("Unable to validate client information");
-                return await SendErrorRedirectAsync(clientContext, clientContext);
+                return await SendErrorRedirectAsync(request, clientContext, clientContext);
             }
 
             var validatingContext = new OpenIdConnectValidateAuthorizationRequestContext(
-                Context, Options, authorizationRequest, clientContext);
+                Context, Options, request, clientContext);
 
-            if (string.IsNullOrEmpty(authorizationRequest.ResponseType)) {
+            if (string.IsNullOrEmpty(request.ResponseType)) {
                 _logger.WriteVerbose("Authorization request missing required response_type parameter");
                 validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidRequest);
             }
 
-            else if (!authorizationRequest.IsAuthorizationCodeFlow &&
-                !authorizationRequest.IsImplicitFlow &&
-                !authorizationRequest.IsHybridFlow) {
+            else if (!request.IsAuthorizationCodeFlow() && !request.IsImplicitFlow() && !request.IsHybridFlow()) {
                 _logger.WriteVerbose("Authorization request contains unsupported response_type parameter");
                 validatingContext.SetError(OpenIdConnectConstants.Errors.UnsupportedResponseType);
             }
 
-            else if (!string.IsNullOrEmpty(authorizationRequest.ResponseMode) &&
-                !authorizationRequest.IsFormPostResponseMode &&
-                !authorizationRequest.IsFragmentResponseMode &&
-                !authorizationRequest.IsQueryResponseMode) {
+            else if (!string.IsNullOrEmpty(request.ResponseMode) &&
+                !request.IsFormPostResponseMode() &&
+                !request.IsFragmentResponseMode() &&
+                !request.IsQueryResponseMode()) {
                 _logger.WriteVerbose("Authorization request contains unsupported response_mode parameter");
                 validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidRequest);
             }
 
-            else if (!authorizationRequest.Scope.Contains(OpenIdConnectScopes.OpenId)) {
+            else if (!request.HasComponent(message => message.Scope, OpenIdConnectScopes.OpenId)) {
                 _logger.WriteVerbose("The 'openid' scope part was missing");
                 validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidRequest);
             }
@@ -182,13 +204,17 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             // Stop processing the request if Validated was not called.
             if (!validatingContext.IsValidated) {
-                return await SendErrorRedirectAsync(clientContext, validatingContext);
+                return await SendErrorRedirectAsync(request, clientContext, validatingContext);
             }
 
             _clientContext = clientContext;
-            _authorizationRequest = authorizationRequest;
+            //_authorizationRequest = request;
 
-            var authorizationEndpointContext = new OpenIdConnectAuthorizationEndpointContext(Context, Options, authorizationRequest);
+            // Insert the authorization request in the OWIN context to give the next
+            // middleware an easier access to the ambient authorization request.
+            Context.SetOpenIdConnectRequest(request);
+
+            var authorizationEndpointContext = new OpenIdConnectAuthorizationEndpointContext(Context, Options, request);
             await Options.Provider.AuthorizationEndpoint(authorizationEndpointContext);
 
             // Stop processing the request if AuthorizationEndpoint called RequestCompleted.
@@ -196,9 +222,6 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return true;
             }
 
-            // Insert the authorization request in the OWIN context to give the next
-            // middleware an easier access to the ambient authorization request.
-            Context.SetAuthorizationRequest(authorizationRequest);
             return false;
         }
 
@@ -230,21 +253,22 @@ namespace Owin.Security.OpenIdConnect.Server {
             // or because it was not correctly forged. In the second scenario, the error is supposed
             // to be handled by the application itself or directly in SendErrorPageAsync:
             // in both cases, it shouldn't be handled here.
-            if (_clientContext == null || _authorizationRequest == null) {
+            var request = Context.GetOpenIdConnectRequest();
+            if (_clientContext == null || request == null) {
                 return;
             }
 
             // Determine whether an error was reported by the application
             // and redirect the user agent to the client application if necessary.
             string error, errorDescription, errorUri;
-            error = Context.GetAuthorizationRequestError(out errorDescription, out errorUri);
+            error = Context.GetOpenIdConnectRequestError(out errorDescription, out errorUri);
 
             if (!string.IsNullOrWhiteSpace(error)) {
                 var errorContext = new OpenIdConnectValidateAuthorizationRequestContext(
-                    Context, Options, _authorizationRequest, _clientContext);
+                    Context, Options, request, _clientContext);
                 errorContext.SetError(error, errorDescription, errorUri);
 
-                await SendErrorRedirectAsync(_clientContext, errorContext);
+                await SendErrorRedirectAsync(request, _clientContext, errorContext);
                 return;
             }
 
@@ -265,26 +289,27 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return;
             }
 
-            var message = new OpenIdConnectMessage(parameters: Enumerable.Empty<KeyValuePair<string, string[]>>());
-            message.ClientId = _authorizationRequest.ClientId;
-            message.Nonce = _authorizationRequest.Nonce;
-            message.RedirectUri = _clientContext.RedirectUri;
+            var response = new OpenIdConnectMessage {
+                ClientId = request.ClientId,
+                Nonce = request.Nonce,
+                RedirectUri = request.RedirectUri
+            };
 
             DateTimeOffset currentUtc = Options.SystemClock.UtcNow;
 
             // Associate client_id with all subsequent tickets
-            signin.Properties.Dictionary[OpenIdConnectConstants.Extra.ClientId] = _authorizationRequest.ClientId;
-            if (!string.IsNullOrEmpty(_authorizationRequest.RedirectUri)) {
+            signin.Properties.Dictionary[OpenIdConnectConstants.Extra.ClientId] = request.ClientId;
+            if (!string.IsNullOrEmpty(request.RedirectUri)) {
                 // Keep original request parameter for later comparison
-                signin.Properties.Dictionary[OpenIdConnectConstants.Extra.RedirectUri] = _authorizationRequest.RedirectUri;
+                signin.Properties.Dictionary[OpenIdConnectConstants.Extra.RedirectUri] = request.RedirectUri;
             }
 
-            if (!string.IsNullOrEmpty(_authorizationRequest.State)) {
-                message.State = _authorizationRequest.State;
+            if (!string.IsNullOrEmpty(request.State)) {
+                response.State = request.State;
             }
 
             // Determine whether an authorization code should be returned.
-            if (_authorizationRequest.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.Code)) {
+            if (request.HasComponent(message => message.ResponseType, OpenIdConnectConstants.ResponseTypes.Code)) {
                 signin.Properties.IssuedUtc = currentUtc;
                 signin.Properties.ExpiresUtc = currentUtc.Add(Options.AuthorizationCodeLifetime);
 
@@ -296,17 +321,17 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                 if (string.IsNullOrEmpty(context.Token)) {
                     _logger.WriteError("response_type code requires an Options.AuthorizationCodeProvider implementing a single-use token.");
-                    var errorContext = new OpenIdConnectValidateAuthorizationRequestContext(Context, Options, _authorizationRequest, _clientContext);
+                    var errorContext = new OpenIdConnectValidateAuthorizationRequestContext(Context, Options, request, _clientContext);
                     errorContext.SetError(OpenIdConnectConstants.Errors.UnsupportedResponseType);
-                    await SendErrorRedirectAsync(_clientContext, errorContext);
+                    await SendErrorRedirectAsync(request, _clientContext, errorContext);
                     return;
                 }
 
-                message.Code = context.Token;
+                response.Code = context.Token;
             }
 
             // Determine whether an access token should be returned.
-            if (_authorizationRequest.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.Token)) {
+            if (request.HasComponent(message => message.ResponseType, OpenIdConnectConstants.ResponseTypes.Token)) {
                 signin.Properties.IssuedUtc = currentUtc;
                 signin.Properties.ExpiresUtc = currentUtc.Add(Options.AccessTokenLifetime);
 
@@ -321,31 +346,30 @@ namespace Owin.Security.OpenIdConnect.Server {
                     accessToken = context.SerializeTicket();
                 }
 
-                message.AccessToken = accessToken;
-                message.TokenType = OpenIdConnectConstants.TokenTypes.Bearer;
+                response.AccessToken = accessToken;
+                response.TokenType = OpenIdConnectConstants.TokenTypes.Bearer;
 
                 DateTimeOffset? accessTokenExpiresUtc = context.Ticket.Properties.ExpiresUtc;
                 if (accessTokenExpiresUtc.HasValue) {
                     TimeSpan? expiresTimeSpan = accessTokenExpiresUtc - currentUtc;
                     var expiresIn = (long) (expiresTimeSpan.Value.TotalSeconds + .5);
 
-                    message.ExpiresIn = expiresIn.ToString(CultureInfo.InvariantCulture);
+                    response.ExpiresIn = expiresIn.ToString(CultureInfo.InvariantCulture);
                 }
             }
 
             // Determine whether an identity token should be returned.
-            if (_authorizationRequest.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.IdToken)) {
+            if (request.HasComponent(message => message.ResponseType, OpenIdConnectConstants.ResponseTypes.IdToken)) {
                 signin.Properties.IssuedUtc = currentUtc;
                 signin.Properties.ExpiresUtc = currentUtc.Add(Options.IdTokenLifetime);
 
-                message.IdToken = CreateIdToken(
-                    signin.Identity, signin.Properties, message.ClientId,
-                    message.AccessToken, message.Code, message.Nonce);
+                response.IdToken = CreateIdToken(
+                    signin.Identity, signin.Properties, response.ClientId,
+                    response.AccessToken, response.Code, response.Nonce);
             }
 
             var authorizationEndpointResponseContext = new OpenIdConnectAuthorizationEndpointResponseContext(
-                Context, Options, new AuthenticationTicket(signin.Identity, signin.Properties),
-                _authorizationRequest, message.AccessToken, message.Code);
+                Context, Options, new AuthenticationTicket(signin.Identity, signin.Properties), request, response);
 
             await Options.Provider.AuthorizationEndpointResponse(authorizationEndpointResponseContext);
 
@@ -354,26 +378,11 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return;
             }
 
-            foreach (var parameter in authorizationEndpointResponseContext.AdditionalParameters) {
-                message.SetParameter(parameter.Key, parameter.Value);
-            }
-
-            // Use the specified response_mode when provided by the client application.
-            if (!string.IsNullOrEmpty(_authorizationRequest.ResponseMode)) {
-                await ApplyAuthorizationResponseAsync(message, _authorizationRequest.ResponseMode);
-            }
-
-            else if (_authorizationRequest.IsAuthorizationCodeFlow) {
-                await ApplyAuthorizationResponseAsync(message, OpenIdConnectConstants.ResponseModes.Query);
-            }
-
-            else if (_authorizationRequest.IsImplicitFlow || _authorizationRequest.IsHybridFlow) {
-                await ApplyAuthorizationResponseAsync(message, OpenIdConnectConstants.ResponseModes.Fragment);
-            }
+            await ApplyAuthorizationResponseAsync(request, response);
         }
 
-        private async Task ApplyAuthorizationResponseAsync(OpenIdConnectMessage message, string responseMode) {
-            if (string.Equals(responseMode, OpenIdConnectConstants.ResponseModes.FormPost, StringComparison.Ordinal)) {
+        private async Task ApplyAuthorizationResponseAsync(OpenIdConnectMessage request, OpenIdConnectMessage response) {
+            if (request.IsFormPostResponseMode()) {
                 byte[] body;
 
                 using (var memory = new MemoryStream())
@@ -381,16 +390,22 @@ namespace Owin.Security.OpenIdConnect.Server {
                     await writer.WriteLineAsync("<!doctype html>");
                     await writer.WriteLineAsync("<html>");
                     await writer.WriteLineAsync("<body>");
-                    await writer.WriteLineAsync("<form name='form' method='post' action='" + message.RedirectUri + "'>");
+                    await writer.WriteLineAsync("<form name='form' method='post' action='" + response.RedirectUri + "'>");
 
-                    foreach (KeyValuePair<string, string> parameter in message.Parameters) {
+                    foreach (KeyValuePair<string, string> parameter in response.Parameters) {
+                        // Don't include redirect_uri or response_mode in the form.
+                        if (string.Equals(parameter.Key, OpenIdConnectParameterNames.RedirectUri, StringComparison.Ordinal) ||
+                            string.Equals(parameter.Key, OpenIdConnectParameterNames.ResponseMode, StringComparison.Ordinal)) {
+                            continue;
+                        }
+
                         string value = WebUtility.HtmlEncode(parameter.Value);
                         string key = WebUtility.HtmlEncode(parameter.Key);
 
-                        await writer.WriteLineAsync("<input type='hidden' name='" + key + "' value='" + value + "'>");
+                        await writer.WriteLineAsync("<input type='hidden' name='" + key + "' value='" + value + "' />");
                     }
 
-                    await writer.WriteLineAsync("<noscript>Click here to finish login: <input type='submit'></noscript>");
+                    await writer.WriteLineAsync("<noscript>Click here to finish the authorization process: <input type='submit'></noscript>");
                     await writer.WriteLineAsync("</form>");
                     await writer.WriteLineAsync("<script>document.form.submit();</script>");
                     await writer.WriteLineAsync("</body>");
@@ -405,29 +420,35 @@ namespace Owin.Security.OpenIdConnect.Server {
                 await Response.WriteAsync(body, Request.CallCancelled);
             }
 
-            else if (string.Equals(responseMode, OpenIdConnectConstants.ResponseModes.Fragment, StringComparison.Ordinal)) {
-                string location = message.RedirectUri;
+            else if (request.IsFragmentResponseMode()) {
+                string location = response.RedirectUri;
                 var appender = new Appender(location, '#');
 
-                foreach (var parameter in message.Parameters) {
+                foreach (var parameter in response.Parameters) {
+                    if (string.Equals(parameter.Key, OpenIdConnectParameterNames.RedirectUri, StringComparison.Ordinal) ||
+                        string.Equals(parameter.Key, OpenIdConnectParameterNames.ResponseMode, StringComparison.Ordinal)) {
+                        continue;
+                    }
+
                     appender.Append(parameter.Key, parameter.Value);
                 }
 
                 Response.Redirect(appender.ToString());
             }
 
-            else if (string.Equals(responseMode, OpenIdConnectConstants.ResponseModes.Query, StringComparison.Ordinal)) {
-                string location = message.RedirectUri;
+            else if (request.IsQueryResponseMode()) {
+                string location = response.RedirectUri;
 
-                foreach (var parameter in message.Parameters) {
+                foreach (var parameter in response.Parameters) {
+                    if (string.Equals(parameter.Key, OpenIdConnectParameterNames.RedirectUri, StringComparison.Ordinal) ||
+                        string.Equals(parameter.Key, OpenIdConnectParameterNames.ResponseMode, StringComparison.Ordinal)) {
+                        continue;
+                    }
+
                     location = WebUtilities.AddQueryString(location, parameter.Key, parameter.Value);
                 }
 
                 Response.Redirect(location);
-            }
-
-            else {
-                throw new ArgumentOutOfRangeException("responseMode");
             }
         }
 
@@ -843,18 +864,47 @@ namespace Owin.Security.OpenIdConnect.Server {
         }
 
         private async Task InvokeTokenEndpointAsync() {
+            if (!string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase)) {
+                await SendErrorPageAsync(
+                    error: OpenIdConnectConstants.Errors.InvalidRequest,
+                    errorDescription: "A malformed token request has been received: make sure to use POST.");
+                return;
+            }
+
+            // See http://openid.net/specs/openid-connect-core-1_0.html#FormSerialization
+            if (string.IsNullOrWhiteSpace(Request.ContentType)) {
+                await SendErrorPageAsync(
+                    error: OpenIdConnectConstants.Errors.InvalidRequest,
+                    errorDescription: "A malformed token request has been received: " +
+                        "the mandatory 'Content-Type' header was missing from the POST request.");
+                return;
+            }
+
+            // May have media/type; charset=utf-8, allow partial match.
+            if (!Request.ContentType.StartsWith("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase)) {
+                await SendErrorPageAsync(
+                    error: OpenIdConnectConstants.Errors.InvalidRequest,
+                    errorDescription: "A malformed token request has been received: " +
+                        "the 'Content-Type' header contained an unexcepted value. " +
+                        "Make sure to use 'application/x-www-form-urlencoded'.");
+                return;
+            }
+
+            var request = new OpenIdConnectMessage(await Request.ReadFormAsync());
+            request.RequestType = OpenIdConnectRequestType.TokenRequest;
+
             DateTimeOffset currentUtc = Options.SystemClock.UtcNow;
-            // remove milliseconds in case they don't round-trip
+
+            // Remove milliseconds in case they don't round-trip
             currentUtc = currentUtc.Subtract(TimeSpan.FromMilliseconds(currentUtc.Millisecond));
 
-            IFormCollection form = await Request.ReadFormAsync();
-
-            var clientContext = new OpenIdConnectValidateClientAuthenticationContext(Context, Options, form);
+            var clientContext = new OpenIdConnectValidateClientAuthenticationContext(Context, Options, request);
 
             await Options.Provider.ValidateClientAuthentication(clientContext);
 
             if (!clientContext.IsValidated) {
                 _logger.WriteError("clientID is not valid.");
+
                 if (!clientContext.HasError) {
                     clientContext.SetError(OpenIdConnectConstants.Errors.InvalidClient);
                 }
@@ -863,36 +913,34 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return;
             }
 
-            var tokenRequest = new OpenIdConnectTokenRequest(form);
-
-            var validatingContext = new OpenIdConnectValidateTokenRequestContext(Context, Options, tokenRequest, clientContext);
+            var validatingContext = new OpenIdConnectValidateTokenRequestContext(Context, Options, request, clientContext);
 
             AuthenticationTicket ticket = null;
-            if (tokenRequest.IsAuthorizationCodeGrantType) {
+            if (request.IsAuthorizationCodeGrantType()) {
                 // Authorization Code Grant http://tools.ietf.org/html/rfc6749#section-4.1
                 // Access Token Request http://tools.ietf.org/html/rfc6749#section-4.1.3
                 ticket = await InvokeTokenEndpointAuthorizationCodeGrantAsync(validatingContext, currentUtc);
             }
 
-            else if (tokenRequest.IsResourceOwnerPasswordCredentialsGrantType) {
+            else if (request.IsPasswordGrantType()) {
                 // Resource Owner Password Credentials Grant http://tools.ietf.org/html/rfc6749#section-4.3
                 // Access Token Request http://tools.ietf.org/html/rfc6749#section-4.3.2
                 ticket = await InvokeTokenEndpointResourceOwnerPasswordCredentialsGrantAsync(validatingContext, currentUtc);
             }
 
-            else if (tokenRequest.IsClientCredentialsGrantType) {
+            else if (request.IsClientCredentialsGrantType()) {
                 // Client Credentials Grant http://tools.ietf.org/html/rfc6749#section-4.4
                 // Access Token Request http://tools.ietf.org/html/rfc6749#section-4.4.2
                 ticket = await InvokeTokenEndpointClientCredentialsGrantAsync(validatingContext, currentUtc);
             }
 
-            else if (tokenRequest.IsRefreshTokenGrantType) {
+            else if (request.IsRefreshTokenGrantType()) {
                 // Refreshing an Access Token
                 // http://tools.ietf.org/html/rfc6749#section-6
                 ticket = await InvokeTokenEndpointRefreshTokenGrantAsync(validatingContext, currentUtc);
             }
 
-            else if (tokenRequest.IsCustomExtensionGrantType) {
+            else if (!string.IsNullOrWhiteSpace(request.GrantType)) {
                 // Defining New Authorization Grant Types
                 // http://tools.ietf.org/html/rfc6749#section-8.3
                 ticket = await InvokeTokenEndpointCustomGrantAsync(validatingContext, currentUtc);
@@ -915,7 +963,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             ticket.Properties.ExpiresUtc = currentUtc.Add(Options.AccessTokenLifetime);
 
             var tokenEndpointContext = new OpenIdConnectTokenEndpointContext(
-                Context, Options, ticket, tokenRequest);
+                Context, Options, ticket, request);
 
             await Options.Provider.TokenEndpoint(tokenEndpointContext);
 
@@ -937,32 +985,41 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return;
             }
 
+            var response = new OpenIdConnectMessage();
+            response.TokenType = OpenIdConnectConstants.TokenTypes.Bearer;
+
             var accessTokenContext = new AuthenticationTokenCreateContext(
                 Context, Options.AccessTokenFormat, ticket);
 
             await Options.AccessTokenProvider.CreateAsync(accessTokenContext);
 
-            string accessToken = accessTokenContext.Token;
-            if (string.IsNullOrEmpty(accessToken)) {
-                accessToken = accessTokenContext.SerializeTicket();
+            response.AccessToken = accessTokenContext.Token;
+            if (string.IsNullOrEmpty(response.AccessToken)) {
+                response.AccessToken = accessTokenContext.SerializeTicket();
             }
+
             DateTimeOffset? accessTokenExpiresUtc = ticket.Properties.ExpiresUtc;
 
             var refreshTokenCreateContext = new AuthenticationTokenCreateContext(
-                Context,
-                Options.RefreshTokenFormat,
-                accessTokenContext.Ticket);
+                Context, Options.RefreshTokenFormat, accessTokenContext.Ticket);
+
             await Options.RefreshTokenProvider.CreateAsync(refreshTokenCreateContext);
-            string refreshToken = refreshTokenCreateContext.Token;
+
+            response.SetParameter(OpenIdConnectConstants.Parameters.RefreshToken, refreshTokenCreateContext.Token);
+
+            response.IdToken = CreateIdToken(ticket.Identity, ticket.Properties, request.ClientId, request.AccessToken);
+
+            if (accessTokenExpiresUtc.HasValue) {
+                TimeSpan? expiresTimeSpan = accessTokenExpiresUtc - currentUtc;
+
+                var expiresIn = (long) expiresTimeSpan.Value.TotalSeconds;
+                if (expiresIn > 0) {
+                    response.ExpiresIn = expiresIn.ToString(CultureInfo.InvariantCulture);
+                }
+            }
 
             var tokenEndpointResponseContext = new OpenIdConnectTokenEndpointResponseContext(
-                Context, Options, ticket, tokenRequest, accessToken);
-
-            var idToken = CreateIdToken(
-                tokenEndpointResponseContext.Identity, tokenEndpointResponseContext.Properties,
-                tokenEndpointResponseContext.TokenRequest.ClientId, tokenEndpointResponseContext.AccessToken);
-
-            tokenEndpointResponseContext.AdditionalParameters.Add(OpenIdConnectConstants.Parameters.IdToken, idToken);
+                Context, Options, ticket, request, response);
 
             await Options.Provider.TokenEndpointResponse(tokenEndpointResponseContext);
 
@@ -972,45 +1029,34 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return;
             }
 
-            var memory = new MemoryStream();
             byte[] body;
+
+            using (var memory = new MemoryStream())
             using (var writer = new JsonTextWriter(new StreamWriter(memory))) {
                 writer.WriteStartObject();
-                writer.WritePropertyName(OpenIdConnectConstants.Parameters.AccessToken);
-                writer.WriteValue(accessToken);
-                writer.WritePropertyName(OpenIdConnectConstants.Parameters.TokenType);
-                writer.WriteValue(OpenIdConnectConstants.TokenTypes.Bearer);
-                if (accessTokenExpiresUtc.HasValue) {
-                    TimeSpan? expiresTimeSpan = accessTokenExpiresUtc - currentUtc;
-                    var expiresIn = (long) expiresTimeSpan.Value.TotalSeconds;
-                    if (expiresIn > 0) {
-                        writer.WritePropertyName(OpenIdConnectConstants.Parameters.ExpiresIn);
-                        writer.WriteValue(expiresIn);
-                    }
-                }
-                if (!string.IsNullOrEmpty(refreshToken)) {
-                    writer.WritePropertyName(OpenIdConnectConstants.Parameters.RefreshToken);
-                    writer.WriteValue(refreshToken);
-                }
-                foreach (var parameter in tokenEndpointResponseContext.AdditionalParameters) {
+
+                foreach (KeyValuePair<string, string> parameter in response.Parameters) {
                     writer.WritePropertyName(parameter.Key);
                     writer.WriteValue(parameter.Value);
                 }
+
                 writer.WriteEndObject();
                 writer.Flush();
                 body = memory.ToArray();
             }
+
             Response.ContentType = "application/json;charset=UTF-8";
             Response.Headers.Set("Cache-Control", "no-cache");
             Response.Headers.Set("Pragma", "no-cache");
             Response.Headers.Set("Expires", "-1");
-            Response.ContentLength = memory.ToArray().Length;
+            Response.ContentLength = body.Length;
+
             await Response.WriteAsync(body, Request.CallCancelled);
         }
 
         private async Task<AuthenticationTicket> InvokeTokenEndpointAuthorizationCodeGrantAsync(
             OpenIdConnectValidateTokenRequestContext validatingContext, DateTimeOffset currentUtc) {
-            OpenIdConnectTokenRequest tokenRequest = validatingContext.TokenRequest;
+            OpenIdConnectMessage tokenRequest = validatingContext.TokenRequest;
 
             var authorizationCodeContext = new AuthenticationTokenReceiveContext(
                 Context, Options.AuthorizationCodeFormat, tokenRequest.Code);
@@ -1069,13 +1115,14 @@ namespace Owin.Security.OpenIdConnect.Server {
         private async Task<AuthenticationTicket> InvokeTokenEndpointResourceOwnerPasswordCredentialsGrantAsync(
             OpenIdConnectValidateTokenRequestContext validatingContext,
             DateTimeOffset currentUtc) {
-            OpenIdConnectTokenRequest tokenRequest = validatingContext.TokenRequest;
+            OpenIdConnectMessage tokenRequest = validatingContext.TokenRequest;
 
             await Options.Provider.ValidateTokenRequest(validatingContext);
 
+            var scope = (tokenRequest.Scope ?? string.Empty).Split(' ');
             var grantContext = new OpenIdConnectGrantResourceOwnerCredentialsContext(
                 Context, Options, validatingContext.ClientContext.ClientId,
-                tokenRequest.UserName, tokenRequest.Password, tokenRequest.Scope);
+                tokenRequest.Username, tokenRequest.Password, scope);
 
             if (validatingContext.IsValidated) {
                 await Options.Provider.GrantResourceOwnerCredentials(grantContext);
@@ -1091,15 +1138,16 @@ namespace Owin.Security.OpenIdConnect.Server {
         private async Task<AuthenticationTicket> InvokeTokenEndpointClientCredentialsGrantAsync(
             OpenIdConnectValidateTokenRequestContext validatingContext,
             DateTimeOffset currentUtc) {
-            OpenIdConnectTokenRequest tokenRequest = validatingContext.TokenRequest;
+            OpenIdConnectMessage tokenRequest = validatingContext.TokenRequest;
 
             await Options.Provider.ValidateTokenRequest(validatingContext);
             if (!validatingContext.IsValidated) {
                 return null;
             }
 
+            var scope = (tokenRequest.Scope ?? string.Empty).Split(' ');
             var grantContext = new OpenIdConnectGrantClientCredentialsContext(
-                Context, Options, validatingContext.ClientContext.ClientId, tokenRequest.Scope);
+                Context, Options, validatingContext.ClientContext.ClientId, scope);
 
             await Options.Provider.GrantClientCredentials(grantContext);
 
@@ -1112,10 +1160,10 @@ namespace Owin.Security.OpenIdConnect.Server {
 
         private async Task<AuthenticationTicket> InvokeTokenEndpointRefreshTokenGrantAsync(
             OpenIdConnectValidateTokenRequestContext validatingContext, DateTimeOffset currentUtc) {
-            OpenIdConnectTokenRequest tokenRequest = validatingContext.TokenRequest;
+            OpenIdConnectMessage tokenRequest = validatingContext.TokenRequest;
 
             var refreshTokenContext = new AuthenticationTokenReceiveContext(
-                Context, Options.RefreshTokenFormat, tokenRequest.RefreshToken);
+                Context, Options.RefreshTokenFormat, tokenRequest.GetParameter("refresh_token"));
 
             await Options.RefreshTokenProvider.ReceiveAsync(refreshTokenContext);
 
@@ -1153,13 +1201,12 @@ namespace Owin.Security.OpenIdConnect.Server {
         private async Task<AuthenticationTicket> InvokeTokenEndpointCustomGrantAsync(
             OpenIdConnectValidateTokenRequestContext validatingContext,
             DateTimeOffset currentUtc) {
-            OpenIdConnectTokenRequest tokenRequest = validatingContext.TokenRequest;
+            OpenIdConnectMessage tokenRequest = validatingContext.TokenRequest;
 
             await Options.Provider.ValidateTokenRequest(validatingContext);
 
-            var grantContext = new OpenIdConnectGrantCustomExtensionContext(
-                Context, Options, validatingContext.ClientContext.ClientId,
-                tokenRequest.GrantType, tokenRequest.Parameters);
+            var grantContext = new OpenIdConnectGrantCustomExtensionContext(Context, Options,
+                validatingContext.ClientContext.ClientId, tokenRequest.GrantType);
 
             if (validatingContext.IsValidated) {
                 await Options.Provider.GrantCustomExtension(grantContext);
@@ -1295,43 +1342,40 @@ namespace Owin.Security.OpenIdConnect.Server {
             return Response.WriteAsync(body, Request.CallCancelled);
         }
 
-        private Task<bool> SendErrorRedirectAsync(
+        private async Task<bool> SendErrorRedirectAsync(
+            OpenIdConnectMessage request,
             OpenIdConnectValidateClientRedirectUriContext clientContext,
             BaseValidatingContext<OpenIdConnectServerOptions> validatingContext) {
             if (clientContext == null) {
                 throw new ArgumentNullException("clientContext");
             }
 
-            string error = validatingContext.HasError ? validatingContext.Error : OpenIdConnectConstants.Errors.InvalidRequest;
-            string errorDescription = validatingContext.HasError ? validatingContext.ErrorDescription : null;
-            string errorUri = validatingContext.HasError ? validatingContext.ErrorUri : null;
+            var response = new OpenIdConnectMessage {
+                Error = validatingContext.HasError ? validatingContext.Error : OpenIdConnectConstants.Errors.InvalidRequest,
+                ErrorDescription = validatingContext.HasError ? validatingContext.ErrorDescription : null,
+                ErrorUri = validatingContext.HasError ? validatingContext.ErrorUri : null,
+                RedirectUri = request.RedirectUri, State = request.State, RequestType = request.RequestType
+            };
 
             if (!clientContext.IsValidated) {
-                // write error in response body if client_id or redirect_uri have not been validated
-                return SendErrorPageAsync(error, errorDescription, errorUri);
+                // Write the error in response body if client_id or redirect_uri have not been validated
+                return await SendErrorPageAsync(response.Error, response.ErrorDescription, response.ErrorUri);
             }
 
-            // redirect with error if client_id and redirect_uri have been validated
-            string location = WebUtilities.AddQueryString(clientContext.RedirectUri, OpenIdConnectConstants.Parameters.Error, error);
-            if (!string.IsNullOrEmpty(errorDescription)) {
-                location = WebUtilities.AddQueryString(location, OpenIdConnectConstants.Parameters.ErrorDescription, errorDescription);
-            }
-            if (!string.IsNullOrEmpty(errorUri)) {
-                location = WebUtilities.AddQueryString(location, OpenIdConnectConstants.Parameters.ErrorUri, errorUri);
-            }
-            Response.Redirect(location);
-            // request is handled, does not pass on to application
-            return Task.FromResult(true);
+            await ApplyAuthorizationResponseAsync(request, response);
+
+            // Stop processing the request.
+            return true;
         }
 
-        private async Task<bool> SendErrorPageAsync(string error, string errorDescription, string errorUri) {
+        private async Task<bool> SendErrorPageAsync(string error, string errorDescription = null, string errorUri = null) {
             Response.StatusCode = 400;
             Response.Headers.Set("Cache-Control", "no-cache");
             Response.Headers.Set("Pragma", "no-cache");
             Response.Headers.Set("Expires", "-1");
 
             if (Options.ApplicationCanDisplayErrors) {
-                Context.SetAuthorizationRequestError(error, errorDescription, errorUri);
+                Context.SetOpenIdConnectRequestError(error, errorDescription, errorUri);
 
                 // Request is not handled - pass through to application for rendering.
                 return false;
@@ -1356,33 +1400,6 @@ namespace Owin.Security.OpenIdConnect.Server {
             await Response.WriteAsync(body, Request.CallCancelled);
             // request is handled, does not pass on to application
             return true;
-        }
-
-        private async Task<OpenIdConnectAuthorizationRequest> ExtractAuthorizationRequestAsync() {
-            if (string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
-                return new OpenIdConnectAuthorizationRequest(Request.Query);
-            }
-
-            if (string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase)) {
-                // See http://openid.net/specs/openid-connect-core-1_0.html#FormSerialization
-                if (string.IsNullOrWhiteSpace(Request.ContentType)) {
-                    _logger.WriteError("Authorization endpoint: the mandatory 'Content-Type' header was missing from the POST request");
-                    return null;
-                }
-
-                // May have media/type; charset=utf-8, allow partial match.
-                if (!Request.ContentType.StartsWith("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase)) {
-                    _logger.WriteError(string.Format(CultureInfo.InvariantCulture,
-                        "Authorization endpoint: the 'Content-Type' header contained an invalid value: {0}.", Request.ContentType));
-                    return null;
-                }
-
-                return new OpenIdConnectAuthorizationRequest(await Request.ReadFormAsync());
-            }
-
-            _logger.WriteError(string.Format(CultureInfo.InvariantCulture,
-                "Authorization endpoint: unsupported '{0}' method", Request.Method));
-            return null;
         }
 
         private class Appender {
