@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 // Attribute gesteuert. Ändern Sie diese Attributwerte, um die Informationen zu ändern,
 // die mit einer Assembly verknüpft sind.
 [assembly: AssemblyTitle("Owin.Security.OpenIdConnect.Server")]
-[assembly: AssemblyDescription("OpenID connect server implementation for OWIN.")]
+[assembly: AssemblyDescription("OpenID Connect server implementation for OWIN.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("Owin.Security.OpenIdConnect.Server")]

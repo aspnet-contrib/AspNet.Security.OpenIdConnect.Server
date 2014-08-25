@@ -14,15 +14,15 @@ using Owin.Security.OpenIdConnect.Server;
 namespace Owin {
     /// <summary>
     /// Provides extension methods allowing to easily register an
-    /// OWIN-powered OpenID connect server and to retrieve various
-    /// OpenID connect-related contexts from the OWIN environment.
+    /// OWIN-powered OpenID Connect server and to retrieve various
+    /// OpenID Connect-related contexts from the OWIN environment.
     /// </summary>
     public static class OpenIdConnectServerExtensions {
         /// <summary>
-        /// Adds a specs-compliant OpenID connect server in the OWIN pipeline.
+        /// Adds a specs-compliant OpenID Connect server in the OWIN pipeline.
         /// </summary>
         /// <param name="app">The web application builder</param>
-        /// <param name="options">Options which control the behavior of the OpenID connect server.</param>
+        /// <param name="options">Options which control the behavior of the OpenID Connect server.</param>
         /// <returns>The application builder</returns>
         public static IAppBuilder UseOpenIdConnectServer(this IAppBuilder app, OpenIdConnectServerOptions options) {
             if (app == null) {

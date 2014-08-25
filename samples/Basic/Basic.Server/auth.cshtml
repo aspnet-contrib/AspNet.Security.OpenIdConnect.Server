@@ -10,8 +10,8 @@
     var context = Context.GetOwinContext();
 
     string error, errorDescription, errorUri;
-    if (context.TryGetOpenIdConnectRequestError(out error, out errorDescription, out errorUri)) {
-        <div>OpenID connect error: @error</div>
+    if (context.TryGetAuthorizationRequestError(out error, out errorDescription, out errorUri)) {
+        <div>OpenID Connect error: @error</div>
 
         if (!string.IsNullOrWhiteSpace(errorDescription)) {
             <div>@errorDescription</div>
