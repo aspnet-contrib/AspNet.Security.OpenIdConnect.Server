@@ -26,7 +26,7 @@ namespace Basic.Server {
 
             app.UseOpenIdConnectServer(new OpenIdConnectServerOptions {
                 AccessTokenLifetime = TimeSpan.FromDays(14),
-                IdTokenLifetime = TimeSpan.FromMinutes(60),
+                IdentityTokenLifetime = TimeSpan.FromMinutes(60),
                 Issuer = "http://localhost:59504/",
                 SigningCredentials = credentials,
                 TokenEndpointPath = new PathString("/token"),

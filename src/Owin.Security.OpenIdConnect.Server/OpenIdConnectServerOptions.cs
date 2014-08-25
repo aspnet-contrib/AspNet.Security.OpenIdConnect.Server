@@ -25,7 +25,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             : base(OpenIdConnectDefaults.AuthenticationType) {
             AuthorizationCodeLifetime = TimeSpan.FromMinutes(5);
             AccessTokenLifetime = TimeSpan.FromMinutes(20);
-            IdTokenLifetime = TimeSpan.FromMinutes(20);
+            IdentityTokenLifetime = TimeSpan.FromMinutes(20);
             SystemClock = new SystemClock();
             TokenHandler = new JwtSecurityTokenHandler();
             ServerClaimsMapper = claims => claims;
@@ -128,7 +128,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// The period of time the identity token remains valid after being issued. The default is twenty minutes.
         /// The client application is expected to refresh or acquire a new identity token after the token has expired. 
         /// </summary>
-        public TimeSpan IdTokenLifetime { get; set; }
+        public TimeSpan IdentityTokenLifetime { get; set; }
 
         /// <summary>
         /// Produces a single-use authorization code to return to the client application. For the OpenID Connect server to be secure the
