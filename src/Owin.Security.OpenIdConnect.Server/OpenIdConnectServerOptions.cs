@@ -60,14 +60,14 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// The request path where client applications will be able to retrieve the configuration metadata associated
         /// with this instance. Must begin with a leading slash, like "/.well-known/openid-configuration".
-        /// You can set it to <see cref="PathString.Empty"/> to disable the configuration endpoint.
+        /// This setting can be set to <see cref="PathString.Empty"/> to disable the configuration endpoint.
         /// </summary>
         public PathString ConfigurationEndpointPath { get; set; }
 
         /// <summary>
         /// The request path where client applications will be able to retrieve the JSON Web Key Set
         /// associated with this instance. Must begin with a leading slash, like "/.well-known/jwks".
-        /// You can set it to <see cref="PathString.Empty"/> to disable the crypto endpoint.
+        /// This setting can be set to <see cref="PathString.Empty"/> to disable the crypto endpoint.
         /// </summary>
         public PathString CryptoEndpointPath { get; set; }
 
@@ -165,8 +165,8 @@ namespace Owin.Security.OpenIdConnect.Server {
         public ISystemClock SystemClock { get; set; }
 
         /// <summary>
-        /// True to allow authorization and token requests to arrive on http URI addresses,
-        /// and to allow incoming redirect_uri parameter to have http URI addresses.
+        /// True to allow incoming requests to arrive on HTTP and to allow redirect_uri parameters to have HTTP URI addresses.
+        /// Setting this option to false in production is strongly encouraged to mitigate man-in-the-middle attacks.
         /// </summary>
         public bool AllowInsecureHttp { get; set; }
 

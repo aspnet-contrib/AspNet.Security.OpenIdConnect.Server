@@ -25,25 +25,25 @@ namespace Owin.Security.OpenIdConnect.Server {
 
         /// <summary>
         /// Gets whether or not the endpoint is an
-        /// OAuth2/OpenID connect authorization endpoint.
+        /// OAuth2/OpenID Connect authorization endpoint.
         /// </summary>
         public bool IsAuthorizationEndpoint { get; private set; }
 
         /// <summary>
         /// Gets whether or not the endpoint is an
-        /// OpenID connect configuration metadata endpoint.
+        /// OpenID Connect configuration metadata endpoint.
         /// </summary>
         public bool IsConfigurationEndpoint { get; private set; }
 
         /// <summary>
         /// Gets whether or not the endpoint is an
-        /// OpenID connect JWKS endpoint.
+        /// OpenID Connect JWKS endpoint.
         /// </summary>
         public bool IsCryptoEndpoint { get; private set; }
 
         /// <summary>
         /// Gets whether or not the endpoint is an
-        /// OAuth2/OpenID connect token endpoint.
+        /// OAuth2/OpenID Connect token endpoint.
         /// </summary>
         public bool IsTokenEndpoint { get; private set; }
 

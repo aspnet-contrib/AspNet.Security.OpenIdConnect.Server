@@ -11,7 +11,7 @@
 
     string error, errorDescription, errorUri;
     if (context.TryGetAuthorizationRequestError(out error, out errorDescription, out errorUri)) {
-        <div>OpenID connect error: @error</div>
+        <div>OpenID Connect error: @error</div>
 
         if (!string.IsNullOrWhiteSpace(errorDescription)) {
             <div>@errorDescription</div>
