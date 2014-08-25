@@ -12,13 +12,13 @@ using Microsoft.Owin.Security.Provider;
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// An event raised before the authorization server handles
-    /// the request made to the crypto metadata endpoint.
+    /// the request made to the JWKS metadata endpoint.
     /// </summary>
-    public class OpenIdConnectCryptoEndpointContext : EndpointContext<OpenIdConnectServerOptions> {
+    public class OpenIdConnectKeysEndpointContext : EndpointContext<OpenIdConnectServerOptions> {
         /// <summary>
         /// Creates an instance of this context.
         /// </summary>
-        public OpenIdConnectCryptoEndpointContext(
+        public OpenIdConnectKeysEndpointContext(
             IOwinContext context,
             OpenIdConnectServerOptions options)
             : base(context, options) {

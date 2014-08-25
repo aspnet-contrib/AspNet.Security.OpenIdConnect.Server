@@ -52,8 +52,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                 matchRequestContext.MatchesConfigurationEndpoint();
             }
 
-            else if (Options.CryptoEndpointPath.HasValue && Options.CryptoEndpointPath == Request.Path) {
-                matchRequestContext.MatchesCryptoEndpoint();
+            else if (Options.KeysEndpointPath.HasValue && Options.KeysEndpointPath == Request.Path) {
+                matchRequestContext.MatchesKeysEndpoint();
             }
 
             else if (Options.TokenEndpointPath.HasValue && Options.TokenEndpointPath == Request.Path) {
@@ -68,7 +68,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             if (matchRequestContext.IsAuthorizationEndpoint || matchRequestContext.IsConfigurationEndpoint ||
-                matchRequestContext.IsCryptoEndpoint || matchRequestContext.IsTokenEndpoint) {
+                matchRequestContext.IsKeysEndpoint || matchRequestContext.IsTokenEndpoint) {
                 if (!Options.AllowInsecureHttp && string.Equals(Request.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase)) {
                     _logger.WriteWarning("Authorization server ignoring http request because AllowInsecureHttp is false.");
                     return false;
@@ -83,8 +83,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                     return true;
                 }
 
-                if (matchRequestContext.IsCryptoEndpoint) {
-                    await InvokeCryptoEndpointAsync();
+                if (matchRequestContext.IsKeysEndpoint) {
+                    await InvokeKeysEndpointAsync();
                     return true;
                 }
 
@@ -485,7 +485,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             // See http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
             if (Options.SigningCredentials.SigningKey is AsymmetricSecurityKey &&
                 Options.SigningCredentials.SigningKey.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature)) {
-                configurationEndpointResponseContext.CryptoEndpoint = Options.Issuer + Options.CryptoEndpointPath;
+                configurationEndpointResponseContext.KeyEndpoint = Options.Issuer + Options.KeysEndpointPath;
             }
 
             if (Options.TokenEndpointPath.HasValue) {
@@ -563,9 +563,9 @@ namespace Owin.Security.OpenIdConnect.Server {
                     writer.WriteValue(configurationEndpointResponseContext.TokenEndpoint);
                 }
 
-                if (!string.IsNullOrWhiteSpace(configurationEndpointResponseContext.CryptoEndpoint)) {
+                if (!string.IsNullOrWhiteSpace(configurationEndpointResponseContext.KeyEndpoint)) {
                     writer.WritePropertyName(OpenIdConnectConstants.Metadata.JwksUri);
-                    writer.WriteValue(configurationEndpointResponseContext.CryptoEndpoint);
+                    writer.WriteValue(configurationEndpointResponseContext.KeyEndpoint);
                 }
 
                 writer.WritePropertyName(OpenIdConnectConstants.Metadata.GrantTypesSupported);
@@ -639,13 +639,13 @@ namespace Owin.Security.OpenIdConnect.Server {
             await Response.WriteAsync(body, Request.CallCancelled);
         }
 
-        private async Task InvokeCryptoEndpointAsync() {
-            var cryptoEndpointContext = new OpenIdConnectCryptoEndpointContext(Context, Options);
-            await Options.Provider.CryptoEndpoint(cryptoEndpointContext);
+        private async Task InvokeKeysEndpointAsync() {
+            var keysEndpointContext = new OpenIdConnectKeysEndpointContext(Context, Options);
+            await Options.Provider.KeysEndpoint(keysEndpointContext);
             
-            // Skip processing the crypto request if
+            // Skip processing the JWKS request if
             // RequestCompleted has been called.
-            if (cryptoEndpointContext.IsRequestCompleted) {
+            if (keysEndpointContext.IsRequestCompleted) {
                 return;
             }
 
@@ -653,11 +653,11 @@ namespace Owin.Security.OpenIdConnect.Server {
             // See http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationRequest
             if (!string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
                 _logger.WriteError(string.Format(CultureInfo.InvariantCulture,
-                    "Crypto endpoint: invalid method '{0}' used", Request.Method));
+                    "Keys endpoint: invalid method '{0}' used", Request.Method));
                 return;
             }
 
-            var cryptoEndpointResponseContext = new OpenIdConnectCryptoEndpointResponseContext(Context, Options);
+            var keysEndpointResponseContext = new OpenIdConnectKeysEndpointResponseContext(Context, Options);
 
             // Skip processing the metadata request if no supported key can be found.
             // Note: SigningKey is assumed to be never null under normal circonstances,
@@ -667,7 +667,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             var asymmetricSecurityKey = Options.SigningCredentials.SigningKey as AsymmetricSecurityKey;
             if (asymmetricSecurityKey == null) {
                 _logger.WriteError(string.Format(CultureInfo.InvariantCulture,
-                    "Crypto endpoint: invalid signing key registered. " +
+                    "Keys endpoint: invalid signing key registered. " +
                     "Make sure to provide an asymmetric security key deriving from '{0}'.",
                     typeof(AsymmetricSecurityKey).FullName));
                 return;
@@ -675,7 +675,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             if (!asymmetricSecurityKey.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature)) {
                 _logger.WriteError(string.Format(CultureInfo.InvariantCulture,
-                    "Crypto endpoint: invalid signing key registered. " +
+                    "Keys endpoint: invalid signing key registered. " +
                     "Make sure to provide a '{0}' instance exposing " +
                     "an asymmetric security key supporting the '{1}' algorithm.",
                     typeof(SigningCredentials).Name, SecurityAlgorithms.RsaSha256Signature));
@@ -719,7 +719,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             if (x509Certificate != null) {
                 // Create a new JSON Web Key exposing the
                 // certificate instead of its public RSA key.
-                cryptoEndpointResponseContext.Keys.Add(new JsonWebKey {
+                keysEndpointResponseContext.Keys.Add(new JsonWebKey {
                     Kty = JsonWebAlgorithmsKeyTypes.RSA,
                     Alg = JwtAlgorithms.RSA_SHA256,
                     Use = JsonWebKeyUseNames.Sig,
@@ -744,7 +744,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 var parameters = asymmetricAlgorithm.ExportParameters(
                     includePrivateParameters: false);
 
-                cryptoEndpointResponseContext.Keys.Add(new JsonWebKey {
+                keysEndpointResponseContext.Keys.Add(new JsonWebKey {
                     Kty = JsonWebAlgorithmsKeyTypes.RSA,
                     Alg = JwtAlgorithms.RSA_SHA256,
                     Use = JsonWebKeyUseNames.Sig,
@@ -756,16 +756,16 @@ namespace Owin.Security.OpenIdConnect.Server {
                 });
             }
 
-            await Options.Provider.CryptoEndpointResponse(cryptoEndpointResponseContext);
+            await Options.Provider.KeysEndpointResponse(keysEndpointResponseContext);
 
-            // Skip processing the crypto request if RequestCompleted has been called.
-            if (cryptoEndpointResponseContext.IsRequestCompleted) {
+            // Skip processing the request if RequestCompleted has been called.
+            if (keysEndpointResponseContext.IsRequestCompleted) {
                 return;
             }
 
             // Ensure at least one key has been added to context.Keys.
-            if (!cryptoEndpointResponseContext.Keys.Any()) {
-                _logger.WriteError("Crypto endpoint: no JSON Web Key found.");
+            if (!keysEndpointResponseContext.Keys.Any()) {
+                _logger.WriteError("Keys endpoint: no JSON Web Key found.");
                 return;
             }
 
@@ -779,11 +779,11 @@ namespace Owin.Security.OpenIdConnect.Server {
                 writer.WriteStartArray();
                 writer.WriteStartObject();
 
-                foreach (JsonWebKey key in cryptoEndpointResponseContext.Keys) {
+                foreach (JsonWebKey key in keysEndpointResponseContext.Keys) {
                     // Ensure a key type has been provided.
                     // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#section-4.1
                     if (string.IsNullOrWhiteSpace(key.Kty)) {
-                        _logger.WriteWarning("Crypto endpoint: a JSON Web Key didn't " +
+                        _logger.WriteWarning("Keys endpoint: a JSON Web Key didn't " +
                             "contain the mandatory 'Kty' parameter and has been ignored.");
                         continue;
                     }
@@ -845,11 +845,6 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                 writer.WriteEndObject();
                 writer.WriteEndArray();
-
-                foreach (KeyValuePair<string, object> parameter in cryptoEndpointResponseContext.AdditionalParameters) {
-                    writer.WritePropertyName(parameter.Key);
-                    writer.WriteValue(parameter.Value);
-                }
 
                 writer.WriteEndObject();
                 writer.Flush();

@@ -181,7 +181,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        Task CryptoEndpoint(OpenIdConnectCryptoEndpointContext context);
+        Task KeysEndpoint(OpenIdConnectKeysEndpointContext context);
 
         /// <summary>
         /// Called before the authorization server starts emitting the OpenID connect JSON Web Key set associated with this instance.
@@ -190,7 +190,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        Task CryptoEndpointResponse(OpenIdConnectCryptoEndpointResponseContext context);
+        Task KeysEndpointResponse(OpenIdConnectKeysEndpointResponseContext context);
 
         /// <summary>
         /// Called at the final stage of a successful Token endpoint request. An application may implement this call in order to do any final 
