@@ -5,12 +5,11 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Security.Claims;
-using Owin.Security.OpenIdConnect.Server.Messages;
-using Microsoft.Owin.Security.Provider;
-using Microsoft.Owin.Security;
+using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
+using Microsoft.Owin.Security;
+using Microsoft.Owin.Security.Provider;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
@@ -28,7 +27,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             IOwinContext context,
             OpenIdConnectServerOptions options,
             AuthenticationTicket ticket,
-            OpenIdConnectTokenRequest tokenRequest)
+            OpenIdConnectMessage tokenRequest)
             : base(context, options) {
             if (ticket == null) {
                 throw new ArgumentNullException("ticket");
@@ -53,7 +52,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets information about the token endpoint request. 
         /// </summary>
-        public OpenIdConnectTokenRequest TokenRequest { get; set; }
+        public OpenIdConnectMessage TokenRequest { get; set; }
 
         /// <summary>
         /// Gets whether or not the token should be issued.

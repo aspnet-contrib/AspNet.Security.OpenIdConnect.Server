@@ -7,9 +7,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Owin.Security.OpenIdConnect.Server;
-using Owin.Security.OpenIdConnect.Server.Messages;
 
 namespace Owin {
     /// <summary>
@@ -37,13 +37,13 @@ namespace Owin {
         }
 
         /// <summary>
-        /// Retrieves the <see cref="OpenIdConnectAuthorizationRequest"/> instance
+        /// Retrieves the <see cref="OpenIdConnectMessage"/> instance
         /// associated with the current request from the OWIN context.
         /// </summary>
         /// <param name="context">The OWIN context.</param>
-        /// <returns>The <see cref="OpenIdConnectAuthorizationRequest"/> associated with the current request.</returns>
-        public static OpenIdConnectAuthorizationRequest GetAuthorizationRequest(this IOwinContext context) {
-            const string key = OpenIdConnectConstants.Environment.AuthorizationRequest;
+        /// <returns>The <see cref="OpenIdConnectMessage"/> associated with the current request.</returns>
+        public static OpenIdConnectMessage GetOpenIdConnectRequest(this IOwinContext context) {
+            const string key = OpenIdConnectConstants.Environment.Request;
 
             if (context == null) {
                 throw new ArgumentNullException("context");
@@ -54,16 +54,16 @@ namespace Owin {
                 return null;
             }
 
-            return new OpenIdConnectAuthorizationRequest(request.AsReadableStringCollection());
+            return new OpenIdConnectMessage(request);
         }
 
         /// <summary>
-        /// Inserts the ambient <see cref="OpenIdConnectAuthorizationRequest"/> in the OWIN context.
+        /// Inserts the ambient <see cref="OpenIdConnectMessage"/> in the OWIN context.
         /// </summary>
         /// <param name="context">The OWIN context.</param>
-        /// <param name="request">The ambient <see cref="OpenIdConnectAuthorizationRequest"/>.</param>
-        internal static void SetAuthorizationRequest(this IOwinContext context, OpenIdConnectAuthorizationRequest request) {
-            const string key = OpenIdConnectConstants.Environment.AuthorizationRequest;
+        /// <param name="request">The ambient <see cref="OpenIdConnectMessage"/>.</param>
+        internal static void SetOpenIdConnectRequest(this IOwinContext context, OpenIdConnectMessage request) {
+            const string key = OpenIdConnectConstants.Environment.Request;
 
             if (context == null) {
                 throw new ArgumentNullException("context");
@@ -73,7 +73,10 @@ namespace Owin {
                 throw new ArgumentNullException("request");
             }
 
-            context.Set<IEnumerable<KeyValuePair<string, string[]>>>(key, request.Parameters);
+            context.Set<IEnumerable<KeyValuePair<string, string[]>>>(key,
+                request.Parameters.ToDictionary(
+                    keySelector: parameter => parameter.Key,
+                    elementSelector: parameter => new[] { parameter.Value }));
         }
 
         /// <summary>
@@ -83,7 +86,7 @@ namespace Owin {
         /// <param name="errorDescription">The oauth.ErrorDescription associated with the current request.</param>
         /// <param name="errorUri">The oauth.ErrorUri associated with the current request.</param>
         /// <returns>The oauth.Error associated with the current request.</returns>
-        public static string GetAuthorizationRequestError(this IOwinContext context, out string errorDescription, out string errorUri) {
+        public static string GetOpenIdConnectRequestError(this IOwinContext context, out string errorDescription, out string errorUri) {
             if (context == null) {
                 throw new ArgumentNullException("context");
             }
@@ -102,7 +105,7 @@ namespace Owin {
         /// <param name="errorDescription">The oauth.ErrorDescription associated with the current request.</param>
         /// <param name="errorUri">The oauth.ErrorUri associated with the current request.</param>
         /// <returns>Returns true if the context contains a non-null oauth.Error value.</returns>
-        public static bool TryGetAuthorizationRequestError(this IOwinContext context, out string error, out string errorDescription, out string errorUri) {
+        public static bool TryGetOpenIdConnectRequestError(this IOwinContext context, out string error, out string errorDescription, out string errorUri) {
             if (context == null) {
                 throw new ArgumentNullException("context");
             }
@@ -121,7 +124,7 @@ namespace Owin {
         /// <param name="error">The ambient oauth.Error.</param>
         /// <param name="errorDescription">The ambient oauth.ErrorDescription.</param>
         /// <param name="errorUri">The ambient oauth.ErrorDescription.</param>
-        public static void SetAuthorizationRequestError(this IOwinContext context, string error, string errorDescription = null, string errorUri = null) {
+        public static void SetOpenIdConnectRequestError(this IOwinContext context, string error, string errorDescription = null, string errorUri = null) {
             if (context == null) {
                 throw new ArgumentNullException("context");
             }
@@ -139,24 +142,6 @@ namespace Owin {
             if (!string.IsNullOrWhiteSpace(errorUri)) {
                 context.Set(OpenIdConnectConstants.Environment.ErrorUri, errorUri);
             }
-        }
-
-        /// <summary>
-        /// Converts an enumeration to an <see cref="IReadableStringCollection"/> instance.
-        /// </summary>
-        /// <param name="enumeration">The enumeration to convert.</param>
-        /// <returns>The resulting <see cref="IReadableStringCollection"/> instance.</returns>
-        private static IReadableStringCollection AsReadableStringCollection(this IEnumerable<KeyValuePair<string, string[]>> enumeration) {
-            if (enumeration == null) {
-                throw new ArgumentNullException("enumeration");
-            }
-
-            var collection = enumeration as IReadableStringCollection;
-            if (collection != null) {
-                return collection;
-            }
-
-            return new ReadableStringCollection(enumeration.ToDictionary(kvp => kvp.Key, kvp => kvp.Value));
         }
     }
 }

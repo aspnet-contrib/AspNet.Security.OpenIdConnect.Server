@@ -4,8 +4,8 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
+using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
-using Owin.Security.OpenIdConnect.Server.Messages;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
@@ -22,7 +22,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         public OpenIdConnectValidateTokenRequestContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
-            OpenIdConnectTokenRequest tokenRequest,
+            OpenIdConnectMessage tokenRequest,
             BaseValidatingClientContext clientContext) : base(context, options) {
             TokenRequest = tokenRequest;
             ClientContext = clientContext;
@@ -31,7 +31,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the token request data.
         /// </summary>
-        public OpenIdConnectTokenRequest TokenRequest { get; private set; }
+        public OpenIdConnectMessage TokenRequest { get; private set; }
 
         /// <summary>
         /// Gets information about the client.

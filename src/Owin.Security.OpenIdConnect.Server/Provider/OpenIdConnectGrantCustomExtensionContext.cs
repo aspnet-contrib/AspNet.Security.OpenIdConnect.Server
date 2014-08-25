@@ -18,17 +18,14 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <param name="options"></param>
         /// <param name="clientId"></param>
         /// <param name="grantType"></param>
-        /// <param name="parameters"></param>
         public OpenIdConnectGrantCustomExtensionContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
             string clientId,
-            string grantType,
-            IReadableStringCollection parameters)
+            string grantType)
             : base(context, options, null) {
             ClientId = clientId;
             GrantType = grantType;
-            Parameters = parameters;
         }
 
         /// <summary>
@@ -40,10 +37,5 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// Gets the name of the OpenIdConnect extension grant type.
         /// </summary>
         public string GrantType { get; private set; }
-
-        /// <summary>
-        /// Gets a list of additional parameters from the token request.
-        /// </summary>
-        public IReadableStringCollection Parameters { get; private set; }
     }
 }

@@ -4,6 +4,7 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
+using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 
 namespace Owin.Security.OpenIdConnect.Server {
@@ -17,15 +18,23 @@ namespace Owin.Security.OpenIdConnect.Server {
         protected BaseValidatingClientContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
-            string clientId)
+            OpenIdConnectMessage authorizationRequest)
             : base(context, options) {
-            ClientId = clientId;
+            AuthorizationRequest = authorizationRequest;
         }
 
         /// <summary>
-        /// The "client_id" parameter for the current request. The Authorization Server application is responsible for 
-        /// validating this value identifies a registered client.
+        /// Gets the authorization request. 
         /// </summary>
-        public string ClientId { get; protected set; }
+        public OpenIdConnectMessage AuthorizationRequest { get; private set; }
+
+        /// <summary>
+        /// The "client_id" parameter for the current request.
+        /// The Authorization Server application is responsible for 
+        /// validating this value to ensure it identifies a registered client.
+        /// </summary>
+        public string ClientId {
+            get { return AuthorizationRequest.ClientId; }
+        }
     }
 }

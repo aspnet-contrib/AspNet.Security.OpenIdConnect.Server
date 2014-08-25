@@ -4,8 +4,8 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
+using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
-using Owin.Security.OpenIdConnect.Server.Messages;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
@@ -22,16 +22,17 @@ namespace Owin.Security.OpenIdConnect.Server {
         public OpenIdConnectValidateAuthorizationRequestContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
-            OpenIdConnectAuthorizationRequest authorizationRequest,
-            OpenIdConnectValidateClientRedirectUriContext clientContext) : base(context, options) {
-            AuthorizationRequest = authorizationRequest;
+            OpenIdConnectMessage authorizationRequest,
+            OpenIdConnectValidateClientRedirectUriContext clientContext)
+            : base(context, options) {
             ClientContext = clientContext;
+            AuthorizationRequest = authorizationRequest;
         }
 
         /// <summary>
         /// Gets OpenIdConnect authorization request data.
         /// </summary>
-        public OpenIdConnectAuthorizationRequest AuthorizationRequest { get; private set; }
+        public OpenIdConnectMessage AuthorizationRequest { get; private set; }
 
         /// <summary>
         /// Gets data about the OpenIdConnect client. 

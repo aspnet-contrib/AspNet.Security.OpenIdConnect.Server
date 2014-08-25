@@ -7,10 +7,10 @@
 using System;
 using System.Collections.Generic;
 using System.Security.Claims;
+using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Provider;
-using Owin.Security.OpenIdConnect.Server.Messages;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
@@ -24,14 +24,13 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <param name="options"></param>
         /// <param name="ticket"></param>
         /// <param name="tokenRequest"></param>
-        /// <param name="accessToken"></param>
-        /// <param name="additionalResponseParameters"></param>
+        /// <param name="tokenResponse"></param>
         public OpenIdConnectTokenEndpointResponseContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
             AuthenticationTicket ticket,
-            OpenIdConnectTokenRequest tokenRequest,
-            string accessToken)
+            OpenIdConnectMessage tokenRequest,
+            OpenIdConnectMessage tokenResponse)
             : base(context, options) {
             if (ticket == null) {
                 throw new ArgumentNullException("ticket");
@@ -39,10 +38,9 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             Identity = ticket.Identity;
             Properties = ticket.Properties;
-            TokenRequest = tokenRequest;
-            AdditionalParameters = new Dictionary<string, object>(StringComparer.Ordinal);
             TokenIssued = Identity != null;
-            AccessToken = accessToken;
+            TokenRequest = tokenRequest;
+            TokenResponse = tokenResponse;
         }
 
         /// <summary>
@@ -61,19 +59,19 @@ namespace Owin.Security.OpenIdConnect.Server {
         public string AccessToken { get; private set; }
 
         /// <summary>
-        /// Gets information about the token endpoint request. 
+        /// Gets the token request. 
         /// </summary>
-        public OpenIdConnectTokenRequest TokenRequest { get; set; }
+        public OpenIdConnectMessage TokenRequest { get; private set; }
+
+        /// <summary>
+        /// Gets the token response. 
+        /// </summary>
+        public OpenIdConnectMessage TokenResponse { get; private set; }
 
         /// <summary>
         /// Gets whether or not the token should be issued.
         /// </summary>
         public bool TokenIssued { get; private set; }
-
-        /// <summary>
-        /// Enables additional values to be appended to the token response.
-        /// </summary>
-        public IDictionary<string, object> AdditionalParameters { get; private set; }
 
         /// <summary>
         /// Issues the token.
