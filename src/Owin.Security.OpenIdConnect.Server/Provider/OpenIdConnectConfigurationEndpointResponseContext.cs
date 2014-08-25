@@ -42,9 +42,9 @@ namespace Owin.Security.OpenIdConnect.Server {
         public IDictionary<string, object> AdditionalParameters { get; private set; }
 
         /// <summary>
-        /// Gets or sets the crypto endpoint address.
+        /// Gets or sets the JWKS endpoint address.
         /// </summary>
-        public string CryptoEndpoint { get; set; }
+        public string KeyEndpoint { get; set; }
 
         /// <summary>
         /// Gets or sets the issuer address.
