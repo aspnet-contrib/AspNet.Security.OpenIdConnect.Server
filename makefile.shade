@@ -1,4 +1,4 @@
-var BUILD='${Version(1, 0, 0, "alpha4")}'
+var BUILD='${Version(1, 0, 0, "alpha5")}'
 var VERSION='${BUILD.VERSION}'
 var FULL_VERSION='${BUILD.FULL_VERSION}'
 set FINAL_MILESTONE='${false}'
