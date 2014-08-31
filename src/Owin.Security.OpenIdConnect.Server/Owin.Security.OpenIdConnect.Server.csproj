@@ -73,7 +73,6 @@
   <ItemGroup>
     <Compile Include="OpenIdConnectConstants.cs" />
     <Compile Include="OpenIdConnectDefaults.cs" />
-    <Compile Include="OpenIdConnectHashGenerator.cs" />
     <Compile Include="OpenIdConnectServerExtensions.cs" />
     <Compile Include="OpenIdConnectServerHandler.cs" />
     <Compile Include="OpenIdConnectServerMiddleware.cs" />

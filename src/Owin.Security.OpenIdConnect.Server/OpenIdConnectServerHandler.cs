@@ -1211,20 +1211,29 @@ namespace Owin.Security.OpenIdConnect.Server {
                 OpenIdConnectConstants.Errors.UnsupportedGrantType);
         }
 
+        private static string GenerateHash(string value, string algorithm = null) {
+            using (var hashAlgorithm = HashAlgorithm.Create(algorithm)) {
+                byte[] hashBytes = hashAlgorithm.ComputeHash(Encoding.UTF8.GetBytes(value));
+
+                var hashString = Convert.ToBase64String(hashBytes, 0, hashBytes.Length / 2);
+                hashString = hashString.Split('=')[0]; // Remove any trailing padding
+                hashString = hashString.Replace('+', '-'); // 62nd char of encoding
+                return hashString.Replace('/', '_'); // 63rd char of encoding
+            }
+        }
+
         private string CreateIdToken(ClaimsIdentity identity, AuthenticationProperties authProperties,
             string clientId, string accessToken = null, string authorizationCode = null, string nonce = null) {
             var inputClaims = identity.Claims;
             var outputClaims = Options.ServerClaimsMapper(inputClaims).ToList();
 
-            var hashGenerator = new OpenIdConnectHashGenerator();
-
             if (!string.IsNullOrEmpty(authorizationCode)) {
-                var cHash = hashGenerator.GenerateHash(authorizationCode, Options.SigningCredentials.DigestAlgorithm);
+                var cHash = GenerateHash(authorizationCode, Options.SigningCredentials.DigestAlgorithm);
                 outputClaims.Add(new Claim(JwtRegisteredClaimNames.CHash, cHash));
             }
 
             if (!string.IsNullOrEmpty(accessToken)) {
-                var atHash = hashGenerator.GenerateHash(accessToken, Options.SigningCredentials.DigestAlgorithm);
+                var atHash = GenerateHash(accessToken, Options.SigningCredentials.DigestAlgorithm);
                 outputClaims.Add(new Claim("at_hash", atHash));
             }
 
