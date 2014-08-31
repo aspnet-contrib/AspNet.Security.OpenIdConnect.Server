@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IdentityModel.Tokens;
 using System.IO;
@@ -31,6 +30,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         private readonly ILogger _logger;
 
         private OpenIdConnectValidateClientRedirectUriContext _clientContext;
+        private OpenIdConnectMessage _authorizationRequest;
         private bool _headersSent = false;
 
         public OpenIdConnectServerHandler(ILogger logger) {
@@ -207,11 +207,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             _clientContext = clientContext;
-            //_authorizationRequest = request;
-
-            // Insert the authorization request in the OWIN context to give the next
-            // middleware an easier access to the ambient authorization request.
-            Context.SetOpenIdConnectRequest(request);
+            _authorizationRequest = request;
 
             var authorizationEndpointContext = new OpenIdConnectAuthorizationEndpointContext(Context, Options, request);
             await Options.Provider.AuthorizationEndpoint(authorizationEndpointContext);
@@ -220,6 +216,10 @@ namespace Owin.Security.OpenIdConnect.Server {
             if (authorizationEndpointContext.IsRequestCompleted) {
                 return true;
             }
+
+            // Insert the authorization request in the OWIN context to give the next
+            // middleware an easier access to the ambient authorization request.
+            Context.SetOpenIdConnectRequest(request);
 
             return false;
         }
@@ -252,7 +252,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             // or because it was not correctly forged. In the second scenario, the error is supposed
             // to be handled by the application itself or directly in SendErrorPageAsync:
             // in both cases, it shouldn't be handled here.
-            var request = Context.GetOpenIdConnectRequest();
+            var request = _authorizationRequest;
             if (_clientContext == null || request == null) {
                 return;
             }
