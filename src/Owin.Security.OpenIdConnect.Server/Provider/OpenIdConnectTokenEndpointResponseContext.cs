@@ -5,7 +5,6 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Security.Claims;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
@@ -56,7 +55,9 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// The issued Access-Token
         /// </summary>
-        public string AccessToken { get; private set; }
+        public string AccessToken {
+            get { return TokenResponse.AccessToken; }
+        }
 
         /// <summary>
         /// Gets the token request. 

@@ -108,7 +108,9 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             if (string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
-                request = new OpenIdConnectMessage(Request.Query);
+                request = new OpenIdConnectMessage(Request.Query) {
+                    RequestType = OpenIdConnectRequestType.AuthenticationRequest
+                };
             }
 
             else {
@@ -129,10 +131,10 @@ namespace Owin.Security.OpenIdConnect.Server {
                             "Make sure to use 'application/x-www-form-urlencoded'.");
                 }
 
-                request = new OpenIdConnectMessage(await Request.ReadFormAsync());
+                request = new OpenIdConnectMessage(await Request.ReadFormAsync()) {
+                    RequestType = OpenIdConnectRequestType.AuthenticationRequest
+                };
             }
-
-            request.RequestType = OpenIdConnectRequestType.AuthenticationRequest;
 
             var clientContext = new OpenIdConnectValidateClientRedirectUriContext(Context, Options, request);
 
@@ -380,14 +382,12 @@ namespace Owin.Security.OpenIdConnect.Server {
 
         private async Task<bool> ApplyAuthorizationResponseAsync(OpenIdConnectMessage request, OpenIdConnectMessage response) {
             if (request.IsFormPostResponseMode()) {
-                byte[] body;
-
-                using (var memory = new MemoryStream())
-                using (var writer = new StreamWriter(memory)) {
-                    await writer.WriteLineAsync("<!doctype html>");
-                    await writer.WriteLineAsync("<html>");
-                    await writer.WriteLineAsync("<body>");
-                    await writer.WriteLineAsync("<form name='form' method='post' action='" + response.RedirectUri + "'>");
+                using (var buffer = new MemoryStream())
+                using (var writer = new StreamWriter(buffer)) {
+                    writer.WriteLine("<!doctype html>");
+                    writer.WriteLine("<html>");
+                    writer.WriteLine("<body>");
+                    writer.WriteLine("<form name='form' method='post' action='" + response.RedirectUri + "'>");
 
                     foreach (KeyValuePair<string, string> parameter in response.Parameters) {
                         // Don't include redirect_uri or response_mode in the form.
@@ -396,27 +396,27 @@ namespace Owin.Security.OpenIdConnect.Server {
                             continue;
                         }
 
-                        string value = WebUtility.HtmlEncode(parameter.Value);
                         string key = WebUtility.HtmlEncode(parameter.Key);
+                        string value = WebUtility.HtmlEncode(parameter.Value);
 
                         await writer.WriteLineAsync("<input type='hidden' name='" + key + "' value='" + value + "' />");
                     }
 
-                    await writer.WriteLineAsync("<noscript>Click here to finish the authorization process: <input type='submit'></noscript>");
-                    await writer.WriteLineAsync("</form>");
-                    await writer.WriteLineAsync("<script>document.form.submit();</script>");
-                    await writer.WriteLineAsync("</body>");
-                    await writer.WriteLineAsync("</html>");
-                    await writer.FlushAsync();
+                    writer.WriteLine("<noscript>Click here to finish the authorization process: <input type='submit' /></noscript>");
+                    writer.WriteLine("</form>");
+                    writer.WriteLine("<script>document.form.submit();</script>");
+                    writer.WriteLine("</body>");
+                    writer.WriteLine("</html>");
+                    writer.Flush();
 
-                    body = memory.ToArray();
+                    Response.ContentLength = buffer.Length;
+                    Response.ContentType = "text/html;charset=UTF-8";
+
+                    buffer.Seek(offset: 0, loc: SeekOrigin.Begin);
+                    await buffer.CopyToAsync(Response.Body, 4096, Request.CallCancelled);
+
+                    return true;
                 }
-
-                Response.ContentType = "text/html";
-                Response.ContentLength = body.Length;
-
-                await Response.WriteAsync(body, Request.CallCancelled);
-                return true;
             }
 
             else if (request.IsFragmentResponseMode()) {
@@ -424,6 +424,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 var appender = new Appender(location, '#');
 
                 foreach (var parameter in response.Parameters) {
+                    // Don't include redirect_uri or response_mode in the fragment.
                     if (string.Equals(parameter.Key, OpenIdConnectParameterNames.RedirectUri, StringComparison.Ordinal) ||
                         string.Equals(parameter.Key, OpenIdConnectParameterNames.ResponseMode, StringComparison.Ordinal)) {
                         continue;
@@ -440,6 +441,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 string location = response.RedirectUri;
 
                 foreach (var parameter in response.Parameters) {
+                    // Don't include redirect_uri or response_mode in the query string.
                     if (string.Equals(parameter.Key, OpenIdConnectParameterNames.RedirectUri, StringComparison.Ordinal) ||
                         string.Equals(parameter.Key, OpenIdConnectParameterNames.ResponseMode, StringComparison.Ordinal)) {
                         continue;
@@ -549,10 +551,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return;
             }
 
-            byte[] body;
-
-            using (var memory = new MemoryStream())
-            using (var writer = new JsonTextWriter(new StreamWriter(memory))) {
+            using (var buffer = new MemoryStream())
+            using (var writer = new JsonTextWriter(new StreamWriter(buffer))) {
                 writer.WriteStartObject();
 
                 writer.WritePropertyName(OpenIdConnectConstants.Metadata.Issuer);
@@ -633,13 +633,12 @@ namespace Owin.Security.OpenIdConnect.Server {
                 writer.WriteEndObject();
                 writer.Flush();
 
-                body = memory.ToArray();
+                Response.ContentLength = buffer.Length;
+                Response.ContentType = "application/json;charset=UTF-8";
+
+                buffer.Seek(offset: 0, loc: SeekOrigin.Begin);
+                await buffer.CopyToAsync(Response.Body, 4096, Request.CallCancelled);
             }
-
-            Response.ContentType = "application/json;charset=UTF-8";
-            Response.ContentLength = body.Length;
-
-            await Response.WriteAsync(body, Request.CallCancelled);
         }
 
         private async Task InvokeKeysEndpointAsync() {
@@ -772,10 +771,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return;
             }
 
-            byte[] body;
-
-            using (var memory = new MemoryStream())
-            using (var writer = new JsonTextWriter(new StreamWriter(memory))) {
+            using (var buffer = new MemoryStream())
+            using (var writer = new JsonTextWriter(new StreamWriter(buffer))) {
                 writer.WriteStartObject();
 
                 writer.WritePropertyName(JsonWebKeyParameterNames.Keys);
@@ -852,13 +849,12 @@ namespace Owin.Security.OpenIdConnect.Server {
                 writer.WriteEndObject();
                 writer.Flush();
 
-                body = memory.ToArray();
+                Response.ContentLength = buffer.Length;
+                Response.ContentType = "application/json;charset=UTF-8";
+
+                buffer.Seek(offset: 0, loc: SeekOrigin.Begin);
+                await buffer.CopyToAsync(Response.Body, 4096, Request.CallCancelled);
             }
-
-            Response.ContentType = "application/json;charset=UTF-8";
-            Response.ContentLength = body.Length;
-
-            await Response.WriteAsync(body, Request.CallCancelled);
         }
 
         private async Task InvokeTokenEndpointAsync() {
@@ -1027,10 +1023,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return;
             }
 
-            byte[] body;
-
-            using (var memory = new MemoryStream())
-            using (var writer = new JsonTextWriter(new StreamWriter(memory))) {
+            using (var buffer = new MemoryStream())
+            using (var writer = new JsonTextWriter(new StreamWriter(buffer))) {
                 writer.WriteStartObject();
 
                 foreach (KeyValuePair<string, string> parameter in response.Parameters) {
@@ -1040,16 +1034,17 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                 writer.WriteEndObject();
                 writer.Flush();
-                body = memory.ToArray();
+
+                Response.ContentLength = buffer.Length;
+                Response.ContentType = "application/json;charset=UTF-8";
+
+                Response.Headers.Set("Cache-Control", "no-cache");
+                Response.Headers.Set("Pragma", "no-cache");
+                Response.Headers.Set("Expires", "-1");
+
+                buffer.Seek(offset: 0, loc: SeekOrigin.Begin);
+                await buffer.CopyToAsync(Response.Body, 4096, Request.CallCancelled);
             }
-
-            Response.ContentType = "application/json;charset=UTF-8";
-            Response.Headers.Set("Cache-Control", "no-cache");
-            Response.Headers.Set("Pragma", "no-cache");
-            Response.Headers.Set("Expires", "-1");
-            Response.ContentLength = body.Length;
-
-            await Response.WriteAsync(body, Request.CallCancelled);
         }
 
         private async Task<AuthenticationTicket> InvokeTokenEndpointAuthorizationCodeGrantAsync(
@@ -1305,40 +1300,42 @@ namespace Owin.Security.OpenIdConnect.Server {
             return ticket;
         }
 
-        [SuppressMessage("Microsoft.Reliability",
-            "CA2000:Dispose objects before losing scope",
-            Justification = "The MemoryStream is Disposed by the StreamWriter")]
-        private Task SendErrorAsJsonAsync(
+        private async Task SendErrorAsJsonAsync(
             BaseValidatingContext<OpenIdConnectServerOptions> validatingContext) {
             string error = validatingContext.HasError ? validatingContext.Error : OpenIdConnectConstants.Errors.InvalidRequest;
             string errorDescription = validatingContext.HasError ? validatingContext.ErrorDescription : null;
             string errorUri = validatingContext.HasError ? validatingContext.ErrorUri : null;
 
-            var memory = new MemoryStream();
-            byte[] body;
-            using (var writer = new JsonTextWriter(new StreamWriter(memory))) {
+            using (var buffer = new MemoryStream())
+            using (var writer = new JsonTextWriter(new StreamWriter(buffer))) {
                 writer.WriteStartObject();
                 writer.WritePropertyName(OpenIdConnectConstants.Parameters.Error);
                 writer.WriteValue(error);
+
                 if (!string.IsNullOrEmpty(errorDescription)) {
                     writer.WritePropertyName(OpenIdConnectConstants.Parameters.ErrorDescription);
                     writer.WriteValue(errorDescription);
                 }
+
                 if (!string.IsNullOrEmpty(errorUri)) {
                     writer.WritePropertyName(OpenIdConnectConstants.Parameters.ErrorUri);
                     writer.WriteValue(errorUri);
                 }
+
                 writer.WriteEndObject();
                 writer.Flush();
-                body = memory.ToArray();
+
+                Response.StatusCode = 400;
+                Response.ContentLength = buffer.Length;
+                Response.ContentType = "application/json;charset=UTF-8";
+
+                Response.Headers.Set("Cache-Control", "no-cache");
+                Response.Headers.Set("Pragma", "no-cache");
+                Response.Headers.Set("Expires", "-1");
+
+                buffer.Seek(offset: 0, loc: SeekOrigin.Begin);
+                await buffer.CopyToAsync(Response.Body, 4096, Request.CallCancelled);
             }
-            Response.StatusCode = 400;
-            Response.ContentType = "application/json;charset=UTF-8";
-            Response.Headers.Set("Cache-Control", "no-cache");
-            Response.Headers.Set("Pragma", "no-cache");
-            Response.Headers.Set("Expires", "-1");
-            Response.Headers.Set("Content-Length", body.Length.ToString(CultureInfo.InvariantCulture));
-            return Response.WriteAsync(body, Request.CallCancelled);
         }
 
         private async Task<bool> SendErrorRedirectAsync(
@@ -1382,25 +1379,28 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return false;
             }
 
-            var memory = new MemoryStream();
-            byte[] body;
-            using (var writer = new StreamWriter(memory)) {
+            using (var buffer = new MemoryStream())
+            using (var writer = new StreamWriter(buffer)) {
                 writer.WriteLine("error: {0}", error);
+
                 if (!string.IsNullOrEmpty(errorDescription)) {
                     writer.WriteLine("error_description: {0}", errorDescription);
                 }
+
                 if (!string.IsNullOrEmpty(errorUri)) {
                     writer.WriteLine("error_uri: {0}", errorUri);
                 }
-                writer.Flush();
-                body = memory.ToArray();
-            }
 
-            Response.ContentType = "text/plain;charset=UTF-8";
-            Response.Headers.Set("Content-Length", body.Length.ToString(CultureInfo.InvariantCulture));
-            await Response.WriteAsync(body, Request.CallCancelled);
-            // request is handled, does not pass on to application
-            return true;
+                writer.Flush();
+
+                Response.ContentLength = buffer.Length;
+                Response.ContentType = "text/plain;charset=UTF-8";
+
+                buffer.Seek(offset: 0, loc: SeekOrigin.Begin);
+                await buffer.CopyToAsync(Response.Body, 4096, Request.CallCancelled);
+
+                return true;
+            }
         }
 
         private class Appender {
