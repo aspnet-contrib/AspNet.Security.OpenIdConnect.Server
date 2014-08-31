@@ -34,9 +34,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <param name="clientId"></param>
         /// <returns></returns>
         public bool Validated(string clientId) {
-            if (!string.Equals(clientId, clientId, StringComparison.Ordinal)) {
-                return false;
-            }
+            ClientId = clientId;
 
             return Validated();
         }
@@ -60,6 +58,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     if (delimiterIndex >= 0) {
                         clientId = text.Substring(0, delimiterIndex);
                         clientSecret = text.Substring(delimiterIndex + 1);
+                        ClientId = clientId;
 
                         return true;
                     }
@@ -85,8 +84,8 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <returns></returns>
         [SuppressMessage("Microsoft.Design", "CA1021:AvoidOutParameters", MessageId = "0#", Justification = "Optimized for usage")]
         public bool TryGetFormCredentials(out string clientId, out string clientSecret) {
-            clientId = AuthorizationRequest.ClientId;
-            if (!String.IsNullOrEmpty(clientId)) {
+            clientId = ClientId;
+            if (!string.IsNullOrEmpty(clientId)) {
                 clientSecret = AuthorizationRequest.ClientSecret;
                 return true;
             }
