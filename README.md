@@ -33,7 +33,6 @@ app.UseOpenIdConnectServer(new OpenIdConnectServerOptions {
     Provider = new CustomOpenIdConnectServerProvider(),
     AuthorizationCodeProvider = new AuthorizationCodeProvider()
 });
-
 ```
 
 Take a look at https://github.com/AspNet-OpenIdConnect-Server/Owin.Security.OpenIdConnect.Server/tree/dev/samples for a basic sample showing how to configure a new OpenID Connect server using a custom `OpenIdConnectServerProvider` implementation to validate client applications.
