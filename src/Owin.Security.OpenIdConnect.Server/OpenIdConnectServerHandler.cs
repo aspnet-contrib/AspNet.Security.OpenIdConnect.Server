@@ -1090,8 +1090,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             await Options.Provider.ValidateTokenRequest(validatingContext);
 
-            var grantContext = new OpenIdConnectGrantAuthorizationCodeContext(
-                Context, Options, ticket);
+            var grantContext = new OpenIdConnectGrantAuthorizationCodeContext(Context, Options, tokenRequest, ticket);
 
             if (validatingContext.IsValidated) {
                 await Options.Provider.GrantAuthorizationCode(grantContext);
@@ -1111,10 +1110,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             await Options.Provider.ValidateTokenRequest(validatingContext);
 
-            var scope = (tokenRequest.Scope ?? string.Empty).Split(' ');
-            var grantContext = new OpenIdConnectGrantResourceOwnerCredentialsContext(
-                Context, Options, validatingContext.ClientContext.ClientId,
-                tokenRequest.Username, tokenRequest.Password, scope);
+            var grantContext = new OpenIdConnectGrantResourceOwnerCredentialsContext(Context, Options, tokenRequest);
 
             if (validatingContext.IsValidated) {
                 await Options.Provider.GrantResourceOwnerCredentials(grantContext);
@@ -1137,9 +1133,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return null;
             }
 
-            var scope = (tokenRequest.Scope ?? string.Empty).Split(' ');
-            var grantContext = new OpenIdConnectGrantClientCredentialsContext(
-                Context, Options, validatingContext.ClientContext.ClientId, scope);
+            var grantContext = new OpenIdConnectGrantClientCredentialsContext(Context, Options, tokenRequest);
 
             await Options.Provider.GrantClientCredentials(grantContext);
 
@@ -1176,8 +1170,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             await Options.Provider.ValidateTokenRequest(validatingContext);
 
-            var grantContext = new OpenIdConnectGrantRefreshTokenContext(
-                Context, Options, ticket, validatingContext.ClientContext.ClientId);
+            var grantContext = new OpenIdConnectGrantRefreshTokenContext(Context, Options, tokenRequest, ticket);
 
             if (validatingContext.IsValidated) {
                 await Options.Provider.GrantRefreshToken(grantContext);
@@ -1197,8 +1190,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             await Options.Provider.ValidateTokenRequest(validatingContext);
 
-            var grantContext = new OpenIdConnectGrantCustomExtensionContext(Context, Options,
-                validatingContext.ClientContext.ClientId, tokenRequest.GrantType);
+            var grantContext = new OpenIdConnectGrantCustomExtensionContext(Context, Options, tokenRequest);
 
             if (validatingContext.IsValidated) {
                 await Options.Provider.GrantCustomExtension(grantContext);

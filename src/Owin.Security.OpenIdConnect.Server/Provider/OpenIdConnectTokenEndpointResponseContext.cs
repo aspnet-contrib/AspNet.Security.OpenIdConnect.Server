@@ -16,7 +16,7 @@ namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used at the end of a token-endpoint-request.
     /// </summary>
-    public class OpenIdConnectTokenEndpointResponseContext : EndpointContext<OpenIdConnectServerOptions> {
+    public sealed class OpenIdConnectTokenEndpointResponseContext : EndpointContext<OpenIdConnectServerOptions> {
         /// <summary>
         /// Initializes a new instance of the <see cref="OpenIdConnectTokenEndpointResponseContext"/> class
         /// </summary>
@@ -25,7 +25,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <param name="ticket"></param>
         /// <param name="tokenRequest"></param>
         /// <param name="tokenResponse"></param>
-        public OpenIdConnectTokenEndpointResponseContext(
+        internal OpenIdConnectTokenEndpointResponseContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
             AuthenticationTicket ticket,

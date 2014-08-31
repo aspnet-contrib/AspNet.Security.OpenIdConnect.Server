@@ -5,38 +5,52 @@
  */
 
 using System.Collections.Generic;
+using System.Linq;
+using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used in handling an OpenIdConnect client credentials grant.
     /// </summary>
-    public class OpenIdConnectGrantClientCredentialsContext : BaseValidatingTicketContext<OpenIdConnectServerOptions> {
+    public sealed class OpenIdConnectGrantClientCredentialsContext : BaseValidatingTicketContext<OpenIdConnectServerOptions> {
         /// <summary>
         /// Initializes a new instance of the <see cref="OpenIdConnectGrantClientCredentialsContext"/> class
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
-        /// <param name="clientId"></param>
-        /// <param name="scope"></param>
-        public OpenIdConnectGrantClientCredentialsContext(
+        /// <param name="tokenRequest"></param>
+        internal OpenIdConnectGrantClientCredentialsContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
-            string clientId,
-            IList<string> scope)
+            OpenIdConnectMessage tokenRequest)
             : base(context, options, null) {
-            ClientId = clientId;
-            Scope = scope;
+            TokenRequest = tokenRequest;
         }
 
         /// <summary>
-        /// OpenIdConnect client id.
+        /// Gets the client_id parameter.
         /// </summary>
-        public string ClientId { get; private set; }
+        public string ClientId {
+            get { return TokenRequest.ClientId; }
+        }
 
         /// <summary>
-        /// List of scopes allowed by the resource owner.
+        /// Gets the list of scopes requested by the client application.
         /// </summary>
-        public IList<string> Scope { get; private set; }
+        public IEnumerable<string> Scope {
+            get {
+                if (string.IsNullOrWhiteSpace(TokenRequest.Scope)) {
+                    return Enumerable.Empty<string>();
+                }
+
+                return TokenRequest.Scope.Split(' ');
+            }
+        }
+
+        /// <summary>
+        /// Gets the token request.
+        /// </summary>
+        public OpenIdConnectMessage TokenRequest { get; private set; }
     }
 }

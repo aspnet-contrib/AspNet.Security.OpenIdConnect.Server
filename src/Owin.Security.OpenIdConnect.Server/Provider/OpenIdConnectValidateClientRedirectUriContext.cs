@@ -13,7 +13,7 @@ namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Contains data about the OpenIdConnect client redirect URI
     /// </summary>
-    public class OpenIdConnectValidateClientRedirectUriContext : BaseValidatingClientContext {
+    public sealed class OpenIdConnectValidateClientRedirectUriContext : BaseValidatingClientContext {
         /// <summary>
         /// Initializes a new instance of the <see cref="OpenIdConnectValidateClientRedirectUriContext"/> class
         /// </summary>
@@ -22,7 +22,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <param name="authorizationRequest"></param>
         [SuppressMessage("Microsoft.Design", "CA1054:UriParametersShouldNotBeStrings",
             MessageId = "3#", Justification = "redirect_uri is a string parameter")]
-        public OpenIdConnectValidateClientRedirectUriContext(
+        internal OpenIdConnectValidateClientRedirectUriContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage authorizationRequest)
