@@ -8,8 +8,9 @@ using System.Threading.Tasks;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
-    /// Interface for OpenIdConnectServerOptions.Provider property used by Authorization
-    /// Server to communicate with the web application while processing requests.
+    /// Interface used by the authorization server to communicate with the web application while processing requests.
+    /// Implementers are strongly encouraged to use the default <see cref="OpenIdConnectServerProvider"/>
+    /// implementation to avoid breaking changes in the future.
     /// </summary>
     public interface IOpenIdConnectServerProvider {
         /// <summary>

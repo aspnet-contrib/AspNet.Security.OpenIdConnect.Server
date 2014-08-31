@@ -30,12 +30,12 @@ namespace Owin.Security.OpenIdConnect.Server {
         }
 
         /// <summary>
-        /// Gets OpenIdConnect authorization request data.
+        /// Gets the authorization request.
         /// </summary>
         public OpenIdConnectMessage AuthorizationRequest { get; private set; }
 
         /// <summary>
-        /// Gets data about the OpenIdConnect client. 
+        /// Gets the client context. 
         /// </summary>
         public OpenIdConnectValidateClientRedirectUriContext ClientContext { get; private set; }
     }

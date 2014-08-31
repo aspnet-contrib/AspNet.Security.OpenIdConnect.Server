@@ -9,10 +9,11 @@ using System.Threading.Tasks;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
-    /// Default implementation of IOpenIdConnectServerProvider used by Authorization
-    /// Server to communicate with the web application while processing requests. OpenIdConnectServerProvider provides some default behavior, 
-    /// may be used as a virtual base class, and offers delegate properties which may be used to 
-    /// handle individual calls without declaring a new class type.
+    /// Default implementation of <see cref="IOpenIdConnectServerProvider"/> used by the authorization
+    /// server to communicate with the web application while processing requests.
+    /// <see cref="OpenIdConnectServerProvider"/> provides some default behavior, 
+    /// may be used as a virtual base class, and offers delegate properties
+    /// which may be used to handle individual calls without declaring a new class type.
     /// </summary>
     public class OpenIdConnectServerProvider : IOpenIdConnectServerProvider {
         /// <summary>
