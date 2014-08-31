@@ -4,46 +4,45 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
+using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used when handling OpenIdConnect extension grant types.
     /// </summary>
-    public class OpenIdConnectGrantCustomExtensionContext : BaseValidatingTicketContext<OpenIdConnectServerOptions> {
+    public sealed class OpenIdConnectGrantCustomExtensionContext : BaseValidatingTicketContext<OpenIdConnectServerOptions> {
         /// <summary>
         /// Initializes a new instance of the <see cref="OpenIdConnectGrantCustomExtensionContext"/> class
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
-        /// <param name="clientId"></param>
-        /// <param name="grantType"></param>
-        /// <param name="parameters"></param>
-        public OpenIdConnectGrantCustomExtensionContext(
+        /// <param name="tokenRequest"></param>
+        internal OpenIdConnectGrantCustomExtensionContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
-            string clientId,
-            string grantType,
-            IReadableStringCollection parameters)
+            OpenIdConnectMessage tokenRequest)
             : base(context, options, null) {
-            ClientId = clientId;
-            GrantType = grantType;
-            Parameters = parameters;
+            TokenRequest = tokenRequest;
         }
 
         /// <summary>
-        /// Gets the OpenIdConnect client id.
+        /// Gets the client_id parameter.
         /// </summary>
-        public string ClientId { get; private set; }
+        public string ClientId {
+            get { return TokenRequest.ClientId; }
+        }
 
         /// <summary>
-        /// Gets the name of the OpenIdConnect extension grant type.
+        /// Gets the grant_type parameter.
         /// </summary>
-        public string GrantType { get; private set; }
+        public string GrantType {
+            get { return TokenRequest.GrantType; }
+        }
 
         /// <summary>
-        /// Gets a list of additional parameters from the token request.
+        /// Gets the token request.
         /// </summary>
-        public IReadableStringCollection Parameters { get; private set; }
+        public OpenIdConnectMessage TokenRequest { get; private set; }
     }
 }

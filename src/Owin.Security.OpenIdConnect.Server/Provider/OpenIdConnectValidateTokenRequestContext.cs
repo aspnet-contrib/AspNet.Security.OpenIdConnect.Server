@@ -4,14 +4,14 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
+using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
-using Owin.Security.OpenIdConnect.Server.Messages;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used in validating an OpenIdConnect token request.
     /// </summary>
-    public class OpenIdConnectValidateTokenRequestContext : BaseValidatingContext<OpenIdConnectServerOptions> {
+    public sealed class OpenIdConnectValidateTokenRequestContext : BaseValidatingContext<OpenIdConnectServerOptions> {
         /// <summary>
         /// Initializes a new instance of the <see cref="OpenIdConnectValidateTokenRequestContext"/> class
         /// </summary>
@@ -19,10 +19,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <param name="options"></param>
         /// <param name="tokenRequest"></param>
         /// <param name="clientContext"></param>
-        public OpenIdConnectValidateTokenRequestContext(
+        internal OpenIdConnectValidateTokenRequestContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
-            OpenIdConnectTokenRequest tokenRequest,
+            OpenIdConnectMessage tokenRequest,
             BaseValidatingClientContext clientContext) : base(context, options) {
             TokenRequest = tokenRequest;
             ClientContext = clientContext;
@@ -31,7 +31,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the token request data.
         /// </summary>
-        public OpenIdConnectTokenRequest TokenRequest { get; private set; }
+        public OpenIdConnectMessage TokenRequest { get; private set; }
 
         /// <summary>
         /// Gets information about the client.

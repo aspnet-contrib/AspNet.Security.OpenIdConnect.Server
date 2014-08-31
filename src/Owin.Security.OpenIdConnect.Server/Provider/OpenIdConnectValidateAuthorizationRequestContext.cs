@@ -4,14 +4,14 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
+using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
-using Owin.Security.OpenIdConnect.Server.Messages;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used in validating an OpenIdConnect authorization request.
     /// </summary>
-    public class OpenIdConnectValidateAuthorizationRequestContext : BaseValidatingContext<OpenIdConnectServerOptions> {
+    public sealed class OpenIdConnectValidateAuthorizationRequestContext : BaseValidatingContext<OpenIdConnectServerOptions> {
         /// <summary>
         /// Initializes a new instance of the <see cref="OpenIdConnectValidateAuthorizationRequestContext"/> class
         /// </summary>
@@ -19,22 +19,23 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <param name="options"></param>
         /// <param name="authorizationRequest"></param>
         /// <param name="clientContext"></param>
-        public OpenIdConnectValidateAuthorizationRequestContext(
+        internal OpenIdConnectValidateAuthorizationRequestContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
-            OpenIdConnectAuthorizationRequest authorizationRequest,
-            OpenIdConnectValidateClientRedirectUriContext clientContext) : base(context, options) {
-            AuthorizationRequest = authorizationRequest;
+            OpenIdConnectMessage authorizationRequest,
+            OpenIdConnectValidateClientRedirectUriContext clientContext)
+            : base(context, options) {
             ClientContext = clientContext;
+            AuthorizationRequest = authorizationRequest;
         }
 
         /// <summary>
-        /// Gets OpenIdConnect authorization request data.
+        /// Gets the authorization request.
         /// </summary>
-        public OpenIdConnectAuthorizationRequest AuthorizationRequest { get; private set; }
+        public OpenIdConnectMessage AuthorizationRequest { get; private set; }
 
         /// <summary>
-        /// Gets data about the OpenIdConnect client. 
+        /// Gets the client context. 
         /// </summary>
         public OpenIdConnectValidateClientRedirectUriContext ClientContext { get; private set; }
     }

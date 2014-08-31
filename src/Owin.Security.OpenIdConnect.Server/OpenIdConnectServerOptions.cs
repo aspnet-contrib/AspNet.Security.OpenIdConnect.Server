@@ -31,7 +31,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             ServerClaimsMapper = claims => claims;
             AuthorizationEndpointPath = new PathString(OpenIdConnectDefaults.AuthorizationEndpointPath);
             ConfigurationEndpointPath = new PathString(OpenIdConnectDefaults.ConfigurationEndpointPath);
-            CryptoEndpointPath = new PathString(OpenIdConnectDefaults.CryptoEndpointPath);
+            KeysEndpointPath = new PathString(OpenIdConnectDefaults.KeysEndpointPath);
             TokenEndpointPath = new PathString(OpenIdConnectDefaults.TokenEndpointPath);
         }
 
@@ -69,7 +69,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// associated with this instance. Must begin with a leading slash, like "/.well-known/jwks".
         /// This setting can be set to <see cref="PathString.Empty"/> to disable the crypto endpoint.
         /// </summary>
-        public PathString CryptoEndpointPath { get; set; }
+        public PathString KeysEndpointPath { get; set; }
 
         /// <summary>
         /// The request path client applications communicate with directly as part of the OpenID Connect protocol. 

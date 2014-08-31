@@ -5,54 +5,66 @@
  */
 
 using System.Collections.Generic;
+using System.Linq;
+using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used in handling an OpenIdConnect resource owner grant.
     /// </summary>
-    public class OpenIdConnectGrantResourceOwnerCredentialsContext : BaseValidatingTicketContext<OpenIdConnectServerOptions> {
+    public sealed class OpenIdConnectGrantResourceOwnerCredentialsContext : BaseValidatingTicketContext<OpenIdConnectServerOptions> {
         /// <summary>
         /// Initializes a new instance of the <see cref="OpenIdConnectGrantResourceOwnerCredentialsContext"/> class
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
-        /// <param name="clientId"></param>
-        /// <param name="userName"></param>
-        /// <param name="password"></param>
-        /// <param name="scope"></param>
-        public OpenIdConnectGrantResourceOwnerCredentialsContext(
+        /// <param name="tokenRequest"></param>
+        internal OpenIdConnectGrantResourceOwnerCredentialsContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
-            string clientId,
-            string userName,
-            string password,
-            IList<string> scope)
+            OpenIdConnectMessage tokenRequest)
             : base(context, options, null) {
-            ClientId = clientId;
-            UserName = userName;
-            Password = password;
-            Scope = scope;
+            TokenRequest = tokenRequest;
         }
 
         /// <summary>
         /// OpenIdConnect client id.
         /// </summary>
-        public string ClientId { get; private set; }
+        public string ClientId {
+            get { return TokenRequest.ClientId; }
+        }
 
         /// <summary>
         /// Resource owner username.
         /// </summary>
-        public string UserName { get; private set; }
+        public string UserName {
+            get { return TokenRequest.Username; }
+        }
 
         /// <summary>
         /// Resource owner password.
         /// </summary>
-        public string Password { get; private set; }
+        public string Password {
+            get { return TokenRequest.Password; }
+        }
 
         /// <summary>
-        /// List of scopes allowed by the resource owner.
+        /// Gets the list of scopes requested by the client application.
         /// </summary>
-        public IList<string> Scope { get; private set; }
+        public IEnumerable<string> Scope {
+            get {
+                if (string.IsNullOrWhiteSpace(TokenRequest.Scope)) {
+                    return Enumerable.Empty<string>();
+                }
+
+                return TokenRequest.Scope.Split(' ');
+            }
+        }
+
+        /// <summary>
+        /// Gets the token request.
+        /// </summary>
+        public OpenIdConnectMessage TokenRequest { get; private set; }
     }
 }

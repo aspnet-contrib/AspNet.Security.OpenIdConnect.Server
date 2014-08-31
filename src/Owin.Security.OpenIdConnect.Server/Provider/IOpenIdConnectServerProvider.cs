@@ -8,8 +8,9 @@ using System.Threading.Tasks;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
-    /// Interface for OpenIdConnectServerOptions.Provider property used by Authorization
-    /// Server to communicate with the web application while processing requests.
+    /// Interface used by the authorization server to communicate with the web application while processing requests.
+    /// Implementers are strongly encouraged to use the default <see cref="OpenIdConnectServerProvider"/>
+    /// implementation to avoid breaking changes in the future.
     /// </summary>
     public interface IOpenIdConnectServerProvider {
         /// <summary>
@@ -181,7 +182,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        Task CryptoEndpoint(OpenIdConnectCryptoEndpointContext context);
+        Task KeysEndpoint(OpenIdConnectKeysEndpointContext context);
 
         /// <summary>
         /// Called before the authorization server starts emitting the OpenID Connect JSON Web Key set associated with this instance.
@@ -190,7 +191,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        Task CryptoEndpointResponse(OpenIdConnectCryptoEndpointResponseContext context);
+        Task KeysEndpointResponse(OpenIdConnectKeysEndpointResponseContext context);
 
         /// <summary>
         /// Called at the final stage of a successful Token endpoint request. An application may implement this call in order to do any final 

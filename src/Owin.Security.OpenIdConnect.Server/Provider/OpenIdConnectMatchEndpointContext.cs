@@ -11,13 +11,13 @@ namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used when determining the OpenIdConnect flow type based on the request.
     /// </summary>
-    public class OpenIdConnectMatchEndpointContext : EndpointContext<OpenIdConnectServerOptions> {
+    public sealed class OpenIdConnectMatchEndpointContext : EndpointContext<OpenIdConnectServerOptions> {
         /// <summary>
         /// Initializes a new instance of the <see cref="OpenIdConnectMatchEndpointContext"/> class
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
-        public OpenIdConnectMatchEndpointContext(
+        internal OpenIdConnectMatchEndpointContext(
             IOwinContext context,
             OpenIdConnectServerOptions options)
             : base(context, options) {
@@ -39,7 +39,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// Gets whether or not the endpoint is an
         /// OpenID Connect JWKS endpoint.
         /// </summary>
-        public bool IsCryptoEndpoint { get; private set; }
+        public bool IsKeysEndpoint { get; private set; }
 
         /// <summary>
         /// Gets whether or not the endpoint is an
@@ -53,7 +53,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         public void MatchesAuthorizationEndpoint() {
             IsAuthorizationEndpoint = true;
             IsConfigurationEndpoint = false;
-            IsCryptoEndpoint = false;
+            IsKeysEndpoint = false;
             IsTokenEndpoint = false;
         }
 
@@ -63,17 +63,17 @@ namespace Owin.Security.OpenIdConnect.Server {
         public void MatchesConfigurationEndpoint() {
             IsAuthorizationEndpoint = false;
             IsConfigurationEndpoint = true;
-            IsCryptoEndpoint = false;
+            IsKeysEndpoint = false;
             IsTokenEndpoint = false;
         }
 
         /// <summary>
         /// Sets the endpoint type to the JWKS endpoint.
         /// </summary>
-        public void MatchesCryptoEndpoint() {
+        public void MatchesKeysEndpoint() {
             IsAuthorizationEndpoint = false;
             IsConfigurationEndpoint = false;
-            IsCryptoEndpoint = true;
+            IsKeysEndpoint = true;
             IsTokenEndpoint = false;
         }
 
@@ -83,7 +83,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         public void MatchesTokenEndpoint() {
             IsAuthorizationEndpoint = false;
             IsConfigurationEndpoint = false;
-            IsCryptoEndpoint = false;
+            IsKeysEndpoint = false;
             IsTokenEndpoint = true;
         }
 
@@ -93,7 +93,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         public void MatchesNothing() {
             IsAuthorizationEndpoint = false;
             IsConfigurationEndpoint = false;
-            IsCryptoEndpoint = false;
+            IsKeysEndpoint = false;
             IsTokenEndpoint = false;
         }
     }

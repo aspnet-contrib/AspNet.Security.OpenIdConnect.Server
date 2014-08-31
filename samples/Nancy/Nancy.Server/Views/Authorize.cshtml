@@ -1,8 +1,8 @@
-﻿@using Nancy.Server.Models
+﻿@using Microsoft.IdentityModel.Protocols
+@using Nancy.Server.Models
 @using Nancy.ViewEngines.Razor
-@using Owin.Security.OpenIdConnect.Server.Messages
 
-@inherits NancyRazorViewBase<Tuple<OpenIdConnectAuthorizationRequest, Application>>
+@inherits NancyRazorViewBase<Tuple<OpenIdConnectMessage, Application>>
 
 <div class="jumbotron">
     <h1>Authorization</h1>
@@ -12,7 +12,7 @@
         @Html.AntiForgeryToken()
 
         @foreach (var parameter in Model.Item1.Parameters) {
-            <input type="hidden" name="@parameter.Key" value="@Model.Item1.Parameters.Get(parameter.Key)" />
+            <input type="hidden" name="@parameter.Key" value="@parameter.Value" />
         }
 
         <button class="btn btn-lg btn-success" type="submit">Yeah, sure</button>

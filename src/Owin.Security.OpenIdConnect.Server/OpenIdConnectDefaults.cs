@@ -16,22 +16,22 @@ namespace Owin.Security.OpenIdConnect.Server {
         public const string AuthenticationType = "Bearer";
 
         /// <summary>
-        /// Default value for OpenIdConnectServerOptions.AuthorizationEndpointPath.
+        /// Default value for <see cref="OpenIdConnectServerOptions.AuthorizationEndpointPath"/>.
         /// </summary>
         public const string AuthorizationEndpointPath = "/connect/authorize";
 
         /// <summary>
-        /// Default value for OpenIdConnectServerOptions.ConfigurationEndpointPath.
+        /// Default value for <see cref="OpenIdConnectServerOptions.ConfigurationEndpointPath"/>.
         /// </summary>
         public const string ConfigurationEndpointPath = "/.well-known/openid-configuration";
 
         /// <summary>
-        /// Default value for OpenIdConnectServerOptions.CryptoEndpointPath.
+        /// Default value for <see cref="OpenIdConnectServerOptions.KeysEndpointPath"/>.
         /// </summary>
-        public const string CryptoEndpointPath = "/.well-known/jwks";
+        public const string KeysEndpointPath = "/.well-known/jwks";
 
         /// <summary>
-        /// Default value for OpenIdConnectServerOptions.TokenEndpointPath.
+        /// Default value for <see cref="OpenIdConnectServerOptions.TokenEndpointPath"/>.
         /// </summary>
         public const string TokenEndpointPath = "/connect/token";
     }

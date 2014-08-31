@@ -7,31 +7,26 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Contains information about the client credentials.
     /// </summary>
-    public class OpenIdConnectValidateClientAuthenticationContext : BaseValidatingClientContext {
+    public sealed class OpenIdConnectValidateClientAuthenticationContext : BaseValidatingClientContext {
         /// <summary>
         /// Initializes a new instance of the <see cref="OpenIdConnectValidateClientAuthenticationContext"/> class
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
-        /// <param name="parameters"></param>
-        public OpenIdConnectValidateClientAuthenticationContext(
+        /// <param name="authorizationRequest"></param>
+        internal OpenIdConnectValidateClientAuthenticationContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
-            IReadableStringCollection parameters)
-            : base(context, options, null) {
-            Parameters = parameters;
+            OpenIdConnectMessage authorizationRequest)
+            : base(context, options, authorizationRequest) {
         }
-
-        /// <summary>
-        /// Gets the set of form parameters from the request.
-        /// </summary>
-        public IReadableStringCollection Parameters { get; private set; }
 
         /// <summary>
         /// Sets the client id and marks the context as validated by the application.
@@ -64,6 +59,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                         clientId = text.Substring(0, delimiterIndex);
                         clientSecret = text.Substring(delimiterIndex + 1);
                         ClientId = clientId;
+
                         return true;
                     }
                 }
@@ -88,10 +84,9 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <returns></returns>
         [SuppressMessage("Microsoft.Design", "CA1021:AvoidOutParameters", MessageId = "0#", Justification = "Optimized for usage")]
         public bool TryGetFormCredentials(out string clientId, out string clientSecret) {
-            clientId = Parameters.Get(OpenIdConnectConstants.Parameters.ClientId);
-            if (!String.IsNullOrEmpty(clientId)) {
-                clientSecret = Parameters.Get(OpenIdConnectConstants.Parameters.ClientSecret);
-                ClientId = clientId;
+            clientId = ClientId;
+            if (!string.IsNullOrEmpty(clientId)) {
+                clientSecret = AuthorizationRequest.ClientSecret;
                 return true;
             }
             clientId = null;

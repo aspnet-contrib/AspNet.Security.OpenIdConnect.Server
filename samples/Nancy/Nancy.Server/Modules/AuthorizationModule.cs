@@ -2,6 +2,7 @@
 using System.Data.Entity;
 using System.Linq;
 using System.Security.Claims;
+using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Nancy.Security;
@@ -9,7 +10,6 @@ using Nancy.Server.Extensions;
 using Nancy.Server.Models;
 using Owin;
 using Owin.Security.OpenIdConnect.Server;
-using Owin.Security.OpenIdConnect.Server.Messages;
 
 namespace Nancy.Server.Modules {
     public class AuthorizationModule : NancyModule {
@@ -27,7 +27,7 @@ namespace Nancy.Server.Modules {
                 // Note: you can safely remove this part and let Owin.Security.OpenIdConnect.Server automatically
                 // handle the error by switching ApplicationCanDisplayErrors to false in Startup.cs
                 string error, errorDescription, errorUri;
-                error = context.GetAuthorizationRequestError(out errorDescription, out errorUri);
+                error = context.GetOpenIdConnectRequestError(out errorDescription, out errorUri);
 
                 if (!string.IsNullOrWhiteSpace(error)) {
                     // Note: in a real world application, you'd probably prefer creating a specific view model.
@@ -35,7 +35,7 @@ namespace Nancy.Server.Modules {
                 }
 
                 // Extract the authorization request from the OWIN environment.
-                OpenIdConnectAuthorizationRequest request = context.GetAuthorizationRequest();
+                OpenIdConnectMessage request = context.GetOpenIdConnectRequest();
                 if (request == null) {
                     return View["error.cshtml", Tuple.Create(
                         /* error: */ "invalid_request",
