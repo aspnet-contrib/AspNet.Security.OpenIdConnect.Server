@@ -25,7 +25,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             : base(OpenIdConnectDefaults.AuthenticationType) {
             AuthorizationCodeLifetime = TimeSpan.FromMinutes(5);
             AccessTokenLifetime = TimeSpan.FromMinutes(20);
-            IdTokenLifetime = TimeSpan.FromMinutes(20);
+            IdentityTokenLifetime = TimeSpan.FromMinutes(20);
             SystemClock = new SystemClock();
             TokenHandler = new JwtSecurityTokenHandler();
             ServerClaimsMapper = claims => claims;
@@ -60,14 +60,14 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// The request path where client applications will be able to retrieve the configuration metadata associated
         /// with this instance. Must begin with a leading slash, like "/.well-known/openid-configuration".
-        /// You can set it to <see cref="PathString.Empty"/> to disable the configuration endpoint.
+        /// This setting can be set to <see cref="PathString.Empty"/> to disable the configuration endpoint.
         /// </summary>
         public PathString ConfigurationEndpointPath { get; set; }
 
         /// <summary>
         /// The request path where client applications will be able to retrieve the JSON Web Key Set
         /// associated with this instance. Must begin with a leading slash, like "/.well-known/jwks".
-        /// You can set it to <see cref="PathString.Empty"/> to disable the cryptographic keys endpoint.
+        /// This setting can be set to <see cref="PathString.Empty"/> to disable the crypto endpoint.
         /// </summary>
         public PathString KeysEndpointPath { get; set; }
 
@@ -128,7 +128,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// The period of time the identity token remains valid after being issued. The default is twenty minutes.
         /// The client application is expected to refresh or acquire a new identity token after the token has expired. 
         /// </summary>
-        public TimeSpan IdTokenLifetime { get; set; }
+        public TimeSpan IdentityTokenLifetime { get; set; }
 
         /// <summary>
         /// Produces a single-use authorization code to return to the client application. For the OpenID Connect server to be secure the
@@ -165,8 +165,8 @@ namespace Owin.Security.OpenIdConnect.Server {
         public ISystemClock SystemClock { get; set; }
 
         /// <summary>
-        /// True to allow authorization and token requests to arrive on http URI addresses,
-        /// and to allow incoming redirect_uri parameter to have http URI addresses.
+        /// True to allow incoming requests to arrive on HTTP and to allow redirect_uri parameters to have HTTP URI addresses.
+        /// Setting this option to false in production is strongly encouraged to mitigate man-in-the-middle attacks.
         /// </summary>
         public bool AllowInsecureHttp { get; set; }
 

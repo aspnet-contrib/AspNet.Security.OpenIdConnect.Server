@@ -68,7 +68,7 @@ namespace Nancy.Server {
 
                 Provider = new CustomOpenIdConnectServerProvider(),
                 AccessTokenLifetime = TimeSpan.FromDays(14),
-                IdTokenLifetime = TimeSpan.FromMinutes(60),
+                IdentityTokenLifetime = TimeSpan.FromMinutes(60),
                 AllowInsecureHttp = true,
 
                 // Note: see AuthorizationModule.cs for more

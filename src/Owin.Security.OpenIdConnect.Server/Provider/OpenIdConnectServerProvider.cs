@@ -166,28 +166,28 @@ namespace Owin.Security.OpenIdConnect.Server {
         public Func<OpenIdConnectAuthorizationEndpointResponseContext, Task> OnAuthorizationEndpointResponse { get; set; }
 
         /// <summary>
-        /// Called by the client applications to retrieve the OpenID connect configuration associated with this instance.
+        /// Called by the client applications to retrieve the OpenID Connect configuration associated with this instance.
         /// If the web application wishes to produce the configuration metadata directly in this call, it may write to the 
         /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
         /// </summary>
         public Func<OpenIdConnectConfigurationEndpointContext, Task> OnConfigurationEndpoint { get; set; }
 
         /// <summary>
-        /// Called before the authorization server starts emitting the OpenID connect configuration associated with this instance.
+        /// Called before the authorization server starts emitting the OpenID Connect configuration associated with this instance.
         /// If the web application wishes to produce the configuration metadata directly in this call, it may write to the 
         /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
         /// </summary>
         public Func<OpenIdConnectConfigurationEndpointResponseContext, Task> OnConfigurationEndpointResponse { get; set; }
 
         /// <summary>
-        /// Called by the client applications to retrieve the OpenID connect JSON Web Key set associated with this instance.
+        /// Called by the client applications to retrieve the OpenID Connect JSON Web Key set associated with this instance.
         /// If the web application wishes to produce the JSON Web Key set directly in this call, it may write to the 
         /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
         /// </summary>
         public Func<OpenIdConnectKeysEndpointContext, Task> OnKeysEndpoint { get; set; }
 
         /// <summary>
-        /// Called before the authorization server starts emitting the OpenID connect JSON Web Key set associated with this instance.
+        /// Called before the authorization server starts emitting the OpenID Connect JSON Web Key set associated with this instance.
         /// If the web application wishes to produce the JSON Web Key set directly in this call, it may write to the 
         /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
         /// </summary>
@@ -374,7 +374,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         }
 
         /// <summary>
-        /// Called by the client applications to retrieve the OpenID connect configuration associated with this instance.
+        /// Called by the client applications to retrieve the OpenID Connect configuration associated with this instance.
         /// If the web application wishes to produce the configuration metadata directly in this call, it may write to the 
         /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
         /// </summary>
@@ -385,7 +385,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         }
 
         /// <summary>
-        /// Called before the authorization server starts emitting the OpenID connect configuration associated with this instance.
+        /// Called before the authorization server starts emitting the OpenID Connect configuration associated with this instance.
         /// If the web application wishes to produce the configuration metadata directly in this call, it may write to the 
         /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
         /// </summary>
@@ -396,7 +396,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         }
 
         /// <summary>
-        /// Called by the client applications to retrieve the OpenID connect JSON Web Key set associated with this instance.
+        /// Called by the client applications to retrieve the OpenID Connect JSON Web Key set associated with this instance.
         /// If the web application wishes to produce the JSON Web Key set directly in this call, it may write to the 
         /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
         /// </summary>
@@ -407,7 +407,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         }
 
         /// <summary>
-        /// Called before the authorization server starts emitting the OpenID connect JSON Web Key set associated with this instance.
+        /// Called before the authorization server starts emitting the OpenID Connect JSON Web Key set associated with this instance.
         /// If the web application wishes to produce the JSON Web Key set directly in this call, it may write to the 
         /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
         /// </summary>

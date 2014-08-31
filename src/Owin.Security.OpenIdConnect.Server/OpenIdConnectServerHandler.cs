@@ -358,7 +358,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             // Determine whether an identity token should be returned.
             if (request.HasComponent(message => message.ResponseType, OpenIdConnectConstants.ResponseTypes.IdToken)) {
                 signin.Properties.IssuedUtc = currentUtc;
-                signin.Properties.ExpiresUtc = currentUtc.Add(Options.IdTokenLifetime);
+                signin.Properties.ExpiresUtc = currentUtc.Add(Options.IdentityTokenLifetime);
 
                 response.IdToken = CreateIdToken(
                     signin.Identity, signin.Properties, response.ClientId,
@@ -1236,7 +1236,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             outputClaims.Add(new Claim("iat", iat));
 
             DateTimeOffset notBefore = Options.SystemClock.UtcNow;
-            DateTimeOffset expires = notBefore.Add(Options.IdTokenLifetime);
+            DateTimeOffset expires = notBefore.Add(Options.IdentityTokenLifetime);
 
             string notBeforeString;
             if (authProperties.Dictionary.TryGetValue("IdTokenIssuedUtc", out notBeforeString)) {
