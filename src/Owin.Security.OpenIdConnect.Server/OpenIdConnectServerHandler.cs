@@ -378,7 +378,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             await ApplyAuthorizationResponseAsync(request, response);
         }
 
-        private async Task ApplyAuthorizationResponseAsync(OpenIdConnectMessage request, OpenIdConnectMessage response) {
+        private async Task<bool> ApplyAuthorizationResponseAsync(OpenIdConnectMessage request, OpenIdConnectMessage response) {
             if (request.IsFormPostResponseMode()) {
                 byte[] body;
 
@@ -414,7 +414,9 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                 Response.ContentType = "text/html";
                 Response.ContentLength = body.Length;
+
                 await Response.WriteAsync(body, Request.CallCancelled);
+                return true;
             }
 
             else if (request.IsFragmentResponseMode()) {
@@ -431,6 +433,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
 
                 Response.Redirect(appender.ToString());
+                return true;
             }
 
             else if (request.IsQueryResponseMode()) {
@@ -446,7 +449,10 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
 
                 Response.Redirect(location);
+                return true;
             }
+
+            return false;
         }
 
         private async Task InvokeConfigurationEndpointAsync() {
@@ -1347,7 +1353,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 Error = validatingContext.HasError ? validatingContext.Error : OpenIdConnectConstants.Errors.InvalidRequest,
                 ErrorDescription = validatingContext.HasError ? validatingContext.ErrorDescription : null,
                 ErrorUri = validatingContext.HasError ? validatingContext.ErrorUri : null,
-                RedirectUri = request.RedirectUri, State = request.State, RequestType = request.RequestType
+                RedirectUri = request.RedirectUri, RequestType = request.RequestType, State = request.State
             };
 
             if (!clientContext.IsValidated) {
@@ -1355,7 +1361,9 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return await SendErrorPageAsync(response.Error, response.ErrorDescription, response.ErrorUri);
             }
 
-            await ApplyAuthorizationResponseAsync(request, response);
+            if (!await ApplyAuthorizationResponseAsync(request, response)) {
+                return await SendErrorPageAsync(response.Error, response.ErrorDescription, response.ErrorUri);
+            }
 
             // Stop processing the request.
             return true;
