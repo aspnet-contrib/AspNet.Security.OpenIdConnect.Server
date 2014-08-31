@@ -185,10 +185,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 validatingContext.SetError(OpenIdConnectConstants.Errors.UnsupportedResponseType);
             }
 
-            else if (!string.IsNullOrEmpty(request.ResponseMode) &&
-                !request.IsFormPostResponseMode() &&
-                !request.IsFragmentResponseMode() &&
-                !request.IsQueryResponseMode()) {
+            else if (!request.IsFormPostResponseMode() && !request.IsFragmentResponseMode() && !request.IsQueryResponseMode()) {
                 _logger.WriteVerbose("Authorization request contains unsupported response_mode parameter");
                 validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidRequest);
             }
