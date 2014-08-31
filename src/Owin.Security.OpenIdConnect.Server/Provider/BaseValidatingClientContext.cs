@@ -30,11 +30,12 @@ namespace Owin.Security.OpenIdConnect.Server {
 
         /// <summary>
         /// The "client_id" parameter for the current request.
-        /// The Authorization Server application is responsible for 
+        /// The authorization server application is responsible for 
         /// validating this value to ensure it identifies a registered client.
         /// </summary>
         public string ClientId {
             get { return AuthorizationRequest.ClientId; }
+            set { AuthorizationRequest.ClientId = value; }
         }
     }
 }
