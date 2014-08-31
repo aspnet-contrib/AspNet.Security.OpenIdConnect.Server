@@ -14,14 +14,14 @@ namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Contains information about the client credentials.
     /// </summary>
-    public class OpenIdConnectValidateClientAuthenticationContext : BaseValidatingClientContext {
+    public sealed class OpenIdConnectValidateClientAuthenticationContext : BaseValidatingClientContext {
         /// <summary>
         /// Initializes a new instance of the <see cref="OpenIdConnectValidateClientAuthenticationContext"/> class
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="authorizationRequest"></param>
-        public OpenIdConnectValidateClientAuthenticationContext(
+        internal OpenIdConnectValidateClientAuthenticationContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage authorizationRequest)

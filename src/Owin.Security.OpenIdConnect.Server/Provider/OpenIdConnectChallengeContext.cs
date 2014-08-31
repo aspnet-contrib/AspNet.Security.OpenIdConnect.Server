@@ -11,13 +11,13 @@ namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Specifies the HTTP response header for the bearer authentication scheme.
     /// </summary>
-    public class OpenIdConnectChallengeContext : BaseContext {
+    public sealed class OpenIdConnectChallengeContext : BaseContext {
         /// <summary>
         /// Initializes a new <see cref="OpenIdConnectChallengeContext"/>
         /// </summary>
         /// <param name="context">OWIN environment</param>
         /// <param name="challenge">The www-authenticate header value.</param>
-        public OpenIdConnectChallengeContext(
+        internal OpenIdConnectChallengeContext(
             IOwinContext context,
             string challenge)
             : base(context) {

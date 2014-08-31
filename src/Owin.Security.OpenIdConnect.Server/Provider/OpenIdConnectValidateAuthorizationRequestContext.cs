@@ -11,7 +11,7 @@ namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used in validating an OpenIdConnect authorization request.
     /// </summary>
-    public class OpenIdConnectValidateAuthorizationRequestContext : BaseValidatingContext<OpenIdConnectServerOptions> {
+    public sealed class OpenIdConnectValidateAuthorizationRequestContext : BaseValidatingContext<OpenIdConnectServerOptions> {
         /// <summary>
         /// Initializes a new instance of the <see cref="OpenIdConnectValidateAuthorizationRequestContext"/> class
         /// </summary>
@@ -19,7 +19,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <param name="options"></param>
         /// <param name="authorizationRequest"></param>
         /// <param name="clientContext"></param>
-        public OpenIdConnectValidateAuthorizationRequestContext(
+        internal OpenIdConnectValidateAuthorizationRequestContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage authorizationRequest,

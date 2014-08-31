@@ -11,13 +11,13 @@ namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used when determining the OpenIdConnect flow type based on the request.
     /// </summary>
-    public class OpenIdConnectMatchEndpointContext : EndpointContext<OpenIdConnectServerOptions> {
+    public sealed class OpenIdConnectMatchEndpointContext : EndpointContext<OpenIdConnectServerOptions> {
         /// <summary>
         /// Initializes a new instance of the <see cref="OpenIdConnectMatchEndpointContext"/> class
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
-        public OpenIdConnectMatchEndpointContext(
+        internal OpenIdConnectMatchEndpointContext(
             IOwinContext context,
             OpenIdConnectServerOptions options)
             : base(context, options) {

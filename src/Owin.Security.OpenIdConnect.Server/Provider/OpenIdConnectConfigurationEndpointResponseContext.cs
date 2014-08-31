@@ -14,11 +14,11 @@ namespace Owin.Security.OpenIdConnect.Server {
     /// An event raised before the authorization server starts
     /// writing the configuration metadata to the response stream.
     /// </summary>
-    public class OpenIdConnectConfigurationEndpointResponseContext : EndpointContext<OpenIdConnectServerOptions> {
+    public sealed class OpenIdConnectConfigurationEndpointResponseContext : EndpointContext<OpenIdConnectServerOptions> {
         /// <summary>
         /// Creates an instance of this context.
         /// </summary>
-        public OpenIdConnectConfigurationEndpointResponseContext(
+        internal OpenIdConnectConfigurationEndpointResponseContext(
             IOwinContext context,
             OpenIdConnectServerOptions options)
             : base(context, options) {
