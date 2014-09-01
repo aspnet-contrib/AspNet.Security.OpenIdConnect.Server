@@ -26,9 +26,6 @@ namespace Owin.Security.OpenIdConnect.Server {
             AuthorizationCodeLifetime = TimeSpan.FromMinutes(5);
             AccessTokenLifetime = TimeSpan.FromMinutes(20);
             IdentityTokenLifetime = TimeSpan.FromMinutes(20);
-            SystemClock = new SystemClock();
-            TokenHandler = new JwtSecurityTokenHandler();
-            ServerClaimsMapper = claims => claims;
             AuthorizationEndpointPath = new PathString(OpenIdConnectDefaults.AuthorizationEndpointPath);
             ConfigurationEndpointPath = new PathString(OpenIdConnectDefaults.ConfigurationEndpointPath);
             KeysEndpointPath = new PathString(OpenIdConnectDefaults.KeysEndpointPath);

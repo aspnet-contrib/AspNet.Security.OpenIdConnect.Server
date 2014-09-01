@@ -5,7 +5,9 @@
  */
 
 using System;
+using System.IdentityModel.Tokens;
 using Microsoft.Owin;
+using Microsoft.Owin.Infrastructure;
 using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security.DataHandler;
 using Microsoft.Owin.Security.DataProtection;
@@ -72,8 +74,16 @@ namespace Owin.Security.OpenIdConnect.Server {
                 Options.RefreshTokenProvider = new AuthenticationTokenProvider();
             }
 
+            if (Options.SystemClock == null) {
+                Options.SystemClock = new SystemClock();
+            }
+
+            if (Options.TokenHandler == null) {
+                Options.TokenHandler = new JwtSecurityTokenHandler();
+            }
+
             if (Options.ServerClaimsMapper == null) {
-                throw new ArgumentNullException("options.ServerClaimsMapper");
+                Options.ServerClaimsMapper = claims => claims;
             }
 
             if (Options.SigningCredentials == null) {
