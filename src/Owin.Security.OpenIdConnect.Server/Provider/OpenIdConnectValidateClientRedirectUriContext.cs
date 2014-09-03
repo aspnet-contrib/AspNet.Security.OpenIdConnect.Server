@@ -37,6 +37,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             Justification = "redirect_uri is a string parameter")]
         public string RedirectUri {
             get { return AuthorizationRequest.RedirectUri; }
+            set { AuthorizationRequest.RedirectUri = value; }
         }
 
         /// <summary>
@@ -65,11 +66,12 @@ namespace Owin.Security.OpenIdConnect.Server {
                 throw new ArgumentNullException("redirectUri");
             }
 
-            if (!string.IsNullOrEmpty(RedirectUri) &&
-                !string.Equals(RedirectUri, redirectUri, StringComparison.Ordinal)) {
+            if (!string.IsNullOrEmpty(RedirectUri) && !string.Equals(RedirectUri, redirectUri, StringComparison.Ordinal)) {
                 // Don't allow validation to alter redirect_uri provided with request
                 return false;
             }
+
+            RedirectUri = redirectUri;
 
             return Validated();
         }

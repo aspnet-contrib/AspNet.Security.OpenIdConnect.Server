@@ -90,10 +90,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         }
 
         public static class Environment {
-            public const string Request = "oauth.Request";
-            public const string Error = "oauth.Error";
-            public const string ErrorDescription = "oauth.ErrorDescription";
-            public const string ErrorUri = "oauth.ErrorUri";
+            public const string Message = "#message";
+            public const string Parameters = "#parameters";
+            public const string Request = "OpenIdConnect.Request";
+            public const string Response = "OpenIdConnect.Response";
         }
     }
 }

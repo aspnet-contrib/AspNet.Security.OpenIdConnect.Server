@@ -66,12 +66,14 @@ namespace Nancy.Server.Providers {
                     return;
                 }
 
-                if (!string.Equals(context.RedirectUri, application.RedirectUri, StringComparison.Ordinal)) {
-                    context.SetError(
-                        error: "invalid_client",
-                        errorDescription: "Invalid redirect_uri");
+                if (!string.IsNullOrEmpty(context.RedirectUri)) {
+                    if (!string.Equals(context.RedirectUri, application.RedirectUri, StringComparison.Ordinal)) {
+                        context.SetError(
+                            error: "invalid_client",
+                            errorDescription: "Invalid redirect_uri");
 
-                    return;
+                        return;
+                    }
                 }
 
                 context.Validated(application.RedirectUri);

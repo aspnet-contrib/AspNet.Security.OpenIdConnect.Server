@@ -23,24 +23,24 @@ namespace Nancy.Server.Modules {
                     throw new NotSupportedException("An OWIN context cannot be extracted from NancyContext");
                 }
 
-                // Extract the error details from the OWIN environment to display them in the Razor view.
-                // Note: you can safely remove this part and let Owin.Security.OpenIdConnect.Server automatically
-                // handle the error by switching ApplicationCanDisplayErrors to false in Startup.cs
-                string error, errorDescription, errorUri;
-                error = context.GetOpenIdConnectRequestError(out errorDescription, out errorUri);
-
-                if (!string.IsNullOrWhiteSpace(error)) {
-                    // Note: in a real world application, you'd probably prefer creating a specific view model.
-                    return View["error.cshtml", Tuple.Create(error, errorDescription, errorUri)];
+                // Note: when a fatal error occurs during the request processing, an OpenID Connect response
+                // is prematurely forged and added to the OWIN context by OpenIdConnectServerHandler.
+                // When the user agent can be safely redirected to the client application,
+                // OpenIdConnectServerHandler automatically handles the error and Nancy is not invoked.
+                // You can safely remove this part and let Owin.Security.OpenIdConnect.Server automatically
+                // handle the unrecoverable errors by switching ApplicationCanDisplayErrors to false in Startup.cs
+                OpenIdConnectMessage response = context.GetOpenIdConnectResponse();
+                if (response != null) {
+                    return View["error.cshtml", response];
                 }
 
                 // Extract the authorization request from the OWIN environment.
                 OpenIdConnectMessage request = context.GetOpenIdConnectRequest();
                 if (request == null) {
-                    return View["error.cshtml", Tuple.Create(
-                        /* error: */ "invalid_request",
-                        /* errorDescription: */ "An internal error has occurred",
-                        /* errorUri: */ string.Empty)];
+                    return View["error.cshtml", new OpenIdConnectMessage {
+                        Error = "invalid_request",
+                        ErrorDescription = "An internal error has occurred"
+                    }];
                 }
 
                 Application application;
@@ -58,17 +58,17 @@ namespace Nancy.Server.Modules {
                 // and a null reference exception could appear here if you manually removed the application
                 // details from the database after the initial check made by Owin.Security.OpenIdConnect.Server.
                 if (application == null) {
-                    return View["error.cshtml", Tuple.Create(
-                        /* error: */ "invalid_client",
-                        /* errorDescription: */ "Details concerning the calling client application cannot be found in the database",
-                        /* errorUri: */ string.Empty)];
+                    return View["error.cshtml", new OpenIdConnectMessage {
+                        Error = "invalid_client",
+                        ErrorDescription = "Details concerning the calling client application cannot be found in the database"
+                    }];
                 }
 
                 // Note: in a real world application, you'd probably prefer creating a specific view model.
                 return View["authorize.cshtml", Tuple.Create(request, application)];
             };
 
-            Post["/connect/authorize"] = parameters => {
+            Post["/connect/authorize", context => context.Request.Form.Authorize] = parameters => {
                 this.RequiresMSOwinAuthentication();
                 this.ValidateCsrfToken();
 
@@ -92,12 +92,42 @@ namespace Nancy.Server.Modules {
                 manager.SignIn(identity);
 
                 // Instruct the cookies middleware to delete the local cookie created
-                // when the user agent is redirect from the external identity provider
+                // when the user agent is redirected from the external identity provider
                 // after a successful authentication flow (e.g Google or Facebook).
                 // Note: this call requires the user agent to re-authenticate each time
                 // an authorization is granted to a client application. You can safely
                 // remove it and use the signout endpoint from AuthenticationModule.cs instead.
                 manager.SignOut("ServerCookie");
+
+                return HttpStatusCode.OK;
+            };
+
+            Post["/connect/authorize", context => context.Request.Form.Deny] = parameters => {
+                this.RequiresMSOwinAuthentication();
+                this.ValidateCsrfToken();
+
+                IOwinContext context = Context.GetOwinContext();
+                if (context == null) {
+                    throw new NotSupportedException("An OWIN context cannot be extracted from NancyContext");
+                }
+
+                // Extract the authorization request from the OWIN environment.
+                OpenIdConnectMessage request = context.GetOpenIdConnectRequest();
+                if (request == null) {
+                    return View["error.cshtml", new OpenIdConnectMessage {
+                        Error = "invalid_request",
+                        ErrorDescription = "An internal error has occurred"
+                    }];
+                }
+
+                // Notify Owin.Security.OpenIdConnect.Server that the authorization grant has been denied.
+                // Note: OpenIdConnectServerHandler will automatically take care of redirecting
+                // the user agent to the client application using the appropriate response_mode.
+                context.SetOpenIdConnectResponse(new OpenIdConnectMessage {
+                    Error = "access_denied",
+                    ErrorDescription = "The authorization grant has been denied by the resource owner",
+                    RedirectUri = request.RedirectUri, State = request.State
+                });
 
                 return HttpStatusCode.OK;
             };

@@ -30,7 +30,7 @@ namespace Nancy.Client.Modules {
                 }
 
                 // Instruct the cookies middleware to delete the local cookie created when the user agent
-                // is redirect from the identity provider after a successful authorization flow.
+                // is redirected from the identity provider after a successful authorization flow.
                 // Note: this call doesn't disconnect the user agent at the identity provider level (yet).
                 manager.SignOut("ClientCookie");
 
