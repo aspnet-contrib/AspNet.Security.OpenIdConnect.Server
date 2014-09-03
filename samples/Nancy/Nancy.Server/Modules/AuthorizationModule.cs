@@ -14,7 +14,13 @@ using Owin.Security.OpenIdConnect.Server;
 namespace Nancy.Server.Modules {
     public class AuthorizationModule : NancyModule {
         public AuthorizationModule() {
-            Get["/connect/authorize", runAsync: true] = async (parameters, cancellationToken) => {
+            // Owin.Security.OpenIdConnect.Server supports authorization requests received either via GET or POST.
+            // You're strongly encouraged to support both methods to make your app specs-compliant.
+            // See http://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
+            Get["/connect/authorize", runAsync: true] =
+            Post["/connect/authorize", runAsync: true,
+                condition: context => !context.Request.Form.Authorize &&
+                                      !context.Request.Form.Deny] = async (parameters, cancellationToken) => {
                 this.RequiresMSOwinAuthentication();
                 this.CreateNewCsrfToken();
 
@@ -68,7 +74,7 @@ namespace Nancy.Server.Modules {
                 return View["authorize.cshtml", Tuple.Create(request, application)];
             };
 
-            Post["/connect/authorize", context => context.Request.Form.Authorize] = parameters => {
+            Post["/connect/authorize", condition: context => context.Request.Form.Authorize] = parameters => {
                 this.RequiresMSOwinAuthentication();
                 this.ValidateCsrfToken();
 
@@ -102,7 +108,7 @@ namespace Nancy.Server.Modules {
                 return HttpStatusCode.OK;
             };
 
-            Post["/connect/authorize", context => context.Request.Form.Deny] = parameters => {
+            Post["/connect/authorize", condition: context => context.Request.Form.Deny] = parameters => {
                 this.RequiresMSOwinAuthentication();
                 this.ValidateCsrfToken();
 
