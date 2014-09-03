@@ -13,7 +13,7 @@ namespace Nancy.Server.Modules {
                 }
 
                 // Note: the ReturnUrl parameter corresponds to the endpoint the user agent
-                // will be redirect to after a successful authentication and not
+                // will be redirected to after a successful authentication and not
                 // the redirect_uri of the requesting client application.
                 ViewBag.ReturnUrl = (string) Request.Query.ReturnUrl;
 
@@ -39,7 +39,7 @@ namespace Nancy.Server.Modules {
                 }
 
                 // Note: the ReturnUrl parameter corresponds to the endpoint the user agent
-                // will be redirect to after a successful authentication and not
+                // will be redirected to after a successful authentication and not
                 // the redirect_uri of the requesting client application.
                 var returnUrl = (string) Request.Form.ReturnUrl;
                 if (string.IsNullOrWhiteSpace(returnUrl)) {
@@ -65,7 +65,7 @@ namespace Nancy.Server.Modules {
                 }
 
                 // Instruct the cookies middleware to delete the local cookie created
-                // when the user agent is redirect from the external identity provider
+                // when the user agent is redirected from the external identity provider
                 // after a successful authentication flow (e.g Google or Facebook).
                 manager.SignOut("ServerCookie");
 

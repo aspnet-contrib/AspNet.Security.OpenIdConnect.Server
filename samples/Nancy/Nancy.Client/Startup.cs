@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
 using Microsoft.Owin.Security.OpenIdConnect;
@@ -10,7 +11,7 @@ namespace Nancy.Client {
             app.SetDefaultSignInAsAuthenticationType("ClientCookie");
 
             // Insert a new cookies middleware in the pipeline to store the user
-            // identity after he has been redirect from the identity provider.
+            // identity after he has been redirected from the identity provider.
             app.UseCookieAuthentication(new CookieAuthenticationOptions {
                 AuthenticationMode = AuthenticationMode.Active,
                 AuthenticationType = "ClientCookie",
@@ -29,13 +30,26 @@ namespace Nancy.Client {
                 ClientId = "myClient",
                 ClientSecret = "secret_secret_secret",
                 RedirectUri = "http://localhost:56765/oidc",
-
-                Scope = "openid",
-
+                
                 // Note: setting the Authority allows the OIDC client middleware to automatically
                 // retrieve the identity provider's configuration and spare you from setting
                 // the different endpoints URIs or the token validation parameters explicitly.
-                Authority = "http://localhost:55938/"
+                Authority = "http://localhost:55938/",
+
+                // Note: by default, the OIDC client throws an OpenIdConnectProtocolException
+                // when an error occurred during the authentication/authorization process.
+                // To prevent a YSOD from being displayed, the response is declared as handled.
+                Notifications = new OpenIdConnectAuthenticationNotifications {
+                    AuthenticationFailed = notification => {
+                        if (string.Equals(notification.ProtocolMessage.Error, "access_denied", StringComparison.Ordinal)) {
+                            notification.HandleResponse();
+
+                            notification.Response.Redirect("/");
+                        }
+
+                        return Task.FromResult<object>(null);
+                    }
+                }
             });
 
             app.UseNancy(options => options.PerformPassThrough = context => context.Response.StatusCode == HttpStatusCode.NotFound);

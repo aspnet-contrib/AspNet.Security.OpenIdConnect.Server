@@ -4,14 +4,15 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
+using Microsoft.Owin.Security;
+
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Default values used by authorization server and bearer authentication.
     /// </summary>
     public static class OpenIdConnectDefaults {
         /// <summary>
-        /// Default value for AuthenticationType property in the OpenIdConnectBearerAuthenticationOptions and
-        /// OpenIdConnectServerOptions.
+        /// Default value for <see cref="AuthenticationOptions.AuthenticationType"/>.
         /// </summary>
         public const string AuthenticationType = "Bearer";
 

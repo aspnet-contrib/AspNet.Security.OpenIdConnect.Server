@@ -17,8 +17,8 @@ namespace Basic.Server {
         }
 
         public override Task ValidateClientRedirectUri(OpenIdConnectValidateClientRedirectUriContext context) {
-            if (context.ClientId == "myClient" && context.RedirectUri == "http://localhost:57264/oidc") {
-                context.Validated();
+            if (context.ClientId == "myClient" && (string.IsNullOrEmpty(context.RedirectUri) || context.RedirectUri == "http://localhost:57264/oidc")) {
+                context.Validated("http://localhost:57264/oidc");
             }
 
             return Task.FromResult<object>(null);

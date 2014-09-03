@@ -1,13 +1,14 @@
-﻿@using Nancy.ViewEngines.Razor
+﻿@using Microsoft.IdentityModel.Protocols
+@using Nancy.ViewEngines.Razor
 
-@inherits NancyRazorViewBase<Tuple</* error: */ string, /* errorDescription: */ string, /* errorUri: */ string>>
+@inherits NancyRazorViewBase<OpenIdConnectMessage>
 
 <div class="jumbotron">
     <h1>An OpenID Connect error has occurred</h1>
     <p class="lead text-left">
-        <strong>@Model.Item1</strong>
-        @if (!string.IsNullOrWhiteSpace(Model.Item2)) {
-            <small>@Model.Item2</small>
+        <strong>@Model.Error</strong>
+        @if (!string.IsNullOrWhiteSpace(Model.ErrorDescription)) {
+            <small>@Model.ErrorDescription</small>
         }
     </p>
 </div>
