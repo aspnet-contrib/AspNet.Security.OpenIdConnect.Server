@@ -427,8 +427,9 @@ namespace Owin.Security.OpenIdConnect.Server {
                     writer.WriteLine("<form name='form' method='post' action='" + response.RedirectUri + "'>");
 
                     foreach (KeyValuePair<string, string> parameter in response.Parameters) {
-                        // Don't include redirect_uri or response_mode in the form.
-                        if (string.Equals(parameter.Key, OpenIdConnectParameterNames.RedirectUri, StringComparison.Ordinal) ||
+                        // Don't include client_id, redirect_uri or response_mode in the form.
+                        if (string.Equals(parameter.Key, OpenIdConnectParameterNames.ClientId, StringComparison.Ordinal) ||
+                            string.Equals(parameter.Key, OpenIdConnectParameterNames.RedirectUri, StringComparison.Ordinal) ||
                             string.Equals(parameter.Key, OpenIdConnectParameterNames.ResponseMode, StringComparison.Ordinal)) {
                             continue;
                         }
@@ -461,8 +462,9 @@ namespace Owin.Security.OpenIdConnect.Server {
                 var appender = new Appender(location, '#');
 
                 foreach (KeyValuePair<string, string> parameter in response.Parameters) {
-                    // Don't include redirect_uri or response_mode in the fragment.
-                    if (string.Equals(parameter.Key, OpenIdConnectParameterNames.RedirectUri, StringComparison.Ordinal) ||
+                    // Don't include client_id, redirect_uri or response_mode in the fragment.
+                    if (string.Equals(parameter.Key, OpenIdConnectParameterNames.ClientId, StringComparison.Ordinal) || 
+                        string.Equals(parameter.Key, OpenIdConnectParameterNames.RedirectUri, StringComparison.Ordinal) ||
                         string.Equals(parameter.Key, OpenIdConnectParameterNames.ResponseMode, StringComparison.Ordinal)) {
                         continue;
                     }
@@ -478,8 +480,9 @@ namespace Owin.Security.OpenIdConnect.Server {
                 string location = response.RedirectUri;
 
                 foreach (KeyValuePair<string, string> parameter in response.Parameters) {
-                    // Don't include redirect_uri or response_mode in the query string.
-                    if (string.Equals(parameter.Key, OpenIdConnectParameterNames.RedirectUri, StringComparison.Ordinal) ||
+                    // Don't include client_id, redirect_uri or response_mode in the query string.
+                    if (string.Equals(parameter.Key, OpenIdConnectParameterNames.ClientId, StringComparison.Ordinal) || 
+                        string.Equals(parameter.Key, OpenIdConnectParameterNames.RedirectUri, StringComparison.Ordinal) ||
                         string.Equals(parameter.Key, OpenIdConnectParameterNames.ResponseMode, StringComparison.Ordinal)) {
                         continue;
                     }
