@@ -229,7 +229,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                 });
             }
 
-            else if (!request.HasComponent(message => message.Scope, OpenIdConnectScopes.OpenId)) {
+            else if (!request.HasComponent(message => message.Scope, OpenIdConnectScopes.OpenId) &&
+                request.HasComponent(message => message.ResponseType, OpenIdConnectConstants.ResponseTypes.IdToken)) {
                 _logger.WriteVerbose("The 'openid' scope part was missing");
 
                 return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
