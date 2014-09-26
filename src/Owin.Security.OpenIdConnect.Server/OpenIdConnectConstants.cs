@@ -64,6 +64,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
         public static class Extra {
             public const string ClientId = "client_id";
+            public const string Destination = "destination";
             public const string RedirectUri = "redirect_uri";
         }
 
