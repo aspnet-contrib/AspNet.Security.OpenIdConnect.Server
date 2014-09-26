@@ -558,8 +558,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                 OpenIdConnectConstants.ResponseTypes.IdToken + ' ' +
                 OpenIdConnectConstants.ResponseTypes.Token);
 
-            // Don't expose response types containing code when
-            // the token endpoint has been explicitly disabled.
+            // Only expose response types containing code when
+            // the token endpoint has not been explicitly disabled.
             if (Options.TokenEndpointPath.HasValue) {
                 configurationEndpointResponseContext.ResponseTypes.Add(
                     OpenIdConnectConstants.ResponseTypes.Code);
@@ -1286,7 +1286,23 @@ namespace Owin.Security.OpenIdConnect.Server {
                 claims.Add(new Claim(JwtRegisteredClaimNames.Nonce, message.Nonce));
             }
 
-            claims.Add(new Claim("iat", EpochTime.GetIntDate(Options.SystemClock.UtcNow.UtcDateTime).ToString()));
+            // While the 'sub' claim is declared mandatory by the OIDC specs,
+            // it is not always issued as-is by the authorization servers.
+            // When absent, the name identifier claim is used as a substitute.
+            // See http://openid.net/specs/openid-connect-core-1_0.html#IDToken
+            if (!claims.Any(claim => claim.Type == JwtRegisteredClaimNames.Sub)) {
+                var identifier = identity.FindFirst(ClaimTypes.NameIdentifier);
+                if (identifier == null) {
+                    throw new InvalidOperationException(
+                        "A unique identifier cannot be found to generate a 'sub' claim. " +
+                        "Make sure to either add a 'sub' or a 'ClaimTypes.NameIdentifier' claim " +
+                        "in the returned ClaimsIdentity before calling SignIn.");
+                }
+
+                claims.Add(new Claim(JwtRegisteredClaimNames.Sub, identifier.Value));
+            }
+
+            claims.Add(new Claim(JwtRegisteredClaimNames.Iat, EpochTime.GetIntDate(Options.SystemClock.UtcNow.UtcDateTime).ToString()));
 
             DateTimeOffset notBefore = Options.SystemClock.UtcNow;
             DateTimeOffset expires = notBefore.Add(Options.IdentityTokenLifetime);
@@ -1306,6 +1322,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             var jwt = Options.TokenHandler.CreateToken(
+                subject: new ClaimsIdentity(claims),
                 issuer: Options.Issuer,
                 signingCredentials: Options.SigningCredentials,
                 audience: message.ClientId,
@@ -1313,8 +1330,6 @@ namespace Owin.Security.OpenIdConnect.Server {
                 expires: expires.UtcDateTime,
                 signatureProvider: Options.SignatureProvider
             );
-
-            jwt.Payload.AddClaims(claims);
 
             return Options.TokenHandler.WriteToken(jwt);
         }
