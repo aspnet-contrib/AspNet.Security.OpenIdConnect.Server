@@ -82,10 +82,6 @@ namespace Owin.Security.OpenIdConnect.Server {
                 Options.TokenHandler = new JwtSecurityTokenHandler();
             }
 
-            if (Options.ServerClaimsMapper == null) {
-                Options.ServerClaimsMapper = claims => claims;
-            }
-
             if (Options.SigningCredentials == null) {
                 throw new ArgumentNullException("options.SigningCredentials");
             }

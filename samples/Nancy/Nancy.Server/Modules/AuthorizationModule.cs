@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Security.Claims;
@@ -88,10 +89,15 @@ namespace Nancy.Server.Modules {
                 // Note: the authenticationType parameter must match the value configured in Startup.cs.
                 var identity = new ClaimsIdentity(OpenIdConnectDefaults.AuthenticationType);
 
-                // Note: in a real world implementation, you'd likely filter
-                // the claims added to "identity" to avoid leaking too many
-                // information to the final client application.
-                identity.AddClaims(manager.User.Claims);
+                foreach (var claim in manager.User.Claims) {
+                    // Allow both ClaimTypes.Name and ClaimTypes.NameIdentifier to be added in the id_token.
+                    // The other claims won't be visible for the client application.
+                    if (claim.Type == ClaimTypes.Name || claim.Type == ClaimTypes.NameIdentifier) {
+                        claim.Properties.Add("destination", "id_token token");
+                    }
+
+                    identity.AddClaim(claim);
+                }
 
                 // This call will instruct Owin.Security.OpenIdConnect.Server to serialize
                 // the specified identity to build appropriate tokens (id_token and token).

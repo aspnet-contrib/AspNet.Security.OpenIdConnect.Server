@@ -168,12 +168,6 @@ namespace Owin.Security.OpenIdConnect.Server {
         public bool AllowInsecureHttp { get; set; }
 
         /// <summary>
-        /// The mapper delegate used to filter the claims returned
-        /// in the identity tokens forged by the authorization server.
-        /// </summary>
-        public Func<IEnumerable<Claim>, IEnumerable<Claim>> ServerClaimsMapper { get; set; }
-
-        /// <summary>
         /// The provider used to sign the identity tokens produced by the authorization server.
         /// Providing an instance is generally not required.
         /// </summary>
