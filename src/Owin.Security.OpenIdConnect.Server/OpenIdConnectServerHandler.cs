@@ -402,7 +402,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 grant.Properties.IssuedUtc = currentUtc;
                 grant.Properties.ExpiresUtc = currentUtc.Add(Options.IdentityTokenLifetime);
 
-                response.IdToken = CreateIdToken(grant.Identity, response, grant.Properties);
+                response.IdToken = CreateIdentityToken(grant.Identity, response, grant.Properties);
             }
 
             var authorizationEndpointResponseContext = new OpenIdConnectAuthorizationEndpointResponseContext(
@@ -1021,13 +1021,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return;
             }
 
-            if (tokenEndpointContext.TokenIssued) {
-                ticket = new AuthenticationTicket(
-                    tokenEndpointContext.Identity,
-                    tokenEndpointContext.Properties);
-            }
-
-            else {
+            if (!tokenEndpointContext.TokenIssued) {
                 _logger.WriteError("Token was not issued to tokenEndpointContext");
 
                 await SendErrorPayloadAsync(new OpenIdConnectMessage {
@@ -1037,6 +1031,8 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                 return;
             }
+
+            ticket = new AuthenticationTicket(tokenEndpointContext.Identity, tokenEndpointContext.Properties);
 
             var response = new OpenIdConnectMessage {
                 TokenType = OpenIdConnectConstants.TokenTypes.Bearer
@@ -1061,7 +1057,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             response.SetParameter(OpenIdConnectConstants.Parameters.RefreshToken, refreshTokenCreateContext.Token);
 
-            response.IdToken = CreateIdToken(ticket.Identity, request, ticket.Properties);
+            response.IdToken = CreateIdentityToken(ticket.Identity, request, ticket.Properties);
 
             if (accessTokenExpiresUtc.HasValue) {
                 TimeSpan? expiresTimeSpan = accessTokenExpiresUtc - currentUtc;
@@ -1275,25 +1271,22 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
         }
 
-        private string CreateIdToken(ClaimsIdentity identity, OpenIdConnectMessage message, AuthenticationProperties properties) {
+        private string CreateIdentityToken(ClaimsIdentity identity, OpenIdConnectMessage message, AuthenticationProperties properties) {
             var claims = Options.ServerClaimsMapper(identity.Claims).ToList();
 
             if (!string.IsNullOrEmpty(message.Code)) {
-                var cHash = GenerateHash(message.Code, Options.SigningCredentials.DigestAlgorithm);
-                claims.Add(new Claim(JwtRegisteredClaimNames.CHash, cHash));
+                claims.Add(new Claim(JwtRegisteredClaimNames.CHash, GenerateHash(message.Code, Options.SigningCredentials.DigestAlgorithm)));
             }
 
             if (!string.IsNullOrEmpty(message.AccessToken)) {
-                var atHash = GenerateHash(message.AccessToken, Options.SigningCredentials.DigestAlgorithm);
-                claims.Add(new Claim("at_hash", atHash));
+                claims.Add(new Claim("at_hash", GenerateHash(message.AccessToken, Options.SigningCredentials.DigestAlgorithm)));
             }
 
             if (!string.IsNullOrEmpty(message.Nonce)) {
                 claims.Add(new Claim(JwtRegisteredClaimNames.Nonce, message.Nonce));
             }
 
-            var iat = EpochTime.GetIntDate(Options.SystemClock.UtcNow.UtcDateTime).ToString();
-            claims.Add(new Claim("iat", iat));
+            claims.Add(new Claim("iat", EpochTime.GetIntDate(Options.SystemClock.UtcNow.UtcDateTime).ToString()));
 
             DateTimeOffset notBefore = Options.SystemClock.UtcNow;
             DateTimeOffset expires = notBefore.Add(Options.IdentityTokenLifetime);
@@ -1323,9 +1316,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             jwt.Payload.AddClaims(claims);
 
-            var idToken = Options.TokenHandler.WriteToken(jwt);
-
-            return idToken;
+            return Options.TokenHandler.WriteToken(jwt);
         }
 
         private static AuthenticationTicket ReturnOutcome(
