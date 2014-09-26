@@ -95,6 +95,9 @@ namespace Nancy.Server.Modules {
 
                 // This call will instruct Owin.Security.OpenIdConnect.Server to serialize
                 // the specified identity to build appropriate tokens (id_token and token).
+                // Note: you should always make sure the identities you return contain either
+                // a 'sub' or a 'ClaimTypes.NameIdentifier' claim. In this case, the returned
+                // identities always contain the name identifier returned by the external provider.
                 manager.SignIn(identity);
 
                 // Instruct the cookies middleware to delete the local cookie created
