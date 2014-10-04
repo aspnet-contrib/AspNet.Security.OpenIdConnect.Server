@@ -49,8 +49,8 @@ namespace Mvc.Server.Controllers {
             using (var db = new ApplicationContext()) {
                 // Retrieve the application details corresponding to the requested client_id.
                 application = await (from entity in db.Applications
-                                        where entity.ApplicationID == request.ClientId
-                                        select entity).SingleOrDefaultAsync(cancellationToken);
+                                     where entity.ApplicationID == request.ClientId
+                                     select entity).SingleOrDefaultAsync(cancellationToken);
             }
 
             // Note: Owin.Security.OpenIdConnect.Server automatically ensures an application
