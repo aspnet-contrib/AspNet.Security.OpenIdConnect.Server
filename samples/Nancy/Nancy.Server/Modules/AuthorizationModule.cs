@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Security.Claims;
@@ -18,10 +17,7 @@ namespace Nancy.Server.Modules {
             // Owin.Security.OpenIdConnect.Server supports authorization requests received either via GET or POST.
             // You're strongly encouraged to support both methods to make your app specs-compliant.
             // See http://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
-            Get["/connect/authorize", runAsync: true] =
-            Post["/connect/authorize", runAsync: true,
-                condition: context => !context.Request.Form.Authorize &&
-                                      !context.Request.Form.Deny] = async (parameters, cancellationToken) => {
+            Get["/connect/authorize", runAsync: true] = async (parameters, cancellationToken) => {
                 this.RequiresMSOwinAuthentication();
                 this.CreateNewCsrfToken();
 
