@@ -19,30 +19,18 @@ namespace Mvc.Server.Controllers {
         // You're strongly encouraged to support both methods to make your app specs-compliant.
         // See http://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
         [Authorize, HttpGet, Route("~/connect/authorize", Order = 3)]
-        public async Task<ActionResult> Authorize(CancellationToken cancellationToken) {
-            IOwinContext context = HttpContext.GetOwinContext();
-            if (context == null) {
-                throw new NotSupportedException("An OWIN context cannot be extracted from HttpContext");
-            }
-
+        public async Task<ActionResult> Authorize(
+            [ModelBinder(typeof(OpenIdConnectRequestBinder))] OpenIdConnectMessage request,
+            [ModelBinder(typeof(OpenIdConnectResponseBinder))] OpenIdConnectMessage response, CancellationToken cancellationToken) {
             // Note: when a fatal error occurs during the request processing, an OpenID Connect response
             // is prematurely forged and added to the OWIN context by OpenIdConnectServerHandler.
+            // In this case, the OpenID Connect request is null and cannot be used.
             // When the user agent can be safely redirected to the client application,
             // OpenIdConnectServerHandler automatically handles the error and MVC is not invoked.
             // You can safely remove this part and let Owin.Security.OpenIdConnect.Server automatically
             // handle the unrecoverable errors by switching ApplicationCanDisplayErrors to false in Startup.cs
-            OpenIdConnectMessage response = context.GetOpenIdConnectResponse();
             if (response != null) {
                 return View("Error", response);
-            }
-
-            // Extract the authorization request from the OWIN environment.
-            OpenIdConnectMessage request = context.GetOpenIdConnectRequest();
-            if (request == null) {
-                return View("Error", new OpenIdConnectMessage {
-                    Error = "invalid_request",
-                    ErrorDescription = "An internal error has occurred"
-                });
             }
 
             Application application;
@@ -73,10 +61,16 @@ namespace Mvc.Server.Controllers {
         [Authorize, ConditionalRoute("authorize"), HttpPost]
         [Route("~/connect/authorize", Order = 1)]
         [ValidateAntiForgeryToken]
-        public ActionResult Validate() {
-            IOwinContext context = HttpContext.GetOwinContext();
-            if (context == null) {
-                throw new NotSupportedException("An OWIN context cannot be extracted from HttpContext");
+        public ActionResult Validate([ModelBinder(typeof(OpenIdConnectResponseBinder))] OpenIdConnectMessage response) {
+            // Note: when a fatal error occurs during the request processing, an OpenID Connect response
+            // is prematurely forged and added to the OWIN context by OpenIdConnectServerHandler.
+            // In this case, the OpenID Connect request is null and cannot be used.
+            // When the user agent can be safely redirected to the client application,
+            // OpenIdConnectServerHandler automatically handles the error and MVC is not invoked.
+            // You can safely remove this part and let Owin.Security.OpenIdConnect.Server automatically
+            // handle the unrecoverable errors by switching ApplicationCanDisplayErrors to false in Startup.cs
+            if (response != null) {
+                return View("Error", response);
             }
 
             // Create a new ClaimsIdentity containing the claims retrieved from the external
@@ -84,7 +78,7 @@ namespace Mvc.Server.Controllers {
             // Note: the authenticationType parameter must match the value configured in Startup.cs.
             var identity = new ClaimsIdentity(OpenIdConnectDefaults.AuthenticationType);
 
-            foreach (var claim in context.Authentication.User.Claims) {
+            foreach (var claim in OwinContext.Authentication.User.Claims) {
                 // Allow both ClaimTypes.Name and ClaimTypes.NameIdentifier to be added in the id_token.
                 // The other claims won't be visible for the client application.
                 if (claim.Type == ClaimTypes.Name || claim.Type == ClaimTypes.NameIdentifier) {
@@ -99,7 +93,7 @@ namespace Mvc.Server.Controllers {
             // Note: you should always make sure the identities you return contain either
             // a 'sub' or a 'ClaimTypes.NameIdentifier' claim. In this case, the returned
             // identities always contain the name identifier returned by the external provider.
-            context.Authentication.SignIn(identity);
+            OwinContext.Authentication.SignIn(identity);
 
             // Instruct the cookies middleware to delete the local cookie created
             // when the user agent is redirected from the external identity provider
@@ -107,7 +101,7 @@ namespace Mvc.Server.Controllers {
             // Note: this call requires the user agent to re-authenticate each time
             // an authorization is granted to a client application. You can safely
             // remove it and use the signout endpoint from AuthenticationModule.cs instead.
-            context.Authentication.SignOut("ServerCookie");
+            OwinContext.Authentication.SignOut("ServerCookie");
 
             return new HttpStatusCodeResult(200);
         }
@@ -115,25 +109,24 @@ namespace Mvc.Server.Controllers {
         [Authorize, ConditionalRoute("deny"), HttpPost]
         [Route("~/connect/authorize", Order = 2)]
         [ValidateAntiForgeryToken]
-        public ActionResult Deny() {
-            IOwinContext context = HttpContext.GetOwinContext();
-            if (context == null) {
-                throw new NotSupportedException("An OWIN context cannot be extracted from HttpContext");
-            }
-
-            // Extract the authorization request from the OWIN environment.
-            OpenIdConnectMessage request = context.GetOpenIdConnectRequest();
-            if (request == null) {
-                return View("Error", new OpenIdConnectMessage {
-                    Error = "invalid_request",
-                    ErrorDescription = "An internal error has occurred"
-                });
+        public ActionResult Deny(
+            [ModelBinder(typeof(OpenIdConnectRequestBinder))] OpenIdConnectMessage request,
+            [ModelBinder(typeof(OpenIdConnectResponseBinder))] OpenIdConnectMessage response) {
+            // Note: when a fatal error occurs during the request processing, an OpenID Connect response
+            // is prematurely forged and added to the OWIN context by OpenIdConnectServerHandler.
+            // In this case, the OpenID Connect request is null and cannot be used.
+            // When the user agent can be safely redirected to the client application,
+            // OpenIdConnectServerHandler automatically handles the error and MVC is not invoked.
+            // You can safely remove this part and let Owin.Security.OpenIdConnect.Server automatically
+            // handle the unrecoverable errors by switching ApplicationCanDisplayErrors to false in Startup.cs
+            if (response != null) {
+                return View("Error", response);
             }
 
             // Notify Owin.Security.OpenIdConnect.Server that the authorization grant has been denied.
             // Note: OpenIdConnectServerHandler will automatically take care of redirecting
             // the user agent to the client application using the appropriate response_mode.
-            context.SetOpenIdConnectResponse(new OpenIdConnectMessage {
+            OwinContext.SetOpenIdConnectResponse(new OpenIdConnectMessage {
                 Error = "access_denied",
                 ErrorDescription = "The authorization grant has been denied by the resource owner",
                 RedirectUri = request.RedirectUri,
@@ -141,6 +134,20 @@ namespace Mvc.Server.Controllers {
             });
 
             return new HttpStatusCodeResult(200);
+        }
+
+        /// <summary>
+        /// Gets the IOwinContext instance associated with the current request.
+        /// </summary>
+        public IOwinContext OwinContext {
+            get {
+                IOwinContext context = HttpContext.GetOwinContext();
+                if (context == null) {
+                    throw new NotSupportedException("An OWIN context cannot be extracted from HttpContext");
+                }
+
+                return context;
+            }
         }
     }
 }
