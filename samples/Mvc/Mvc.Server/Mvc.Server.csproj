@@ -162,6 +162,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Extensions\ConditionalRouteAttribute.cs" />
+    <Compile Include="Extensions\OpenIdConnectResponseBinder.cs" />
+    <Compile Include="Extensions\OpenIdConnectRequestBinder.cs" />
     <Compile Include="Extensions\OwinExtensions.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
