@@ -139,7 +139,7 @@ namespace Mvc.Server.Controllers {
         /// <summary>
         /// Gets the IOwinContext instance associated with the current request.
         /// </summary>
-        public IOwinContext OwinContext {
+        protected IOwinContext OwinContext {
             get {
                 IOwinContext context = HttpContext.GetOwinContext();
                 if (context == null) {
