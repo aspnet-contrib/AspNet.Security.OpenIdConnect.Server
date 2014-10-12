@@ -9,28 +9,28 @@ namespace Mvc.Server.Controllers {
     public class AuthenticationController : Controller {
         [HttpGet, Route("~/signin")]
         public ActionResult SignIn(string returnUrl = null) {
-            // Note: the ReturnUrl parameter corresponds to the endpoint the user agent
+            // Note: the "returnUrl" parameter corresponds to the endpoint the user agent
             // will be redirected to after a successful authentication and not
             // the redirect_uri of the requesting client application.
             ViewBag.ReturnUrl = returnUrl;
 
             // Note: in a real world application, you'd probably prefer creating a specific view model.
-            return View("SignIn", OwinContext.Authentication.GetExternalProviders());
+            return View("SignIn", AuthenticationManager.GetExternalProviders());
         }
 
         [HttpPost, Route("~/signin")]
         public ActionResult SignIn(string provider, string returnUrl) {
-            // Note: the Provider parameters corresponds to the external
+            // Note: the "provider" parameter corresponds to the external
             // authentication provider choosen by the user agent.
             if (string.IsNullOrWhiteSpace(provider)) {
                 return new HttpStatusCodeResult(400);
             }
 
-            if (!OwinContext.Authentication.IsProviderSupported(provider)) {
+            if (!AuthenticationManager.IsProviderSupported(provider)) {
                 return new HttpStatusCodeResult(400);
             }
 
-            // Note: the ReturnUrl parameter corresponds to the endpoint the user agent
+            // Note: the "returnUrl" parameter corresponds to the endpoint the user agent
             // will be redirected to after a successful authentication and not
             // the redirect_uri of the requesting client application.
             if (string.IsNullOrWhiteSpace(returnUrl)) {
@@ -44,7 +44,7 @@ namespace Mvc.Server.Controllers {
             // Instruct the middleware corresponding to the requested external identity
             // provider to redirect the user agent to its own authorization endpoint.
             // Note: the authenticationType parameter must match the value configured in Startup.cs
-            OwinContext.Authentication.Challenge(properties, provider);
+            AuthenticationManager.Challenge(properties, provider);
 
             return new HttpStatusCodeResult(401);
         }
@@ -54,22 +54,22 @@ namespace Mvc.Server.Controllers {
             // Instruct the cookies middleware to delete the local cookie created
             // when the user agent is redirected from the external identity provider
             // after a successful authentication flow (e.g Google or Facebook).
-            OwinContext.Authentication.SignOut("ServerCookie");
+            AuthenticationManager.SignOut("ServerCookie");
 
             return new HttpStatusCodeResult(200);
         }
 
         /// <summary>
-        /// Gets the IOwinContext instance associated with the current request.
+        /// Gets the IAuthenticationManager instance associated with the current request.
         /// </summary>
-        protected IOwinContext OwinContext {
+        protected IAuthenticationManager AuthenticationManager {
             get {
                 IOwinContext context = HttpContext.GetOwinContext();
                 if (context == null) {
                     throw new NotSupportedException("An OWIN context cannot be extracted from HttpContext");
                 }
 
-                return context;
+                return context.Authentication;
             }
         }
     }

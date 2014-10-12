@@ -21,24 +21,19 @@ namespace Nancy.Server.Modules {
                 this.RequiresMSOwinAuthentication();
                 this.CreateNewCsrfToken();
 
-                IOwinContext context = Context.GetOwinContext();
-                if (context == null) {
-                    throw new NotSupportedException("An OWIN context cannot be extracted from NancyContext");
-                }
-
                 // Note: when a fatal error occurs during the request processing, an OpenID Connect response
                 // is prematurely forged and added to the OWIN context by OpenIdConnectServerHandler.
                 // When the user agent can be safely redirected to the client application,
                 // OpenIdConnectServerHandler automatically handles the error and Nancy is not invoked.
                 // You can safely remove this part and let Owin.Security.OpenIdConnect.Server automatically
                 // handle the unrecoverable errors by switching ApplicationCanDisplayErrors to false in Startup.cs
-                OpenIdConnectMessage response = context.GetOpenIdConnectResponse();
+                OpenIdConnectMessage response = OwinContext.GetOpenIdConnectResponse();
                 if (response != null) {
                     return View["error.cshtml", response];
                 }
 
                 // Extract the authorization request from the OWIN environment.
-                OpenIdConnectMessage request = context.GetOpenIdConnectRequest();
+                OpenIdConnectMessage request = OwinContext.GetOpenIdConnectRequest();
                 if (request == null) {
                     return View["error.cshtml", new OpenIdConnectMessage {
                         Error = "invalid_request",
@@ -75,17 +70,12 @@ namespace Nancy.Server.Modules {
                 this.RequiresMSOwinAuthentication();
                 this.ValidateCsrfToken();
 
-                IAuthenticationManager manager = Context.GetAuthenticationManager();
-                if (manager == null) {
-                    throw new NotSupportedException("An OWIN authentication manager cannot be extracted from NancyContext");
-                }
-
                 // Create a new ClaimsIdentity containing the claims retrieved from the external
                 // identity provider (e.g Google, Facebook, a WS-Fed provider or another OIDC server).
                 // Note: the authenticationType parameter must match the value configured in Startup.cs.
                 var identity = new ClaimsIdentity(OpenIdConnectDefaults.AuthenticationType);
 
-                foreach (var claim in manager.User.Claims) {
+                foreach (var claim in OwinContext.Authentication.User.Claims) {
                     // Allow both ClaimTypes.Name and ClaimTypes.NameIdentifier to be added in the id_token.
                     // The other claims won't be visible for the client application.
                     if (claim.Type == ClaimTypes.Name || claim.Type == ClaimTypes.NameIdentifier) {
@@ -100,7 +90,7 @@ namespace Nancy.Server.Modules {
                 // Note: you should always make sure the identities you return contain either
                 // a 'sub' or a 'ClaimTypes.NameIdentifier' claim. In this case, the returned
                 // identities always contain the name identifier returned by the external provider.
-                manager.SignIn(identity);
+                OwinContext.Authentication.SignIn(identity);
 
                 // Instruct the cookies middleware to delete the local cookie created
                 // when the user agent is redirected from the external identity provider
@@ -108,7 +98,7 @@ namespace Nancy.Server.Modules {
                 // Note: this call requires the user agent to re-authenticate each time
                 // an authorization is granted to a client application. You can safely
                 // remove it and use the signout endpoint from AuthenticationModule.cs instead.
-                manager.SignOut("ServerCookie");
+                OwinContext.Authentication.SignOut("ServerCookie");
 
                 return HttpStatusCode.OK;
             };
@@ -117,13 +107,8 @@ namespace Nancy.Server.Modules {
                 this.RequiresMSOwinAuthentication();
                 this.ValidateCsrfToken();
 
-                IOwinContext context = Context.GetOwinContext();
-                if (context == null) {
-                    throw new NotSupportedException("An OWIN context cannot be extracted from NancyContext");
-                }
-
                 // Extract the authorization request from the OWIN environment.
-                OpenIdConnectMessage request = context.GetOpenIdConnectRequest();
+                OpenIdConnectMessage request = OwinContext.GetOpenIdConnectRequest();
                 if (request == null) {
                     return View["error.cshtml", new OpenIdConnectMessage {
                         Error = "invalid_request",
@@ -134,7 +119,7 @@ namespace Nancy.Server.Modules {
                 // Notify Owin.Security.OpenIdConnect.Server that the authorization grant has been denied.
                 // Note: OpenIdConnectServerHandler will automatically take care of redirecting
                 // the user agent to the client application using the appropriate response_mode.
-                context.SetOpenIdConnectResponse(new OpenIdConnectMessage {
+                OwinContext.SetOpenIdConnectResponse(new OpenIdConnectMessage {
                     Error = "access_denied",
                     ErrorDescription = "The authorization grant has been denied by the resource owner",
                     RedirectUri = request.RedirectUri, State = request.State
@@ -142,6 +127,20 @@ namespace Nancy.Server.Modules {
 
                 return HttpStatusCode.OK;
             };
+        }
+
+        /// <summary>
+        /// Gets the IOwinContext instance associated with the current request.
+        /// </summary>
+        protected IOwinContext OwinContext {
+            get {
+                IOwinContext context = Context.GetOwinContext();
+                if (context == null) {
+                    throw new NotSupportedException("An OWIN context cannot be extracted from NancyContext");
+                }
+
+                return context;
+            }
         }
     }
 }
