@@ -15,10 +15,7 @@ using Owin.Security.OpenIdConnect.Server;
 
 namespace Mvc.Server.Controllers {
     public class AuthorizationController : Controller {
-        // Owin.Security.OpenIdConnect.Server supports authorization requests received either via GET or POST.
-        // You're strongly encouraged to support both methods to make your app specs-compliant.
-        // See http://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
-        [Authorize, HttpGet, Route("~/connect/authorize", Order = 3)]
+        [Authorize, HttpGet, Route("~/connect/authorize")]
         public async Task<ActionResult> Authorize(
             [ModelBinder(typeof(OpenIdConnectRequestBinder))] OpenIdConnectMessage request,
             [ModelBinder(typeof(OpenIdConnectResponseBinder))] OpenIdConnectMessage response, CancellationToken cancellationToken) {
@@ -58,10 +55,12 @@ namespace Mvc.Server.Controllers {
             return View("Authorize", Tuple.Create(request, application));
         }
 
-        [Authorize, ConditionalRoute("authorize"), HttpPost]
-        [Route("~/connect/authorize", Order = 1)]
+        [Authorize, HttpPost]
+        [Route("~/connect/authorize")]
         [ValidateAntiForgeryToken]
-        public ActionResult Validate([ModelBinder(typeof(OpenIdConnectResponseBinder))] OpenIdConnectMessage response) {
+        public ActionResult Authorize(
+            [ModelBinder(typeof(OpenIdConnectRequestBinder))] OpenIdConnectMessage request,
+            [ModelBinder(typeof(OpenIdConnectResponseBinder))] OpenIdConnectMessage response) {
             // Note: when a fatal error occurs during the request processing, an OpenID Connect response
             // is prematurely forged and added to the OWIN context by OpenIdConnectServerHandler.
             // In this case, the OpenID Connect request is null and cannot be used.
@@ -71,6 +70,24 @@ namespace Mvc.Server.Controllers {
             // handle the unrecoverable errors by switching ApplicationCanDisplayErrors to false in Startup.cs
             if (response != null) {
                 return View("Error", response);
+            }
+
+            // Note: if the "Authorize" key cannot be found in the request body,
+            // that's probably because the user agent denied the authorization.
+            // In this case, you MUST either stop processing the request or
+            // call OwinContext.SetOpenIdConnectResponse with an error message.
+            if (string.IsNullOrWhiteSpace(Request.Form.Get("Authorize"))) {
+                // Notify Owin.Security.OpenIdConnect.Server that the authorization grant has been denied.
+                // Note: OpenIdConnectServerHandler will automatically take care of redirecting
+                // the user agent to the client application using the appropriate response_mode.
+                OwinContext.SetOpenIdConnectResponse(new OpenIdConnectMessage {
+                    Error = "access_denied",
+                    ErrorDescription = "The authorization grant has been denied by the resource owner",
+                    RedirectUri = request.RedirectUri,
+                    State = request.State
+                });
+
+                return new HttpStatusCodeResult(200);
             }
 
             // Create a new ClaimsIdentity containing the claims retrieved from the external
@@ -102,36 +119,6 @@ namespace Mvc.Server.Controllers {
             // an authorization is granted to a client application. You can safely
             // remove it and use the signout endpoint from AuthenticationModule.cs instead.
             OwinContext.Authentication.SignOut("ServerCookie");
-
-            return new HttpStatusCodeResult(200);
-        }
-
-        [Authorize, ConditionalRoute("deny"), HttpPost]
-        [Route("~/connect/authorize", Order = 2)]
-        [ValidateAntiForgeryToken]
-        public ActionResult Deny(
-            [ModelBinder(typeof(OpenIdConnectRequestBinder))] OpenIdConnectMessage request,
-            [ModelBinder(typeof(OpenIdConnectResponseBinder))] OpenIdConnectMessage response) {
-            // Note: when a fatal error occurs during the request processing, an OpenID Connect response
-            // is prematurely forged and added to the OWIN context by OpenIdConnectServerHandler.
-            // In this case, the OpenID Connect request is null and cannot be used.
-            // When the user agent can be safely redirected to the client application,
-            // OpenIdConnectServerHandler automatically handles the error and MVC is not invoked.
-            // You can safely remove this part and let Owin.Security.OpenIdConnect.Server automatically
-            // handle the unrecoverable errors by switching ApplicationCanDisplayErrors to false in Startup.cs
-            if (response != null) {
-                return View("Error", response);
-            }
-
-            // Notify Owin.Security.OpenIdConnect.Server that the authorization grant has been denied.
-            // Note: OpenIdConnectServerHandler will automatically take care of redirecting
-            // the user agent to the client application using the appropriate response_mode.
-            OwinContext.SetOpenIdConnectResponse(new OpenIdConnectMessage {
-                Error = "access_denied",
-                ErrorDescription = "The authorization grant has been denied by the resource owner",
-                RedirectUri = request.RedirectUri,
-                State = request.State
-            });
 
             return new HttpStatusCodeResult(200);
         }
