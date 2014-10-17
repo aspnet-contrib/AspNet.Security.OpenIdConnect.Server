@@ -8,7 +8,6 @@ using System.Web;
 using System.Web.Mvc;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
-using Mvc.Server.Extensions;
 using Mvc.Server.Models;
 using Owin;
 using Owin.Security.OpenIdConnect.Server;
@@ -16,9 +15,7 @@ using Owin.Security.OpenIdConnect.Server;
 namespace Mvc.Server.Controllers {
     public class AuthorizationController : Controller {
         [Authorize, HttpGet, Route("~/connect/authorize")]
-        public async Task<ActionResult> Authorize(
-            [ModelBinder(typeof(OpenIdConnectRequestBinder))] OpenIdConnectMessage request,
-            [ModelBinder(typeof(OpenIdConnectResponseBinder))] OpenIdConnectMessage response, CancellationToken cancellationToken) {
+        public async Task<ActionResult> Authorize(CancellationToken cancellationToken) {
             // Note: when a fatal error occurs during the request processing, an OpenID Connect response
             // is prematurely forged and added to the OWIN context by OpenIdConnectServerHandler.
             // In this case, the OpenID Connect request is null and cannot be used.
@@ -26,8 +23,18 @@ namespace Mvc.Server.Controllers {
             // OpenIdConnectServerHandler automatically handles the error and MVC is not invoked.
             // You can safely remove this part and let Owin.Security.OpenIdConnect.Server automatically
             // handle the unrecoverable errors by switching ApplicationCanDisplayErrors to false in Startup.cs
+            OpenIdConnectMessage response = OwinContext.GetOpenIdConnectResponse();
             if (response != null) {
                 return View("Error", response);
+            }
+
+            // Extract the authorization request from the OWIN environment.
+            OpenIdConnectMessage request = OwinContext.GetOpenIdConnectRequest();
+            if (request == null) {
+                return View("Error", new OpenIdConnectMessage {
+                    Error = "invalid_request",
+                    ErrorDescription = "An internal error has occurred"
+                });
             }
 
             Application application;
@@ -58,9 +65,7 @@ namespace Mvc.Server.Controllers {
         [Authorize, HttpPost]
         [Route("~/connect/authorize")]
         [ValidateAntiForgeryToken]
-        public ActionResult Authorize(
-            [ModelBinder(typeof(OpenIdConnectRequestBinder))] OpenIdConnectMessage request,
-            [ModelBinder(typeof(OpenIdConnectResponseBinder))] OpenIdConnectMessage response) {
+        public ActionResult Authorize() {
             // Note: when a fatal error occurs during the request processing, an OpenID Connect response
             // is prematurely forged and added to the OWIN context by OpenIdConnectServerHandler.
             // In this case, the OpenID Connect request is null and cannot be used.
@@ -68,8 +73,18 @@ namespace Mvc.Server.Controllers {
             // OpenIdConnectServerHandler automatically handles the error and MVC is not invoked.
             // You can safely remove this part and let Owin.Security.OpenIdConnect.Server automatically
             // handle the unrecoverable errors by switching ApplicationCanDisplayErrors to false in Startup.cs
+            OpenIdConnectMessage response = OwinContext.GetOpenIdConnectResponse();
             if (response != null) {
                 return View("Error", response);
+            }
+
+            // Extract the authorization request from the OWIN environment.
+            OpenIdConnectMessage request = OwinContext.GetOpenIdConnectRequest();
+            if (request == null) {
+                return View("Error", new OpenIdConnectMessage {
+                    Error = "invalid_request",
+                    ErrorDescription = "An internal error has occurred"
+                });
             }
 
             // Note: if the "Authorize" key cannot be found in the request body,
