@@ -20,13 +20,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         public OpenIdConnectServerOptions() {
             AuthenticationType = OpenIdConnectDefaults.AuthenticationType;
-            AuthorizationCodeLifetime = TimeSpan.FromMinutes(5);
-            AccessTokenLifetime = TimeSpan.FromMinutes(20);
-            IdentityTokenLifetime = TimeSpan.FromMinutes(20);
-            AuthorizationEndpointPath = new PathString(OpenIdConnectDefaults.AuthorizationEndpointPath);
-            ConfigurationEndpointPath = new PathString(OpenIdConnectDefaults.ConfigurationEndpointPath);
-            KeysEndpointPath = new PathString(OpenIdConnectDefaults.KeysEndpointPath);
-            TokenEndpointPath = new PathString(OpenIdConnectDefaults.TokenEndpointPath);
         }
 
         /// <summary>
@@ -49,28 +42,28 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// The request path where client applications will redirect the user-agent in order to 
         /// obtain user consent to issue a token. Must begin with a leading slash, like "/connect/authorize".
         /// </summary>
-        public PathString AuthorizationEndpointPath { get; set; }
+        public PathString AuthorizationEndpointPath { get; set; } = new PathString(OpenIdConnectDefaults.AuthorizationEndpointPath);
 
         /// <summary>
         /// The request path where client applications will be able to retrieve the configuration metadata associated
         /// with this instance. Must begin with a leading slash, like "/.well-known/openid-configuration".
         /// This setting can be set to <see cref="PathString.Empty"/> to disable the configuration endpoint.
         /// </summary>
-        public PathString ConfigurationEndpointPath { get; set; }
+        public PathString ConfigurationEndpointPath { get; set; } = new PathString(OpenIdConnectDefaults.ConfigurationEndpointPath);
 
         /// <summary>
         /// The request path where client applications will be able to retrieve the JSON Web Key Set
         /// associated with this instance. Must begin with a leading slash, like "/.well-known/jwks".
         /// This setting can be set to <see cref="PathString.Empty"/> to disable the crypto endpoint.
         /// </summary>
-        public PathString KeysEndpointPath { get; set; }
+        public PathString KeysEndpointPath { get; set; } = new PathString(OpenIdConnectDefaults.KeysEndpointPath);
 
         /// <summary>
         /// The request path client applications communicate with directly as part of the OpenID Connect protocol. 
         /// Must begin with a leading slash, like "/connect/token". If the client is issued a client_secret, it must
         /// be provided to this endpoint. You can set it to <see cref="PathString.Empty"/> to disable the token endpoint.
         /// </summary>
-        public PathString TokenEndpointPath { get; set; }
+        public PathString TokenEndpointPath { get; set; } = new PathString(OpenIdConnectDefaults.TokenEndpointPath);
 
         /// <summary>
         /// The object provided by the application to process events raised by the Authorization Server middleware.
@@ -110,19 +103,19 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// This time span must also take into account clock synchronization between servers in a web farm, so a very 
         /// brief value could result in unexpectedly expired tokens.
         /// </summary>
-        public TimeSpan AuthorizationCodeLifetime { get; set; }
+        public TimeSpan AuthorizationCodeLifetime { get; set; } = TimeSpan.FromMinutes(5);
 
         /// <summary>
         /// The period of time the access token remains valid after being issued. The default is twenty minutes.
         /// The client application is expected to refresh or acquire a new access token after the token has expired. 
         /// </summary>
-        public TimeSpan AccessTokenLifetime { get; set; }
+        public TimeSpan AccessTokenLifetime { get; set; } = TimeSpan.FromMinutes(20);
 
         /// <summary>
         /// The period of time the identity token remains valid after being issued. The default is twenty minutes.
         /// The client application is expected to refresh or acquire a new identity token after the token has expired. 
         /// </summary>
-        public TimeSpan IdentityTokenLifetime { get; set; }
+        public TimeSpan IdentityTokenLifetime { get; set; } = TimeSpan.FromMinutes(20);
 
         /// <summary>
         /// Produces a single-use authorization code to return to the client application. For the OpenID Connect server to be secure the
