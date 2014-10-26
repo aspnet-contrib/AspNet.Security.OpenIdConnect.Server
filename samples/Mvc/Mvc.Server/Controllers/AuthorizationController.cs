@@ -62,7 +62,7 @@ namespace Mvc.Server.Controllers {
 
         [Authorize, HttpPost("~/connect/authorize")]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Authorize() {
+        public ActionResult Authorize([FromForm] string authorize) {
             // Note: when a fatal error occurs during the request processing, an OpenID Connect response
             // is prematurely forged and added to the OWIN context by OpenIdConnectServerHandler.
             // In this case, the OpenID Connect request is null and cannot be used.
@@ -84,12 +84,11 @@ namespace Mvc.Server.Controllers {
                 });
             }
 
-            // Note: if the "Authorize" key cannot be found in the request body,
+            // Note: if the "Authorize" key cannot be found in the request form,
             // that's probably because the user agent denied the authorization.
             // In this case, you MUST either stop processing the request or
             // call OwinContext.SetOpenIdConnectResponse with an error message.
-            var form = await Request.GetFormAsync();
-            if (string.IsNullOrWhiteSpace(form.Get("Authorize"))) {
+            if (string.IsNullOrWhiteSpace(authorize)) {
                 // Notify AspNet.Security.OpenIdConnect.Server that the authorization grant has been denied.
                 // Note: OpenIdConnectServerHandler will automatically take care of redirecting
                 // the user agent to the client application using the appropriate response_mode.
