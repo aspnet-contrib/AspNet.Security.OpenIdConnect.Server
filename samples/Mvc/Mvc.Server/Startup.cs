@@ -58,6 +58,11 @@ namespace Mvc.Server {
                 options.ClientSecret = "n2Q-GEw9RQjzcRbU3qhfTj8f";
             });
 
+            app.UseTwitterAuthentication(options => {
+                options.ConsumerKey = "6XaCTaLbMqfj6ww3zvZ5g";
+                options.ConsumerSecret = "Il2eFzGIrYhz6BWjYhVXBPQSfZuS4xoHpSSyD9PI";
+            });
+
             app.UseOAuthBearerAuthentication(options => {
                 options.AuthenticationMode = AuthenticationMode.Active;
             });
