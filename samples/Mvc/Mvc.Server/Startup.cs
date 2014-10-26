@@ -73,13 +73,15 @@ namespace Mvc.Server {
                 options.IdentityTokenLifetime = TimeSpan.FromMinutes(60);
                 options.AllowInsecureHttp = true;
 
-                // Note: see AuthorizationModule.cs for more
+                // Note: see AuthorizationController.cs for more
                 // information concerning ApplicationCanDisplayErrors.
                 options.ApplicationCanDisplayErrors = true;
                 options.AuthorizationCodeProvider = new AuthorizationCodeProvider(app.ApplicationServices.GetRequiredService<IServiceScopeFactory>());
             });
 
             app.UseMvc();
+
+            app.UseWelcomePage();
 
             using (var database = app.ApplicationServices.GetService<ApplicationContext>()) {
                 database.Applications.Add(new Application {
