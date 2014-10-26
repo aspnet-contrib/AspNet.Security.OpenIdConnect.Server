@@ -34,14 +34,12 @@ namespace Mvc.Server.Controllers {
                 return new HttpStatusCodeResult(400);
             }
 
-            var properties = new AuthenticationProperties {
-                RedirectUri = returnUrl
-            };
-
             // Instruct the middleware corresponding to the requested external identity
             // provider to redirect the user agent to its own authorization endpoint.
             // Note: the authenticationType parameter must match the value configured in Startup.cs
-            return new ChallengeResult(provider, properties);
+            return new ChallengeResult(provider, new AuthenticationProperties {
+                RedirectUri = returnUrl
+            });
         }
 
         [HttpGet("~/signout"), HttpPost("~/signout")]
