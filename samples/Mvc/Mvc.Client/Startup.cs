@@ -1,56 +1,46 @@
 using System;
-using System.Threading.Tasks;
-using Microsoft.Owin.Security;
-using Microsoft.Owin.Security.Cookies;
-using Microsoft.Owin.Security.OpenIdConnect;
-using Owin;
+using Microsoft.AspNet.Builder;
+using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Security;
+using Microsoft.AspNet.Security.Cookies;
+using Microsoft.AspNet.Security.OAuth;
+using Microsoft.Framework.DependencyInjection;
 
 namespace Mvc.Client {
     public class Startup {
-        public void Configuration(IAppBuilder app) {
-            app.SetDefaultSignInAsAuthenticationType("ClientCookie");
+        public void Configure(IApplicationBuilder app) {
+            app.UseServices(services => {
+                services.Configure<ExternalAuthenticationOptions>(options => {
+                    options.SignInAsAuthenticationType = "ClientCookie";
+                });
+
+                services.AddMvc();
+            });
 
             // Insert a new cookies middleware in the pipeline to store the user
             // identity after he has been redirected from the identity provider.
-            app.UseCookieAuthentication(new CookieAuthenticationOptions {
-                AuthenticationMode = AuthenticationMode.Active,
-                AuthenticationType = "ClientCookie",
-                CookieName = CookieAuthenticationDefaults.CookiePrefix + "ClientCookie",
-                ExpireTimeSpan = TimeSpan.FromMinutes(5)
+            app.UseCookieAuthentication(options => {
+                options.AuthenticationMode = AuthenticationMode.Active;
+                options.AuthenticationType = "ClientCookie";
+                options.CookieName = CookieAuthenticationDefaults.CookiePrefix + "ClientCookie";
+                options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
             });
 
-            // Insert a new OIDC client middleware in the pipeline.
-            app.UseOpenIdConnectAuthentication(new OpenIdConnectAuthenticationOptions {
-                AuthenticationMode = AuthenticationMode.Active,
-                AuthenticationType = OpenIdConnectAuthenticationDefaults.AuthenticationType,
-                SignInAsAuthenticationType = app.GetDefaultSignInAsAuthenticationType(),
+            app.UseOAuthAuthentication("OpenIdConnect", options => {
+                options.AuthenticationMode = AuthenticationMode.Active;
+                options.Notifications = new OAuthAuthenticationNotifications();
 
                 // Note: these settings must match the application details inserted in
                 // the database at the server level (see ApplicationContextInitializer.cs).
-                ClientId = "myClient",
-                ClientSecret = "secret_secret_secret",
-                RedirectUri = "http://localhost:56854/oidc",
-                
-                // Note: setting the Authority allows the OIDC client middleware to automatically
-                // retrieve the identity provider's configuration and spare you from setting
-                // the different endpoints URIs or the token validation parameters explicitly.
-                Authority = "http://localhost:55985/",
+                options.ClientId = "myClient";
+                options.ClientSecret = "secret_secret_secret";
+                options.CallbackPath = new PathString("/oidc");
 
-                // Note: by default, the OIDC client throws an OpenIdConnectProtocolException
-                // when an error occurred during the authentication/authorization process.
-                // To prevent a YSOD from being displayed, the response is declared as handled.
-                Notifications = new OpenIdConnectAuthenticationNotifications {
-                    AuthenticationFailed = notification => {
-                        if (string.Equals(notification.ProtocolMessage.Error, "access_denied", StringComparison.Ordinal)) {
-                            notification.HandleResponse();
-
-                            notification.Response.Redirect("/");
-                        }
-
-                        return Task.FromResult<object>(null);
-                    }
-                }
+                options.AuthorizationEndpoint = "http://localhost:12345/connect/authorize";
+                options.TokenEndpoint = "http://localhost:12345/connect/token";
             });
+
+            app.UseMvc();
         }
     }
 }

@@ -1,8 +1,8 @@
-﻿using System.Web.Mvc;
+﻿using Microsoft.AspNet.Mvc;
 
 namespace Mvc.Server.Controllers {
     public class HomeController : Controller {
-        [HttpGet, Route("~/")]
+        [HttpGet("~/")]
         public ActionResult Index() {
             return Content("OpenID Connect server started.");
         }
