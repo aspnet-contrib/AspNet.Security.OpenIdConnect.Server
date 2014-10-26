@@ -30,15 +30,18 @@ namespace Mvc.Client {
                 options.AuthenticationMode = AuthenticationMode.Active;
                 options.Notifications = new OAuthAuthenticationNotifications();
 
-                // Note: these settings must match the application details inserted in
-                // the database at the server level (see ApplicationContextInitializer.cs).
+                // Note: these settings must match the application
+                // details inserted in the database at the server level.
                 options.ClientId = "myClient";
                 options.ClientSecret = "secret_secret_secret";
                 options.CallbackPath = new PathString("/oidc");
-
                 options.AuthorizationEndpoint = "http://localhost:12345/connect/authorize";
                 options.TokenEndpoint = "http://localhost:12345/connect/token";
+
+                options.Scope.Add("profile");
             });
+
+            app.UseStaticFiles();
 
             app.UseMvc();
         }

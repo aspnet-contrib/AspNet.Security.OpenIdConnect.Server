@@ -79,6 +79,8 @@ namespace Mvc.Server {
                 options.AuthorizationCodeProvider = new AuthorizationCodeProvider(app.ApplicationServices.GetRequiredService<IServiceScopeFactory>());
             });
 
+            app.UseStaticFiles();
+
             app.UseMvc();
 
             app.UseWelcomePage();
