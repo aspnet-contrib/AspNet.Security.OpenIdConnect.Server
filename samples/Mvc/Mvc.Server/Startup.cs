@@ -11,6 +11,11 @@ using Microsoft.Framework.DependencyInjection;
 using Mvc.Server.Models;
 using Mvc.Server.Providers;
 
+#if ASPNET50
+using Mvc.Server.Extensions;
+using NWebsec.Owin;
+#endif
+
 namespace Mvc.Server {
     public class Startup {
         public void Configure(IApplicationBuilder app) {
@@ -70,6 +75,27 @@ namespace Mvc.Server {
                 options.ConsumerKey = "6XaCTaLbMqfj6ww3zvZ5g";
                 options.ConsumerSecret = "Il2eFzGIrYhz6BWjYhVXBPQSfZuS4xoHpSSyD9PI";
             });
+
+#if ASPNET50
+            app.UseOwinAppBuilder(owin => {
+                // Insert a new middleware responsible of setting the Content-Security-Policy header.
+                // See https://nwebsec.codeplex.com/wikipage?title=Configuring%20Content%20Security%20Policy&referringTitle=NWebsec
+                owin.UseCsp(options => options.DefaultSources(configuration => configuration.Self())
+                                              .ScriptSources(configuration => configuration.UnsafeInline()));
+
+                // Insert a new middleware responsible of setting the X-Content-Type-Options header.
+                // See https://nwebsec.codeplex.com/wikipage?title=Configuring%20security%20headers&referringTitle=NWebsec
+                owin.UseXContentTypeOptions();
+
+                // Insert a new middleware responsible of setting the X-Frame-Options header.
+                // See https://nwebsec.codeplex.com/wikipage?title=Configuring%20security%20headers&referringTitle=NWebsec
+                owin.UseXfo(options => options.Deny());
+
+                // Insert a new middleware responsible of setting the X-Xss-Protection header.
+                // See https://nwebsec.codeplex.com/wikipage?title=Configuring%20security%20headers&referringTitle=NWebsec
+                owin.UseXXssProtection(options => options.EnabledWithBlockMode());
+            });
+#endif
 
             app.UseOpenIdConnectServer(options => {
                 options.AuthenticationType = OpenIdConnectDefaults.AuthenticationType;
