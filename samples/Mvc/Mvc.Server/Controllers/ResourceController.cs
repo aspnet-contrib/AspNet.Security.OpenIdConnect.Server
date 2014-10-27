@@ -2,7 +2,7 @@
 
 namespace Mvc.Server.Controllers {
     public class ResourceController : Controller {
-        [HttpGet("~/api/identity")]
+        [HttpGet("identity")]
         public ActionResult GetIdentity() {
             return Content(Context.User?.Identity?.Name);
         }

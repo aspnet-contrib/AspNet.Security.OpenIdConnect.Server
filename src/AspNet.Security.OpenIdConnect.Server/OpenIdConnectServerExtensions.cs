@@ -16,12 +16,12 @@ using Microsoft.IdentityModel.Protocols;
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides extension methods allowing to easily register an
-    /// OWIN-powered OpenID Connect server and to retrieve various
-    /// OpenID Connect-related contexts from the OWIN environment.
+    /// ASP.NET-powered OpenID Connect server and to retrieve various
+    /// OpenID Connect-related contexts from the ASP.NET environment.
     /// </summary>
     public static class OpenIdConnectServerExtensions {
         /// <summary>
-        /// Adds a specs-compliant OpenID Connect server in the OWIN pipeline.
+        /// Adds a specs-compliant OpenID Connect server in the ASP.NET pipeline.
         /// </summary>
         /// <param name="app">The web application builder</param>
         /// <param name="options">Options which control the behavior of the OpenID Connect server.</param>
@@ -40,18 +40,18 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
         /// <summary>
         /// Retrieves the <see cref="OpenIdConnectMessage"/> instance
-        /// associated with the current request from the OWIN context.
+        /// associated with the current request from the ASP.NET context.
         /// </summary>
-        /// <param name="context">The OWIN context.</param>
+        /// <param name="context">The ASP.NET context.</param>
         /// <returns>The <see cref="OpenIdConnectMessage"/> associated with the current request.</returns>
         public static OpenIdConnectMessage GetOpenIdConnectRequest(this HttpContext context) {
             return context.GetOpenIdConnectMessage(OpenIdConnectConstants.Environment.Request);
         }
 
         /// <summary>
-        /// Inserts the ambient <see cref="OpenIdConnectMessage"/> request in the OWIN context.
+        /// Inserts the ambient <see cref="OpenIdConnectMessage"/> request in the ASP.NET context.
         /// </summary>
-        /// <param name="context">The OWIN context.</param>
+        /// <param name="context">The ASP.NET context.</param>
         /// <param name="request">The ambient <see cref="OpenIdConnectMessage"/>.</param>
         public static void SetOpenIdConnectRequest(this HttpContext context, OpenIdConnectMessage request) {
             context.SetOpenIdConnectMessage(OpenIdConnectConstants.Environment.Request, request);
@@ -59,18 +59,18 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
         /// <summary>
         /// Retrieves the <see cref="OpenIdConnectMessage"/> instance
-        /// associated with the current response from the OWIN context.
+        /// associated with the current response from the ASP.NET context.
         /// </summary>
-        /// <param name="context">The OWIN context.</param>
+        /// <param name="context">The ASP.NET context.</param>
         /// <returns>The <see cref="OpenIdConnectMessage"/> associated with the current response.</returns>
         public static OpenIdConnectMessage GetOpenIdConnectResponse(this HttpContext context) {
             return context.GetOpenIdConnectMessage(OpenIdConnectConstants.Environment.Response);
         }
 
         /// <summary>
-        /// Inserts the ambient <see cref="OpenIdConnectMessage"/> response in the OWIN context.
+        /// Inserts the ambient <see cref="OpenIdConnectMessage"/> response in the ASP.NET context.
         /// </summary>
-        /// <param name="context">The OWIN context.</param>
+        /// <param name="context">The ASP.NET context.</param>
         /// <param name="response">The ambient <see cref="OpenIdConnectMessage"/>.</param>
         public static void SetOpenIdConnectResponse(this HttpContext context, OpenIdConnectMessage response) {
             context.SetOpenIdConnectMessage(OpenIdConnectConstants.Environment.Response, response);
