@@ -18,6 +18,9 @@ copy %CACHED_NUGET% .nuget\nuget.exe > nul
 IF EXIST packages\KoreBuild goto run
 .nuget\NuGet.exe install KoreBuild -ExcludeVersion -o packages -nocache -pre
 .nuget\NuGet.exe install Sake -version 0.2 -o packages -ExcludeVersion
+CALL packages\KoreBuild\build\kvm upgrade -r:clr -x86
+CALL packages\KoreBuild\build\kvm install default -r:clr -x86
 
 :run
+CALL packages\KoreBuild\build\kvm use default -r:clr -x86
 packages\Sake\tools\Sake.exe -I packages\KoreBuild\build -I build -f makefile.shade %*
