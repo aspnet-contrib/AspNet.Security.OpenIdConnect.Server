@@ -43,6 +43,14 @@ namespace Mvc.Server {
                 services.AddMvc();
             });
 
+            app.Map("/api", map => {
+                map.UseOAuthBearerAuthentication(options => {
+                    options.AuthenticationMode = AuthenticationMode.Active;
+                });
+
+                map.UseMvc();
+            });
+
             // Insert a new cookies middleware in the pipeline to store
             // the user identity returned by the external identity provider.
             app.UseCookieAuthentication(options => {
@@ -61,10 +69,6 @@ namespace Mvc.Server {
             app.UseTwitterAuthentication(options => {
                 options.ConsumerKey = "6XaCTaLbMqfj6ww3zvZ5g";
                 options.ConsumerSecret = "Il2eFzGIrYhz6BWjYhVXBPQSfZuS4xoHpSSyD9PI";
-            });
-
-            app.UseOAuthBearerAuthentication(options => {
-                options.AuthenticationMode = AuthenticationMode.Active;
             });
 
             app.UseOpenIdConnectServer(options => {
