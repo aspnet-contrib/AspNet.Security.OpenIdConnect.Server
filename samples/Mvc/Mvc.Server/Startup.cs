@@ -8,6 +8,8 @@ using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Security;
 using Microsoft.AspNet.Security.Cookies;
 using Microsoft.Framework.DependencyInjection;
+using Microsoft.Framework.Logging;
+using Microsoft.Framework.Logging.Console;
 using Mvc.Server.Models;
 using Mvc.Server.Providers;
 
@@ -19,6 +21,9 @@ using NWebsec.Owin;
 namespace Mvc.Server {
     public class Startup {
         public void Configure(IApplicationBuilder app) {
+            var factory = app.ApplicationServices.GetRequiredService<ILoggerFactory>();
+            factory.AddConsole();
+
             X509Certificate2 certificate;
 
             // Note: in a real world app, you'd probably prefer storing the X.509 certificate
@@ -81,7 +86,9 @@ namespace Mvc.Server {
                 // Insert a new middleware responsible of setting the Content-Security-Policy header.
                 // See https://nwebsec.codeplex.com/wikipage?title=Configuring%20Content%20Security%20Policy&referringTitle=NWebsec
                 owin.UseCsp(options => options.DefaultSources(configuration => configuration.Self())
-                                              .ScriptSources(configuration => configuration.UnsafeInline()));
+                                              .ImageSources(configuration => configuration.Self().CustomSources("*"))
+                                              .ScriptSources(configuration => configuration.UnsafeInline())
+                                              .StyleSources(configuration => configuration.Self().UnsafeInline()));
 
                 // Insert a new middleware responsible of setting the X-Content-Type-Options header.
                 // See https://nwebsec.codeplex.com/wikipage?title=Configuring%20security%20headers&referringTitle=NWebsec
