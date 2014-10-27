@@ -5,10 +5,15 @@ using Microsoft.AspNet.Security;
 using Microsoft.AspNet.Security.Cookies;
 using Microsoft.AspNet.Security.OAuth;
 using Microsoft.Framework.DependencyInjection;
+using Microsoft.Framework.Logging;
+using Microsoft.Framework.Logging.Console;
 
 namespace Mvc.Client {
     public class Startup {
         public void Configure(IApplicationBuilder app) {
+            var factory = app.ApplicationServices.GetRequiredService<ILoggerFactory>();
+            factory.AddConsole();
+
             app.UseServices(services => {
                 services.Configure<ExternalAuthenticationOptions>(options => {
                     options.SignInAsAuthenticationType = "ClientCookie";
