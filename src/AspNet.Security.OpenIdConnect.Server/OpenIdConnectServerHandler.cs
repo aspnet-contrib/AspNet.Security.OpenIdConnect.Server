@@ -17,6 +17,7 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
+using AspNet.Security.OpenIdConnect.Extensions;
 using Microsoft.AspNet.Http.Security;
 using Microsoft.AspNet.Security;
 using Microsoft.AspNet.Security.Infrastructure;
@@ -24,7 +25,6 @@ using Microsoft.AspNet.WebUtilities;
 using Microsoft.Framework.Logging;
 using Microsoft.IdentityModel.Protocols;
 using Newtonsoft.Json;
-using Owin.Security.OpenIdConnect.Extensions;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     internal class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions> {
