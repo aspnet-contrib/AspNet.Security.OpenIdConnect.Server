@@ -5,11 +5,13 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Security.Claims;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Provider;
+using Newtonsoft.Json.Linq;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
@@ -35,12 +37,18 @@ namespace Owin.Security.OpenIdConnect.Server {
                 throw new ArgumentNullException("ticket");
             }
 
+            AdditionalParameters = new Dictionary<string, JToken>(StringComparer.Ordinal);
             Identity = ticket.Identity;
             Properties = ticket.Properties;
             TokenIssued = Identity != null;
             TokenRequest = tokenRequest;
             TokenResponse = tokenResponse;
         }
+
+        /// <summary>
+        /// Enables additional values to be appended to the token response.
+        /// </summary>
+        public IDictionary<string, JToken> AdditionalParameters { get; private set; }
 
         /// <summary>
         /// Gets the identity of the resource owner.
