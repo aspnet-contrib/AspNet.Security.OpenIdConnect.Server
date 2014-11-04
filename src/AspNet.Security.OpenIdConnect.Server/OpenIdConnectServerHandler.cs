@@ -25,6 +25,7 @@ using Microsoft.AspNet.WebUtilities;
 using Microsoft.Framework.Logging;
 using Microsoft.IdentityModel.Protocols;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     internal class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions> {
@@ -578,84 +579,47 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             using (var buffer = new MemoryStream())
             using (var writer = new JsonTextWriter(new StreamWriter(buffer))) {
-                writer.WriteStartObject();
+                var payload = new JObject();
 
-                writer.WritePropertyName(OpenIdConnectConstants.Metadata.Issuer);
-                writer.WriteValue(configurationEndpointResponseContext.Issuer);
+                payload.Add(OpenIdConnectConstants.Metadata.Issuer,
+                    configurationEndpointResponseContext.Issuer);
 
-                writer.WritePropertyName(OpenIdConnectConstants.Metadata.AuthorizationEndpoint);
-                writer.WriteValue(configurationEndpointResponseContext.AuthorizationEndpoint);
+                payload.Add(OpenIdConnectConstants.Metadata.AuthorizationEndpoint,
+                    configurationEndpointResponseContext.AuthorizationEndpoint);
 
                 if (!string.IsNullOrWhiteSpace(configurationEndpointResponseContext.TokenEndpoint)) {
-                    writer.WritePropertyName(OpenIdConnectConstants.Metadata.TokenEndpoint);
-                    writer.WriteValue(configurationEndpointResponseContext.TokenEndpoint);
+                    payload.Add(OpenIdConnectConstants.Metadata.TokenEndpoint,
+                        configurationEndpointResponseContext.TokenEndpoint);
                 }
 
                 if (!string.IsNullOrWhiteSpace(configurationEndpointResponseContext.KeyEndpoint)) {
-                    writer.WritePropertyName(OpenIdConnectConstants.Metadata.JwksUri);
-                    writer.WriteValue(configurationEndpointResponseContext.KeyEndpoint);
+                    payload.Add(OpenIdConnectConstants.Metadata.JwksUri,
+                        configurationEndpointResponseContext.KeyEndpoint);
                 }
 
-                writer.WritePropertyName(OpenIdConnectConstants.Metadata.GrantTypesSupported);
-                writer.WriteStartArray();
+                payload.Add(OpenIdConnectConstants.Metadata.GrantTypesSupported,
+                    JArray.FromObject(configurationEndpointResponseContext.GrantTypes));
 
-                foreach (string type in configurationEndpointResponseContext.GrantTypes) {
-                    writer.WriteValue(type);
+                payload.Add(OpenIdConnectConstants.Metadata.ResponseModesSupported,
+                    JArray.FromObject(configurationEndpointResponseContext.ResponseModes));
+
+                payload.Add(OpenIdConnectConstants.Metadata.ResponseTypesSupported,
+                    JArray.FromObject(configurationEndpointResponseContext.ResponseTypes));
+
+                payload.Add(OpenIdConnectConstants.Metadata.SubjectTypesSupported,
+                    JArray.FromObject(configurationEndpointResponseContext.SubjectTypes));
+
+                payload.Add(OpenIdConnectConstants.Metadata.ScopesSupported,
+                    JArray.FromObject(configurationEndpointResponseContext.Scopes));
+
+                payload.Add(OpenIdConnectConstants.Metadata.IdTokenSigningAlgValuesSupported,
+                    JArray.FromObject(configurationEndpointResponseContext.SigningAlgorithms));
+
+                foreach (KeyValuePair<string, JToken> parameter in configurationEndpointResponseContext.AdditionalParameters) {
+                    payload.Add(parameter.Key, parameter.Value);
                 }
 
-                writer.WriteEndArray();
-
-                writer.WritePropertyName(OpenIdConnectConstants.Metadata.ResponseModesSupported);
-                writer.WriteStartArray();
-
-                foreach (string mode in configurationEndpointResponseContext.ResponseModes) {
-                    writer.WriteValue(mode);
-                }
-
-                writer.WriteEndArray();
-
-                writer.WritePropertyName(OpenIdConnectConstants.Metadata.ResponseTypesSupported);
-                writer.WriteStartArray();
-
-                foreach (string type in configurationEndpointResponseContext.ResponseTypes) {
-                    writer.WriteValue(type);
-                }
-
-                writer.WriteEndArray();
-
-                writer.WritePropertyName(OpenIdConnectConstants.Metadata.SubjectTypesSupported);
-                writer.WriteStartArray();
-
-                foreach (string type in configurationEndpointResponseContext.SubjectTypes) {
-                    writer.WriteValue(type);
-                }
-
-                writer.WriteEndArray();
-
-                writer.WritePropertyName(OpenIdConnectConstants.Metadata.ScopesSupported);
-                writer.WriteStartArray();
-
-                foreach (string algorithm in configurationEndpointResponseContext.Scopes) {
-                    writer.WriteValue(algorithm);
-                }
-
-                writer.WriteEndArray();
-
-                writer.WritePropertyName(OpenIdConnectConstants.Metadata.IdTokenSigningAlgValuesSupported);
-                writer.WriteStartArray();
-
-                foreach (string algorithm in configurationEndpointResponseContext.SigningAlgorithms) {
-                    writer.WriteValue(algorithm);
-                }
-
-                writer.WriteEndArray();
-
-                foreach (KeyValuePair<string, object> parameter in configurationEndpointResponseContext.AdditionalParameters) {
-                    writer.WritePropertyName(parameter.Key);
-                    writer.WriteValue(parameter.Value);
-                }
-
-                writer.WriteEndObject();
+                payload.WriteTo(writer);
                 writer.Flush();
 
                 Response.ContentLength = buffer.Length;
@@ -798,13 +762,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             using (var buffer = new MemoryStream())
             using (var writer = new JsonTextWriter(new StreamWriter(buffer))) {
-                writer.WriteStartObject();
-
-                writer.WritePropertyName(JsonWebKeyParameterNames.Keys);
-                writer.WriteStartArray();
-                writer.WriteStartObject();
+                var payload = new JObject();
+                var keys = new JArray();
 
                 foreach (JsonWebKey key in keysEndpointResponseContext.Keys) {
+                    var item = new JObject();
+
                     // Ensure a key type has been provided.
                     // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#section-4.1
                     if (string.IsNullOrWhiteSpace(key.Kty)) {
@@ -813,65 +776,36 @@ namespace AspNet.Security.OpenIdConnect.Server {
                         continue;
                     }
 
-                    writer.WritePropertyName(JsonWebKeyParameterNames.Kty);
-                    writer.WriteValue(key.Kty);
+                    // Create a dictionary associating the
+                    // JsonWebKey components with their values.
+                    var parameters = new Dictionary<string, string> {
+                        { JsonWebKeyParameterNames.Kty, key.Kty },
+                        { JsonWebKeyParameterNames.Alg, key.Alg },
+                        { JsonWebKeyParameterNames.E, key.E },
+                        { JsonWebKeyParameterNames.KeyOps, key.KeyOps },
+                        { JsonWebKeyParameterNames.Kid, key.Kid },
+                        { JsonWebKeyParameterNames.N, key.N },
+                        { JsonWebKeyParameterNames.Use, key.Use },
+                        { JsonWebKeyParameterNames.X5t, key.X5t },
+                        { JsonWebKeyParameterNames.X5u, key.X5u },
+                    };
 
-                    if (!string.IsNullOrWhiteSpace(key.Alg)) {
-                        writer.WritePropertyName(JsonWebKeyParameterNames.Alg);
-                        writer.WriteValue(key.Alg);
-                    }
-
-                    if (!string.IsNullOrWhiteSpace(key.E)) {
-                        writer.WritePropertyName(JsonWebKeyParameterNames.E);
-                        writer.WriteValue(key.E);
-                    }
-
-                    if (!string.IsNullOrWhiteSpace(key.KeyOps)) {
-                        writer.WritePropertyName(JsonWebKeyParameterNames.KeyOps);
-                        writer.WriteValue(key.KeyOps);
-                    }
-
-                    if (!string.IsNullOrWhiteSpace(key.Kid)) {
-                        writer.WritePropertyName(JsonWebKeyParameterNames.Kid);
-                        writer.WriteValue(key.Kid);
-                    }
-
-                    if (!string.IsNullOrWhiteSpace(key.N)) {
-                        writer.WritePropertyName(JsonWebKeyParameterNames.N);
-                        writer.WriteValue(key.N);
-                    }
-
-                    if (!string.IsNullOrWhiteSpace(key.Use)) {
-                        writer.WritePropertyName(JsonWebKeyParameterNames.Use);
-                        writer.WriteValue(key.Use);
-                    }
-
-                    if (!string.IsNullOrWhiteSpace(key.X5t)) {
-                        writer.WritePropertyName(JsonWebKeyParameterNames.X5t);
-                        writer.WriteValue(key.X5t);
-                    }
-
-                    if (!string.IsNullOrWhiteSpace(key.X5u)) {
-                        writer.WritePropertyName(JsonWebKeyParameterNames.X5u);
-                        writer.WriteValue(key.X5u);
+                    foreach (KeyValuePair<string, string> parameter in parameters) {
+                        if (!string.IsNullOrEmpty(parameter.Value)) {
+                            item.Add(parameter.Key, parameter.Value);
+                        }
                     }
 
                     if (key.X5c.Any()) {
-                        writer.WritePropertyName(JsonWebKeyParameterNames.X5c);
-                        writer.WriteStartArray();
-
-                        foreach (string certificate in key.X5c) {
-                            writer.WriteValue(certificate);
-                        }
-
-                        writer.WriteEndArray();
+                        item.Add(JsonWebKeyParameterNames.X5c, JArray.FromObject(key.X5c));
                     }
+
+                    keys.Add(item);
                 }
 
-                writer.WriteEndObject();
-                writer.WriteEndArray();
+                payload.Add(JsonWebKeyParameterNames.Keys, keys);
 
-                writer.WriteEndObject();
+                payload.WriteTo(writer);
                 writer.Flush();
 
                 Response.ContentLength = buffer.Length;
@@ -1050,14 +984,13 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             using (var buffer = new MemoryStream())
             using (var writer = new JsonTextWriter(new StreamWriter(buffer))) {
-                writer.WriteStartObject();
+                var payload = new JObject();
 
                 foreach (KeyValuePair<string, string> parameter in response.Parameters) {
-                    writer.WritePropertyName(parameter.Key);
-                    writer.WriteValue(parameter.Value);
+                    payload.Add(parameter.Key, parameter.Value);
                 }
 
-                writer.WriteEndObject();
+                payload.WriteTo(writer);
                 writer.Flush();
 
                 Response.ContentLength = buffer.Length;
@@ -1508,21 +1441,19 @@ namespace AspNet.Security.OpenIdConnect.Server {
         private async Task SendErrorPayloadAsync(OpenIdConnectMessage response) {
             using (var buffer = new MemoryStream())
             using (var writer = new JsonTextWriter(new StreamWriter(buffer))) {
-                writer.WriteStartObject();
-                writer.WritePropertyName(OpenIdConnectConstants.Parameters.Error);
-                writer.WriteValue(response.Error);
+                var payload = new JObject();
+
+                payload.Add(OpenIdConnectConstants.Parameters.Error, response.Error);
 
                 if (!string.IsNullOrEmpty(response.ErrorDescription)) {
-                    writer.WritePropertyName(OpenIdConnectConstants.Parameters.ErrorDescription);
-                    writer.WriteValue(response.ErrorDescription);
+                    payload.Add(OpenIdConnectConstants.Parameters.ErrorDescription, response.ErrorDescription);
                 }
 
                 if (!string.IsNullOrEmpty(response.ErrorUri)) {
-                    writer.WritePropertyName(OpenIdConnectConstants.Parameters.ErrorUri);
-                    writer.WriteValue(response.ErrorUri);
+                    payload.Add(OpenIdConnectConstants.Parameters.ErrorUri, response.ErrorUri);
                 }
 
-                writer.WriteEndObject();
+                payload.WriteTo(writer);
                 writer.Flush();
 
                 Response.StatusCode = 400;
