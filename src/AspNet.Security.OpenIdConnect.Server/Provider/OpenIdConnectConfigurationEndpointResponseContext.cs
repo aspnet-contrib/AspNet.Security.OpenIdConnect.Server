@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Security.Notifications;
+using Newtonsoft.Json.Linq;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
@@ -22,7 +23,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             HttpContext context,
             OpenIdConnectServerOptions options)
             : base(context, options) {
-            AdditionalParameters = new Dictionary<string, object>(StringComparer.Ordinal);
+            AdditionalParameters = new Dictionary<string, JToken>(StringComparer.Ordinal);
             GrantTypes = new List<string>();
             ResponseModes = new List<string>();
             ResponseTypes = new List<string>();
@@ -39,7 +40,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Enables additional values to be appended to the metadata response.
         /// </summary>
-        public IDictionary<string, object> AdditionalParameters { get; private set; }
+        public IDictionary<string, JToken> AdditionalParameters { get; private set; }
 
         /// <summary>
         /// Gets or sets the JWKS endpoint address.
