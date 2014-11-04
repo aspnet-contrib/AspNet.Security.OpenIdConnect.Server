@@ -990,6 +990,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     payload.Add(parameter.Key, parameter.Value);
                 }
 
+                foreach (KeyValuePair<string, JToken> parameter in tokenEndpointResponseContext.AdditionalParameters) {
+                    payload.Add(parameter.Key, parameter.Value);
+                }
+
                 payload.WriteTo(writer);
                 writer.Flush();
 

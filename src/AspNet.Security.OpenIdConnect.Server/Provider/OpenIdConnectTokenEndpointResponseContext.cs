@@ -5,12 +5,14 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Security.Claims;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Security;
 using Microsoft.AspNet.Security;
 using Microsoft.AspNet.Security.Notifications;
 using Microsoft.IdentityModel.Protocols;
+using Newtonsoft.Json.Linq;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
@@ -36,12 +38,18 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 throw new ArgumentNullException("ticket");
             }
 
+            AdditionalParameters = new Dictionary<string, JToken>(StringComparer.Ordinal);
             Identity = ticket.Identity;
             Properties = ticket.Properties;
             TokenIssued = Identity != null;
             TokenRequest = tokenRequest;
             TokenResponse = tokenResponse;
         }
+
+        /// <summary>
+        /// Enables additional values to be appended to the token response.
+        /// </summary>
+        public IDictionary<string, JToken> AdditionalParameters { get; private set; }
 
         /// <summary>
         /// Gets the identity of the resource owner.
