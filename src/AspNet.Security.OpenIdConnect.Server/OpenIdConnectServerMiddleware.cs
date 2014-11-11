@@ -85,10 +85,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 Options.TokenHandler = new JwtSecurityTokenHandler();
             }
 
-            if (Options.SigningCredentials == null) {
-                throw new ArgumentNullException("options.SigningCredentials");
-            }
-
             if (!Options.AuthorizationEndpointPath.HasValue) {
                 throw new ArgumentException("options.AuthorizationEndpointPath must be provided. " +
                     "Make sure to use a custom value or remove the setter call to use the default value.",
