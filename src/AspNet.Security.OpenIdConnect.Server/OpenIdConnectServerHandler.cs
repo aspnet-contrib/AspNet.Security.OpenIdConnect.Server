@@ -210,7 +210,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 });
             }
 
-            else if (!request.IsAuthorizationCodeFlow() && !request.IsImplicitFlow() && !request.IsHybridFlow()) {
+            if (!request.IsAuthorizationCodeFlow() && !request.IsImplicitFlow() && !request.IsHybridFlow()) {
                 logger.WriteVerbose("Authorization request contains unsupported response_type parameter");
 
                 return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
@@ -220,7 +220,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 });
             }
 
-            else if (!request.IsFormPostResponseMode() && !request.IsFragmentResponseMode() && !request.IsQueryResponseMode()) {
+            if (!request.IsFormPostResponseMode() && !request.IsFragmentResponseMode() && !request.IsQueryResponseMode()) {
                 logger.WriteVerbose("Authorization request contains unsupported response_mode parameter");
 
                 return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
@@ -230,14 +230,35 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 });
             }
 
-            else if (!request.HasComponent(message => message.Scope, OpenIdConnectScopes.OpenId) &&
-                request.HasComponent(message => message.ResponseType, OpenIdConnectConstants.ResponseTypes.IdToken)) {
+            if (request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.IdToken) && !request.ContainsScope(OpenIdConnectScopes.OpenId)) {
                 logger.WriteVerbose("The 'openid' scope part was missing");
 
                 return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "openid scope missing",
                     RedirectUri = request.RedirectUri, State = request.State
+                });
+            }
+
+            if (request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.Code) && !Options.TokenEndpointPath.HasValue) {
+                logger.WriteVerbose("Authorization request contains the disabled code response_type");
+            
+                return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
+                    Error = OpenIdConnectConstants.Errors.UnsupportedResponseType,
+                    ErrorDescription = "response_type=code is not supported by this server",
+                    RedirectUri = request.RedirectUri,
+                    State = request.State
+                });
+            }
+            
+            if (request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.IdToken) && Options.SigningCredentials == null) {
+                logger.WriteVerbose("Authorization request contains the disabled id_token response_type");
+            
+                return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
+                    Error = OpenIdConnectConstants.Errors.UnsupportedResponseType,
+                    ErrorDescription = "response_type=id_token is not supported by this server",
+                    RedirectUri = request.RedirectUri,
+                    State = request.State
                 });
             }
 
@@ -356,7 +377,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             // Determine whether an access token should be returned.
-            if (request.HasComponent(message => message.ResponseType, OpenIdConnectConstants.ResponseTypes.Token)) {
+            if (request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.Token)) {
                 grant.Properties.IssuedUtc = currentUtc;
                 grant.Properties.ExpiresUtc = currentUtc.Add(Options.AccessTokenLifetime);
 
@@ -504,7 +525,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // To avoid this issue, the jwks_uri parameter is only added to the response when the JWKS endpoint
             // is believed to provide a valid response, which is the case with asymmetric keys supporting RSA-SHA256.
             // See http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
-            if (Options.SigningCredentials.SigningKey is AsymmetricSecurityKey &&
+            if (Options.SigningCredentials != null &&
+                Options.SigningCredentials.SigningKey is AsymmetricSecurityKey &&
                 Options.SigningCredentials.SigningKey.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature)) {
                 configurationEndpointResponseContext.KeyEndpoint = Options.Issuer + Options.KeysEndpointPath;
             }
@@ -514,9 +536,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             configurationEndpointResponseContext.GrantTypes.Add(
-                OpenIdConnectConstants.GrantTypes.AuthorizationCode);
-            configurationEndpointResponseContext.GrantTypes.Add(
                 OpenIdConnectConstants.GrantTypes.Implicit);
+
+            // Only expose the authorization code grant type if
+            // the token endpoint has not been explicitly disabled.
+            if (Options.TokenEndpointPath.HasValue) {
+                configurationEndpointResponseContext.GrantTypes.Add(
+                    OpenIdConnectConstants.GrantTypes.AuthorizationCode);
+            }
 
             configurationEndpointResponseContext.ResponseModes.Add(
                 OpenIdConnectConstants.ResponseModes.FormPost);
@@ -526,12 +553,17 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 OpenIdConnectConstants.ResponseModes.Query);
 
             configurationEndpointResponseContext.ResponseTypes.Add(
-                OpenIdConnectConstants.ResponseTypes.IdToken);
-            configurationEndpointResponseContext.ResponseTypes.Add(
                 OpenIdConnectConstants.ResponseTypes.Token);
-            configurationEndpointResponseContext.ResponseTypes.Add(
-                OpenIdConnectConstants.ResponseTypes.IdToken + ' ' +
-                OpenIdConnectConstants.ResponseTypes.Token);
+
+            // Only expose response types containing id_token when
+            // signing credentials have been explicitly provided.
+            if (Options.SigningCredentials != null) {
+                configurationEndpointResponseContext.ResponseTypes.Add(
+                    OpenIdConnectConstants.ResponseTypes.IdToken);
+                configurationEndpointResponseContext.ResponseTypes.Add(
+                    OpenIdConnectConstants.ResponseTypes.IdToken + ' ' +
+                    OpenIdConnectConstants.ResponseTypes.Token);
+            }
 
             // Only expose response types containing code when
             // the token endpoint has not been explicitly disabled.
@@ -541,16 +573,20 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 configurationEndpointResponseContext.ResponseTypes.Add(
                     OpenIdConnectConstants.ResponseTypes.Code + ' ' +
-                    OpenIdConnectConstants.ResponseTypes.IdToken);
-
-                configurationEndpointResponseContext.ResponseTypes.Add(
-                    OpenIdConnectConstants.ResponseTypes.Code + ' ' +
                     OpenIdConnectConstants.ResponseTypes.Token);
 
-                configurationEndpointResponseContext.ResponseTypes.Add(
-                    OpenIdConnectConstants.ResponseTypes.Code + ' ' +
-                    OpenIdConnectConstants.ResponseTypes.IdToken + ' ' +
-                    OpenIdConnectConstants.ResponseTypes.Token);
+                // Only expose response types containing id_token when
+                // signing credentials have been explicitly provided.
+                if (Options.SigningCredentials != null) {
+                    configurationEndpointResponseContext.ResponseTypes.Add(
+                        OpenIdConnectConstants.ResponseTypes.Code + ' ' +
+                        OpenIdConnectConstants.ResponseTypes.IdToken);
+
+                    configurationEndpointResponseContext.ResponseTypes.Add(
+                        OpenIdConnectConstants.ResponseTypes.Code + ' ' +
+                        OpenIdConnectConstants.ResponseTypes.IdToken + ' ' +
+                        OpenIdConnectConstants.ResponseTypes.Token);
+                }
             }
 
             configurationEndpointResponseContext.Scopes.Add(OpenIdConnectScopes.OpenId);
@@ -638,7 +674,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return;
             }
 
-            var keysEndpointResponseContext = new OpenIdConnectKeysEndpointResponseContext(Context, Options);
+            if (Options.SigningCredentials == null) {
+                logger.WriteError("Keys endpoint: no signing credentials provided. " +
+                    "Make sure valid credentials are assigned to Options.SigningCredentials.");
+                return;
+            }
 
             // Skip processing the metadata request if no supported key can be found.
             // Note: SigningKey is assumed to be never null under normal circonstances,
@@ -662,6 +702,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     typeof(SigningCredentials).Name, SecurityAlgorithms.RsaSha256Signature));
                 return;
             }
+
+            var keysEndpointResponseContext = new OpenIdConnectKeysEndpointResponseContext(Context, Options);
 
             X509Certificate2 x509Certificate = null;
 
@@ -1203,6 +1245,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
         }
 
         private async Task<string> CreateAuthorizationCodeAsync(ClaimsIdentity identity, AuthenticationProperties properties) {
+            if (!Options.TokenEndpointPath.HasValue) {
+                throw new InvalidOperationException(
+                    "An authorization code cannot be created " +
+                    "when the token endpoint has been explicitly disabled.");
+            }
+
             var claims = new List<Claim>();
 
             foreach (var claim in identity.Claims) {
@@ -1262,6 +1310,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
         }
 
         private string CreateIdentityToken(ClaimsIdentity identity, OpenIdConnectMessage message, AuthenticationProperties properties) {
+            if (Options.SigningCredentials == null) {
+                throw new InvalidOperationException(
+                    "Signing credentials are required to create an identity token: " +
+                    "make sure to assign a valid instance to Options.SigningCredentials.");
+            }
+
             var claims = new List<Claim>();
 
             if (!string.IsNullOrEmpty(message.Code)) {
