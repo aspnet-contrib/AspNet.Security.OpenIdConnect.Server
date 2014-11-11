@@ -55,7 +55,7 @@
     </Reference>
     <Reference Include="Owin.Security.OpenIdConnect.Extensions, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Owin.Security.OpenIdConnect.Extensions.1.0.0-alpha2-30825-000\lib\net45\Owin.Security.OpenIdConnect.Extensions.dll</HintPath>
+      <HintPath>..\..\packages\Owin.Security.OpenIdConnect.Extensions.1.0.0-alpha2-31111-000\lib\net45\Owin.Security.OpenIdConnect.Extensions.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
