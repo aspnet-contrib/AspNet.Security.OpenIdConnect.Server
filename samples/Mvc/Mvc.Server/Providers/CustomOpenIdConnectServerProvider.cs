@@ -64,8 +64,8 @@ namespace Mvc.Server.Providers {
             using (var database = scope.ServiceProvider.GetRequiredService<ApplicationContext>()) {
                 // Retrieve the application details corresponding to the requested client_id.
                 Application application = await (from entity in database.Applications
-                                                    where entity.ApplicationID == context.ClientId
-                                                    select entity).SingleOrDefaultAsync(context.HttpContext.RequestAborted);
+                                                 where entity.ApplicationID == context.ClientId
+                                                 select entity).SingleOrDefaultAsync(context.HttpContext.RequestAborted);
 
                 if (application == null) {
                     context.SetError(
