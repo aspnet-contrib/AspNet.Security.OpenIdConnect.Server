@@ -10,14 +10,18 @@ using Owin;
 
 namespace Mvc.Server.Extensions {
     using AppFunc = Func<IDictionary<string, object>, Task>;
-    using BuildFunc = Action<Func<Func<IDictionary<string, object>, Task>,
-                                  Func<IDictionary<string, object>, Task>>>;
 
     public static class AppBuilderExtensions {
-        public static void UseOwinAppBuilder(this IApplicationBuilder app, Action<IAppBuilder> configuration) {
-            BuildFunc buildFunc = app.UseOwin();
+        public static IApplicationBuilder UseOwinAppBuilder(this IApplicationBuilder app, Action<IAppBuilder> action) {
+            if (app == null) {
+                throw new ArgumentNullException(nameof(app));
+            }
 
-            buildFunc(next => {
+            if (action == null) {
+                throw new ArgumentNullException(nameof(action));
+            }
+
+            return app.UseOwin(setup => setup(next => {
                 var builder = new AppBuilder();
                 var lifetime = (IApplicationLifetime) app.ApplicationServices.GetService(typeof(IApplicationLifetime));
 
@@ -26,12 +30,10 @@ namespace Mvc.Server.Extensions {
                 properties.OnAppDisposing = lifetime.ApplicationStopping;
                 properties.DefaultApp = next;
 
-                configuration(builder);
+                action(builder);
 
-                AppFunc appFunc = (AppFunc) builder.Build(typeof(AppFunc));
-
-                return environment => appFunc.Invoke(environment);
-            });
+                return builder.Build<AppFunc>();
+            }));
         }
     }
 }
