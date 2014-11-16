@@ -5,6 +5,8 @@
     "version": "1.0.0-beta1-*",
 
     "dependencies": {
+        "Newtonsoft.Json": "6.0.4",
+
         "Microsoft.AspNet.Mvc": "6.0.0-*",
         "Microsoft.AspNet.Security": "1.0.0-*",
         "Microsoft.AspNet.Security.Cookies": "1.0.0-*",
@@ -12,7 +14,7 @@
         "Microsoft.AspNet.Server.IIS": "1.0.0-*",
         "Microsoft.AspNet.Server.WebListener": "1.0.0-*",
         "Microsoft.AspNet.StaticFiles": "1.0.0-*",
-            
+
         "Microsoft.Framework.Logging": "1.0.0-*",
         "Microsoft.Framework.Logging.Console": "1.0.0-*"
     },
