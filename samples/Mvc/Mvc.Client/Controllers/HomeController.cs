@@ -23,7 +23,7 @@ namespace Mvc.Client.Controllers {
 
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Value);
 
-                return View("Home", await client.GetStringAsync("http://localhost:12345/api/identity"));
+                return View("Home", await client.GetStringAsync("http://localhost:54540/api/identity"));
             }
         }
     }

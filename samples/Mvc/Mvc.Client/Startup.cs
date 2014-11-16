@@ -40,8 +40,8 @@ namespace Mvc.Client {
                 options.ClientId = "myClient";
                 options.ClientSecret = "secret_secret_secret";
                 options.CallbackPath = new PathString("/oidc");
-                options.AuthorizationEndpoint = "http://localhost:12345/connect/authorize";
-                options.TokenEndpoint = "http://localhost:12345/connect/token";
+                options.AuthorizationEndpoint = "http://localhost:54540/connect/authorize";
+                options.TokenEndpoint = "http://localhost:54540/connect/token";
 
                 options.Scope.Add("profile");
             });
