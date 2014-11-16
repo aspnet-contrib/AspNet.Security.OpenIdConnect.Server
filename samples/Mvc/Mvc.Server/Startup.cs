@@ -107,7 +107,7 @@ namespace Mvc.Server {
             app.UseOpenIdConnectServer(options => {
                 options.AuthenticationType = OpenIdConnectDefaults.AuthenticationType;
 
-                options.Issuer = "http://localhost:12345/";
+                options.Issuer = "http://localhost:54540/";
                 options.SigningCredentials = credentials;
 
                 options.Provider = new CustomOpenIdConnectServerProvider(app.ApplicationServices.GetRequiredService<IServiceScopeFactory>());
