@@ -1,10 +1,15 @@
-﻿using Microsoft.AspNet.Mvc;
+﻿using System.Linq;
+using Microsoft.AspNet.Mvc;
 
 namespace Mvc.Server.Controllers {
     public class ResourceController : Controller {
-        [HttpGet("identity")]
-        public ActionResult GetIdentity() {
-            return Content(Context.User?.Identity?.Name);
+        [Authorize, HttpGet("claims")]
+        public ActionResult GetClaims() {
+            return Json(
+                from claim in Context.User.Claims
+                select new {
+                    claim.Type, claim.Value,
+                    claim.ValueType, claim.Issuer });
         }
     }
 }

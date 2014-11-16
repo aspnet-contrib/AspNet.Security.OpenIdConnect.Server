@@ -1,4 +1,7 @@
 using System;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Security.Claims;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Security;
@@ -7,6 +10,7 @@ using Microsoft.AspNet.Security.OAuth;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Logging;
 using Microsoft.Framework.Logging.Console;
+using Newtonsoft.Json.Linq;
 
 namespace Mvc.Client {
     public class Startup {
@@ -44,6 +48,29 @@ namespace Mvc.Client {
                 options.TokenEndpoint = "http://localhost:54540/connect/token";
 
                 options.Scope.Add("profile");
+
+                options.Notifications = new OAuthAuthenticationNotifications {
+                    OnGetUserInformationAsync = async context => {
+                        var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost:54540/api/claims");
+                        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", context.AccessToken);
+
+                        var response = await context.Backchannel.SendAsync(request, context.HttpContext.RequestAborted);
+                        response.EnsureSuccessStatusCode();
+
+                        if (context.Identity == null) {
+                            context.Identity = new ClaimsIdentity(context.Options.AuthenticationType);
+                        }
+
+                        // Extract the list of claims returned by the remote api/claims endpoint.
+                        foreach (JToken claim in JArray.Parse(await response.Content.ReadAsStringAsync())) {
+                            context.Identity.AddClaim(new Claim(
+                                type: claim.Value<string>(nameof(Claim.Type)),
+                                value: claim.Value<string>(nameof(Claim.Value)),
+                                valueType: claim.Value<string>(nameof(Claim.ValueType)),
+                                issuer: claim.Value<string>(nameof(Claim.Issuer))));
+                        }
+                    }
+                };
             });
 
             app.UseStaticFiles();
