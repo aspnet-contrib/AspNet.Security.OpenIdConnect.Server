@@ -37,6 +37,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
             : base(next, services, options, configuration) {
             _logger = loggerFactory.Create<OpenIdConnectServerMiddleware>();
 
+            if (string.IsNullOrWhiteSpace(Options.AuthenticationType)) {
+                throw new ArgumentNullException("options.AuthenticationType");
+            }
+
             if (Options.Provider == null) {
                 Options.Provider = new OpenIdConnectServerProvider();
             }
@@ -44,15 +48,17 @@ namespace AspNet.Security.OpenIdConnect.Server {
             if (Options.AuthorizationCodeFormat == null) {
                 IDataProtector dataProtector = dataProtectorProvider.CreateDataProtector(
                     typeof(OpenIdConnectServerMiddleware).FullName,
-                    "Authentication_Code", "v1");
+                    Options.AuthenticationType, "Authentication_Code", "v1");
 
                 Options.AuthorizationCodeFormat = new TicketDataFormat(dataProtector);
             }
 
             if (Options.AccessTokenFormat == null) {
+                // Make sure the data protector needed by Options.AccessTokenFormat
+                // uses the same purposes as OAuthBearerAuthenticationMiddleware.
                 IDataProtector dataProtector = dataProtectorProvider.CreateDataProtector(
                     "Microsoft.AspNet.Security.OAuth.OAuthBearerAuthenticationMiddleware",
-                    "Bearer", "v1");
+                    Options.AuthenticationType, "v1");
 
                 Options.AccessTokenFormat = new TicketDataFormat(dataProtector);
             }
@@ -60,7 +66,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             if (Options.RefreshTokenFormat == null) {
                 IDataProtector dataProtector = dataProtectorProvider.CreateDataProtector(
                     typeof(OpenIdConnectServerMiddleware).Namespace,
-                    "Refresh_Token", "v1");
+                    Options.AuthenticationType, "Refresh_Token", "v1");
 
                 Options.RefreshTokenFormat = new TicketDataFormat(dataProtector);
             }
