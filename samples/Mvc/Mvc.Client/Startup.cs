@@ -61,6 +61,11 @@ namespace Mvc.Client {
                             context.Identity = new ClaimsIdentity(context.Options.AuthenticationType);
                         }
 
+                        // Add the access token to the returned ClaimsIdentity to make it easier to retrieve.
+                        // Note: this is automatically done by OAuthAuthenticationDefaults.DefaultOnGetUserInformationAsync
+                        // (from Microsoft.AspNet.Security.OAuth) when you don't provide an explicit notification.
+                        context.Identity.AddClaim(new Claim(type: "access_token", value: context.AccessToken));
+
                         // Extract the list of claims returned by the remote api/claims endpoint.
                         foreach (JToken claim in JArray.Parse(await response.Content.ReadAsStringAsync())) {
                             context.Identity.AddClaim(new Claim(

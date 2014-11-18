@@ -1,4 +1,6 @@
-﻿<div class="jumbotron">
+﻿@model string
+
+<div class="jumbotron">
     @if (User?.Identity?.IsAuthenticated ?? false) {
         <h1>Welcome, @User.Identity.Name</h1>
 
@@ -7,6 +9,14 @@
                 <div>@claim.Type: <b>@claim.Value</b></div>
             }
         </p>
+
+        if (!string.IsNullOrWhiteSpace(Model)) {
+            <h3>Message received from the resource controller: @Model</h3>
+        }
+
+        <form action="~/" method="post">
+            <button class="btn btn-lg btn-warning" type="submit">Query the resource controller</button>
+        </form>
 
         <a class="btn btn-lg btn-danger" href="/signout">Sign out</a>
     }
