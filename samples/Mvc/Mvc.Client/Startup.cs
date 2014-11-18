@@ -41,10 +41,10 @@ namespace Mvc.Client {
                 // the different endpoints URIs or the token validation parameters explicitly.
                 Authority = "http://localhost:55985/",
 
-                // Note: by default, the OIDC client throws an OpenIdConnectProtocolException
-                // when an error occurred during the authentication/authorization process.
-                // To prevent a YSOD from being displayed, the response is declared as handled.
                 Notifications = new OpenIdConnectAuthenticationNotifications {
+                    // Note: by default, the OIDC client throws an OpenIdConnectProtocolException
+                    // when an error occurred during the authentication/authorization process.
+                    // To prevent a YSOD from being displayed, the response is declared as handled.
                     AuthenticationFailed = notification => {
                         if (string.Equals(notification.ProtocolMessage.Error, "access_denied", StringComparison.Ordinal)) {
                             notification.HandleResponse();
@@ -55,6 +55,8 @@ namespace Mvc.Client {
                         return Task.FromResult<object>(null);
                     },
 
+                    // Retrieve an access token from the remote token endpoint
+                    // using the authorization code received during the current request.
                     SecurityTokenValidated = async notification => {
                         using (var client = new HttpClient()) {
                             var configuration = await notification.Options.ConfigurationManager.GetConfigurationAsync(notification.Request.CallCancelled);
@@ -73,6 +75,7 @@ namespace Mvc.Client {
 
                             var payload = JObject.Parse(await response.Content.ReadAsStringAsync());
 
+                            // Add the access token to the returned ClaimsIdentity to make it easier to retrieve.
                             notification.AuthenticationTicket.Identity.AddClaim(new Claim(
                                 type: OpenIdConnectParameterNames.AccessToken,
                                 value: payload.Value<string>(OpenIdConnectParameterNames.AccessToken)));
