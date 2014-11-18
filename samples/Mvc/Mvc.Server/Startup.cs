@@ -2,9 +2,11 @@ using System;
 using System.IdentityModel.Tokens;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
+using System.Web.Http;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
+using Microsoft.Owin.Security.OAuth;
 using Mvc.Server.Providers;
 using NWebsec.Owin;
 using Owin;
@@ -29,6 +31,18 @@ namespace Mvc.Server {
             }
 
             var credentials = new X509SigningCredentials(certificate);
+
+            app.Map("/api", map => {
+                var configuration = new HttpConfiguration();
+                configuration.MapHttpAttributeRoutes();
+                configuration.EnsureInitialized();
+
+                map.UseOAuthBearerAuthentication(new OAuthBearerAuthenticationOptions {
+                    AuthenticationMode = AuthenticationMode.Active
+                });
+
+                map.UseWebApi(configuration);
+            });
 
             app.SetDefaultSignInAsAuthenticationType("ServerCookie");
 

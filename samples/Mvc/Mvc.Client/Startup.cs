@@ -1,8 +1,13 @@
 using System;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
 using Microsoft.Owin.Security.OpenIdConnect;
+using Newtonsoft.Json.Linq;
 using Owin;
 
 namespace Mvc.Client {
@@ -30,7 +35,7 @@ namespace Mvc.Client {
                 ClientId = "myClient",
                 ClientSecret = "secret_secret_secret",
                 RedirectUri = "http://localhost:56854/oidc",
-                
+
                 // Note: setting the Authority allows the OIDC client middleware to automatically
                 // retrieve the identity provider's configuration and spare you from setting
                 // the different endpoints URIs or the token validation parameters explicitly.
@@ -48,6 +53,30 @@ namespace Mvc.Client {
                         }
 
                         return Task.FromResult<object>(null);
+                    },
+
+                    SecurityTokenValidated = async notification => {
+                        using (var client = new HttpClient()) {
+                            var configuration = await notification.Options.ConfigurationManager.GetConfigurationAsync(notification.Request.CallCancelled);
+
+                            var request = new HttpRequestMessage(HttpMethod.Post, configuration.TokenEndpoint);
+                            request.Content = new FormUrlEncodedContent(new Dictionary<string, string> {
+                                { OpenIdConnectParameterNames.ClientId, notification.Options.ClientId },
+                                { OpenIdConnectParameterNames.ClientSecret, notification.Options.ClientSecret },
+                                { OpenIdConnectParameterNames.Code, notification.ProtocolMessage.Code },
+                                { OpenIdConnectParameterNames.GrantType, "authorization_code" },
+                                { OpenIdConnectParameterNames.RedirectUri, notification.Options.RedirectUri }
+                            });
+
+                            var response = await client.SendAsync(request, notification.Request.CallCancelled);
+                            response.EnsureSuccessStatusCode();
+
+                            var payload = JObject.Parse(await response.Content.ReadAsStringAsync());
+
+                            notification.AuthenticationTicket.Identity.AddClaim(new Claim(
+                                type: OpenIdConnectParameterNames.AccessToken,
+                                value: payload.Value<string>(OpenIdConnectParameterNames.AccessToken)));
+                        }
                     }
                 }
             });
