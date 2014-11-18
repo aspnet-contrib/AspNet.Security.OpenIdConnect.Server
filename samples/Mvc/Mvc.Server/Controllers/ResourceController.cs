@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Globalization;
+using System.Linq;
 using Microsoft.AspNet.Mvc;
 
 namespace Mvc.Server.Controllers {
@@ -10,6 +11,14 @@ namespace Mvc.Server.Controllers {
                 select new {
                     claim.Type, claim.Value,
                     claim.ValueType, claim.Issuer });
+        }
+
+        [Authorize, HttpGet("message")]
+        public ActionResult GetMessage() {
+            return Content(string.Format(
+                CultureInfo.InvariantCulture,
+                "Hello {0}!",
+                User.Identity.Name));
         }
     }
 }
