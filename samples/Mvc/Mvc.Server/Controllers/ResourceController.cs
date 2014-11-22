@@ -3,6 +3,7 @@ using System.Linq;
 using Microsoft.AspNet.Mvc;
 
 namespace Mvc.Server.Controllers {
+    [Route("api")]
     public class ResourceController : Controller {
         [Authorize, HttpGet("claims")]
         public ActionResult GetClaims() {
