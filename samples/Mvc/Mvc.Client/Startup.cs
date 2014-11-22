@@ -6,6 +6,7 @@ using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Security;
 using Microsoft.AspNet.Security.Cookies;
+using Microsoft.AspNet.Security.DataProtection;
 using Microsoft.AspNet.Security.OAuth;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Logging;
@@ -22,6 +23,8 @@ namespace Mvc.Client {
                 services.Configure<ExternalAuthenticationOptions>(options => {
                     options.SignInAsAuthenticationType = "ClientCookie";
                 });
+
+                services.Add(DataProtectionServices.GetDefaultServices());
 
                 services.AddMvc();
             });

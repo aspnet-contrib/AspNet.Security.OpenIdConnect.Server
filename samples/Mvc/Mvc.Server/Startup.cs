@@ -7,14 +7,15 @@ using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Security;
 using Microsoft.AspNet.Security.Cookies;
+using Microsoft.AspNet.Security.DataProtection;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Logging;
 using Microsoft.Framework.Logging.Console;
+using Mvc.Server.Extensions;
 using Mvc.Server.Models;
 using Mvc.Server.Providers;
 
 #if ASPNET50
-using Mvc.Server.Extensions;
 using NWebsec.Owin;
 #endif
 
@@ -50,35 +51,39 @@ namespace Mvc.Server {
                     options.SignInAsAuthenticationType = "ServerCookie";
                 });
 
+                services.Add(DataProtectionServices.GetDefaultServices());
+
                 services.AddMvc();
             });
 
-            app.Map("/api", map => {
-                map.UseOAuthBearerAuthentication(options => {
+            // Create a new branch where the registered middleware will be executed only for API calls.
+            app.UseWhen(context => context.Request.Path.StartsWithSegments(new PathString("/api")), branch => {
+                branch.UseOAuthBearerAuthentication(options => {
                     options.AuthenticationMode = AuthenticationMode.Active;
                 });
-
-                map.UseMvc();
             });
 
-            // Insert a new cookies middleware in the pipeline to store
-            // the user identity returned by the external identity provider.
-            app.UseCookieAuthentication(options => {
-                options.AuthenticationMode = AuthenticationMode.Active;
-                options.AuthenticationType = "ServerCookie";
-                options.CookieName = CookieAuthenticationDefaults.CookiePrefix + "ServerCookie";
-                options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
-                options.LoginPath = new PathString("/signin");
-            });
+            // Create a new branch where the registered middleware will be executed only for non API calls.
+            app.UseWhen(context => !context.Request.Path.StartsWithSegments(new PathString("/api")), branch => {
+                // Insert a new cookies middleware in the pipeline to store
+                // the user identity returned by the external identity provider.
+                branch.UseCookieAuthentication(options => {
+                    options.AuthenticationMode = AuthenticationMode.Active;
+                    options.AuthenticationType = "ServerCookie";
+                    options.CookieName = CookieAuthenticationDefaults.CookiePrefix + "ServerCookie";
+                    options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
+                    options.LoginPath = new PathString("/signin");
+                });
 
-            app.UseGoogleAuthentication(options => {
-                options.ClientId = "560027070069-37ldt4kfuohhu3m495hk2j4pjp92d382.apps.googleusercontent.com";
-                options.ClientSecret = "n2Q-GEw9RQjzcRbU3qhfTj8f";
-            });
+                branch.UseGoogleAuthentication(options => {
+                    options.ClientId = "560027070069-37ldt4kfuohhu3m495hk2j4pjp92d382.apps.googleusercontent.com";
+                    options.ClientSecret = "n2Q-GEw9RQjzcRbU3qhfTj8f";
+                });
 
-            app.UseTwitterAuthentication(options => {
-                options.ConsumerKey = "6XaCTaLbMqfj6ww3zvZ5g";
-                options.ConsumerSecret = "Il2eFzGIrYhz6BWjYhVXBPQSfZuS4xoHpSSyD9PI";
+                branch.UseTwitterAuthentication(options => {
+                    options.ConsumerKey = "6XaCTaLbMqfj6ww3zvZ5g";
+                    options.ConsumerSecret = "Il2eFzGIrYhz6BWjYhVXBPQSfZuS4xoHpSSyD9PI";
+                });
             });
 
 #if ASPNET50
