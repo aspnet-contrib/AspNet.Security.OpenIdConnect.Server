@@ -27,10 +27,10 @@ namespace Mvc.Server.Extensions {
             }
 
             var builder = app.New();
+            configuration(builder);
 
             return app.Use(next => {
-                configuration(builder);
-                builder.Use(_ => context => next(context));
+                builder.Run(next);
 
                 var branch = builder.Build();
 
