@@ -51,7 +51,7 @@ namespace Mvc.Server {
                     options.SignInAsAuthenticationType = "ServerCookie";
                 });
 
-                services.Add(DataProtectionServices.GetDefaultServices());
+                services.AddDataProtection();
 
                 services.AddMvc();
             });
