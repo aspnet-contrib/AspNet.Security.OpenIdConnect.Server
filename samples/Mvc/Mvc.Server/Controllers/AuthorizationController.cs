@@ -134,9 +134,5 @@ namespace Mvc.Server.Controllers {
 
             return new HttpStatusCodeResult(200);
         }
-
-        protected override void Dispose(bool disposing) {
-            database.Dispose();
-        }
     }
 }

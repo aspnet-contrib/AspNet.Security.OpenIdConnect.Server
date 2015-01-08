@@ -133,7 +133,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     });
                 }
 
-                request = new OpenIdConnectMessage(await Request.GetFormAsync()) {
+                request = new OpenIdConnectMessage(await Request.ReadFormAsync()) {
                     RequestType = OpenIdConnectRequestType.AuthenticationRequest
                 };
             }
@@ -881,7 +881,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return;
             }
 
-            var request = new OpenIdConnectMessage(await Request.GetFormAsync());
+            var request = new OpenIdConnectMessage(await Request.ReadFormAsync());
             request.RequestType = OpenIdConnectRequestType.TokenRequest;
 
             DateTimeOffset currentUtc = Options.SystemClock.UtcNow;

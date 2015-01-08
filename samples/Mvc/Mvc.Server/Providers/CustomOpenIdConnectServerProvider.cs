@@ -31,37 +31,37 @@ namespace Mvc.Server.Providers {
                     return;
                 }
 
-                using (var database = scope.ServiceProvider.GetRequiredService<ApplicationContext>()) {
-                    // Retrieve the application details corresponding to the requested client_id.
-                    Application application = await (from entity in database.Applications
-                                                     where entity.ApplicationID == clientId
-                                                     select entity).SingleOrDefaultAsync(context.HttpContext.RequestAborted);
+                var database = scope.ServiceProvider.GetRequiredService<ApplicationContext>();
 
-                    if (application == null) {
-                        context.SetError(
-                            error: "invalid_client",
-                            errorDescription: "Application not found in the database: " +
-                                              "ensure that your client_id is correct");
-                        return;
-                    }
+                // Retrieve the application details corresponding to the requested client_id.
+                Application application = await (from entity in database.Applications
+                                                 where entity.ApplicationID == clientId
+                                                 select entity).SingleOrDefaultAsync(context.HttpContext.RequestAborted);
 
-                    if (!string.Equals(clientSecret, application.Secret, StringComparison.Ordinal)) {
-                        context.SetError(
-                            error: "invalid_client",
-                            errorDescription: "Invalid credentials: ensure that you " +
-                                              "specified a correct client_secret");
+                if (application == null) {
+                    context.SetError(
+                        error: "invalid_client",
+                        errorDescription: "Application not found in the database: ensure that your client_id is correct");
 
-                        return;
-                    }
-
-                    context.Validated(clientId);
+                    return;
                 }
+
+                if (!string.Equals(clientSecret, application.Secret, StringComparison.Ordinal)) {
+                    context.SetError(
+                        error: "invalid_client",
+                        errorDescription: "Invalid credentials: ensure that you specified a correct client_secret");
+
+                    return;
+                }
+
+                context.Validated(clientId);
             }
         }
 
         public override async Task ValidateClientRedirectUri(OpenIdConnectValidateClientRedirectUriContext context) {
-            using (var scope = serviceScopeFactory.CreateScope())
-            using (var database = scope.ServiceProvider.GetRequiredService<ApplicationContext>()) {
+            using (var scope = serviceScopeFactory.CreateScope()) {
+                var database = scope.ServiceProvider.GetRequiredService<ApplicationContext>();
+
                 // Retrieve the application details corresponding to the requested client_id.
                 Application application = await (from entity in database.Applications
                                                  where entity.ApplicationID == context.ClientId
@@ -70,8 +70,8 @@ namespace Mvc.Server.Providers {
                 if (application == null) {
                     context.SetError(
                         error: "invalid_client",
-                        errorDescription: "Application not found in the database: " +
-                                            "ensure that your client_id is correct");
+                        errorDescription: "Application not found in the database: ensure that your client_id is correct");
+
                     return;
                 }
 
