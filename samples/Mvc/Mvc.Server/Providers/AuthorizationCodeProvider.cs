@@ -14,8 +14,9 @@ namespace Mvc.Server.Providers {
         }
 
         public override async Task CreateAsync(AuthenticationTokenCreateContext context) {
-            using (var scope = serviceScopeFactory.CreateScope())
-            using (var database = scope.ServiceProvider.GetRequiredService<ApplicationContext>()) {
+            using (var scope = serviceScopeFactory.CreateScope()) {
+                var database = scope.ServiceProvider.GetRequiredService<ApplicationContext>();
+
                 // Create a new unique identifier that will be used to replace the authorization code serialized
                 // by AuthenticationTokenCreateContext.SerializeTicket() during the code/token exchange process.
                 // Note: while you can replace the generation mechanism, you MUST ensure your custom algorithm
@@ -36,8 +37,9 @@ namespace Mvc.Server.Providers {
         }
 
         public override async Task ReceiveAsync(AuthenticationTokenReceiveContext context) {
-            using (var scope = serviceScopeFactory.CreateScope())
-            using (var database = scope.ServiceProvider.GetRequiredService<ApplicationContext>()) {
+            using (var scope = serviceScopeFactory.CreateScope()) {
+                var database = scope.ServiceProvider.GetRequiredService<ApplicationContext>();
+
                 // Retrieve the authorization code serialized by AuthenticationTokenCreateContext.SerializeTicket
                 // using the nonce identifier generated in CreateAsync and returned to the client application.
                 // Note: you MUST ensure the nonces are correctly removed after each call to prevent replay attacks.
