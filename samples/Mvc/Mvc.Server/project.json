@@ -17,7 +17,7 @@
         "Microsoft.AspNet.Server.IIS": "1.0.0-rc1-*",
         "Microsoft.AspNet.Server.WebListener": "1.0.0-rc1-*",
         "Microsoft.AspNet.StaticFiles": "1.0.0-rc1-*",
-        
+
         "Microsoft.Framework.Logging": "1.0.0-rc1-*",
         "Microsoft.Framework.Logging.Console": "1.0.0-rc1-*",
 
@@ -38,6 +38,12 @@
                 "Microsoft.AspNet.Owin": "1.0.0-*",
                 "Microsoft.Owin": "3.0.0",
                 "NWebsec.Owin": "1.0.0"
+            }
+        },
+
+        "aspnetcore50": {
+            "dependencies": {
+                "System.Linq": "4.0.0-beta-*"
             }
         }
     }

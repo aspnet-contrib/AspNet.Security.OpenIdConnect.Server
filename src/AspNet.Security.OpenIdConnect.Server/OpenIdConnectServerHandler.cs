@@ -67,7 +67,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             if (matchRequestContext.IsAuthorizationEndpoint || matchRequestContext.IsConfigurationEndpoint ||
                 matchRequestContext.IsKeysEndpoint || matchRequestContext.IsTokenEndpoint) {
-                if (!Options.AllowInsecureHttp && string.Equals(Request.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase)) {
+                if (!Options.AllowInsecureHttp && !Request.IsSecure) {
                     logger.WriteWarning("Authorization server ignoring http request because AllowInsecureHttp is false.");
                     return false;
                 }
@@ -169,7 +169,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     });
                 }
 
-                else if (!Options.AllowInsecureHttp && string.Equals(uri.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase)) {
+                else if (!Options.AllowInsecureHttp && !Request.IsSecure) {
                     // redirect_uri SHOULD require the use of TLS
                     // http://tools.ietf.org/html/rfc6749#section-3.1.2.1
                     // and http://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
@@ -526,8 +526,13 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // is believed to provide a valid response, which is the case with asymmetric keys supporting RSA-SHA256.
             // See http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
             if (Options.SigningCredentials != null &&
+#if ASPNET50
                 Options.SigningCredentials.SigningKey is AsymmetricSecurityKey &&
-                Options.SigningCredentials.SigningKey.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature)) {
+                Options.SigningCredentials.SigningKey.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature)
+#elif ASPNETCORE50
+                Options.SigningCredentials.SigningKey is X509SecurityKey
+#endif
+                ) {
                 configurationEndpointResponseContext.KeyEndpoint = Options.Issuer + Options.KeysEndpointPath;
             }
 
@@ -694,6 +699,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return;
             }
 
+#if ASPNET50
             if (!asymmetricSecurityKey.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature)) {
                 logger.WriteError(string.Format(CultureInfo.InvariantCulture,
                     "Keys endpoint: invalid signing key registered. " +
@@ -702,16 +708,27 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     typeof(SigningCredentials).Name, SecurityAlgorithms.RsaSha256Signature));
                 return;
             }
+#elif ASPNETCORE50
+            if (!(asymmetricSecurityKey is X509SecurityKey) ||
+                !((asymmetricSecurityKey as X509SecurityKey).PrivateKey is RSACryptoServiceProvider)) {
+                logger.WriteError(string.Format(CultureInfo.InvariantCulture,
+                    "Keys endpoint: invalid signing key registered. " +
+                    "Make sure to provide a '{0}' instance", nameof(X509SecurityKey)));
+                return;
+            }
+#endif
 
             var keysEndpointResponseContext = new OpenIdConnectKeysEndpointResponseContext(Context, Options);
 
             X509Certificate2 x509Certificate = null;
 
+#if ASPNET50
             // Determine whether the signing credentials are directly based on a X.509 certificate.
             var x509SigningCredentials = Options.SigningCredentials as X509SigningCredentials;
             if (x509SigningCredentials != null) {
                 x509Certificate = x509SigningCredentials.Certificate;
             }
+#endif
 
             // Skip looking for a X509SecurityKey in SigningCredentials.SigningKey
             // if a certificate has been found in the SigningCredentials instance.
@@ -723,6 +740,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 }
             }
 
+#if ASPNET50
             // Skip looking for a X509AsymmetricSecurityKey in SigningCredentials.SigningKey
             // if a certificate has been found in SigningCredentials or SigningCredentials.SigningKey.
             if (x509Certificate == null) {
@@ -738,6 +756,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     x509Certificate = (X509Certificate2) field.GetValue(x509AsymmetricSecurityKey);
                 }
             }
+#endif
 
             if (x509Certificate != null) {
                 // Create a new JSON Web Key exposing the
@@ -758,6 +777,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 });
             }
 
+#if ASPNET50
             else {
                 // Create a new JSON Web Key exposing the exponent and the modulus of the RSA public key.
                 var asymmetricAlgorithm = (RSA) asymmetricSecurityKey.GetAsymmetricAlgorithm(
@@ -778,6 +798,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     N = Base64UrlEncoder.Encode(parameters.Modulus)
                 });
             }
+#endif
 
             await Options.Provider.KeysEndpointResponse(keysEndpointResponseContext);
 
@@ -814,7 +835,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
                         { JsonWebKeyParameterNames.Kty, key.Kty },
                         { JsonWebKeyParameterNames.Alg, key.Alg },
                         { JsonWebKeyParameterNames.E, key.E },
-                        { JsonWebKeyParameterNames.KeyOps, key.KeyOps },
                         { JsonWebKeyParameterNames.Kid, key.Kid },
                         { JsonWebKeyParameterNames.N, key.N },
                         { JsonWebKeyParameterNames.Use, key.Use },
@@ -826,6 +846,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
                         if (!string.IsNullOrEmpty(parameter.Value)) {
                             item.Add(parameter.Key, parameter.Value);
                         }
+                    }
+
+                    if (key.KeyOps.Any()) {
+                        item.Add(JsonWebKeyParameterNames.KeyOps, JArray.FromObject(key.KeyOps));
                     }
 
                     if (key.X5c.Any()) {
@@ -1198,8 +1222,28 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 OpenIdConnectConstants.Errors.UnsupportedGrantType);
         }
 
+        private static HashAlgorithm GetHashAlgorithm(string algorithm) {
+            if (string.IsNullOrWhiteSpace(algorithm)) {
+                throw new ArgumentException(nameof(algorithm));
+            }
+
+            switch (algorithm) {
+                case SecurityAlgorithms.Sha1Digest:
+                    return SHA1.Create();
+
+                case SecurityAlgorithms.Sha256Digest:
+                    return SHA256.Create();
+
+                case SecurityAlgorithms.Sha512Digest:
+                    return SHA512.Create();
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(algorithm));
+            }
+        }
+
         private static string GenerateHash(string value, string algorithm = null) {
-            using (var hashAlgorithm = HashAlgorithm.Create(algorithm)) {
+            using (var hashAlgorithm = GetHashAlgorithm(algorithm ?? SecurityAlgorithms.Sha256Digest)) {
                 byte[] hashBytes = hashAlgorithm.ComputeHash(Encoding.UTF8.GetBytes(value));
 
                 var hashString = Convert.ToBase64String(hashBytes, 0, hashBytes.Length / 2);

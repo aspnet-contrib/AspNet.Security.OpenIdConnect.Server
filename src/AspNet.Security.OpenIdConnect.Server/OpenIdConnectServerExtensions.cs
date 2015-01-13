@@ -5,9 +5,6 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Http;
 using Microsoft.Framework.OptionsModel;
@@ -28,11 +25,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <returns>The application builder</returns>
         public static IApplicationBuilder UseOpenIdConnectServer(this IApplicationBuilder app, Action<OpenIdConnectServerOptions> options) {
             if (app == null) {
-                throw new ArgumentNullException("app");
+                throw new ArgumentNullException(nameof(app));
             }
 
             if (options == null) {
-                throw new ArgumentNullException("options");
+                throw new ArgumentNullException(nameof(options));
             }
 
             return app.UseMiddleware<OpenIdConnectServerMiddleware>(new ConfigureOptions<OpenIdConnectServerOptions>(options));
@@ -45,7 +42,13 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <param name="context">The ASP.NET context.</param>
         /// <returns>The <see cref="OpenIdConnectMessage"/> associated with the current request.</returns>
         public static OpenIdConnectMessage GetOpenIdConnectRequest(this HttpContext context) {
-            return context.GetOpenIdConnectMessage(OpenIdConnectConstants.Environment.Request);
+            if (context == null) {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            var feature = GetFeature(context);
+
+            return feature.Request;
         }
 
         /// <summary>
@@ -54,7 +57,17 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <param name="context">The ASP.NET context.</param>
         /// <param name="request">The ambient <see cref="OpenIdConnectMessage"/>.</param>
         public static void SetOpenIdConnectRequest(this HttpContext context, OpenIdConnectMessage request) {
-            context.SetOpenIdConnectMessage(OpenIdConnectConstants.Environment.Request, request);
+            if (context == null) {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+
+            var feature = GetFeature(context);
+
+            feature.Request = request;
         }
 
         /// <summary>
@@ -64,7 +77,13 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <param name="context">The ASP.NET context.</param>
         /// <returns>The <see cref="OpenIdConnectMessage"/> associated with the current response.</returns>
         public static OpenIdConnectMessage GetOpenIdConnectResponse(this HttpContext context) {
-            return context.GetOpenIdConnectMessage(OpenIdConnectConstants.Environment.Response);
+            if (context == null) {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            var feature = GetFeature(context);
+
+            return feature.Response;
         }
 
         /// <summary>
@@ -73,54 +92,28 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <param name="context">The ASP.NET context.</param>
         /// <param name="response">The ambient <see cref="OpenIdConnectMessage"/>.</param>
         public static void SetOpenIdConnectResponse(this HttpContext context, OpenIdConnectMessage response) {
-            context.SetOpenIdConnectMessage(OpenIdConnectConstants.Environment.Response, response);
+            if (context == null) {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (response == null) {
+                throw new ArgumentNullException(nameof(response));
+            }
+
+            var feature = GetFeature(context);
+
+            feature.Response = response;
         }
 
-        private static OpenIdConnectMessage GetOpenIdConnectMessage(this HttpContext context, string key) {
-            if (context == null) {
-                throw new ArgumentNullException("context");
+        private static IOpenIdConnectServerFeature GetFeature(HttpContext context) {
+            var feature = context.GetFeature<IOpenIdConnectServerFeature>();
+            if (feature == null) {
+                feature = new OpenIdConnectServerFeature();
+
+                context.SetFeature(feature);
             }
 
-            if (string.IsNullOrWhiteSpace(key)) {
-                throw new ArgumentException("key");
-            }
-
-            var message = context.Items[key + OpenIdConnectConstants.Environment.Message] as OpenIdConnectMessage;
-            if (message != null) {
-                return message;
-            }
-
-            var parameters = context.Items[key + OpenIdConnectConstants.Environment.Parameters] as IReadOnlyDictionary<string, string[]>;
-            if (parameters != null) {
-                return new OpenIdConnectMessage(parameters);
-            }
-
-            return null;
-        }
-
-        private static void SetOpenIdConnectMessage(this HttpContext context, string key, OpenIdConnectMessage message) {
-            if (context == null) {
-                throw new ArgumentNullException("context");
-            }
-
-            if (string.IsNullOrWhiteSpace(key)) {
-                throw new ArgumentException("key");
-            }
-
-            if (message == null) {
-                context.Items.Remove(key + OpenIdConnectConstants.Environment.Message);
-                context.Items.Remove(key + OpenIdConnectConstants.Environment.Parameters);
-
-                return;
-            }
-
-            var parameters = new ReadOnlyDictionary<string, string[]>(
-                message.Parameters.ToDictionary(
-                    keySelector: parameter => parameter.Key,
-                    elementSelector: parameter => new[] { parameter.Value }));
-
-            context.Items[key + OpenIdConnectConstants.Environment.Message] = message;
-            context.Items[key + OpenIdConnectConstants.Environment.Parameters] = parameters;
+            return feature;
         }
     }
 }
