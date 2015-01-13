@@ -4,13 +4,14 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Hosting;
 using Microsoft.AspNet.Http;
+
+#if ASPNET50
 using Microsoft.Owin.Builder;
 using Microsoft.Owin.BuilderProperties;
 using Owin;
+#endif
 
 namespace Mvc.Server.Extensions {
-    using AppFunc = Func<IDictionary<string, object>, Task>;
-
     public static class AppBuilderExtensions {
         public static IApplicationBuilder UseWhen(this IApplicationBuilder app,
             Func<HttpContext, bool> condition, Action<IApplicationBuilder> configuration) {
@@ -65,7 +66,7 @@ namespace Mvc.Server.Extensions {
 
                 configuration(builder);
 
-                return builder.Build<AppFunc>();
+                return builder.Build<Func<IDictionary<string, object>, Task>>();
             }));
         }
 #endif

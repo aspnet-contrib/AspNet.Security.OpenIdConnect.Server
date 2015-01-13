@@ -116,7 +116,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // running the different samples in test environments, where HTTPS is often disabled.
             // To mitigate this issue, AllowInsecureHttp can be set to true to bypass the HTTPS check.
             // See http://openid.net/specs/openid-connect-discovery-1_0.html#IssuerDiscovery
-            if (!Options.AllowInsecureHttp && string.Equals(issuer.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase)) {
+            if (!Options.AllowInsecureHttp && string.Equals(issuer.Scheme, "http", StringComparison.OrdinalIgnoreCase)) {
                 throw new ArgumentException("options.Issuer must be a HTTPS URI when " +
                     "options.AllowInsecureHttp is not set to true.", "options.Issuer");
             }

@@ -1,6 +1,7 @@
 using System;
 using System.IdentityModel.Tokens;
 using System.IO;
+using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using AspNet.Security.OpenIdConnect.Server;
 using Microsoft.AspNet.Builder;
@@ -29,17 +30,25 @@ namespace Mvc.Server {
             // Note: in a real world app, you'd probably prefer storing the X.509 certificate
             // in the user or machine store. To keep this sample easy to use, the certificate
             // is extracted from the Certificate.pfx file embedded in this assembly.
-            using (var stream = typeof(Startup).Assembly.GetManifestResourceStream("Certificate.pfx"))
+            using (var stream = typeof(Startup).GetTypeInfo().Assembly.GetManifestResourceStream("Certificate.pfx"))
             using (var buffer = new MemoryStream()) {
                 stream.CopyTo(buffer);
                 buffer.Flush();
 
                 certificate = new X509Certificate2(
-                    rawData: buffer.GetBuffer(),
+                    rawData: buffer.ToArray(),
                     password: "Owin.Security.OpenIdConnect.Server");
             }
 
+#if ASPNET50
             var credentials = new X509SigningCredentials(certificate);
+#elif ASPNETCORE50
+            var key = new X509SecurityKey(certificate);
+
+            var credentials = new SigningCredentials(key,
+                SecurityAlgorithms.RsaSha256Signature,
+                SecurityAlgorithms.Sha256Digest);
+#endif
 
             app.UseServices(services => {
                 services.AddEntityFramework()
