@@ -1,15 +1,16 @@
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Security.Claims;
+using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Security;
 using Microsoft.AspNet.Security.Cookies;
-using Microsoft.AspNet.Security.OAuth;
+using Microsoft.AspNet.Security.OpenIdConnect;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Logging;
 using Microsoft.Framework.Logging.Console;
+using Microsoft.IdentityModel.Protocols;
 using Newtonsoft.Json.Linq;
 
 namespace Mvc.Client {
@@ -37,44 +38,64 @@ namespace Mvc.Client {
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
             });
 
-            app.UseOAuthAuthentication("OpenIdConnect", options => {
+            app.UseOpenIdConnectAuthentication(options => {
                 options.AuthenticationMode = AuthenticationMode.Active;
-                options.Notifications = new OAuthAuthenticationNotifications();
+                options.AuthenticationType = OpenIdConnectAuthenticationDefaults.AuthenticationType;
 
-                // Note: these settings must match the application
-                // details inserted in the database at the server level.
+                // Note: these settings must match the application details inserted in
+                // the database at the server level (see ApplicationContextInitializer.cs).
                 options.ClientId = "myClient";
                 options.ClientSecret = "secret_secret_secret";
-                options.CallbackPath = new PathString("/oidc");
-                options.AuthorizationEndpoint = "http://localhost:54540/connect/authorize";
-                options.TokenEndpoint = "http://localhost:54540/connect/token";
+                options.RedirectUri = "http://localhost:53507/oidc";
 
-                options.Scope.Add("profile");
+                // Note: setting the Authority allows the OIDC client middleware to automatically
+                // retrieve the identity provider's configuration and spare you from setting
+                // the different endpoints URIs or the token validation parameters explicitly.
+                options.Authority = "http://localhost:54540/";
 
-                options.Notifications = new OAuthAuthenticationNotifications {
-                    OnGetUserInformationAsync = async context => {
-                        var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost:54540/api/claims");
-                        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", context.AccessToken);
+                options.Notifications = new OpenIdConnectAuthenticationNotifications {
+                    // Note: by default, the OIDC client throws an OpenIdConnectProtocolException
+                    // when an error occurred during the authentication/authorization process.
+                    // To prevent a YSOD from being displayed, the response is declared as handled.
+                    AuthenticationFailed = notification => {
+                        if (string.Equals(notification.ProtocolMessage.Error, "access_denied", StringComparison.Ordinal)) {
+                            notification.HandleResponse();
 
-                        var response = await context.Backchannel.SendAsync(request, context.HttpContext.RequestAborted);
-                        response.EnsureSuccessStatusCode();
-
-                        if (context.Identity == null) {
-                            context.Identity = new ClaimsIdentity(context.Options.AuthenticationType);
+                            notification.Response.Redirect("/");
                         }
 
-                        // Add the access token to the returned ClaimsIdentity to make it easier to retrieve.
-                        // Note: this is automatically done by OAuthAuthenticationDefaults.DefaultOnGetUserInformationAsync
-                        // (from Microsoft.AspNet.Security.OAuth) when you don't provide an explicit notification.
-                        context.Identity.AddClaim(new Claim(type: "access_token", value: context.AccessToken));
+                        return Task.FromResult<object>(null);
+                    },
 
-                        // Extract the list of claims returned by the remote api/claims endpoint.
-                        foreach (JToken claim in JArray.Parse(await response.Content.ReadAsStringAsync())) {
-                            context.Identity.AddClaim(new Claim(
-                                type: claim.Value<string>(nameof(Claim.Type)),
-                                value: claim.Value<string>(nameof(Claim.Value)),
-                                valueType: claim.Value<string>(nameof(Claim.ValueType)),
-                                issuer: claim.Value<string>(nameof(Claim.Issuer))));
+                    // Retrieve an access token from the remote token endpoint
+                    // using the authorization code received during the current request.
+                    SecurityTokenValidated = async notification => {
+                        using (var client = new HttpClient()) {
+                            var configuration = await notification.Options.ConfigurationManager.GetConfigurationAsync(notification.HttpContext.RequestAborted);
+
+                            var request = new HttpRequestMessage(HttpMethod.Post, configuration.TokenEndpoint);
+                            request.Content = new FormUrlEncodedContent(new Dictionary<string, string> {
+                                { OpenIdConnectParameterNames.ClientId, notification.Options.ClientId },
+                                { OpenIdConnectParameterNames.ClientSecret, notification.Options.ClientSecret },
+                                { OpenIdConnectParameterNames.Code, notification.ProtocolMessage.Code },
+                                { OpenIdConnectParameterNames.GrantType, "authorization_code" },
+                                { OpenIdConnectParameterNames.RedirectUri, notification.Options.RedirectUri }
+                            });
+
+                            var response = await client.SendAsync(request, notification.HttpContext.RequestAborted);
+                            response.EnsureSuccessStatusCode();
+
+                            var payload = JObject.Parse(await response.Content.ReadAsStringAsync());
+
+                            // Add the access token to the returned ClaimsIdentity to make it easier to retrieve.
+                            var identity = notification.AuthenticationTicket.Principal.Identity as ClaimsIdentity;
+                            if (identity == null) {
+                                throw new InvalidOperationException();
+                            }
+
+                            identity.AddClaim(new Claim(
+                                type: OpenIdConnectParameterNames.AccessToken,
+                                value: payload.Value<string>(OpenIdConnectParameterNames.AccessToken)));
                         }
                     }
                 };

@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using AspNet.Security.OpenIdConnect.Server;
 using Microsoft.AspNet.Security.Infrastructure;
 using Microsoft.Framework.DependencyInjection;
+using Microsoft.Framework.OptionsModel;
 using Mvc.Server.Models;
 
 namespace Mvc.Server.Providers {
@@ -56,7 +58,10 @@ namespace Mvc.Server.Providers {
                 database.Nonces.Remove(nonce);
                 await database.SaveChangesAsync(context.HttpContext.RequestAborted);
 
-                context.DeserializeTicket(nonce.Ticket);
+                // Retrieve the authorization code format from the options.
+                var options = scope.ServiceProvider.GetRequiredService<IOptions<OpenIdConnectServerOptions>>();
+
+                context.SetTicket(options.Options.AuthorizationCodeFormat.Unprotect(nonce.Ticket));
             }
         }
     }
