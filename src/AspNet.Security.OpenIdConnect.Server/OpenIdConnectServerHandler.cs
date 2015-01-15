@@ -835,6 +835,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
                         { JsonWebKeyParameterNames.Kty, key.Kty },
                         { JsonWebKeyParameterNames.Alg, key.Alg },
                         { JsonWebKeyParameterNames.E, key.E },
+#if ASPNET50
+                        { JsonWebKeyParameterNames.KeyOps, key.KeyOps },
+#endif
                         { JsonWebKeyParameterNames.Kid, key.Kid },
                         { JsonWebKeyParameterNames.N, key.N },
                         { JsonWebKeyParameterNames.Use, key.Use },
@@ -848,9 +851,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
                         }
                     }
 
+#if ASPNETCORE50
                     if (key.KeyOps.Any()) {
                         item.Add(JsonWebKeyParameterNames.KeyOps, JArray.FromObject(key.KeyOps));
                     }
+#endif
 
                     if (key.X5c.Any()) {
                         item.Add(JsonWebKeyParameterNames.X5c, JArray.FromObject(key.X5c));
@@ -1069,9 +1074,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             OpenIdConnectValidateTokenRequestContext validatingContext, DateTimeOffset currentUtc) {
             OpenIdConnectMessage tokenRequest = validatingContext.TokenRequest;
 
-            var authorizationCodeContext = new AuthenticationTokenReceiveContext(
-                Context, Options.AuthorizationCodeFormat, tokenRequest.Code);
-
+            var authorizationCodeContext = new AuthenticationTokenReceiveContext(Context, tokenRequest.Code);
             await Options.AuthorizationCodeProvider.ReceiveAsync(authorizationCodeContext);
 
             AuthenticationTicket ticket = authorizationCodeContext.Ticket;
@@ -1167,9 +1170,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             OpenIdConnectValidateTokenRequestContext validatingContext, DateTimeOffset currentUtc) {
             OpenIdConnectMessage tokenRequest = validatingContext.TokenRequest;
 
-            var refreshTokenContext = new AuthenticationTokenReceiveContext(
-                Context, Options.RefreshTokenFormat, tokenRequest.GetParameter("refresh_token"));
-
+            var refreshTokenContext = new AuthenticationTokenReceiveContext(Context, tokenRequest.GetParameter("refresh_token"));
             await Options.RefreshTokenProvider.ReceiveAsync(refreshTokenContext);
 
             AuthenticationTicket ticket = refreshTokenContext.Ticket;
