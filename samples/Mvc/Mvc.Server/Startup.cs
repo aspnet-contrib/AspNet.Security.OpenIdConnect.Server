@@ -3,11 +3,15 @@ using System.IdentityModel.Tokens;
 using System.IO;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Server;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Security;
 using Microsoft.AspNet.Security.Cookies;
+using Microsoft.AspNet.Security.DataHandler;
+using Microsoft.AspNet.Security.DataProtection;
+using Microsoft.AspNet.Security.OAuthBearer;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Logging;
 using Microsoft.Framework.Logging.Console;
@@ -63,7 +67,27 @@ namespace Mvc.Server {
             // Create a new branch where the registered middleware will be executed only for API calls.
             app.UseWhen(context => context.Request.Path.StartsWithSegments(new PathString("/api")), branch => {
                 branch.UseOAuthBearerAuthentication(options => {
+                    // The AccessTokenFormat property has been removed from OAuthBearerAuthenticationOptions.
+                    // As a workaround, a TicketDataFormat is manually created and plugged in via SecurityTokenReceived.
+                    var dataProtectorProvider = app.ApplicationServices.GetRequiredService<IDataProtectionProvider>();
+                    var dataProtector = dataProtectorProvider.CreateDataProtector(
+                        "Microsoft.AspNet.Security.OAuth.OAuthBearerAuthenticationMiddleware",
+                        "Bearer", "v1");
+
+                    var accessTokenFormat = new TicketDataFormat(dataProtector);
+
                     options.AuthenticationMode = AuthenticationMode.Active;
+                    options.Notifications = new OAuthBearerAuthenticationNotifications();
+
+                    options.Notifications.SecurityTokenReceived = notification => {
+                        var ticket = accessTokenFormat.Unprotect(notification.SecurityToken);
+                        if (ticket != null) {
+                            notification.AuthenticationTicket = ticket;
+                            notification.HandleResponse();
+                        }
+
+                        return Task.FromResult(0);
+                    };
                 });
             });
 
