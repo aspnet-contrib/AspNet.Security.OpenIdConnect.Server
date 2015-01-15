@@ -19,10 +19,6 @@ using Mvc.Server.Providers;
 using NWebsec.Owin;
 #endif
 
-#if ASPNETCORE50
-using Microsoft.AspNet.Security.OAuthBearer;
-#endif
-
 namespace Mvc.Server {
     public class Startup {
         public void Configure(IApplicationBuilder app) {
@@ -44,15 +40,11 @@ namespace Mvc.Server {
                     password: "Owin.Security.OpenIdConnect.Server");
             }
 
-#if ASPNET50
-            var credentials = new X509SigningCredentials(certificate);
-#elif ASPNETCORE50
             var key = new X509SecurityKey(certificate);
 
             var credentials = new SigningCredentials(key,
                 SecurityAlgorithms.RsaSha256Signature,
                 SecurityAlgorithms.Sha256Digest);
-#endif
 
             app.UseServices(services => {
                 services.AddEntityFramework()
@@ -68,14 +60,12 @@ namespace Mvc.Server {
                 services.AddMvc();
             });
 
-#if ASPNETCORE50
             // Create a new branch where the registered middleware will be executed only for API calls.
             app.UseWhen(context => context.Request.Path.StartsWithSegments(new PathString("/api")), branch => {
                 branch.UseOAuthBearerAuthentication(options => {
                     options.AuthenticationMode = AuthenticationMode.Active;
                 });
             });
-#endif
 
             // Create a new branch where the registered middleware will be executed only for non API calls.
             app.UseWhen(context => !context.Request.Path.StartsWithSegments(new PathString("/api")), branch => {

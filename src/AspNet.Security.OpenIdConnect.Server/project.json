@@ -5,30 +5,16 @@
     "version": "1.0.0-beta2-*",
 
     "dependencies": {
+        "AspNet.Security.OpenIdConnect.Extensions": "1.0.0-*",
         "Microsoft.AspNet.Security": "1.0.0-rc1-*",
         "Microsoft.Framework.Logging": "1.0.0-rc1-*",
-        "Newtonsoft.Json": "6.0.4",
-        "AspNet.Security.OpenIdConnect.Extensions": "1.0.0-*"
+        "Microsoft.IdentityModel.Protocol.Extensions": "2.0.0.0-beta1-*",
+        "Newtonsoft.Json": "6.0.4"
     },
 
     "frameworks": {
-        "aspnet50": {
-            "frameworkAssemblies": {
-                "System.IdentityModel": "4.0.0"
-            },
+        "aspnet50": { },
 
-            "dependencies": {
-                "System.IdentityModel.Tokens.Jwt": "4.0.0",
-                "Microsoft.IdentityModel.Protocol.Extensions": "1.0.0"
-            }
-        },
-
-        "aspnetcore50": {
-            "dependencies": {
-                "Microsoft.IdentityModel.Protocol.Extensions": "2.0.0.0-beta1-*",
-                "System.Collections": "4.0.10-beta-*",
-                "System.IdentityModel.Tokens": "5.0.0.0-beta1-*"
-            }
-        }
+        "aspnetcore50": { }
     }
 }

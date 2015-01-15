@@ -5,6 +5,8 @@
  */
 
 using System;
+using System.IdentityModel.Tokens;
+using System.Security.Cryptography;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Http;
 using Microsoft.Framework.OptionsModel;
@@ -114,6 +116,20 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             return feature;
+        }
+
+        internal static bool IsSupportedAlgorithm(this SecurityKey securityKey, string algorithm) {
+            var x509SecurityKey = securityKey as X509SecurityKey;
+            if (x509SecurityKey == null) {
+                return false;
+            }
+
+            var rsaPrivateKey = x509SecurityKey.PrivateKey as RSACryptoServiceProvider;
+            if (rsaPrivateKey == null) {
+                return false;
+            }
+
+            return true;
         }
     }
 }
