@@ -13,6 +13,7 @@
         "Microsoft.AspNet.Mvc": "6.0.0-rc1-*",
         "Microsoft.AspNet.Security.Cookies": "1.0.0-rc1-*",
         "Microsoft.AspNet.Security.Google": "1.0.0-rc1-*",
+        "Microsoft.AspNet.Security.OAuthBearer": "1.0.0-rc1-*",
         "Microsoft.AspNet.Security.Twitter": "1.0.0-rc1-*",
         "Microsoft.AspNet.Server.IIS": "1.0.0-rc1-*",
         "Microsoft.AspNet.Server.WebListener": "1.0.0-rc1-*",
@@ -31,10 +32,6 @@
 
     "frameworks": {
         "aspnet50": {
-            "frameworkAssemblies": {
-                "System.IdentityModel": ""
-            },
-
             "dependencies": {
                 "Microsoft.AspNet.Owin": "1.0.0-*",
                 "Microsoft.Owin": "3.0.0",
@@ -44,7 +41,6 @@
 
         "aspnetcore50": {
             "dependencies": {
-                "Microsoft.AspNet.Security.OAuthBearer": "1.0.0-rc1-*",
                 "System.Linq": "4.0.0-beta-*"
             }
         }
