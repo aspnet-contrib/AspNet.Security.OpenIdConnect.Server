@@ -63,10 +63,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 throw new ArgumentNullException(nameof(context));
             }
 
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-
             var feature = GetFeature(context);
 
             feature.Request = request;
@@ -96,10 +92,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public static void SetOpenIdConnectResponse(this HttpContext context, OpenIdConnectMessage response) {
             if (context == null) {
                 throw new ArgumentNullException(nameof(context));
-            }
-
-            if (response == null) {
-                throw new ArgumentNullException(nameof(response));
             }
 
             var feature = GetFeature(context);
