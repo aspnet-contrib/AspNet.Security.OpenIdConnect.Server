@@ -143,15 +143,13 @@ namespace Mvc.Server {
                 options.Issuer = "http://localhost:54540/";
                 options.SigningCredentials = credentials;
 
-                options.Provider = new CustomOpenIdConnectServerProvider(app.ApplicationServices.GetRequiredService<IServiceScopeFactory>());
-                options.AccessTokenLifetime = TimeSpan.FromDays(14);
-                options.IdentityTokenLifetime = TimeSpan.FromMinutes(60);
-                options.AllowInsecureHttp = true;
-
                 // Note: see AuthorizationController.cs for more
                 // information concerning ApplicationCanDisplayErrors.
                 options.ApplicationCanDisplayErrors = true;
-                options.AuthorizationCodeProvider = new AuthorizationCodeProvider(app.ApplicationServices.GetRequiredService<IServiceScopeFactory>());
+                options.AllowInsecureHttp = true;
+
+                options.AuthorizationCodeProvider = new AuthorizationCodeProvider();
+                options.Provider = new CustomOpenIdConnectServerProvider();
             });
 
             app.UseStaticFiles();
