@@ -53,50 +53,50 @@ namespace Mvc.Client {
                 // the different endpoints URIs or the token validation parameters explicitly.
                 options.Authority = "http://localhost:54540/";
 
-                options.Notifications = new OpenIdConnectAuthenticationNotifications {
-                    // Note: by default, the OIDC client throws an OpenIdConnectProtocolException
-                    // when an error occurred during the authentication/authorization process.
-                    // To prevent a YSOD from being displayed, the response is declared as handled.
-                    AuthenticationFailed = notification => {
-                        if (string.Equals(notification.ProtocolMessage.Error, "access_denied", StringComparison.Ordinal)) {
-                            notification.HandleResponse();
+                options.Notifications = new OpenIdConnectAuthenticationNotifications();
 
-                            notification.Response.Redirect("/");
+                // Note: by default, the OIDC client throws an OpenIdConnectProtocolException
+                // when an error occurred during the authentication/authorization process.
+                // To prevent a YSOD from being displayed, the response is declared as handled.
+                options.Notifications.AuthenticationFailed = notification => {
+                    if (string.Equals(notification.ProtocolMessage.Error, "access_denied", StringComparison.Ordinal)) {
+                        notification.HandleResponse();
+
+                        notification.Response.Redirect("/");
+                    }
+
+                    return Task.FromResult<object>(null);
+                };
+
+                // Retrieve an access token from the remote token endpoint
+                // using the authorization code received during the current request.
+                options.Notifications.SecurityTokenValidated = async notification => {
+                    using (var client = new HttpClient()) {
+                        var configuration = await notification.Options.ConfigurationManager.GetConfigurationAsync(notification.HttpContext.RequestAborted);
+
+                        var request = new HttpRequestMessage(HttpMethod.Post, configuration.TokenEndpoint);
+                        request.Content = new FormUrlEncodedContent(new Dictionary<string, string> {
+                            { OpenIdConnectParameterNames.ClientId, notification.Options.ClientId },
+                            { OpenIdConnectParameterNames.ClientSecret, notification.Options.ClientSecret },
+                            { OpenIdConnectParameterNames.Code, notification.ProtocolMessage.Code },
+                            { OpenIdConnectParameterNames.GrantType, "authorization_code" },
+                            { OpenIdConnectParameterNames.RedirectUri, notification.Options.RedirectUri }
+                        });
+
+                        var response = await client.SendAsync(request, notification.HttpContext.RequestAborted);
+                        response.EnsureSuccessStatusCode();
+
+                        var payload = JObject.Parse(await response.Content.ReadAsStringAsync());
+
+                        // Add the access token to the returned ClaimsIdentity to make it easier to retrieve.
+                        var identity = notification.AuthenticationTicket.Principal.Identity as ClaimsIdentity;
+                        if (identity == null) {
+                            throw new InvalidOperationException();
                         }
 
-                        return Task.FromResult<object>(null);
-                    },
-
-                    // Retrieve an access token from the remote token endpoint
-                    // using the authorization code received during the current request.
-                    SecurityTokenValidated = async notification => {
-                        using (var client = new HttpClient()) {
-                            var configuration = await notification.Options.ConfigurationManager.GetConfigurationAsync(notification.HttpContext.RequestAborted);
-
-                            var request = new HttpRequestMessage(HttpMethod.Post, configuration.TokenEndpoint);
-                            request.Content = new FormUrlEncodedContent(new Dictionary<string, string> {
-                                { OpenIdConnectParameterNames.ClientId, notification.Options.ClientId },
-                                { OpenIdConnectParameterNames.ClientSecret, notification.Options.ClientSecret },
-                                { OpenIdConnectParameterNames.Code, notification.ProtocolMessage.Code },
-                                { OpenIdConnectParameterNames.GrantType, "authorization_code" },
-                                { OpenIdConnectParameterNames.RedirectUri, notification.Options.RedirectUri }
-                            });
-
-                            var response = await client.SendAsync(request, notification.HttpContext.RequestAborted);
-                            response.EnsureSuccessStatusCode();
-
-                            var payload = JObject.Parse(await response.Content.ReadAsStringAsync());
-
-                            // Add the access token to the returned ClaimsIdentity to make it easier to retrieve.
-                            var identity = notification.AuthenticationTicket.Principal.Identity as ClaimsIdentity;
-                            if (identity == null) {
-                                throw new InvalidOperationException();
-                            }
-
-                            identity.AddClaim(new Claim(
-                                type: OpenIdConnectParameterNames.AccessToken,
-                                value: payload.Value<string>(OpenIdConnectParameterNames.AccessToken)));
-                        }
+                        identity.AddClaim(new Claim(
+                            type: OpenIdConnectParameterNames.AccessToken,
+                            value: payload.Value<string>(OpenIdConnectParameterNames.AccessToken)));
                     }
                 };
             });
