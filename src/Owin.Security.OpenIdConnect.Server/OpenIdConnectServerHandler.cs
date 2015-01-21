@@ -193,7 +193,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                 logger.WriteVerbose("Unable to validate client information");
 
-                return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
+                return await SendErrorPageAsync(new OpenIdConnectMessage {
                     Error = clientContext.Error,
                     ErrorDescription = clientContext.ErrorDescription,
                     ErrorUri = clientContext.ErrorUri
@@ -206,7 +206,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "response_type parameter missing",
-                    RedirectUri = request.RedirectUri, State = request.State
+                    RedirectUri = request.RedirectUri,
+                    State = request.State
                 });
             }
 
@@ -216,7 +217,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.UnsupportedResponseType,
                     ErrorDescription = "response_type unsupported",
-                    RedirectUri = request.RedirectUri, State = request.State
+                    RedirectUri = request.RedirectUri,
+                    State = request.State
                 });
             }
 
@@ -226,7 +228,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "response_mode unsupported",
-                    RedirectUri = request.RedirectUri, State = request.State
+                    RedirectUri = request.RedirectUri,
+                    State = request.State
                 });
             }
 
@@ -236,7 +239,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "openid scope missing",
-                    RedirectUri = request.RedirectUri, State = request.State
+                    RedirectUri = request.RedirectUri,
+                    State = request.State
                 });
             }
 
@@ -271,7 +275,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                     Error = validatingContext.Error,
                     ErrorDescription = validatingContext.ErrorDescription,
                     ErrorUri = validatingContext.ErrorUri,
-                    RedirectUri = request.RedirectUri, State = request.State
+                    RedirectUri = request.RedirectUri,
+                    State = request.State
                 });
             }
 
@@ -378,7 +383,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                     await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.UnsupportedResponseType,
                         ErrorDescription = "response_type code requires an Options.AuthorizationCodeProvider",
-                        RedirectUri = request.RedirectUri, State = request.State
+                        RedirectUri = request.RedirectUri,
+                        State = request.State
                     });
 
                     return;
