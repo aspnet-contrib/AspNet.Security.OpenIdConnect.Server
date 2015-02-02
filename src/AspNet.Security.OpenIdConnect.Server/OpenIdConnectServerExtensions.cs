@@ -79,9 +79,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 throw new ArgumentNullException(nameof(context));
             }
 
-            var feature = GetFeature(context);
-
-            return feature.Request;
+            return GetFeature(context).Request;
         }
 
         /// <summary>
@@ -94,9 +92,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 throw new ArgumentNullException(nameof(context));
             }
 
-            var feature = GetFeature(context);
-
-            feature.Request = request;
+            GetFeature(context).Request = request;
         }
 
         /// <summary>
@@ -110,9 +106,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 throw new ArgumentNullException(nameof(context));
             }
 
-            var feature = GetFeature(context);
-
-            return feature.Response;
+            return GetFeature(context).Response;
         }
 
         /// <summary>
@@ -125,9 +119,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 throw new ArgumentNullException(nameof(context));
             }
 
-            var feature = GetFeature(context);
-
-            feature.Response = response;
+            GetFeature(context).Response = response;
         }
 
         private static IOpenIdConnectServerFeature GetFeature(HttpContext context) {
