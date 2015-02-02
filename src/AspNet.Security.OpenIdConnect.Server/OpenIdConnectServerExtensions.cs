@@ -9,6 +9,7 @@ using System.IdentityModel.Tokens;
 using System.Security.Cryptography;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Http;
+using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.OptionsModel;
 using Microsoft.IdentityModel.Protocols;
 
@@ -20,11 +21,41 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// </summary>
     public static class OpenIdConnectServerExtensions {
         /// <summary>
+        /// Configures the settings used by the OpenID Connect server.
+        /// </summary>
+        /// <param name="services">The services collection.</param>
+        /// <returns>The services collection.</returns>
+        public static IServiceCollection ConfigureOpenIdConnectServer(this IServiceCollection services, Action<OpenIdConnectServerOptions> options) {
+            if (services == null) {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            if (options == null) {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            return services.Configure(options);
+        }
+
+        /// <summary>
         /// Adds a specs-compliant OpenID Connect server in the ASP.NET pipeline.
         /// </summary>
-        /// <param name="app">The web application builder</param>
+        /// <param name="app">The web application builder.</param>
+        /// <returns>The application builder.</returns>
+        public static IApplicationBuilder UseOpenIdConnectServer(this IApplicationBuilder app) {
+            if (app == null) {
+                throw new ArgumentNullException(nameof(app));
+            }
+
+            return app.UseOpenIdConnectServer(options => { });
+        }
+
+        /// <summary>
+        /// Adds a specs-compliant OpenID Connect server in the ASP.NET pipeline.
+        /// </summary>
+        /// <param name="app">The web application builder.</param>
         /// <param name="options">Options which control the behavior of the OpenID Connect server.</param>
-        /// <returns>The application builder</returns>
+        /// <returns>The application builder.</returns>
         public static IApplicationBuilder UseOpenIdConnectServer(this IApplicationBuilder app, Action<OpenIdConnectServerOptions> options) {
             if (app == null) {
                 throw new ArgumentNullException(nameof(app));
