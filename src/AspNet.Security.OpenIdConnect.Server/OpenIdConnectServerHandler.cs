@@ -310,14 +310,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
         protected override async Task TeardownCoreAsync() {
             // request may be null when no authorization request has been received
             // or has been already handled by InvokeAuthorizationEndpointAsync.
-            OpenIdConnectMessage request = Context.GetOpenIdConnectRequest();
+            var request = Context.GetOpenIdConnectRequest();
             if (request == null) {
                 return;
             }
 
             // Stop processing the request if an authorization response has been forged by the inner application.
             // This allows the next middleware to return an OpenID Connect error or a custom response to the client.
-            OpenIdConnectMessage response = Context.GetOpenIdConnectResponse();
+            var response = Context.GetOpenIdConnectResponse();
             if (response != null && !string.IsNullOrWhiteSpace(response.RedirectUri)) {
                 if (!string.IsNullOrWhiteSpace(response.Error)) {
                     await SendErrorRedirectAsync(request, response);
@@ -331,8 +331,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // Stop processing the request if there's no response grant that matches
             // the authentication type associated with this middleware instance
             // or if the response status code doesn't indicate a successful response.
-            SignInIdentityContext grant = SignInIdentityContext;
-            if (grant == null || Response.StatusCode != 200) {
+            if (SignInIdentityContext == null || Response.StatusCode != 200) {
                 return;
             }
 
@@ -352,21 +351,18 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 State = request.State
             };
 
-            DateTimeOffset currentUtc = Options.SystemClock.UtcNow;
-
             // Associate client_id with all subsequent tickets.
-            grant.Properties.Dictionary[OpenIdConnectConstants.Extra.ClientId] = request.ClientId;
+            SignInIdentityContext.Properties.Dictionary[OpenIdConnectConstants.Extra.ClientId] = request.ClientId;
+
             if (!string.IsNullOrEmpty(request.RedirectUri)) {
                 // Keep original request parameter for later comparison.
-                grant.Properties.Dictionary[OpenIdConnectConstants.Extra.RedirectUri] = request.RedirectUri;
+                SignInIdentityContext.Properties.Dictionary[OpenIdConnectConstants.Extra.RedirectUri] = request.RedirectUri;
             }
 
-            // Determine whether an authorization code should be returned.
-            if (request.HasComponent(message => message.ResponseType, OpenIdConnectConstants.ResponseTypes.Code)) {
-                grant.Properties.IssuedUtc = currentUtc;
-                grant.Properties.ExpiresUtc = currentUtc.Add(Options.AuthorizationCodeLifetime);
-
-                response.Code = await CreateAuthorizationCodeAsync(grant.Identity, grant.Properties);
+            // Determine whether an authorization code should be returned
+            // and invoke CreateAuthorizationCodeAsync if necessary.
+            if (request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.Code)) {
+                response.Code = await CreateAuthorizationCodeAsync(SignInIdentityContext.Identity, SignInIdentityContext.Properties);
 
                 if (string.IsNullOrEmpty(response.Code)) {
                     logger.WriteError("response_type code requires an Options.AuthorizationCodeProvider implementing a single-use token.");
@@ -382,33 +378,29 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 }
             }
 
-            // Determine whether an access token should be returned.
+            // Determine whether an access token should be returned
+            // and invoke CreateAccessTokenAsync if necessary.
             if (request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.Token)) {
-                grant.Properties.IssuedUtc = currentUtc;
-                grant.Properties.ExpiresUtc = currentUtc.Add(Options.AccessTokenLifetime);
-
-                response.AccessToken = await CreateAccessTokenAsync(grant.Identity, grant.Properties);
+                response.AccessToken = await CreateAccessTokenAsync(SignInIdentityContext.Identity, SignInIdentityContext.Properties);
                 response.TokenType = OpenIdConnectConstants.TokenTypes.Bearer;
 
-                DateTimeOffset? accessTokenExpiresUtc = grant.Properties.ExpiresUtc;
+                var accessTokenExpiresUtc = SignInIdentityContext.Properties.ExpiresUtc;
                 if (accessTokenExpiresUtc.HasValue) {
-                    TimeSpan? expiresTimeSpan = accessTokenExpiresUtc - currentUtc;
+                    var expiresTimeSpan = accessTokenExpiresUtc - Options.SystemClock.UtcNow;
                     var expiresIn = (long) (expiresTimeSpan.Value.TotalSeconds + .5);
 
                     response.ExpiresIn = expiresIn.ToString(CultureInfo.InvariantCulture);
                 }
             }
 
-            // Determine whether an identity token should be returned.
-            if (request.HasComponent(message => message.ResponseType, OpenIdConnectConstants.ResponseTypes.IdToken)) {
-                grant.Properties.IssuedUtc = currentUtc;
-                grant.Properties.ExpiresUtc = currentUtc.Add(Options.IdentityTokenLifetime);
-
-                response.IdToken = CreateIdentityToken(grant.Identity, response, grant.Properties);
+            // Determine whether an identity token should be returned
+            // and invoke CreateIdentityToken if necessary.
+            if (request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.IdToken)) {
+                response.IdToken = CreateIdentityToken(SignInIdentityContext.Identity, response, SignInIdentityContext.Properties);
             }
 
             var authorizationEndpointResponseContext = new OpenIdConnectAuthorizationEndpointResponseContext(
-                Context, Options, new AuthenticationTicket(grant.Identity, grant.Properties), request, response);
+                Context, Options, new AuthenticationTicket(SignInIdentityContext.Identity, SignInIdentityContext.Properties), request, response);
 
             await Options.Provider.AuthorizationEndpointResponse(authorizationEndpointResponseContext);
 
@@ -837,10 +829,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return;
             }
 
-            var request = new OpenIdConnectMessage(await Request.ReadFormAsync());
-            request.RequestType = OpenIdConnectRequestType.TokenRequest;
+            var request = new OpenIdConnectMessage(await Request.ReadFormAsync()) {
+                RequestType = OpenIdConnectRequestType.TokenRequest
+            };
 
-            DateTimeOffset currentUtc = Options.SystemClock.UtcNow;
+            var currentUtc = Options.SystemClock.UtcNow;
 
             // Remove milliseconds in case they don't round-trip
             currentUtc = currentUtc.Subtract(TimeSpan.FromMilliseconds(currentUtc.Millisecond));
@@ -946,12 +939,16 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 TokenType = OpenIdConnectConstants.TokenTypes.Bearer
             };
 
-            response.SetParameter(OpenIdConnectConstants.Parameters.RefreshToken,
-                await CreateRefreshTokenAsync(ticket.Identity, ticket.Properties));
+            // Only issue a new refresh token if sliding expiration
+            // is enabled or if a different grant type has been used.
+            if (!request.IsRefreshTokenGrantType() || Options.UseSlidingExpiration) {
+                response.SetParameter(OpenIdConnectConstants.Parameters.RefreshToken,
+                    await CreateRefreshTokenAsync(ticket.Identity, ticket.Properties));
+            }
 
-            DateTimeOffset? accessTokenExpiresUtc = ticket.Properties.ExpiresUtc;
+            var accessTokenExpiresUtc = ticket.Properties.ExpiresUtc;
             if (accessTokenExpiresUtc.HasValue) {
-                TimeSpan? expiresTimeSpan = accessTokenExpiresUtc - currentUtc;
+                var expiresTimeSpan = accessTokenExpiresUtc - currentUtc;
 
                 var expiresIn = (long) expiresTimeSpan.Value.TotalSeconds;
                 if (expiresIn > 0) {
@@ -974,11 +971,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
             using (var writer = new JsonTextWriter(new StreamWriter(buffer))) {
                 var payload = new JObject();
 
-                foreach (KeyValuePair<string, string> parameter in response.Parameters) {
+                foreach (var parameter in response.Parameters) {
                     payload.Add(parameter.Key, parameter.Value);
                 }
 
-                foreach (KeyValuePair<string, JToken> parameter in tokenEndpointResponseContext.AdditionalParameters) {
+                foreach (var parameter in tokenEndpointResponseContext.AdditionalParameters) {
                     payload.Add(parameter.Key, parameter.Value);
                 }
 
@@ -1182,6 +1179,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
         }
 
         private async Task<string> CreateAccessTokenAsync(ClaimsIdentity identity, AuthenticationProperties properties) {
+            // Create a copy to avoid modifying the original instance and compute
+            // the expiration date using the registered access token lifetime.
+            properties = properties.Copy();
+            properties.IssuedUtc = Options.SystemClock.UtcNow;
+            properties.ExpiresUtc = properties.IssuedUtc.Value.Add(Options.AccessTokenLifetime);
+
             var claims = new List<Claim>();
 
             foreach (var claim in identity.Claims) {
@@ -1217,6 +1220,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
         }
 
         private async Task<string> CreateAuthorizationCodeAsync(ClaimsIdentity identity, AuthenticationProperties properties) {
+            // Create a copy to avoid modifying the original instance and compute
+            // the expiration date using the registered authorization code lifetime.
+            properties = properties.Copy();
+            properties.IssuedUtc = Options.SystemClock.UtcNow;
+            properties.ExpiresUtc = properties.IssuedUtc.Value.Add(Options.AuthorizationCodeLifetime);
+
             if (!Options.TokenEndpointPath.HasValue) {
                 throw new InvalidOperationException(
                     "An authorization code cannot be created " +
@@ -1253,6 +1262,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
         }
 
         private async Task<string> CreateRefreshTokenAsync(ClaimsIdentity identity, AuthenticationProperties properties) {
+            // Create a copy to avoid modifying the original instance and compute
+            // the expiration date using the registered refresh token lifetime.
+            properties = properties.Copy();
+            properties.IssuedUtc = Options.SystemClock.UtcNow;
+            properties.ExpiresUtc = properties.IssuedUtc.Value.Add(Options.RefreshTokenLifetime);
+
             var claims = new List<Claim>();
 
             foreach (var claim in identity.Claims) {
@@ -1287,6 +1302,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     "Signing credentials are required to create an identity token: " +
                     "make sure to assign a valid instance to Options.SigningCredentials.");
             }
+
+            // Create a copy to avoid modifying the original instance and compute
+            // the expiration date using the registered identity token lifetime.
+            properties = properties.Copy();
+            properties.IssuedUtc = Options.SystemClock.UtcNow;
+            properties.ExpiresUtc = properties.IssuedUtc.Value.Add(Options.IdentityTokenLifetime);
 
             var claims = new List<Claim>();
 
@@ -1493,11 +1514,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
             return AuthenticateCoreAsync().GetAwaiter().GetResult();
         }
 
-        protected override void ApplyResponseGrant() {
-        }
+        protected override void ApplyResponseGrant() { }
 
-        protected override void ApplyResponseChallenge() {
-        }
+        protected override void ApplyResponseChallenge() { }
 
         private class Appender {
             private readonly char _delimiter;
