@@ -6,9 +6,11 @@
 
 using System;
 using System.IdentityModel.Tokens;
+using System.Linq;
 using System.Security.Cryptography;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Http.Security;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.OptionsModel;
 using Microsoft.IdentityModel.Protocols;
@@ -145,6 +147,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             return true;
+        }
+
+        internal static AuthenticationProperties Copy(this AuthenticationProperties properties) {
+            return new AuthenticationProperties(properties.Dictionary.ToDictionary(pair => pair.Key, pair => pair.Value));
         }
     }
 }
