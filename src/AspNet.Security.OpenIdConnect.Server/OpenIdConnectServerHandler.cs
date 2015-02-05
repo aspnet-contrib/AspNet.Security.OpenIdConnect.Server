@@ -419,7 +419,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     writer.WriteLine("<!doctype html>");
                     writer.WriteLine("<html>");
                     writer.WriteLine("<body>");
-                    writer.WriteLine("<form name='form' method='post' action='" + response.RedirectUri + "'>");
+
+                    // While the redirect_uri parameter should be guarded against unknown values
+                    // by IOpenIdConnectServerProvider.ValidateClientRedirectUri,
+                    // it's still safer to encode it to avoid cross-site scripting attacks
+                    // if the authorization server has a relaxed policy concerning redirect URIs.
+                    writer.WriteLine("<form name='form' method='post' action='" + WebUtility.HtmlEncode(response.RedirectUri) + "'>");
 
                     foreach (KeyValuePair<string, string> parameter in response.Parameters) {
                         // Don't include client_id, redirect_uri or response_mode in the form.
@@ -429,8 +434,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
                             continue;
                         }
 
-                        string key = WebUtility.HtmlEncode(parameter.Key);
-                        string value = WebUtility.HtmlEncode(parameter.Value);
+                        var key = WebUtility.HtmlEncode(parameter.Key);
+                        var value = WebUtility.HtmlEncode(parameter.Value);
 
                         writer.WriteLine("<input type='hidden' name='" + key + "' value='" + value + "' />");
                     }
