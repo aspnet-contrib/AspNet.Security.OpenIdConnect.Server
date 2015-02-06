@@ -99,7 +99,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public ISecureDataFormat<AuthenticationTicket> RefreshTokenFormat { get; set; }
 
         /// <summary>
-        /// The period of time the authorization code remains valid after being issued. The default is 20 minutes.
+        /// The period of time the authorization code remains valid after being issued. The default is 5 minutes.
         /// This time span must also take into account clock synchronization between servers in a web farm, so a very 
         /// brief value could result in unexpectedly expired tokens.
         /// </summary>
@@ -125,7 +125,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
         /// <summary>
         /// This property is set to true to instruct the middleware to re-issue a new refresh token
-        /// with a new expiration time each time a grant_type=refresh_token token is served.
+        /// with a new expiration time each time a grant_type=refresh_token request is served.
         /// Setting this property to false will prevent the token endpoint from issuing refresh tokens on subsequent requests.
         /// </summary>
         public bool UseSlidingExpiration { get; set; } = true;
