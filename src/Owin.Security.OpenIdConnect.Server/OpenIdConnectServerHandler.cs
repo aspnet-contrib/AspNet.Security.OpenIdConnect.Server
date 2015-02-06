@@ -319,14 +319,14 @@ namespace Owin.Security.OpenIdConnect.Server {
         protected override async Task TeardownCoreAsync() {
             // request may be null when no authorization request has been received
             // or has been already handled by InvokeAuthorizationEndpointAsync.
-            OpenIdConnectMessage request = Context.GetOpenIdConnectRequest();
+            var request = Context.GetOpenIdConnectRequest();
             if (request == null) {
                 return;
             }
 
             // Stop processing the request if an authorization response has been forged by the inner application.
             // This allows the next middleware to return an OpenID Connect error or a custom response to the client.
-            OpenIdConnectMessage response = Context.GetOpenIdConnectResponse();
+            var response = Context.GetOpenIdConnectResponse();
             if (response != null && !string.IsNullOrWhiteSpace(response.RedirectUri)) {
                 if (!string.IsNullOrWhiteSpace(response.Error)) {
                     await SendErrorRedirectAsync(request, response);
@@ -340,8 +340,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             // Stop processing the request if there's no response grant that matches
             // the authentication type associated with this middleware instance
             // or if the response status code doesn't indicate a successful response.
-            AuthenticationResponseGrant grant = Helper.LookupSignIn(Options.AuthenticationType);
-            if (grant == null || Response.StatusCode != 200) {
+            var context = Helper.LookupSignIn(Options.AuthenticationType);
+            if (context == null || Response.StatusCode != 200) {
                 return;
             }
 
@@ -361,21 +361,19 @@ namespace Owin.Security.OpenIdConnect.Server {
                 State = request.State
             };
 
-            DateTimeOffset currentUtc = Options.SystemClock.UtcNow;
 
             // Associate client_id with all subsequent tickets.
-            grant.Properties.Dictionary[OpenIdConnectConstants.Extra.ClientId] = request.ClientId;
+            context.Properties.Dictionary[OpenIdConnectConstants.Extra.ClientId] = request.ClientId;
+
             if (!string.IsNullOrEmpty(request.RedirectUri)) {
                 // Keep original request parameter for later comparison.
-                grant.Properties.Dictionary[OpenIdConnectConstants.Extra.RedirectUri] = request.RedirectUri;
+                context.Properties.Dictionary[OpenIdConnectConstants.Extra.RedirectUri] = request.RedirectUri;
             }
 
-            // Determine whether an authorization code should be returned.
+            // Determine whether an authorization code should be returned
+            // and invoke CreateAuthorizationCodeAsync if necessary.
             if (request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.Code)) {
-                grant.Properties.IssuedUtc = currentUtc;
-                grant.Properties.ExpiresUtc = currentUtc.Add(Options.AuthorizationCodeLifetime);
-
-                response.Code = await CreateAuthorizationCodeAsync(grant.Identity, grant.Properties);
+                response.Code = await CreateAuthorizationCodeAsync(context.Identity, context.Properties);
 
                 if (string.IsNullOrEmpty(response.Code)) {
                     logger.WriteError("response_type code requires an Options.AuthorizationCodeProvider implementing a single-use token.");
@@ -391,17 +389,15 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
             }
 
-            // Determine whether an access token should be returned.
+            // Determine whether an access token should be returned
+            // and invoke CreateAccessTokenAsync if necessary.
             if (request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.Token)) {
-                grant.Properties.IssuedUtc = currentUtc;
-                grant.Properties.ExpiresUtc = currentUtc.Add(Options.AccessTokenLifetime);
-
-                response.AccessToken = await CreateAccessTokenAsync(grant.Identity, grant.Properties);
+                response.AccessToken = await CreateAccessTokenAsync(context.Identity, context.Properties);
                 response.TokenType = OpenIdConnectConstants.TokenTypes.Bearer;
 
-                DateTimeOffset? accessTokenExpiresUtc = grant.Properties.ExpiresUtc;
+                var accessTokenExpiresUtc = context.Properties.ExpiresUtc;
                 if (accessTokenExpiresUtc.HasValue) {
-                    TimeSpan? expiresTimeSpan = accessTokenExpiresUtc - currentUtc;
+                    var expiresTimeSpan = accessTokenExpiresUtc - Options.SystemClock.UtcNow;
                     var expiresIn = (long) (expiresTimeSpan.Value.TotalSeconds + .5);
 
                     response.ExpiresIn = expiresIn.ToString(CultureInfo.InvariantCulture);
@@ -410,14 +406,11 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             // Determine whether an identity token should be returned.
             if (request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.IdToken)) {
-                grant.Properties.IssuedUtc = currentUtc;
-                grant.Properties.ExpiresUtc = currentUtc.Add(Options.IdentityTokenLifetime);
-
-                response.IdToken = CreateIdentityToken(grant.Identity, response, grant.Properties);
+                response.IdToken = CreateIdentityToken(context.Identity, response, context.Properties);
             }
 
             var authorizationEndpointResponseContext = new OpenIdConnectAuthorizationEndpointResponseContext(
-                Context, Options, new AuthenticationTicket(grant.Identity, grant.Properties), request, response);
+                Context, Options, new AuthenticationTicket(context.Identity, context.Properties), request, response);
 
             await Options.Provider.AuthorizationEndpointResponse(authorizationEndpointResponseContext);
 
@@ -436,9 +429,14 @@ namespace Owin.Security.OpenIdConnect.Server {
                     writer.WriteLine("<!doctype html>");
                     writer.WriteLine("<html>");
                     writer.WriteLine("<body>");
-                    writer.WriteLine("<form name='form' method='post' action='" + response.RedirectUri + "'>");
 
-                    foreach (KeyValuePair<string, string> parameter in response.Parameters) {
+                    // While the redirect_uri parameter should be guarded against unknown values
+                    // by IOpenIdConnectServerProvider.ValidateClientRedirectUri,
+                    // it's still safer to encode it to avoid cross-site scripting attacks
+                    // if the authorization server has a relaxed policy concerning redirect URIs.
+                    writer.WriteLine("<form name='form' method='post' action='" + WebUtility.HtmlEncode(response.RedirectUri) + "'>");
+
+                    foreach (var parameter in response.Parameters) {
                         // Don't include client_id, redirect_uri or response_mode in the form.
                         if (string.Equals(parameter.Key, OpenIdConnectParameterNames.ClientId, StringComparison.Ordinal) ||
                             string.Equals(parameter.Key, OpenIdConnectParameterNames.RedirectUri, StringComparison.Ordinal) ||
@@ -446,8 +444,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                             continue;
                         }
 
-                        string key = WebUtility.HtmlEncode(parameter.Key);
-                        string value = WebUtility.HtmlEncode(parameter.Value);
+                        var key = WebUtility.HtmlEncode(parameter.Key);
+                        var value = WebUtility.HtmlEncode(parameter.Value);
 
                         writer.WriteLine("<input type='hidden' name='" + key + "' value='" + value + "' />");
                     }
@@ -899,7 +897,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             var request = new OpenIdConnectMessage(await Request.ReadFormAsync());
             request.RequestType = OpenIdConnectRequestType.TokenRequest;
 
-            DateTimeOffset currentUtc = Options.SystemClock.UtcNow;
+            var currentUtc = Options.SystemClock.UtcNow;
 
             // Remove milliseconds in case they don't round-trip
             currentUtc = currentUtc.Subtract(TimeSpan.FromMilliseconds(currentUtc.Millisecond));
@@ -1005,12 +1003,16 @@ namespace Owin.Security.OpenIdConnect.Server {
                 TokenType = OpenIdConnectConstants.TokenTypes.Bearer
             };
 
-            response.SetParameter(OpenIdConnectConstants.Parameters.RefreshToken,
-                await CreateRefreshTokenAsync(ticket.Identity, ticket.Properties));
+            // Only issue a new refresh token if sliding expiration
+            // is enabled or if a different grant type has been used.
+            if (!request.IsRefreshTokenGrantType() || Options.UseSlidingExpiration) {
+                response.SetParameter(OpenIdConnectConstants.Parameters.RefreshToken,
+                    await CreateRefreshTokenAsync(ticket.Identity, ticket.Properties));
+            }
 
-            DateTimeOffset? accessTokenExpiresUtc = ticket.Properties.ExpiresUtc;
+            var accessTokenExpiresUtc = ticket.Properties.ExpiresUtc;
             if (accessTokenExpiresUtc.HasValue) {
-                TimeSpan? expiresTimeSpan = accessTokenExpiresUtc - currentUtc;
+                var expiresTimeSpan = accessTokenExpiresUtc - currentUtc;
 
                 var expiresIn = (long) expiresTimeSpan.Value.TotalSeconds;
                 if (expiresIn > 0) {
@@ -1033,11 +1035,11 @@ namespace Owin.Security.OpenIdConnect.Server {
             using (var writer = new JsonTextWriter(new StreamWriter(buffer))) {
                 var payload = new JObject();
 
-                foreach (KeyValuePair<string, string> parameter in response.Parameters) {
+                foreach (var parameter in response.Parameters) {
                     payload.Add(parameter.Key, parameter.Value);
                 }
 
-                foreach (KeyValuePair<string, JToken> parameter in tokenEndpointResponseContext.AdditionalParameters) {
+                foreach (var parameter in tokenEndpointResponseContext.AdditionalParameters) {
                     payload.Add(parameter.Key, parameter.Value);
                 }
 
@@ -1225,6 +1227,12 @@ namespace Owin.Security.OpenIdConnect.Server {
         }
 
         private async Task<string> CreateAccessTokenAsync(ClaimsIdentity identity, AuthenticationProperties properties) {
+            // Create a copy to avoid modifying the original instance and compute
+            // the expiration date using the registered access token lifetime.
+            properties = properties.Copy();
+            properties.IssuedUtc = Options.SystemClock.UtcNow;
+            properties.ExpiresUtc = properties.IssuedUtc.Value.Add(Options.AccessTokenLifetime);
+
             var claims = new List<Claim>();
 
             foreach (var claim in identity.Claims) {
@@ -1260,6 +1268,12 @@ namespace Owin.Security.OpenIdConnect.Server {
         }
 
         private async Task<string> CreateAuthorizationCodeAsync(ClaimsIdentity identity, AuthenticationProperties properties) {
+            // Create a copy to avoid modifying the original instance and compute
+            // the expiration date using the registered authorization code lifetime.
+            properties = properties.Copy();
+            properties.IssuedUtc = Options.SystemClock.UtcNow;
+            properties.ExpiresUtc = properties.IssuedUtc.Value.Add(Options.AuthorizationCodeLifetime);
+
             if (!Options.TokenEndpointPath.HasValue) {
                 throw new InvalidOperationException(
                     "An authorization code cannot be created " +
@@ -1296,6 +1310,12 @@ namespace Owin.Security.OpenIdConnect.Server {
         }
 
         private async Task<string> CreateRefreshTokenAsync(ClaimsIdentity identity, AuthenticationProperties properties) {
+            // Create a copy to avoid modifying the original instance and compute
+            // the expiration date using the registered refresh token lifetime.
+            properties = properties.Copy();
+            properties.IssuedUtc = Options.SystemClock.UtcNow;
+            properties.ExpiresUtc = properties.IssuedUtc.Value.Add(Options.RefreshTokenLifetime);
+
             var claims = new List<Claim>();
 
             foreach (var claim in identity.Claims) {
@@ -1330,6 +1350,12 @@ namespace Owin.Security.OpenIdConnect.Server {
                     "Signing credentials are required to create an identity token: " +
                     "make sure to assign a valid instance to Options.SigningCredentials.");
             }
+
+            // Create a copy to avoid modifying the original instance and compute
+            // the expiration date using the registered identity token lifetime.
+            properties = properties.Copy();
+            properties.IssuedUtc = Options.SystemClock.UtcNow;
+            properties.ExpiresUtc = properties.IssuedUtc.Value.Add(Options.IdentityTokenLifetime);
 
             var claims = new List<Claim>();
 
