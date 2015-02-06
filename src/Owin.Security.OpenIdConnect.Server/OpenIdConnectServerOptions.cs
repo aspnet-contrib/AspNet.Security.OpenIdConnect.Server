@@ -24,8 +24,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         public OpenIdConnectServerOptions()
             : base(OpenIdConnectDefaults.AuthenticationType) {
             AuthorizationCodeLifetime = TimeSpan.FromMinutes(5);
-            AccessTokenLifetime = TimeSpan.FromMinutes(20);
+            AccessTokenLifetime = TimeSpan.FromHours(1);
             IdentityTokenLifetime = TimeSpan.FromMinutes(20);
+            RefreshTokenLifetime =  TimeSpan.FromHours(6);
+            UseSlidingExpiration = true;
             AuthorizationEndpointPath = new PathString(OpenIdConnectDefaults.AuthorizationEndpointPath);
             ConfigurationEndpointPath = new PathString(OpenIdConnectDefaults.ConfigurationEndpointPath);
             KeysEndpointPath = new PathString(OpenIdConnectDefaults.KeysEndpointPath);
@@ -109,23 +111,36 @@ namespace Owin.Security.OpenIdConnect.Server {
         public ISecureDataFormat<AuthenticationTicket> RefreshTokenFormat { get; set; }
 
         /// <summary>
-        /// The period of time the authorization code remains valid after being issued. The default is five minutes.
+        /// The period of time the authorization code remains valid after being issued. The default is 5 minutes.
         /// This time span must also take into account clock synchronization between servers in a web farm, so a very 
         /// brief value could result in unexpectedly expired tokens.
         /// </summary>
         public TimeSpan AuthorizationCodeLifetime { get; set; }
 
         /// <summary>
-        /// The period of time the access token remains valid after being issued. The default is twenty minutes.
+        /// The period of time the access token remains valid after being issued. The default is 1 hour.
         /// The client application is expected to refresh or acquire a new access token after the token has expired. 
         /// </summary>
         public TimeSpan AccessTokenLifetime { get; set; }
 
         /// <summary>
-        /// The period of time the identity token remains valid after being issued. The default is twenty minutes.
+        /// The period of time the identity token remains valid after being issued. The default is 20 minutes.
         /// The client application is expected to refresh or acquire a new identity token after the token has expired. 
         /// </summary>
         public TimeSpan IdentityTokenLifetime { get; set; }
+
+        /// <summary>
+        /// The period of time the refresh token remains valid after being issued. The default is 6 hours.
+        /// The client application is expected to start a whole new authentication flow after the refresh token has expired. 
+        /// </summary>
+        public TimeSpan RefreshTokenLifetime { get; set; }
+
+        /// <summary>
+        /// This property is set to true to instruct the middleware to re-issue a new refresh token
+        /// with a new expiration time each time a grant_type=refresh_token request is served.
+        /// Setting this property to false will prevent the token endpoint from issuing refresh tokens on subsequent requests.
+        /// </summary>
+        public bool UseSlidingExpiration { get; set; }
 
         /// <summary>
         /// Produces a single-use authorization code to return to the client application. For the OpenID Connect server to be secure the

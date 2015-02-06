@@ -10,6 +10,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
+using Microsoft.Owin.Security;
 using Owin.Security.OpenIdConnect.Server;
 
 namespace Owin {
@@ -120,6 +121,10 @@ namespace Owin {
 
             context.Set(key + OpenIdConnectConstants.Environment.Message, message);
             context.Set(key + OpenIdConnectConstants.Environment.Parameters, parameters);
+        }
+
+        internal static AuthenticationProperties Copy(this AuthenticationProperties properties) {
+            return new AuthenticationProperties(properties.Dictionary.ToDictionary(pair => pair.Key, pair => pair.Value));
         }
     }
 }
