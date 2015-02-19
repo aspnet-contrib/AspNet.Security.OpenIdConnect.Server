@@ -67,7 +67,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             if (matchRequestContext.IsAuthorizationEndpoint || matchRequestContext.IsConfigurationEndpoint ||
                 matchRequestContext.IsKeysEndpoint || matchRequestContext.IsTokenEndpoint) {
-                if (!Options.AllowInsecureHttp && !Request.IsSecure) {
+                if (!Options.AllowInsecureHttp && !Request.IsHttps) {
                     logger.WriteWarning("Authorization server ignoring http request because AllowInsecureHttp is false.");
                     return false;
                 }
@@ -169,7 +169,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     });
                 }
 
-                else if (!Options.AllowInsecureHttp && !Request.IsSecure) {
+                else if (!Options.AllowInsecureHttp && !Request.IsHttps) {
                     // redirect_uri SHOULD require the use of TLS
                     // http://tools.ietf.org/html/rfc6749#section-3.1.2.1
                     // and http://openid.net/specs/openid-connect-core-1_0.html#AuthRequest

@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Server;
 using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Security;
 using Microsoft.IdentityModel.Protocols;
 using Mvc.Server.Models;
 
