@@ -10,6 +10,7 @@ target/
 *.suo
 *.user
 *.sln.docstates
+project.lock.json
 
 # Build results
 
