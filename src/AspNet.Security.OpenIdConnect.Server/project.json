@@ -1,5 +1,5 @@
 {
-    "authors": [ "AspNet.Security.OpenIdConnect.Server contributors" ],
+    "authors": [ "ASP.NET 5 contributors" ],
     "description": "OpenID connect server implementation for ASP.NET vNext.",
 
     "version": "1.0.0-beta2-*",

@@ -6,11 +6,11 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Server;
 using Microsoft.AspNet.Builder;
+using Microsoft.AspNet.DataProtection;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Security;
 using Microsoft.AspNet.Security.Cookies;
 using Microsoft.AspNet.Security.DataHandler;
-using Microsoft.AspNet.Security.DataProtection;
 using Microsoft.AspNet.Security.OAuthBearer;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Logging;
@@ -70,7 +70,7 @@ namespace Mvc.Server {
                     // The AccessTokenFormat property has been removed from OAuthBearerAuthenticationOptions.
                     // As a workaround, a TicketDataFormat is manually created and plugged in via SecurityTokenReceived.
                     var dataProtectorProvider = app.ApplicationServices.GetRequiredService<IDataProtectionProvider>();
-                    var dataProtector = dataProtectorProvider.CreateDataProtector(
+                    var dataProtector = dataProtectorProvider.CreateProtector(
                         "Microsoft.AspNet.Security.OAuth.OAuthBearerAuthenticationMiddleware",
                         "Bearer", "v1");
 
