@@ -7,8 +7,8 @@
 using System;
 using System.IdentityModel.Tokens;
 using Microsoft.AspNet.Builder;
+using Microsoft.AspNet.DataProtection;
 using Microsoft.AspNet.Security.DataHandler;
-using Microsoft.AspNet.Security.DataProtection;
 using Microsoft.AspNet.Security.Infrastructure;
 using Microsoft.Framework.Logging;
 using Microsoft.Framework.OptionsModel;
@@ -46,29 +46,26 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             if (Options.AuthorizationCodeFormat == null) {
-                IDataProtector dataProtector = dataProtectorProvider.CreateDataProtector(
-                    typeof(OpenIdConnectServerMiddleware).FullName,
-                    Options.AuthenticationType, "Authentication_Code", "v1");
-
-                Options.AuthorizationCodeFormat = new TicketDataFormat(dataProtector);
+                Options.AuthorizationCodeFormat = new TicketDataFormat(
+                    dataProtectorProvider.CreateProtector(
+                        typeof(OpenIdConnectServerMiddleware).FullName,
+                        Options.AuthenticationType, "Authentication_Code", "v1"));
             }
 
             if (Options.AccessTokenFormat == null) {
                 // Make sure the data protector needed by Options.AccessTokenFormat
                 // uses the same purposes as OAuthBearerAuthenticationMiddleware.
-                IDataProtector dataProtector = dataProtectorProvider.CreateDataProtector(
-                    "Microsoft.AspNet.Security.OAuth.OAuthBearerAuthenticationMiddleware",
-                    Options.AuthenticationType, "v1");
-
-                Options.AccessTokenFormat = new TicketDataFormat(dataProtector);
+                Options.AccessTokenFormat = new TicketDataFormat(
+                    dataProtectorProvider.CreateProtector(
+                        "Microsoft.AspNet.Security.OAuth.OAuthBearerAuthenticationMiddleware",
+                        Options.AuthenticationType, "v1"));
             }
 
             if (Options.RefreshTokenFormat == null) {
-                IDataProtector dataProtector = dataProtectorProvider.CreateDataProtector(
-                    typeof(OpenIdConnectServerMiddleware).Namespace,
-                    Options.AuthenticationType, "Refresh_Token", "v1");
-
-                Options.RefreshTokenFormat = new TicketDataFormat(dataProtector);
+                Options.RefreshTokenFormat = new TicketDataFormat(
+                    dataProtectorProvider.CreateProtector(
+                        typeof(OpenIdConnectServerMiddleware).Namespace,
+                        Options.AuthenticationType, "Refresh_Token", "v1"));
             }
 
             if (Options.AuthorizationCodeProvider == null) {
