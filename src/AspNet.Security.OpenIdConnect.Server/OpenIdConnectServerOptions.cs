@@ -6,9 +6,8 @@
 
 using System;
 using System.IdentityModel.Tokens;
+using Microsoft.AspNet.Authentication;
 using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Security;
-using Microsoft.AspNet.Security.Infrastructure;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
@@ -19,7 +18,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// Creates an instance of authorization server options with default values.
         /// </summary>
         public OpenIdConnectServerOptions() {
-            AuthenticationType = OpenIdConnectDefaults.AuthenticationType;
+            AuthenticationScheme = OpenIdConnectDefaults.AuthenticationScheme;
         }
 
         /// <summary>

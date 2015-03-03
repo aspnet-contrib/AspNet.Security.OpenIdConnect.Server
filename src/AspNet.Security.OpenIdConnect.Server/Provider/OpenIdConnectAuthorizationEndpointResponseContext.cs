@@ -6,10 +6,10 @@
 
 using System;
 using System.Security.Claims;
+using Microsoft.AspNet.Authentication;
+using Microsoft.AspNet.Authentication.Notifications;
 using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Http.Security;
-using Microsoft.AspNet.Security;
-using Microsoft.AspNet.Security.Notifications;
+using Microsoft.AspNet.Http.Authentication;
 using Microsoft.IdentityModel.Protocols;
 
 namespace AspNet.Security.OpenIdConnect.Server {
@@ -36,31 +36,31 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 throw new ArgumentNullException("ticket");
             }
 
-            Identity = ticket.Identity;
+            Principal = ticket.Principal;
             Properties = ticket.Properties;
             AuthorizationRequest = authorizationRequest;
             AuthorizationResponse = authorizationResponse;
         }
 
         /// <summary>
-        /// Gets the identity of the resource owner.
+        /// Gets the principal of the resource owner.
         /// </summary>
-        public ClaimsIdentity Identity { get; private set; }
+        public ClaimsPrincipal Principal { get; }
 
         /// <summary>
         /// Dictionary containing the state of the authentication session.
         /// </summary>
-        public AuthenticationProperties Properties { get; private set; }
+        public AuthenticationProperties Properties { get; }
 
         /// <summary>
         /// Gets the authorization request. 
         /// </summary>
-        public OpenIdConnectMessage AuthorizationRequest { get; private set; }
+        public OpenIdConnectMessage AuthorizationRequest { get; }
 
         /// <summary>
         /// Gets the authorization response. 
         /// </summary>
-        public OpenIdConnectMessage AuthorizationResponse { get; private set; }
+        public OpenIdConnectMessage AuthorizationResponse { get; }
 
         /// <summary>
         /// Get the access code expected to

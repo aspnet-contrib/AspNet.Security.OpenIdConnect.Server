@@ -4,7 +4,7 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
-using Microsoft.AspNet.Security;
+using Microsoft.AspNet.Authentication;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
@@ -12,9 +12,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// </summary>
     public static class OpenIdConnectDefaults {
         /// <summary>
-        /// Default value for <see cref="AuthenticationOptions.AuthenticationType"/>.
+        /// Default value for <see cref="AuthenticationOptions.AuthenticationScheme"/>.
         /// </summary>
-        public const string AuthenticationType = "Bearer";
+        public const string AuthenticationScheme = "Bearer";
 
         /// <summary>
         /// Default value for <see cref="OpenIdConnectServerOptions.AuthorizationEndpointPath"/>.

@@ -4,9 +4,8 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
-using Microsoft.AspNet;
+using Microsoft.AspNet.Authentication.Notifications;
 using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Security.Notifications;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>

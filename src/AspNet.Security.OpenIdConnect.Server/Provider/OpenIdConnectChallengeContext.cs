@@ -4,8 +4,8 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
+using Microsoft.AspNet.Authentication.Notifications;
 using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Security.Notifications;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
@@ -27,6 +27,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// The www-authenticate header value.
         /// </summary>
-        public string Challenge { get; private set; }
+        public string Challenge { get; }
     }
 }

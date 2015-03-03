@@ -7,10 +7,10 @@
 using System;
 using System.Collections.Generic;
 using System.Security.Claims;
+using Microsoft.AspNet.Authentication;
+using Microsoft.AspNet.Authentication.Notifications;
 using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Http.Security;
-using Microsoft.AspNet.Security;
-using Microsoft.AspNet.Security.Notifications;
+using Microsoft.AspNet.Http.Authentication;
 using Microsoft.IdentityModel.Protocols;
 using Newtonsoft.Json.Linq;
 
@@ -39,9 +39,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             AdditionalParameters = new Dictionary<string, JToken>(StringComparer.Ordinal);
-            Identity = ticket.Identity;
+            Principal = ticket.Principal;
             Properties = ticket.Properties;
-            TokenIssued = Identity != null;
+            TokenIssued = Principal != null;
             TokenRequest = tokenRequest;
             TokenResponse = tokenResponse;
         }
@@ -52,9 +52,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public IDictionary<string, JToken> AdditionalParameters { get; private set; }
 
         /// <summary>
-        /// Gets the identity of the resource owner.
+        /// Gets the principal of the resource owner.
         /// </summary>
-        public ClaimsIdentity Identity { get; private set; }
+        public ClaimsPrincipal Principal { get; private set; }
 
         /// <summary>
         /// Dictionary containing the state of the authentication session.
@@ -86,10 +86,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Issues the token.
         /// </summary>
-        /// <param name="identity"></param>
+        /// <param name="principal"></param>
         /// <param name="properties"></param>
-        public void Issue(ClaimsIdentity identity, AuthenticationProperties properties) {
-            Identity = identity;
+        public void Issue(ClaimsPrincipal principal, AuthenticationProperties properties) {
+            Principal = principal;
             Properties = properties;
             TokenIssued = true;
         }

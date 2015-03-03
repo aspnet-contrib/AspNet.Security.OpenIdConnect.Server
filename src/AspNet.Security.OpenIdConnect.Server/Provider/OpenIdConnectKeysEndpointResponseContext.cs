@@ -5,8 +5,8 @@
  */
 
 using System.Collections.Generic;
+using Microsoft.AspNet.Authentication.Notifications;
 using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Security.Notifications;
 using Microsoft.IdentityModel.Protocols;
 
 namespace AspNet.Security.OpenIdConnect.Server {

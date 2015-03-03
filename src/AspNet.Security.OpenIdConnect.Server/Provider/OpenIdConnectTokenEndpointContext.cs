@@ -6,10 +6,10 @@
 
 using System;
 using System.Security.Claims;
+using Microsoft.AspNet.Authentication;
+using Microsoft.AspNet.Authentication.Notifications;
 using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Http.Security;
-using Microsoft.AspNet.Security;
-using Microsoft.AspNet.Security.Notifications;
+using Microsoft.AspNet.Http.Authentication;
 using Microsoft.IdentityModel.Protocols;
 
 namespace AspNet.Security.OpenIdConnect.Server {
@@ -31,19 +31,19 @@ namespace AspNet.Security.OpenIdConnect.Server {
             OpenIdConnectMessage tokenRequest)
             : base(context, options) {
             if (ticket == null) {
-                throw new ArgumentNullException("ticket");
+                throw new ArgumentNullException(nameof(ticket));
             }
 
-            Identity = ticket.Identity;
+            Principal = ticket.Principal;
             Properties = ticket.Properties;
             TokenRequest = tokenRequest;
-            TokenIssued = Identity != null;
+            TokenIssued = Principal != null;
         }
 
         /// <summary>
-        /// Gets the identity of the resource owner.
+        /// Gets the principal of the resource owner.
         /// </summary>
-        public ClaimsIdentity Identity { get; private set; }
+        public ClaimsPrincipal Principal { get; private set; }
 
         /// <summary>
         /// Dictionary containing the state of the authentication session.
@@ -63,10 +63,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Issues the token.
         /// </summary>
-        /// <param name="identity"></param>
+        /// <param name="principal"></param>
         /// <param name="properties"></param>
-        public void Issue(ClaimsIdentity identity, AuthenticationProperties properties) {
-            Identity = identity;
+        public void Issue(ClaimsPrincipal principal, AuthenticationProperties properties) {
+            Principal = principal;
             Properties = properties;
             TokenIssued = true;
         }

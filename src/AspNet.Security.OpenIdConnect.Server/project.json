@@ -6,7 +6,7 @@
 
     "dependencies": {
         "AspNet.Security.OpenIdConnect.Extensions": "1.0.0-*",
-        "Microsoft.AspNet.Security": "1.0.0-*",
+        "Microsoft.AspNet.Authentication": "1.0.0-*",
         "Microsoft.Framework.Logging": "1.0.0-*",
         "Microsoft.IdentityModel.Protocol.Extensions": "2.0.0-*",
         "Newtonsoft.Json": "6.0.4",

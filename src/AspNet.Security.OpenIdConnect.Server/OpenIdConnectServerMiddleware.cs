@@ -6,10 +6,10 @@
 
 using System;
 using System.IdentityModel.Tokens;
+using Microsoft.AspNet.Authentication;
+using Microsoft.AspNet.Authentication.DataHandler;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.DataProtection;
-using Microsoft.AspNet.Security.DataHandler;
-using Microsoft.AspNet.Security.Infrastructure;
 using Microsoft.Framework.Logging;
 using Microsoft.Framework.OptionsModel;
 
@@ -37,8 +37,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             : base(next, services, options, configuration) {
             _logger = loggerFactory.Create<OpenIdConnectServerMiddleware>();
 
-            if (string.IsNullOrWhiteSpace(Options.AuthenticationType)) {
-                throw new ArgumentNullException("options.AuthenticationType");
+            if (string.IsNullOrWhiteSpace(Options.AuthenticationScheme)) {
+                throw new ArgumentNullException("options.AuthenticationScheme");
             }
 
             if (Options.Provider == null) {
@@ -49,7 +49,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 Options.AuthorizationCodeFormat = new TicketDataFormat(
                     dataProtectorProvider.CreateProtector(
                         typeof(OpenIdConnectServerMiddleware).FullName,
-                        Options.AuthenticationType, "Authentication_Code", "v1"));
+                        Options.AuthenticationScheme, "Authentication_Code", "v1"));
             }
 
             if (Options.AccessTokenFormat == null) {
@@ -58,14 +58,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 Options.AccessTokenFormat = new TicketDataFormat(
                     dataProtectorProvider.CreateProtector(
                         "Microsoft.AspNet.Security.OAuth.OAuthBearerAuthenticationMiddleware",
-                        Options.AuthenticationType, "v1"));
+                        Options.AuthenticationScheme, "v1"));
             }
 
             if (Options.RefreshTokenFormat == null) {
                 Options.RefreshTokenFormat = new TicketDataFormat(
                     dataProtectorProvider.CreateProtector(
                         typeof(OpenIdConnectServerMiddleware).Namespace,
-                        Options.AuthenticationType, "Refresh_Token", "v1"));
+                        Options.AuthenticationScheme, "Refresh_Token", "v1"));
             }
 
             if (Options.AuthorizationCodeProvider == null) {
