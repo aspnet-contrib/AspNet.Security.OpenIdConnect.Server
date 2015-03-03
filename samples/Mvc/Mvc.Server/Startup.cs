@@ -5,13 +5,13 @@ using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Server;
+using Microsoft.AspNet.Authentication;
+using Microsoft.AspNet.Authentication.Cookies;
+using Microsoft.AspNet.Authentication.DataHandler;
+using Microsoft.AspNet.Authentication.OAuthBearer;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.DataProtection;
 using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Security;
-using Microsoft.AspNet.Security.Cookies;
-using Microsoft.AspNet.Security.DataHandler;
-using Microsoft.AspNet.Security.OAuthBearer;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Logging;
 using Microsoft.Framework.Logging.Console;
@@ -56,7 +56,7 @@ namespace Mvc.Server {
                     .AddDbContext<ApplicationContext>();
 
                 services.Configure<ExternalAuthenticationOptions>(options => {
-                    options.SignInAsAuthenticationType = "ServerCookie";
+                    options.SignInScheme = "ServerCookie";
                 });
 
                 services.AddDataProtection();
@@ -76,7 +76,7 @@ namespace Mvc.Server {
 
                     var accessTokenFormat = new TicketDataFormat(dataProtector);
 
-                    options.AuthenticationMode = AuthenticationMode.Active;
+                    options.AutomaticAuthentication = true;
                     options.Notifications = new OAuthBearerAuthenticationNotifications();
 
                     options.Notifications.SecurityTokenReceived = notification => {
@@ -96,8 +96,8 @@ namespace Mvc.Server {
                 // Insert a new cookies middleware in the pipeline to store
                 // the user identity returned by the external identity provider.
                 branch.UseCookieAuthentication(options => {
-                    options.AuthenticationMode = AuthenticationMode.Active;
-                    options.AuthenticationType = "ServerCookie";
+                    options.AutomaticAuthentication = true;
+                    options.AuthenticationScheme = "ServerCookie";
                     options.CookieName = CookieAuthenticationDefaults.CookiePrefix + "ServerCookie";
                     options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
                     options.LoginPath = new PathString("/signin");
@@ -138,7 +138,7 @@ namespace Mvc.Server {
 #endif
 
             app.UseOpenIdConnectServer(options => {
-                options.AuthenticationType = OpenIdConnectDefaults.AuthenticationType;
+                options.AuthenticationScheme = OpenIdConnectDefaults.AuthenticationScheme;
 
                 options.Issuer = "http://localhost:54540/";
                 options.SigningCredentials = credentials;

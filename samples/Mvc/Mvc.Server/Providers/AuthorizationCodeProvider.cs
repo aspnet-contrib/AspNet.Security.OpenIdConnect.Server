@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Server;
-using Microsoft.AspNet.Security.Infrastructure;
+using Microsoft.AspNet.Authentication;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.OptionsModel;
 using Mvc.Server.Models;

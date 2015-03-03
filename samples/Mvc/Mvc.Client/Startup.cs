@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Authentication;
+using Microsoft.AspNet.Authentication.Cookies;
+using Microsoft.AspNet.Authentication.OpenIdConnect;
 using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.Security;
-using Microsoft.AspNet.Security.Cookies;
-using Microsoft.AspNet.Security.OpenIdConnect;
+using Microsoft.AspNet.Http;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Logging;
 using Microsoft.Framework.Logging.Console;
@@ -21,7 +22,7 @@ namespace Mvc.Client {
 
             app.UseServices(services => {
                 services.Configure<ExternalAuthenticationOptions>(options => {
-                    options.SignInAsAuthenticationType = "ClientCookie";
+                    options.SignInScheme = "ClientCookie";
                 });
 
                 services.AddDataProtection();
@@ -32,15 +33,15 @@ namespace Mvc.Client {
             // Insert a new cookies middleware in the pipeline to store the user
             // identity after he has been redirected from the identity provider.
             app.UseCookieAuthentication(options => {
-                options.AuthenticationMode = AuthenticationMode.Active;
-                options.AuthenticationType = "ClientCookie";
+                options.AutomaticAuthentication = true;
+                options.AuthenticationScheme = "ClientCookie";
                 options.CookieName = CookieAuthenticationDefaults.CookiePrefix + "ClientCookie";
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
+                options.LoginPath = new PathString("/signin");
             });
 
             app.UseOpenIdConnectAuthentication(options => {
-                options.AuthenticationMode = AuthenticationMode.Active;
-                options.AuthenticationType = OpenIdConnectAuthenticationDefaults.AuthenticationType;
+                options.AuthenticationScheme = OpenIdConnectAuthenticationDefaults.AuthenticationScheme;
 
                 // Note: these settings must match the application details inserted in
                 // the database at the server level (see ApplicationContextInitializer.cs).
@@ -87,7 +88,7 @@ namespace Mvc.Client {
                         response.EnsureSuccessStatusCode();
 
                         var payload = JObject.Parse(await response.Content.ReadAsStringAsync());
-
+                        
                         // Add the access token to the returned ClaimsIdentity to make it easier to retrieve.
                         var identity = notification.AuthenticationTicket.Principal.Identity as ClaimsIdentity;
                         if (identity == null) {
@@ -97,6 +98,14 @@ namespace Mvc.Client {
                         identity.AddClaim(new Claim(
                             type: OpenIdConnectParameterNames.AccessToken,
                             value: payload.Value<string>(OpenIdConnectParameterNames.AccessToken)));
+
+                        // Temporary fix. See https://github.com/aspnet/Security/issues/167
+                        notification.AuthenticationTicket = new AuthenticationTicket(
+                            notification.AuthenticationTicket.Principal,
+                            notification.AuthenticationTicket.Properties,
+                            notification.Options.SignInScheme);
+
+                        notification.HandleResponse();
                     }
                 };
             });

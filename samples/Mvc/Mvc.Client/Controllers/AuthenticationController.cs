@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNet.Http.Security;
+﻿using Microsoft.AspNet.Http.Authentication;
 using Microsoft.AspNet.Mvc;
 
 namespace Mvc.Client.Controllers {

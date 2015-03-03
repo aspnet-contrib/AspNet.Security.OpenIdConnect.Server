@@ -20,7 +20,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
         };
 
         internal static readonly Func<OpenIdConnectGrantAuthorizationCodeContext, Task> GrantAuthorizationCode = context => {
-            if (context.Ticket != null && context.Ticket.Identity != null && context.Ticket.Identity.IsAuthenticated) {
+            if (context.Ticket != null &&
+                context.Ticket.Principal != null &&
+                context.Ticket.Principal.Identity != null &&
+                context.Ticket.Principal.Identity.IsAuthenticated) {
                 context.Validated();
             }
 
@@ -28,7 +31,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
         };
 
         internal static readonly Func<OpenIdConnectGrantRefreshTokenContext, Task> GrantRefreshToken = context => {
-            if (context.Ticket != null && context.Ticket.Identity != null && context.Ticket.Identity.IsAuthenticated) {
+            if (context.Ticket != null &&
+                context.Ticket.Principal != null &&
+                context.Ticket.Principal.Identity != null &&
+                context.Ticket.Principal.Identity.IsAuthenticated) {
                 context.Validated();
             }
 
