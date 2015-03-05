@@ -171,13 +171,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public bool AllowInsecureHttp { get; set; }
 
         /// <summary>
-        /// The provider used to sign the identity tokens produced by the authorization server.
-        /// Providing an instance is generally not required.
-        /// </summary>
-        /// <seealso cref="SigningCredentials"/>
-        public SignatureProvider SignatureProvider { get; set; }
-
-        /// <summary>
         /// The <see cref="JwtSecurityTokenHandler"/> instance used to forge identity tokens.
         /// You can replace the default instance to change the way id_tokens are serialized.
         /// </summary>
