@@ -54,11 +54,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             if (Options.AccessTokenFormat == null) {
-                // Make sure the data protector needed by Options.AccessTokenFormat
-                // uses the same purposes as OAuthBearerAuthenticationMiddleware.
                 Options.AccessTokenFormat = new TicketDataFormat(
                     dataProtectorProvider.CreateProtector(
-                        "Microsoft.AspNet.Security.OAuth.OAuthBearerAuthenticationMiddleware",
+                        typeof(OpenIdConnectServerMiddleware).FullName,
                         Options.AuthenticationScheme, "v1"));
             }
 

@@ -455,8 +455,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             else if (request.IsFragmentResponseMode()) {
-                string location = response.RedirectUri;
-                var appender = new Appender(location, '#');
+                var appender = new Appender(response.RedirectUri, '#');
 
                 foreach (var parameter in response.Parameters) {
                     // Don't include client_id, redirect_uri or response_mode in the fragment.
@@ -474,7 +473,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             else if (request.IsQueryResponseMode()) {
-                string location = response.RedirectUri;
+                var location = response.RedirectUri;
 
                 foreach (var parameter in response.Parameters) {
                     // Don't include client_id, redirect_uri or response_mode in the query string.
@@ -1363,33 +1362,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 claims.Add(claim);
             }
-
-            DateTimeOffset notBefore = Options.SystemClock.UtcNow;
-            DateTimeOffset expires = notBefore.Add(Options.IdentityTokenLifetime);
-
-            string notBeforeString;
-            if (properties.Dictionary.TryGetValue("IdTokenIssuedUtc", out notBeforeString)) {
-                DateTimeOffset value;
-                if (DateTimeOffset.TryParseExact(notBeforeString, "r", CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out value))
-                    notBefore = value;
-            }
-
-            string expiresString;
-            if (properties.Dictionary.TryGetValue("IdTokenExpiresUtc", out expiresString)) {
-                DateTimeOffset value;
-                if (DateTimeOffset.TryParseExact(expiresString, "r", CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out value))
-                    expires = value;
-            }
-
+            
             var token = Options.TokenHandler.CreateToken(
                 subject: new ClaimsIdentity(claims, Options.AuthenticationScheme),
                 issuer: Options.Issuer,
                 signingCredentials: Options.SigningCredentials,
                 audience: message.ClientId,
-                notBefore: notBefore.UtcDateTime,
-                expires: expires.UtcDateTime,
-                signatureProvider: Options.SignatureProvider
-            );
+                notBefore: properties.IssuedUtc.Value.UtcDateTime,
+                expires: properties.ExpiresUtc.Value.UtcDateTime);
 
             return Options.TokenHandler.WriteToken(token);
         }
