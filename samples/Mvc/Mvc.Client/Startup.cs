@@ -71,7 +71,7 @@ namespace Mvc.Client {
 
                 // Retrieve an access token from the remote token endpoint
                 // using the authorization code received during the current request.
-                options.Notifications.SecurityTokenValidated = async notification => {
+                options.Notifications.AuthorizationCodeReceived = async notification => {
                     using (var client = new HttpClient()) {
                         var configuration = await notification.Options.ConfigurationManager.GetConfigurationAsync(notification.HttpContext.RequestAborted);
 
@@ -98,14 +98,6 @@ namespace Mvc.Client {
                         identity.AddClaim(new Claim(
                             type: OpenIdConnectParameterNames.AccessToken,
                             value: payload.Value<string>(OpenIdConnectParameterNames.AccessToken)));
-
-                        // Temporary fix. See https://github.com/aspnet/Security/issues/167
-                        notification.AuthenticationTicket = new AuthenticationTicket(
-                            notification.AuthenticationTicket.Principal,
-                            notification.AuthenticationTicket.Properties,
-                            notification.Options.SignInScheme);
-
-                        notification.HandleResponse();
                     }
                 };
             });
