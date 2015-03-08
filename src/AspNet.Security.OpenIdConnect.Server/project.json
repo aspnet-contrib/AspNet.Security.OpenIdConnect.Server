@@ -5,7 +5,8 @@
     "version": "1.0.0-beta2-*",
 
     "dependencies": {
-        "AspNet.Security.OpenIdConnect.Extensions": "1.0.0-*",
+        "AspNet.Security.OpenIdConnect.Extensions": "",
+
         "Microsoft.AspNet.Authentication": "1.0.0-*",
         "Microsoft.Framework.Logging": "1.0.0-*",
         "Microsoft.IdentityModel.Protocol.Extensions": "2.0.0-*",
