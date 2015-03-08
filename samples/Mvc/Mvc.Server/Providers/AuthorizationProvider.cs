@@ -7,7 +7,7 @@ using Microsoft.Framework.DependencyInjection;
 using Mvc.Server.Models;
 
 namespace Mvc.Server.Providers {
-    public class CustomOpenIdConnectServerProvider : OpenIdConnectServerProvider {
+    public sealed class AuthorizationProvider : OpenIdConnectServerProvider {
         public override async Task ValidateClientAuthentication(OpenIdConnectValidateClientAuthenticationContext context) {
             string clientId, clientSecret;
 
@@ -20,7 +20,7 @@ namespace Mvc.Server.Providers {
                 context.SetError(
                     error: "invalid_request",
                     errorDescription: "Missing credentials: ensure that your credentials " +
-                                        "were correctly flowed in the request body");
+                                      "were correctly flowed in the request body");
 
                 return;
             }
@@ -28,9 +28,9 @@ namespace Mvc.Server.Providers {
             var database = context.HttpContext.RequestServices.GetRequiredService<ApplicationContext>();
 
             // Retrieve the application details corresponding to the requested client_id.
-            Application application = await (from entity in database.Applications
-                                             where entity.ApplicationID == clientId
-                                             select entity).SingleOrDefaultAsync(context.HttpContext.RequestAborted);
+            var application = await (from entity in database.Applications
+                                     where entity.ApplicationID == clientId
+                                     select entity).SingleOrDefaultAsync(context.HttpContext.RequestAborted);
 
             if (application == null) {
                 context.SetError(
@@ -55,9 +55,9 @@ namespace Mvc.Server.Providers {
             var database = context.HttpContext.RequestServices.GetRequiredService<ApplicationContext>();
 
             // Retrieve the application details corresponding to the requested client_id.
-            Application application = await (from entity in database.Applications
-                                             where entity.ApplicationID == context.ClientId
-                                             select entity).SingleOrDefaultAsync(context.HttpContext.RequestAborted);
+            var application = await (from entity in database.Applications
+                                     where entity.ApplicationID == context.ClientId
+                                     select entity).SingleOrDefaultAsync(context.HttpContext.RequestAborted);
 
             if (application == null) {
                 context.SetError(

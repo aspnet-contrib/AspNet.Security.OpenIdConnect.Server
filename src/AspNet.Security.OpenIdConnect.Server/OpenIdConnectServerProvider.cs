@@ -17,40 +17,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// </summary>
     public class OpenIdConnectServerProvider : IOpenIdConnectServerProvider {
         /// <summary>
-        /// Creates new instance of default provider behavior
-        /// </summary>
-        public OpenIdConnectServerProvider() {
-            OnMatchEndpoint = context => Task.FromResult<object>(null);
-            OnValidateClientRedirectUri = context => Task.FromResult<object>(null);
-            OnValidateClientAuthentication = context => Task.FromResult<object>(null);
-
-            OnValidateAuthorizationRequest = DefaultBehavior.ValidateAuthorizationRequest;
-            OnValidateTokenRequest = DefaultBehavior.ValidateTokenRequest;
-
-            OnGrantAuthorizationCode = DefaultBehavior.GrantAuthorizationCode;
-            OnGrantResourceOwnerCredentials = context => Task.FromResult<object>(null);
-            OnGrantRefreshToken = DefaultBehavior.GrantRefreshToken;
-            OnGrantClientCredentials = context => Task.FromResult<object>(null);
-            OnGrantCustomExtension = context => Task.FromResult<object>(null);
-
-            OnAuthorizationEndpoint = context => Task.FromResult<object>(null);
-            OnConfigurationEndpoint = context => Task.FromResult<object>(null);
-            OnKeysEndpoint = context => Task.FromResult<object>(null);
-            OnTokenEndpoint = context => Task.FromResult<object>(null);
-
-            OnAuthorizationEndpointResponse = context => Task.FromResult<object>(null);
-            OnConfigurationEndpointResponse = context => Task.FromResult<object>(null);
-            OnKeysEndpointResponse = context => Task.FromResult<object>(null);
-            OnTokenEndpointResponse = context => Task.FromResult<object>(null);
-        }
-
-        /// <summary>
         /// Called to determine if an incoming request is treated as an authorization or token
         /// endpoint. If Options.AuthorizationEndpointPath or Options.TokenEndpointPath
         /// are assigned values, then handling this event is optional and context.IsAuthorizationEndpoint and context.IsTokenEndpoint
         /// will already be true if the request path matches.
         /// </summary>
-        public Func<OpenIdConnectMatchEndpointContext, Task> OnMatchEndpoint { get; set; }
+        public Func<OpenIdConnectMatchEndpointContext, Task> OnMatchEndpoint { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
         /// Called to validate that the context.ClientId is a registered "client_id", and that the context.RedirectUri a "redirect_uri" 
@@ -59,7 +31,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// with a given redirectUri parameter, then IsValidated will only become true if the incoming redirect URI matches the given redirect URI. 
         /// If context.Validated is not called the request will not proceed further. 
         /// </summary>
-        public Func<OpenIdConnectValidateClientRedirectUriContext, Task> OnValidateClientRedirectUri { get; set; }
+        public Func<OpenIdConnectValidateClientRedirectUriContext, Task> OnValidateClientRedirectUri { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
         /// Called to validate that the origin of the request is a registered "client_id", and that the correct credentials for that client are
@@ -69,14 +41,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// context.TryGetFormCredentials(out clientId, out clientSecret) may be called to acquire those values if present in the request body.
         /// If context.Validated is not called the request will not proceed further. 
         /// </summary>
-        public Func<OpenIdConnectValidateClientAuthenticationContext, Task> OnValidateClientAuthentication { get; set; }
+        public Func<OpenIdConnectValidateClientAuthenticationContext, Task> OnValidateClientAuthentication { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
         /// Called for each request to the authorization endpoint to determine if the request is valid and should continue. 
         /// The default behavior when using the OpenIdConnectServerProvider is to assume well-formed requests, with 
         /// validated client redirect URI, should continue processing. An application may add any additional constraints.
         /// </summary>
-        public Func<OpenIdConnectValidateAuthorizationRequestContext, Task> OnValidateAuthorizationRequest { get; set; }
+        public Func<OpenIdConnectValidateAuthorizationRequestContext, Task> OnValidateAuthorizationRequest { get; set; } = DefaultBehavior.ValidateAuthorizationRequest;
 
         /// <summary>
         /// Called for each request to the Token endpoint to determine if the request is valid and should continue. 
@@ -85,7 +57,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// The default behavior when using the OpenIdConnectServerProvider is to assume well-formed requests, with 
         /// validated client credentials, should continue processing. An application may add any additional constraints.
         /// </summary>
-        public Func<OpenIdConnectValidateTokenRequestContext, Task> OnValidateTokenRequest { get; set; }
+        public Func<OpenIdConnectValidateTokenRequestContext, Task> OnValidateTokenRequest { get; set; } = DefaultBehavior.ValidateTokenRequest;
 
         /// <summary>
         /// Called when a request to the Token endpoint arrives with a "grant_type" of "authorization_code". This occurs after the authorization
@@ -98,7 +70,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// the access token unmodified.
         /// See also http://tools.ietf.org/html/rfc6749#section-4.1.3
         /// </summary>
-        public Func<OpenIdConnectGrantAuthorizationCodeContext, Task> OnGrantAuthorizationCode { get; set; }
+        public Func<OpenIdConnectGrantAuthorizationCodeContext, Task> OnGrantAuthorizationCode { get; set; } = DefaultBehavior.GrantAuthorizationCode;
 
         /// <summary>
         /// Called when a request to the Token endpoint arrives with a "grant_type" of "password". This occurs when the user has provided name and password
@@ -110,7 +82,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// The default behavior is to reject this grant type.
         /// See also http://tools.ietf.org/html/rfc6749#section-4.3.2
         /// </summary>
-        public Func<OpenIdConnectGrantResourceOwnerCredentialsContext, Task> OnGrantResourceOwnerCredentials { get; set; }
+        public Func<OpenIdConnectGrantResourceOwnerCredentialsContext, Task> OnGrantResourceOwnerCredentials { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
         /// Called when a request to the Token endpoint arrives with a "grant_type" of "client_credentials". This occurs when a registered client
@@ -121,7 +93,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// The default behavior is to reject this grant type.
         /// See also http://tools.ietf.org/html/rfc6749#section-4.4.2
         /// </summary>
-        public Func<OpenIdConnectGrantClientCredentialsContext, Task> OnGrantClientCredentials { get; set; }
+        public Func<OpenIdConnectGrantClientCredentialsContext, Task> OnGrantClientCredentials { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
         /// Called when a request to the Token endpoint arrives with a "grant_type" of "refresh_token". This occurs if your application has issued a "refresh_token" 
@@ -134,7 +106,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// the access token unmodified.
         /// See also http://tools.ietf.org/html/rfc6749#section-6
         /// </summary>
-        public Func<OpenIdConnectGrantRefreshTokenContext, Task> OnGrantRefreshToken { get; set; }
+        public Func<OpenIdConnectGrantRefreshTokenContext, Task> OnGrantRefreshToken { get; set; } = DefaultBehavior.GrantRefreshToken;
 
         /// <summary>
         /// Called when a request to the Token andpoint arrives with a "grant_type" of any other value. If the application supports custom grant types
@@ -143,7 +115,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// included they may be added in the final TokenEndpoint call.
         /// See also http://tools.ietf.org/html/rfc6749#section-4.5
         /// </summary>
-        public Func<OpenIdConnectGrantCustomExtensionContext, Task> OnGrantCustomExtension { get; set; }
+        public Func<OpenIdConnectGrantCustomExtensionContext, Task> OnGrantCustomExtension { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
         /// Called at the final stage of an incoming authorization endpoint request before the execution continues on to the web application component 
@@ -154,7 +126,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// to grant the authorization directly in the AuthorizationEndpoint call it cay call context.OwinContext.Authentication.SignIn with the
         /// appropriate ClaimsIdentity and should call context.RequestCompleted to stop other handlers from executing.
         /// </summary>
-        public Func<OpenIdConnectAuthorizationEndpointContext, Task> OnAuthorizationEndpoint { get; set; }
+        public Func<OpenIdConnectAuthorizationEndpointContext, Task> OnAuthorizationEndpoint { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
         /// Called before the AuthorizationEndpoint redirects its response to the caller.
@@ -164,47 +136,89 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// context.Response directly and should call context.RequestCompleted to stop other handlers from executing.
         /// This call may also be used to add additional response parameters to the authorization response.
         /// </summary>
-        public Func<OpenIdConnectAuthorizationEndpointResponseContext, Task> OnAuthorizationEndpointResponse { get; set; }
+        public Func<OpenIdConnectAuthorizationEndpointResponseContext, Task> OnAuthorizationEndpointResponse { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
         /// Called by the client applications to retrieve the OpenID Connect configuration associated with this instance.
         /// If the web application wishes to produce the configuration metadata directly in this call, it may write to the 
         /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
         /// </summary>
-        public Func<OpenIdConnectConfigurationEndpointContext, Task> OnConfigurationEndpoint { get; set; }
+        public Func<OpenIdConnectConfigurationEndpointContext, Task> OnConfigurationEndpoint { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
         /// Called before the authorization server starts emitting the OpenID Connect configuration associated with this instance.
         /// If the web application wishes to produce the configuration metadata directly in this call, it may write to the 
         /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
         /// </summary>
-        public Func<OpenIdConnectConfigurationEndpointResponseContext, Task> OnConfigurationEndpointResponse { get; set; }
+        public Func<OpenIdConnectConfigurationEndpointResponseContext, Task> OnConfigurationEndpointResponse { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
         /// Called by the client applications to retrieve the OpenID Connect JSON Web Key set associated with this instance.
         /// If the web application wishes to produce the JSON Web Key set directly in this call, it may write to the 
         /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
         /// </summary>
-        public Func<OpenIdConnectKeysEndpointContext, Task> OnKeysEndpoint { get; set; }
+        public Func<OpenIdConnectKeysEndpointContext, Task> OnKeysEndpoint { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
         /// Called before the authorization server starts emitting the OpenID Connect JSON Web Key set associated with this instance.
         /// If the web application wishes to produce the JSON Web Key set directly in this call, it may write to the 
         /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
         /// </summary>
-        public Func<OpenIdConnectKeysEndpointResponseContext, Task> OnKeysEndpointResponse { get; set; }
+        public Func<OpenIdConnectKeysEndpointResponseContext, Task> OnKeysEndpointResponse { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
         /// Called at the final stage of a successful Token endpoint request. An application may implement this call in order to do any final 
         /// modification of the claims being used to issue access or refresh tokens. This call may also be used in order to add additional 
         /// response parameters to the Token endpoint's json response body.
         /// </summary>
-        public Func<OpenIdConnectTokenEndpointContext, Task> OnTokenEndpoint { get; set; }
+        public Func<OpenIdConnectTokenEndpointContext, Task> OnTokenEndpoint { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
         /// Called before the TokenEndpoint redirects its response to the caller. 
         /// </summary>
-        public Func<OpenIdConnectTokenEndpointResponseContext, Task> OnTokenEndpointResponse { get; set; }
+        public Func<OpenIdConnectTokenEndpointResponseContext, Task> OnTokenEndpointResponse { get; set; } = context => Task.FromResult<object>(null);
+
+        /// <summary>
+        /// Called to create a new authorization code. An application may use this notification
+        /// to replace the authentication ticket before it is serialized or to use its own code store
+        /// and skip the default logic using <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
+        /// </summary>
+        public Func<OpenIdConnectCreateAuthorizationCodeNotification, Task> OnCreateAuthorizationCode { get; set; } = notification => Task.FromResult<object>(null);
+
+        /// <summary>
+        /// Called to create a new access token. An application may use this notification
+        /// to replace the authentication ticket before it is serialized or to use its own token format
+        /// and skip the default logic using <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
+        /// </summary>
+        public Func<OpenIdConnectCreateAccessTokenNotification, Task> OnCreateAccessToken { get; set; } = notification => Task.FromResult<object>(null);
+
+        /// <summary>
+        /// Called to create a new identity token. An application may use this notification
+        /// to replace the authentication ticket before it is serialized or to use its own token format
+        /// and skip the default logic using <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
+        /// </summary>
+        public Func<OpenIdConnectCreateIdentityTokenNotification, Task> OnCreateIdentityToken { get; set; } = notification => Task.FromResult<object>(null);
+
+        /// <summary>
+        /// Called to create a new refresh token. An application may use this notification
+        /// to replace the authentication ticket before it is serialized or to use its own token format
+        /// and skip the default logic using <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
+        /// </summary>
+        public Func<OpenIdConnectCreateRefreshTokenNotification, Task> OnCreateRefreshToken { get; set; } = notification => Task.FromResult<object>(null);
+
+        /// <summary>
+        /// Called when receiving an authorization code. An application may use this notification
+        /// to deserialize the code using a custom format and to skip the default logic using
+        /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
+        /// </summary>
+        public Func<OpenIdConnectReceiveAuthorizationCodeNotification, Task> OnReceiveAuthorizationCode { get; set; } = notification => Task.FromResult<object>(null);
+
+        /// <summary>
+        /// Called when receiving a refresh token. An application may use this notification
+        /// to deserialize the code using a custom format and to skip the default logic using
+        /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
+        /// </summary>
+        public Func<OpenIdConnectReceiveRefreshTokenNotification, Task> OnReceiveRefreshToken { get; set; } = notification => Task.FromResult<object>(null);
 
         /// <summary>
         /// Called to determine if an incoming request is treated as an authorization or token
@@ -437,5 +451,59 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public virtual Task TokenEndpointResponse(OpenIdConnectTokenEndpointResponseContext context) {
             return OnTokenEndpointResponse.Invoke(context);
         }
+
+        /// <summary>
+        /// Called to create a new authorization code. An application may use this notification
+        /// to replace the authentication ticket before it is serialized or to use its own code store
+        /// and skip the default logic using <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
+        /// </summary>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        public virtual Task CreateAuthorizationCode(OpenIdConnectCreateAuthorizationCodeNotification notification) => OnCreateAuthorizationCode(notification);
+
+        /// <summary>
+        /// Called to create a new access token. An application may use this notification
+        /// to replace the authentication ticket before it is serialized or to use its own token format
+        /// and skip the default logic using <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
+        /// </summary>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        public virtual Task CreateAccessToken(OpenIdConnectCreateAccessTokenNotification notification) => OnCreateAccessToken(notification);
+
+        /// <summary>
+        /// Called to create a new identity token. An application may use this notification
+        /// to replace the authentication ticket before it is serialized or to use its own token format
+        /// and skip the default logic using <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
+        /// </summary>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        public virtual Task CreateIdentityToken(OpenIdConnectCreateIdentityTokenNotification notification) => OnCreateIdentityToken(notification);
+
+        /// <summary>
+        /// Called to create a new refresh token. An application may use this notification
+        /// to replace the authentication ticket before it is serialized or to use its own token format
+        /// and skip the default logic using <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
+        /// </summary>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        public virtual Task CreateRefreshToken(OpenIdConnectCreateRefreshTokenNotification notification) => OnCreateRefreshToken(notification);
+
+        /// <summary>
+        /// Called when receiving an authorization code. An application may use this notification
+        /// to deserialize the code using a custom format and to skip the default logic using
+        /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
+        /// </summary>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        public virtual Task ReceiveAuthorizationCode(OpenIdConnectReceiveAuthorizationCodeNotification notification) => OnReceiveAuthorizationCode(notification);
+
+        /// <summary>
+        /// Called when receiving a refresh token. An application may use this notification
+        /// to deserialize the code using a custom format and to skip the default logic using
+        /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
+        /// </summary>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        public virtual Task ReceiveRefreshToken(OpenIdConnectReceiveRefreshTokenNotification notification) => OnReceiveRefreshToken(notification);
     }
 }

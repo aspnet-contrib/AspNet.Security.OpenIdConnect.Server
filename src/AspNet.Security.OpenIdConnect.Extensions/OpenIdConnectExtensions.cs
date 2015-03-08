@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using Microsoft.IdentityModel.Protocols;
 
 namespace AspNet.Security.OpenIdConnect.Extensions {
@@ -220,6 +221,29 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
             }
 
             return HasValue(source: parameter(message), value: component);
+        }
+
+        /// <summary>
+        /// Determines whether the given claim contains a destination.
+        /// </summary>
+        /// <param name="claim">The <see cref="Claim"/> instance.</param>
+        public static bool HasDestination(this Claim claim) {
+            return claim.Properties.ContainsKey("destination");
+        }
+
+        /// <summary>
+        /// Determines whether the given claim
+        /// contains the required destination.
+        /// </summary>
+        /// <param name="claim">The <see cref="Claim"/> instance.</param>
+        /// <param name="value">The required destination.</param>
+        public static bool HasDestination(this Claim claim, string value) {
+            string destination;
+            if (!claim.Properties.TryGetValue("destination", out destination)) {
+                return false;
+            }
+
+            return HasValue(destination, value);
         }
 
         private static bool HasValue(string source, string value) {

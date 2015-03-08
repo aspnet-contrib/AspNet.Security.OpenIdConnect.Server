@@ -106,12 +106,11 @@ namespace Mvc.Server.Controllers {
 
             // Create a new ClaimsIdentity containing the claims retrieved from the external
             // identity provider (e.g Google, Facebook, a WS-Fed provider or another OIDC server).
-            // Note: the authenticationType parameter must match the value configured in Startup.cs.
             var identity = new ClaimsIdentity(OpenIdConnectDefaults.AuthenticationScheme);
 
             foreach (var claim in Context.User.Claims) {
                 // Allow both ClaimTypes.Name and ClaimTypes.NameIdentifier to be added in the id_token.
-                // The other claims won't be visible for the client application.
+                // The other claims won't be visible for the client application or the resource server.
                 if (claim.Type == ClaimTypes.Name || claim.Type == ClaimTypes.NameIdentifier) {
                     claim.Properties.Add("destination", "id_token token");
                 }
@@ -124,6 +123,7 @@ namespace Mvc.Server.Controllers {
             // Note: you should always make sure the identities you return contain either
             // a 'sub' or a 'ClaimTypes.NameIdentifier' claim. In this case, the returned
             // identities always contain the name identifier returned by the external provider.
+            // Note: the authenticationScheme parameter must match the value configured in Startup.cs.
             Response.SignIn(OpenIdConnectDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
 
             // Instruct the cookies middleware to delete the local cookie created

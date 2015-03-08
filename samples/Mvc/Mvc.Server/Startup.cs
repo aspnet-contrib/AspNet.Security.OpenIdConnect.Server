@@ -67,27 +67,9 @@ namespace Mvc.Server {
             // Create a new branch where the registered middleware will be executed only for API calls.
             app.UseWhen(context => context.Request.Path.StartsWithSegments(new PathString("/api")), branch => {
                 branch.UseOAuthBearerAuthentication(options => {
-                    // The AccessTokenFormat property has been removed from OAuthBearerAuthenticationOptions.
-                    // As a workaround, a TicketDataFormat is manually created and plugged in via SecurityTokenReceived.
-                    var dataProtectorProvider = app.ApplicationServices.GetRequiredService<IDataProtectionProvider>();
-                    var dataProtector = dataProtectorProvider.CreateProtector(
-                        "Microsoft.AspNet.Security.OAuth.OAuthBearerAuthenticationMiddleware",
-                        "Bearer", "v1");
-
-                    var accessTokenFormat = new TicketDataFormat(dataProtector);
-
                     options.AutomaticAuthentication = true;
-                    options.Notifications = new OAuthBearerAuthenticationNotifications();
-
-                    options.Notifications.SecurityTokenReceived = notification => {
-                        var ticket = accessTokenFormat.Unprotect(notification.SecurityToken);
-                        if (ticket != null) {
-                            notification.AuthenticationTicket = ticket;
-                            notification.HandleResponse();
-                        }
-
-                        return Task.FromResult(0);
-                    };
+                    options.Audience = "http://localhost:54540/";
+                    options.Authority = "http://localhost:54540/";
                 });
             });
 
@@ -148,8 +130,7 @@ namespace Mvc.Server {
                 options.ApplicationCanDisplayErrors = true;
                 options.AllowInsecureHttp = true;
 
-                options.AuthorizationCodeProvider = new AuthorizationCodeProvider();
-                options.Provider = new CustomOpenIdConnectServerProvider();
+                options.Provider = new AuthorizationProvider();
             });
 
             app.UseStaticFiles();
