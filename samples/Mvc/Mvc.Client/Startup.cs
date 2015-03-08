@@ -10,7 +10,6 @@ using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Http;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Logging;
-using Microsoft.Framework.Logging.Console;
 using Microsoft.IdentityModel.Protocols;
 using Newtonsoft.Json.Linq;
 
@@ -43,8 +42,8 @@ namespace Mvc.Client {
             app.UseOpenIdConnectAuthentication(options => {
                 options.AuthenticationScheme = OpenIdConnectAuthenticationDefaults.AuthenticationScheme;
 
-                // Note: these settings must match the application details inserted in
-                // the database at the server level (see ApplicationContextInitializer.cs).
+                // Note: these settings must match the application details
+                // inserted in the database at the server level.
                 options.ClientId = "myClient";
                 options.ClientSecret = "secret_secret_secret";
                 options.RedirectUri = "http://localhost:53507/oidc";
@@ -53,6 +52,7 @@ namespace Mvc.Client {
                 // retrieve the identity provider's configuration and spare you from setting
                 // the different endpoints URIs or the token validation parameters explicitly.
                 options.Authority = "http://localhost:54540/";
+                options.Resource = "http://localhost:54540/";
 
                 options.Notifications = new OpenIdConnectAuthenticationNotifications();
 
@@ -81,7 +81,8 @@ namespace Mvc.Client {
                             { OpenIdConnectParameterNames.ClientSecret, notification.Options.ClientSecret },
                             { OpenIdConnectParameterNames.Code, notification.ProtocolMessage.Code },
                             { OpenIdConnectParameterNames.GrantType, "authorization_code" },
-                            { OpenIdConnectParameterNames.RedirectUri, notification.Options.RedirectUri }
+                            { OpenIdConnectParameterNames.RedirectUri, notification.Options.RedirectUri },
+                            { OpenIdConnectParameterNames.Resource, notification.Options.Resource }
                         });
 
                         var response = await client.SendAsync(request, notification.HttpContext.RequestAborted);

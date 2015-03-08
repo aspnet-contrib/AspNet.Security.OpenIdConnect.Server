@@ -208,5 +208,59 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
         Task TokenEndpointResponse(OpenIdConnectTokenEndpointResponseContext context);
+
+        /// <summary>
+        /// Called to create a new authorization code. An application may use this notification
+        /// to replace the authentication ticket before it is serialized or to use its own code store
+        /// and skip the default logic using <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
+        /// </summary>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        Task CreateAuthorizationCode(OpenIdConnectCreateAuthorizationCodeNotification notification);
+
+        /// <summary>
+        /// Called to create a new access token. An application may use this notification
+        /// to replace the authentication ticket before it is serialized or to use its own token format
+        /// and skip the default logic using <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
+        /// </summary>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        Task CreateAccessToken(OpenIdConnectCreateAccessTokenNotification notification);
+
+        /// <summary>
+        /// Called to create a new identity token. An application may use this notification
+        /// to replace the authentication ticket before it is serialized or to use its own token format
+        /// and skip the default logic using <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
+        /// </summary>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        Task CreateIdentityToken(OpenIdConnectCreateIdentityTokenNotification notification);
+
+        /// <summary>
+        /// Called to create a new refresh token. An application may use this notification
+        /// to replace the authentication ticket before it is serialized or to use its own token format
+        /// and skip the default logic using <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
+        /// </summary>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        Task CreateRefreshToken(OpenIdConnectCreateRefreshTokenNotification notification);
+
+        /// <summary>
+        /// Called when receiving an authorization code. An application may use this notification
+        /// to deserialize the code using a custom format and to skip the default logic using
+        /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
+        /// </summary>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        Task ReceiveAuthorizationCode(OpenIdConnectReceiveAuthorizationCodeNotification notification);
+
+        /// <summary>
+        /// Called when receiving a refresh token. An application may use this notification
+        /// to deserialize the code using a custom format and to skip the default logic using
+        /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
+        /// </summary>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        Task ReceiveRefreshToken(OpenIdConnectReceiveRefreshTokenNotification notification);
     }
 }

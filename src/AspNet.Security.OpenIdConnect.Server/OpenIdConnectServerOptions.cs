@@ -6,13 +6,18 @@
 
 using System;
 using System.IdentityModel.Tokens;
+using System.Security.Cryptography;
 using Microsoft.AspNet.Authentication;
+using Microsoft.AspNet.Authentication.Notifications;
 using Microsoft.AspNet.Http;
+using Microsoft.Framework.Cache.Distributed;
+using Microsoft.Framework.Cache.Memory;
 using Microsoft.Framework.WebEncoders;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
-    /// Options class provides information needed to control Authorization Server middleware behavior
+    /// Provides various settings needed to control
+    /// the behavior of the OpenID Connect server.
     /// </summary>
     public class OpenIdConnectServerOptions : AuthenticationOptions {
         /// <summary>
@@ -41,6 +46,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// The request path where client applications will redirect the user-agent in order to 
         /// obtain user consent to issue a token. Must begin with a leading slash, like "/connect/authorize".
+        /// This setting can be set to <see cref="PathString.Empty"/> to disable the authorization endpoint.
         /// </summary>
         public PathString AuthorizationEndpointPath { get; set; } = new PathString(OpenIdConnectDefaults.AuthorizationEndpointPath);
 
@@ -66,11 +72,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public PathString TokenEndpointPath { get; set; } = new PathString(OpenIdConnectDefaults.TokenEndpointPath);
 
         /// <summary>
-        /// The object provided by the application to process events raised by the Authorization Server middleware.
-        /// The application may implement the interface fully, or it may create an instance of OpenIdConnectServerProvider
-        /// and assign delegates only to the events it wants to process.
+        /// Specifies a provider that the <see cref="OpenIdConnectServerMiddleware" /> invokes
+        /// to enable developer control over the while authentication/authorization process.
+        /// If not specified, a <see cref="OpenIdConnectServerProvider" /> is automatically instanciated.
         /// </summary>
-        public IOpenIdConnectServerProvider Provider { get; set; }
+        public IOpenIdConnectServerProvider Provider { get; set; } = new OpenIdConnectServerProvider();
 
         /// <summary>
         /// The data format used to protect and unprotect the information contained in the authorization code. 
@@ -84,9 +90,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// The data format used to protect the information contained in the access token. 
         /// If not provided by the application the default data protection provider depends on the host server. 
         /// The SystemWeb host on IIS will use ASP.NET machine key data protection, and HttpListener and other self-hosted
-        /// servers will use DPAPI data protection. If a different access token
-        /// provider or format is assigned, a compatible instance must be assigned to the OAuthBearerAuthenticationOptions.AccessTokenProvider 
-        /// or OAuthBearerAuthenticationOptions.AccessTokenFormat property of the resource server.
+        /// servers will use DPAPI data protection.
+        /// This property is only used when <see cref="AccessTokenHandler"/> is explicitly set to <value>null</value>
+        /// and when <see cref="OpenIdConnectServerNotifications.CreateAccessToken"/> doesn't call
+        /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
         public ISecureDataFormat<AuthenticationTicket> AccessTokenFormat { get; set; }
 
@@ -95,8 +102,26 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// If not provided by the application the default data protection provider depends on the host server. 
         /// The SystemWeb host on IIS will use ASP.NET machine key data protection, and HttpListener and other self-hosted
         /// servers will use DPAPI data protection.
+        /// This property is only used when <see cref="IOpenIdConnectServerProvider.CreateRefreshToken"/> doesn't call
+        /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
         public ISecureDataFormat<AuthenticationTicket> RefreshTokenFormat { get; set; }
+
+        /// <summary>
+        /// The <see cref="JwtSecurityTokenHandler"/> instance used to forge access tokens.
+        /// You can set it to null to produce opaque tokens serialized by the data protector subsytem.
+        /// This property is only used when <see cref="IOpenIdConnectServerProvider.CreateAccessToken"/> doesn't call
+        /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
+        /// </summary>
+        public JwtSecurityTokenHandler AccessTokenHandler { get; set; } = new JwtSecurityTokenHandler();
+
+        /// <summary>
+        /// The <see cref="JwtSecurityTokenHandler"/> instance used to forge identity tokens.
+        /// You can replace the default instance to change the way id_tokens are serialized.
+        /// This property is only used when <see cref="IOpenIdConnectServerProvider.CreateIdentityToken"/> doesn't call
+        /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
+        /// </summary>
+        public JwtSecurityTokenHandler IdentityTokenHandler { get; set; } = new JwtSecurityTokenHandler();
 
         /// <summary>
         /// The period of time the authorization code remains valid after being issued. The default is 5 minutes.
@@ -131,27 +156,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public bool UseSlidingExpiration { get; set; } = true;
 
         /// <summary>
-        /// Produces a single-use authorization code to return to the client application. For the OpenID Connect server to be secure the
-        /// application MUST provide an instance for AuthorizationCodeProvider where the token produced by the OnCreate or OnCreateAsync event 
-        /// is considered valid for only one call to OnReceive or OnReceiveAsync. 
-        /// </summary>
-        public IAuthenticationTokenProvider AuthorizationCodeProvider { get; set; }
-
-        /// <summary>
-        /// Produces a bearer token the client application will typically be providing to resource server as the authorization bearer 
-        /// http request header. If not provided the token produced on the server's default data protection. If a different access token
-        /// provider or format is assigned, a compatible instance must be assigned to the OAuthBearerAuthenticationOptions.AccessTokenProvider 
-        /// or OAuthBearerAuthenticationOptions.AccessTokenFormat property of the resource server.
-        /// </summary>
-        public IAuthenticationTokenProvider AccessTokenProvider { get; set; }
-
-        /// <summary>
-        /// Produces a refresh token which may be used to produce a new access token when needed. If not provided the authorization server will
-        /// not return refresh tokens from the /Token endpoint.
-        /// </summary>
-        public IAuthenticationTokenProvider RefreshTokenProvider { get; set; }
-
-        /// <summary>
         /// Set to true if the web application is able to render error messages on the authorization endpoint. This is only needed for cases where
         /// the browser is not redirected back to the client application, for example, when the client_id or redirect_uri are incorrect. The 
         /// authorization endpoint should expect to see "oauth.Error", "oauth.ErrorDescription", "oauth.ErrorUri" properties added to the owin environment.
@@ -162,7 +166,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// Used to know what the current clock time is when calculating or validating token expiration. When not assigned default is based on
         /// DateTimeOffset.UtcNow. This is typically needed only for unit testing.
         /// </summary>
-        public ISystemClock SystemClock { get; set; }
+        public ISystemClock SystemClock { get; set; } = new SystemClock();
 
         /// <summary>
         /// True to allow incoming requests to arrive on HTTP and to allow redirect_uri parameters to have HTTP URI addresses.
@@ -171,15 +175,23 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public bool AllowInsecureHttp { get; set; }
 
         /// <summary>
-        /// The <see cref="JwtSecurityTokenHandler"/> instance used to forge identity tokens.
-        /// You can replace the default instance to change the way id_tokens are serialized.
+        /// The cache instance used to store authorization codes. You can replace the default
+        /// instance by a distributed implementation to support Web farm environments.
         /// </summary>
-        public JwtSecurityTokenHandler TokenHandler { get; set; }
+        public IDistributedCache Cache { get; set; } = new LocalCache(new MemoryCache(new MemoryCacheOptions {
+            ListenForMemoryPressure = false
+        }));
 
         /// <summary>
         /// Used to sanitize HTML responses. If you don't provide an explicit instance,
         /// one will be automatically retrieved through the dependency injection system.
         /// </summary>
         public IHtmlEncoder HtmlEncoder { get; set; }
+
+        /// <summary>
+        /// The random number generator used for cryptographic operations.
+        /// Replacing the default instance is usually not necessary.
+        /// </summary>
+        public RandomNumberGenerator RandomNumberGenerator { get; set; } = RandomNumberGenerator.Create();
     }
 }

@@ -36,7 +36,7 @@ namespace Mvc.Server.Controllers {
 
             // Instruct the middleware corresponding to the requested external identity
             // provider to redirect the user agent to its own authorization endpoint.
-            // Note: the authenticationType parameter must match the value configured in Startup.cs
+            // Note: the authenticationScheme parameter must match the value configured in Startup.cs
             return new ChallengeResult(provider, new AuthenticationProperties {
                 RedirectUri = returnUrl
             });
