@@ -24,13 +24,13 @@
     },
 
     "frameworks": {
-        "aspnet50": {
+        "dnx451": {
             "frameworkAssemblies": {
                 "System.Net.Http": ""
             }
         },
 
-        "aspnetcore50": {
+        "dnxcore50": {
             "dependencies": {
                 "System.Net.Http": "4.0.0-beta-*"
             }

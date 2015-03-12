@@ -31,7 +31,7 @@
     },
 
     "frameworks": {
-        "aspnet50": {
+        "dnx451": {
             "dependencies": {
                 "Microsoft.AspNet.Owin": "1.0.0-*",
                 "Microsoft.Owin": "3.0.0",
@@ -39,7 +39,7 @@
             }
         },
 
-        "aspnetcore50": {
+        "dnxcore50": {
             "dependencies": {
                 "System.Linq": "4.0.0-beta-*"
             }
