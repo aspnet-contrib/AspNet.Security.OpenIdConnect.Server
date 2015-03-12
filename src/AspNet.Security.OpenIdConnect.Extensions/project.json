@@ -9,9 +9,9 @@
     },
 
     "frameworks": {
-        "aspnet50": { },
+        "dnx451": { },
 
-        "aspnetcore50": {
+        "dnxcore50": {
             "dependencies": {
                 "System.Linq": "4.0.0-beta-*"
             }
