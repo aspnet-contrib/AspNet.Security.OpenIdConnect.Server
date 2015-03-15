@@ -18,7 +18,7 @@ using AspNet.Security.OpenIdConnect.Extensions;
 using Microsoft.AspNet.Authentication;
 using Microsoft.AspNet.Http.Authentication;
 using Microsoft.AspNet.WebUtilities;
-using Microsoft.Framework.Cache.Distributed;
+using Microsoft.Framework.Caching.Distributed;
 using Microsoft.Framework.Logging;
 using Microsoft.IdentityModel.Protocols;
 using Newtonsoft.Json;

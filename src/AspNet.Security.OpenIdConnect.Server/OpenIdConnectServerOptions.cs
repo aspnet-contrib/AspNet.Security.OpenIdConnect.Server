@@ -10,8 +10,8 @@ using System.Security.Cryptography;
 using Microsoft.AspNet.Authentication;
 using Microsoft.AspNet.Authentication.Notifications;
 using Microsoft.AspNet.Http;
-using Microsoft.Framework.Cache.Distributed;
-using Microsoft.Framework.Cache.Memory;
+using Microsoft.Framework.Caching.Distributed;
+using Microsoft.Framework.Caching.Memory;
 using Microsoft.Framework.WebEncoders;
 
 namespace AspNet.Security.OpenIdConnect.Server {
