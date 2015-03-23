@@ -25,6 +25,20 @@ using NWebsec.Owin;
 
 namespace Mvc.Server {
     public class Startup {
+        public void ConfigureServices(IServiceCollection services) {
+            services.AddEntityFramework()
+                .AddInMemoryStore()
+                .AddDbContext<ApplicationContext>();
+
+            services.Configure<ExternalAuthenticationOptions>(options => {
+                options.SignInScheme = "ServerCookie";
+            });
+
+            services.AddDataProtection();
+
+            services.AddMvc();
+        }
+
         public void Configure(IApplicationBuilder app) {
             var factory = app.ApplicationServices.GetRequiredService<ILoggerFactory>();
             factory.AddConsole();
@@ -49,21 +63,7 @@ namespace Mvc.Server {
             var credentials = new SigningCredentials(key,
                 SecurityAlgorithms.RsaSha256Signature,
                 SecurityAlgorithms.Sha256Digest);
-
-            app.UseServices(services => {
-                services.AddEntityFramework()
-                    .AddInMemoryStore()
-                    .AddDbContext<ApplicationContext>();
-
-                services.Configure<ExternalAuthenticationOptions>(options => {
-                    options.SignInScheme = "ServerCookie";
-                });
-
-                services.AddDataProtection();
-
-                services.AddMvc();
-            });
-
+            
             // Create a new branch where the registered middleware will be executed only for API calls.
             app.UseWhen(context => context.Request.Path.StartsWithSegments(new PathString("/api")), branch => {
                 branch.UseOAuthBearerAuthentication(options => {
