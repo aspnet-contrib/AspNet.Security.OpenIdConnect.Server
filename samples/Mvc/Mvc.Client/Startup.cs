@@ -16,20 +16,20 @@ using Newtonsoft.Json.Linq;
 
 namespace Mvc.Client {
     public class Startup {
+        public void ConfigureServices(IServiceCollection services) {
+            services.Configure<ExternalAuthenticationOptions>(options => {
+                options.SignInScheme = "ClientCookie";
+            });
+
+            services.AddDataProtection();
+
+            services.AddMvc();
+        }
+
         public void Configure(IApplicationBuilder app) {
             var factory = app.ApplicationServices.GetRequiredService<ILoggerFactory>();
             factory.AddConsole();
-
-            app.UseServices(services => {
-                services.Configure<ExternalAuthenticationOptions>(options => {
-                    options.SignInScheme = "ClientCookie";
-                });
-
-                services.AddDataProtection();
-
-                services.AddMvc();
-            });
-
+            
             // Insert a new cookies middleware in the pipeline to store the user
             // identity after he has been redirected from the identity provider.
             app.UseCookieAuthentication(options => {

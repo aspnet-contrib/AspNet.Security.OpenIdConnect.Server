@@ -29,12 +29,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         public OpenIdConnectServerMiddleware(
             RequestDelegate next,
-            IServiceProvider services,
             ILogger<OpenIdConnectServerMiddleware> logger,
             IDataProtectionProvider dataProtectorProvider,
             IOptions<OpenIdConnectServerOptions> options,
             ConfigureOptions<OpenIdConnectServerOptions> configuration)
-            : base(next, services, options, configuration) {
+            : base(next, options, configuration) {
             _logger = logger;
 
             if (string.IsNullOrWhiteSpace(Options.AuthenticationScheme)) {
