@@ -26,7 +26,6 @@ app.UseOpenIdConnectServer(options => {
         SecurityAlgorithms.Sha256Digest);
 
     options.Provider = new CustomOpenIdConnectServerProvider();
-    options.AuthorizationCodeProvider = new AuthorizationCodeProvider();
 });
 ```
 
