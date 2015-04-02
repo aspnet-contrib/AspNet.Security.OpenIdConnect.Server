@@ -13,14 +13,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used in handling an OpenIdConnect resource owner grant.
     /// </summary>
-    public sealed class OpenIdConnectGrantResourceOwnerCredentialsContext : BaseValidatingTicketContext<OpenIdConnectServerOptions> {
+    public sealed class OpenIdConnectGrantResourceOwnerCredentialsNotification : BaseValidatingTicketContext<OpenIdConnectServerOptions> {
         /// <summary>
-        /// Initializes a new instance of the <see cref="OpenIdConnectGrantResourceOwnerCredentialsContext"/> class
+        /// Initializes a new instance of the <see cref="OpenIdConnectGrantResourceOwnerCredentialsNotification"/> class
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="tokenRequest"></param>
-        internal OpenIdConnectGrantResourceOwnerCredentialsContext(
+        internal OpenIdConnectGrantResourceOwnerCredentialsNotification(
             HttpContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage tokenRequest)

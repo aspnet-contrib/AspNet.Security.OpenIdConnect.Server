@@ -15,14 +15,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
     /// Contains information about the client credentials.
     /// </summary>
-    public sealed class OpenIdConnectValidateClientAuthenticationContext : BaseValidatingClientContext {
+    public sealed class OpenIdConnectValidateClientAuthenticationNotification : BaseValidatingClientContext {
         /// <summary>
-        /// Initializes a new instance of the <see cref="OpenIdConnectValidateClientAuthenticationContext"/> class
+        /// Initializes a new instance of the <see cref="OpenIdConnectValidateClientAuthenticationNotification"/> class
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="authorizationRequest"></param>
-        internal OpenIdConnectValidateClientAuthenticationContext(
+        internal OpenIdConnectValidateClientAuthenticationNotification(
             HttpContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage authorizationRequest)
