@@ -226,11 +226,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// are assigned values, then handling this event is optional and context.IsAuthorizationEndpoint and context.IsTokenEndpoint
         /// will already be true if the request path matches.
         /// </summary>
-        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task MatchEndpoint(MatchEndpointNotification notification) {
-            return OnMatchEndpoint.Invoke(notification);
-        }
+        public virtual Task MatchEndpoint(MatchEndpointNotification notification) => OnMatchEndpoint(notification);
 
         /// <summary>
         /// Called to validate that the context.ClientId is a registered "client_id", and that the context.RedirectUri a "redirect_uri" 
@@ -239,11 +237,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// with a given redirectUri parameter, then IsValidated will only become true if the incoming redirect URI matches the given redirect URI. 
         /// If context.Validated is not called the request will not proceed further. 
         /// </summary>
-        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task ValidateClientRedirectUri(ValidateClientRedirectUriNotification notification) {
-            return OnValidateClientRedirectUri.Invoke(notification);
-        }
+        public virtual Task ValidateClientRedirectUri(ValidateClientRedirectUriNotification notification) => OnValidateClientRedirectUri(notification);
 
         /// <summary>
         /// Called to validate that the origin of the request is a registered "client_id", and that the correct credentials for that client are
@@ -253,33 +249,27 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// context.TryGetFormCredentials(out clientId, out clientSecret) may be called to acquire those values if present in the request body.
         /// If context.Validated is not called the request will not proceed further. 
         /// </summary>
-        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task ValidateClientAuthentication(ValidateClientAuthenticationNotification notification) {
-            return OnValidateClientAuthentication.Invoke(notification);
-        }
+        public virtual Task ValidateClientAuthentication(ValidateClientAuthenticationNotification notification) => OnValidateClientAuthentication(notification);
 
         /// <summary>
         /// Called for each request to the authorization endpoint to determine if the request is valid and should continue. 
         /// The default behavior when using the OpenIdConnectServerProvider is to assume well-formed requests, with 
         /// validated client redirect URI, should continue processing. An application may add any additional constraints.
         /// </summary>
-        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task ValidateAuthorizationRequest(ValidateAuthorizationRequestNotification notification) {
-            return OnValidateAuthorizationRequest.Invoke(notification);
-        }
+        public virtual Task ValidateAuthorizationRequest(ValidateAuthorizationRequestNotification notification) => OnValidateAuthorizationRequest(notification);
 
         /// <summary>
         /// Called for each request to the Token endpoint to determine if the request is valid and should continue. 
         /// The default behavior when using the OpenIdConnectServerProvider is to assume well-formed requests, with 
         /// validated client credentials, should continue processing. An application may add any additional constraints.
         /// </summary>
-        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task ValidateTokenRequest(ValidateTokenRequestNotification notification) {
-            return OnValidateTokenRequest.Invoke(notification);
-        }
+        public virtual Task ValidateTokenRequest(ValidateTokenRequestNotification notification) => OnValidateTokenRequest(notification);
 
         /// <summary>
         /// Called when a request to the Token endpoint arrives with a "grant_type" of "authorization_code". This occurs after the authorization
@@ -292,11 +282,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// the access token unmodified.
         /// See also http://tools.ietf.org/html/rfc6749#section-4.1.3
         /// </summary>
-        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task GrantAuthorizationCode(GrantAuthorizationCodeNotification notification) {
-            return OnGrantAuthorizationCode.Invoke(notification);
-        }
+        public virtual Task GrantAuthorizationCode(GrantAuthorizationCodeNotification notification) => OnGrantAuthorizationCode(notification);
 
         /// <summary>
         /// Called when a request to the Token endpoint arrives with a "grant_type" of "refresh_token". This occurs if your application has issued a "refresh_token" 
@@ -309,11 +297,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// the access token unmodified.
         /// See also http://tools.ietf.org/html/rfc6749#section-6
         /// </summary>
-        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task GrantRefreshToken(GrantRefreshTokenNotification notification) {
-            return OnGrantRefreshToken.Invoke(notification);
-        }
+        public virtual Task GrantRefreshToken(GrantRefreshTokenNotification notification) => OnGrantRefreshToken(notification);
 
         /// <summary>
         /// Called when a request to the Token endpoint arrives with a "grant_type" of "password". This occurs when the user has provided name and password
@@ -325,11 +311,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// The default behavior is to reject this grant type.
         /// See also http://tools.ietf.org/html/rfc6749#section-4.3.2
         /// </summary>
-        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task GrantResourceOwnerCredentials(GrantResourceOwnerCredentialsNotification notification) {
-            return OnGrantResourceOwnerCredentials.Invoke(notification);
-        }
+        public virtual Task GrantResourceOwnerCredentials(GrantResourceOwnerCredentialsNotification notification) => OnGrantResourceOwnerCredentials(notification);
 
         /// <summary>
         /// Called when a request to the Token endpoint arrives with a "grant_type" of "client_credentials". This occurs when a registered client
@@ -340,11 +324,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// The default behavior is to reject this grant type.
         /// See also http://tools.ietf.org/html/rfc6749#section-4.4.2
         /// </summary>
-        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task GrantClientCredentials(GrantClientCredentialsNotification notification) {
-            return OnGrantClientCredentials.Invoke(notification);
-        }
+        public virtual Task GrantClientCredentials(GrantClientCredentialsNotification notification) => OnGrantClientCredentials(notification);
 
         /// <summary>
         /// Called when a request to the Token andpoint arrives with a "grant_type" of any other value. If the application supports custom grant types
@@ -353,11 +335,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// included they may be added in the final TokenEndpoint call.
         /// See also http://tools.ietf.org/html/rfc6749#section-4.5
         /// </summary>
-        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task GrantCustomExtension(GrantCustomExtensionNotification notification) {
-            return OnGrantCustomExtension.Invoke(notification);
-        }
+        public virtual Task GrantCustomExtension(GrantCustomExtensionNotification notification) => OnGrantCustomExtension(notification);
 
         /// <summary>
         /// Called at the final stage of an incoming authorization endpoint request before the execution continues on to the web application component 
@@ -368,11 +348,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// to grant the authorization directly in the AuthorizationEndpoint call it cay call context.OwinContext.Authentication.SignIn with the
         /// appropriate ClaimsIdentity and should call context.RequestCompleted to stop other handlers from executing.
         /// </summary>
-        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task AuthorizationEndpoint(AuthorizationEndpointNotification notification) {
-            return OnAuthorizationEndpoint.Invoke(notification);
-        }
+        public virtual Task AuthorizationEndpoint(AuthorizationEndpointNotification notification) => OnAuthorizationEndpoint(notification);
 
         /// <summary>
         /// Called before the AuthorizationEndpoint redirects its response to the caller.
@@ -382,75 +360,61 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// context.Response directly and should call context.RequestCompleted to stop other handlers from executing.
         /// This call may also be used to add additional response parameters to the authorization response.
         /// </summary>
-        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task AuthorizationEndpointResponse(AuthorizationEndpointResponseNotification notification) {
-            return OnAuthorizationEndpointResponse.Invoke(notification);
-        }
+        public virtual Task AuthorizationEndpointResponse(AuthorizationEndpointResponseNotification notification) => OnAuthorizationEndpointResponse(notification);
 
         /// <summary>
         /// Called by the client applications to retrieve the OpenID Connect configuration associated with this instance.
         /// If the web application wishes to produce the configuration metadata directly in this call, it may write to the 
         /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
         /// </summary>
-        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task ConfigurationEndpoint(ConfigurationEndpointNotification notification) {
-            return OnConfigurationEndpoint.Invoke(notification);
-        }
+        public virtual Task ConfigurationEndpoint(ConfigurationEndpointNotification notification) => OnConfigurationEndpoint(notification);
 
         /// <summary>
         /// Called before the authorization server starts emitting the OpenID Connect configuration associated with this instance.
         /// If the web application wishes to produce the configuration metadata directly in this call, it may write to the 
         /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
         /// </summary>
-        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task ConfigurationEndpointResponse(ConfigurationEndpointResponseNotification notification) {
-            return OnConfigurationEndpointResponse.Invoke(notification);
-        }
+        public virtual Task ConfigurationEndpointResponse(ConfigurationEndpointResponseNotification notification) => OnConfigurationEndpointResponse(notification);
 
         /// <summary>
         /// Called by the client applications to retrieve the OpenID Connect JSON Web Key set associated with this instance.
         /// If the web application wishes to produce the JSON Web Key set directly in this call, it may write to the 
         /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
         /// </summary>
-        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task KeysEndpoint(KeysEndpointNotification notification) {
-            return OnKeysEndpoint.Invoke(notification);
-        }
+        public virtual Task KeysEndpoint(KeysEndpointNotification notification) => OnKeysEndpoint(notification);
 
         /// <summary>
         /// Called before the authorization server starts emitting the OpenID Connect JSON Web Key set associated with this instance.
         /// If the web application wishes to produce the JSON Web Key set directly in this call, it may write to the 
         /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
         /// </summary>
-        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task KeysEndpointResponse(KeysEndpointResponseNotification notification) {
-            return OnKeysEndpointResponse.Invoke(notification);
-        }
+        public virtual Task KeysEndpointResponse(KeysEndpointResponseNotification notification) => OnKeysEndpointResponse(notification);
 
         /// <summary>
         /// Called at the final stage of a successful Token endpoint request. An application may implement this call in order to do any final 
         /// modification of the claims being used to issue access or refresh tokens. This call may also be used in order to add additional 
         /// response parameters to the Token endpoint's json response body.
         /// </summary>
-        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task TokenEndpoint(TokenEndpointNotification notification) {
-            return OnTokenEndpoint.Invoke(notification);
-        }
+        public virtual Task TokenEndpoint(TokenEndpointNotification notification) => OnTokenEndpoint(notification);
 
         /// <summary>
         /// Called before the TokenEndpoint redirects its response to the caller. 
         /// </summary>
-        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task TokenEndpointResponse(TokenEndpointResponseNotification notification) {
-            return OnTokenEndpointResponse.Invoke(notification);
-        }
+        public virtual Task TokenEndpointResponse(TokenEndpointResponseNotification notification) => OnTokenEndpointResponse(notification);
 
         /// <summary>
         /// Called to create a new authorization code. An application may use this notification

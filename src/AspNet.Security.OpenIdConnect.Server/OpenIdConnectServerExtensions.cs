@@ -74,7 +74,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// Retrieves the <see cref="OpenIdConnectMessage"/> instance
         /// associated with the current request from the ASP.NET context.
         /// </summary>
-        /// <param name="context">The ASP.NET context.</param>
+        /// <param name="notification">The ASP.NET context.</param>
         /// <returns>The <see cref="OpenIdConnectMessage"/> associated with the current request.</returns>
         public static OpenIdConnectMessage GetOpenIdConnectRequest(this HttpContext context) {
             if (context == null) {
@@ -87,7 +87,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Inserts the ambient <see cref="OpenIdConnectMessage"/> request in the ASP.NET context.
         /// </summary>
-        /// <param name="context">The ASP.NET context.</param>
+        /// <param name="notification">The ASP.NET context.</param>
         /// <param name="request">The ambient <see cref="OpenIdConnectMessage"/>.</param>
         public static void SetOpenIdConnectRequest(this HttpContext context, OpenIdConnectMessage request) {
             if (context == null) {
@@ -101,7 +101,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// Retrieves the <see cref="OpenIdConnectMessage"/> instance
         /// associated with the current response from the ASP.NET context.
         /// </summary>
-        /// <param name="context">The ASP.NET context.</param>
+        /// <param name="notification">The ASP.NET context.</param>
         /// <returns>The <see cref="OpenIdConnectMessage"/> associated with the current response.</returns>
         public static OpenIdConnectMessage GetOpenIdConnectResponse(this HttpContext context) {
             if (context == null) {
@@ -114,7 +114,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Inserts the ambient <see cref="OpenIdConnectMessage"/> response in the ASP.NET context.
         /// </summary>
-        /// <param name="context">The ASP.NET context.</param>
+        /// <param name="notification">The ASP.NET context.</param>
         /// <param name="response">The ambient <see cref="OpenIdConnectMessage"/>.</param>
         public static void SetOpenIdConnectResponse(this HttpContext context, OpenIdConnectMessage response) {
             if (context == null) {
