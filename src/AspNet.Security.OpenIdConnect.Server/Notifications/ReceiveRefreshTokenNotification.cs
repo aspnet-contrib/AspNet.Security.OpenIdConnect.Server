@@ -12,14 +12,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used when receiving a refresh token.
     /// </summary>
-    public sealed class OpenIdConnectReceiveRefreshTokenNotification : BaseNotification<OpenIdConnectServerOptions> {
+    public sealed class ReceiveRefreshTokenNotification : BaseNotification<OpenIdConnectServerOptions> {
         /// <summary>
-        /// Initializes a new instance of the <see cref="OpenIdConnectReceiveRefreshTokenNotification"/> class
+        /// Initializes a new instance of the <see cref="ReceiveRefreshTokenNotification"/> class
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="refreshToken"></param>
-        internal OpenIdConnectReceiveRefreshTokenNotification(
+        internal ReceiveRefreshTokenNotification(
             HttpContext context,
             OpenIdConnectServerOptions options,
             string refreshToken)

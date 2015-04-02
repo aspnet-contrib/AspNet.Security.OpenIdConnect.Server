@@ -8,7 +8,7 @@ using Mvc.Server.Models;
 
 namespace Mvc.Server.Providers {
     public sealed class AuthorizationProvider : OpenIdConnectServerProvider {
-        public override async Task ValidateClientAuthentication(OpenIdConnectValidateClientAuthenticationNotification notification) {
+        public override async Task ValidateClientAuthentication(ValidateClientAuthenticationNotification notification) {
             string clientId, clientSecret;
 
             // Retrieve the client credentials from the request body.
@@ -50,7 +50,7 @@ namespace Mvc.Server.Providers {
             notification.Validated(clientId);
         }
 
-        public override async Task ValidateClientRedirectUri(OpenIdConnectValidateClientRedirectUriNotification notification) {
+        public override async Task ValidateClientRedirectUri(ValidateClientRedirectUriNotification notification) {
             var database = notification.HttpContext.RequestServices.GetRequiredService<ApplicationContext>();
 
             // Retrieve the application details corresponding to the requested client_id.

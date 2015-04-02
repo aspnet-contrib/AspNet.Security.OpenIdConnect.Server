@@ -15,11 +15,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// An event raised before the authorization server starts
     /// writing the configuration metadata to the response stream.
     /// </summary>
-    public sealed class OpenIdConnectConfigurationEndpointResponseNotification : EndpointContext<OpenIdConnectServerOptions> {
+    public sealed class ConfigurationEndpointResponseNotification : EndpointContext<OpenIdConnectServerOptions> {
         /// <summary>
         /// Creates an instance of this context.
         /// </summary>
-        internal OpenIdConnectConfigurationEndpointResponseNotification(
+        internal ConfigurationEndpointResponseNotification(
             HttpContext context,
             OpenIdConnectServerOptions options)
             : base(context, options) {

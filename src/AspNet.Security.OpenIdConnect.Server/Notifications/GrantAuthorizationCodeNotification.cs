@@ -4,37 +4,29 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
+using Microsoft.AspNet.Authentication;
 using Microsoft.AspNet.Http;
 using Microsoft.IdentityModel.Protocols;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
-    /// Provides context information used when handling OpenIdConnect extension grant types.
+    /// Provides context information when handling an OpenIdConnect authorization code grant.
     /// </summary>
-    public sealed class OpenIdConnectGrantCustomExtensionNotification : BaseValidatingTicketContext<OpenIdConnectServerOptions> {
+    public sealed class GrantAuthorizationCodeNotification : BaseValidatingTicketNotification<OpenIdConnectServerOptions> {
         /// <summary>
-        /// Initializes a new instance of the <see cref="OpenIdConnectGrantCustomExtensionNotification"/> class
+        /// Initializes a new instance of the <see cref="GrantAuthorizationCodeNotification"/> class
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="tokenRequest"></param>
-        internal OpenIdConnectGrantCustomExtensionNotification(
+        /// <param name="ticket"></param>
+        internal GrantAuthorizationCodeNotification(
             HttpContext context,
             OpenIdConnectServerOptions options,
-            OpenIdConnectMessage tokenRequest)
-            : base(context, options, null) {
+            OpenIdConnectMessage tokenRequest,
+            AuthenticationTicket ticket) : base(context, options, ticket) {
             TokenRequest = tokenRequest;
         }
-
-        /// <summary>
-        /// Gets the client_id parameter.
-        /// </summary>
-        public string ClientId => TokenRequest.ClientId;
-
-        /// <summary>
-        /// Gets the grant_type parameter.
-        /// </summary>
-        public string GrantType => TokenRequest.GrantType;
 
         /// <summary>
         /// Gets the token request.

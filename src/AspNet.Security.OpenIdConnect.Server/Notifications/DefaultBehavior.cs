@@ -9,17 +9,17 @@ using System.Threading.Tasks;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     internal static class DefaultBehavior {
-        internal static readonly Func<OpenIdConnectValidateAuthorizationRequestNotification, Task> ValidateAuthorizationRequest = context => {
+        internal static readonly Func<ValidateAuthorizationRequestNotification, Task> ValidateAuthorizationRequest = context => {
             context.Validated();
             return Task.FromResult<object>(null);
         };
 
-        internal static readonly Func<OpenIdConnectValidateTokenRequestNotification, Task> ValidateTokenRequest = context => {
+        internal static readonly Func<ValidateTokenRequestNotification, Task> ValidateTokenRequest = context => {
             context.Validated();
             return Task.FromResult<object>(null);
         };
 
-        internal static readonly Func<OpenIdConnectGrantAuthorizationCodeNotification, Task> GrantAuthorizationCode = context => {
+        internal static readonly Func<GrantAuthorizationCodeNotification, Task> GrantAuthorizationCode = context => {
             if (context.Ticket != null &&
                 context.Ticket.Principal != null &&
                 context.Ticket.Principal.Identity != null &&
@@ -30,7 +30,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             return Task.FromResult<object>(null);
         };
 
-        internal static readonly Func<OpenIdConnectGrantRefreshTokenNotification, Task> GrantRefreshToken = context => {
+        internal static readonly Func<GrantRefreshTokenNotification, Task> GrantRefreshToken = context => {
             if (context.Ticket != null &&
                 context.Ticket.Principal != null &&
                 context.Ticket.Principal.Identity != null &&

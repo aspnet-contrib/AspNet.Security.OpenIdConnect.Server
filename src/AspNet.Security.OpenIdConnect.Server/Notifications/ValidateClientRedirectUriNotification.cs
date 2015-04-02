@@ -13,16 +13,16 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
     /// Contains data about the OpenIdConnect client redirect URI
     /// </summary>
-    public sealed class OpenIdConnectValidateClientRedirectUriNotification : BaseValidatingClientContext {
+    public sealed class ValidateClientRedirectUriNotification : BaseValidatingClientNotification {
         /// <summary>
-        /// Initializes a new instance of the <see cref="OpenIdConnectValidateClientRedirectUriNotification"/> class
+        /// Initializes a new instance of the <see cref="ValidateClientRedirectUriNotification"/> class
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="authorizationRequest"></param>
         [SuppressMessage("Microsoft.Design", "CA1054:UriParametersShouldNotBeStrings",
             MessageId = "3#", Justification = "redirect_uri is a string parameter")]
-        internal OpenIdConnectValidateClientRedirectUriNotification(
+        internal ValidateClientRedirectUriNotification(
             HttpContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage authorizationRequest)

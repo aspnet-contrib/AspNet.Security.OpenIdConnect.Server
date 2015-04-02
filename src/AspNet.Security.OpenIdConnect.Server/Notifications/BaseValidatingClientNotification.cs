@@ -11,11 +11,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
     /// Base class used for certain event contexts
     /// </summary>
-    public abstract class BaseValidatingClientContext : BaseValidatingContext<OpenIdConnectServerOptions> {
+    public abstract class BaseValidatingClientNotification : BaseValidatingNotification<OpenIdConnectServerOptions> {
         /// <summary>
         /// Initializes base class used for certain event contexts
         /// </summary>
-        protected BaseValidatingClientContext(
+        protected BaseValidatingClientNotification(
             HttpContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage authorizationRequest)

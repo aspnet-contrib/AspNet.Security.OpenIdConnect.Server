@@ -10,16 +10,16 @@ using Microsoft.AspNet.Http;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
-    /// Provides context information used when issuing an access token.
+    /// Provides context information used when issuing a refresh token.
     /// </summary>
-    public sealed class OpenIdConnectCreateAccessTokenNotification : BaseNotification<OpenIdConnectServerOptions> {
+    public sealed class CreateRefreshTokenNotification : BaseNotification<OpenIdConnectServerOptions> {
         /// <summary>
-        /// Initializes a new instance of the <see cref="OpenIdConnectCreateAccessTokenNotification"/> class
+        /// Initializes a new instance of the <see cref="CreateRefreshTokenNotification"/> class
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="ticket"></param>
-        internal OpenIdConnectCreateAccessTokenNotification(
+        internal CreateRefreshTokenNotification(
             HttpContext context,
             OpenIdConnectServerOptions options,
             AuthenticationTicket ticket)
@@ -28,16 +28,16 @@ namespace AspNet.Security.OpenIdConnect.Server {
         }
 
         /// <summary>
-        /// Gets or sets the access token
+        /// Gets or sets the refresh token
         /// returned to the client application.
         /// </summary>
-        public string AccessToken { get; set; }
+        public string RefreshToken { get; set; }
 
         /// <summary>
         /// Serialize and protect the authentication ticket using
-        /// <see cref="OpenIdConnectServerOptions.AccessTokenFormat"/>.
+        /// <see cref="OpenIdConnectServerOptions.RefreshTokenFormat"/>.
         /// </summary>
         /// <returns>The serialized and protected ticket.</returns>
-        public string SerializeTicket() => Options.AccessTokenFormat.Protect(AuthenticationTicket);
+        public string SerializeTicket() => Options.RefreshTokenFormat.Protect(AuthenticationTicket);
     }
 }

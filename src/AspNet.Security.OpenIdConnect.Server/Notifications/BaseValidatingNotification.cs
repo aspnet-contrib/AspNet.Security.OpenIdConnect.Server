@@ -12,11 +12,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
     /// Base class used for certain event contexts
     /// </summary>
-    public abstract class BaseValidatingContext<TOptions> : BaseContext<TOptions> {
+    public abstract class BaseValidatingNotification<TOptions> : BaseContext<TOptions> {
         /// <summary>
         /// Initializes base class used for certain event contexts
         /// </summary>
-        protected BaseValidatingContext(
+        protected BaseValidatingNotification(
             HttpContext context,
             TOptions options)
             : base(context, options) {

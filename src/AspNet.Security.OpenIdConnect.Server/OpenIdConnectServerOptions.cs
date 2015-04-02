@@ -92,7 +92,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// The SystemWeb host on IIS will use ASP.NET machine key data protection, and HttpListener and other self-hosted
         /// servers will use DPAPI data protection.
         /// This property is only used when <see cref="AccessTokenHandler"/> is explicitly set to <value>null</value>
-        /// and when <see cref="OpenIdConnectServerNotifications.CreateAccessToken"/> doesn't call
+        /// and when <see cref="IOpenIdConnectServerProvider.CreateAccessToken"/> doesn't call
         /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
         public ISecureDataFormat<AuthenticationTicket> AccessTokenFormat { get; set; }

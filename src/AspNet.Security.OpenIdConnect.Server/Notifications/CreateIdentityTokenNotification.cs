@@ -12,14 +12,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used when issuing an identity token.
     /// </summary>
-    public sealed class OpenIdConnectCreateIdentityTokenNotification : BaseNotification<OpenIdConnectServerOptions> {
+    public sealed class CreateIdentityTokenNotification : BaseNotification<OpenIdConnectServerOptions> {
         /// <summary>
-        /// Initializes a new instance of the <see cref="OpenIdConnectCreateIdentityTokenNotification"/> class
+        /// Initializes a new instance of the <see cref="CreateIdentityTokenNotification"/> class
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="ticket"></param>
-        internal OpenIdConnectCreateIdentityTokenNotification(
+        internal CreateIdentityTokenNotification(
             HttpContext context,
             OpenIdConnectServerOptions options,
             AuthenticationTicket ticket)

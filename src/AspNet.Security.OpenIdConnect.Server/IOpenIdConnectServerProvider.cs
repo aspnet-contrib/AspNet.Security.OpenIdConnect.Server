@@ -21,7 +21,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        Task MatchEndpoint(OpenIdConnectMatchEndpointNotification notification);
+        Task MatchEndpoint(MatchEndpointNotification notification);
 
         /// <summary>
         /// Called to validate that the context.ClientId is a registered "client_id", and that the context.RedirectUri a "redirect_uri" 
@@ -32,7 +32,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        Task ValidateClientRedirectUri(OpenIdConnectValidateClientRedirectUriNotification notification);
+        Task ValidateClientRedirectUri(ValidateClientRedirectUriNotification notification);
 
         /// <summary>
         /// Called to validate that the origin of the request is a registered "client_id", and that the correct credentials for that client are
@@ -44,7 +44,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        Task ValidateClientAuthentication(OpenIdConnectValidateClientAuthenticationNotification notification);
+        Task ValidateClientAuthentication(ValidateClientAuthenticationNotification notification);
 
         /// <summary>
         /// Called for each request to the authorization endpoint to determine if the request is valid and should continue. 
@@ -53,7 +53,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        Task ValidateAuthorizationRequest(OpenIdConnectValidateAuthorizationRequestNotification notification);
+        Task ValidateAuthorizationRequest(ValidateAuthorizationRequestNotification notification);
 
         /// <summary>
         /// Called for each request to the Token endpoint to determine if the request is valid and should continue. 
@@ -62,7 +62,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        Task ValidateTokenRequest(OpenIdConnectValidateTokenRequestNotification notification);
+        Task ValidateTokenRequest(ValidateTokenRequestNotification notification);
 
         /// <summary>
         /// Called when a request to the Token endpoint arrives with a "grant_type" of "authorization_code". This occurs after the authorization
@@ -77,7 +77,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        Task GrantAuthorizationCode(OpenIdConnectGrantAuthorizationCodeNotification notification);
+        Task GrantAuthorizationCode(GrantAuthorizationCodeNotification notification);
 
         /// <summary>
         /// Called when a request to the Token endpoint arrives with a "grant_type" of "refresh_token". This occurs if your application has issued a "refresh_token" 
@@ -92,7 +92,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        Task GrantRefreshToken(OpenIdConnectGrantRefreshTokenNotification notification);
+        Task GrantRefreshToken(GrantRefreshTokenNotification notification);
 
         /// <summary>
         /// Called when a request to the Token endpoint arrives with a "grant_type" of "password". This occurs when the user has provided name and password
@@ -106,7 +106,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        Task GrantResourceOwnerCredentials(OpenIdConnectGrantResourceOwnerCredentialsNotification notification);
+        Task GrantResourceOwnerCredentials(GrantResourceOwnerCredentialsNotification notification);
 
         /// <summary>
         /// Called when a request to the Token endpoint arrives with a "grant_type" of "client_credentials". This occurs when a registered client
@@ -119,7 +119,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        Task GrantClientCredentials(OpenIdConnectGrantClientCredentialsNotification notification);
+        Task GrantClientCredentials(GrantClientCredentialsNotification notification);
 
         /// <summary>
         /// Called when a request to the Token andpoint arrives with a "grant_type" of any other value. If the application supports custom grant types
@@ -130,7 +130,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        Task GrantCustomExtension(OpenIdConnectGrantCustomExtensionNotification notification);
+        Task GrantCustomExtension(GrantCustomExtensionNotification notification);
 
         /// <summary>
         /// Called at the final stage of an incoming authorization endpoint request before the execution continues on to the web application component 
@@ -143,7 +143,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        Task AuthorizationEndpoint(OpenIdConnectAuthorizationEndpointNotification notification);
+        Task AuthorizationEndpoint(AuthorizationEndpointNotification notification);
 
         /// <summary>
         /// Called before the AuthorizationEndpoint redirects its response to the caller.
@@ -155,7 +155,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        Task AuthorizationEndpointResponse(OpenIdConnectAuthorizationEndpointResponseNotification notification);
+        Task AuthorizationEndpointResponse(AuthorizationEndpointResponseNotification notification);
 
         /// <summary>
         /// Called by the client applications to retrieve the OpenID Connect configuration associated with this instance.
@@ -164,7 +164,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        Task ConfigurationEndpoint(OpenIdConnectConfigurationEndpointNotification notification);
+        Task ConfigurationEndpoint(ConfigurationEndpointNotification notification);
 
         /// <summary>
         /// Called before the authorization server starts emitting the OpenID Connect configuration associated with this instance.
@@ -173,7 +173,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        Task ConfigurationEndpointResponse(OpenIdConnectConfigurationEndpointResponseNotification notification);
+        Task ConfigurationEndpointResponse(ConfigurationEndpointResponseNotification notification);
 
         /// <summary>
         /// Called by the client applications to retrieve the OpenID Connect JSON Web Key set associated with this instance.
@@ -182,7 +182,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        Task KeysEndpoint(OpenIdConnectKeysEndpointNotification notification);
+        Task KeysEndpoint(KeysEndpointNotification notification);
 
         /// <summary>
         /// Called before the authorization server starts emitting the OpenID Connect JSON Web Key set associated with this instance.
@@ -191,7 +191,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        Task KeysEndpointResponse(OpenIdConnectKeysEndpointResponseNotification notification);
+        Task KeysEndpointResponse(KeysEndpointResponseNotification notification);
 
         /// <summary>
         /// Called at the final stage of a successful Token endpoint request. An application may implement this call in order to do any final 
@@ -200,14 +200,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        Task TokenEndpoint(OpenIdConnectTokenEndpointNotification notification);
+        Task TokenEndpoint(TokenEndpointNotification notification);
 
         /// <summary>
         /// Called before the TokenEndpoint redirects its response to the caller. 
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        Task TokenEndpointResponse(OpenIdConnectTokenEndpointResponseNotification notification);
+        Task TokenEndpointResponse(TokenEndpointResponseNotification notification);
 
         /// <summary>
         /// Called to create a new authorization code. An application may use this notification
@@ -216,7 +216,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="notification">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        Task CreateAuthorizationCode(OpenIdConnectCreateAuthorizationCodeNotification notification);
+        Task CreateAuthorizationCode(CreateAuthorizationCodeNotification notification);
 
         /// <summary>
         /// Called to create a new access token. An application may use this notification
@@ -225,7 +225,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="notification">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        Task CreateAccessToken(OpenIdConnectCreateAccessTokenNotification notification);
+        Task CreateAccessToken(CreateAccessTokenNotification notification);
 
         /// <summary>
         /// Called to create a new identity token. An application may use this notification
@@ -234,7 +234,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="notification">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        Task CreateIdentityToken(OpenIdConnectCreateIdentityTokenNotification notification);
+        Task CreateIdentityToken(CreateIdentityTokenNotification notification);
 
         /// <summary>
         /// Called to create a new refresh token. An application may use this notification
@@ -243,7 +243,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="notification">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        Task CreateRefreshToken(OpenIdConnectCreateRefreshTokenNotification notification);
+        Task CreateRefreshToken(CreateRefreshTokenNotification notification);
 
         /// <summary>
         /// Called when receiving an authorization code. An application may use this notification
@@ -252,7 +252,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="notification">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        Task ReceiveAuthorizationCode(OpenIdConnectReceiveAuthorizationCodeNotification notification);
+        Task ReceiveAuthorizationCode(ReceiveAuthorizationCodeNotification notification);
 
         /// <summary>
         /// Called when receiving a refresh token. An application may use this notification
@@ -261,6 +261,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="notification">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        Task ReceiveRefreshToken(OpenIdConnectReceiveRefreshTokenNotification notification);
+        Task ReceiveRefreshToken(ReceiveRefreshTokenNotification notification);
     }
 }

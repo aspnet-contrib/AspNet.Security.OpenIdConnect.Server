@@ -16,16 +16,16 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information when processing an Authorization Response
     /// </summary>
-    public sealed class OpenIdConnectAuthorizationEndpointResponseNotification : EndpointContext<OpenIdConnectServerOptions> {
+    public sealed class AuthorizationEndpointResponseNotification : EndpointContext<OpenIdConnectServerOptions> {
         /// <summary>
-        /// Initializes a new instance of the <see cref="OpenIdConnectAuthorizationEndpointResponseNotification"/> class
+        /// Initializes a new instance of the <see cref="AuthorizationEndpointResponseNotification"/> class
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="ticket"></param>
         /// <param name="authorizationRequest"></param>
         /// <param name="authorizationResponse"></param>
-        internal OpenIdConnectAuthorizationEndpointResponseNotification(
+        internal AuthorizationEndpointResponseNotification(
             HttpContext context,
             OpenIdConnectServerOptions options,
             AuthenticationTicket ticket,
