@@ -12,15 +12,15 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used in validating an OpenIdConnect token request.
     /// </summary>
-    public sealed class OpenIdConnectValidateTokenRequestContext : BaseValidatingContext<OpenIdConnectServerOptions> {
+    public sealed class OpenIdConnectValidateTokenRequestNotification : BaseValidatingContext<OpenIdConnectServerOptions> {
         /// <summary>
-        /// Initializes a new instance of the <see cref="OpenIdConnectValidateTokenRequestContext"/> class
+        /// Initializes a new instance of the <see cref="OpenIdConnectValidateTokenRequestNotification"/> class
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="tokenRequest"></param>
         /// <param name="clientContext"></param>
-        internal OpenIdConnectValidateTokenRequestContext(
+        internal OpenIdConnectValidateTokenRequestNotification(
             HttpContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage tokenRequest,

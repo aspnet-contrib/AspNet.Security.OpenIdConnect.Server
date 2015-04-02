@@ -11,19 +11,19 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used in validating an OpenIdConnect authorization request.
     /// </summary>
-    public sealed class OpenIdConnectValidateAuthorizationRequestContext : BaseValidatingContext<OpenIdConnectServerOptions> {
+    public sealed class OpenIdConnectValidateAuthorizationRequestNotification : BaseValidatingContext<OpenIdConnectServerOptions> {
         /// <summary>
-        /// Initializes a new instance of the <see cref="OpenIdConnectValidateAuthorizationRequestContext"/> class
+        /// Initializes a new instance of the <see cref="OpenIdConnectValidateAuthorizationRequestNotification"/> class
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="authorizationRequest"></param>
         /// <param name="clientContext"></param>
-        internal OpenIdConnectValidateAuthorizationRequestContext(
+        internal OpenIdConnectValidateAuthorizationRequestNotification(
             HttpContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage authorizationRequest,
-            OpenIdConnectValidateClientRedirectUriContext clientContext)
+            OpenIdConnectValidateClientRedirectUriNotification clientContext)
             : base(context, options) {
             ClientContext = clientContext;
             AuthorizationRequest = authorizationRequest;
@@ -37,6 +37,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the client context. 
         /// </summary>
-        public OpenIdConnectValidateClientRedirectUriContext ClientContext { get; private set; }
+        public OpenIdConnectValidateClientRedirectUriNotification ClientContext { get; private set; }
     }
 }

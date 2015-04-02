@@ -11,13 +11,13 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
     /// Specifies the HTTP response header for the bearer authentication scheme.
     /// </summary>
-    public sealed class OpenIdConnectChallengeContext : BaseContext {
+    public sealed class OpenIdConnectChallengeNotification : BaseContext {
         /// <summary>
-        /// Initializes a new <see cref="OpenIdConnectChallengeContext"/>
+        /// Initializes a new <see cref="OpenIdConnectChallengeNotification"/>
         /// </summary>
         /// <param name="context">OWIN environment</param>
         /// <param name="challenge">The www-authenticate header value.</param>
-        internal OpenIdConnectChallengeContext(
+        internal OpenIdConnectChallengeNotification(
             HttpContext context,
             string challenge)
             : base(context) {

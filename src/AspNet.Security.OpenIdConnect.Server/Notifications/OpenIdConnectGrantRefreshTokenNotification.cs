@@ -12,15 +12,15 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used when granting an OpenIdConnect refresh token.
     /// </summary>
-    public sealed class OpenIdConnectGrantRefreshTokenContext : BaseValidatingTicketContext<OpenIdConnectServerOptions> {
+    public sealed class OpenIdConnectGrantRefreshTokenNotification : BaseValidatingTicketContext<OpenIdConnectServerOptions> {
         /// <summary>
-        /// Initializes a new instance of the <see cref="OpenIdConnectGrantRefreshTokenContext"/> class
+        /// Initializes a new instance of the <see cref="OpenIdConnectGrantRefreshTokenNotification"/> class
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="tokenRequest"></param>
         /// <param name="ticket"></param>
-        internal OpenIdConnectGrantRefreshTokenContext(
+        internal OpenIdConnectGrantRefreshTokenNotification(
             HttpContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage tokenRequest,

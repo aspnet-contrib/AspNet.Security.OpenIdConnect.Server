@@ -4,23 +4,21 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.AspNet.Http;
 using Microsoft.IdentityModel.Protocols;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
-    /// Provides context information used in handling an OpenIdConnect client credentials grant.
+    /// Provides context information used when handling OpenIdConnect extension grant types.
     /// </summary>
-    public sealed class OpenIdConnectGrantClientCredentialsContext : BaseValidatingTicketContext<OpenIdConnectServerOptions> {
+    public sealed class OpenIdConnectGrantCustomExtensionNotification : BaseValidatingTicketContext<OpenIdConnectServerOptions> {
         /// <summary>
-        /// Initializes a new instance of the <see cref="OpenIdConnectGrantClientCredentialsContext"/> class
+        /// Initializes a new instance of the <see cref="OpenIdConnectGrantCustomExtensionNotification"/> class
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="tokenRequest"></param>
-        internal OpenIdConnectGrantClientCredentialsContext(
+        internal OpenIdConnectGrantCustomExtensionNotification(
             HttpContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage tokenRequest)
@@ -31,22 +29,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the client_id parameter.
         /// </summary>
-        public string ClientId {
-            get { return TokenRequest.ClientId; }
-        }
+        public string ClientId => TokenRequest.ClientId;
 
         /// <summary>
-        /// Gets the list of scopes requested by the client application.
+        /// Gets the grant_type parameter.
         /// </summary>
-        public IEnumerable<string> Scope {
-            get {
-                if (string.IsNullOrWhiteSpace(TokenRequest.Scope)) {
-                    return Enumerable.Empty<string>();
-                }
-
-                return TokenRequest.Scope.Split(' ');
-            }
-        }
+        public string GrantType => TokenRequest.GrantType;
 
         /// <summary>
         /// Gets the token request.

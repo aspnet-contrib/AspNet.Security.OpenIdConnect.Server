@@ -40,7 +40,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             IOptions<OpenIdConnectServerOptions> options,
             ConfigureOptions<OpenIdConnectServerOptions> configuration)
             : base(next, options, configuration) {
-            _logger = loggerFactory.CreateLogger<OpenIdConnectServerMiddleware>();
+            logger = loggerFactory.CreateLogger<OpenIdConnectServerMiddleware>();
 
             if (string.IsNullOrWhiteSpace(Options.AuthenticationScheme)) {
                 throw new ArgumentNullException("options.AuthenticationScheme");
