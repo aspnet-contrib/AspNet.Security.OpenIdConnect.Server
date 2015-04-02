@@ -65,18 +65,17 @@ namespace Nancy.Server {
             app.UseOpenIdConnectServer(new OpenIdConnectServerOptions {
                 AuthenticationType = OpenIdConnectDefaults.AuthenticationType,
 
-                Issuer = "http://localhost:55938/",
+                Issuer = "http://localhost:54541/",
                 SigningCredentials = credentials,
 
-                Provider = new CustomOpenIdConnectServerProvider(),
+                Provider = new AuthorizationProvider(),
                 AccessTokenLifetime = TimeSpan.FromDays(14),
                 IdentityTokenLifetime = TimeSpan.FromMinutes(60),
                 AllowInsecureHttp = true,
 
                 // Note: see AuthorizationModule.cs for more
                 // information concerning ApplicationCanDisplayErrors.
-                ApplicationCanDisplayErrors = true,
-                AuthorizationCodeProvider = new AuthorizationCodeProvider()
+                ApplicationCanDisplayErrors = true
             });
 
             app.UseNancy(options => options.Bootstrapper = new NancyBootstrapper());

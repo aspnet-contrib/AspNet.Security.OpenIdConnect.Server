@@ -11,6 +11,5 @@ namespace Nancy.Server.Models {
         }
 
         public IDbSet<Application> Applications { get; set; }
-        public IDbSet<Nonce> Nonces { get; set; }
     }
 }

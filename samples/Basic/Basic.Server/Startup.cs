@@ -33,11 +33,9 @@ namespace Basic.Server {
                 SigningCredentials = credentials,
                 TokenEndpointPath = new PathString("/token"),
                 AuthorizationEndpointPath = new PathString("/auth.cshtml"),
-                Provider = new CustomOpenIdConnectServerProvider(),
+                Provider = new AuthorizationProvider(),
                 AllowInsecureHttp = true,
-                ApplicationCanDisplayErrors = true,
-                AuthorizationCodeProvider = new TestAuthenticationTokenProvider(),
-                RefreshTokenProvider = new TestAuthenticationTokenProvider(),
+                ApplicationCanDisplayErrors = true
             });
         }
     }

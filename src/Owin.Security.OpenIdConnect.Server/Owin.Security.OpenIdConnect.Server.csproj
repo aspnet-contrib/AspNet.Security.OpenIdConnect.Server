@@ -33,37 +33,34 @@
     <DocumentationFile>bin\Release\Owin.Security.OpenIdConnect.Server.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.IdentityModel.Protocol.Extensions, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+    <Reference Include="Microsoft.IdentityModel.Protocol.Extensions, Version=1.0.2.28, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Microsoft.IdentityModel.Protocol.Extensions.1.0.0\lib\net45\Microsoft.IdentityModel.Protocol.Extensions.dll</HintPath>
+      <HintPath>..\..\packages\Microsoft.IdentityModel.Protocol.Extensions.1.0.2.202250711\lib\net45\Microsoft.IdentityModel.Protocol.Extensions.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Owin, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+    <Reference Include="Microsoft.Owin, Version=3.0.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Microsoft.Owin.3.0.0\lib\net45\Microsoft.Owin.dll</HintPath>
+      <HintPath>..\..\packages\Microsoft.Owin.3.0.1\lib\net45\Microsoft.Owin.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Owin.Security, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+    <Reference Include="Microsoft.Owin.Security, Version=3.0.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Microsoft.Owin.Security.3.0.0\lib\net45\Microsoft.Owin.Security.dll</HintPath>
+      <HintPath>..\..\packages\Microsoft.Owin.Security.3.0.1\lib\net45\Microsoft.Owin.Security.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Newtonsoft.Json.6.0.4\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="Owin, Version=1.0.0.0, Culture=neutral, PublicKeyToken=f0ebd12fd5e55cc5, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Owin.1.0\lib\net40\Owin.dll</HintPath>
     </Reference>
-    <Reference Include="Owin.Security.OpenIdConnect.Extensions, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Owin.Security.OpenIdConnect.Extensions.1.0.0-alpha2-31111-000\lib\net45\Owin.Security.OpenIdConnect.Extensions.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.IdentityModel" />
-    <Reference Include="System.IdentityModel.Tokens.Jwt, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+    <Reference Include="System.IdentityModel.Tokens.Jwt, Version=4.0.2.28, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\System.IdentityModel.Tokens.Jwt.4.0.0\lib\net45\System.IdentityModel.Tokens.Jwt.dll</HintPath>
+      <HintPath>..\..\packages\System.IdentityModel.Tokens.Jwt.4.0.2.202250711\lib\net45\System.IdentityModel.Tokens.Jwt.dll</HintPath>
     </Reference>
+    <Reference Include="System.Runtime.Caching" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -71,6 +68,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Notifications\CreateAccessTokenNotification.cs" />
+    <Compile Include="Notifications\CreateAuthorizationCodeNotification.cs" />
+    <Compile Include="Notifications\CreateIdentityTokenNotification.cs" />
+    <Compile Include="Notifications\CreateRefreshTokenNotification.cs" />
+    <Compile Include="Notifications\ReceiveAuthorizationCodeNotification.cs" />
+    <Compile Include="Notifications\ReceiveRefreshTokenNotification.cs" />
     <Compile Include="OpenIdConnectConstants.cs" />
     <Compile Include="OpenIdConnectDefaults.cs" />
     <Compile Include="OpenIdConnectServerExtensions.cs" />
@@ -78,35 +81,40 @@
     <Compile Include="OpenIdConnectServerMiddleware.cs" />
     <Compile Include="OpenIdConnectServerOptions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Provider\BaseValidatingClientContext.cs" />
-    <Compile Include="Provider\BaseValidatingContext.cs" />
-    <Compile Include="Provider\BaseValidatingTicketContext.cs" />
-    <Compile Include="Provider\DefaultBehavior.cs" />
-    <Compile Include="Provider\IOpenIdConnectServerProvider.cs" />
-    <Compile Include="Provider\OpenIdConnectConfigurationEndpointContext.cs" />
-    <Compile Include="Provider\OpenIdConnectKeysEndpointContext.cs" />
-    <Compile Include="Provider\OpenIdConnectKeysEndpointResponseContext.cs" />
-    <Compile Include="Provider\OpenIdConnectConfigurationEndpointResponseContext.cs" />
-    <Compile Include="Provider\OpenIdConnectServerProvider.cs" />
-    <Compile Include="Provider\OpenIdConnectAuthorizationEndpointContext.cs" />
-    <Compile Include="Provider\OpenIdConnectAuthorizationEndpointResponseContext.cs" />
-    <Compile Include="Provider\OpenIdConnectChallengeContext.cs" />
-    <Compile Include="Provider\OpenIdConnectGrantAuthorizationCodeContext.cs" />
-    <Compile Include="Provider\OpenIdConnectGrantClientCredentialsContext.cs" />
-    <Compile Include="Provider\OpenIdConnectGrantCustomExtensionContext.cs" />
-    <Compile Include="Provider\OpenIdConnectGrantRefreshTokenContext.cs" />
-    <Compile Include="Provider\OpenIdConnectGrantResourceOwnerCredentialsContext.cs" />
-    <Compile Include="Provider\OpenIdConnectMatchEndpointContext.cs" />
-    <Compile Include="Provider\OpenIdConnectTokenEndpointContext.cs" />
-    <Compile Include="Provider\OpenIdConnectTokenEndpointResponseContext.cs" />
-    <Compile Include="Provider\OpenIdConnectValidateAuthorizationRequestContext.cs" />
-    <Compile Include="Provider\OpenIdConnectValidateClientAuthenticationContext.cs" />
-    <Compile Include="Provider\OpenIdConnectValidateClientRedirectUriContext.cs" />
-    <Compile Include="Provider\OpenIdConnectValidateTokenRequestContext.cs" />
+    <Compile Include="Notifications\BaseValidatingClientNotification.cs" />
+    <Compile Include="Notifications\BaseValidatingNotification.cs" />
+    <Compile Include="Notifications\BaseValidatingTicketNotification.cs" />
+    <Compile Include="Notifications\DefaultBehavior.cs" />
+    <Compile Include="IOpenIdConnectServerProvider.cs" />
+    <Compile Include="Notifications\ConfigurationEndpointNotification.cs" />
+    <Compile Include="Notifications\KeysEndpointNotification.cs" />
+    <Compile Include="Notifications\KeysEndpointResponseNotification.cs" />
+    <Compile Include="Notifications\ConfigurationEndpointResponseNotification.cs" />
+    <Compile Include="OpenIdConnectServerProvider.cs" />
+    <Compile Include="Notifications\AuthorizationEndpointNotification.cs" />
+    <Compile Include="Notifications\AuthorizationEndpointResponseNotification.cs" />
+    <Compile Include="Notifications\GrantAuthorizationCodeNotification.cs" />
+    <Compile Include="Notifications\GrantClientCredentialsNotification.cs" />
+    <Compile Include="Notifications\GrantCustomExtensionNotification.cs" />
+    <Compile Include="Notifications\GrantRefreshTokenNotification.cs" />
+    <Compile Include="Notifications\GrantResourceOwnerCredentialsNotification.cs" />
+    <Compile Include="Notifications\MatchEndpointNotification.cs" />
+    <Compile Include="Notifications\TokenEndpointNotification.cs" />
+    <Compile Include="Notifications\TokenEndpointResponseNotification.cs" />
+    <Compile Include="Notifications\ValidateAuthorizationRequestNotification.cs" />
+    <Compile Include="Notifications\ValidateClientAuthenticationNotification.cs" />
+    <Compile Include="Notifications\ValidateClientRedirectUriNotification.cs" />
+    <Compile Include="Notifications\ValidateTokenRequestNotification.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Owin.Security.OpenIdConnect.Extensions\Owin.Security.OpenIdConnect.Extensions.csproj">
+      <Project>{169af883-34c4-4a39-85f7-13c94ad9d678}</Project>
+      <Name>Owin.Security.OpenIdConnect.Extensions</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
