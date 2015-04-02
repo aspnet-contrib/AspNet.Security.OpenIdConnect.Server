@@ -15,7 +15,7 @@
             "dependencies": {
                 "System.Linq": "4.0.0-beta-*",
                 "System.Security.Claims": "4.0.0-beta-*",
-                "System.Runtime": "4.0.0-beta-*",
+                "System.Runtime": "4.0.10-beta-*",
                 "System.Runtime.Extensions": "4.0.0-beta-*"
             }
         }
