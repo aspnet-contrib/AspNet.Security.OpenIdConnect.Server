@@ -12,6 +12,7 @@ using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.DataProtection;
 using Microsoft.Framework.Logging;
 using Microsoft.Framework.OptionsModel;
+using Microsoft.Framework.WebEncoders;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
@@ -29,6 +30,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         public OpenIdConnectServerMiddleware(
             RequestDelegate next,
+            IServiceProvider services,
             ILogger<OpenIdConnectServerMiddleware> logger,
             IDataProtectionProvider dataProtectorProvider,
             IOptions<OpenIdConnectServerOptions> options,
@@ -81,6 +83,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             if (Options.SystemClock == null) {
                 Options.SystemClock = new SystemClock();
+            }
+
+            if (Options.HtmlEncoder == null) {
+                Options.HtmlEncoder = services.GetHtmlEncoder();
             }
 
             if (Options.TokenHandler == null) {

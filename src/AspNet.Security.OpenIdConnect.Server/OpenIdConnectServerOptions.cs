@@ -8,6 +8,7 @@ using System;
 using System.IdentityModel.Tokens;
 using Microsoft.AspNet.Authentication;
 using Microsoft.AspNet.Http;
+using Microsoft.Framework.WebEncoders;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
@@ -181,5 +182,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// You can replace the default instance to change the way id_tokens are serialized.
         /// </summary>
         public JwtSecurityTokenHandler TokenHandler { get; set; }
+
+        /// <summary>
+        /// Used to sanitize HTML responses. If you don't provide an explicit instance,
+        /// one will be automatically retrieved through the dependency injection system.
+        /// </summary>
+        public IHtmlEncoder HtmlEncoder { get; set; }
     }
 }

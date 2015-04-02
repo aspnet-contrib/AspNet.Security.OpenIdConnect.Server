@@ -421,9 +421,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     // by IOpenIdConnectServerProvider.ValidateClientRedirectUri,
                     // it's still safer to encode it to avoid cross-site scripting attacks
                     // if the authorization server has a relaxed policy concerning redirect URIs.
-                    writer.WriteLine("<form name='form' method='post' action='" + WebUtility.HtmlEncode(response.RedirectUri) + "'>");
+                    writer.WriteLine("<form name='form' method='post' action='" + Options.HtmlEncoder.HtmlEncode(response.RedirectUri) + "'>");
 
-                    foreach (KeyValuePair<string, string> parameter in response.Parameters) {
+                    foreach (var parameter in response.Parameters) {
                         // Don't include client_id, redirect_uri or response_mode in the form.
                         if (string.Equals(parameter.Key, OpenIdConnectParameterNames.ClientId, StringComparison.Ordinal) ||
                             string.Equals(parameter.Key, OpenIdConnectParameterNames.RedirectUri, StringComparison.Ordinal) ||
@@ -431,10 +431,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
                             continue;
                         }
 
-                        var key = WebUtility.HtmlEncode(parameter.Key);
-                        var value = WebUtility.HtmlEncode(parameter.Value);
+                        var name = Options.HtmlEncoder.HtmlEncode(parameter.Key);
+                        var value = Options.HtmlEncoder.HtmlEncode(parameter.Value);
 
-                        writer.WriteLine("<input type='hidden' name='" + key + "' value='" + value + "' />");
+                        writer.WriteLine("<input type='hidden' name='" + name + "' value='" + value + "' />");
                     }
 
                     writer.WriteLine("<noscript>Click here to finish the authorization process: <input type='submit' /></noscript>");
@@ -458,7 +458,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 string location = response.RedirectUri;
                 var appender = new Appender(location, '#');
 
-                foreach (KeyValuePair<string, string> parameter in response.Parameters) {
+                foreach (var parameter in response.Parameters) {
                     // Don't include client_id, redirect_uri or response_mode in the fragment.
                     if (string.Equals(parameter.Key, OpenIdConnectParameterNames.ClientId, StringComparison.Ordinal) || 
                         string.Equals(parameter.Key, OpenIdConnectParameterNames.RedirectUri, StringComparison.Ordinal) ||
@@ -476,7 +476,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             else if (request.IsQueryResponseMode()) {
                 string location = response.RedirectUri;
 
-                foreach (KeyValuePair<string, string> parameter in response.Parameters) {
+                foreach (var parameter in response.Parameters) {
                     // Don't include client_id, redirect_uri or response_mode in the query string.
                     if (string.Equals(parameter.Key, OpenIdConnectParameterNames.ClientId, StringComparison.Ordinal) || 
                         string.Equals(parameter.Key, OpenIdConnectParameterNames.RedirectUri, StringComparison.Ordinal) ||
