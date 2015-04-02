@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.22013.1
+VisualStudioVersion = 14.0.22609.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Owin.Security.OpenIdConnect.Server", "src\Owin.Security.OpenIdConnect.Server\Owin.Security.OpenIdConnect.Server.csproj", "{C3877D8E-DB9D-4D6B-AB21-B0B11F50185B}"
 EndProject
@@ -24,6 +24,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mvc.Server", "samples\Mvc\Mvc.Server\Mvc.Server.csproj", "{EA041886-3D3C-457C-AFEE-DAEF0EEC2953}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mvc.Client", "samples\Mvc\Mvc.Client\Mvc.Client.csproj", "{6A888AB8-A84F-499E-9ED4-0A7FCAE38BA1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{D1A41606-5EFC-436F-9D9A-AE75D4433214}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Owin.Security.OpenIdConnect.Extensions", "src\Owin.Security.OpenIdConnect.Extensions\Owin.Security.OpenIdConnect.Extensions.csproj", "{169AF883-34C4-4A39-85F7-13C94AD9D678}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -59,11 +63,16 @@ Global
 		{6A888AB8-A84F-499E-9ED4-0A7FCAE38BA1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6A888AB8-A84F-499E-9ED4-0A7FCAE38BA1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6A888AB8-A84F-499E-9ED4-0A7FCAE38BA1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{169AF883-34C4-4A39-85F7-13C94AD9D678}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{169AF883-34C4-4A39-85F7-13C94AD9D678}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{169AF883-34C4-4A39-85F7-13C94AD9D678}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{169AF883-34C4-4A39-85F7-13C94AD9D678}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{C3877D8E-DB9D-4D6B-AB21-B0B11F50185B} = {D1A41606-5EFC-436F-9D9A-AE75D4433214}
 		{F91B1249-EB22-4FCA-A4BC-358F2A43FCFC} = {4AB6EF8F-9119-4A57-A06D-03C69F18A835}
 		{B03F3451-E3EE-48B3-8713-89C81E9B8657} = {4AB6EF8F-9119-4A57-A06D-03C69F18A835}
 		{4AB6EF8F-9119-4A57-A06D-03C69F18A835} = {CD12A9C2-EB2E-42DC-A4DA-A973307BB912}
@@ -73,5 +82,6 @@ Global
 		{152F762D-4FF8-45C9-97BC-FCCBB87174E8} = {CD12A9C2-EB2E-42DC-A4DA-A973307BB912}
 		{EA041886-3D3C-457C-AFEE-DAEF0EEC2953} = {152F762D-4FF8-45C9-97BC-FCCBB87174E8}
 		{6A888AB8-A84F-499E-9ED4-0A7FCAE38BA1} = {152F762D-4FF8-45C9-97BC-FCCBB87174E8}
+		{169AF883-34C4-4A39-85F7-13C94AD9D678} = {D1A41606-5EFC-436F-9D9A-AE75D4433214}
 	EndGlobalSection
 EndGlobal
