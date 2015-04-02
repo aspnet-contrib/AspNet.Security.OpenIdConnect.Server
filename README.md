@@ -30,8 +30,7 @@ app.UseOpenIdConnectServer(new OpenIdConnectServerOptions {
     Issuer = "http://localhost:55938/",
     SigningCredentials = new X509SigningCredentials(certificate),
 
-    Provider = new CustomOpenIdConnectServerProvider(),
-    AuthorizationCodeProvider = new AuthorizationCodeProvider()
+    Provider = new CustomOpenIdConnectServerProvider()
 });
 ```
 

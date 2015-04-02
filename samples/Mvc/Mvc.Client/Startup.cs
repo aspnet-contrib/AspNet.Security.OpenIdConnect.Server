@@ -39,7 +39,8 @@ namespace Mvc.Client {
                 // Note: setting the Authority allows the OIDC client middleware to automatically
                 // retrieve the identity provider's configuration and spare you from setting
                 // the different endpoints URIs or the token validation parameters explicitly.
-                Authority = "http://localhost:55985/",
+                Authority = "http://localhost:54540/",
+                Resource = "http://localhost:54540/",
 
                 Notifications = new OpenIdConnectAuthenticationNotifications {
                     // Note: by default, the OIDC client throws an OpenIdConnectProtocolException
@@ -57,7 +58,7 @@ namespace Mvc.Client {
 
                     // Retrieve an access token from the remote token endpoint
                     // using the authorization code received during the current request.
-                    SecurityTokenValidated = async notification => {
+                    AuthorizationCodeReceived = async notification => {
                         using (var client = new HttpClient()) {
                             var configuration = await notification.Options.ConfigurationManager.GetConfigurationAsync(notification.Request.CallCancelled);
 
@@ -67,7 +68,8 @@ namespace Mvc.Client {
                                 { OpenIdConnectParameterNames.ClientSecret, notification.Options.ClientSecret },
                                 { OpenIdConnectParameterNames.Code, notification.ProtocolMessage.Code },
                                 { OpenIdConnectParameterNames.GrantType, "authorization_code" },
-                                { OpenIdConnectParameterNames.RedirectUri, notification.Options.RedirectUri }
+                                { OpenIdConnectParameterNames.RedirectUri, notification.Options.RedirectUri },
+                                { OpenIdConnectParameterNames.Resource, notification.Options.Resource }
                             });
 
                             var response = await client.SendAsync(request, notification.Request.CallCancelled);

@@ -6,7 +6,8 @@ using System.Web.Http;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
-using Microsoft.Owin.Security.OAuth;
+using Microsoft.Owin.Security.Google;
+using Microsoft.Owin.Security.Jwt;
 using Mvc.Server.Providers;
 using NWebsec.Owin;
 using Owin;
@@ -37,8 +38,10 @@ namespace Mvc.Server {
                 configuration.MapHttpAttributeRoutes();
                 configuration.EnsureInitialized();
 
-                map.UseOAuthBearerAuthentication(new OAuthBearerAuthenticationOptions {
-                    AuthenticationMode = AuthenticationMode.Active
+                map.UseJwtBearerAuthentication(new JwtBearerAuthenticationOptions {
+                    AuthenticationMode = AuthenticationMode.Active,
+                    AllowedAudiences = new[] { "http://localhost:54540/" },
+                    IssuerSecurityTokenProviders = new[] { new X509CertificateSecurityTokenProvider("http://localhost:54540/", certificate) }
                 });
 
                 map.UseWebApi(configuration);
@@ -56,7 +59,10 @@ namespace Mvc.Server {
                 LoginPath = new PathString("/signin")
             });
 
-            app.UseGoogleAuthentication();
+            app.UseGoogleAuthentication(new GoogleOAuth2AuthenticationOptions {
+                ClientId = "560027070069-37ldt4kfuohhu3m495hk2j4pjp92d382.apps.googleusercontent.com",
+                ClientSecret = "n2Q-GEw9RQjzcRbU3qhfTj8f"
+            });
 
             // Insert a new middleware responsible of setting the Content-Security-Policy header.
             // See https://nwebsec.codeplex.com/wikipage?title=Configuring%20Content%20Security%20Policy&referringTitle=NWebsec
@@ -78,18 +84,17 @@ namespace Mvc.Server {
             app.UseOpenIdConnectServer(new OpenIdConnectServerOptions {
                 AuthenticationType = OpenIdConnectDefaults.AuthenticationType,
 
-                Issuer = "http://localhost:55985/",
+                Issuer = "http://localhost:54540/",
                 SigningCredentials = credentials,
 
-                Provider = new CustomOpenIdConnectServerProvider(),
+                Provider = new AuthorizationProvider(),
                 AccessTokenLifetime = TimeSpan.FromDays(14),
                 IdentityTokenLifetime = TimeSpan.FromMinutes(60),
                 AllowInsecureHttp = true,
 
                 // Note: see AuthorizationController.cs for more
                 // information concerning ApplicationCanDisplayErrors.
-                ApplicationCanDisplayErrors = true,
-                AuthorizationCodeProvider = new AuthorizationCodeProvider()
+                ApplicationCanDisplayErrors = true
             });
         }
     }

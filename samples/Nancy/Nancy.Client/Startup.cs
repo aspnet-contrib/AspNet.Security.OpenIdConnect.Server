@@ -34,7 +34,7 @@ namespace Nancy.Client {
                 // Note: setting the Authority allows the OIDC client middleware to automatically
                 // retrieve the identity provider's configuration and spare you from setting
                 // the different endpoints URIs or the token validation parameters explicitly.
-                Authority = "http://localhost:55938/",
+                Authority = "http://localhost:54541/",
 
                 // Note: by default, the OIDC client throws an OpenIdConnectProtocolException
                 // when an error occurred during the authentication/authorization process.

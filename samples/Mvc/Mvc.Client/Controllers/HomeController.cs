@@ -17,7 +17,7 @@ namespace Mvc.Client.Controllers {
         [Authorize, HttpPost, Route("~/")]
         public async Task<ActionResult> Index(CancellationToken cancellationToken) {
             using (var client = new HttpClient()) {
-                var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost:55985/api/message");
+                var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost:54540/api/message");
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", AccessToken);
 
                 var response = await client.SendAsync(request, cancellationToken);
