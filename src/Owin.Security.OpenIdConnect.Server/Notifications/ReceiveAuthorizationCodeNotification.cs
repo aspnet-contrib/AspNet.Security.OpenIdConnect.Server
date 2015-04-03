@@ -36,7 +36,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// Gets the authorization code
         /// used by the client application.
         /// </summary>
-        public string AuthorizationCode { get; }
+        public string AuthorizationCode { get; private set; }
 
         /// <summary>
         /// Deserialize and unprotect the authentication ticket using

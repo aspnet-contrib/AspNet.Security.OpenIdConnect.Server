@@ -36,7 +36,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// Gets the refresh code used
         /// by the client application.
         /// </summary>
-        public string RefreshToken { get; }
+        public string RefreshToken { get; private set; }
 
         /// <summary>
         /// Deserialize and unprotect the authentication ticket using

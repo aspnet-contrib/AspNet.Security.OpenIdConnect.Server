@@ -1241,7 +1241,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         private async Task<string> CreateAuthorizationCodeAsync(AuthenticationTicket ticket, OpenIdConnectMessage request, OpenIdConnectMessage response) {
             // Create a copy to avoid modifying the original properties and compute
             // the expiration date using the registered authorization code lifetime.
-            var properties = ticket.Properties?.Copy() ?? new AuthenticationProperties();
+            var properties = ticket.Properties.Copy() ?? new AuthenticationProperties();
             properties.IssuedUtc = Options.SystemClock.UtcNow;
             properties.ExpiresUtc = properties.IssuedUtc.Value + Options.AuthorizationCodeLifetime;
             ticket = new AuthenticationTicket(ticket.Identity, properties);
@@ -1292,7 +1292,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         private async Task<string> CreateAccessTokenAsync(AuthenticationTicket ticket, OpenIdConnectMessage request, OpenIdConnectMessage response) {
             // Create a copy to avoid modifying the original properties and compute
             // the expiration date using the registered access token lifetime.
-            var properties = ticket.Properties?.Copy() ?? new AuthenticationProperties();
+            var properties = ticket.Properties.Copy() ?? new AuthenticationProperties();
             properties.IssuedUtc = Options.SystemClock.UtcNow;
             properties.ExpiresUtc = properties.IssuedUtc.Value + Options.AccessTokenLifetime;
             ticket = new AuthenticationTicket(ticket.Identity, properties);
@@ -1364,7 +1364,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         private async Task<string> CreateRefreshTokenAsync(AuthenticationTicket ticket, OpenIdConnectMessage request, OpenIdConnectMessage response) {
             // Create a copy to avoid modifying the original properties and compute
             // the expiration date using the registered refresh token lifetime.
-            var properties = ticket.Properties?.Copy() ?? new AuthenticationProperties();
+            var properties = ticket.Properties.Copy() ?? new AuthenticationProperties();
             properties.IssuedUtc = Options.SystemClock.UtcNow;
             properties.ExpiresUtc = properties.IssuedUtc.Value + Options.RefreshTokenLifetime;
             ticket = new AuthenticationTicket(ticket.Identity, properties);
@@ -1408,7 +1408,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         private async Task<string> CreateIdentityTokenAsync(AuthenticationTicket ticket, OpenIdConnectMessage request, OpenIdConnectMessage response) {
             // Create a copy to avoid modifying the original properties and compute
             // the expiration date using the registered identity token lifetime.
-            var properties = ticket.Properties?.Copy() ?? new AuthenticationProperties();
+            var properties = ticket.Properties.Copy() ?? new AuthenticationProperties();
             properties.IssuedUtc = Options.SystemClock.UtcNow;
             properties.ExpiresUtc = properties.IssuedUtc.Value + Options.IdentityTokenLifetime;
             ticket = new AuthenticationTicket(ticket.Identity, properties);

@@ -124,6 +124,10 @@ namespace Owin {
         }
 
         internal static AuthenticationProperties Copy(this AuthenticationProperties properties) {
+            if (properties == null) {
+                return null;
+            }
+
             return new AuthenticationProperties(properties.Dictionary.ToDictionary(pair => pair.Key, pair => pair.Value));
         }
     }
