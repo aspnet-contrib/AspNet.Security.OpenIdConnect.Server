@@ -117,6 +117,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         public ISecureDataFormat<AuthenticationTicket> RefreshTokenFormat { get; set; }
 
+        /// <summary>
         /// The <see cref="JwtSecurityTokenHandler"/> instance used to forge access tokens.
         /// You can set it to null to produce opaque tokens serialized by the data protector subsytem.
         /// This property is only used when <see cref="IOpenIdConnectServerProvider.CreateAccessToken"/> doesn't call

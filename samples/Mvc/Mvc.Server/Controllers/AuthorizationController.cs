@@ -10,6 +10,7 @@ using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Mvc.Server.Models;
 using Owin;
+using Owin.Security.OpenIdConnect.Extensions;
 using Owin.Security.OpenIdConnect.Server;
 
 namespace Mvc.Server.Controllers {
@@ -23,13 +24,13 @@ namespace Mvc.Server.Controllers {
             // OpenIdConnectServerHandler automatically handles the error and MVC is not invoked.
             // You can safely remove this part and let Owin.Security.OpenIdConnect.Server automatically
             // handle the unrecoverable errors by switching ApplicationCanDisplayErrors to false in Startup.cs
-            OpenIdConnectMessage response = OwinContext.GetOpenIdConnectResponse();
+            var response = OwinContext.GetOpenIdConnectResponse();
             if (response != null) {
                 return View("Error", response);
             }
 
             // Extract the authorization request from the OWIN environment.
-            OpenIdConnectMessage request = OwinContext.GetOpenIdConnectRequest();
+            var request = OwinContext.GetOpenIdConnectRequest();
             if (request == null) {
                 return View("Error", new OpenIdConnectMessage {
                     Error = "invalid_request",
@@ -38,9 +39,9 @@ namespace Mvc.Server.Controllers {
             }
 
             Application application;
-            using (var db = new ApplicationContext()) {
+            using (var context = new ApplicationContext()) {
                 // Retrieve the application details corresponding to the requested client_id.
-                application = await (from entity in db.Applications
+                application = await (from entity in context.Applications
                                      where entity.ApplicationID == request.ClientId
                                      select entity).SingleOrDefaultAsync(cancellationToken);
             }
@@ -73,13 +74,13 @@ namespace Mvc.Server.Controllers {
             // OpenIdConnectServerHandler automatically handles the error and MVC is not invoked.
             // You can safely remove this part and let Owin.Security.OpenIdConnect.Server automatically
             // handle the unrecoverable errors by switching ApplicationCanDisplayErrors to false in Startup.cs
-            OpenIdConnectMessage response = OwinContext.GetOpenIdConnectResponse();
+            var response = OwinContext.GetOpenIdConnectResponse();
             if (response != null) {
                 return View("Error", response);
             }
 
             // Extract the authorization request from the OWIN environment.
-            OpenIdConnectMessage request = OwinContext.GetOpenIdConnectRequest();
+            var request = OwinContext.GetOpenIdConnectRequest();
             if (request == null) {
                 return View("Error", new OpenIdConnectMessage {
                     Error = "invalid_request",
@@ -116,7 +117,8 @@ namespace Mvc.Server.Controllers {
                 // destination is not defined or doesn't include "id_token".
                 // The other claims won't be visible for the client application.
                 if (claim.Type == ClaimTypes.Name) {
-                    claim.Properties.Add("destination", "id_token token");
+                    claim.WithDestination("id_token")
+                         .WithDestination("token");
                 }
 
                 identity.AddClaim(claim);
@@ -145,7 +147,7 @@ namespace Mvc.Server.Controllers {
         /// </summary>
         protected IOwinContext OwinContext {
             get {
-                IOwinContext context = HttpContext.GetOwinContext();
+                var context = HttpContext.GetOwinContext();
                 if (context == null) {
                     throw new NotSupportedException("An OWIN context cannot be extracted from HttpContext");
                 }

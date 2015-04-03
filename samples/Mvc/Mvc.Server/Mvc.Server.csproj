@@ -207,6 +207,10 @@
     <Compile Include="Startup.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\src\Owin.Security.OpenIdConnect.Extensions\Owin.Security.OpenIdConnect.Extensions.csproj">
+      <Project>{169af883-34c4-4a39-85f7-13c94ad9d678}</Project>
+      <Name>Owin.Security.OpenIdConnect.Extensions</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\src\Owin.Security.OpenIdConnect.Server\Owin.Security.OpenIdConnect.Server.csproj">
       <Project>{c3877d8e-db9d-4d6b-ab21-b0b11f50185b}</Project>
       <Name>Owin.Security.OpenIdConnect.Server</Name>
