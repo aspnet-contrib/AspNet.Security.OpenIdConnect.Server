@@ -22,19 +22,10 @@ if test ! -e .nuget; then
     cp $cachedir/nuget.exe .nuget/nuget.exe
 fi
 
-if test ! -d packages/KoreBuild; then
-    mono .nuget/nuget.exe install KoreBuild -ExcludeVersion -o packages -nocache -pre
+if test ! -d packages/Sake; then
     mono .nuget/nuget.exe install Sake -version 0.2 -o packages -ExcludeVersion
 fi
 
-if ! type dnvm > /dev/null 2>&1; then
-    source packages/KoreBuild/build/dnvm.sh
-fi
-
-if ! type dnx > /dev/null 2>&1; then
-    dnvm upgrade
-fi
-
 mono .nuget/nuget.exe restore
-mono packages/Sake/tools/Sake.exe -I packages/KoreBuild/build -f makefile.shade "$@"
+mono packages/Sake/tools/Sake.exe -f makefile.shade "$@"
 
