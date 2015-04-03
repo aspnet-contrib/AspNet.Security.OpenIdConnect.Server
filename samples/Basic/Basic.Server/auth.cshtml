@@ -2,6 +2,7 @@
 @using System.Security.Claims
 @using System.Web
 @using Owin
+@using Owin.Security.OpenIdConnect.Extensions
 @using Owin.Security.OpenIdConnect.Server
 
 @{
@@ -31,10 +32,7 @@
         // Note: by default, claims are not added in the identity token.
         // You can override this behavior by adding a new "destination" property
         // indicating in which type of tokens the claims can be included.
-        new Claim(ClaimTypes.Name, "Max Muster") {
-            Properties = { new KeyValuePair<string, string>("destination", "id_token token") }
-        },
-
+        new Claim(ClaimTypes.Name, "Max Muster").WithDestination("id_token token"),
         new Claim("sub", "Max Muster"), new Claim("user_id", "4711"),
         new Claim("Role", "Manager"), new Claim("Company", "ACME")
     };

@@ -7,16 +7,16 @@ using Owin.Security.OpenIdConnect.Server;
 
 namespace Mvc.Server.Providers {
     public class AuthorizationProvider : OpenIdConnectServerProvider {
-        public override async Task ValidateClientAuthentication(ValidateClientAuthenticationNotification context) {
+        public override async Task ValidateClientAuthentication(ValidateClientAuthenticationNotification notification) {
             string clientId, clientSecret;
 
             // Retrieve the client credentials from the request body.
             // Note: you can also retrieve them from the Authorization
             // header (basic authentication) using TryGetBasicCredentials.
-            context.TryGetFormCredentials(out clientId, out clientSecret);
+            notification.TryGetFormCredentials(out clientId, out clientSecret);
 
             if (string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(clientSecret)) {
-                context.SetError(
+                notification.SetError(
                     error: "invalid_request",
                     errorDescription: "Missing credentials: ensure that your credentials " +
                                       "were correctly flowed in the request body");
@@ -24,14 +24,14 @@ namespace Mvc.Server.Providers {
                 return;
             }
 
-            using (var db = new ApplicationContext()) {
+            using (var context = new ApplicationContext()) {
                 // Retrieve the application details corresponding to the requested client_id.
-                var application = await (from entity in db.Applications
+                var application = await (from entity in context.Applications
                                          where entity.ApplicationID == clientId
-                                         select entity).SingleOrDefaultAsync(context.Request.CallCancelled);
+                                         select entity).SingleOrDefaultAsync(notification.Request.CallCancelled);
 
                 if (application == null) {
-                    context.SetError(
+                    notification.SetError(
                         error: "invalid_client",
                         errorDescription: "Application not found in the database: " +
                                           "ensure that your client_id is correct");
@@ -39,7 +39,7 @@ namespace Mvc.Server.Providers {
                 }
 
                 if (!string.Equals(clientSecret, application.Secret, StringComparison.Ordinal)) {
-                    context.SetError(
+                    notification.SetError(
                         error: "invalid_client",
                         errorDescription: "Invalid credentials: ensure that you " +
                                           "specified a correct client_secret");
@@ -47,28 +47,28 @@ namespace Mvc.Server.Providers {
                     return;
                 }
 
-                context.Validated(clientId);
+                notification.Validated(clientId);
             }
         }
 
-        public override async Task ValidateClientRedirectUri(ValidateClientRedirectUriNotification context) {
-            using (var db = new ApplicationContext()) {
+        public override async Task ValidateClientRedirectUri(ValidateClientRedirectUriNotification notification) {
+            using (var context = new ApplicationContext()) {
                 // Retrieve the application details corresponding to the requested client_id.
-                var application = await (from entity in db.Applications
-                                         where entity.ApplicationID == context.ClientId
-                                         select entity).SingleOrDefaultAsync(context.Request.CallCancelled);
+                var application = await (from entity in context.Applications
+                                         where entity.ApplicationID == notification.ClientId
+                                         select entity).SingleOrDefaultAsync(notification.Request.CallCancelled);
 
                 if (application == null) {
-                    context.SetError(
+                    notification.SetError(
                         error: "invalid_client",
                         errorDescription: "Application not found in the database: " +
                                           "ensure that your client_id is correct");
                     return;
                 }
 
-                if (!string.IsNullOrEmpty(context.RedirectUri)) {
-                    if (!string.Equals(context.RedirectUri, application.RedirectUri, StringComparison.Ordinal)) {
-                        context.SetError(
+                if (!string.IsNullOrEmpty(notification.RedirectUri)) {
+                    if (!string.Equals(notification.RedirectUri, application.RedirectUri, StringComparison.Ordinal)) {
+                        notification.SetError(
                             error: "invalid_client",
                             errorDescription: "Invalid redirect_uri");
 
@@ -76,7 +76,7 @@ namespace Mvc.Server.Providers {
                     }
                 }
 
-                context.Validated(application.RedirectUri);
+                notification.Validated(application.RedirectUri);
             }
         }
 
@@ -108,9 +108,9 @@ namespace Mvc.Server.Providers {
                 // Note: you MUST ensure the nonces are correctly removed after each call to prevent replay attacks.
                 string nonceID = notification.AuthorizationCode;
 
-                Nonce nonce = await (from entity in context.Nonces
-                                     where entity.NonceID == nonceID
-                                     select entity).SingleOrDefaultAsync(notification.Request.CallCancelled);
+                var nonce = await (from entity in context.Nonces
+                                   where entity.NonceID == nonceID
+                                   select entity).SingleOrDefaultAsync(notification.Request.CallCancelled);
 
                 if (nonce == null) {
                     return;

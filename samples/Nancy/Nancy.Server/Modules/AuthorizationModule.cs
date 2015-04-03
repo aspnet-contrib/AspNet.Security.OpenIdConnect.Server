@@ -8,6 +8,7 @@ using Nancy.Security;
 using Nancy.Server.Extensions;
 using Nancy.Server.Models;
 using Owin;
+using Owin.Security.OpenIdConnect.Extensions;
 using Owin.Security.OpenIdConnect.Server;
 
 namespace Nancy.Server.Modules {
@@ -23,13 +24,13 @@ namespace Nancy.Server.Modules {
                 // OpenIdConnectServerHandler automatically handles the error and Nancy is not invoked.
                 // You can safely remove this part and let Owin.Security.OpenIdConnect.Server automatically
                 // handle the unrecoverable errors by switching ApplicationCanDisplayErrors to false in Startup.cs
-                OpenIdConnectMessage response = OwinContext.GetOpenIdConnectResponse();
+                var response = OwinContext.GetOpenIdConnectResponse();
                 if (response != null) {
                     return View["error.cshtml", response];
                 }
 
                 // Extract the authorization request from the OWIN environment.
-                OpenIdConnectMessage request = OwinContext.GetOpenIdConnectRequest();
+                var request = OwinContext.GetOpenIdConnectRequest();
                 if (request == null) {
                     return View["error.cshtml", new OpenIdConnectMessage {
                         Error = "invalid_request",
@@ -38,9 +39,9 @@ namespace Nancy.Server.Modules {
                 }
 
                 Application application;
-                using (var db = new ApplicationContext()) {
+                using (var context = new ApplicationContext()) {
                     // Retrieve the application details corresponding to the requested client_id.
-                    application = await (from entity in db.Applications
+                    application = await (from entity in context.Applications
                                          where entity.ApplicationID == request.ClientId
                                          select entity).SingleOrDefaultAsync(cancellationToken);
                 }
@@ -77,7 +78,8 @@ namespace Nancy.Server.Modules {
                     // destination is not defined or doesn't include "id_token".
                     // The other claims won't be visible for the client application.
                     if (claim.Type == ClaimTypes.Name) {
-                        claim.Properties.Add("destination", "id_token token");
+                        claim.WithDestination("id_token")
+                             .WithDestination("token");
                     }
 
                     identity.AddClaim(claim);
@@ -106,7 +108,7 @@ namespace Nancy.Server.Modules {
                 this.ValidateCsrfToken();
 
                 // Extract the authorization request from the OWIN environment.
-                OpenIdConnectMessage request = OwinContext.GetOpenIdConnectRequest();
+                var request = OwinContext.GetOpenIdConnectRequest();
                 if (request == null) {
                     return View["error.cshtml", new OpenIdConnectMessage {
                         Error = "invalid_request",
@@ -132,7 +134,7 @@ namespace Nancy.Server.Modules {
         /// </summary>
         protected IOwinContext OwinContext {
             get {
-                IOwinContext context = Context.GetOwinContext();
+                var context = Context.GetOwinContext();
                 if (context == null) {
                     throw new NotSupportedException("An OWIN context cannot be extracted from NancyContext");
                 }

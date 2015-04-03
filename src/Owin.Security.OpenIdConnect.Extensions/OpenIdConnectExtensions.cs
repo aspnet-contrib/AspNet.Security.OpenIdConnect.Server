@@ -228,6 +228,10 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="claim">The <see cref="Claim"/> instance.</param>
         public static bool HasDestination(this Claim claim) {
+            if (claim == null) {
+                throw new ArgumentNullException("claim");
+            }
+
             return claim.Properties.ContainsKey("destination");
         }
 
@@ -238,12 +242,44 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="claim">The <see cref="Claim"/> instance.</param>
         /// <param name="value">The required destination.</param>
         public static bool HasDestination(this Claim claim, string value) {
+            if (claim == null) {
+                throw new ArgumentNullException("claim");
+            }
+
+            if (string.IsNullOrWhiteSpace(value)) {
+                throw new ArgumentNullException("value");
+            }
+
             string destination;
             if (!claim.Properties.TryGetValue("destination", out destination)) {
                 return false;
             }
 
             return HasValue(destination, value);
+        }
+
+        /// <summary>
+        /// Adds a specific destination to a claim.
+        /// </summary>
+        /// <param name="claim">The <see cref="Claim"/> instance.</param>
+        /// <param name="value">The destination.</param>
+        public static Claim WithDestination(this Claim claim, string value) {
+            if (claim == null) {
+                throw new ArgumentNullException("claim");
+            }
+
+            if (string.IsNullOrWhiteSpace(value)) {
+                throw new ArgumentNullException("value");
+            }
+
+            string destination;
+            if (claim.Properties.TryGetValue("destination", out destination)) {
+                claim.Properties["destination"] = string.Concat(destination, ' ', value);
+                return claim;
+            }
+
+            claim.Properties.Add("destination", value);
+            return claim;
         }
 
         private static bool HasValue(string source, string value) {
