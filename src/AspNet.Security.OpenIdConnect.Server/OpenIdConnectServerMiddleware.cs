@@ -36,7 +36,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             RequestDelegate next,
             IServiceProvider services,
             ILoggerFactory loggerFactory,
-            IDataProtectionProvider dataProtectorProvider,
+            IDataProtectionProvider dataProtectionProvider,
             IOptions<OpenIdConnectServerOptions> options,
             ConfigureOptions<OpenIdConnectServerOptions> configuration)
             : base(next, options, configuration) {
@@ -52,21 +52,21 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             if (Options.AuthorizationCodeFormat == null) {
                 Options.AuthorizationCodeFormat = new EnhancedTicketDataFormat(
-                    dataProtectorProvider.CreateProtector(
+                    dataProtectionProvider.CreateProtector(
                         typeof(OpenIdConnectServerMiddleware).FullName,
                         Options.AuthenticationScheme, "Authentication_Code", "v1"));
             }
 
             if (Options.AccessTokenFormat == null) {
-                Options.AccessTokenFormat = new EnhancedTicketDataFormat(
-                    dataProtectorProvider.CreateProtector(
+                Options.AccessTokenFormat = new TicketDataFormat(
+                    dataProtectionProvider.CreateProtector(
                         typeof(OpenIdConnectServerMiddleware).FullName,
                         Options.AuthenticationScheme, "Access_Token", "v1"));
             }
 
             if (Options.RefreshTokenFormat == null) {
                 Options.RefreshTokenFormat = new EnhancedTicketDataFormat(
-                    dataProtectorProvider.CreateProtector(
+                    dataProtectionProvider.CreateProtector(
                         typeof(OpenIdConnectServerMiddleware).Namespace,
                         Options.AuthenticationScheme, "Refresh_Token", "v1"));
             }
