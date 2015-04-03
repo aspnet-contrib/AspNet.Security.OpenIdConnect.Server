@@ -1230,7 +1230,13 @@ namespace AspNet.Security.OpenIdConnect.Server {
             foreach (var identity in ticket.Principal.Identities) {
                 var clone = identity.Clone();
 
-                foreach (var claim in identity.Claims) {
+                foreach (var claim in clone.Claims.ToArray()) {
+                    // ClaimTypes.NameIdentifier and JwtRegisteredClaimNames.Sub are never excluded.
+                    if (string.Equals(claim.Type, ClaimTypes.NameIdentifier, StringComparison.Ordinal) ||
+                        string.Equals(claim.Type, JwtRegisteredClaimNames.Sub, StringComparison.Ordinal)) {
+                        continue;
+                    }
+
                     // By default, claims whose destination is not referenced are included in the authorization code.
                     // Claims whose explicit destination doesn't contain "token" are excluded.
                     if (claim.HasDestination() && !claim.HasDestination(OpenIdConnectConstants.ResponseTypes.Token)) {
@@ -1286,14 +1292,20 @@ namespace AspNet.Security.OpenIdConnect.Server {
             foreach (var identity in ticket.Principal.Identities) {
                 var clone = identity.Clone();
 
-                foreach (var claim in identity.Claims) {
+                foreach (var claim in clone.Claims.ToArray()) {
+                    // ClaimTypes.NameIdentifier and JwtRegisteredClaimNames.Sub are never excluded.
+                    if (string.Equals(claim.Type, ClaimTypes.NameIdentifier, StringComparison.Ordinal) ||
+                        string.Equals(claim.Type, JwtRegisteredClaimNames.Sub, StringComparison.Ordinal)) {
+                        continue;
+                    }
+
                     if (Options.AccessTokenHandler == null) {
                         // By default, claims whose destination is not referenced are included in the access tokens when a data protector is used.
                         // Note: access tokens issued by the token endpoint from an authorization code or a refresh token
                         // usually don't contain such a flag: in this case, CreateAuthorizationCodeAsync is responsible of filtering the claims.
                         // Claims whose destination doesn't contain "token" are excluded.
                         if (claim.HasDestination() && !claim.HasDestination(OpenIdConnectConstants.ResponseTypes.Token)) {
-                            identity.RemoveClaim(claim);
+                            clone.RemoveClaim(claim);
                         }
                     }
 
@@ -1302,7 +1314,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                         // is not explictly referenced are not included in the access token.
                         // Claims whose destination doesn't contain "token" are excluded.
                         if (!claim.HasDestination(OpenIdConnectConstants.ResponseTypes.Token)) {
-                            identity.RemoveClaim(claim);
+                            clone.RemoveClaim(claim);
                         }
                     }
                 }
@@ -1355,7 +1367,13 @@ namespace AspNet.Security.OpenIdConnect.Server {
             foreach (var identity in ticket.Principal.Identities) {
                 var clone = identity.Clone();
 
-                foreach (var claim in identity.Claims) {
+                foreach (var claim in clone.Claims.ToArray()) {
+                    // ClaimTypes.NameIdentifier and JwtRegisteredClaimNames.Sub are never excluded.
+                    if (string.Equals(claim.Type, ClaimTypes.NameIdentifier, StringComparison.Ordinal) ||
+                        string.Equals(claim.Type, JwtRegisteredClaimNames.Sub, StringComparison.Ordinal)) {
+                        continue;
+                    }
+
                     // By default, claims whose destination is not referenced are included in the authorization code.
                     // Claims whose explicit destination doesn't contain "token" are excluded.
                     if (claim.HasDestination() && !claim.HasDestination(OpenIdConnectConstants.ResponseTypes.Token)) {
@@ -1394,17 +1412,21 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             // Replace the identity by a new one containing only the filtered claims.
-            var identity = new ClaimsIdentity(ticket.AuthenticationScheme);
+            var identity = new ClaimsIdentity(ticket.Principal.Claims, ticket.AuthenticationScheme);
 
-            foreach (var claim in ticket.Principal.Claims) {
+            foreach (var claim in identity.Claims.ToArray()) {
+                // ClaimTypes.NameIdentifier and JwtRegisteredClaimNames.Sub are never excluded.
+                if (string.Equals(claim.Type, ClaimTypes.NameIdentifier, StringComparison.Ordinal) ||
+                    string.Equals(claim.Type, JwtRegisteredClaimNames.Sub, StringComparison.Ordinal)) {
+                    continue;
+                }
+
                 // By default, claims whose destination is not
                 // referenced are not included in the identity token.
                 // Claims whose destination doesn't contain "id_token" are excluded.
                 if (!claim.HasDestination(OpenIdConnectConstants.ResponseTypes.IdToken)) {
-                    continue;
+                    identity.RemoveClaim(claim);
                 }
-
-                identity.AddClaim(claim);
             }
 
             identity.AddClaim(new Claim(JwtRegisteredClaimNames.Iat, EpochTime.GetIntDate(properties.IssuedUtc.Value.UtcDateTime).ToString()));

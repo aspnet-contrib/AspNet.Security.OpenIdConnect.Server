@@ -27,13 +27,13 @@ namespace Mvc.Server.Controllers {
             // OpenIdConnectServerHandler automatically handles the error and MVC is not invoked.
             // You can safely remove this part and let AspNet.Security.OpenIdConnect.Server automatically
             // handle the unrecoverable errors by switching ApplicationCanDisplayErrors to false in Startup.cs
-            OpenIdConnectMessage response = Context.GetOpenIdConnectResponse();
+            var response = Context.GetOpenIdConnectResponse();
             if (response != null) {
                 return View("Error", response);
             }
 
             // Extract the authorization request from the OWIN environment.
-            OpenIdConnectMessage request = Context.GetOpenIdConnectRequest();
+            var request = Context.GetOpenIdConnectRequest();
             if (request == null) {
                 return View("Error", new OpenIdConnectMessage {
                     Error = "invalid_request",
@@ -72,13 +72,13 @@ namespace Mvc.Server.Controllers {
             // OpenIdConnectServerHandler automatically handles the error and MVC is not invoked.
             // You can safely remove this part and let AspNet.Security.OpenIdConnect.Server automatically
             // handle the unrecoverable errors by switching ApplicationCanDisplayErrors to false in Startup.cs
-            OpenIdConnectMessage response = Context.GetOpenIdConnectResponse();
+            var response = Context.GetOpenIdConnectResponse();
             if (response != null) {
                 return View("Error", response);
             }
 
             // Extract the authorization request from the OWIN environment.
-            OpenIdConnectMessage request = Context.GetOpenIdConnectRequest();
+            var request = Context.GetOpenIdConnectRequest();
             if (request == null) {
                 return View("Error", new OpenIdConnectMessage {
                     Error = "invalid_request",
@@ -109,9 +109,11 @@ namespace Mvc.Server.Controllers {
             var identity = new ClaimsIdentity(OpenIdConnectDefaults.AuthenticationScheme);
 
             foreach (var claim in Context.User.Claims) {
-                // Allow both ClaimTypes.Name and ClaimTypes.NameIdentifier to be added in the id_token.
-                // The other claims won't be visible for the client application or the resource server.
-                if (claim.Type == ClaimTypes.Name || claim.Type == ClaimTypes.NameIdentifier) {
+                // Allow ClaimTypes.Name to be added in the id_token.
+                // ClaimTypes.NameIdentifier is automatically added, even if its
+                // destination is not defined or doesn't include "id_token".
+                // The other claims won't be visible for the client application.
+                if (claim.Type == ClaimTypes.Name) {
                     claim.Properties.Add("destination", "id_token token");
                 }
 
