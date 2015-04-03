@@ -1,6 +1,9 @@
-﻿using Nancy.Bootstrapper;
+﻿using System;
+using System.Collections.Generic;
+using Nancy.Bootstrapper;
 using Nancy.Security;
 using Nancy.TinyIoc;
+using Nancy.ViewEngines.Razor;
 
 namespace Nancy.Server {
     public class NancyBootstrapper : DefaultNancyBootstrapper {
@@ -10,6 +13,12 @@ namespace Nancy.Server {
             Csrf.Enable(pipelines);
 
             base.ApplicationStartup(container, pipelines);
+        }
+
+        protected override IEnumerable<Type> ViewEngines {
+            get {
+                yield return typeof(RazorViewEngine);
+            }
         }
     }
 }
