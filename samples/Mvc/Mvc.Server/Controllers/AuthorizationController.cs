@@ -111,9 +111,11 @@ namespace Mvc.Server.Controllers {
             var identity = new ClaimsIdentity(OpenIdConnectDefaults.AuthenticationType);
 
             foreach (var claim in OwinContext.Authentication.User.Claims) {
-                // Allow both ClaimTypes.Name and ClaimTypes.NameIdentifier to be added in the id_token.
+                // Allow ClaimTypes.Name to be added in the id_token.
+                // ClaimTypes.NameIdentifier is automatically added, even if its
+                // destination is not defined or doesn't include "id_token".
                 // The other claims won't be visible for the client application.
-                if (claim.Type == ClaimTypes.Name || claim.Type == ClaimTypes.NameIdentifier) {
+                if (claim.Type == ClaimTypes.Name) {
                     claim.Properties.Add("destination", "id_token token");
                 }
 
