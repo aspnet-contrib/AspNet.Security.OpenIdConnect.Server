@@ -30,7 +30,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the authentication ticket.
         /// </summary>
-        public AuthenticationTicket AuthenticationTicket { get; }
+        public AuthenticationTicket AuthenticationTicket { get; private set; }
 
         /// <summary>
         /// Gets or sets the identity token
