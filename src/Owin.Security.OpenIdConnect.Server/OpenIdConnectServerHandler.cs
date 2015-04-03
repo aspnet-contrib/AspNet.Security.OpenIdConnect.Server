@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IdentityModel.Protocols.WSTrust;
 using System.IdentityModel.Tokens;
 using System.IO;
 using System.Linq;
@@ -1346,13 +1347,16 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return Options.AccessTokenFormat.Protect(ticket);
             }
 
-            var token = Options.AccessTokenHandler.CreateToken(
-                subject: identity,
-                issuer: Options.Issuer + "/",
-                signingCredentials: Options.SigningCredentials,
-                audience: request.Resource,
-                notBefore: properties.IssuedUtc.Value.UtcDateTime,
-                expires: properties.ExpiresUtc.Value.UtcDateTime);
+            var token = Options.AccessTokenHandler.CreateToken(new SecurityTokenDescriptor {
+                Subject = identity,
+                AppliesToAddress = request.Resource,
+                TokenIssuerName = Options.Issuer + "/",
+                EncryptingCredentials = Options.EncryptingCredentials,
+                SigningCredentials = Options.SigningCredentials,
+                Lifetime = new Lifetime(
+                    properties.IssuedUtc.Value.UtcDateTime,
+                    properties.ExpiresUtc.Value.UtcDateTime)
+            });
 
             return Options.AccessTokenHandler.WriteToken(token);
         }

@@ -14,6 +14,8 @@ using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Notifications;
 
 namespace Owin.Security.OpenIdConnect.Server {
+    using Microsoft.IdentityModel.Tokens;
+
     /// <summary>
     /// Options class provides information needed to control Authorization Server middleware behavior
     /// </summary>
@@ -27,14 +29,21 @@ namespace Owin.Security.OpenIdConnect.Server {
             AccessTokenLifetime = TimeSpan.FromHours(1);
             IdentityTokenLifetime = TimeSpan.FromMinutes(20);
             RefreshTokenLifetime =  TimeSpan.FromHours(6);
+
             UseSlidingExpiration = true;
+
             AuthorizationEndpointPath = new PathString(OpenIdConnectDefaults.AuthorizationEndpointPath);
             ConfigurationEndpointPath = new PathString(OpenIdConnectDefaults.ConfigurationEndpointPath);
             KeysEndpointPath = new PathString(OpenIdConnectDefaults.KeysEndpointPath);
             TokenEndpointPath = new PathString(OpenIdConnectDefaults.TokenEndpointPath);
+
             Provider = new OpenIdConnectServerProvider();
             SystemClock = new SystemClock();
             Cache = new MemoryCache(typeof(OpenIdConnectServerMiddleware).Name);
+            RandomNumberGenerator = RandomNumberGenerator.Create();
+
+            AccessTokenHandler = new JwtSecurityTokenHandler();
+            IdentityTokenHandler = new JwtSecurityTokenHandler();
         }
 
         /// <summary>
@@ -43,6 +52,15 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// Unless AllowInsecureHttp has been set to true, an HTTPS address must be provided.
         /// </summary>
         public string Issuer { get; set; }
+
+        /// <summary>
+        /// The credentials used to encrypt access tokens, when supported by the access token handler.
+        /// Note that the default access token handler produces JWT tokens that cannot be encrypted:
+        /// you MUST replace the <see cref="AccessTokenHandler"/> property with an handler supporting
+        /// encryption for this property to work (e.g <see cref="Saml2SecurityTokenHandler"/>,
+        /// which is part of the Microsoft.IdentityModel.Protocol.Extensions package).
+        /// </summary>
+        public EncryptingCredentials EncryptingCredentials { get; set; }
 
         /// <summary>
         /// The credentials used to sign id_tokens. You can provide any symmetric (e.g <see cref="InMemorySymmetricSecurityKey"/>)
@@ -118,12 +136,13 @@ namespace Owin.Security.OpenIdConnect.Server {
         public ISecureDataFormat<AuthenticationTicket> RefreshTokenFormat { get; set; }
 
         /// <summary>
-        /// The <see cref="JwtSecurityTokenHandler"/> instance used to forge access tokens.
+        /// The <see cref="SecurityTokenHandler"/> instance used to forge access tokens.
+        /// The default instance (<see cref="JwtSecurityTokenHandler"/>) creates JWT security tokens.
         /// You can set it to null to produce opaque tokens serialized by the data protector subsytem.
         /// This property is only used when <see cref="IOpenIdConnectServerProvider.CreateAccessToken"/> doesn't call
         /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
-        public JwtSecurityTokenHandler AccessTokenHandler { get; set; } = new JwtSecurityTokenHandler();
+        public SecurityTokenHandler AccessTokenHandler { get; set; }
 
         /// <summary>
         /// The <see cref="JwtSecurityTokenHandler"/> instance used to forge identity tokens.
@@ -131,7 +150,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// This property is only used when <see cref="IOpenIdConnectServerProvider.CreateIdentityToken"/> doesn't call
         /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
-        public JwtSecurityTokenHandler IdentityTokenHandler { get; set; } = new JwtSecurityTokenHandler();
+        public JwtSecurityTokenHandler IdentityTokenHandler { get; set; }
 
         /// <summary>
         /// The period of time the authorization code remains valid after being issued. The default is 5 minutes.
@@ -194,6 +213,6 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// The random number generator used for cryptographic operations.
         /// Replacing the default instance is usually not necessary.
         /// </summary>
-        public RandomNumberGenerator RandomNumberGenerator { get; set; } = RandomNumberGenerator.Create();
+        public RandomNumberGenerator RandomNumberGenerator { get; set; }
     }
 }
