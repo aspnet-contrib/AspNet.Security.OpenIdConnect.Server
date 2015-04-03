@@ -1477,15 +1477,15 @@ namespace Owin.Security.OpenIdConnect.Server {
             if (Options.IdentityTokenHandler == null) {
                 throw new InvalidOperationException(
                     "A security token handler is required to create an identity token: " +
-                    $"make sure to assign a valid instance to {nameof(Options.IdentityTokenHandler)} " +
-                    $"or to override the {nameof(Options.Provider.CreateIdentityToken)} " +
+                    "make sure to assign a valid instance to Options.IdentityTokenHandler " +
+                    "or to override the Options.Provider.CreateIdentityToken " +
                     "notification and provide a custom identity token.");
             }
 
             if (Options.SigningCredentials == null) {
                 throw new InvalidOperationException(
                     "Signing credentials are required to create an identity token: " +
-                    $"make sure to assign a valid instance to {nameof(Options.SigningCredentials)}.");
+                    "make sure to assign a valid instance to Options.SigningCredentials.");
             }
 
             var token = Options.IdentityTokenHandler.CreateToken(
