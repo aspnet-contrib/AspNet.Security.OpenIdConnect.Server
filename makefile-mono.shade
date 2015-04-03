@@ -5,7 +5,7 @@ set FINAL_MILESTONE='${false}'
 var AUTHORS='aspnet-contrib'
 
 use-standard-lifecycle
-use-standard-goals features='nuget'
+use-standard-goals features=''
 
 functions
   @{
