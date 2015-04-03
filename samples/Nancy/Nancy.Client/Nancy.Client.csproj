@@ -150,6 +150,7 @@
   <ItemGroup>
     <Compile Include="Modules\AuthenticationModule.cs" />
     <Compile Include="Modules\HomeModule.cs" />
+    <Compile Include="NancyBootstrapper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />
   </ItemGroup>

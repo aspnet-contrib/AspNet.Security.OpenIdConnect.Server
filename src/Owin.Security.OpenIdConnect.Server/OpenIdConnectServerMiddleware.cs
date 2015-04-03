@@ -48,7 +48,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             if (Options.AccessTokenFormat == null) {
-                Options.AccessTokenFormat = new EnhancedTicketDataFormat(
+                Options.AccessTokenFormat = new TicketDataFormat(
                     app.CreateDataProtector(
                         "Microsoft.Owin.Security.OAuth",
                         "Access_Token", "v1"));
