@@ -1262,7 +1262,13 @@ namespace Owin.Security.OpenIdConnect.Server {
             // Create a new identity containing only the filtered claims.
             var identity = ticket.Identity.Clone();
 
-            foreach (var claim in identity.Claims) {
+            foreach (var claim in identity.Claims.ToArray()) {
+                // ClaimTypes.NameIdentifier and JwtRegisteredClaimNames.Sub are never excluded.
+                if (string.Equals(claim.Type, ClaimTypes.NameIdentifier, StringComparison.Ordinal) ||
+                    string.Equals(claim.Type, JwtRegisteredClaimNames.Sub, StringComparison.Ordinal)) {
+                    continue;
+                }
+
                 // By default, claims whose destination is not referenced are included in the authorization code.
                 // Claims whose explicit destination doesn't contain "token" are excluded.
                 if (claim.HasDestination() && !claim.HasDestination(OpenIdConnectConstants.ResponseTypes.Token)) {
@@ -1305,7 +1311,13 @@ namespace Owin.Security.OpenIdConnect.Server {
             // Create a new identity containing only the filtered claims.
             var identity = ticket.Identity.Clone();
 
-            foreach (var claim in identity.Claims) {
+            foreach (var claim in identity.Claims.ToArray()) {
+                // ClaimTypes.NameIdentifier and JwtRegisteredClaimNames.Sub are never excluded.
+                if (string.Equals(claim.Type, ClaimTypes.NameIdentifier, StringComparison.Ordinal) ||
+                    string.Equals(claim.Type, JwtRegisteredClaimNames.Sub, StringComparison.Ordinal)) {
+                    continue;
+                }
+
                 if (Options.AccessTokenHandler == null) {
                     // By default, claims whose destination is not referenced are included in the access tokens when a data protector is used.
                     // Note: access tokens issued by the token endpoint from an authorization code or a refresh token
@@ -1368,8 +1380,14 @@ namespace Owin.Security.OpenIdConnect.Server {
             // Create a new identity containing only the filtered claims.
             var identity = ticket.Identity.Clone();
 
-            foreach (var claim in identity.Claims) {
-                // By default, claims whose destination is not referenced are included in the authorization code.
+            foreach (var claim in identity.Claims.ToArray()) {
+                // ClaimTypes.NameIdentifier and JwtRegisteredClaimNames.Sub are never excluded.
+                if (string.Equals(claim.Type, ClaimTypes.NameIdentifier, StringComparison.Ordinal) ||
+                    string.Equals(claim.Type, JwtRegisteredClaimNames.Sub, StringComparison.Ordinal)) {
+                    continue;
+                }
+
+                // By default, claims whose destination is not referenced are included in the refresh token.
                 // Claims whose explicit destination doesn't contain "token" are excluded.
                 if (claim.HasDestination() && !claim.HasDestination(OpenIdConnectConstants.ResponseTypes.Token)) {
                     identity.RemoveClaim(claim);
@@ -1406,7 +1424,13 @@ namespace Owin.Security.OpenIdConnect.Server {
             // Replace the identity by a new one containing only the filtered claims.
             var identity = ticket.Identity.Clone();
 
-            foreach (var claim in identity.Claims) {
+            foreach (var claim in identity.Claims.ToArray()) {
+                // ClaimTypes.NameIdentifier and JwtRegisteredClaimNames.Sub are never excluded.
+                if (string.Equals(claim.Type, ClaimTypes.NameIdentifier, StringComparison.Ordinal) ||
+                    string.Equals(claim.Type, JwtRegisteredClaimNames.Sub, StringComparison.Ordinal)) {
+                    continue;
+                }
+
                 // By default, claims whose destination is not
                 // referenced are not included in the identity token.
                 // Claims whose destination doesn't contain "id_token" are excluded.
