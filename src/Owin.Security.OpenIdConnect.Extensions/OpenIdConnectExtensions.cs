@@ -224,6 +224,18 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         }
 
         /// <summary>
+        /// Extracts the refresh token from an <see cref="OpenIdConnectMessage"/>.
+        /// </summary>
+        /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
+        public static string GetRefreshToken(this OpenIdConnectMessage message) {
+            if (message == null) {
+                throw new ArgumentNullException("message");
+            }
+
+            return message.GetParameter("refresh_token");
+        }
+
+        /// <summary>
         /// Determines whether the given claim contains a destination.
         /// </summary>
         /// <param name="claim">The <see cref="Claim"/> instance.</param>

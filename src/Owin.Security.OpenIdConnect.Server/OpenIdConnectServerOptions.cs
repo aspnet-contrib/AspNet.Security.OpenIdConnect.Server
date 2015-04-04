@@ -36,6 +36,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             ConfigurationEndpointPath = new PathString(OpenIdConnectDefaults.ConfigurationEndpointPath);
             CryptographyEndpointPath = new PathString(OpenIdConnectDefaults.CryptographyEndpointPath);
             TokenEndpointPath = new PathString(OpenIdConnectDefaults.TokenEndpointPath);
+            ValidationEndpointPath = new PathString(OpenIdConnectDefaults.ValidationEndpointPath);
 
             Provider = new OpenIdConnectServerProvider();
             SystemClock = new SystemClock();
@@ -98,6 +99,13 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// be provided to this endpoint. You can set it to <see cref="PathString.Empty"/> to disable the token endpoint.
         /// </summary>
         public PathString TokenEndpointPath { get; set; }
+
+        /// <summary>
+        /// The request path client applications communicate with to validate identity or access tokens. 
+        /// Must begin with a leading slash, like "/connect/token_validation".
+        /// You can set it to <see cref="PathString.Empty"/> to disable the validation endpoint.
+        /// </summary>
+        public PathString ValidationEndpointPath { get; set; }
 
         /// <summary>
         /// Specifies a provider that the <see cref="OpenIdConnectServerMiddleware" /> invokes

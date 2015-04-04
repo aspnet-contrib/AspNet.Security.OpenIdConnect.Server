@@ -211,6 +211,23 @@ namespace Owin.Security.OpenIdConnect.Server {
         Task TokenEndpointResponse(TokenEndpointResponseNotification notification);
 
         /// <summary>
+        /// Called by the client applications to validate an access token, an identity token or a refresh token.
+        /// An application may implement this call in order to do any final modification to the configuration metadata.
+        /// </summary>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        Task ValidationEndpoint(ValidationEndpointNotification notification);
+
+        /// <summary>
+        /// Called before the authorization server starts emitting the claims associated with the tokens received.
+        /// If the web application wishes to produce the configuration metadata directly in this call, it may write to the 
+        /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
+        /// </summary>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        Task ValidationEndpointResponse(ValidationEndpointResponseNotification notification);
+
+        /// <summary>
         /// Called to create a new authorization code. An application may use this notification
         /// to replace the authentication ticket before it is serialized or to use its own code store
         /// and skip the default logic using <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
@@ -254,6 +271,24 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <param name="notification">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
         Task ReceiveAuthorizationCode(ReceiveAuthorizationCodeNotification notification);
+
+        /// <summary>
+        /// Called when receiving an access token. An application may use this notification
+        /// to deserialize the token using a custom format and to skip the default logic using
+        /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
+        /// </summary>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        Task ReceiveAccessToken(ReceiveAccessTokenNotification notification);
+
+        /// <summary>
+        /// Called when receiving an identity token. An application may use this notification
+        /// to deserialize the token using a custom format and to skip the default logic using
+        /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
+        /// </summary>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        Task ReceiveIdentityToken(ReceiveIdentityTokenNotification notification);
 
         /// <summary>
         /// Called when receiving a refresh token. An application may use this notification
