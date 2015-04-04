@@ -22,6 +22,12 @@ namespace Owin.Security.OpenIdConnect.Server {
             IOwinContext context,
             OpenIdConnectServerOptions options)
             : base(context, options) {
+            Keys = new List<JsonWebKey>();
         }
+
+        /// <summary>
+        /// Gets a list of the JSON Web Keys found by the authorization server.
+        /// </summary>
+        public IList<JsonWebKey> Keys { get; private set; }
     }
 }

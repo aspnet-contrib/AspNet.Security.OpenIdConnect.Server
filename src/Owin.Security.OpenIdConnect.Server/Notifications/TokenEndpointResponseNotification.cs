@@ -4,12 +4,7 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Security.Claims;
-using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
-using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Provider;
 using Newtonsoft.Json.Linq;
 
@@ -23,74 +18,18 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
-        /// <param name="ticket"></param>
-        /// <param name="tokenRequest"></param>
-        /// <param name="tokenResponse"></param>
+        /// <param name="payload"></param>
         internal TokenEndpointResponseNotification(
             IOwinContext context,
             OpenIdConnectServerOptions options,
-            AuthenticationTicket ticket,
-            OpenIdConnectMessage tokenRequest,
-            OpenIdConnectMessage tokenResponse)
+            JObject payload)
             : base(context, options) {
-            if (ticket == null) {
-                throw new ArgumentNullException("ticket");
-            }
-
-            AdditionalParameters = new Dictionary<string, JToken>(StringComparer.Ordinal);
-            Identity = ticket.Identity;
-            Properties = ticket.Properties;
-            TokenIssued = Identity != null;
-            TokenRequest = tokenRequest;
-            TokenResponse = tokenResponse;
+            Payload = payload;
         }
 
         /// <summary>
-        /// Enables additional values to be appended to the token response.
+        /// Gets the JSON payload returned to the client application.
         /// </summary>
-        public IDictionary<string, JToken> AdditionalParameters { get; private set; }
-
-        /// <summary>
-        /// Gets the identity of the resource owner.
-        /// </summary>
-        public ClaimsIdentity Identity { get; private set; }
-
-        /// <summary>
-        /// Dictionary containing the state of the authentication session.
-        /// </summary>
-        public AuthenticationProperties Properties { get; private set; }
-
-        /// <summary>
-        /// The issued Access-Token
-        /// </summary>
-        public string AccessToken {
-            get { return TokenResponse.AccessToken; }
-        }
-
-        /// <summary>
-        /// Gets the token request. 
-        /// </summary>
-        public OpenIdConnectMessage TokenRequest { get; private set; }
-
-        /// <summary>
-        /// Gets the token response. 
-        /// </summary>
-        public OpenIdConnectMessage TokenResponse { get; private set; }
-
-        /// <summary>
-        /// Gets whether or not the token should be issued.
-        /// </summary>
-        public bool TokenIssued { get; private set; }
-
-        /// <summary>
-        /// Issues the token.
-        /// </summary>
-        /// <param name="identity"></param>
-        /// <param name="properties"></param>
-        public void Issue(ClaimsIdentity identity, AuthenticationProperties properties) {
-            Identity = identity;
-            Properties = properties;
-            TokenIssued = true;
-        }
+        public JObject Payload { get; private set; }
     }
 }
