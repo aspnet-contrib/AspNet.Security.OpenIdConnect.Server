@@ -48,6 +48,11 @@ namespace Owin.Security.OpenIdConnect.Server {
         public bool IsTokenEndpoint { get; private set; }
 
         /// <summary>
+        /// Gets whether or not the endpoint is a validation endpoint.
+        /// </summary>
+        public bool IsValidationEndpoint { get; private set; }
+
+        /// <summary>
         /// Sets the endpoint type to the authorization endpoint.
         /// </summary>
         public void MatchesAuthorizationEndpoint() {
@@ -55,6 +60,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             IsConfigurationEndpoint = false;
             IsCryptographyEndpoint = false;
             IsTokenEndpoint = false;
+            IsValidationEndpoint = false;
         }
 
         /// <summary>
@@ -65,6 +71,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             IsConfigurationEndpoint = true;
             IsCryptographyEndpoint = false;
             IsTokenEndpoint = false;
+            IsValidationEndpoint = false;
         }
 
         /// <summary>
@@ -75,6 +82,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             IsConfigurationEndpoint = false;
             IsCryptographyEndpoint = true;
             IsTokenEndpoint = false;
+            IsValidationEndpoint = false;
         }
 
         /// <summary>
@@ -85,6 +93,18 @@ namespace Owin.Security.OpenIdConnect.Server {
             IsConfigurationEndpoint = false;
             IsCryptographyEndpoint = false;
             IsTokenEndpoint = true;
+            IsValidationEndpoint = false;
+        }
+
+        /// <summary>
+        /// Sets the endpoint type to validation endpoint.
+        /// </summary>
+        public void MatchesValidationEndpoint() {
+            IsAuthorizationEndpoint = false;
+            IsConfigurationEndpoint = false;
+            IsCryptographyEndpoint = false;
+            IsTokenEndpoint = false;
+            IsValidationEndpoint = true;
         }
 
         /// <summary>
@@ -95,6 +115,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             IsConfigurationEndpoint = false;
             IsCryptographyEndpoint = false;
             IsTokenEndpoint = false;
+            IsValidationEndpoint = false;
         }
     }
 }

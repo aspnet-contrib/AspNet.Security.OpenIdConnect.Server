@@ -68,10 +68,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Notifications\ValidationEndpointResponseNotification.cs" />
+    <Compile Include="Notifications\ValidationEndpointNotification.cs" />
     <Compile Include="Notifications\CreateAccessTokenNotification.cs" />
     <Compile Include="Notifications\CreateAuthorizationCodeNotification.cs" />
     <Compile Include="Notifications\CreateIdentityTokenNotification.cs" />
     <Compile Include="Notifications\CreateRefreshTokenNotification.cs" />
+    <Compile Include="Notifications\ReceiveIdentityTokenNotification.cs" />
+    <Compile Include="Notifications\ReceiveAccessTokenNotification.cs" />
     <Compile Include="Notifications\ReceiveAuthorizationCodeNotification.cs" />
     <Compile Include="Notifications\ReceiveRefreshTokenNotification.cs" />
     <Compile Include="OpenIdConnectConstants.cs" />
