@@ -34,7 +34,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             AuthorizationEndpointPath = new PathString(OpenIdConnectDefaults.AuthorizationEndpointPath);
             ConfigurationEndpointPath = new PathString(OpenIdConnectDefaults.ConfigurationEndpointPath);
-            KeysEndpointPath = new PathString(OpenIdConnectDefaults.KeysEndpointPath);
+            CryptographyEndpointPath = new PathString(OpenIdConnectDefaults.CryptographyEndpointPath);
             TokenEndpointPath = new PathString(OpenIdConnectDefaults.TokenEndpointPath);
 
             Provider = new OpenIdConnectServerProvider();
@@ -88,9 +88,9 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// The request path where client applications will be able to retrieve the JSON Web Key Set
         /// associated with this instance. Must begin with a leading slash, like "/.well-known/jwks".
-        /// This setting can be set to <see cref="PathString.Empty"/> to disable the crypto endpoint.
+        /// This setting can be set to <see cref="PathString.Empty"/> to disable the cryptography endpoint.
         /// </summary>
-        public PathString KeysEndpointPath { get; set; }
+        public PathString CryptographyEndpointPath { get; set; }
 
         /// <summary>
         /// The request path client applications communicate with directly as part of the OpenID Connect protocol. 

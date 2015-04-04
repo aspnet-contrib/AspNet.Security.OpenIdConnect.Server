@@ -52,9 +52,9 @@ namespace Owin.Security.OpenIdConnect.Server {
                 matchRequestContext.MatchesConfigurationEndpoint();
             }
 
-            else if (Options.KeysEndpointPath.HasValue &&
-                     Options.KeysEndpointPath == Request.Path) {
-                matchRequestContext.MatchesKeysEndpoint();
+            else if (Options.CryptographyEndpointPath.HasValue &&
+                     Options.CryptographyEndpointPath == Request.Path) {
+                matchRequestContext.MatchesCryptographyEndpoint();
             }
 
             else if (Options.TokenEndpointPath.HasValue &&
@@ -70,7 +70,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             if (matchRequestContext.IsAuthorizationEndpoint || matchRequestContext.IsConfigurationEndpoint ||
-                matchRequestContext.IsKeysEndpoint || matchRequestContext.IsTokenEndpoint) {
+                matchRequestContext.IsCryptographyEndpoint || matchRequestContext.IsTokenEndpoint) {
                 if (!Options.AllowInsecureHttp && string.Equals(Request.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase)) {
                     logger.WriteWarning("Authorization server ignoring http request because AllowInsecureHttp is false.");
                     return false;
@@ -85,8 +85,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                     return true;
                 }
 
-                if (matchRequestContext.IsKeysEndpoint) {
-                    await InvokeKeysEndpointAsync();
+                if (matchRequestContext.IsCryptographyEndpoint) {
+                    await InvokeCryptographyEndpointAsync();
                     return true;
                 }
 
@@ -520,11 +520,11 @@ namespace Owin.Security.OpenIdConnect.Server {
             // To avoid this issue, the jwks_uri parameter is only added to the response when the JWKS endpoint
             // is believed to provide a valid response, which is the case with asymmetric keys supporting RSA-SHA256.
             // See http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
-            if (Options.KeysEndpointPath.HasValue &&
+            if (Options.CryptographyEndpointPath.HasValue &&
                 Options.SigningCredentials != null &&
                 Options.SigningCredentials.SigningKey is AsymmetricSecurityKey &&
                 Options.SigningCredentials.SigningKey.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature)) {
-                configurationEndpointContext.KeyEndpoint = Options.Issuer + Options.KeysEndpointPath;
+                configurationEndpointContext.KeyEndpoint = Options.Issuer + Options.CryptographyEndpointPath;
             }
 
             if (Options.TokenEndpointPath.HasValue) {
@@ -657,8 +657,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
         }
 
-        private async Task InvokeKeysEndpointAsync() {
-            var keysEndpointContext = new KeysEndpointNotification(Context, Options);
+        private async Task InvokeCryptographyEndpointAsync() {
+            var cryptographyEndpointNotification = new CryptographyEndpointNotification(Context, Options);
 
             // Metadata requests must be made via GET.
             // See http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationRequest
@@ -734,7 +734,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             if (x509Certificate != null) {
                 // Create a new JSON Web Key exposing the
                 // certificate instead of its public RSA key.
-                keysEndpointContext.Keys.Add(new JsonWebKey {
+                cryptographyEndpointNotification.Keys.Add(new JsonWebKey {
                     Kty = JsonWebAlgorithmsKeyTypes.RSA,
                     Alg = JwtAlgorithms.RSA_SHA256,
                     Use = JsonWebKeyUseNames.Sig,
@@ -759,7 +759,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 var parameters = asymmetricAlgorithm.ExportParameters(
                     includePrivateParameters: false);
 
-                keysEndpointContext.Keys.Add(new JsonWebKey {
+                cryptographyEndpointNotification.Keys.Add(new JsonWebKey {
                     Kty = JsonWebAlgorithmsKeyTypes.RSA,
                     Alg = JwtAlgorithms.RSA_SHA256,
                     Use = JsonWebKeyUseNames.Sig,
@@ -771,16 +771,16 @@ namespace Owin.Security.OpenIdConnect.Server {
                 });
             }
 
-            await Options.Provider.KeysEndpoint(keysEndpointContext);
+            await Options.Provider.CryptographyEndpoint(cryptographyEndpointNotification);
 
             // Skip processing the JWKS request if
             // RequestCompleted has been called.
-            if (keysEndpointContext.IsRequestCompleted) {
+            if (cryptographyEndpointNotification.IsRequestCompleted) {
                 return;
             }
 
             // Ensure at least one key has been added to context.Keys.
-            if (!keysEndpointContext.Keys.Any()) {
+            if (!cryptographyEndpointNotification.Keys.Any()) {
                 logger.WriteError("Keys endpoint: no JSON Web Key found.");
                 return;
             }
@@ -788,7 +788,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             var payload = new JObject();
             var keys = new JArray();
 
-            foreach (var key in keysEndpointContext.Keys) {
+            foreach (var key in cryptographyEndpointNotification.Keys) {
                 var item = new JObject();
 
                 // Ensure a key type has been provided.
@@ -828,11 +828,11 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             payload.Add(JsonWebKeyParameterNames.Keys, keys);
 
-            var keysEndpointResponseContext = new KeysEndpointResponseNotification(Context, Options, payload);
-            await Options.Provider.KeysEndpointResponse(keysEndpointResponseContext);
+            var cryptographyEndpointResponseNotification = new CryptographyEndpointResponseNotification(Context, Options, payload);
+            await Options.Provider.CryptographyEndpointResponse(cryptographyEndpointResponseNotification);
 
             // Skip processing the request if RequestCompleted has been called.
-            if (keysEndpointResponseContext.IsRequestCompleted) {
+            if (cryptographyEndpointResponseNotification.IsRequestCompleted) {
                 return;
             }
 
