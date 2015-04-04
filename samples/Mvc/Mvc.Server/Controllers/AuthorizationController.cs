@@ -38,20 +38,13 @@ namespace Mvc.Server.Controllers {
                 });
             }
 
-            Application application;
-            using (var context = new ApplicationContext()) {
-                // Retrieve the application details corresponding to the requested client_id.
-                application = await (from entity in context.Applications
-                                     where entity.ApplicationID == request.ClientId
-                                     select entity).SingleOrDefaultAsync(cancellationToken);
-            }
-
             // Note: Owin.Security.OpenIdConnect.Server automatically ensures an application
             // corresponds to the client_id specified in the authorization request using
-            // IOpenIdConnectServerProvider.ValidateClientRedirectUri (see CustomOpenIdConnectServerProvider.cs).
+            // IOpenIdConnectServerProvider.ValidateClientRedirectUri (see AuthorizationProvider.cs).
             // In theory, this null check is thus not strictly necessary. That said, a race condition
             // and a null reference exception could appear here if you manually removed the application
             // details from the database after the initial check made by Owin.Security.OpenIdConnect.Server.
+            var application = await GetApplicationAsync(request.ClientId, cancellationToken);
             if (application == null) {
                 return View("Error", new OpenIdConnectMessage {
                     Error = "invalid_client",
@@ -66,7 +59,7 @@ namespace Mvc.Server.Controllers {
         [Authorize, HttpPost]
         [Route("~/connect/authorize")]
         [ValidateAntiForgeryToken]
-        public ActionResult Authorize() {
+        public async Task<ActionResult> Authorize() {
             // Note: when a fatal error occurs during the request processing, an OpenID Connect response
             // is prematurely forged and added to the OWIN context by OpenIdConnectServerHandler.
             // In this case, the OpenID Connect request is null and cannot be used.
@@ -124,6 +117,27 @@ namespace Mvc.Server.Controllers {
                 identity.AddClaim(claim);
             }
 
+            // Note: Owin.Security.OpenIdConnect.Server automatically ensures an application
+            // corresponds to the client_id specified in the authorization request using
+            // IOpenIdConnectServerProvider.ValidateClientRedirectUri (see AuthorizationProvider.cs).
+            // In theory, this null check is thus not strictly necessary. That said, a race condition
+            // and a null reference exception could appear here if you manually removed the application
+            // details from the database after the initial check made by Owin.Security.OpenIdConnect.Server.
+            var application = await GetApplicationAsync(request.ClientId, CancellationToken.None);
+            if (application == null) {
+                return View("Error", new OpenIdConnectMessage {
+                    Error = "invalid_client",
+                    ErrorDescription = "Details concerning the calling client application cannot be found in the database"
+                });
+            }
+
+            // Create a new ClaimsIdentity containing the claims associated with the application.
+            // Note: setting identity.Actor is not mandatory but can be useful to access
+            // the whole delegation chain from the resource server (see ResourceController.cs).
+            identity.Actor = new ClaimsIdentity(OpenIdConnectDefaults.AuthenticationType);
+            identity.Actor.AddClaim(new Claim(ClaimTypes.NameIdentifier, application.ApplicationID));
+            identity.Actor.AddClaim(new Claim(ClaimTypes.Name, application.DisplayName).WithDestination("id_token token"));
+
             // This call will instruct Owin.Security.OpenIdConnect.Server to serialize
             // the specified identity to build appropriate tokens (id_token and token).
             // Note: you should always make sure the identities you return contain either
@@ -153,6 +167,15 @@ namespace Mvc.Server.Controllers {
                 }
 
                 return context;
+            }
+        }
+
+        protected async Task<Application> GetApplicationAsync(string identifier, CancellationToken cancellationToken) {
+            using (var context = new ApplicationContext()) {
+                // Retrieve the application details corresponding to the requested client_id.
+                return await (from application in context.Applications
+                              where application.ApplicationID == identifier
+                              select application).SingleOrDefaultAsync(cancellationToken);
             }
         }
     }
