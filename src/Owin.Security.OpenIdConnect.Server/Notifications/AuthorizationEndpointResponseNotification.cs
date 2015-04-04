@@ -4,12 +4,8 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Security.Claims;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
-using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Provider;
 
 namespace Owin.Security.OpenIdConnect.Server {
@@ -22,35 +18,17 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
-        /// <param name="ticket"></param>
         /// <param name="authorizationRequest"></param>
         /// <param name="authorizationResponse"></param>
         internal AuthorizationEndpointResponseNotification(
             IOwinContext context,
             OpenIdConnectServerOptions options,
-            AuthenticationTicket ticket,
             OpenIdConnectMessage authorizationRequest,
             OpenIdConnectMessage authorizationResponse)
             : base(context, options) {
-            if (ticket == null) {
-                throw new ArgumentNullException("ticket");
-            }
-
-            Identity = ticket.Identity;
-            Properties = ticket.Properties;
             AuthorizationRequest = authorizationRequest;
             AuthorizationResponse = authorizationResponse;
         }
-
-        /// <summary>
-        /// Gets the identity of the resource owner.
-        /// </summary>
-        public ClaimsIdentity Identity { get; private set; }
-
-        /// <summary>
-        /// Dictionary containing the state of the authentication session.
-        /// </summary>
-        public AuthenticationProperties Properties { get; private set; }
 
         /// <summary>
         /// Gets the authorization request. 
