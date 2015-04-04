@@ -1260,31 +1260,13 @@ namespace Owin.Security.OpenIdConnect.Server {
                     "when the token endpoint has been explicitly disabled.");
             }
 
-            // Create a new identity containing only the filtered claims.
-            var identity = ticket.Identity.Clone();
-
-            foreach (var claim in identity.Claims.ToArray()) {
-                // ClaimTypes.NameIdentifier and JwtRegisteredClaimNames.Sub are never excluded.
-                if (string.Equals(claim.Type, ClaimTypes.NameIdentifier, StringComparison.Ordinal) ||
-                    string.Equals(claim.Type, JwtRegisteredClaimNames.Sub, StringComparison.Ordinal)) {
-                    continue;
-                }
-
-                // By default, claims whose destination is not referenced are included in the authorization code.
-                // Claims whose explicit destination doesn't contain "token" are excluded.
-                if (claim.HasDestination() && !claim.HasDestination(OpenIdConnectConstants.ResponseTypes.Token)) {
-                    identity.RemoveClaim(claim);
-                }
-            }
-
-            // Replace the authentication ticket by a new one
-            // exposing the properties and the filtered identity.
-            ticket = new AuthenticationTicket(identity, properties);
+            // Claims in authorization codes are never filtered as they are supposed to be opaque:
+            // CreateAccessTokenAsync and CreateIdentityTokenAsync are responsible of ensuring
+            // that subsequent access and identity tokens are correctly filtered.
+            var content = Options.AuthorizationCodeFormat.Protect(ticket);
 
             var key = GenerateKey(256 / 8);
-            var value = Options.AuthorizationCodeFormat.Protect(ticket);
-
-            Options.Cache.Set(key, value, properties.ExpiresUtc.Value);
+            Options.Cache.Set(key, content, properties.ExpiresUtc.Value);
 
             return key;
         }
@@ -1310,34 +1292,26 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             // Create a new identity containing only the filtered claims.
-            var identity = ticket.Identity.Clone();
-
-            foreach (var claim in identity.Claims.ToArray()) {
+            // Actors identities are also filtered (delegation scenarios).
+            var identity = ticket.Identity.Clone(claim => {
                 // ClaimTypes.NameIdentifier and JwtRegisteredClaimNames.Sub are never excluded.
                 if (string.Equals(claim.Type, ClaimTypes.NameIdentifier, StringComparison.Ordinal) ||
                     string.Equals(claim.Type, JwtRegisteredClaimNames.Sub, StringComparison.Ordinal)) {
-                    continue;
+                    return true;
                 }
 
-                if (Options.AccessTokenHandler == null) {
-                    // By default, claims whose destination is not referenced are included in the access tokens when a data protector is used.
-                    // Note: access tokens issued by the token endpoint from an authorization code or a refresh token
-                    // usually don't contain such a flag: in this case, CreateAuthorizationCodeAsync is responsible of filtering the claims.
+                if (Options.AccessTokenHandler != null && Options.EncryptingCredentials == null) {
+                    // When a security token handler is used without encryption credentials, claims whose
+                    // destination is not explicitly referenced are not included in the access token.
                     // Claims whose destination doesn't contain "token" are excluded.
-                    if (claim.HasDestination() && !claim.HasDestination(OpenIdConnectConstants.ResponseTypes.Token)) {
-                        identity.RemoveClaim(claim);
-                    }
+                    return claim.HasDestination(OpenIdConnectConstants.ResponseTypes.Token);
                 }
 
-                else {
-                    // When a security token handler is used, claims whose destination
-                    // is not explictly referenced are not included in the access token.
-                    // Claims whose destination doesn't contain "token" are excluded.
-                    if (!claim.HasDestination(OpenIdConnectConstants.ResponseTypes.Token)) {
-                        identity.RemoveClaim(claim);
-                    }
-                }
-            }
+                // By default, claims whose destination is not referenced
+                // are included in the access tokens when a data protector is used.
+                // Claims whose destination doesn't contain "token" are excluded.
+                return !claim.HasDestination() || claim.HasDestination(OpenIdConnectConstants.ResponseTypes.Token);
+            });
 
             if (Options.AccessTokenHandler == null) {
                 // Replace the authentication ticket by a new one
@@ -1380,28 +1354,10 @@ namespace Owin.Security.OpenIdConnect.Server {
             if (notification.HandledResponse) {
                 return notification.RefreshToken;
             }
-
-            // Create a new identity containing only the filtered claims.
-            var identity = ticket.Identity.Clone();
-
-            foreach (var claim in identity.Claims.ToArray()) {
-                // ClaimTypes.NameIdentifier and JwtRegisteredClaimNames.Sub are never excluded.
-                if (string.Equals(claim.Type, ClaimTypes.NameIdentifier, StringComparison.Ordinal) ||
-                    string.Equals(claim.Type, JwtRegisteredClaimNames.Sub, StringComparison.Ordinal)) {
-                    continue;
-                }
-
-                // By default, claims whose destination is not referenced are included in the refresh token.
-                // Claims whose explicit destination doesn't contain "token" are excluded.
-                if (claim.HasDestination() && !claim.HasDestination(OpenIdConnectConstants.ResponseTypes.Token)) {
-                    identity.RemoveClaim(claim);
-                }
-            }
-
-            // Replace the authentication ticket by a new one
-            // exposing the properties and the filtered identity.
-            ticket = new AuthenticationTicket(identity, properties);
-
+            
+            // Claims in refresh tokens are never filtered as they are supposed to be opaque:
+            // CreateAccessTokenAsync and CreateIdentityTokenAsync are responsible of ensuring
+            // that subsequent access and identity tokens are correctly filtered.
             return Options.RefreshTokenFormat.Protect(ticket);
         }
 
@@ -1426,22 +1382,19 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             // Replace the identity by a new one containing only the filtered claims.
-            var identity = ticket.Identity.Clone();
-
-            foreach (var claim in identity.Claims.ToArray()) {
+            // Actors identities are also filtered (delegation scenarios).
+            var identity = ticket.Identity.Clone(claim => {
                 // ClaimTypes.NameIdentifier and JwtRegisteredClaimNames.Sub are never excluded.
                 if (string.Equals(claim.Type, ClaimTypes.NameIdentifier, StringComparison.Ordinal) ||
                     string.Equals(claim.Type, JwtRegisteredClaimNames.Sub, StringComparison.Ordinal)) {
-                    continue;
+                    return true;
                 }
 
                 // By default, claims whose destination is not
                 // referenced are not included in the identity token.
                 // Claims whose destination doesn't contain "id_token" are excluded.
-                if (!claim.HasDestination(OpenIdConnectConstants.ResponseTypes.IdToken)) {
-                    identity.RemoveClaim(claim);
-                }
-            }
+                return claim.HasDestination(OpenIdConnectConstants.ResponseTypes.IdToken);
+            });
 
             identity.AddClaim(new Claim(JwtRegisteredClaimNames.Iat, EpochTime.GetIntDate(properties.IssuedUtc.Value.UtcDateTime).ToString()));
 
