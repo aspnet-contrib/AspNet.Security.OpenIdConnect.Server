@@ -17,7 +17,7 @@ namespace Mvc.Server.Controllers {
             // application the access token has been issued to (delegation).
             return Content(HttpStatusCode.OK, string.Format(
                 CultureInfo.InvariantCulture,
-                "{0} has been fully authenticated via {1}",
+                "{0} has been successfully authenticated via {1}",
                 identity.Name, identity.Actor.Name));
         }
     }
