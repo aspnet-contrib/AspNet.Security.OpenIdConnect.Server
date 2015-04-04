@@ -124,19 +124,26 @@ namespace Owin.Security.OpenIdConnect.Server {
             private const int FormatVersion = 3;
 
             public byte[] Serialize(AuthenticationTicket model) {
-                using (var memory = new MemoryStream()) {
-                    using (var writer = new BinaryWriter(memory)) {
-                        Write(writer, model);
-                    }
-                    return memory.ToArray();
+                if (model == null) {
+                    throw new ArgumentNullException("model");
+                }
+
+                using (var buffer = new MemoryStream())
+                using (var writer = new BinaryWriter(buffer)) {
+                    Write(writer, model);
+
+                    return buffer.ToArray();
                 }
             }
 
             public AuthenticationTicket Deserialize(byte[] data) {
-                using (var memory = new MemoryStream(data)) {
-                    using (var reader = new BinaryReader(memory)) {
-                        return Read(reader);
-                    }
+                if (data == null) {
+                    throw new ArgumentNullException("data");
+                }
+
+                using (var buffer = new MemoryStream(data))
+                using (var reader = new BinaryReader(buffer)) {
+                    return Read(reader);
                 }
             }
 
@@ -150,7 +157,12 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
 
                 writer.Write(FormatVersion);
-                ClaimsIdentity identity = model.Identity;
+                WriteIdentity(writer, model.Identity);
+                
+                PropertiesSerializer.Write(writer, model.Properties);
+            }
+
+            private static void WriteIdentity(BinaryWriter writer, ClaimsIdentity identity) {
                 writer.Write(identity.AuthenticationType);
                 WriteWithDefault(writer, identity.NameClaimType, DefaultValues.NameClaimType);
                 WriteWithDefault(writer, identity.RoleClaimType, DefaultValues.RoleClaimType);
@@ -160,17 +172,24 @@ namespace Owin.Security.OpenIdConnect.Server {
                     WriteClaim(writer, claim, identity.NameClaimType);
                 }
 
-                BootstrapContext bc = identity.BootstrapContext as BootstrapContext;
-                if (bc == null || string.IsNullOrWhiteSpace(bc.Token)) {
+                var context = identity.BootstrapContext as BootstrapContext;
+                if (context == null || string.IsNullOrWhiteSpace(context.Token)) {
                     writer.Write(0);
                 }
 
                 else {
-                    writer.Write(bc.Token.Length);
-                    writer.Write(bc.Token);
+                    writer.Write(context.Token.Length);
+                    writer.Write(context.Token);
                 }
 
-                PropertiesSerializer.Write(writer, model.Properties);
+                if (identity.Actor != null) {
+                    writer.Write(true);
+                    WriteIdentity(writer, identity.Actor);
+                }
+
+                else {
+                    writer.Write(false);
+                }
             }
 
             public static AuthenticationTicket Read(BinaryReader reader) {
@@ -182,10 +201,17 @@ namespace Owin.Security.OpenIdConnect.Server {
                     return null;
                 }
 
-                string authenticationType = reader.ReadString();
-                string nameClaimType = ReadWithDefault(reader, DefaultValues.NameClaimType);
-                string roleClaimType = ReadWithDefault(reader, DefaultValues.RoleClaimType);
-                int count = reader.ReadInt32();
+                var identity = ReadIdentity(reader);
+
+                AuthenticationProperties properties = PropertiesSerializer.Read(reader);
+                return new AuthenticationTicket(identity, properties);
+            }
+
+            private static ClaimsIdentity ReadIdentity(BinaryReader reader) {
+                var authenticationType = reader.ReadString();
+                var nameClaimType = ReadWithDefault(reader, DefaultValues.NameClaimType);
+                var roleClaimType = ReadWithDefault(reader, DefaultValues.RoleClaimType);
+                var count = reader.ReadInt32();
 
                 var claims = new Claim[count];
 
@@ -200,8 +226,11 @@ namespace Owin.Security.OpenIdConnect.Server {
                     identity.BootstrapContext = new BootstrapContext(reader.ReadString());
                 }
 
-                AuthenticationProperties properties = PropertiesSerializer.Read(reader);
-                return new AuthenticationTicket(identity, properties);
+                if (reader.ReadBoolean()) {
+                    identity.Actor = ReadIdentity(reader);
+                }
+
+                return identity;
             }
 
             private static void WriteClaim(BinaryWriter writer, Claim claim, string nameClaimType) {
