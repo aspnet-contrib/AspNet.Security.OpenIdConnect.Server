@@ -5,18 +5,8 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens;
-using System.IO;
-using System.Linq;
-using System.Security.Claims;
 using Microsoft.Owin;
 using Microsoft.Owin.Logging;
-using Microsoft.Owin.Security;
-using Microsoft.Owin.Security.DataHandler;
-using Microsoft.Owin.Security.DataHandler.Encoder;
-using Microsoft.Owin.Security.DataHandler.Serializer;
-using Microsoft.Owin.Security.DataProtection;
 using Microsoft.Owin.Security.Infrastructure;
 
 namespace Owin.Security.OpenIdConnect.Server {
@@ -41,24 +31,21 @@ namespace Owin.Security.OpenIdConnect.Server {
             logger = app.CreateLogger<OpenIdConnectServerMiddleware>();
             
             if (Options.AuthorizationCodeFormat == null) {
-                Options.AuthorizationCodeFormat = new EnhancedTicketDataFormat(
-                    app.CreateDataProtector(
-                        typeof(OpenIdConnectServerMiddleware).FullName,
-                        "Authentication_Code", "v1"));
+                Options.AuthorizationCodeFormat = app.CreateTicketFormat(
+                    typeof(OpenIdConnectServerMiddleware).FullName,
+                    "Authentication_Code", "v1");
             }
 
             if (Options.AccessTokenFormat == null) {
-                Options.AccessTokenFormat = new TicketDataFormat(
-                    app.CreateDataProtector(
-                        "Microsoft.Owin.Security.OAuth",
-                        "Access_Token", "v1"));
+                Options.AccessTokenFormat = app.CreateTicketFormat(
+                    "Microsoft.Owin.Security.OAuth",
+                    "Access_Token", "v1");
             }
 
             if (Options.RefreshTokenFormat == null) {
-                Options.RefreshTokenFormat = new EnhancedTicketDataFormat(
-                    app.CreateDataProtector(
-                        typeof(OpenIdConnectServerMiddleware).Namespace,
-                        "Refresh_Token", "v1"));
+                Options.RefreshTokenFormat = app.CreateTicketFormat(
+                    typeof(OpenIdConnectServerMiddleware).Namespace,
+                    "Refresh_Token", "v1");
             }
 
             if (Options.RandomNumberGenerator == null) {
@@ -116,186 +103,6 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <returns>A new instance of the request handler</returns>
         protected override AuthenticationHandler<OpenIdConnectServerOptions> CreateHandler() {
             return new OpenIdConnectServerHandler(logger);
-        }
-
-        // Remove when the built-in ticket serializer supports Claim.Properties.
-        // See https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server/issues/71
-        private sealed class EnhancedTicketSerializer : IDataSerializer<AuthenticationTicket> {
-            private const int FormatVersion = 3;
-
-            public byte[] Serialize(AuthenticationTicket model) {
-                if (model == null) {
-                    throw new ArgumentNullException("model");
-                }
-
-                using (var buffer = new MemoryStream())
-                using (var writer = new BinaryWriter(buffer)) {
-                    Write(writer, model);
-
-                    return buffer.ToArray();
-                }
-            }
-
-            public AuthenticationTicket Deserialize(byte[] data) {
-                if (data == null) {
-                    throw new ArgumentNullException("data");
-                }
-
-                using (var buffer = new MemoryStream(data))
-                using (var reader = new BinaryReader(buffer)) {
-                    return Read(reader);
-                }
-            }
-
-            public static void Write(BinaryWriter writer, AuthenticationTicket model) {
-                if (writer == null) {
-                    throw new ArgumentNullException("writer");
-                }
-
-                if (model == null) {
-                    throw new ArgumentNullException("model");
-                }
-
-                writer.Write(FormatVersion);
-                WriteIdentity(writer, model.Identity);
-                
-                PropertiesSerializer.Write(writer, model.Properties);
-            }
-
-            private static void WriteIdentity(BinaryWriter writer, ClaimsIdentity identity) {
-                writer.Write(identity.AuthenticationType);
-                WriteWithDefault(writer, identity.NameClaimType, DefaultValues.NameClaimType);
-                WriteWithDefault(writer, identity.RoleClaimType, DefaultValues.RoleClaimType);
-                writer.Write(identity.Claims.Count());
-
-                foreach (var claim in identity.Claims) {
-                    WriteClaim(writer, claim, identity.NameClaimType);
-                }
-
-                var context = identity.BootstrapContext as BootstrapContext;
-                if (context == null || string.IsNullOrWhiteSpace(context.Token)) {
-                    writer.Write(0);
-                }
-
-                else {
-                    writer.Write(context.Token.Length);
-                    writer.Write(context.Token);
-                }
-
-                if (identity.Actor != null) {
-                    writer.Write(true);
-                    WriteIdentity(writer, identity.Actor);
-                }
-
-                else {
-                    writer.Write(false);
-                }
-            }
-
-            public static AuthenticationTicket Read(BinaryReader reader) {
-                if (reader == null) {
-                    throw new ArgumentNullException("reader");
-                }
-
-                if (reader.ReadInt32() != FormatVersion) {
-                    return null;
-                }
-
-                var identity = ReadIdentity(reader);
-
-                AuthenticationProperties properties = PropertiesSerializer.Read(reader);
-                return new AuthenticationTicket(identity, properties);
-            }
-
-            private static ClaimsIdentity ReadIdentity(BinaryReader reader) {
-                var authenticationType = reader.ReadString();
-                var nameClaimType = ReadWithDefault(reader, DefaultValues.NameClaimType);
-                var roleClaimType = ReadWithDefault(reader, DefaultValues.RoleClaimType);
-                var count = reader.ReadInt32();
-
-                var claims = new Claim[count];
-
-                for (int index = 0; index != count; ++index) {
-                    claims[index] = ReadClaim(reader, nameClaimType);
-                }
-
-                var identity = new ClaimsIdentity(claims, authenticationType, nameClaimType, roleClaimType);
-
-                int bootstrapContextSize = reader.ReadInt32();
-                if (bootstrapContextSize > 0) {
-                    identity.BootstrapContext = new BootstrapContext(reader.ReadString());
-                }
-
-                if (reader.ReadBoolean()) {
-                    identity.Actor = ReadIdentity(reader);
-                }
-
-                return identity;
-            }
-
-            private static void WriteClaim(BinaryWriter writer, Claim claim, string nameClaimType) {
-                WriteWithDefault(writer, claim.Type, nameClaimType);
-                writer.Write(claim.Value);
-                WriteWithDefault(writer, claim.ValueType, DefaultValues.StringValueType);
-                WriteWithDefault(writer, claim.Issuer, DefaultValues.LocalAuthority);
-                WriteWithDefault(writer, claim.OriginalIssuer, claim.Issuer);
-                writer.Write(claim.Properties.Count);
-
-                foreach (KeyValuePair<string, string> property in claim.Properties) {
-                    writer.Write(property.Key);
-                    writer.Write(property.Value);
-                }
-            }
-
-            private static Claim ReadClaim(BinaryReader reader, string nameClaimType) {
-                string type = ReadWithDefault(reader, nameClaimType);
-                string value = reader.ReadString();
-                string valueType = ReadWithDefault(reader, DefaultValues.StringValueType);
-                string issuer = ReadWithDefault(reader, DefaultValues.LocalAuthority);
-                string originalIssuer = ReadWithDefault(reader, issuer);
-                int count = reader.ReadInt32();
-
-                var claim = new Claim(type, value, valueType, issuer, originalIssuer);
-
-                for (int index = 0; index != count; ++index) {
-                    claim.Properties.Add(key: reader.ReadString(), value: reader.ReadString());
-                }
-
-                return claim;
-            }
-
-            private static void WriteWithDefault(BinaryWriter writer, string value, string defaultValue) {
-                if (string.Equals(value, defaultValue, StringComparison.Ordinal)) {
-                    writer.Write(DefaultValues.DefaultStringPlaceholder);
-                }
-                else {
-                    writer.Write(value);
-                }
-            }
-
-            private static string ReadWithDefault(BinaryReader reader, string defaultValue) {
-                string value = reader.ReadString();
-                if (string.Equals(value, DefaultValues.DefaultStringPlaceholder, StringComparison.Ordinal)) {
-                    return defaultValue;
-                }
-                return value;
-            }
-
-            private static class DefaultValues {
-                public const string DefaultStringPlaceholder = "\0";
-                public const string NameClaimType = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name";
-                public const string RoleClaimType = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role";
-                public const string LocalAuthority = "LOCAL AUTHORITY";
-                public const string StringValueType = "http://www.w3.org/2001/XMLSchema#string";
-            }
-        }
-
-        private sealed class EnhancedTicketDataFormat : SecureDataFormat<AuthenticationTicket> {
-            private static readonly EnhancedTicketSerializer Serializer = new EnhancedTicketSerializer();
-
-            public EnhancedTicketDataFormat(IDataProtector protector)
-                : base(Serializer, protector, TextEncodings.Base64Url) {
-            }
         }
     }
 }
