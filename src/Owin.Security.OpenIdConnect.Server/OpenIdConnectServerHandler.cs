@@ -1348,18 +1348,18 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return claim.HasDestination(OpenIdConnectConstants.ResponseTypes.IdToken);
             });
 
-            identity.AddClaim(new Claim(JwtRegisteredClaimNames.Iat, EpochTime.GetIntDate(properties.IssuedUtc.Value.UtcDateTime).ToString()));
+            identity.AddClaim(JwtRegisteredClaimNames.Iat, EpochTime.GetIntDate(properties.IssuedUtc.Value.UtcDateTime).ToString());
 
             if (!string.IsNullOrEmpty(response.Code)) {
-                identity.AddClaim(new Claim(JwtRegisteredClaimNames.CHash, GenerateHash(response.Code, Options.SigningCredentials.DigestAlgorithm)));
+                identity.AddClaim(JwtRegisteredClaimNames.CHash, GenerateHash(response.Code, Options.SigningCredentials.DigestAlgorithm));
             }
 
             if (!string.IsNullOrEmpty(response.AccessToken)) {
-                identity.AddClaim(new Claim("at_hash", GenerateHash(response.AccessToken, Options.SigningCredentials.DigestAlgorithm)));
+                identity.AddClaim("at_hash", GenerateHash(response.AccessToken, Options.SigningCredentials.DigestAlgorithm));
             }
 
             if (!string.IsNullOrEmpty(request.Nonce)) {
-                identity.AddClaim(new Claim(JwtRegisteredClaimNames.Nonce, request.Nonce));
+                identity.AddClaim(JwtRegisteredClaimNames.Nonce, request.Nonce);
             }
 
             // While the 'sub' claim is declared mandatory by the OIDC specs,
@@ -1376,7 +1376,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                         "in the returned ClaimsIdentity before calling SignIn.");
                 }
 
-                identity.AddClaim(new Claim(JwtRegisteredClaimNames.Sub, identifier.Value));
+                identity.AddClaim(JwtRegisteredClaimNames.Sub, identifier.Value);
             }
 
             if (Options.IdentityTokenHandler == null) {

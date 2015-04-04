@@ -135,8 +135,8 @@ namespace Mvc.Server.Controllers {
             // Note: setting identity.Actor is not mandatory but can be useful to access
             // the whole delegation chain from the resource server (see ResourceController.cs).
             identity.Actor = new ClaimsIdentity(OpenIdConnectDefaults.AuthenticationType);
-            identity.Actor.AddClaim(new Claim(ClaimTypes.NameIdentifier, application.ApplicationID));
-            identity.Actor.AddClaim(new Claim(ClaimTypes.Name, application.DisplayName).WithDestination("id_token token"));
+            identity.Actor.AddClaim(ClaimTypes.NameIdentifier, application.ApplicationID);
+            identity.Actor.AddClaim(ClaimTypes.Name, application.DisplayName, destination: "id_token token");
 
             // This call will instruct Owin.Security.OpenIdConnect.Server to serialize
             // the specified identity to build appropriate tokens (id_token and token).
