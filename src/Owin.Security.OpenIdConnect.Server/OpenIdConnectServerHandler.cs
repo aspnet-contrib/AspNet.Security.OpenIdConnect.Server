@@ -1031,29 +1031,8 @@ namespace Owin.Security.OpenIdConnect.Server {
         private async Task<AuthenticationTicket> InvokeTokenEndpointAuthorizationCodeGrantAsync(
             ValidateTokenRequestNotification validatingContext, DateTimeOffset currentUtc) {
             OpenIdConnectMessage tokenRequest = validatingContext.TokenRequest;
-
-            var notification = new ReceiveAuthorizationCodeNotification(Context, Options, tokenRequest.Code);
-            await Options.Provider.ReceiveAuthorizationCode(notification);
-
-            var ticket = notification.AuthenticationTicket;
-
-            // Apply the default logic only if
-            // HandledResponse has not been called.
-            if (!notification.HandledResponse) {
-                var content = (string) Options.Cache.Get(tokenRequest.Code);
-                if (content == null) {
-                    logger.WriteError("unknown authorization code");
-                    validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
-                    return null;
-                }
-                
-                // Because authorization codes are guaranteed to be unique, make sure
-                // to remove the current code from the global store before using it.
-                Options.Cache.Remove(tokenRequest.Code);
-                    
-                ticket = Options.AuthorizationCodeFormat.Unprotect(content);
-            }
-
+            
+            var ticket = await ReceiveAuthorizationCodeAsync(tokenRequest.Code);
             if (ticket == null) {
                 logger.WriteError("invalid authorization code");
                 validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
@@ -1145,12 +1124,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             ValidateTokenRequestNotification validatingContext, DateTimeOffset currentUtc) {
             OpenIdConnectMessage tokenRequest = validatingContext.TokenRequest;
 
-            var notification = new ReceiveRefreshTokenNotification(Context, Options, tokenRequest.GetParameter("refresh_token"));
-            await Options.Provider.ReceiveRefreshToken(notification);
-
-            var ticket = notification.HandledResponse ? notification.AuthenticationTicket :
-                Options.RefreshTokenFormat.Unprotect(tokenRequest.GetParameter("refresh_token"));
-
+            var ticket = await ReceiveRefreshTokenAsync(tokenRequest.GetParameter("refresh_token"));
             if (ticket == null) {
                 logger.WriteError("invalid refresh token");
                 validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
@@ -1428,6 +1402,43 @@ namespace Owin.Security.OpenIdConnect.Server {
                 expires: properties.ExpiresUtc.Value.UtcDateTime);
 
             return Options.IdentityTokenHandler.WriteToken(token);
+        }
+
+        private async Task<AuthenticationTicket> ReceiveAuthorizationCodeAsync(string code) {
+            var notification = new ReceiveAuthorizationCodeNotification(Context, Options, code);
+            await Options.Provider.ReceiveAuthorizationCode(notification);
+            
+            // Directly return the authentication ticket if one
+            // has been provided by ReceiveAuthorizationCode.
+            var ticket = notification.AuthenticationTicket;
+            if (ticket != null) {
+                return ticket;
+            }
+
+            var payload = (string) Options.Cache.Get(code);
+            if (payload == null) {
+                return null;
+            }
+
+            // Because authorization codes are guaranteed to be unique, make sure
+            // to remove the current code from the global store before using it.
+            Options.Cache.Remove(code);
+
+            return Options.AuthorizationCodeFormat.Unprotect(payload);
+        }
+
+        private async Task<AuthenticationTicket> ReceiveRefreshTokenAsync(string token) {
+            var notification = new ReceiveRefreshTokenNotification(Context, Options, token);
+            await Options.Provider.ReceiveRefreshToken(notification);
+
+            // Directly return the authentication ticket if one
+            // has been provided by ReceiveRefreshToken.
+            var ticket = notification.AuthenticationTicket;
+            if (ticket != null) {
+                return ticket;
+            }
+
+            return Options.RefreshTokenFormat.Unprotect(token);
         }
 
         private static AuthenticationTicket ReturnOutcome(
