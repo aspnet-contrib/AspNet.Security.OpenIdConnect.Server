@@ -324,6 +324,37 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             return clone;
         }
 
+        /// <summary>
+        /// Adds a claim to a given identity.
+        /// </summary>
+        /// <param name="identity">The identity.</param>
+        /// <param name="type">The type associated with the claim.</param>
+        /// <param name="value">The value associated with the claim.</param>
+        public static ClaimsIdentity AddClaim(this ClaimsIdentity identity, string type, string value) {
+            if (identity == null) {
+                throw new ArgumentNullException("identity");
+            }
+
+            identity.AddClaim(new Claim(type, value));
+            return identity;
+        }
+
+        /// <summary>
+        /// Adds a claim to a given identity.
+        /// </summary>
+        /// <param name="identity">The identity.</param>
+        /// <param name="type">The type associated with the claim.</param>
+        /// <param name="value">The value associated with the claim.</param>
+        /// <param name="destination">The destination associated with the claim.</param>
+        public static ClaimsIdentity AddClaim(this ClaimsIdentity identity, string type, string value, string destination) {
+            if (identity == null) {
+                throw new ArgumentNullException("identity");
+            }
+
+            identity.AddClaim(new Claim(type, value).WithDestination(destination));
+            return identity;
+        }
+
         private static bool HasValue(string source, string value) {
             if (string.IsNullOrWhiteSpace(source)) {
                 return false;
