@@ -36,12 +36,12 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             OnAuthorizationEndpoint = notification => Task.FromResult<object>(null);
             OnConfigurationEndpoint = notification => Task.FromResult<object>(null);
-            OnKeysEndpoint = notification => Task.FromResult<object>(null);
+            OnCryptographyEndpoint = notification => Task.FromResult<object>(null);
             OnTokenEndpoint = notification => Task.FromResult<object>(null);
 
             OnAuthorizationEndpointResponse = notification => Task.FromResult<object>(null);
             OnConfigurationEndpointResponse = notification => Task.FromResult<object>(null);
-            OnKeysEndpointResponse = notification => Task.FromResult<object>(null);
+            OnCryptographyEndpointResponse = notification => Task.FromResult<object>(null);
             OnTokenEndpointResponse = notification => Task.FromResult<object>(null);
 
             OnCreateAccessToken = notification => Task.FromResult<object>(null);
@@ -192,14 +192,14 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// Called by the client applications to retrieve the OpenID Connect JSON Web Key set associated with this instance.
         /// An application may implement this call in order to do any final modification to the keys set.
         /// </summary>
-        public Func<KeysEndpointNotification, Task> OnKeysEndpoint { get; set; }
+        public Func<CryptographyEndpointNotification, Task> OnCryptographyEndpoint { get; set; }
 
         /// <summary>
         /// Called before the authorization server starts emitting the OpenID Connect JSON Web Key set associated with this instance.
         /// If the web application wishes to produce the JSON Web Key set directly in this call, it may write to the 
         /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
         /// </summary>
-        public Func<KeysEndpointResponseNotification, Task> OnKeysEndpointResponse { get; set; }
+        public Func<CryptographyEndpointResponseNotification, Task> OnCryptographyEndpointResponse { get; set; }
 
         /// <summary>
         /// Called at the final stage of a successful Token endpoint request.
@@ -452,8 +452,8 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="notification">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task KeysEndpoint(KeysEndpointNotification notification) {
-            return OnKeysEndpoint(notification);
+        public virtual Task CryptographyEndpoint(CryptographyEndpointNotification notification) {
+            return OnCryptographyEndpoint(notification);
         }
 
         /// <summary>
@@ -463,8 +463,8 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="notification">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task KeysEndpointResponse(KeysEndpointResponseNotification notification) {
-            return OnKeysEndpointResponse(notification);
+        public virtual Task CryptographyEndpointResponse(CryptographyEndpointResponseNotification notification) {
+            return OnCryptographyEndpointResponse(notification);
         }
 
         /// <summary>

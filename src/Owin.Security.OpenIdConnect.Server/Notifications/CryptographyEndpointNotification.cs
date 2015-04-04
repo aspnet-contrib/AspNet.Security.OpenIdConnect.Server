@@ -14,11 +14,11 @@ namespace Owin.Security.OpenIdConnect.Server {
     /// An event raised before the authorization server handles
     /// the request made to the JWKS metadata endpoint.
     /// </summary>
-    public sealed class KeysEndpointNotification : EndpointContext<OpenIdConnectServerOptions> {
+    public sealed class CryptographyEndpointNotification : EndpointContext<OpenIdConnectServerOptions> {
         /// <summary>
         /// Creates an instance of this context.
         /// </summary>
-        internal KeysEndpointNotification(
+        internal CryptographyEndpointNotification(
             IOwinContext context,
             OpenIdConnectServerOptions options)
             : base(context, options) {

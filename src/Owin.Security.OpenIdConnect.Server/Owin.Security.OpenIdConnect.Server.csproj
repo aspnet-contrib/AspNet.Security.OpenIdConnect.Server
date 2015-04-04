@@ -87,8 +87,8 @@
     <Compile Include="Notifications\DefaultBehavior.cs" />
     <Compile Include="IOpenIdConnectServerProvider.cs" />
     <Compile Include="Notifications\ConfigurationEndpointNotification.cs" />
-    <Compile Include="Notifications\KeysEndpointNotification.cs" />
-    <Compile Include="Notifications\KeysEndpointResponseNotification.cs" />
+    <Compile Include="Notifications\CryptographyEndpointNotification.cs" />
+    <Compile Include="Notifications\CryptographyEndpointResponseNotification.cs" />
     <Compile Include="Notifications\ConfigurationEndpointResponseNotification.cs" />
     <Compile Include="OpenIdConnectServerProvider.cs" />
     <Compile Include="Notifications\AuthorizationEndpointNotification.cs" />

@@ -27,9 +27,9 @@ namespace Owin.Security.OpenIdConnect.Server {
         public const string ConfigurationEndpointPath = "/.well-known/openid-configuration";
 
         /// <summary>
-        /// Default value for <see cref="OpenIdConnectServerOptions.KeysEndpointPath"/>.
+        /// Default value for <see cref="OpenIdConnectServerOptions.CryptographyEndpointPath"/>.
         /// </summary>
-        public const string KeysEndpointPath = "/.well-known/jwks";
+        public const string CryptographyEndpointPath = "/.well-known/jwks";
 
         /// <summary>
         /// Default value for <see cref="OpenIdConnectServerOptions.TokenEndpointPath"/>.

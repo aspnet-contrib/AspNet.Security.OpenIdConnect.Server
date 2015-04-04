@@ -39,7 +39,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// Gets whether or not the endpoint is an
         /// OpenID Connect JWKS endpoint.
         /// </summary>
-        public bool IsKeysEndpoint { get; private set; }
+        public bool IsCryptographyEndpoint { get; private set; }
 
         /// <summary>
         /// Gets whether or not the endpoint is an
@@ -53,7 +53,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         public void MatchesAuthorizationEndpoint() {
             IsAuthorizationEndpoint = true;
             IsConfigurationEndpoint = false;
-            IsKeysEndpoint = false;
+            IsCryptographyEndpoint = false;
             IsTokenEndpoint = false;
         }
 
@@ -63,17 +63,17 @@ namespace Owin.Security.OpenIdConnect.Server {
         public void MatchesConfigurationEndpoint() {
             IsAuthorizationEndpoint = false;
             IsConfigurationEndpoint = true;
-            IsKeysEndpoint = false;
+            IsCryptographyEndpoint = false;
             IsTokenEndpoint = false;
         }
 
         /// <summary>
         /// Sets the endpoint type to the JWKS endpoint.
         /// </summary>
-        public void MatchesKeysEndpoint() {
+        public void MatchesCryptographyEndpoint() {
             IsAuthorizationEndpoint = false;
             IsConfigurationEndpoint = false;
-            IsKeysEndpoint = true;
+            IsCryptographyEndpoint = true;
             IsTokenEndpoint = false;
         }
 
@@ -83,7 +83,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         public void MatchesTokenEndpoint() {
             IsAuthorizationEndpoint = false;
             IsConfigurationEndpoint = false;
-            IsKeysEndpoint = false;
+            IsCryptographyEndpoint = false;
             IsTokenEndpoint = true;
         }
 
@@ -93,7 +93,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         public void MatchesNothing() {
             IsAuthorizationEndpoint = false;
             IsConfigurationEndpoint = false;
-            IsKeysEndpoint = false;
+            IsCryptographyEndpoint = false;
             IsTokenEndpoint = false;
         }
     }
