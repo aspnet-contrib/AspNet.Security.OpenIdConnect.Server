@@ -282,6 +282,48 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             return claim;
         }
 
+        /// <summary>
+        /// Clones an identity by filtering its claims and the claims of its actor, recursively.
+        /// </summary>
+        /// <param name="identity">The <see cref="ClaimsIdentity"/> instance to filter.</param>
+        /// <param name="filter">
+        /// The delegate filtering the claims: return <c>true</c>
+        /// to accept the claim, <c>false</c> to remove it.
+        /// </param>
+        public static ClaimsIdentity Clone(this ClaimsIdentity identity, Func<Claim, bool> filter) {
+            var clone = identity.Clone();
+
+            foreach (var claim in clone.Claims.ToArray()) {
+                if (!filter(claim)) {
+                    clone.RemoveClaim(claim);
+                }
+            }
+
+            if (clone.Actor != null) {
+                clone.Actor = clone.Actor.Clone(filter);
+            }
+
+            return clone;
+        }
+
+        /// <summary>
+        /// Clones a principal by filtering its identities.
+        /// </summary>
+        /// <param name="principal">The <see cref="ClaimsPrincipal"/> instance to filter.</param>
+        /// <param name="filter">
+        /// The delegate filtering the claims: return <c>true</c>
+        /// to accept the claim, <c>false</c> to remove it.
+        /// </param>
+        public static ClaimsPrincipal Clone(this ClaimsPrincipal principal, Func<Claim, bool> filter) {
+            var clone = new ClaimsPrincipal();
+
+            foreach (var identity in principal.Identities) {
+                clone.AddIdentity(identity.Clone(filter));
+            }
+
+            return clone;
+        }
+
         private static bool HasValue(string source, string value) {
             if (string.IsNullOrWhiteSpace(source)) {
                 return false;
