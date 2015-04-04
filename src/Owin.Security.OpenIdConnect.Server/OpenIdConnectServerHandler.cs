@@ -374,7 +374,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             };
             
             // Associate client_id with all subsequent tickets.
-            context.Properties.Dictionary[OpenIdConnectConstants.Extra.ClientId] = request.ClientId;
+            context.Properties.Dictionary[OpenIdConnectConstants.Extra.Audience] = request.ClientId;
             var ticket = new AuthenticationTicket(context.Identity, context.Properties);
 
             if (!string.IsNullOrEmpty(request.RedirectUri)) {
@@ -1047,16 +1047,14 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return null;
             }
 
-            if (!ticket.Properties.ExpiresUtc.HasValue ||
-                ticket.Properties.ExpiresUtc < currentUtc) {
+            if (!ticket.Properties.ExpiresUtc.HasValue || ticket.Properties.ExpiresUtc < currentUtc) {
                 logger.WriteError("expired authorization code");
                 validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
                 return null;
             }
 
-            string clientId;
-            if (!ticket.Properties.Dictionary.TryGetValue(OpenIdConnectConstants.Extra.ClientId, out clientId) ||
-                !string.Equals(clientId, validatingContext.ClientContext.ClientId, StringComparison.Ordinal)) {
+            var audience = ticket.Properties.GetAudience();
+            if (string.IsNullOrWhiteSpace(audience) || !string.Equals(audience, validatingContext.ClientContext.ClientId, StringComparison.Ordinal)) {
                 logger.WriteError("authorization code does not contain matching client_id");
                 validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
                 return null;
@@ -1139,9 +1137,15 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return null;
             }
 
-            if (!ticket.Properties.ExpiresUtc.HasValue ||
-                ticket.Properties.ExpiresUtc < currentUtc) {
+            if (!ticket.Properties.ExpiresUtc.HasValue || ticket.Properties.ExpiresUtc < currentUtc) {
                 logger.WriteError("expired refresh token");
+                validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
+                return null;
+            }
+
+            var audience = ticket.Properties.GetAudience();
+            if (string.IsNullOrWhiteSpace(audience) || !string.Equals(audience, validatingContext.ClientContext.ClientId, StringComparison.Ordinal)) {
+                logger.WriteError("refresh token does not contain matching client_id");
                 validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
                 return null;
             }
@@ -1230,118 +1234,61 @@ namespace Owin.Security.OpenIdConnect.Server {
                 };
             }
 
-            var notification = new ValidationEndpointNotification(Context, Options, request);
-
-            if (string.IsNullOrWhiteSpace(request.Token) &&
-                string.IsNullOrWhiteSpace(request.IdToken) &&
-                string.IsNullOrWhiteSpace(request.GetRefreshToken())) {
+            // Select the token to validate.
+            var token = request.Token ?? request.IdToken ?? request.GetRefreshToken();
+            if (string.IsNullOrWhiteSpace(token)) {
                 await SendErrorPayloadAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "A malformed validation request has been received: " +
                         "either an identity token, an access token or a refresh token must be provided."
                 });
+
+                return;
+            }
+            
+            var ticket = await ReceiveAccessTokenAsync(token);
+            if (ticket == null) {
+                logger.WriteError("invalid token");
+
+                await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                    Error = OpenIdConnectConstants.Errors.InvalidGrant,
+                    ErrorDescription = "Invalid access token received"
+                });
+
+                return;
             }
 
-            if (!string.IsNullOrWhiteSpace(request.Token)) {
-                // Determine the audience that will be used to validate the access token.
-                var ticket = await ReceiveAccessTokenAsync(request.Token);
-                if (ticket == null) {
-                    await SendErrorPayloadAsync(new OpenIdConnectMessage {
-                        Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                        ErrorDescription = "Invalid access token received"
-                    });
+            if (!ticket.Properties.ExpiresUtc.HasValue || ticket.Properties.ExpiresUtc < Options.SystemClock.UtcNow) {
+                logger.WriteError("expired token");
 
-                    return;
-                }
+                await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                    Error = OpenIdConnectConstants.Errors.InvalidGrant,
+                    ErrorDescription = "Expired access token received"
+                });
 
-                // Client applications and resource servers are strongly encouraged
-                // to provide an audience parameter to mitigate confused deputy attacks.
-                // See http://en.wikipedia.org/wiki/Confused_deputy_problem.
-                var audience = request.GetParameter("audience");
-                if (!string.IsNullOrWhiteSpace(audience)) {
-                    if (!string.Equals(audience, ticket.Properties.GetAudience(), StringComparison.Ordinal)) {
-                        await SendErrorPayloadAsync(new OpenIdConnectMessage {
-                            Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                            ErrorDescription = "Invalid access token received: " +
-                                "the audience doesn't correspond to the registered value"
-                        });
-
-                        return;
-                    }
-                }
-
-                // Add the claims extracted from the access token.
-                foreach (var claim in ticket.Identity.Claims) {
-                    notification.Claims.Add(claim);
-                }
+                return;
             }
 
-            else if (!string.IsNullOrWhiteSpace(request.IdToken)) {
-                // Determine the audience that will be used to validate the identity token.
-                var ticket = await ReceiveIdentityTokenAsync(request.IdToken);
-                if (ticket == null) {
-                    await SendErrorPayloadAsync(new OpenIdConnectMessage {
-                        Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                        ErrorDescription = "Invalid identity token received"
-                    });
+            // Client applications and resource servers are strongly encouraged
+            // to provide an audience parameter to mitigate confused deputy attacks.
+            // See http://en.wikipedia.org/wiki/Confused_deputy_problem.
+            var audience = request.GetParameter(OpenIdConnectConstants.Extra.Audience);
+            if (!string.IsNullOrWhiteSpace(audience) &&
+                !string.Equals(audience, ticket.Properties.GetAudience(), StringComparison.Ordinal)) {
+                await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                    Error = OpenIdConnectConstants.Errors.InvalidGrant,
+                    ErrorDescription = "Invalid access token received: " +
+                        "the audience doesn't correspond to the registered value"
+                });
 
-                    return;
-                }
-
-                // Client applications and resource servers are strongly encouraged
-                // to provide an audience parameter to mitigate confused deputy attacks.
-                // See http://en.wikipedia.org/wiki/Confused_deputy_problem.
-                var audience = request.GetParameter("audience");
-                if (!string.IsNullOrWhiteSpace(audience)) {
-                    if (!string.Equals(audience, ticket.Properties.GetAudience(), StringComparison.Ordinal)) {
-                        await SendErrorPayloadAsync(new OpenIdConnectMessage {
-                            Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                            ErrorDescription = "Invalid identity token received: " +
-                                "the audience doesn't correspond to the registered value"
-                        });
-
-                        return;
-                    }
-                }
-
-                // Add the claims extracted from the identity token.
-                foreach (var claim in ticket.Identity.Claims) {
-                    notification.Claims.Add(claim);
-                }
+                return;
             }
 
-            else if (!string.IsNullOrWhiteSpace(request.GetRefreshToken())) {
-                // Determine the audience that will be used to validate the refresh token.
-                var ticket = await ReceiveRefreshTokenAsync(request.GetRefreshToken());
-                if (ticket == null) {
-                    await SendErrorPayloadAsync(new OpenIdConnectMessage {
-                        Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                        ErrorDescription = "Invalid identity token received"
-                    });
+            var notification = new ValidationEndpointNotification(Context, Options, request);
 
-                    return;
-                }
-
-                // Client applications and resource servers are strongly encouraged
-                // to provide an audience parameter to mitigate confused deputy attacks.
-                // See http://en.wikipedia.org/wiki/Confused_deputy_problem.
-                var audience = request.GetParameter("audience");
-                if (!string.IsNullOrWhiteSpace(audience)) {
-                    if (!string.Equals(audience, ticket.Properties.GetAudience(), StringComparison.Ordinal)) {
-                        await SendErrorPayloadAsync(new OpenIdConnectMessage {
-                            Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                            ErrorDescription = "Invalid identity token received: " +
-                                "the audience doesn't correspond to the registered value"
-                        });
-
-                        return;
-                    }
-                }
-
-                // Add the claims extracted from the refresh token.
-                foreach (var claim in ticket.Identity.Claims) {
-                    notification.Claims.Add(claim);
-                }
+            // Add the claims extracted from the access token.
+            foreach (var claim in ticket.Identity.Claims) {
+                notification.Claims.Add(claim);
             }
 
             await Options.Provider.ValidationEndpoint(notification);
@@ -1643,31 +1590,38 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             // Create new validation parameters to validate the security token.
-            // ValidateAudience is always set to false: if necessary, the audience
-            // can be validated in InvokeValidationEndpointAsync.
+            // ValidateAudience and ValidateLifetime are always set to false:
+            // if necessary, the audience and the expiration can be validated
+            // in InvokeValidationEndpointAsync or InvokeTokenEndpointAsync.
             var parameters = new TokenValidationParameters {
                 IssuerSigningKey = Options.SigningCredentials.SigningKey,
                 ValidIssuer = Options.Issuer + "/",
-                ValidateAudience = false
+                ValidateAudience = false,
+                ValidateLifetime = false
             };
 
-            SecurityToken securityToken;
-            var principal = handler.ValidateToken(token, parameters, out securityToken);
-            var identity = (ClaimsIdentity) principal.Identity;
+            try {
+                SecurityToken securityToken;
+                var principal = handler.ValidateToken(token, parameters, out securityToken);
+                var identity = (ClaimsIdentity) principal.Identity;
 
-            var properties = new AuthenticationProperties();
-            properties.ExpiresUtc = securityToken.ValidTo;
-            properties.IssuedUtc = securityToken.ValidFrom;
+                // Parameters stored in AuthenticationProperties are lost
+                // when the identity token is serialized using a security token handler.
+                // To mitigate that, they are inferred from the claims or the security token.
+                var properties = new AuthenticationProperties {
+                    ExpiresUtc = securityToken.ValidTo,
+                    IssuedUtc = securityToken.ValidFrom
+                };
 
-            // Parameters stored in AuthenticationProperties are lost
-            // when the identity token is serialized using a security token handler.
-            // To mitigate that, they are inferred from the claims or the security token.
-            var audience = identity.FindFirst(JwtRegisteredClaimNames.Aud);
-            if (audience != null) {
-                properties.Dictionary.Add("audience", audience.Value);
+                var audience = identity.FindFirst(JwtRegisteredClaimNames.Aud);
+                if (audience != null) {
+                    properties.Dictionary.Add(OpenIdConnectConstants.Extra.Audience, audience.Value);
+                }
+
+                return new AuthenticationTicket(identity, properties);
             }
 
-            return new AuthenticationTicket(identity, properties);
+            catch { return null; }
         }
 
         private async Task<AuthenticationTicket> ReceiveIdentityTokenAsync(string token) {
@@ -1680,33 +1634,40 @@ namespace Owin.Security.OpenIdConnect.Server {
             if (ticket != null) {
                 return ticket;
             }
-            
+
             // Create new validation parameters to validate the security token.
-            // ValidateAudience is always set to false: if necessary, the audience
-            // can be validated in InvokeValidationEndpointAsync.
+            // ValidateAudience and ValidateLifetime are always set to false:
+            // if necessary, the audience and the expiration can be validated
+            // in InvokeValidationEndpointAsync or InvokeTokenEndpointAsync.
             var parameters = new TokenValidationParameters {
                 IssuerSigningKey = Options.SigningCredentials.SigningKey,
                 ValidIssuer = Options.Issuer + "/",
-                ValidateAudience = false
+                ValidateAudience = false,
+                ValidateLifetime = false
             };
 
-            SecurityToken securityToken;
-            var principal = Options.IdentityTokenHandler.ValidateToken(token, parameters, out securityToken);
-            var identity = (ClaimsIdentity) principal.Identity;
+            try {
+                SecurityToken securityToken;
+                var principal = Options.IdentityTokenHandler.ValidateToken(token, parameters, out securityToken);
+                var identity = (ClaimsIdentity) principal.Identity;
 
-            // Parameters stored in AuthenticationProperties are lost
-            // when the identity token is serialized using a security token handler.
-            // To mitigate that, they are inferred from the claims or the security token.
-            var properties = new AuthenticationProperties();
-            properties.ExpiresUtc = securityToken.ValidTo;
-            properties.IssuedUtc = securityToken.ValidFrom;
+                // Parameters stored in AuthenticationProperties are lost
+                // when the identity token is serialized using a security token handler.
+                // To mitigate that, they are inferred from the claims or the security token.
+                var properties = new AuthenticationProperties {
+                    ExpiresUtc = securityToken.ValidTo,
+                    IssuedUtc = securityToken.ValidFrom
+                };
 
-            var audience = identity.FindFirst(JwtRegisteredClaimNames.Aud);
-            if (audience != null) {
-                properties.Dictionary.Add("audience", audience.Value);
+                var audience = identity.FindFirst(JwtRegisteredClaimNames.Aud);
+                if (audience != null) {
+                    properties.Dictionary.Add(OpenIdConnectConstants.Extra.Audience, audience.Value);
+                }
+
+                return new AuthenticationTicket(identity, properties);
             }
-
-            return new AuthenticationTicket(identity, properties);
+            
+            catch { return null; }
         }
 
         private async Task<AuthenticationTicket> ReceiveRefreshTokenAsync(string token) {
