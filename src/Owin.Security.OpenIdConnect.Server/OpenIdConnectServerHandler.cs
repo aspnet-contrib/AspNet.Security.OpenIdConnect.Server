@@ -1305,8 +1305,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             foreach (var claim in notification.Claims) {
                 payload.Add(JObject.FromObject(new {
                     type = claim.Type,
-                    value = claim.Value,
-                    issuer = claim.Issuer
+                    value = claim.Value
                 }));
             }
 
