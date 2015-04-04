@@ -4,11 +4,9 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
-using System;
-using System.Collections.Generic;
-using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Microsoft.Owin.Security.Provider;
+using Newtonsoft.Json.Linq;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
@@ -21,14 +19,15 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         internal KeysEndpointResponseNotification(
             IOwinContext context,
-            OpenIdConnectServerOptions options)
+            OpenIdConnectServerOptions options,
+            JObject payload)
             : base(context, options) {
-            Keys = new List<JsonWebKey>();
+            Payload = payload;
         }
 
         /// <summary>
-        /// Gets a list of the JSON Web Keys found by the authorization server.
+        /// Gets the JSON payload returned to the client application.
         /// </summary>
-        public IList<JsonWebKey> Keys { get; private set; }
+        public JObject Payload { get; private set; }
     }
 }

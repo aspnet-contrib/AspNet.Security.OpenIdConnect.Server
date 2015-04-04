@@ -400,8 +400,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 response.IdToken = await CreateIdentityTokenAsync(ticket, request, response);
             }
 
-            var authorizationEndpointResponseContext = new AuthorizationEndpointResponseNotification(Context, Options, ticket, request, response);
-
+            var authorizationEndpointResponseContext = new AuthorizationEndpointResponseNotification(Context, Options, request, response);
             await Options.Provider.AuthorizationEndpointResponse(authorizationEndpointResponseContext);
 
             // Stop processing the request if AuthorizationEndpointResponse called RequestCompleted.
@@ -461,7 +460,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 string location = response.RedirectUri;
                 var appender = new Appender(location, '#');
 
-                foreach (KeyValuePair<string, string> parameter in response.Parameters) {
+                foreach (var parameter in response.Parameters) {
                     // Don't include client_id, redirect_uri or response_mode in the fragment.
                     if (string.Equals(parameter.Key, OpenIdConnectParameterNames.ClientId, StringComparison.Ordinal) || 
                         string.Equals(parameter.Key, OpenIdConnectParameterNames.RedirectUri, StringComparison.Ordinal) ||
@@ -479,7 +478,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             else if (request.IsQueryResponseMode()) {
                 string location = response.RedirectUri;
 
-                foreach (KeyValuePair<string, string> parameter in response.Parameters) {
+                foreach (var parameter in response.Parameters) {
                     // Don't include client_id, redirect_uri or response_mode in the query string.
                     if (string.Equals(parameter.Key, OpenIdConnectParameterNames.ClientId, StringComparison.Ordinal) || 
                         string.Equals(parameter.Key, OpenIdConnectParameterNames.RedirectUri, StringComparison.Ordinal) ||
@@ -499,13 +498,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
         private async Task InvokeConfigurationEndpointAsync() {
             var configurationEndpointContext = new ConfigurationEndpointNotification(Context, Options);
-            await Options.Provider.ConfigurationEndpoint(configurationEndpointContext);
-
-            // Stop processing the request if
-            // ConfigurationEndpoint called RequestCompleted.
-            if (configurationEndpointContext.IsRequestCompleted) {
-                return;
-            }
+            configurationEndpointContext.Issuer = Options.Issuer + "/";
 
             // Metadata requests must be made via GET.
             // See http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationRequest
@@ -515,12 +508,9 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return;
             }
 
-            var configurationEndpointResponseContext = new ConfigurationEndpointResponseNotification(Context, Options);
-            configurationEndpointResponseContext.Issuer = Options.Issuer + "/";
-
             // Set the default endpoints concatenating Options.Issuer and Options.*EndpointPath.
             if (Options.AuthorizationEndpointPath.HasValue) {
-                configurationEndpointResponseContext.AuthorizationEndpoint = Options.Issuer + Options.AuthorizationEndpointPath;
+                configurationEndpointContext.AuthorizationEndpoint = Options.Issuer + Options.AuthorizationEndpointPath;
             }
 
             // While the jwks_uri parameter is in principle mandatory, many OIDC clients are known
@@ -534,39 +524,39 @@ namespace Owin.Security.OpenIdConnect.Server {
                 Options.SigningCredentials != null &&
                 Options.SigningCredentials.SigningKey is AsymmetricSecurityKey &&
                 Options.SigningCredentials.SigningKey.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature)) {
-                configurationEndpointResponseContext.KeyEndpoint = Options.Issuer + Options.KeysEndpointPath;
+                configurationEndpointContext.KeyEndpoint = Options.Issuer + Options.KeysEndpointPath;
             }
 
             if (Options.TokenEndpointPath.HasValue) {
-                configurationEndpointResponseContext.TokenEndpoint = Options.Issuer + Options.TokenEndpointPath;
+                configurationEndpointContext.TokenEndpoint = Options.Issuer + Options.TokenEndpointPath;
             }
 
-            configurationEndpointResponseContext.GrantTypes.Add(
+            configurationEndpointContext.GrantTypes.Add(
                 OpenIdConnectConstants.GrantTypes.Implicit);
 
             // Only expose the authorization code grant type if
             // the token endpoint has not been explicitly disabled.
             if (Options.TokenEndpointPath.HasValue) {
-                configurationEndpointResponseContext.GrantTypes.Add(
+                configurationEndpointContext.GrantTypes.Add(
                     OpenIdConnectConstants.GrantTypes.AuthorizationCode);
             }
 
-            configurationEndpointResponseContext.ResponseModes.Add(
+            configurationEndpointContext.ResponseModes.Add(
                 OpenIdConnectConstants.ResponseModes.FormPost);
-            configurationEndpointResponseContext.ResponseModes.Add(
+            configurationEndpointContext.ResponseModes.Add(
                 OpenIdConnectConstants.ResponseModes.Fragment);
-            configurationEndpointResponseContext.ResponseModes.Add(
+            configurationEndpointContext.ResponseModes.Add(
                 OpenIdConnectConstants.ResponseModes.Query);
 
-            configurationEndpointResponseContext.ResponseTypes.Add(
+            configurationEndpointContext.ResponseTypes.Add(
                 OpenIdConnectConstants.ResponseTypes.Token);
 
             // Only expose response types containing id_token when
             // signing credentials have been explicitly provided.
             if (Options.SigningCredentials != null) {
-                configurationEndpointResponseContext.ResponseTypes.Add(
+                configurationEndpointContext.ResponseTypes.Add(
                     OpenIdConnectConstants.ResponseTypes.IdToken);
-                configurationEndpointResponseContext.ResponseTypes.Add(
+                configurationEndpointContext.ResponseTypes.Add(
                     OpenIdConnectConstants.ResponseTypes.IdToken + ' ' +
                     OpenIdConnectConstants.ResponseTypes.Token);
             }
@@ -574,34 +564,79 @@ namespace Owin.Security.OpenIdConnect.Server {
             // Only expose response types containing code when
             // the token endpoint has not been explicitly disabled.
             if (Options.TokenEndpointPath.HasValue) {
-                configurationEndpointResponseContext.ResponseTypes.Add(
+                configurationEndpointContext.ResponseTypes.Add(
                     OpenIdConnectConstants.ResponseTypes.Code);
 
-                configurationEndpointResponseContext.ResponseTypes.Add(
+                configurationEndpointContext.ResponseTypes.Add(
                     OpenIdConnectConstants.ResponseTypes.Code + ' ' +
                     OpenIdConnectConstants.ResponseTypes.Token);
 
                 // Only expose response types containing id_token when
                 // signing credentials have been explicitly provided.
                 if (Options.SigningCredentials != null) {
-                    configurationEndpointResponseContext.ResponseTypes.Add(
+                    configurationEndpointContext.ResponseTypes.Add(
                         OpenIdConnectConstants.ResponseTypes.Code + ' ' +
                         OpenIdConnectConstants.ResponseTypes.IdToken);
 
-                    configurationEndpointResponseContext.ResponseTypes.Add(
+                    configurationEndpointContext.ResponseTypes.Add(
                         OpenIdConnectConstants.ResponseTypes.Code + ' ' +
                         OpenIdConnectConstants.ResponseTypes.IdToken + ' ' +
                         OpenIdConnectConstants.ResponseTypes.Token);
                 }
             }
 
-            configurationEndpointResponseContext.Scopes.Add(OpenIdConnectScopes.OpenId);
+            configurationEndpointContext.Scopes.Add(OpenIdConnectScopes.OpenId);
 
-            configurationEndpointResponseContext.SubjectTypes.Add(OpenIdConnectConstants.SubjectTypes.Public);
-            configurationEndpointResponseContext.SubjectTypes.Add(OpenIdConnectConstants.SubjectTypes.Pairwise);
+            configurationEndpointContext.SubjectTypes.Add(OpenIdConnectConstants.SubjectTypes.Public);
+            configurationEndpointContext.SubjectTypes.Add(OpenIdConnectConstants.SubjectTypes.Pairwise);
 
-            configurationEndpointResponseContext.SigningAlgorithms.Add(OpenIdConnectConstants.Algorithms.RS256);
+            configurationEndpointContext.SigningAlgorithms.Add(OpenIdConnectConstants.Algorithms.RS256);
 
+            await Options.Provider.ConfigurationEndpoint(configurationEndpointContext);
+
+            // Stop processing the request if
+            // ConfigurationEndpoint called RequestCompleted.
+            if (configurationEndpointContext.IsRequestCompleted) {
+                return;
+            }
+            
+            var payload = new JObject();
+
+            payload.Add(OpenIdConnectConstants.Metadata.Issuer,
+                configurationEndpointContext.Issuer);
+
+            payload.Add(OpenIdConnectConstants.Metadata.AuthorizationEndpoint,
+                configurationEndpointContext.AuthorizationEndpoint);
+
+            if (!string.IsNullOrWhiteSpace(configurationEndpointContext.TokenEndpoint)) {
+                payload.Add(OpenIdConnectConstants.Metadata.TokenEndpoint,
+                    configurationEndpointContext.TokenEndpoint);
+            }
+
+            if (!string.IsNullOrWhiteSpace(configurationEndpointContext.KeyEndpoint)) {
+                payload.Add(OpenIdConnectConstants.Metadata.JwksUri,
+                    configurationEndpointContext.KeyEndpoint);
+            }
+
+            payload.Add(OpenIdConnectConstants.Metadata.GrantTypesSupported,
+                JArray.FromObject(configurationEndpointContext.GrantTypes));
+
+            payload.Add(OpenIdConnectConstants.Metadata.ResponseModesSupported,
+                JArray.FromObject(configurationEndpointContext.ResponseModes));
+
+            payload.Add(OpenIdConnectConstants.Metadata.ResponseTypesSupported,
+                JArray.FromObject(configurationEndpointContext.ResponseTypes));
+
+            payload.Add(OpenIdConnectConstants.Metadata.SubjectTypesSupported,
+                JArray.FromObject(configurationEndpointContext.SubjectTypes));
+
+            payload.Add(OpenIdConnectConstants.Metadata.ScopesSupported,
+                JArray.FromObject(configurationEndpointContext.Scopes));
+
+            payload.Add(OpenIdConnectConstants.Metadata.IdTokenSigningAlgValuesSupported,
+                JArray.FromObject(configurationEndpointContext.SigningAlgorithms));
+
+            var configurationEndpointResponseContext = new ConfigurationEndpointResponseNotification(Context, Options, payload);
             await Options.Provider.ConfigurationEndpointResponse(configurationEndpointResponseContext);
 
             // Stop processing the request if ConfigurationEndpointResponse called RequestCompleted.
@@ -611,46 +646,6 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             using (var buffer = new MemoryStream())
             using (var writer = new JsonTextWriter(new StreamWriter(buffer))) {
-                var payload = new JObject();
-
-                payload.Add(OpenIdConnectConstants.Metadata.Issuer,
-                    configurationEndpointResponseContext.Issuer);
-
-                payload.Add(OpenIdConnectConstants.Metadata.AuthorizationEndpoint,
-                    configurationEndpointResponseContext.AuthorizationEndpoint);
-
-                if (!string.IsNullOrWhiteSpace(configurationEndpointResponseContext.TokenEndpoint)) {
-                    payload.Add(OpenIdConnectConstants.Metadata.TokenEndpoint,
-                        configurationEndpointResponseContext.TokenEndpoint);
-                }
-
-                if (!string.IsNullOrWhiteSpace(configurationEndpointResponseContext.KeyEndpoint)) {
-                    payload.Add(OpenIdConnectConstants.Metadata.JwksUri,
-                        configurationEndpointResponseContext.KeyEndpoint);
-                }
-
-                payload.Add(OpenIdConnectConstants.Metadata.GrantTypesSupported,
-                    JArray.FromObject(configurationEndpointResponseContext.GrantTypes));
-
-                payload.Add(OpenIdConnectConstants.Metadata.ResponseModesSupported,
-                    JArray.FromObject(configurationEndpointResponseContext.ResponseModes));
-
-                payload.Add(OpenIdConnectConstants.Metadata.ResponseTypesSupported,
-                    JArray.FromObject(configurationEndpointResponseContext.ResponseTypes));
-
-                payload.Add(OpenIdConnectConstants.Metadata.SubjectTypesSupported,
-                    JArray.FromObject(configurationEndpointResponseContext.SubjectTypes));
-
-                payload.Add(OpenIdConnectConstants.Metadata.ScopesSupported,
-                    JArray.FromObject(configurationEndpointResponseContext.Scopes));
-
-                payload.Add(OpenIdConnectConstants.Metadata.IdTokenSigningAlgValuesSupported,
-                    JArray.FromObject(configurationEndpointResponseContext.SigningAlgorithms));
-
-                foreach (KeyValuePair<string, JToken> parameter in configurationEndpointResponseContext.AdditionalParameters) {
-                    payload.Add(parameter.Key, parameter.Value);
-                }
-
                 payload.WriteTo(writer);
                 writer.Flush();
 
@@ -664,13 +659,6 @@ namespace Owin.Security.OpenIdConnect.Server {
 
         private async Task InvokeKeysEndpointAsync() {
             var keysEndpointContext = new KeysEndpointNotification(Context, Options);
-            await Options.Provider.KeysEndpoint(keysEndpointContext);
-            
-            // Skip processing the JWKS request if
-            // RequestCompleted has been called.
-            if (keysEndpointContext.IsRequestCompleted) {
-                return;
-            }
 
             // Metadata requests must be made via GET.
             // See http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationRequest
@@ -709,8 +697,6 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return;
             }
 
-            var keysEndpointResponseContext = new KeysEndpointResponseNotification(Context, Options);
-
             X509Certificate2 x509Certificate = null;
 
             // Determine whether the signing credentials are directly based on a X.509 certificate.
@@ -748,7 +734,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             if (x509Certificate != null) {
                 // Create a new JSON Web Key exposing the
                 // certificate instead of its public RSA key.
-                keysEndpointResponseContext.Keys.Add(new JsonWebKey {
+                keysEndpointContext.Keys.Add(new JsonWebKey {
                     Kty = JsonWebAlgorithmsKeyTypes.RSA,
                     Alg = JwtAlgorithms.RSA_SHA256,
                     Use = JsonWebKeyUseNames.Sig,
@@ -773,7 +759,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 var parameters = asymmetricAlgorithm.ExportParameters(
                     includePrivateParameters: false);
 
-                keysEndpointResponseContext.Keys.Add(new JsonWebKey {
+                keysEndpointContext.Keys.Add(new JsonWebKey {
                     Kty = JsonWebAlgorithmsKeyTypes.RSA,
                     Alg = JwtAlgorithms.RSA_SHA256,
                     Use = JsonWebKeyUseNames.Sig,
@@ -785,6 +771,64 @@ namespace Owin.Security.OpenIdConnect.Server {
                 });
             }
 
+            await Options.Provider.KeysEndpoint(keysEndpointContext);
+
+            // Skip processing the JWKS request if
+            // RequestCompleted has been called.
+            if (keysEndpointContext.IsRequestCompleted) {
+                return;
+            }
+
+            // Ensure at least one key has been added to context.Keys.
+            if (!keysEndpointContext.Keys.Any()) {
+                logger.WriteError("Keys endpoint: no JSON Web Key found.");
+                return;
+            }
+
+            var payload = new JObject();
+            var keys = new JArray();
+
+            foreach (var key in keysEndpointContext.Keys) {
+                var item = new JObject();
+
+                // Ensure a key type has been provided.
+                // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#section-4.1
+                if (string.IsNullOrWhiteSpace(key.Kty)) {
+                    logger.WriteWarning("Keys endpoint: a JSON Web Key didn't " +
+                        "contain the mandatory 'Kty' parameter and has been ignored.");
+                    continue;
+                }
+
+                // Create a dictionary associating the
+                // JsonWebKey components with their values.
+                var parameters = new Dictionary<string, string> {
+                    { JsonWebKeyParameterNames.Kty, key.Kty },
+                    { JsonWebKeyParameterNames.Alg, key.Alg },
+                    { JsonWebKeyParameterNames.E, key.E },
+                    { JsonWebKeyParameterNames.KeyOps, key.KeyOps },
+                    { JsonWebKeyParameterNames.Kid, key.Kid },
+                    { JsonWebKeyParameterNames.N, key.N },
+                    { JsonWebKeyParameterNames.Use, key.Use },
+                    { JsonWebKeyParameterNames.X5t, key.X5t },
+                    { JsonWebKeyParameterNames.X5u, key.X5u },
+                };
+
+                foreach (var parameter in parameters) {
+                    if (!string.IsNullOrEmpty(parameter.Value)) {
+                        item.Add(parameter.Key, parameter.Value);
+                    }
+                }
+
+                if (key.X5c.Any()) {
+                    item.Add(JsonWebKeyParameterNames.X5c, JArray.FromObject(key.X5c));
+                }
+
+                keys.Add(item);
+            }
+
+            payload.Add(JsonWebKeyParameterNames.Keys, keys);
+
+            var keysEndpointResponseContext = new KeysEndpointResponseNotification(Context, Options, payload);
             await Options.Provider.KeysEndpointResponse(keysEndpointResponseContext);
 
             // Skip processing the request if RequestCompleted has been called.
@@ -792,57 +836,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return;
             }
 
-            // Ensure at least one key has been added to context.Keys.
-            if (!keysEndpointResponseContext.Keys.Any()) {
-                logger.WriteError("Keys endpoint: no JSON Web Key found.");
-                return;
-            }
-
             using (var buffer = new MemoryStream())
             using (var writer = new JsonTextWriter(new StreamWriter(buffer))) {
-                var payload = new JObject();
-                var keys = new JArray();
-
-                foreach (var key in keysEndpointResponseContext.Keys) {
-                    var item = new JObject();
-
-                    // Ensure a key type has been provided.
-                    // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#section-4.1
-                    if (string.IsNullOrWhiteSpace(key.Kty)) {
-                        logger.WriteWarning("Keys endpoint: a JSON Web Key didn't " +
-                            "contain the mandatory 'Kty' parameter and has been ignored.");
-                        continue;
-                    }
-
-                    // Create a dictionary associating the
-                    // JsonWebKey components with their values.
-                    var parameters = new Dictionary<string, string> {
-                        { JsonWebKeyParameterNames.Kty, key.Kty },
-                        { JsonWebKeyParameterNames.Alg, key.Alg },
-                        { JsonWebKeyParameterNames.E, key.E },
-                        { JsonWebKeyParameterNames.KeyOps, key.KeyOps },
-                        { JsonWebKeyParameterNames.Kid, key.Kid },
-                        { JsonWebKeyParameterNames.N, key.N },
-                        { JsonWebKeyParameterNames.Use, key.Use },
-                        { JsonWebKeyParameterNames.X5t, key.X5t },
-                        { JsonWebKeyParameterNames.X5u, key.X5u },
-                    };
-
-                    foreach (var parameter in parameters) {
-                        if (!string.IsNullOrEmpty(parameter.Value)) {
-                            item.Add(parameter.Key, parameter.Value);
-                        }
-                    }
-
-                    if (key.X5c.Any()) {
-                        item.Add(JsonWebKeyParameterNames.X5c, JArray.FromObject(key.X5c));
-                    }
-
-                    keys.Add(item);
-                }
-
-                payload.Add(JsonWebKeyParameterNames.Keys, keys);
-
                 payload.WriteTo(writer);
                 writer.Flush();
 
@@ -890,9 +885,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             var request = new OpenIdConnectMessage(await Request.ReadFormAsync());
             request.RequestType = OpenIdConnectRequestType.TokenRequest;
 
-            var currentUtc = Options.SystemClock.UtcNow;
-
             // Remove milliseconds in case they don't round-trip
+            var currentUtc = Options.SystemClock.UtcNow;
             currentUtc = currentUtc.Subtract(TimeSpan.FromMilliseconds(currentUtc.Millisecond));
 
             var clientContext = new ValidateClientAuthenticationNotification(Context, Options, request);
@@ -976,19 +970,9 @@ namespace Owin.Security.OpenIdConnect.Server {
             if (tokenEndpointContext.IsRequestCompleted) {
                 return;
             }
-
-            if (!tokenEndpointContext.TokenIssued) {
-                logger.WriteError("Token was not issued to tokenEndpointContext");
-
-                await SendErrorPayloadAsync(new OpenIdConnectMessage {
-                    Error = OpenIdConnectConstants.Errors.InvalidGrant,
-                    ErrorDescription = "A token was not issued to tokenEndpointContext"
-                });
-
-                return;
-            }
-
-            ticket = new AuthenticationTicket(tokenEndpointContext.Identity, tokenEndpointContext.Properties);
+            
+            // Flow the changes made to the ticket.
+            ticket = tokenEndpointContext.Ticket;
 
             var response = new OpenIdConnectMessage();
             response.TokenType = OpenIdConnectConstants.TokenTypes.Bearer;
@@ -1011,10 +995,14 @@ namespace Owin.Security.OpenIdConnect.Server {
                     response.ExpiresIn = expiresIn.ToString(CultureInfo.InvariantCulture);
                 }
             }
+            
+            var payload = new JObject();
 
-            var tokenEndpointResponseContext = new TokenEndpointResponseNotification(
-                Context, Options, ticket, request, response);
-
+            foreach (var parameter in response.Parameters) {
+                payload.Add(parameter.Key, parameter.Value);
+            }
+            
+            var tokenEndpointResponseContext = new TokenEndpointResponseNotification(Context, Options, payload);
             await Options.Provider.TokenEndpointResponse(tokenEndpointResponseContext);
 
             // Stop processing the request if
@@ -1025,16 +1013,6 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             using (var buffer = new MemoryStream())
             using (var writer = new JsonTextWriter(new StreamWriter(buffer))) {
-                var payload = new JObject();
-
-                foreach (var parameter in response.Parameters) {
-                    payload.Add(parameter.Key, parameter.Value);
-                }
-
-                foreach (var parameter in tokenEndpointResponseContext.AdditionalParameters) {
-                    payload.Add(parameter.Key, parameter.Value);
-                }
-
                 payload.WriteTo(writer);
                 writer.Flush();
 

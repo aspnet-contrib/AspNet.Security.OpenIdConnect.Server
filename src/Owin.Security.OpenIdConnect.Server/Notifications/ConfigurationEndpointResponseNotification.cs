@@ -4,8 +4,6 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
-using System;
-using System.Collections.Generic;
 using Microsoft.Owin;
 using Microsoft.Owin.Security.Provider;
 using Newtonsoft.Json.Linq;
@@ -21,76 +19,15 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         internal ConfigurationEndpointResponseNotification(
             IOwinContext context,
-            OpenIdConnectServerOptions options)
+            OpenIdConnectServerOptions options,
+            JObject payload)
             : base(context, options) {
-            AdditionalParameters = new Dictionary<string, JToken>(StringComparer.Ordinal);
-            GrantTypes = new List<string>();
-            ResponseModes = new List<string>();
-            ResponseTypes = new List<string>();
-            Scopes = new List<string>();
-            SigningAlgorithms = new List<string>();
-            SubjectTypes = new List<string>();
+            Payload = payload;
         }
 
         /// <summary>
-        /// Gets or sets the authorization endpoint address.
+        /// Gets the JSON payload returned to the client application.
         /// </summary>
-        public string AuthorizationEndpoint { get; set; }
-
-        /// <summary>
-        /// Enables additional values to be appended to the metadata response.
-        /// </summary>
-        public IDictionary<string, JToken> AdditionalParameters { get; private set; }
-
-        /// <summary>
-        /// Gets or sets the JWKS endpoint address.
-        /// </summary>
-        public string KeyEndpoint { get; set; }
-
-        /// <summary>
-        /// Gets or sets the issuer address.
-        /// </summary>
-        public string Issuer { get; set; }
-
-        /// <summary>
-        /// Gets a list of the grant types
-        /// supported by the authorization server.
-        /// </summary>
-        public IList<string> GrantTypes { get; private set; }
-
-        /// <summary>
-        /// Gets a list of the response modes
-        /// supported by the authorization server.
-        /// </summary>
-        public IList<string> ResponseModes { get; private set; }
-
-        /// <summary>
-        /// Gets a list of the response types
-        /// supported by the authorization server.
-        /// </summary>
-        public IList<string> ResponseTypes { get; private set; }
-
-        /// <summary>
-        /// Gets a list of the scope values
-        /// supported by the authorization server.
-        /// </summary>
-        public IList<string> Scopes { get; private set; }
-
-        /// <summary>
-        /// Gets a list of the signing algorithms
-        /// supported by the authorization server.
-        /// </summary>
-        public IList<string> SigningAlgorithms { get; private set; }
-
-        /// <summary>
-        /// Gets a list of the subject types
-        /// supported by the authorization server.
-        /// </summary>
-        public IList<string> SubjectTypes { get; private set; }
-
-        /// <summary>
-        /// Gets or sets the token endpoint address.
-        /// </summary>
-        public string TokenEndpoint { get; set; }
+        public JObject Payload { get; private set; }
     }
 }

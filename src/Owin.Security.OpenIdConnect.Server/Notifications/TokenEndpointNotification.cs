@@ -33,41 +33,18 @@ namespace Owin.Security.OpenIdConnect.Server {
                 throw new ArgumentNullException("ticket");
             }
 
-            Identity = ticket.Identity;
-            Properties = ticket.Properties;
+            Ticket = ticket;
             TokenRequest = tokenRequest;
-            TokenIssued = Identity != null;
         }
 
         /// <summary>
-        /// Gets the identity of the resource owner.
+        /// Gets or sets the authentication ticket.
         /// </summary>
-        public ClaimsIdentity Identity { get; private set; }
-
-        /// <summary>
-        /// Dictionary containing the state of the authentication session.
-        /// </summary>
-        public AuthenticationProperties Properties { get; private set; }
+        public AuthenticationTicket Ticket { get; set; }
 
         /// <summary>
         /// Gets information about the token endpoint request. 
         /// </summary>
         public OpenIdConnectMessage TokenRequest { get; set; }
-
-        /// <summary>
-        /// Gets whether or not the token should be issued.
-        /// </summary>
-        public bool TokenIssued { get; private set; }
-
-        /// <summary>
-        /// Issues the token.
-        /// </summary>
-        /// <param name="identity"></param>
-        /// <param name="properties"></param>
-        public void Issue(ClaimsIdentity identity, AuthenticationProperties properties) {
-            Identity = identity;
-            Properties = properties;
-            TokenIssued = true;
-        }
     }
 }
