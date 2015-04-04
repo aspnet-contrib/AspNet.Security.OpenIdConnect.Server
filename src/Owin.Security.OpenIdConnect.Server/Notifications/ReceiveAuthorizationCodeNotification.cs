@@ -44,7 +44,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         /// <returns>The authentication ticket.</returns>
         public AuthenticationTicket DeserializeTicket() {
-            return AuthenticationTicket = DeserializeTicket(AuthorizationCode);
+            return DeserializeTicket(AuthorizationCode);
         }
 
         /// <summary>
@@ -54,7 +54,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <param name="ticket">The serialized ticket.</param>
         /// <returns>The authentication ticket.</returns>
         public AuthenticationTicket DeserializeTicket(string ticket) {
-            return AuthenticationTicket = Options.AuthorizationCodeFormat.Unprotect(ticket);
+            return Options.AuthorizationCodeFormat.Unprotect(ticket);
         }
     }
 }
