@@ -39,7 +39,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// Gets whether or not the endpoint is an
         /// OpenID Connect JWKS endpoint.
         /// </summary>
-        public bool IsKeysEndpoint { get; private set; }
+        public bool IsCryptographyEndpoint { get; private set; }
 
         /// <summary>
         /// Gets whether or not the endpoint is an
@@ -48,13 +48,19 @@ namespace Owin.Security.OpenIdConnect.Server {
         public bool IsTokenEndpoint { get; private set; }
 
         /// <summary>
+        /// Gets whether or not the endpoint is a validation endpoint.
+        /// </summary>
+        public bool IsValidationEndpoint { get; private set; }
+
+        /// <summary>
         /// Sets the endpoint type to the authorization endpoint.
         /// </summary>
         public void MatchesAuthorizationEndpoint() {
             IsAuthorizationEndpoint = true;
             IsConfigurationEndpoint = false;
-            IsKeysEndpoint = false;
+            IsCryptographyEndpoint = false;
             IsTokenEndpoint = false;
+            IsValidationEndpoint = false;
         }
 
         /// <summary>
@@ -63,18 +69,20 @@ namespace Owin.Security.OpenIdConnect.Server {
         public void MatchesConfigurationEndpoint() {
             IsAuthorizationEndpoint = false;
             IsConfigurationEndpoint = true;
-            IsKeysEndpoint = false;
+            IsCryptographyEndpoint = false;
             IsTokenEndpoint = false;
+            IsValidationEndpoint = false;
         }
 
         /// <summary>
         /// Sets the endpoint type to the JWKS endpoint.
         /// </summary>
-        public void MatchesKeysEndpoint() {
+        public void MatchesCryptographyEndpoint() {
             IsAuthorizationEndpoint = false;
             IsConfigurationEndpoint = false;
-            IsKeysEndpoint = true;
+            IsCryptographyEndpoint = true;
             IsTokenEndpoint = false;
+            IsValidationEndpoint = false;
         }
 
         /// <summary>
@@ -83,8 +91,20 @@ namespace Owin.Security.OpenIdConnect.Server {
         public void MatchesTokenEndpoint() {
             IsAuthorizationEndpoint = false;
             IsConfigurationEndpoint = false;
-            IsKeysEndpoint = false;
+            IsCryptographyEndpoint = false;
             IsTokenEndpoint = true;
+            IsValidationEndpoint = false;
+        }
+
+        /// <summary>
+        /// Sets the endpoint type to validation endpoint.
+        /// </summary>
+        public void MatchesValidationEndpoint() {
+            IsAuthorizationEndpoint = false;
+            IsConfigurationEndpoint = false;
+            IsCryptographyEndpoint = false;
+            IsTokenEndpoint = false;
+            IsValidationEndpoint = true;
         }
 
         /// <summary>
@@ -93,8 +113,9 @@ namespace Owin.Security.OpenIdConnect.Server {
         public void MatchesNothing() {
             IsAuthorizationEndpoint = false;
             IsConfigurationEndpoint = false;
-            IsKeysEndpoint = false;
+            IsCryptographyEndpoint = false;
             IsTokenEndpoint = false;
+            IsValidationEndpoint = false;
         }
     }
 }

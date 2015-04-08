@@ -60,12 +60,6 @@ namespace Owin.Security.OpenIdConnect.Server {
                 throw new ArgumentNullException("options.SystemClock");
             }
 
-            if (!Options.AuthorizationEndpointPath.HasValue) {
-                throw new ArgumentException("options.AuthorizationEndpointPath must be provided. " +
-                    "Make sure to use a custom value or remove the setter call to use the default value.",
-                    "options.AuthorizationEndpointPath");
-            }
-
             if (string.IsNullOrWhiteSpace(Options.Issuer)) {
                 throw new ArgumentNullException("options.Issuer");
             }

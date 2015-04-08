@@ -27,13 +27,18 @@ namespace Owin.Security.OpenIdConnect.Server {
         public const string ConfigurationEndpointPath = "/.well-known/openid-configuration";
 
         /// <summary>
-        /// Default value for <see cref="OpenIdConnectServerOptions.KeysEndpointPath"/>.
+        /// Default value for <see cref="OpenIdConnectServerOptions.CryptographyEndpointPath"/>.
         /// </summary>
-        public const string KeysEndpointPath = "/.well-known/jwks";
+        public const string CryptographyEndpointPath = "/.well-known/jwks";
 
         /// <summary>
         /// Default value for <see cref="OpenIdConnectServerOptions.TokenEndpointPath"/>.
         /// </summary>
         public const string TokenEndpointPath = "/connect/token";
+
+        /// <summary>
+        /// Default value for <see cref="OpenIdConnectServerOptions.ValidationEndpointPath"/>.
+        /// </summary>
+        public const string ValidationEndpointPath = "/connect/token_validation";
     }
 }

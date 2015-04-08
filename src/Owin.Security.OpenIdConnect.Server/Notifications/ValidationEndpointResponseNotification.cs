@@ -4,30 +4,30 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
-using System.Collections.Generic;
-using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Microsoft.Owin.Security.Provider;
+using Newtonsoft.Json.Linq;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
-    /// An event raised before the authorization server handles
-    /// the request made to the JWKS metadata endpoint.
+    /// An event raised before the authorization server starts
+    /// writing the token validation to the response stream.
     /// </summary>
-    public sealed class KeysEndpointNotification : EndpointContext<OpenIdConnectServerOptions> {
+    public sealed class ValidationEndpointResponseNotification : EndpointContext<OpenIdConnectServerOptions> {
         /// <summary>
         /// Creates an instance of this context.
         /// </summary>
-        internal KeysEndpointNotification(
+        internal ValidationEndpointResponseNotification(
             IOwinContext context,
-            OpenIdConnectServerOptions options)
+            OpenIdConnectServerOptions options,
+            JArray payload)
             : base(context, options) {
-            Keys = new List<JsonWebKey>();
+            Payload = payload;
         }
 
         /// <summary>
-        /// Gets a list of the JSON Web Keys found by the authorization server.
+        /// Gets the JSON payload returned to the caller.
         /// </summary>
-        public IList<JsonWebKey> Keys { get; private set; }
+        public JArray Payload { get; private set; }
     }
 }

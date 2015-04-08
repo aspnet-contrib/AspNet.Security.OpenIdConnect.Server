@@ -168,6 +168,19 @@ namespace Owin {
             return new AuthenticationProperties(properties.Dictionary.ToDictionary(pair => pair.Key, pair => pair.Value));
         }
 
+        internal static string GetAudience(this AuthenticationProperties properties) {
+            if (properties == null) {
+                return null;
+            }
+
+            string audience;
+            if (!properties.Dictionary.TryGetValue("audience", out audience)) {
+                return null;
+            }
+
+            return audience;
+        }
+
         // Remove when the built-in ticket serializer supports Claim.Properties.
         // See https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server/issues/71
         private sealed class EnhancedTicketSerializer : IDataSerializer<AuthenticationTicket> {
