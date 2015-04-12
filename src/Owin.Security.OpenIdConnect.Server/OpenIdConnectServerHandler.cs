@@ -1233,10 +1233,21 @@ namespace Owin.Security.OpenIdConnect.Server {
                     RequestType = OpenIdConnectRequestType.AuthenticationRequest
                 };
             }
+            
+            AuthenticationTicket ticket;
+            if (!string.IsNullOrEmpty(request.Token)) {
+                ticket = await ReceiveAccessTokenAsync(request.Token);
+            }
 
-            // Select the token to validate.
-            var token = request.Token ?? request.IdToken ?? request.GetRefreshToken();
-            if (string.IsNullOrWhiteSpace(token)) {
+            else if (!string.IsNullOrEmpty(request.IdToken)) {
+                ticket = await ReceiveIdentityTokenAsync(request.IdToken);
+            }
+
+            else if (!string.IsNullOrEmpty(request.GetRefreshToken())) {
+                ticket = await ReceiveRefreshTokenAsync(request.GetRefreshToken());
+            }
+
+            else {
                 await SendErrorPayloadAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "A malformed validation request has been received: " +
@@ -1245,8 +1256,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                 return;
             }
-            
-            var ticket = await ReceiveAccessTokenAsync(token);
+
             if (ticket == null) {
                 logger.WriteError("invalid token");
 
@@ -1284,7 +1294,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return;
             }
 
-            var notification = new ValidationEndpointNotification(Context, Options, request);
+            var notification = new ValidationEndpointNotification(Context, Options, ticket, request);
 
             // Add the claims extracted from the access token.
             foreach (var claim in ticket.Identity.Claims) {
@@ -1293,21 +1303,24 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             await Options.Provider.ValidationEndpoint(notification);
 
+            // Flow the changes made to the authentication ticket.
+            ticket = notification.AuthenticationTicket;
+
             // Stop processing the request if
             // ValidationEndpoint called RequestCompleted.
             if (notification.IsRequestCompleted) {
                 return;
             }
 
-            var payload = new JArray();
+            var payload = new JObject();
+
+            payload.Add("audience", ticket.Properties.GetAudience());
+            payload.Add("expires_in", ticket.Properties.ExpiresUtc.Value);
             
-            // Add the claims to the response payload.
-            foreach (var claim in notification.Claims) {
-                payload.Add(JObject.FromObject(new {
-                    type = claim.Type,
-                    value = claim.Value
-                }));
-            }
+            payload.Add("claims", JArray.FromObject(
+                from claim in notification.Claims
+                select new { type = claim.Type, value = claim.Value }
+            ));
 
             var responseNotification = new ValidationEndpointResponseNotification(Context, Options, payload);
             await Options.Provider.ValidationEndpointResponse(responseNotification);

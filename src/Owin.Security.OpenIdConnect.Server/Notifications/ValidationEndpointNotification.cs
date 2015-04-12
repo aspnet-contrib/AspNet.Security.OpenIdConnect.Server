@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Security.Claims;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
+using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Provider;
 
 namespace Owin.Security.OpenIdConnect.Server {
@@ -22,11 +23,18 @@ namespace Owin.Security.OpenIdConnect.Server {
         internal ValidationEndpointNotification(
             IOwinContext context,
             OpenIdConnectServerOptions options,
+            AuthenticationTicket ticket,
             OpenIdConnectMessage request)
             : base(context, options) {
+            AuthenticationTicket = ticket;
             ValidationRequest = request;
             Claims = new List<Claim>();
         }
+
+        /// <summary>
+        /// Gets or sets the authentication ticket.
+        /// </summary>
+        public AuthenticationTicket AuthenticationTicket { get; set; }
 
         /// <summary>
         /// Gets the validation request.
