@@ -20,7 +20,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         internal ValidationEndpointResponseNotification(
             IOwinContext context,
             OpenIdConnectServerOptions options,
-            JArray payload)
+            JObject payload)
             : base(context, options) {
             Payload = payload;
         }
@@ -28,6 +28,6 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the JSON payload returned to the caller.
         /// </summary>
-        public JArray Payload { get; private set; }
+        public JObject Payload { get; private set; }
     }
 }
