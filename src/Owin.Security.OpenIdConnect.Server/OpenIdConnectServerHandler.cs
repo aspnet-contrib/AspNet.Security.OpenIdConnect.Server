@@ -108,7 +108,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         }
 
         private async Task<bool> InvokeAuthorizationEndpointAsync() {
-            OpenIdConnectMessage request = null;
+            OpenIdConnectMessage request;
 
             if (!string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase) &&
                 !string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase)) {
@@ -1186,7 +1186,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         }
 
         private async Task InvokeValidationEndpointAsync() {
-            OpenIdConnectMessage request = null;
+            OpenIdConnectMessage request;
 
             if (!string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase) &&
                 !string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase)) {
