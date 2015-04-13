@@ -5,7 +5,9 @@ using System.Security.Cryptography.X509Certificates;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
+using Microsoft.Owin.Security.Jwt;
 using Nancy.Owin;
+using Nancy.Server.Extensions;
 using Nancy.Server.Providers;
 using NWebsec.Owin;
 using Owin;
@@ -33,14 +35,32 @@ namespace Nancy.Server {
 
             app.SetDefaultSignInAsAuthenticationType("ServerCookie");
 
+            app.UseWhen(context => context.Request.Path.StartsWithSegments(new PathString("/api")), map => {
+                map.Use(async (context, next) => {
+                    await next();
+                });
+
+                map.UseJwtBearerAuthentication(new JwtBearerAuthenticationOptions {
+                    AuthenticationMode = AuthenticationMode.Active,
+                    AllowedAudiences = new[] { "http://localhost:54541/" },
+                    IssuerSecurityTokenProviders = new[] { new X509CertificateSecurityTokenProvider("http://localhost:54541/", certificate) }
+                });
+            });
+
             // Insert a new cookies middleware in the pipeline to store
             // the user identity returned by the external identity provider.
-            app.UseCookieAuthentication(new CookieAuthenticationOptions {
-                AuthenticationMode = AuthenticationMode.Active,
-                AuthenticationType = "ServerCookie",
-                CookieName = CookieAuthenticationDefaults.CookiePrefix + "ServerCookie",
-                ExpireTimeSpan = TimeSpan.FromMinutes(5),
-                LoginPath = new PathString("/signin")
+            app.UseWhen(context => !context.Request.Path.StartsWithSegments(new PathString("/api")), map => {
+                map.Use(async (context, next) => {
+                    await next();
+                });
+
+                map.UseCookieAuthentication(new CookieAuthenticationOptions {
+                    AuthenticationMode = AuthenticationMode.Active,
+                    AuthenticationType = "ServerCookie",
+                    CookieName = CookieAuthenticationDefaults.CookiePrefix + "ServerCookie",
+                    ExpireTimeSpan = TimeSpan.FromMinutes(5),
+                    LoginPath = new PathString("/signin")
+                });
             });
 
             app.UseGoogleAuthentication();

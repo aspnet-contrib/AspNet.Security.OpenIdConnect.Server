@@ -2,6 +2,8 @@
 using System.Data.Entity;
 using System.Linq;
 using System.Security.Claims;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Nancy.Security;
@@ -38,20 +40,13 @@ namespace Nancy.Server.Modules {
                     }];
                 }
 
-                Application application;
-                using (var context = new ApplicationContext()) {
-                    // Retrieve the application details corresponding to the requested client_id.
-                    application = await (from entity in context.Applications
-                                         where entity.ApplicationID == request.ClientId
-                                         select entity).SingleOrDefaultAsync(cancellationToken);
-                }
-
                 // Note: Owin.Security.OpenIdConnect.Server automatically ensures an application
                 // corresponds to the client_id specified in the authorization request using
                 // IOpenIdConnectServerProvider.ValidateClientRedirectUri (see CustomOpenIdConnectServerProvider.cs).
                 // In theory, this null check is thus not strictly necessary. That said, a race condition
                 // and a null reference exception could appear here if you manually removed the application
                 // details from the database after the initial check made by Owin.Security.OpenIdConnect.Server.
+                var application = await GetApplicationAsync(request.ClientId, cancellationToken);
                 if (application == null) {
                     return View["error.cshtml", new OpenIdConnectMessage {
                         Error = "invalid_client",
@@ -63,9 +58,18 @@ namespace Nancy.Server.Modules {
                 return View["authorize.cshtml", Tuple.Create(request, application)];
             };
 
-            Post["/connect/authorize", condition: context => context.Request.Form.Authorize] = parameters => {
+            Post["/connect/authorize", condition: context => context.Request.Form.Authorize, runAsync: true] = async (parameters, cancellationToken) => {
                 this.RequiresMSOwinAuthentication();
                 this.ValidateCsrfToken();
+
+                // Extract the authorization request from the OWIN environment.
+                var request = OwinContext.GetOpenIdConnectRequest();
+                if (request == null) {
+                    return View["error.cshtml", new OpenIdConnectMessage {
+                        Error = "invalid_request",
+                        ErrorDescription = "An internal error has occurred"
+                    }];
+                }
 
                 // Create a new ClaimsIdentity containing the claims retrieved from the external
                 // identity provider (e.g Google, Facebook, a WS-Fed provider or another OIDC server).
@@ -84,6 +88,27 @@ namespace Nancy.Server.Modules {
 
                     identity.AddClaim(claim);
                 }
+
+                // Note: Owin.Security.OpenIdConnect.Server automatically ensures an application
+                // corresponds to the client_id specified in the authorization request using
+                // IOpenIdConnectServerProvider.ValidateClientRedirectUri (see AuthorizationProvider.cs).
+                // In theory, this null check is thus not strictly necessary. That said, a race condition
+                // and a null reference exception could appear here if you manually removed the application
+                // details from the database after the initial check made by Owin.Security.OpenIdConnect.Server.
+                var application = await GetApplicationAsync(request.ClientId, cancellationToken);
+                if (application == null) {
+                    return View["error.cshtml", new OpenIdConnectMessage {
+                        Error = "invalid_client",
+                        ErrorDescription = "Details concerning the calling client application cannot be found in the database"
+                    }];
+                }
+
+                // Create a new ClaimsIdentity containing the claims associated with the application.
+                // Note: setting identity.Actor is not mandatory but can be useful to access
+                // the whole delegation chain from the resource server (see ResourceModule.cs).
+                identity.Actor = new ClaimsIdentity(OpenIdConnectDefaults.AuthenticationType);
+                identity.Actor.AddClaim(ClaimTypes.NameIdentifier, application.ApplicationID);
+                identity.Actor.AddClaim(ClaimTypes.Name, application.DisplayName, destination: "id_token token");
 
                 // This call will instruct Owin.Security.OpenIdConnect.Server to serialize
                 // the specified identity to build appropriate tokens (id_token and token).
@@ -140,6 +165,15 @@ namespace Nancy.Server.Modules {
                 }
 
                 return context;
+            }
+        }
+
+        protected async Task<Application> GetApplicationAsync(string identifier, CancellationToken cancellationToken) {
+            using (var context = new ApplicationContext()) {
+                // Retrieve the application details corresponding to the requested client_id.
+                return await (from application in context.Applications
+                              where application.ApplicationID == identifier
+                              select application).SingleOrDefaultAsync(cancellationToken);
             }
         }
     }
