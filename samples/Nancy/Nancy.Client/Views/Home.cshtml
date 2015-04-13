@@ -1,11 +1,22 @@
-﻿@using System.Security.Claims
+﻿@using Nancy.Security
 @using Nancy.ViewEngines.Razor
 
-@inherits NancyRazorViewBase<ClaimsPrincipal>
+@inherits NancyRazorViewBase<string>
 
 <div class="jumbotron">
-    @if (Model != null) {
-        <h1>Welcome, @Model.Identity.Name</h1>
+    @{ var principal = RenderContext.Context.GetMSOwinUser(); }
+
+    @if (principal != null && principal.Identity != null && principal.Identity.IsAuthenticated) {
+        <h1>Welcome, @principal.Identity.Name</h1>
+
+        if (!string.IsNullOrWhiteSpace(Model)) {
+            <h3>Message received from the resource controller: @Model</h3>
+        }
+
+        <form action="~/" method="post">
+            <button class="btn btn-lg btn-warning" type="submit">Query the resource controller</button>
+        </form>
+
         <a class="btn btn-lg btn-danger" href="/signout">Sign out</a>
     }
 

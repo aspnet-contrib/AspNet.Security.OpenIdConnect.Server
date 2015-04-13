@@ -1,8 +1,13 @@
 using System;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
 using Microsoft.Owin.Security.OpenIdConnect;
+using Newtonsoft.Json.Linq;
 using Owin;
 
 namespace Nancy.Client {
@@ -35,6 +40,7 @@ namespace Nancy.Client {
                 // retrieve the identity provider's configuration and spare you from setting
                 // the different endpoints URIs or the token validation parameters explicitly.
                 Authority = "http://localhost:54541/",
+                Resource = "http://localhost:54541/",
 
                 // Note: by default, the OIDC client throws an OpenIdConnectProtocolException
                 // when an error occurred during the authentication/authorization process.
@@ -48,6 +54,34 @@ namespace Nancy.Client {
                         }
 
                         return Task.FromResult<object>(null);
+                    },
+
+                    // Retrieve an access token from the remote token endpoint
+                    // using the authorization code received during the current request.
+                    AuthorizationCodeReceived = async notification => {
+                        using (var client = new HttpClient()) {
+                            var configuration = await notification.Options.ConfigurationManager.GetConfigurationAsync(notification.Request.CallCancelled);
+
+                            var request = new HttpRequestMessage(HttpMethod.Post, configuration.TokenEndpoint);
+                            request.Content = new FormUrlEncodedContent(new Dictionary<string, string> {
+                                { OpenIdConnectParameterNames.ClientId, notification.Options.ClientId },
+                                { OpenIdConnectParameterNames.ClientSecret, notification.Options.ClientSecret },
+                                { OpenIdConnectParameterNames.Code, notification.ProtocolMessage.Code },
+                                { OpenIdConnectParameterNames.GrantType, "authorization_code" },
+                                { OpenIdConnectParameterNames.RedirectUri, notification.Options.RedirectUri },
+                                { OpenIdConnectParameterNames.Resource, notification.Options.Resource }
+                            });
+
+                            var response = await client.SendAsync(request, notification.Request.CallCancelled);
+                            response.EnsureSuccessStatusCode();
+
+                            var payload = JObject.Parse(await response.Content.ReadAsStringAsync());
+
+                            // Add the access token to the returned ClaimsIdentity to make it easier to retrieve.
+                            notification.AuthenticationTicket.Identity.AddClaim(new Claim(
+                                type: OpenIdConnectParameterNames.AccessToken,
+                                value: payload.Value<string>(OpenIdConnectParameterNames.AccessToken)));
+                        }
                     }
                 }
             });

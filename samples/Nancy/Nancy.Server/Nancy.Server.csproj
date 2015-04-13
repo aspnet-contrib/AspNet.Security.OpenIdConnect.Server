@@ -171,6 +171,7 @@
     <Compile Include="Models\Application.cs" />
     <Compile Include="Models\ApplicationContextInitializer.cs" />
     <Compile Include="Models\ApplicationContext.cs" />
+    <Compile Include="Modules\ResourceModule.cs" />
     <Compile Include="Providers\AuthorizationProvider.cs" />
     <Compile Include="Extensions\NancyExtensions.cs" />
     <Compile Include="Modules\AuthorizationModule.cs" />

@@ -1,20 +1,44 @@
-﻿using System.Security.Claims;
+﻿using System;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Security.Claims;
+using Microsoft.IdentityModel.Protocols;
 using Nancy.Security;
 
 namespace Nancy.Client.Modules {
     public class HomeModule : NancyModule {
         public HomeModule() {
             Get["/"] = parameters => {
-                ClaimsPrincipal principal = Context.GetMSOwinUser();
+                return View["home.cshtml"];
+            };
 
-                // Determine whether the user agent has been successfully authenticated
-                // by the cookies middleware (configured with AuthenticationMode.Active in Startup.cs)
-                if (principal == null || principal.Identity == null || !principal.Identity.IsAuthenticated) {
-                    principal = null;
+            Post["/", runAsync: true] = async (parameters, cancellationToken) => {
+                this.RequiresMSOwinAuthentication();
+
+                using (var client = new HttpClient()) {
+                    var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost:54541/api/message");
+                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", AccessToken);
+
+                    var response = await client.SendAsync(request, cancellationToken);
+                    response.EnsureSuccessStatusCode();
+
+                    return View["home.cshtml", await response.Content.ReadAsStringAsync()];
+                }
+            };
+        }
+        protected ClaimsPrincipal Principal {
+            get { return Context.GetMSOwinUser(); }
+        }
+
+        protected string AccessToken {
+            get {
+                var claim = Principal.FindFirst(OpenIdConnectParameterNames.AccessToken);
+                if (claim == null) {
+                    throw new InvalidOperationException();
                 }
 
-                return View["home.cshtml", principal];
-            };
+                return claim.Value;
+            }
         }
     }
 }
