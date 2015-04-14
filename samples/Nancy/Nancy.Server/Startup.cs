@@ -36,10 +36,6 @@ namespace Nancy.Server {
             app.SetDefaultSignInAsAuthenticationType("ServerCookie");
 
             app.UseWhen(context => context.Request.Path.StartsWithSegments(new PathString("/api")), map => {
-                map.Use(async (context, next) => {
-                    await next();
-                });
-
                 map.UseJwtBearerAuthentication(new JwtBearerAuthenticationOptions {
                     AuthenticationMode = AuthenticationMode.Active,
                     AllowedAudiences = new[] { "http://localhost:54541/" },
@@ -50,10 +46,6 @@ namespace Nancy.Server {
             // Insert a new cookies middleware in the pipeline to store
             // the user identity returned by the external identity provider.
             app.UseWhen(context => !context.Request.Path.StartsWithSegments(new PathString("/api")), map => {
-                map.Use(async (context, next) => {
-                    await next();
-                });
-
                 map.UseCookieAuthentication(new CookieAuthenticationOptions {
                     AuthenticationMode = AuthenticationMode.Active,
                     AuthenticationType = "ServerCookie",
