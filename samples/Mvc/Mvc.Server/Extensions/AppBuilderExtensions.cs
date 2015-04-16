@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
+using Microsoft.AspNet.DataProtection;
 using Microsoft.AspNet.Hosting;
 using Microsoft.AspNet.Http;
 
@@ -60,7 +61,7 @@ namespace Mvc.Server.Extensions {
                 var lifetime = (IApplicationLifetime) app.ApplicationServices.GetService(typeof(IApplicationLifetime));
 
                 var properties = new AppProperties(builder.Properties);
-                properties.AppName = app.Server.Name;
+                properties.AppName = app.ApplicationServices.GetApplicationUniqueIdentifier();
                 properties.OnAppDisposing = lifetime.ApplicationStopping;
                 properties.DefaultApp = next;
 
