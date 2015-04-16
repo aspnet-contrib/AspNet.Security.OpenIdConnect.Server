@@ -48,7 +48,7 @@ namespace Mvc.Server {
             // Note: in a real world app, you'd probably prefer storing the X.509 certificate
             // in the user or machine store. To keep this sample easy to use, the certificate
             // is extracted from the Certificate.pfx file embedded in this assembly.
-            using (var stream = typeof(Startup).GetTypeInfo().Assembly.GetManifestResourceStream("Certificate.pfx"))
+            using (var stream = typeof(Startup).GetTypeInfo().Assembly.GetManifestResourceStream("Mvc.Server.Certificate.pfx"))
             using (var buffer = new MemoryStream()) {
                 stream.CopyTo(buffer);
                 buffer.Flush();
