@@ -83,6 +83,7 @@ namespace Mvc.Server {
 
             app.UseOpenIdConnectServer(new OpenIdConnectServerOptions {
                 AuthenticationType = OpenIdConnectDefaults.AuthenticationType,
+                AuthenticationMode = AuthenticationMode.Passive,
 
                 Issuer = "http://localhost:54540/",
                 SigningCredentials = credentials,

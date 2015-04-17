@@ -80,6 +80,20 @@ namespace Mvc.Server.Providers {
             }
         }
 
+        public override async Task ValidateClientLogoutRedirectUri(ValidateClientLogoutRedirectUriNotification notification) {
+            using (var context = new ApplicationContext()) {
+                if (!await context.Applications.AnyAsync(application => application.LogoutRedirectUri == notification.PostLogoutRedirectUri)) {
+                    notification.SetError(
+                            error: "invalid_client",
+                            errorDescription: "Invalid post_logout_redirect_uri");
+
+                    return;
+                }
+
+                notification.Validated();
+            }
+        }
+
         public override async Task CreateAuthorizationCode(CreateAuthorizationCodeNotification notification) {
             using (var context = new ApplicationContext()) {
                 // Create a new unique identifier that will be used to replace the authorization code serialized

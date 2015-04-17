@@ -8,6 +8,7 @@ namespace Nancy.Server.Models {
                 ApplicationID = "myClient",
                 DisplayName = "My client application",
                 RedirectUri = "http://localhost:56765/oidc",
+                LogoutRedirectUri = "http://localhost:56765/",
                 Secret = "secret_secret_secret"
             });
         }

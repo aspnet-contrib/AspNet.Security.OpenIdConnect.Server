@@ -23,6 +23,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         public OpenIdConnectServerProvider() {
             OnMatchEndpoint = notification => Task.FromResult<object>(null);
             OnValidateClientRedirectUri = notification => Task.FromResult<object>(null);
+            OnValidateClientLogoutRedirectUri = notification => Task.FromResult<object>(null);
             OnValidateClientAuthentication = notification => Task.FromResult<object>(null);
 
             OnValidateAuthorizationRequest = DefaultBehavior.ValidateAuthorizationRequest;
@@ -35,12 +36,14 @@ namespace Owin.Security.OpenIdConnect.Server {
             OnGrantCustomExtension = notification => Task.FromResult<object>(null);
 
             OnAuthorizationEndpoint = notification => Task.FromResult<object>(null);
+            OnLogoutEndpoint = notification => Task.FromResult<object>(null);
             OnConfigurationEndpoint = notification => Task.FromResult<object>(null);
             OnCryptographyEndpoint = notification => Task.FromResult<object>(null);
             OnTokenEndpoint = notification => Task.FromResult<object>(null);
             OnValidationEndpoint = notification => Task.FromResult<object>(null);
 
             OnAuthorizationEndpointResponse = notification => Task.FromResult<object>(null);
+            OnLogoutEndpointResponse = notification => Task.FromResult<object>(null);
             OnConfigurationEndpointResponse = notification => Task.FromResult<object>(null);
             OnCryptographyEndpointResponse = notification => Task.FromResult<object>(null);
             OnTokenEndpointResponse = notification => Task.FromResult<object>(null);
@@ -99,6 +102,15 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// validated client credentials, should continue processing. An application may add any additional constraints.
         /// </summary>
         public Func<ValidateTokenRequestNotification, Task> OnValidateTokenRequest { get; set; }
+
+        /// <summary>
+        /// Called to validate that context.PostLogoutRedirectUri a valid and registered URL.
+        /// This only occurs when processing the logout endpoint. The application MUST implement this call, and it MUST validate
+        /// both of those factors before calling context.Validated. If the context.Validated method is called with a given redirectUri parameter,
+        /// then IsValidated will only become true if the incoming redirect URI matches the given redirect URI. 
+        /// If context.Validated is not called the request will not proceed further. 
+        /// </summary>
+        public Func<ValidateClientLogoutRedirectUriNotification, Task> OnValidateClientLogoutRedirectUri { get; set; }
 
         /// <summary>
         /// Called when a request to the Token endpoint arrives with a "grant_type" of "authorization_code". This occurs after the authorization
@@ -178,6 +190,23 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// This call may also be used to add additional response parameters to the authorization response.
         /// </summary>
         public Func<AuthorizationEndpointResponseNotification, Task> OnAuthorizationEndpointResponse { get; set; }
+
+        /// <summary>
+        /// Called at the final stage of an incoming logout endpoint request before the execution continues on to the web application component 
+        /// responsible for producing the html response. Anything present in the OWIN pipeline following the Authorization Server may produce the
+        /// response for the logout page. If running on IIS any ASP.NET technology running on the server may produce the response for the 
+        /// authorization page. If the web application wishes to produce the response directly in the LogoutEndpoint call it may write to the 
+        /// context.Response directly and should call context.RequestCompleted to stop other handlers from executing.
+        /// </summary>
+        public Func<LogoutEndpointNotification, Task> OnLogoutEndpoint { get; set; }
+
+        /// <summary>
+        /// Called before the LogoutEndpoint endpoint redirects its response to the caller.
+        /// If the web application wishes to produce the authorization response directly in the LogoutEndpoint call it may write to the 
+        /// context.Response directly and should call context.RequestCompleted to stop other handlers from executing.
+        /// This call may also be used to add additional response parameters to the authorization response.
+        /// </summary>
+        public Func<LogoutEndpointResponseNotification, Task> OnLogoutEndpointResponse { get; set; }
 
         /// <summary>
         /// Called by the client applications to retrieve the OpenID Connect configuration associated with this instance.
@@ -311,6 +340,19 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <returns>Task to enable asynchronous execution</returns>
         public virtual Task ValidateClientRedirectUri(ValidateClientRedirectUriNotification notification) {
             return OnValidateClientRedirectUri(notification);
+        }
+
+        /// <summary>
+        /// Called to validate that context.PostLogoutRedirectUri a valid and registered URL.
+        /// This only occurs when processing the logout endpoint. The application MUST implement this call, and it MUST validate
+        /// both of those factors before calling context.Validated. If the context.Validated method is called with a given redirectUri parameter,
+        /// then IsValidated will only become true if the incoming redirect URI matches the given redirect URI. 
+        /// If context.Validated is not called the request will not proceed further. 
+        /// </summary>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        public virtual Task ValidateClientLogoutRedirectUri(ValidateClientLogoutRedirectUriNotification notification) {
+            return OnValidateClientLogoutRedirectUri(notification);
         }
 
         /// <summary>
@@ -454,6 +496,31 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <returns>Task to enable asynchronous execution</returns>
         public virtual Task AuthorizationEndpointResponse(AuthorizationEndpointResponseNotification notification) {
             return OnAuthorizationEndpointResponse(notification);
+        }
+
+        /// <summary>
+        /// Called at the final stage of an incoming logout endpoint request before the execution continues on to the web application component 
+        /// responsible for producing the html response. Anything present in the OWIN pipeline following the Authorization Server may produce the
+        /// response for the logout page. If running on IIS any ASP.NET technology running on the server may produce the response for the 
+        /// authorization page. If the web application wishes to produce the response directly in the LogoutEndpoint call it may write to the 
+        /// context.Response directly and should call context.RequestCompleted to stop other handlers from executing.
+        /// </summary>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        public virtual Task LogoutEndpoint(LogoutEndpointNotification notification) {
+            return OnLogoutEndpoint(notification);
+        }
+
+        /// <summary>
+        /// Called before the LogoutEndpoint endpoint redirects its response to the caller.
+        /// If the web application wishes to produce the authorization response directly in the LogoutEndpoint call it may write to the 
+        /// context.Response directly and should call context.RequestCompleted to stop other handlers from executing.
+        /// This call may also be used to add additional response parameters to the authorization response.
+        /// </summary>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        public virtual Task LogoutEndpointResponse(LogoutEndpointResponseNotification notification) {
+            return OnLogoutEndpointResponse(notification);
         }
 
         /// <summary>

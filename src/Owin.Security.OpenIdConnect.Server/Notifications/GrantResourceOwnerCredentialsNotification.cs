@@ -19,13 +19,13 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
-        /// <param name="tokenRequest"></param>
+        /// <param name="request"></param>
         internal GrantResourceOwnerCredentialsNotification(
             IOwinContext context,
             OpenIdConnectServerOptions options,
-            OpenIdConnectMessage tokenRequest)
+            OpenIdConnectMessage request)
             : base(context, options, null) {
-            TokenRequest = tokenRequest;
+            TokenRequest = request;
         }
 
         /// <summary>

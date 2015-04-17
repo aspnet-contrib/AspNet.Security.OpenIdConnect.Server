@@ -17,15 +17,15 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
-        /// <param name="tokenRequest"></param>
+        /// <param name="request"></param>
         /// <param name="clientContext"></param>
         internal ValidateTokenRequestNotification(
             IOwinContext context,
             OpenIdConnectServerOptions options,
-            OpenIdConnectMessage tokenRequest,
+            OpenIdConnectMessage request,
             BaseValidatingClientNotification clientContext)
             : base(context, options) {
-            TokenRequest = tokenRequest;
+            TokenRequest = request;
             ClientContext = clientContext;
         }
 

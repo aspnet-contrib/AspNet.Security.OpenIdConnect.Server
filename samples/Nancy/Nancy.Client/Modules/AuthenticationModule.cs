@@ -7,7 +7,7 @@ namespace Nancy.Client.Modules {
     public class AuthenticationModule : NancyModule {
         public AuthenticationModule() {
             Get["/signin"] = parameters => {
-                IAuthenticationManager manager = Context.GetAuthenticationManager();
+                var manager = Context.GetAuthenticationManager();
                 if (manager == null) {
                     throw new NotSupportedException("An OWIN authentication manager cannot be extracted from NancyContext");
                 }
@@ -24,17 +24,20 @@ namespace Nancy.Client.Modules {
             };
 
             Get["/signout"] = Post["/signout"] = parameters => {
-                IAuthenticationManager manager = Context.GetAuthenticationManager();
+                var manager = Context.GetAuthenticationManager();
                 if (manager == null) {
                     throw new NotSupportedException("An OWIN authentication manager cannot be extracted from NancyContext");
                 }
 
                 // Instruct the cookies middleware to delete the local cookie created when the user agent
                 // is redirected from the identity provider after a successful authorization flow.
-                // Note: this call doesn't disconnect the user agent at the identity provider level (yet).
                 manager.SignOut("ClientCookie");
 
-                return Response.AsRedirect("/");
+                // Instruct the OpenID Connect middleware to redirect
+                // the user agent to the identity provider to sign out.
+                manager.SignOut(OpenIdConnectAuthenticationDefaults.AuthenticationType);
+
+                return HttpStatusCode.OK;
             };
         }
     }

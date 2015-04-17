@@ -22,19 +22,19 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="ticket"></param>
-        /// <param name="tokenRequest"></param>
+        /// <param name="request"></param>
         internal TokenEndpointNotification(
             IOwinContext context,
             OpenIdConnectServerOptions options,
             AuthenticationTicket ticket,
-            OpenIdConnectMessage tokenRequest)
+            OpenIdConnectMessage request)
             : base(context, options) {
             if (ticket == null) {
                 throw new ArgumentNullException("ticket");
             }
 
             Ticket = ticket;
-            TokenRequest = tokenRequest;
+            TokenRequest = request;
         }
 
         /// <summary>

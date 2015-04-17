@@ -20,12 +20,12 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
-        /// <param name="authorizationRequest"></param>
+        /// <param name="request"></param>
         internal ValidateClientAuthenticationNotification(
             IOwinContext context,
             OpenIdConnectServerOptions options,
-            OpenIdConnectMessage authorizationRequest)
-            : base(context, options, authorizationRequest) {
+            OpenIdConnectMessage request)
+            : base(context, options, request) {
         }
 
         /// <summary>

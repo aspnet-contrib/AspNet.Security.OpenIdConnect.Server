@@ -37,7 +37,17 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets or sets the JWKS endpoint address.
         /// </summary>
-        public string KeyEndpoint { get; set; }
+        public string CryptographyEndpoint { get; set; }
+
+        /// <summary>
+        /// Gets or sets the token endpoint address.
+        /// </summary>
+        public string TokenEndpoint { get; set; }
+
+        /// <summary>
+        /// Gets or sets the logout endpoint address.
+        /// </summary>
+        public string LogoutEndpoint { get; set; }
 
         /// <summary>
         /// Gets or sets the issuer address.
@@ -79,10 +89,5 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// supported by the authorization server.
         /// </summary>
         public IList<string> SubjectTypes { get; private set; }
-
-        /// <summary>
-        /// Gets or sets the token endpoint address.
-        /// </summary>
-        public string TokenEndpoint { get; set; }
     }
 }
