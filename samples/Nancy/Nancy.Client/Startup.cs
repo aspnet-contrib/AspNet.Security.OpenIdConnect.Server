@@ -35,7 +35,8 @@ namespace Nancy.Client {
                 ClientId = "myClient",
                 ClientSecret = "secret_secret_secret",
                 RedirectUri = "http://localhost:56765/oidc",
-                
+                PostLogoutRedirectUri = "http://localhost:56765/",
+
                 // Note: setting the Authority allows the OIDC client middleware to automatically
                 // retrieve the identity provider's configuration and spare you from setting
                 // the different endpoints URIs or the token validation parameters explicitly.

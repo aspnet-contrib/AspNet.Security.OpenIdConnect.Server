@@ -68,6 +68,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Notifications\LogoutEndpointNotification.cs" />
+    <Compile Include="Notifications\LogoutEndpointResponseNotification.cs" />
+    <Compile Include="Notifications\ValidateClientLogoutRedirectUriNotification.cs" />
     <Compile Include="Notifications\ValidationEndpointResponseNotification.cs" />
     <Compile Include="Notifications\ValidationEndpointNotification.cs" />
     <Compile Include="Notifications\CreateAccessTokenNotification.cs" />

@@ -145,13 +145,54 @@ namespace Mvc.Server.Controllers {
             // identities always contain the name identifier returned by the external provider.
             OwinContext.Authentication.SignIn(identity);
 
+            return new HttpStatusCodeResult(200);
+        }
+
+        [HttpGet, Route("~/connect/logout")]
+        public async Task<ActionResult> Logout() {
+            // Note: when a fatal error occurs during the request processing, an OpenID Connect response
+            // is prematurely forged and added to the OWIN context by OpenIdConnectServerHandler.
+            // In this case, the OpenID Connect request is null and cannot be used.
+            // When the user agent can be safely redirected to the client application,
+            // OpenIdConnectServerHandler automatically handles the error and MVC is not invoked.
+            // You can safely remove this part and let Owin.Security.OpenIdConnect.Server automatically
+            // handle the unrecoverable errors by switching ApplicationCanDisplayErrors to false in Startup.cs
+            var response = OwinContext.GetOpenIdConnectResponse();
+            if (response != null) {
+                return View("Error", response);
+            }
+
+            // When invoked, the logout endpoint might receive an unauthenticated request if the server cookie has expired.
+            // When the client application sends an id_token_hint parameter, the corresponding identity can be retrieved
+            // using AuthenticateAsync or using User when the authorization server is declared as AuthenticationMode.Active.
+            var identity = await OwinContext.Authentication.AuthenticateAsync(OpenIdConnectDefaults.AuthenticationType);
+
+            // Extract the logout request from the OWIN environment.
+            var request = OwinContext.GetOpenIdConnectRequest();
+            if (request == null) {
+                return View("Error", new OpenIdConnectMessage {
+                    Error = "invalid_request",
+                    ErrorDescription = "An internal error has occurred"
+                });
+            }
+
+            return View("Logout", Tuple.Create(request, identity));
+        }
+
+        [HttpPost, Route("~/connect/logout")]
+        [ValidateAntiForgeryToken]
+        public ActionResult Logout(CancellationToken cancellationToken) {
             // Instruct the cookies middleware to delete the local cookie created
             // when the user agent is redirected from the external identity provider
             // after a successful authentication flow (e.g Google or Facebook).
-            // Note: this call requires the user agent to re-authenticate each time
-            // an authorization is granted to a client application. You can safely
-            // remove it and use the signout endpoint from AuthenticationModule.cs instead.
             OwinContext.Authentication.SignOut("ServerCookie");
+
+            // This call will instruct Owin.Security.OpenIdConnect.Server to serialize
+            // the specified identity to build appropriate tokens (id_token and token).
+            // Note: you should always make sure the identities you return contain either
+            // a 'sub' or a 'ClaimTypes.NameIdentifier' claim. In this case, the returned
+            // identities always contain the name identifier returned by the external provider.
+            OwinContext.Authentication.SignOut(OpenIdConnectDefaults.AuthenticationType);
 
             return new HttpStatusCodeResult(200);
         }

@@ -18,9 +18,9 @@ namespace Owin.Security.OpenIdConnect.Server {
         protected BaseValidatingClientNotification(
             IOwinContext context,
             OpenIdConnectServerOptions options,
-            OpenIdConnectMessage authorizationRequest)
+            OpenIdConnectMessage request)
             : base(context, options) {
-            AuthorizationRequest = authorizationRequest;
+            AuthorizationRequest = request;
         }
 
         /// <summary>

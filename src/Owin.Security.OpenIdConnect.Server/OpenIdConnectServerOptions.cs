@@ -37,6 +37,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             CryptographyEndpointPath = new PathString(OpenIdConnectDefaults.CryptographyEndpointPath);
             TokenEndpointPath = new PathString(OpenIdConnectDefaults.TokenEndpointPath);
             ValidationEndpointPath = new PathString(OpenIdConnectDefaults.ValidationEndpointPath);
+            LogoutEndpointPath = new PathString(OpenIdConnectDefaults.LogoutEndpointPath);
 
             Provider = new OpenIdConnectServerProvider();
             SystemClock = new SystemClock();
@@ -106,6 +107,13 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// You can set it to <see cref="PathString.Empty"/> to disable the validation endpoint.
         /// </summary>
         public PathString ValidationEndpointPath { get; set; }
+
+        /// <summary>
+        /// The request path client applications communicate with to log out. 
+        /// Must begin with a leading slash, like "/connect/logout".
+        /// You can set it to <see cref="PathString.Empty"/> to disable the logout endpoint.
+        /// </summary>
+        public PathString LogoutEndpointPath { get; set; }
 
         /// <summary>
         /// Specifies a provider that the <see cref="OpenIdConnectServerMiddleware" /> invokes

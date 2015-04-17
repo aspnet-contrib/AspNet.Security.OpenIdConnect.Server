@@ -36,8 +36,51 @@ namespace Owin.Security.OpenIdConnect.Server {
             this.logger = logger;
         }
 
-        protected override Task<AuthenticationTicket> AuthenticateCoreAsync() {
-            return Task.FromResult<AuthenticationTicket>(null);
+        protected override async Task<AuthenticationTicket> AuthenticateCoreAsync() {
+            // Implementing AuthenticateCoreAsync allows the inner application
+            // to retrieve the identity extracted from the optional
+            // id_token_hint parameter when handling a logout request.
+            if (Options.LogoutEndpointPath.HasValue &&
+                Options.LogoutEndpointPath == Request.Path) {
+                OpenIdConnectMessage request = null;
+                
+                if (string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
+                    request = new OpenIdConnectMessage(Request.Query) {
+                        RequestType = OpenIdConnectRequestType.LogoutRequest
+                    };
+                }
+
+                else if (string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase)) {
+                    // May have media/type; charset=utf-8, allow partial match.
+                    if (!string.IsNullOrWhiteSpace(Request.ContentType) &&
+                        Request.ContentType.StartsWith("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase)) {
+                        request = new OpenIdConnectMessage(await Request.ReadFormAsync()) {
+                            RequestType = OpenIdConnectRequestType.LogoutRequest
+                        };
+                    }
+                }
+
+                // Invalid logout requests are ignored in AuthenticateCoreAsync:
+                // in this case, null is always returned to indicate authentication failed.
+                if (request == null) {
+                    return null;
+                }
+
+                if (!string.IsNullOrWhiteSpace(request.IdTokenHint)) {
+                    var ticket = await ReceiveIdentityTokenAsync(request.IdTokenHint);
+                    if (ticket == null) {
+                        logger.WriteVerbose("Invalid id_token_hint");
+
+                        return null;
+                    }
+
+                    // Tickets are returned even if they
+                    // are considered invalid (e.g expired).
+                    return ticket;
+                }
+            }
+
+            return null;
         }
 
         public override async Task<bool> InvokeAsync() {
@@ -56,6 +99,11 @@ namespace Owin.Security.OpenIdConnect.Server {
             else if (Options.ValidationEndpointPath.HasValue &&
                      Options.ValidationEndpointPath == Request.Path) {
                 notification.MatchesValidationEndpoint();
+            }
+
+            else if (Options.LogoutEndpointPath.HasValue &&
+                     Options.LogoutEndpointPath == Request.Path) {
+                notification.MatchesLogoutEndpoint();
             }
 
             else if (Options.ConfigurationEndpointPath.HasValue &&
@@ -82,6 +130,10 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             else if (notification.IsAuthorizationEndpoint) {
                 return await InvokeAuthorizationEndpointAsync();
+            }
+
+            else if (notification.IsLogoutEndpoint) {
+                return await InvokeLogoutEndpointAsync();
             }
 
             else if (notification.IsTokenEndpoint) {
@@ -192,10 +244,10 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
             }
 
-            var clientContext = new ValidateClientRedirectUriNotification(Context, Options, request);
-            await Options.Provider.ValidateClientRedirectUri(clientContext);
+            var clientNotification = new ValidateClientRedirectUriNotification(Context, Options, request);
+            await Options.Provider.ValidateClientRedirectUri(clientNotification);
 
-            if (!clientContext.IsValidated) {
+            if (!clientNotification.IsValidated) {
                 // Remove the unvalidated redirect_uri
                 // from the authorization request.
                 request.RedirectUri = null;
@@ -206,9 +258,9 @@ namespace Owin.Security.OpenIdConnect.Server {
                 logger.WriteVerbose("Unable to validate client information");
 
                 return await SendErrorPageAsync(new OpenIdConnectMessage {
-                    Error = clientContext.Error,
-                    ErrorDescription = clientContext.ErrorDescription,
-                    ErrorUri = clientContext.ErrorUri
+                    Error = clientNotification.Error,
+                    ErrorDescription = clientNotification.ErrorDescription,
+                    ErrorUri = clientNotification.ErrorUri
                 });
             }
 
@@ -300,28 +352,29 @@ namespace Owin.Security.OpenIdConnect.Server {
                 });
             }
 
-            var validatingContext = new ValidateAuthorizationRequestNotification(Context, Options, request, clientContext);
-            await Options.Provider.ValidateAuthorizationRequest(validatingContext);
+            var validationNotification = new ValidateAuthorizationRequestNotification(Context, Options, request, clientNotification);
+            await Options.Provider.ValidateAuthorizationRequest(validationNotification);
 
             // Stop processing the request if Validated was not called.
-            if (!validatingContext.IsValidated) {
+            if (!validationNotification.IsValidated) {
                 return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
-                    Error = validatingContext.Error,
-                    ErrorDescription = validatingContext.ErrorDescription,
-                    ErrorUri = validatingContext.ErrorUri,
+                    Error = validationNotification.Error,
+                    ErrorDescription = validationNotification.ErrorDescription,
+                    ErrorUri = validationNotification.ErrorUri,
                     RedirectUri = request.RedirectUri,
                     State = request.State
                 });
             }
 
-            var authorizationEndpointContext = new AuthorizationEndpointNotification(Context, Options, request);
-            await Options.Provider.AuthorizationEndpoint(authorizationEndpointContext);
+            var notification = new AuthorizationEndpointNotification(Context, Options, request);
+            await Options.Provider.AuthorizationEndpoint(notification);
 
             // Update the authorization request in the OWIN context.
             Context.SetOpenIdConnectRequest(request);
 
-            // Stop processing the request if AuthorizationEndpoint called RequestCompleted.
-            if (authorizationEndpointContext.IsRequestCompleted) {
+            // Stop processing the request if
+            // AuthorizationEndpoint called RequestCompleted.
+            if (notification.IsRequestCompleted) {
                 return true;
             }
 
@@ -351,11 +404,19 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// the only middleware allowed to write to the response stream when a response grant has been applied.
         /// </remarks>
         protected override async Task TeardownCoreAsync() {
+            if (await HandleAuthorizationResponseAsync()) {
+                return;
+            }
+
+            await HandleLogoutResponseAsync();
+        }
+
+        private async Task<bool> HandleAuthorizationResponseAsync() {
             // request may be null when no authorization request has been received
             // or has been already handled by InvokeAuthorizationEndpointAsync.
             var request = Context.GetOpenIdConnectRequest();
             if (request == null) {
-                return;
+                return false;
             }
 
             // Stop processing the request if an authorization response has been forged by the inner application.
@@ -363,12 +424,10 @@ namespace Owin.Security.OpenIdConnect.Server {
             var response = Context.GetOpenIdConnectResponse();
             if (response != null && !string.IsNullOrWhiteSpace(response.RedirectUri)) {
                 if (!string.IsNullOrWhiteSpace(response.Error)) {
-                    await SendErrorRedirectAsync(request, response);
-                    return;
+                    return await SendErrorRedirectAsync(request, response);
                 }
 
-                await ApplyAuthorizationResponseAsync(request, response);
-                return;
+                return await ApplyAuthorizationResponseAsync(request, response);
             }
 
             // Stop processing the request if there's no response grant that matches
@@ -376,7 +435,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             // or if the response status code doesn't indicate a successful response.
             var context = Helper.LookupSignIn(Options.AuthenticationType);
             if (context == null || Response.StatusCode != 200) {
-                return;
+                return false;
             }
 
             if (headersSent) {
@@ -385,7 +444,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     "the response headers have already been sent back to the user agent. " +
                     "Make sure the response body has not been altered and that no middleware " +
                     "has attempted to write to the response stream during this request.");
-                return;
+                return false;
             }
 
             response = new OpenIdConnectMessage {
@@ -430,15 +489,54 @@ namespace Owin.Security.OpenIdConnect.Server {
                 response.IdToken = await CreateIdentityTokenAsync(ticket, request, response);
             }
 
-            var authorizationEndpointResponseContext = new AuthorizationEndpointResponseNotification(Context, Options, request, response);
-            await Options.Provider.AuthorizationEndpointResponse(authorizationEndpointResponseContext);
+            var notification = new AuthorizationEndpointResponseNotification(Context, Options, request, response);
+            await Options.Provider.AuthorizationEndpointResponse(notification);
 
             // Stop processing the request if AuthorizationEndpointResponse called RequestCompleted.
-            if (authorizationEndpointResponseContext.IsRequestCompleted) {
-                return;
+            if (notification.IsRequestCompleted) {
+                return true;
             }
 
-            await ApplyAuthorizationResponseAsync(request, response);
+            return await ApplyAuthorizationResponseAsync(request, response);
+        }
+
+        private async Task<bool> HandleLogoutResponseAsync() {
+            // request may be null when no logout request has been received
+            // or has been already handled by InvokeLogoutEndpointAsync.
+            var request = Context.GetOpenIdConnectRequest();
+            if (request == null) {
+                return false;
+            }
+            
+            // Stop processing the request if there's no signout context that matches
+            // the authentication type associated with this middleware instance
+            // or if the response status code doesn't indicate a successful response.
+            var context = Helper.LookupSignOut(Options.AuthenticationType, Options.AuthenticationMode);
+            if (context == null || Response.StatusCode != 200) {
+                return false;
+            }
+
+            if (headersSent) {
+                logger.WriteCritical(
+                    "OpenIdConnectServerHandler.TeardownCoreAsync cannot be called when " +
+                    "the response headers have already been sent back to the user agent. " +
+                    "Make sure the response body has not been altered and that no middleware " +
+                    "has attempted to write to the response stream during this request.");
+                return false;
+            }
+
+            var notification = new LogoutEndpointResponseNotification(Context, Options, request);
+            await Options.Provider.LogoutEndpointResponse(notification);
+
+            // Stop processing the request if
+            // LogoutEndpointResponse called RequestCompleted.
+            if (notification.IsRequestCompleted) {
+                return true;
+            }
+            
+            Response.Redirect(request.PostLogoutRedirectUri);
+
+            return true;
         }
 
         private async Task<bool> ApplyAuthorizationResponseAsync(OpenIdConnectMessage request, OpenIdConnectMessage response) {
@@ -487,7 +585,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             else if (request.IsFragmentResponseMode()) {
-                string location = response.RedirectUri;
+                var location = response.RedirectUri;
                 var appender = new Appender(location, '#');
 
                 foreach (var parameter in response.Parameters) {
@@ -506,7 +604,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             else if (request.IsQueryResponseMode()) {
-                string location = response.RedirectUri;
+                var location = response.RedirectUri;
 
                 foreach (var parameter in response.Parameters) {
                     // Don't include client_id, redirect_uri or response_mode in the query string.
@@ -527,8 +625,8 @@ namespace Owin.Security.OpenIdConnect.Server {
         }
 
         private async Task InvokeConfigurationEndpointAsync() {
-            var configurationEndpointContext = new ConfigurationEndpointNotification(Context, Options);
-            configurationEndpointContext.Issuer = Options.Issuer + "/";
+            var notification = new ConfigurationEndpointNotification(Context, Options);
+            notification.Issuer = Options.Issuer + "/";
 
             // Metadata requests must be made via GET.
             // See http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationRequest
@@ -540,7 +638,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             // Set the default endpoints concatenating Options.Issuer and Options.*EndpointPath.
             if (Options.AuthorizationEndpointPath.HasValue) {
-                configurationEndpointContext.AuthorizationEndpoint = Options.Issuer + Options.AuthorizationEndpointPath;
+                notification.AuthorizationEndpoint = Options.Issuer + Options.AuthorizationEndpointPath;
             }
 
             // While the jwks_uri parameter is in principle mandatory, many OIDC clients are known
@@ -554,39 +652,36 @@ namespace Owin.Security.OpenIdConnect.Server {
                 Options.SigningCredentials != null &&
                 Options.SigningCredentials.SigningKey is AsymmetricSecurityKey &&
                 Options.SigningCredentials.SigningKey.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature)) {
-                configurationEndpointContext.KeyEndpoint = Options.Issuer + Options.CryptographyEndpointPath;
+                notification.CryptographyEndpoint = Options.Issuer + Options.CryptographyEndpointPath;
             }
 
             if (Options.TokenEndpointPath.HasValue) {
-                configurationEndpointContext.TokenEndpoint = Options.Issuer + Options.TokenEndpointPath;
+                notification.TokenEndpoint = Options.Issuer + Options.TokenEndpointPath;
             }
 
-            configurationEndpointContext.GrantTypes.Add(
-                OpenIdConnectConstants.GrantTypes.Implicit);
+            if (Options.LogoutEndpointPath.HasValue) {
+                notification.LogoutEndpoint = Options.Issuer + Options.LogoutEndpointPath;
+            }
+
+            notification.GrantTypes.Add(OpenIdConnectConstants.GrantTypes.Implicit);
 
             // Only expose the authorization code grant type if
             // the token endpoint has not been explicitly disabled.
             if (Options.TokenEndpointPath.HasValue) {
-                configurationEndpointContext.GrantTypes.Add(
-                    OpenIdConnectConstants.GrantTypes.AuthorizationCode);
+                notification.GrantTypes.Add(OpenIdConnectConstants.GrantTypes.AuthorizationCode);
             }
 
-            configurationEndpointContext.ResponseModes.Add(
-                OpenIdConnectConstants.ResponseModes.FormPost);
-            configurationEndpointContext.ResponseModes.Add(
-                OpenIdConnectConstants.ResponseModes.Fragment);
-            configurationEndpointContext.ResponseModes.Add(
-                OpenIdConnectConstants.ResponseModes.Query);
+            notification.ResponseModes.Add(OpenIdConnectConstants.ResponseModes.FormPost);
+            notification.ResponseModes.Add(OpenIdConnectConstants.ResponseModes.Fragment);
+            notification.ResponseModes.Add(OpenIdConnectConstants.ResponseModes.Query);
 
-            configurationEndpointContext.ResponseTypes.Add(
-                OpenIdConnectConstants.ResponseTypes.Token);
+            notification.ResponseTypes.Add(OpenIdConnectConstants.ResponseTypes.Token);
 
             // Only expose response types containing id_token when
             // signing credentials have been explicitly provided.
             if (Options.SigningCredentials != null) {
-                configurationEndpointContext.ResponseTypes.Add(
-                    OpenIdConnectConstants.ResponseTypes.IdToken);
-                configurationEndpointContext.ResponseTypes.Add(
+                notification.ResponseTypes.Add(OpenIdConnectConstants.ResponseTypes.IdToken);
+                notification.ResponseTypes.Add(
                     OpenIdConnectConstants.ResponseTypes.IdToken + ' ' +
                     OpenIdConnectConstants.ResponseTypes.Token);
             }
@@ -594,83 +689,84 @@ namespace Owin.Security.OpenIdConnect.Server {
             // Only expose response types containing code when
             // the token endpoint has not been explicitly disabled.
             if (Options.TokenEndpointPath.HasValue) {
-                configurationEndpointContext.ResponseTypes.Add(
-                    OpenIdConnectConstants.ResponseTypes.Code);
+                notification.ResponseTypes.Add(OpenIdConnectConstants.ResponseTypes.Code);
 
-                configurationEndpointContext.ResponseTypes.Add(
+                notification.ResponseTypes.Add(
                     OpenIdConnectConstants.ResponseTypes.Code + ' ' +
                     OpenIdConnectConstants.ResponseTypes.Token);
 
                 // Only expose response types containing id_token when
                 // signing credentials have been explicitly provided.
                 if (Options.SigningCredentials != null) {
-                    configurationEndpointContext.ResponseTypes.Add(
+                    notification.ResponseTypes.Add(
                         OpenIdConnectConstants.ResponseTypes.Code + ' ' +
                         OpenIdConnectConstants.ResponseTypes.IdToken);
 
-                    configurationEndpointContext.ResponseTypes.Add(
+                    notification.ResponseTypes.Add(
                         OpenIdConnectConstants.ResponseTypes.Code + ' ' +
                         OpenIdConnectConstants.ResponseTypes.IdToken + ' ' +
                         OpenIdConnectConstants.ResponseTypes.Token);
                 }
             }
 
-            configurationEndpointContext.Scopes.Add(OpenIdConnectScopes.OpenId);
+            notification.Scopes.Add(OpenIdConnectScopes.OpenId);
 
-            configurationEndpointContext.SubjectTypes.Add(OpenIdConnectConstants.SubjectTypes.Public);
-            configurationEndpointContext.SubjectTypes.Add(OpenIdConnectConstants.SubjectTypes.Pairwise);
+            notification.SubjectTypes.Add(OpenIdConnectConstants.SubjectTypes.Public);
+            notification.SubjectTypes.Add(OpenIdConnectConstants.SubjectTypes.Pairwise);
 
-            configurationEndpointContext.SigningAlgorithms.Add(OpenIdConnectConstants.Algorithms.RS256);
+            notification.SigningAlgorithms.Add(OpenIdConnectConstants.Algorithms.RS256);
 
-            await Options.Provider.ConfigurationEndpoint(configurationEndpointContext);
+            await Options.Provider.ConfigurationEndpoint(notification);
 
             // Stop processing the request if
             // ConfigurationEndpoint called RequestCompleted.
-            if (configurationEndpointContext.IsRequestCompleted) {
+            if (notification.IsRequestCompleted) {
                 return;
             }
             
             var payload = new JObject();
 
-            payload.Add(OpenIdConnectConstants.Metadata.Issuer,
-                configurationEndpointContext.Issuer);
+            payload.Add(OpenIdConnectConstants.Metadata.Issuer, notification.Issuer);
 
-            payload.Add(OpenIdConnectConstants.Metadata.AuthorizationEndpoint,
-                configurationEndpointContext.AuthorizationEndpoint);
-
-            if (!string.IsNullOrWhiteSpace(configurationEndpointContext.TokenEndpoint)) {
-                payload.Add(OpenIdConnectConstants.Metadata.TokenEndpoint,
-                    configurationEndpointContext.TokenEndpoint);
+            if (!string.IsNullOrWhiteSpace(notification.AuthorizationEndpoint)) {
+                payload.Add(OpenIdConnectConstants.Metadata.AuthorizationEndpoint, notification.AuthorizationEndpoint);
             }
 
-            if (!string.IsNullOrWhiteSpace(configurationEndpointContext.KeyEndpoint)) {
-                payload.Add(OpenIdConnectConstants.Metadata.JwksUri,
-                    configurationEndpointContext.KeyEndpoint);
+            if (!string.IsNullOrWhiteSpace(notification.TokenEndpoint)) {
+                payload.Add(OpenIdConnectConstants.Metadata.TokenEndpoint, notification.TokenEndpoint);
+            }
+
+            if (!string.IsNullOrWhiteSpace(notification.LogoutEndpoint)) {
+                payload.Add(OpenIdConnectConstants.Metadata.EndSessionEndpoint, notification.LogoutEndpoint);
+            }
+
+            if (!string.IsNullOrWhiteSpace(notification.CryptographyEndpoint)) {
+                payload.Add(OpenIdConnectConstants.Metadata.JwksUri, notification.CryptographyEndpoint);
             }
 
             payload.Add(OpenIdConnectConstants.Metadata.GrantTypesSupported,
-                JArray.FromObject(configurationEndpointContext.GrantTypes));
+                JArray.FromObject(notification.GrantTypes));
 
             payload.Add(OpenIdConnectConstants.Metadata.ResponseModesSupported,
-                JArray.FromObject(configurationEndpointContext.ResponseModes));
+                JArray.FromObject(notification.ResponseModes));
 
             payload.Add(OpenIdConnectConstants.Metadata.ResponseTypesSupported,
-                JArray.FromObject(configurationEndpointContext.ResponseTypes));
+                JArray.FromObject(notification.ResponseTypes));
 
             payload.Add(OpenIdConnectConstants.Metadata.SubjectTypesSupported,
-                JArray.FromObject(configurationEndpointContext.SubjectTypes));
+                JArray.FromObject(notification.SubjectTypes));
 
             payload.Add(OpenIdConnectConstants.Metadata.ScopesSupported,
-                JArray.FromObject(configurationEndpointContext.Scopes));
+                JArray.FromObject(notification.Scopes));
 
             payload.Add(OpenIdConnectConstants.Metadata.IdTokenSigningAlgValuesSupported,
-                JArray.FromObject(configurationEndpointContext.SigningAlgorithms));
+                JArray.FromObject(notification.SigningAlgorithms));
 
-            var configurationEndpointResponseContext = new ConfigurationEndpointResponseNotification(Context, Options, payload);
-            await Options.Provider.ConfigurationEndpointResponse(configurationEndpointResponseContext);
+            var responseNotification = new ConfigurationEndpointResponseNotification(Context, Options, payload);
+            await Options.Provider.ConfigurationEndpointResponse(responseNotification);
 
             // Stop processing the request if ConfigurationEndpointResponse called RequestCompleted.
-            if (configurationEndpointResponseContext.IsRequestCompleted) {
+            if (responseNotification.IsRequestCompleted) {
                 return;
             }
 
@@ -688,18 +784,18 @@ namespace Owin.Security.OpenIdConnect.Server {
         }
 
         private async Task InvokeCryptographyEndpointAsync() {
-            var cryptographyEndpointNotification = new CryptographyEndpointNotification(Context, Options);
+            var notification = new CryptographyEndpointNotification(Context, Options);
 
             // Metadata requests must be made via GET.
             // See http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationRequest
             if (!string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
                 logger.WriteError(string.Format(CultureInfo.InvariantCulture,
-                    "Keys endpoint: invalid method '{0}' used", Request.Method));
+                    "Cryptography endpoint: invalid method '{0}' used", Request.Method));
                 return;
             }
 
             if (Options.SigningCredentials == null) {
-                logger.WriteError("Keys endpoint: no signing credentials provided. " +
+                logger.WriteError("Cryptography endpoint: no signing credentials provided. " +
                     "Make sure valid credentials are assigned to Options.SigningCredentials.");
                 return;
             }
@@ -712,7 +808,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             var asymmetricSecurityKey = Options.SigningCredentials.SigningKey as AsymmetricSecurityKey;
             if (asymmetricSecurityKey == null) {
                 logger.WriteError(string.Format(CultureInfo.InvariantCulture,
-                    "Keys endpoint: invalid signing key registered. " +
+                    "Cryptography endpoint: invalid signing key registered. " +
                     "Make sure to provide an asymmetric security key deriving from '{0}'.",
                     typeof(AsymmetricSecurityKey).FullName));
                 return;
@@ -720,7 +816,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             if (!asymmetricSecurityKey.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature)) {
                 logger.WriteError(string.Format(CultureInfo.InvariantCulture,
-                    "Keys endpoint: invalid signing key registered. " +
+                    "Cryptography endpoint: invalid signing key registered. " +
                     "Make sure to provide a '{0}' instance exposing " +
                     "an asymmetric security key supporting the '{1}' algorithm.",
                     typeof(SigningCredentials).Name, SecurityAlgorithms.RsaSha256Signature));
@@ -764,7 +860,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             if (x509Certificate != null) {
                 // Create a new JSON Web Key exposing the
                 // certificate instead of its public RSA key.
-                cryptographyEndpointNotification.Keys.Add(new JsonWebKey {
+                notification.Keys.Add(new JsonWebKey {
                     Kty = JsonWebAlgorithmsKeyTypes.RSA,
                     Alg = JwtAlgorithms.RSA_SHA256,
                     Use = JsonWebKeyUseNames.Sig,
@@ -789,7 +885,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 var parameters = asymmetricAlgorithm.ExportParameters(
                     includePrivateParameters: false);
 
-                cryptographyEndpointNotification.Keys.Add(new JsonWebKey {
+                notification.Keys.Add(new JsonWebKey {
                     Kty = JsonWebAlgorithmsKeyTypes.RSA,
                     Alg = JwtAlgorithms.RSA_SHA256,
                     Use = JsonWebKeyUseNames.Sig,
@@ -801,30 +897,30 @@ namespace Owin.Security.OpenIdConnect.Server {
                 });
             }
 
-            await Options.Provider.CryptographyEndpoint(cryptographyEndpointNotification);
+            await Options.Provider.CryptographyEndpoint(notification);
 
             // Skip processing the JWKS request if
             // RequestCompleted has been called.
-            if (cryptographyEndpointNotification.IsRequestCompleted) {
+            if (notification.IsRequestCompleted) {
                 return;
             }
 
             // Ensure at least one key has been added to context.Keys.
-            if (!cryptographyEndpointNotification.Keys.Any()) {
-                logger.WriteError("Keys endpoint: no JSON Web Key found.");
+            if (!notification.Keys.Any()) {
+                logger.WriteError("Cryptography endpoint: no JSON Web Key found.");
                 return;
             }
 
             var payload = new JObject();
             var keys = new JArray();
 
-            foreach (var key in cryptographyEndpointNotification.Keys) {
+            foreach (var key in notification.Keys) {
                 var item = new JObject();
 
                 // Ensure a key type has been provided.
                 // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#section-4.1
                 if (string.IsNullOrWhiteSpace(key.Kty)) {
-                    logger.WriteWarning("Keys endpoint: a JSON Web Key didn't " +
+                    logger.WriteWarning("Cryptography endpoint: a JSON Web Key didn't " +
                         "contain the mandatory 'Kty' parameter and has been ignored.");
                     continue;
                 }
@@ -858,11 +954,11 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             payload.Add(JsonWebKeyParameterNames.Keys, keys);
 
-            var cryptographyEndpointResponseNotification = new CryptographyEndpointResponseNotification(Context, Options, payload);
-            await Options.Provider.CryptographyEndpointResponse(cryptographyEndpointResponseNotification);
+            var responseNotification = new CryptographyEndpointResponseNotification(Context, Options, payload);
+            await Options.Provider.CryptographyEndpointResponse(responseNotification);
 
             // Skip processing the request if RequestCompleted has been called.
-            if (cryptographyEndpointResponseNotification.IsRequestCompleted) {
+            if (responseNotification.IsRequestCompleted) {
                 return;
             }
 
@@ -919,26 +1015,26 @@ namespace Owin.Security.OpenIdConnect.Server {
             var currentUtc = Options.SystemClock.UtcNow;
             currentUtc = currentUtc.Subtract(TimeSpan.FromMilliseconds(currentUtc.Millisecond));
 
-            var clientContext = new ValidateClientAuthenticationNotification(Context, Options, request);
-            await Options.Provider.ValidateClientAuthentication(clientContext);
+            var clientNotification = new ValidateClientAuthenticationNotification(Context, Options, request);
+            await Options.Provider.ValidateClientAuthentication(clientNotification);
 
-            if (!clientContext.IsValidated) {
+            if (!clientNotification.IsValidated) {
                 logger.WriteError("clientID is not valid.");
 
-                if (!clientContext.HasError) {
-                    clientContext.SetError(OpenIdConnectConstants.Errors.InvalidClient);
+                if (!clientNotification.HasError) {
+                    clientNotification.SetError(OpenIdConnectConstants.Errors.InvalidClient);
                 }
 
                 await SendErrorPayloadAsync(new OpenIdConnectMessage {
-                    Error = clientContext.Error,
-                    ErrorDescription = clientContext.ErrorDescription,
-                    ErrorUri = clientContext.ErrorUri
+                    Error = clientNotification.Error,
+                    ErrorDescription = clientNotification.ErrorDescription,
+                    ErrorUri = clientNotification.ErrorUri
                 });
 
                 return;
             }
 
-            var validatingContext = new ValidateTokenRequestNotification(Context, Options, request, clientContext);
+            var validatingContext = new ValidateTokenRequestNotification(Context, Options, request, clientNotification);
 
             AuthenticationTicket ticket = null;
             if (request.IsAuthorizationCodeGrantType()) {
@@ -992,17 +1088,17 @@ namespace Owin.Security.OpenIdConnect.Server {
             ticket.Properties.IssuedUtc = currentUtc;
             ticket.Properties.ExpiresUtc = currentUtc.Add(Options.AccessTokenLifetime);
 
-            var tokenEndpointContext = new TokenEndpointNotification(Context, Options, ticket, request);
-            await Options.Provider.TokenEndpoint(tokenEndpointContext);
+            var notification = new TokenEndpointNotification(Context, Options, ticket, request);
+            await Options.Provider.TokenEndpoint(notification);
 
             // Stop processing the request if
             // TokenEndpoint called RequestCompleted.
-            if (tokenEndpointContext.IsRequestCompleted) {
+            if (notification.IsRequestCompleted) {
                 return;
             }
             
             // Flow the changes made to the ticket.
-            ticket = tokenEndpointContext.Ticket;
+            ticket = notification.Ticket;
 
             var response = new OpenIdConnectMessage();
             response.TokenType = OpenIdConnectConstants.TokenTypes.Bearer;
@@ -1032,12 +1128,12 @@ namespace Owin.Security.OpenIdConnect.Server {
                 payload.Add(parameter.Key, parameter.Value);
             }
             
-            var tokenEndpointResponseContext = new TokenEndpointResponseNotification(Context, Options, payload);
-            await Options.Provider.TokenEndpointResponse(tokenEndpointResponseContext);
+            var responseNotification = new TokenEndpointResponseNotification(Context, Options, payload);
+            await Options.Provider.TokenEndpointResponse(responseNotification);
 
             // Stop processing the request if
             // TokenEndpointResponse called RequestCompleted.
-            if (tokenEndpointResponseContext.IsRequestCompleted) {
+            if (responseNotification.IsRequestCompleted) {
                 return;
             }
 
@@ -1370,6 +1466,83 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
         }
 
+        private async Task<bool> InvokeLogoutEndpointAsync() {
+            OpenIdConnectMessage request = null;
+
+            // In principle, logout requests must be made via GET. Nevertheless,
+            // POST requests are also allowed so that the inner application can display a logout form.
+            // See https://openid.net/specs/openid-connect-session-1_0.html#RPLogout
+            if (!string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase)) {
+                return await SendErrorPageAsync(new OpenIdConnectMessage {
+                    Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = "A malformed logout request has been received: " +
+                        "make sure to use either GET or POST."
+                });
+            }
+
+            if (string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
+                request = new OpenIdConnectMessage(Request.Query) {
+                    RequestType = OpenIdConnectRequestType.LogoutRequest
+                };
+            }
+
+            else {
+                // See http://openid.net/specs/openid-connect-core-1_0.html#FormSerialization
+                if (string.IsNullOrWhiteSpace(Request.ContentType)) {
+                    return await SendErrorPageAsync(new OpenIdConnectMessage {
+                        Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                        ErrorDescription = "A malformed logout request has been received: " +
+                            "the mandatory 'Content-Type' header was missing from the POST request."
+                    });
+                }
+
+                // May have media/type; charset=utf-8, allow partial match.
+                if (!Request.ContentType.StartsWith("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase)) {
+                    return await SendErrorPageAsync(new OpenIdConnectMessage {
+                        Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                        ErrorDescription = "A malformed logout request has been received: " +
+                            "the 'Content-Type' header contained an unexcepted value. " +
+                            "Make sure to use 'application/x-www-form-urlencoded'."
+                    });
+                }
+
+                request = new OpenIdConnectMessage(await Request.ReadFormAsync()) {
+                    RequestType = OpenIdConnectRequestType.LogoutRequest
+                };
+            }
+            
+            var clientNotification = new ValidateClientLogoutRedirectUriNotification(Context, Options, request);
+            await Options.Provider.ValidateClientLogoutRedirectUri(clientNotification);
+
+            if (!clientNotification.IsValidated) {
+                logger.WriteVerbose("Unable to validate client information");
+
+                return await SendErrorPageAsync(new OpenIdConnectMessage {
+                    Error = clientNotification.Error,
+                    ErrorDescription = clientNotification.ErrorDescription,
+                    ErrorUri = clientNotification.ErrorUri
+                });
+            }
+
+            // Update the logout request in the OWIN context.
+            Context.SetOpenIdConnectRequest(request);
+
+            var notification = new LogoutEndpointNotification(Context, Options, request);
+            await Options.Provider.LogoutEndpoint(notification);
+
+            // Update the logout request in the OWIN context.
+            Context.SetOpenIdConnectRequest(request);
+
+            // Stop processing the request if
+            // LogoutEndpoint called RequestCompleted.
+            if (notification.IsRequestCompleted) {
+                return true;
+            }
+
+            return false;
+        }
+
         private async Task<string> CreateAuthorizationCodeAsync(AuthenticationTicket ticket, OpenIdConnectMessage request, OpenIdConnectMessage response) {
             // Create a copy to avoid modifying the original properties and compute
             // the expiration date using the registered authorization code lifetime.
@@ -1528,14 +1701,17 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return claim.HasDestination(OpenIdConnectConstants.ResponseTypes.IdToken);
             });
 
-            identity.AddClaim(JwtRegisteredClaimNames.Iat, EpochTime.GetIntDate(properties.IssuedUtc.Value.UtcDateTime).ToString());
+            identity.AddClaim(JwtRegisteredClaimNames.Iat,
+                EpochTime.GetIntDate(properties.IssuedUtc.Value.UtcDateTime).ToString());
 
             if (!string.IsNullOrEmpty(response.Code)) {
-                identity.AddClaim(JwtRegisteredClaimNames.CHash, GenerateHash(response.Code, Options.SigningCredentials.DigestAlgorithm));
+                identity.AddClaim(JwtRegisteredClaimNames.CHash,
+                    GenerateHash(response.Code, Options.SigningCredentials.DigestAlgorithm));
             }
 
             if (!string.IsNullOrEmpty(response.AccessToken)) {
-                identity.AddClaim("at_hash", GenerateHash(response.AccessToken, Options.SigningCredentials.DigestAlgorithm));
+                identity.AddClaim("at_hash",
+                    GenerateHash(response.AccessToken, Options.SigningCredentials.DigestAlgorithm));
             }
 
             if (!string.IsNullOrEmpty(request.Nonce)) {

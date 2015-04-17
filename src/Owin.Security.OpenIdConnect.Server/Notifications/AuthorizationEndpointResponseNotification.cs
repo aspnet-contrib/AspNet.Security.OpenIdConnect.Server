@@ -18,16 +18,16 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
-        /// <param name="authorizationRequest"></param>
-        /// <param name="authorizationResponse"></param>
+        /// <param name="request"></param>
+        /// <param name="response"></param>
         internal AuthorizationEndpointResponseNotification(
             IOwinContext context,
             OpenIdConnectServerOptions options,
-            OpenIdConnectMessage authorizationRequest,
-            OpenIdConnectMessage authorizationResponse)
+            OpenIdConnectMessage request,
+            OpenIdConnectMessage response)
             : base(context, options) {
-            AuthorizationRequest = authorizationRequest;
-            AuthorizationResponse = authorizationResponse;
+            AuthorizationRequest = request;
+            AuthorizationResponse = response;
         }
 
         /// <summary>

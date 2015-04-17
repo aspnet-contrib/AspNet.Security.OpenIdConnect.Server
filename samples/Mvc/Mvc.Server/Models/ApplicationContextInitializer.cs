@@ -8,6 +8,7 @@ namespace Mvc.Server.Models {
                 ApplicationID = "myClient",
                 DisplayName = "My client application",
                 RedirectUri = "http://localhost:56854/oidc",
+                LogoutRedirectUri = "http://localhost:56854/",
                 Secret = "secret_secret_secret"
             });
         }

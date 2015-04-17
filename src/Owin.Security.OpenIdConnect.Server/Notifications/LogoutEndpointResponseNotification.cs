@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Licensed under the Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  * See https://github.com/AspNet-OpenIdConnect-Server/Owin.Security.OpenIdConnect.Server
  * for more information concerning the license and the contributors participating to this project.
@@ -10,24 +10,26 @@ using Microsoft.Owin.Security.Provider;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
-    /// An event raised after the Authorization Server has processed the request, but before it is passed on to the web application.
-    /// Calling RequestCompleted will prevent the request from passing on to the web application.
+    /// Provides context information when processing a logout response.
     /// </summary>
-    public sealed class AuthorizationEndpointNotification : EndpointContext<OpenIdConnectServerOptions> {
+    public sealed class LogoutEndpointResponseNotification : EndpointContext<OpenIdConnectServerOptions> {
         /// <summary>
-        /// Creates an instance of this context
+        /// Initializes a new instance of the <see cref="LogoutEndpointResponseNotification"/> class
         /// </summary>
-        internal AuthorizationEndpointNotification(
+        /// <param name="context"></param>
+        /// <param name="options"></param>
+        /// <param name="request"></param>
+        internal LogoutEndpointResponseNotification(
             IOwinContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request)
             : base(context, options) {
-            AuthorizationRequest = request;
+            LogoutRequest = request;
         }
 
         /// <summary>
-        /// Gets the authorization request.
+        /// Gets the authorization request. 
         /// </summary>
-        public OpenIdConnectMessage AuthorizationRequest { get; private set; }
+        public OpenIdConnectMessage LogoutRequest { get; private set; }
     }
 }

@@ -79,5 +79,19 @@ namespace Nancy.Server.Providers {
                 notification.Validated(application.RedirectUri);
             }
         }
+
+        public override async Task ValidateClientLogoutRedirectUri(ValidateClientLogoutRedirectUriNotification notification) {
+            using (var context = new ApplicationContext()) {
+                if (!await context.Applications.AnyAsync(application => application.LogoutRedirectUri == notification.PostLogoutRedirectUri)) {
+                    notification.SetError(
+                            error: "invalid_client",
+                            errorDescription: "Invalid post_logout_redirect_uri");
+
+                    return;
+                }
+
+                notification.Validated();
+            }
+        }
     }
 }
