@@ -4,6 +4,7 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
+using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Notifications;
@@ -18,14 +19,22 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
+        /// <param name="request"></param>
         /// <param name="code"></param>
         internal ReceiveAuthorizationCodeNotification(
             IOwinContext context,
             OpenIdConnectServerOptions options,
+            OpenIdConnectMessage request,
             string code)
             : base(context, options) {
+            AuthorizationRequest = request;
             AuthorizationCode = code;
         }
+
+        /// <summary>
+        /// Gets the authorization request.
+        /// </summary>
+        public OpenIdConnectMessage AuthorizationRequest { get; private set; }
 
         /// <summary>
         /// Gets or sets the authentication ticket.

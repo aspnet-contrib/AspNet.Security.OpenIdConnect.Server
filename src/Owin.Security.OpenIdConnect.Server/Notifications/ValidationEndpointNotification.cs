@@ -23,12 +23,12 @@ namespace Owin.Security.OpenIdConnect.Server {
         internal ValidationEndpointNotification(
             IOwinContext context,
             OpenIdConnectServerOptions options,
-            AuthenticationTicket ticket,
-            OpenIdConnectMessage request)
+            OpenIdConnectMessage request,
+            AuthenticationTicket ticket)
             : base(context, options) {
-            AuthenticationTicket = ticket;
-            ValidationRequest = request;
             Claims = new List<Claim>();
+            ValidationRequest = request;
+            AuthenticationTicket = ticket;
         }
 
         /// <summary>

@@ -4,6 +4,7 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
+using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Notifications;
@@ -18,14 +19,22 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
-        /// <param name="refreshToken"></param>
+        /// <param name="request"></param>
+        /// <param name="token"></param>
         internal ReceiveRefreshTokenNotification(
             IOwinContext context,
             OpenIdConnectServerOptions options,
-            string refreshToken)
+            OpenIdConnectMessage request,
+            string token)
             : base(context, options) {
-            RefreshToken = refreshToken;
+            TokenRequest = request;
+            RefreshToken = token;
         }
+
+        /// <summary>
+        /// Gets the authorization or token request.
+        /// </summary>
+        public OpenIdConnectMessage TokenRequest { get; private set; }
 
         /// <summary>
         /// Gets or sets the authentication ticket.
