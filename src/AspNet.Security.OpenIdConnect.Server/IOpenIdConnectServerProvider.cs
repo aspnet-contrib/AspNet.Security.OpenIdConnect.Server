@@ -35,6 +35,17 @@ namespace AspNet.Security.OpenIdConnect.Server {
         Task ValidateClientRedirectUri(ValidateClientRedirectUriNotification notification);
 
         /// <summary>
+        /// Called to validate that context.PostLogoutRedirectUri a valid and registered URL.
+        /// This only occurs when processing the logout endpoint. The application MUST implement this call, and it MUST validate
+        /// both of those factors before calling context.Validated. If the context.Validated method is called with a given redirectUri parameter,
+        /// then IsValidated will only become true if the incoming redirect URI matches the given redirect URI. 
+        /// If context.Validated is not called the request will not proceed further. 
+        /// </summary>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        Task ValidateClientLogoutRedirectUri(ValidateClientLogoutRedirectUriNotification notification);
+
+        /// <summary>
         /// Called to validate that the origin of the request is a registered "client_id", and that the correct credentials for that client are
         /// present on the request. If the web application accepts Basic authentication credentials, 
         /// context.TryGetBasicCredentials(out clientId, out clientSecret) may be called to acquire those values if present in the request header. If the web 
@@ -158,9 +169,29 @@ namespace AspNet.Security.OpenIdConnect.Server {
         Task AuthorizationEndpointResponse(AuthorizationEndpointResponseNotification notification);
 
         /// <summary>
+        /// Called at the final stage of an incoming logout endpoint request before the execution continues on to the web application component 
+        /// responsible for producing the html response. Anything present in the OWIN pipeline following the Authorization Server may produce the
+        /// response for the logout page. If running on IIS any ASP.NET technology running on the server may produce the response for the 
+        /// authorization page. If the web application wishes to produce the response directly in the LogoutEndpoint call it may write to the 
+        /// context.Response directly and should call context.RequestCompleted to stop other handlers from executing.
+        /// </summary>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        Task LogoutEndpoint(LogoutEndpointNotification notification);
+
+        /// <summary>
+        /// Called before the LogoutEndpoint endpoint redirects its response to the caller.
+        /// If the web application wishes to produce the authorization response directly in the LogoutEndpoint call it may write to the 
+        /// context.Response directly and should call context.RequestCompleted to stop other handlers from executing.
+        /// This call may also be used to add additional response parameters to the authorization response.
+        /// </summary>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        Task LogoutEndpointResponse(LogoutEndpointResponseNotification notification);
+
+        /// <summary>
         /// Called by the client applications to retrieve the OpenID Connect configuration associated with this instance.
-        /// If the web application wishes to produce the configuration metadata directly in this call, it may write to the 
-        /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
+        /// An application may implement this call in order to do any final modification to the configuration metadata.
         /// </summary>
         /// <param name="notification">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
@@ -177,12 +208,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
         /// <summary>
         /// Called by the client applications to retrieve the OpenID Connect JSON Web Key set associated with this instance.
-        /// If the web application wishes to produce the JSON Web Key set directly in this call, it may write to the 
-        /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
+        /// An application may implement this call in order to do any final modification to the keys set.
         /// </summary>
         /// <param name="notification">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        Task KeysEndpoint(KeysEndpointNotification notification);
+        Task CryptographyEndpoint(CryptographyEndpointNotification notification);
 
         /// <summary>
         /// Called before the authorization server starts emitting the OpenID Connect JSON Web Key set associated with this instance.
@@ -191,23 +221,42 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="notification">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        Task KeysEndpointResponse(KeysEndpointResponseNotification notification);
+        Task CryptographyEndpointResponse(CryptographyEndpointResponseNotification notification);
 
         /// <summary>
-        /// Called at the final stage of a successful Token endpoint request. An application may implement this call in order to do any final 
-        /// modification of the claims being used to issue access or refresh tokens. This call may also be used in order to add additional 
-        /// response parameters to the Token endpoint's json response body.
+        /// Called at the final stage of a successful Token endpoint request.
+        /// An application may implement this call in order to do any final 
+        /// modification of the claims being used to issue access or refresh tokens. 
         /// </summary>
         /// <param name="notification">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
         Task TokenEndpoint(TokenEndpointNotification notification);
 
         /// <summary>
-        /// Called before the TokenEndpoint redirects its response to the caller. 
+        /// Called before the TokenEndpoint redirects its response to the caller.
+        /// This call may also be used in order to add additional 
+        /// response parameters to the JSON response payload.
         /// </summary>
         /// <param name="notification">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
         Task TokenEndpointResponse(TokenEndpointResponseNotification notification);
+
+        /// <summary>
+        /// Called by the client applications to validate an access token, an identity token or a refresh token.
+        /// An application may implement this call in order to do any final modification to the configuration metadata.
+        /// </summary>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        Task ValidationEndpoint(ValidationEndpointNotification notification);
+
+        /// <summary>
+        /// Called before the authorization server starts emitting the claims associated with the tokens received.
+        /// If the web application wishes to produce the configuration metadata directly in this call, it may write to the 
+        /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
+        /// </summary>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        Task ValidationEndpointResponse(ValidationEndpointResponseNotification notification);
 
         /// <summary>
         /// Called to create a new authorization code. An application may use this notification
@@ -253,6 +302,24 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <param name="notification">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
         Task ReceiveAuthorizationCode(ReceiveAuthorizationCodeNotification notification);
+
+        /// <summary>
+        /// Called when receiving an access token. An application may use this notification
+        /// to deserialize the token using a custom format and to skip the default logic using
+        /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
+        /// </summary>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        Task ReceiveAccessToken(ReceiveAccessTokenNotification notification);
+
+        /// <summary>
+        /// Called when receiving an identity token. An application may use this notification
+        /// to deserialize the token using a custom format and to skip the default logic using
+        /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
+        /// </summary>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        Task ReceiveIdentityToken(ReceiveIdentityTokenNotification notification);
 
         /// <summary>
         /// Called when receiving a refresh token. An application may use this notification

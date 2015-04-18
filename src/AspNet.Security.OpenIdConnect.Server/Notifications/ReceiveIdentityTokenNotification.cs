@@ -10,42 +10,41 @@ using Microsoft.AspNet.Http;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
-    /// Provides context information used when receiving a refresh token.
+    /// Provides context information used when receiving an identity token.
     /// </summary>
-    public sealed class ReceiveRefreshTokenNotification : BaseNotification<OpenIdConnectServerOptions> {
+    public sealed class ReceiveIdentityTokenNotification : BaseNotification<OpenIdConnectServerOptions> {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ReceiveRefreshTokenNotification"/> class
+        /// Initializes a new instance of the <see cref="ReceiveAccessTokenNotification"/> class
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="token"></param>
-        internal ReceiveRefreshTokenNotification(
+        internal ReceiveIdentityTokenNotification(
             HttpContext context,
             OpenIdConnectServerOptions options,
             string token)
             : base(context, options) {
-            RefreshToken = token;
+            IdentityToken = token;
         }
 
         /// <summary>
-        /// Gets the refresh code used
-        /// by the client application.
+        /// Gets the identity token used by the client application.
         /// </summary>
-        public string RefreshToken { get; }
+        public string IdentityToken { get; }
 
         /// <summary>
         /// Deserialize and unprotect the authentication ticket using
-        /// <see cref="OpenIdConnectServerOptions.RefreshTokenFormat"/>.
+        /// <see cref="OpenIdConnectServerOptions.AuthorizationCodeFormat"/>.
         /// </summary>
         /// <returns>The authentication ticket.</returns>
-        public AuthenticationTicket DeserializeTicket() => DeserializeTicket(RefreshToken);
+        public AuthenticationTicket DeserializeTicket() => DeserializeTicket(IdentityToken);
 
         /// <summary>
         /// Deserialize and unprotect the authentication ticket using
-        /// <see cref="OpenIdConnectServerOptions.RefreshTokenFormat"/>.
+        /// <see cref="OpenIdConnectServerOptions.AuthorizationCodeFormat"/>.
         /// </summary>
         /// <param name="ticket">The serialized ticket.</param>
         /// <returns>The authentication ticket.</returns>
-        public AuthenticationTicket DeserializeTicket(string ticket) => Options.RefreshTokenFormat.Unprotect(ticket);
+        public AuthenticationTicket DeserializeTicket(string ticket) => Options.AuthorizationCodeFormat.Unprotect(ticket);
     }
 }

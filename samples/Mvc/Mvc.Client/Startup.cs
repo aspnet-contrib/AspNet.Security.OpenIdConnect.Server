@@ -47,6 +47,7 @@ namespace Mvc.Client {
                 options.ClientId = "myClient";
                 options.ClientSecret = "secret_secret_secret";
                 options.RedirectUri = "http://localhost:53507/oidc";
+                options.PostLogoutRedirectUri = "http://localhost:53507/";
 
                 // Note: setting the Authority allows the OIDC client middleware to automatically
                 // retrieve the identity provider's configuration and spare you from setting

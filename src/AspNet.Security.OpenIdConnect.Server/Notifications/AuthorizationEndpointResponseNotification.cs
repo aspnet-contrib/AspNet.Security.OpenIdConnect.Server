@@ -23,34 +23,17 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="ticket"></param>
-        /// <param name="authorizationRequest"></param>
-        /// <param name="authorizationResponse"></param>
+        /// <param name="request"></param>
+        /// <param name="response"></param>
         internal AuthorizationEndpointResponseNotification(
             HttpContext context,
             OpenIdConnectServerOptions options,
-            AuthenticationTicket ticket,
-            OpenIdConnectMessage authorizationRequest,
-            OpenIdConnectMessage authorizationResponse)
+            OpenIdConnectMessage request,
+            OpenIdConnectMessage response)
             : base(context, options) {
-            if (ticket == null) {
-                throw new ArgumentNullException("ticket");
-            }
-
-            Principal = ticket.Principal;
-            Properties = ticket.Properties;
-            AuthorizationRequest = authorizationRequest;
-            AuthorizationResponse = authorizationResponse;
+            AuthorizationRequest = request;
+            AuthorizationResponse = response;
         }
-
-        /// <summary>
-        /// Gets the principal of the resource owner.
-        /// </summary>
-        public ClaimsPrincipal Principal { get; }
-
-        /// <summary>
-        /// Dictionary containing the state of the authentication session.
-        /// </summary>
-        public AuthenticationProperties Properties { get; }
 
         /// <summary>
         /// Gets the authorization request. 
@@ -67,17 +50,13 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// be returned to the client application.
         /// Depending on the flow, it can be null.
         /// </summary>
-        public string AccessToken {
-            get { return AuthorizationResponse.AccessToken; }
-        }
+        public string AccessToken => AuthorizationResponse.AccessToken;
 
         /// <summary>
         /// Get the authorization code expected to
         /// be returned to the client application.
         /// Depending on the flow, it can be null.
         /// </summary>
-        public string AuthorizationCode {
-            get { return AuthorizationResponse.Code; }
-        }
+        public string AuthorizationCode => AuthorizationResponse.Code;
     }
 }

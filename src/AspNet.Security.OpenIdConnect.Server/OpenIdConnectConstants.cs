@@ -63,6 +63,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         }
 
         public static class Extra {
+            public const string Audience = "audience";
             public const string ClientId = "client_id";
             public const string Destination = "destination";
             public const string RedirectUri = "redirect_uri";
@@ -70,6 +71,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
         public static class Metadata {
             public const string AuthorizationEndpoint = "authorization_endpoint";
+            public const string EndSessionEndpoint = "end_session_endpoint";
             public const string IdTokenSigningAlgValuesSupported = "id_token_signing_alg_values_supported";
             public const string Issuer = "issuer";
             public const string JwksUri = "jwks_uri";

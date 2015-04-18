@@ -39,7 +39,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// Gets whether or not the endpoint is an
         /// OpenID Connect JWKS endpoint.
         /// </summary>
-        public bool IsKeysEndpoint { get; private set; }
+        public bool IsCryptographyEndpoint { get; private set; }
 
         /// <summary>
         /// Gets whether or not the endpoint is an
@@ -48,13 +48,25 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public bool IsTokenEndpoint { get; private set; }
 
         /// <summary>
+        /// Gets whether or not the endpoint is a validation endpoint.
+        /// </summary>
+        public bool IsValidationEndpoint { get; private set; }
+
+        /// <summary>
+        /// Gets whether or not the endpoint is a logout endpoint.
+        /// </summary>
+        public bool IsLogoutEndpoint { get; private set; }
+
+        /// <summary>
         /// Sets the endpoint type to the authorization endpoint.
         /// </summary>
         public void MatchesAuthorizationEndpoint() {
             IsAuthorizationEndpoint = true;
             IsConfigurationEndpoint = false;
-            IsKeysEndpoint = false;
+            IsCryptographyEndpoint = false;
             IsTokenEndpoint = false;
+            IsValidationEndpoint = false;
+            IsLogoutEndpoint = false;
         }
 
         /// <summary>
@@ -63,18 +75,22 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public void MatchesConfigurationEndpoint() {
             IsAuthorizationEndpoint = false;
             IsConfigurationEndpoint = true;
-            IsKeysEndpoint = false;
+            IsCryptographyEndpoint = false;
             IsTokenEndpoint = false;
+            IsValidationEndpoint = false;
+            IsLogoutEndpoint = false;
         }
 
         /// <summary>
         /// Sets the endpoint type to the JWKS endpoint.
         /// </summary>
-        public void MatchesKeysEndpoint() {
+        public void MatchesCryptographyEndpoint() {
             IsAuthorizationEndpoint = false;
             IsConfigurationEndpoint = false;
-            IsKeysEndpoint = true;
+            IsCryptographyEndpoint = true;
             IsTokenEndpoint = false;
+            IsValidationEndpoint = false;
+            IsLogoutEndpoint = false;
         }
 
         /// <summary>
@@ -83,8 +99,34 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public void MatchesTokenEndpoint() {
             IsAuthorizationEndpoint = false;
             IsConfigurationEndpoint = false;
-            IsKeysEndpoint = false;
+            IsCryptographyEndpoint = false;
             IsTokenEndpoint = true;
+            IsValidationEndpoint = false;
+            IsLogoutEndpoint = false;
+        }
+
+        /// <summary>
+        /// Sets the endpoint type to validation endpoint.
+        /// </summary>
+        public void MatchesValidationEndpoint() {
+            IsAuthorizationEndpoint = false;
+            IsConfigurationEndpoint = false;
+            IsCryptographyEndpoint = false;
+            IsTokenEndpoint = false;
+            IsValidationEndpoint = true;
+            IsLogoutEndpoint = false;
+        }
+
+        /// <summary>
+        /// Sets the endpoint type to logout endpoint.
+        /// </summary>
+        public void MatchesLogoutEndpoint() {
+            IsAuthorizationEndpoint = false;
+            IsConfigurationEndpoint = false;
+            IsCryptographyEndpoint = false;
+            IsTokenEndpoint = false;
+            IsValidationEndpoint = false;
+            IsLogoutEndpoint = true;
         }
 
         /// <summary>
@@ -93,8 +135,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public void MatchesNothing() {
             IsAuthorizationEndpoint = false;
             IsConfigurationEndpoint = false;
-            IsKeysEndpoint = false;
+            IsCryptographyEndpoint = false;
             IsTokenEndpoint = false;
+            IsValidationEndpoint = false;
+            IsLogoutEndpoint = false;
         }
     }
 }

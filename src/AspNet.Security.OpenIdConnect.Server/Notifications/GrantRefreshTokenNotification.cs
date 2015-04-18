@@ -18,26 +18,25 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
-        /// <param name="tokenRequest"></param>
+        /// <param name="request"></param>
         /// <param name="ticket"></param>
         internal GrantRefreshTokenNotification(
             HttpContext context,
             OpenIdConnectServerOptions options,
-            OpenIdConnectMessage tokenRequest,
+            OpenIdConnectMessage request,
             AuthenticationTicket ticket)
             : base(context, options, ticket) {
+            TokenRequest = request;
         }
 
         /// <summary>
         /// The OpenIdConnect client id.
         /// </summary>
-        public string ClientId {
-            get { return TokenRequest.ClientId; }
-        }
+        public string ClientId => TokenRequest.ClientId;
 
         /// <summary>
         /// Gets the token request.
         /// </summary>
-        public OpenIdConnectMessage TokenRequest { get; private set; }
+        public OpenIdConnectMessage TokenRequest { get; }
     }
 }

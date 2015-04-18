@@ -50,7 +50,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <param name="principal">Assigned to the Ticket.Principal property</param>
         /// <returns>True if the validation has taken effect.</returns>
         public bool Validated(ClaimsPrincipal principal) {
-            AuthenticationProperties properties = Ticket != null ? Ticket.Properties : new AuthenticationProperties();
+            var properties = Ticket?.Properties ?? new AuthenticationProperties();
             return Validated(new AuthenticationTicket(principal, properties, Options.AuthenticationScheme));
         }
     }

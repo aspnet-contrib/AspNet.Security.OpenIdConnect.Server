@@ -11,18 +11,18 @@ using Microsoft.IdentityModel.Protocols;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
-    /// Contains data about the OpenIdConnect client redirect URI
+    /// Contains data about the OpenIdConnect client logout redirect URI
     /// </summary>
-    public sealed class ValidateClientRedirectUriNotification : BaseValidatingClientNotification {
+    public sealed class ValidateClientLogoutRedirectUriNotification : BaseValidatingClientNotification {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ValidateClientRedirectUriNotification"/> class
+        /// Initializes a new instance of the <see cref="ValidateClientLogoutRedirectUriNotification"/> class
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="request"></param>
         [SuppressMessage("Microsoft.Design", "CA1054:UriParametersShouldNotBeStrings",
             MessageId = "3#", Justification = "redirect_uri is a string parameter")]
-        internal ValidateClientRedirectUriNotification(
+        internal ValidateClientLogoutRedirectUriNotification(
             HttpContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request)
@@ -30,14 +30,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
         }
 
         /// <summary>
-        /// Gets the client redirect URI
+        /// Gets the post logout redirect URI.
         /// </summary>
-        [SuppressMessage("Microsoft.Design",
-            "CA1056:UriPropertiesShouldNotBeStrings",
-            Justification = "redirect_uri is a string parameter")]
-        public string RedirectUri {
-            get { return AuthorizationRequest.RedirectUri; }
-            set { AuthorizationRequest.RedirectUri = value; }
+        public string PostLogoutRedirectUri {
+            get { return AuthorizationRequest.PostLogoutRedirectUri; }
+            set { AuthorizationRequest.PostLogoutRedirectUri = value; }
         }
 
         /// <summary>
@@ -46,7 +43,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <returns></returns>
         public override bool Validated() {
-            if (string.IsNullOrEmpty(RedirectUri)) {
+            if (string.IsNullOrEmpty(PostLogoutRedirectUri)) {
                 // Don't allow default validation when redirect_uri not provided with request
                 return false;
             }
@@ -55,7 +52,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         }
 
         /// <summary>
-        /// Checks the redirect URI to determine whether it equals <see cref="RedirectUri"/>.
+        /// Checks the redirect URI to determine whether it equals <see cref="PostLogoutRedirectUri"/>.
         /// </summary>
         /// <param name="redirectUri"></param>
         /// <returns></returns>
@@ -66,12 +63,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 throw new ArgumentNullException("redirectUri");
             }
 
-            if (!string.IsNullOrEmpty(RedirectUri) && !string.Equals(RedirectUri, redirectUri, StringComparison.Ordinal)) {
+            if (!string.IsNullOrEmpty(PostLogoutRedirectUri) && !string.Equals(PostLogoutRedirectUri, redirectUri, StringComparison.Ordinal)) {
                 // Don't allow validation to alter redirect_uri provided with request
                 return false;
             }
 
-            RedirectUri = redirectUri;
+            PostLogoutRedirectUri = redirectUri;
 
             return Validated();
         }

@@ -17,13 +17,13 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
-        /// <param name="tokenRequest"></param>
+        /// <param name="request"></param>
         internal GrantCustomExtensionNotification(
             HttpContext context,
             OpenIdConnectServerOptions options,
-            OpenIdConnectMessage tokenRequest)
+            OpenIdConnectMessage request)
             : base(context, options, null) {
-            TokenRequest = tokenRequest;
+            TokenRequest = request;
         }
 
         /// <summary>
@@ -39,6 +39,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the token request.
         /// </summary>
-        public OpenIdConnectMessage TokenRequest { get; private set; }
+        public OpenIdConnectMessage TokenRequest { get; }
     }
 }

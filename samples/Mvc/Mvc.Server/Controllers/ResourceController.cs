@@ -1,26 +1,26 @@
 ﻿using System.Globalization;
 using System.Linq;
+using System.Security.Claims;
 using Microsoft.AspNet.Authorization;
 using Microsoft.AspNet.Mvc;
 
 namespace Mvc.Server.Controllers {
     [Route("api")]
     public class ResourceController : Controller {
-        [Authorize, HttpGet("claims")]
-        public ActionResult GetClaims() {
-            return Json(
-                from claim in Context.User.Claims
-                select new {
-                    claim.Type, claim.Value,
-                    claim.ValueType, claim.Issuer });
-        }
+        [Authorize, HttpGet, Route("message")]
+        public IActionResult GetMessage() {
+            var identity = User.Identity as ClaimsIdentity;
+            if (identity == null) {
+                return HttpBadRequest();
+            }
 
-        [Authorize, HttpGet("message")]
-        public ActionResult GetMessage() {
+            // Note: identity is the ClaimsIdentity representing the resource owner
+            // and identity.Actor is the identity corresponding to the client
+            // application the access token has been issued to (delegation).
             return Content(string.Format(
                 CultureInfo.InvariantCulture,
-                "Hello {0}!",
-                User.Identity.Name));
+                "{0} has been successfully authenticated via {1}",
+                identity.Name, identity.Actor.Name));
         }
     }
 }

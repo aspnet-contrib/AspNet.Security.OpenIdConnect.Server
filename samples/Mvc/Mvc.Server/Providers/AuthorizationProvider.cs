@@ -24,10 +24,10 @@ namespace Mvc.Server.Providers {
                 return;
             }
 
-            var database = notification.HttpContext.RequestServices.GetRequiredService<ApplicationContext>();
+            var context = notification.HttpContext.RequestServices.GetRequiredService<ApplicationContext>();
 
             // Retrieve the application details corresponding to the requested client_id.
-            var application = await (from entity in database.Applications
+            var application = await (from entity in context.Applications
                                      where entity.ApplicationID == clientId
                                      select entity).SingleOrDefaultAsync(notification.HttpContext.RequestAborted);
 
@@ -51,10 +51,10 @@ namespace Mvc.Server.Providers {
         }
 
         public override async Task ValidateClientRedirectUri(ValidateClientRedirectUriNotification notification) {
-            var database = notification.HttpContext.RequestServices.GetRequiredService<ApplicationContext>();
+            var context = notification.HttpContext.RequestServices.GetRequiredService<ApplicationContext>();
 
             // Retrieve the application details corresponding to the requested client_id.
-            var application = await (from entity in database.Applications
+            var application = await (from entity in context.Applications
                                      where entity.ApplicationID == notification.ClientId
                                      select entity).SingleOrDefaultAsync(notification.HttpContext.RequestAborted);
 
@@ -77,6 +77,20 @@ namespace Mvc.Server.Providers {
             }
 
             notification.Validated(application.RedirectUri);
+        }
+
+        public override async Task ValidateClientLogoutRedirectUri(ValidateClientLogoutRedirectUriNotification notification) {
+            var context = notification.HttpContext.RequestServices.GetRequiredService<ApplicationContext>();
+
+            if (!await context.Applications.AnyAsync(application => application.LogoutRedirectUri == notification.PostLogoutRedirectUri)) {
+                notification.SetError(
+                        error: "invalid_client",
+                        errorDescription: "Invalid post_logout_redirect_uri");
+
+                return;
+            }
+
+            notification.Validated();
         }
     }
 }

@@ -4,30 +4,30 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
-using System.Collections.Generic;
 using Microsoft.AspNet.Authentication.Notifications;
 using Microsoft.AspNet.Http;
 using Microsoft.IdentityModel.Protocols;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
-    /// An event raised before the authorization server starts
-    /// writing the JWKS metadata to the response stream.
+    /// An event raised after the Authorization Server has processed the logout request, but before it is passed on to the web application.
+    /// Calling RequestCompleted will prevent the request from passing on to the web application.
     /// </summary>
-    public sealed class KeysEndpointResponseNotification : EndpointContext<OpenIdConnectServerOptions> {
+    public sealed class LogoutEndpointNotification : EndpointContext<OpenIdConnectServerOptions> {
         /// <summary>
-        /// Creates an instance of this context.
+        /// Creates an instance of this context
         /// </summary>
-        internal KeysEndpointResponseNotification(
+        internal LogoutEndpointNotification(
             HttpContext context,
-            OpenIdConnectServerOptions options)
+            OpenIdConnectServerOptions options,
+            OpenIdConnectMessage request)
             : base(context, options) {
-            Keys = new List<JsonWebKey>();
+            LogoutRequest = request;
         }
 
         /// <summary>
-        /// Gets a list of the JSON Web Keys found by the authorization server.
+        /// Gets the logout request.
         /// </summary>
-        public IList<JsonWebKey> Keys { get; private set; }
+        public OpenIdConnectMessage LogoutRequest { get; }
     }
 }

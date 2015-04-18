@@ -19,35 +19,29 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
-        /// <param name="tokenRequest"></param>
+        /// <param name="request"></param>
         internal GrantResourceOwnerCredentialsNotification(
             HttpContext context,
             OpenIdConnectServerOptions options,
-            OpenIdConnectMessage tokenRequest)
+            OpenIdConnectMessage request)
             : base(context, options, null) {
-            TokenRequest = tokenRequest;
+            TokenRequest = request;
         }
 
         /// <summary>
         /// OpenIdConnect client id.
         /// </summary>
-        public string ClientId {
-            get { return TokenRequest.ClientId; }
-        }
+        public string ClientId => TokenRequest.ClientId;
 
         /// <summary>
         /// Resource owner username.
         /// </summary>
-        public string UserName {
-            get { return TokenRequest.Username; }
-        }
+        public string UserName => TokenRequest.Username;
 
         /// <summary>
         /// Resource owner password.
         /// </summary>
-        public string Password {
-            get { return TokenRequest.Password; }
-        }
+        public string Password => TokenRequest.Password;
 
         /// <summary>
         /// Gets the list of scopes requested by the client application.
@@ -65,6 +59,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the token request.
         /// </summary>
-        public OpenIdConnectMessage TokenRequest { get; private set; }
+        public OpenIdConnectMessage TokenRequest { get; }
     }
 }

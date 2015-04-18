@@ -60,6 +60,15 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public Func<ValidateTokenRequestNotification, Task> OnValidateTokenRequest { get; set; } = DefaultBehavior.ValidateTokenRequest;
 
         /// <summary>
+        /// Called to validate that context.PostLogoutRedirectUri a valid and registered URL.
+        /// This only occurs when processing the logout endpoint. The application MUST implement this call, and it MUST validate
+        /// both of those factors before calling context.Validated. If the context.Validated method is called with a given redirectUri parameter,
+        /// then IsValidated will only become true if the incoming redirect URI matches the given redirect URI. 
+        /// If context.Validated is not called the request will not proceed further. 
+        /// </summary>
+        public Func<ValidateClientLogoutRedirectUriNotification, Task> OnValidateClientLogoutRedirectUri { get; set; } = notification => Task.FromResult<object>(null);
+
+        /// <summary>
         /// Called when a request to the Token endpoint arrives with a "grant_type" of "authorization_code". This occurs after the authorization
         /// endpoint as redirected the user-agent back to the client with a "code" parameter, and the client is exchanging that for an "access_token".
         /// The claims and properties 
@@ -139,9 +148,25 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public Func<AuthorizationEndpointResponseNotification, Task> OnAuthorizationEndpointResponse { get; set; } = notification => Task.FromResult<object>(null);
 
         /// <summary>
+        /// Called at the final stage of an incoming logout endpoint request before the execution continues on to the web application component 
+        /// responsible for producing the html response. Anything present in the OWIN pipeline following the Authorization Server may produce the
+        /// response for the logout page. If running on IIS any ASP.NET technology running on the server may produce the response for the 
+        /// authorization page. If the web application wishes to produce the response directly in the LogoutEndpoint call it may write to the 
+        /// context.Response directly and should call context.RequestCompleted to stop other handlers from executing.
+        /// </summary>
+        public Func<LogoutEndpointNotification, Task> OnLogoutEndpoint { get; set; } = notification => Task.FromResult<object>(null);
+
+        /// <summary>
+        /// Called before the LogoutEndpoint endpoint redirects its response to the caller.
+        /// If the web application wishes to produce the authorization response directly in the LogoutEndpoint call it may write to the 
+        /// context.Response directly and should call context.RequestCompleted to stop other handlers from executing.
+        /// This call may also be used to add additional response parameters to the authorization response.
+        /// </summary>
+        public Func<LogoutEndpointResponseNotification, Task> OnLogoutEndpointResponse { get; set; } = notification => Task.FromResult<object>(null);
+
+        /// <summary>
         /// Called by the client applications to retrieve the OpenID Connect configuration associated with this instance.
-        /// If the web application wishes to produce the configuration metadata directly in this call, it may write to the 
-        /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
+        /// An application may implement this call in order to do any final modification to the configuration metadata.
         /// </summary>
         public Func<ConfigurationEndpointNotification, Task> OnConfigurationEndpoint { get; set; } = notification => Task.FromResult<object>(null);
 
@@ -154,29 +179,43 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
         /// <summary>
         /// Called by the client applications to retrieve the OpenID Connect JSON Web Key set associated with this instance.
-        /// If the web application wishes to produce the JSON Web Key set directly in this call, it may write to the 
-        /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
+        /// An application may implement this call in order to do any final modification to the keys set.
         /// </summary>
-        public Func<KeysEndpointNotification, Task> OnKeysEndpoint { get; set; } = notification => Task.FromResult<object>(null);
+        public Func<CryptographyEndpointNotification, Task> OnCryptographyEndpoint { get; set; } = notification => Task.FromResult<object>(null);
 
         /// <summary>
         /// Called before the authorization server starts emitting the OpenID Connect JSON Web Key set associated with this instance.
         /// If the web application wishes to produce the JSON Web Key set directly in this call, it may write to the 
         /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
         /// </summary>
-        public Func<KeysEndpointResponseNotification, Task> OnKeysEndpointResponse { get; set; } = notification => Task.FromResult<object>(null);
+        public Func<CryptographyEndpointResponseNotification, Task> OnCryptographyEndpointResponse { get; set; } = notification => Task.FromResult<object>(null);
 
         /// <summary>
-        /// Called at the final stage of a successful Token endpoint request. An application may implement this call in order to do any final 
-        /// modification of the claims being used to issue access or refresh tokens. This call may also be used in order to add additional 
-        /// response parameters to the Token endpoint's json response body.
+        /// Called at the final stage of a successful Token endpoint request.
+        /// An application may implement this call in order to do any final 
+        /// modification of the claims being used to issue access or refresh tokens. 
         /// </summary>
         public Func<TokenEndpointNotification, Task> OnTokenEndpoint { get; set; } = notification => Task.FromResult<object>(null);
 
         /// <summary>
-        /// Called before the TokenEndpoint redirects its response to the caller. 
+        /// Called before the TokenEndpoint redirects its response to the caller.
+        /// This call may also be used in order to add additional 
+        /// response parameters to the JSON response payload.
         /// </summary>
         public Func<TokenEndpointResponseNotification, Task> OnTokenEndpointResponse { get; set; } = notification => Task.FromResult<object>(null);
+
+        /// <summary>
+        /// Called by the client applications to validate an access token, an identity token or a refresh token.
+        /// An application may implement this call in order to do any final modification to the configuration metadata.
+        /// </summary>
+        public Func<ValidationEndpointNotification, Task> OnValidationEndpoint { get; set; } = notification => Task.FromResult<object>(null);
+
+        /// <summary>
+        /// Called before the authorization server starts emitting the claims associated with the tokens received.
+        /// If the web application wishes to produce the configuration metadata directly in this call, it may write to the 
+        /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
+        /// </summary>
+        public Func<ValidationEndpointResponseNotification, Task> OnValidationEndpointResponse { get; set; } = notification => Task.FromResult<object>(null);
 
         /// <summary>
         /// Called to create a new authorization code. An application may use this notification
@@ -214,6 +253,20 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public Func<ReceiveAuthorizationCodeNotification, Task> OnReceiveAuthorizationCode { get; set; } = notification => Task.FromResult<object>(null);
 
         /// <summary>
+        /// Called when receiving an access token. An application may use this notification
+        /// to deserialize the token using a custom format and to skip the default logic using
+        /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
+        /// </summary>
+        public Func<ReceiveAccessTokenNotification, Task> OnReceiveAccessToken { get; set; } = notification => Task.FromResult<object>(null);
+
+        /// <summary>
+        /// Called when receiving an identity token. An application may use this notification
+        /// to deserialize the token using a custom format and to skip the default logic using
+        /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
+        /// </summary>
+        public Func<ReceiveIdentityTokenNotification, Task> OnReceiveIdentityToken { get; set; } = notification => Task.FromResult<object>(null);
+
+        /// <summary>
         /// Called when receiving a refresh token. An application may use this notification
         /// to deserialize the code using a custom format and to skip the default logic using
         /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
@@ -240,6 +293,17 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <param name="notification">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
         public virtual Task ValidateClientRedirectUri(ValidateClientRedirectUriNotification notification) => OnValidateClientRedirectUri(notification);
+
+        /// <summary>
+        /// Called to validate that context.PostLogoutRedirectUri a valid and registered URL.
+        /// This only occurs when processing the logout endpoint. The application MUST implement this call, and it MUST validate
+        /// both of those factors before calling context.Validated. If the context.Validated method is called with a given redirectUri parameter,
+        /// then IsValidated will only become true if the incoming redirect URI matches the given redirect URI. 
+        /// If context.Validated is not called the request will not proceed further. 
+        /// </summary>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        public virtual Task ValidateClientLogoutRedirectUri(ValidateClientLogoutRedirectUriNotification notification) => OnValidateClientLogoutRedirectUri(notification);
 
         /// <summary>
         /// Called to validate that the origin of the request is a registered "client_id", and that the correct credentials for that client are
@@ -365,9 +429,29 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public virtual Task AuthorizationEndpointResponse(AuthorizationEndpointResponseNotification notification) => OnAuthorizationEndpointResponse(notification);
 
         /// <summary>
+        /// Called at the final stage of an incoming logout endpoint request before the execution continues on to the web application component 
+        /// responsible for producing the html response. Anything present in the OWIN pipeline following the Authorization Server may produce the
+        /// response for the logout page. If running on IIS any ASP.NET technology running on the server may produce the response for the 
+        /// authorization page. If the web application wishes to produce the response directly in the LogoutEndpoint call it may write to the 
+        /// context.Response directly and should call context.RequestCompleted to stop other handlers from executing.
+        /// </summary>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        public virtual Task LogoutEndpoint(LogoutEndpointNotification notification) => OnLogoutEndpoint(notification);
+
+        /// <summary>
+        /// Called before the LogoutEndpoint endpoint redirects its response to the caller.
+        /// If the web application wishes to produce the authorization response directly in the LogoutEndpoint call it may write to the 
+        /// context.Response directly and should call context.RequestCompleted to stop other handlers from executing.
+        /// This call may also be used to add additional response parameters to the authorization response.
+        /// </summary>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        public virtual Task LogoutEndpointResponse(LogoutEndpointResponseNotification notification) => OnLogoutEndpointResponse(notification);
+
+        /// <summary>
         /// Called by the client applications to retrieve the OpenID Connect configuration associated with this instance.
-        /// If the web application wishes to produce the configuration metadata directly in this call, it may write to the 
-        /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
+        /// An application may implement this call in order to do any final modification to the configuration metadata.
         /// </summary>
         /// <param name="notification">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
@@ -384,12 +468,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
         /// <summary>
         /// Called by the client applications to retrieve the OpenID Connect JSON Web Key set associated with this instance.
-        /// If the web application wishes to produce the JSON Web Key set directly in this call, it may write to the 
-        /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
+        /// An application may implement this call in order to do any final modification to the keys set.
         /// </summary>
         /// <param name="notification">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task KeysEndpoint(KeysEndpointNotification notification) => OnKeysEndpoint(notification);
+        public virtual Task CryptographyEndpoint(CryptographyEndpointNotification notification) => OnCryptographyEndpoint(notification);
 
         /// <summary>
         /// Called before the authorization server starts emitting the OpenID Connect JSON Web Key set associated with this instance.
@@ -398,23 +481,42 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="notification">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task KeysEndpointResponse(KeysEndpointResponseNotification notification) => OnKeysEndpointResponse(notification);
+        public virtual Task CryptographyEndpointResponse(CryptographyEndpointResponseNotification notification) => OnCryptographyEndpointResponse(notification);
 
         /// <summary>
-        /// Called at the final stage of a successful Token endpoint request. An application may implement this call in order to do any final 
-        /// modification of the claims being used to issue access or refresh tokens. This call may also be used in order to add additional 
-        /// response parameters to the Token endpoint's json response body.
+        /// Called at the final stage of a successful Token endpoint request.
+        /// An application may implement this call in order to do any final 
+        /// modification of the claims being used to issue access or refresh tokens. 
         /// </summary>
         /// <param name="notification">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
         public virtual Task TokenEndpoint(TokenEndpointNotification notification) => OnTokenEndpoint(notification);
 
         /// <summary>
-        /// Called before the TokenEndpoint redirects its response to the caller. 
+        /// Called before the TokenEndpoint redirects its response to the caller.
+        /// This call may also be used in order to add additional 
+        /// response parameters to the JSON response payload.
         /// </summary>
         /// <param name="notification">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
         public virtual Task TokenEndpointResponse(TokenEndpointResponseNotification notification) => OnTokenEndpointResponse(notification);
+
+        /// <summary>
+        /// Called by the client applications to validate an access token, an identity token or a refresh token.
+        /// An application may implement this call in order to do any final modification to the configuration metadata.
+        /// </summary>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        public virtual Task ValidationEndpoint(ValidationEndpointNotification notification) => OnValidationEndpoint(notification);
+
+        /// <summary>
+        /// Called before the authorization server starts emitting the claims associated with the tokens received.
+        /// If the web application wishes to produce the configuration metadata directly in this call, it may write to the 
+        /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
+        /// </summary>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        public virtual Task ValidationEndpointResponse(ValidationEndpointResponseNotification notification) => OnValidationEndpointResponse(notification);
 
         /// <summary>
         /// Called to create a new authorization code. An application may use this notification
@@ -460,6 +562,24 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <param name="notification">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
         public virtual Task ReceiveAuthorizationCode(ReceiveAuthorizationCodeNotification notification) => OnReceiveAuthorizationCode(notification);
+
+        /// <summary>
+        /// Called when receiving an access token. An application may use this notification
+        /// to deserialize the token using a custom format and to skip the default logic using
+        /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
+        /// </summary>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        public virtual Task ReceiveAccessToken(ReceiveAccessTokenNotification notification) => OnReceiveAccessToken(notification);
+
+        /// <summary>
+        /// Called when receiving an identity token. An application may use this notification
+        /// to deserialize the token using a custom format and to skip the default logic using
+        /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
+        /// </summary>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        public virtual Task ReceiveIdentityToken(ReceiveIdentityTokenNotification notification) => OnReceiveIdentityToken(notification);
 
         /// <summary>
         /// Called when receiving a refresh token. An application may use this notification

@@ -144,6 +144,7 @@ namespace Mvc.Server {
                     ApplicationID = "myClient",
                     DisplayName = "My client application",
                     RedirectUri = "http://localhost:53507/oidc",
+                    LogoutRedirectUri = "http://localhost:53507/",
                     Secret = "secret_secret_secret"
                 });
 

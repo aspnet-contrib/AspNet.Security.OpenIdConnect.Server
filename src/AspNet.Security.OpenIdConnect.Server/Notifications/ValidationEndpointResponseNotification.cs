@@ -4,8 +4,7 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
-using System;
-using System.Collections.Generic;
+using Microsoft.AspNet.Authentication;
 using Microsoft.AspNet.Authentication.Notifications;
 using Microsoft.AspNet.Http;
 using Newtonsoft.Json.Linq;
@@ -13,13 +12,13 @@ using Newtonsoft.Json.Linq;
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
     /// An event raised before the authorization server starts
-    /// writing the configuration metadata to the response stream.
+    /// writing the token validation to the response stream.
     /// </summary>
-    public sealed class ConfigurationEndpointResponseNotification : EndpointContext<OpenIdConnectServerOptions> {
+    public sealed class ValidationEndpointResponseNotification : EndpointContext<OpenIdConnectServerOptions> {
         /// <summary>
         /// Creates an instance of this context.
         /// </summary>
-        internal ConfigurationEndpointResponseNotification(
+        internal ValidationEndpointResponseNotification(
             HttpContext context,
             OpenIdConnectServerOptions options,
             JObject payload)
@@ -28,8 +27,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
         }
 
         /// <summary>
-        /// Gets the JSON payload returned to the client application.
+        /// Gets the JSON payload returned to the caller.
         /// </summary>
-        public JObject Payload { get; }
+        public JObject Payload { get; private set; }
     }
 }

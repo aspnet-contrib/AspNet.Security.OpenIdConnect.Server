@@ -4,48 +4,45 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
-using System;
+using System.Collections.Generic;
 using System.Security.Claims;
 using Microsoft.AspNet.Authentication;
 using Microsoft.AspNet.Authentication.Notifications;
 using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Http.Authentication;
 using Microsoft.IdentityModel.Protocols;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
-    /// Provides context information used when processing an OpenIdConnect token request.
+    /// An event raised before the authorization server handles
+    /// the request made to the token validation endpoint.
     /// </summary>
-    public sealed class TokenEndpointNotification : EndpointContext<OpenIdConnectServerOptions> {
+    public sealed class ValidationEndpointNotification : EndpointContext<OpenIdConnectServerOptions> {
         /// <summary>
-        /// Initializes a new instance of the <see cref="TokenEndpointNotification"/> class
+        /// Creates an instance of this context.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="options"></param>
-        /// <param name="ticket"></param>
-        /// <param name="request"></param>
-        internal TokenEndpointNotification(
+        internal ValidationEndpointNotification(
             HttpContext context,
             OpenIdConnectServerOptions options,
             AuthenticationTicket ticket,
             OpenIdConnectMessage request)
             : base(context, options) {
-            if (ticket == null) {
-                throw new ArgumentNullException(nameof(ticket));
-            }
-
-            Ticket = ticket;
-            TokenRequest = request;
+            AuthenticationTicket = ticket;
+            ValidationRequest = request;
         }
 
         /// <summary>
         /// Gets or sets the authentication ticket.
         /// </summary>
-        public AuthenticationTicket Ticket { get; set; }
+        public AuthenticationTicket AuthenticationTicket { get; set; }
 
         /// <summary>
-        /// Gets information about the token endpoint request. 
+        /// Gets the validation request.
         /// </summary>
-        public OpenIdConnectMessage TokenRequest { get; }
+        public OpenIdConnectMessage ValidationRequest { get; }
+
+        /// <summary>
+        /// Gets the list of claims returned to the caller.
+        /// </summary>
+        public IList<Claim> Claims { get; } = new List<Claim>();
     }
 }

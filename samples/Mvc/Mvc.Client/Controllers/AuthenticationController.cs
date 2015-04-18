@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNet.Http.Authentication;
+﻿using Microsoft.AspNet.Authentication.OpenIdConnect;
+using Microsoft.AspNet.Http.Authentication;
 using Microsoft.AspNet.Mvc;
 
 namespace Mvc.Client.Controllers {
@@ -16,8 +17,11 @@ namespace Mvc.Client.Controllers {
         public ActionResult SignOut() {
             // Instruct the cookies middleware to delete the local cookie created when the user agent
             // is redirected from the identity provider after a successful authorization flow.
-            // Note: this call doesn't disconnect the user agent at the identity provider level (yet).
             Context.Response.SignOut("ClientCookie");
+
+            // Instruct the OpenID Connect middleware to redirect
+            // the user agent to the identity provider to sign out.
+            Context.Response.SignOut(OpenIdConnectAuthenticationDefaults.AuthenticationScheme);
 
             return Redirect("/");
         }

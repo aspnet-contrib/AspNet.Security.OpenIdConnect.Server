@@ -18,15 +18,15 @@ namespace AspNet.Security.OpenIdConnect.Server {
         protected BaseValidatingClientNotification(
             HttpContext context,
             OpenIdConnectServerOptions options,
-            OpenIdConnectMessage authorizationRequest)
+            OpenIdConnectMessage request)
             : base(context, options) {
-            AuthorizationRequest = authorizationRequest;
+            AuthorizationRequest = request;
         }
 
         /// <summary>
         /// Gets the authorization request. 
         /// </summary>
-        public OpenIdConnectMessage AuthorizationRequest { get; private set; }
+        public OpenIdConnectMessage AuthorizationRequest { get; }
 
         /// <summary>
         /// The "client_id" parameter for the current request.

@@ -224,6 +224,18 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
         }
 
         /// <summary>
+        /// Extracts the refresh token from an <see cref="OpenIdConnectMessage"/>.
+        /// </summary>
+        /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
+        public static string GetRefreshToken(this OpenIdConnectMessage message) {
+            if (message == null) {
+                throw new ArgumentNullException(nameof(message));
+            }
+
+            return message.GetParameter("refresh_token");
+        }
+
+        /// <summary>
         /// Determines whether the given claim contains a destination.
         /// </summary>
         /// <param name="claim">The <see cref="Claim"/> instance.</param>
@@ -244,6 +256,119 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
             }
 
             return HasValue(destination, value);
+        }
+
+        /// <summary>
+        /// Adds a specific destination to a claim.
+        /// </summary>
+        /// <param name="claim">The <see cref="Claim"/> instance.</param>
+        /// <param name="value">The destination.</param>
+        public static Claim WithDestination(this Claim claim, string value) {
+            if (claim == null) {
+                throw new ArgumentNullException(nameof(claim));
+            }
+
+            if (string.IsNullOrWhiteSpace(value)) {
+                throw new ArgumentNullException(nameof(value));
+            }
+
+            string destination;
+            if (claim.Properties.TryGetValue("destination", out destination)) {
+                claim.Properties["destination"] = string.Concat(destination, ' ', value);
+                return claim;
+            }
+
+            claim.Properties.Add("destination", value);
+            return claim;
+        }
+
+        /// <summary>
+        /// Clones an identity by filtering its claims and the claims of its actor, recursively.
+        /// </summary>
+        /// <param name="identity">The <see cref="ClaimsIdentity"/> instance to filter.</param>
+        /// <param name="filter">
+        /// The delegate filtering the claims: return <c>true</c>
+        /// to accept the claim, <c>false</c> to remove it.
+        /// </param>
+        public static ClaimsIdentity Clone(this ClaimsIdentity identity, Func<Claim, bool> filter) {
+            if (identity == null) {
+                throw new ArgumentNullException(nameof(identity));
+            }
+            
+            if (filter == null) {
+                throw new ArgumentNullException(nameof(filter));
+            }
+
+            var clone = identity.Clone();
+
+            foreach (var claim in clone.Claims.ToArray()) {
+                if (!filter(claim)) {
+                    clone.RemoveClaim(claim);
+                }
+            }
+
+            if (clone.Actor != null) {
+                clone.Actor = clone.Actor.Clone(filter);
+            }
+
+            return clone;
+        }
+
+        /// <summary>
+        /// Clones a principal by filtering its identities.
+        /// </summary>
+        /// <param name="principal">The <see cref="ClaimsPrincipal"/> instance to filter.</param>
+        /// <param name="filter">
+        /// The delegate filtering the claims: return <c>true</c>
+        /// to accept the claim, <c>false</c> to remove it.
+        /// </param>
+        public static ClaimsPrincipal Clone(this ClaimsPrincipal principal, Func<Claim, bool> filter) {
+            if (principal == null) {
+                throw new ArgumentNullException(nameof(principal));
+            }
+
+            if (filter == null) {
+                throw new ArgumentNullException(nameof(filter));
+            }
+
+            var clone = new ClaimsPrincipal();
+
+            foreach (var identity in principal.Identities) {
+                clone.AddIdentity(identity.Clone(filter));
+            }
+
+            return clone;
+        }
+
+        /// <summary>
+        /// Adds a claim to a given identity.
+        /// </summary>
+        /// <param name="identity">The identity.</param>
+        /// <param name="type">The type associated with the claim.</param>
+        /// <param name="value">The value associated with the claim.</param>
+        public static ClaimsIdentity AddClaim(this ClaimsIdentity identity, string type, string value) {
+            if (identity == null) {
+                throw new ArgumentNullException(nameof(identity));
+            }
+
+            identity.AddClaim(new Claim(type, value));
+            return identity;
+        }
+
+        /// <summary>
+        /// Adds a claim to a given identity.
+        /// </summary>
+        /// <param name="identity">The identity.</param>
+        /// <param name="type">The type associated with the claim.</param>
+        /// <param name="value">The value associated with the claim.</param>
+        /// <param name="destination">The destination associated with the claim.</param>
+        public static ClaimsIdentity AddClaim(this ClaimsIdentity identity, string type, string value, string destination) {
+            if (identity == null) {
+                throw new ArgumentNullException(nameof(identity));
+            }
+
+            identity.AddClaim(new Claim(type, value).WithDestination(destination));
+            return identity;
         }
 
         private static bool HasValue(string source, string value) {
