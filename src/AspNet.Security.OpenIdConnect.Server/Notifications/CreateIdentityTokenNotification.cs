@@ -7,6 +7,7 @@
 using Microsoft.AspNet.Authentication;
 using Microsoft.AspNet.Authentication.Notifications;
 using Microsoft.AspNet.Http;
+using Microsoft.IdentityModel.Protocols;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
@@ -18,14 +19,30 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
+        /// <param name="request"></param>
+        /// <param name="response"></param>
         /// <param name="ticket"></param>
         internal CreateIdentityTokenNotification(
             HttpContext context,
             OpenIdConnectServerOptions options,
+            OpenIdConnectMessage request,
+            OpenIdConnectMessage response,
             AuthenticationTicket ticket)
             : base(context, options) {
+            TokenRequest = request;
+            TokenResponse = response;
             AuthenticationTicket = ticket;
         }
+
+        /// <summary>
+        /// Gets the authorization or token request.
+        /// </summary>
+        public OpenIdConnectMessage TokenRequest { get; }
+
+        /// <summary>
+        /// Gets the authorization or token response.
+        /// </summary>
+        public OpenIdConnectMessage TokenResponse { get; }
 
         /// <summary>
         /// Gets or sets the identity token

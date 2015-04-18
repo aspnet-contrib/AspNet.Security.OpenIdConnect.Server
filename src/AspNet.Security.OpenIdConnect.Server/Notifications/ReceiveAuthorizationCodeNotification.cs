@@ -7,6 +7,7 @@
 using Microsoft.AspNet.Authentication;
 using Microsoft.AspNet.Authentication.Notifications;
 using Microsoft.AspNet.Http;
+using Microsoft.IdentityModel.Protocols;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
@@ -18,14 +19,22 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
+        /// <param name="request"></param>
         /// <param name="code"></param>
         internal ReceiveAuthorizationCodeNotification(
             HttpContext context,
             OpenIdConnectServerOptions options,
+            OpenIdConnectMessage request,
             string code)
             : base(context, options) {
+            AuthorizationRequest = request;
             AuthorizationCode = code;
         }
+
+        /// <summary>
+        /// Gets the authorization request.
+        /// </summary>
+        public OpenIdConnectMessage AuthorizationRequest { get; }
 
         /// <summary>
         /// Gets the authorization code

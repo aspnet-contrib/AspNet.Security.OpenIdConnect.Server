@@ -7,6 +7,7 @@
 using Microsoft.AspNet.Authentication;
 using Microsoft.AspNet.Authentication.Notifications;
 using Microsoft.AspNet.Http;
+using Microsoft.IdentityModel.Protocols;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
@@ -18,14 +19,22 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
+        /// <param name="request"></param>
         /// <param name="token"></param>
         internal ReceiveAccessTokenNotification(
             HttpContext context,
             OpenIdConnectServerOptions options,
+            OpenIdConnectMessage request,
             string token)
             : base(context, options) {
+            TokenRequest = request;
             AccessToken = token;
         }
+
+        /// <summary>
+        /// Gets the authorization or token request.
+        /// </summary>
+        public OpenIdConnectMessage TokenRequest { get; }
 
         /// <summary>
         /// Gets the access token used by the client application.

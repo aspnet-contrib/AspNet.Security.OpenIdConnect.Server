@@ -23,11 +23,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
         internal ValidationEndpointNotification(
             HttpContext context,
             OpenIdConnectServerOptions options,
-            AuthenticationTicket ticket,
-            OpenIdConnectMessage request)
+            OpenIdConnectMessage request,
+            AuthenticationTicket ticket)
             : base(context, options) {
-            AuthenticationTicket = ticket;
             ValidationRequest = request;
+            AuthenticationTicket = ticket;
         }
 
         /// <summary>

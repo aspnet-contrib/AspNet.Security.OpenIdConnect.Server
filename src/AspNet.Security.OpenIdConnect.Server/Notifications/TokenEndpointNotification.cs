@@ -22,18 +22,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
-        /// <param name="ticket"></param>
         /// <param name="request"></param>
+        /// <param name="ticket"></param>
         internal TokenEndpointNotification(
             HttpContext context,
             OpenIdConnectServerOptions options,
-            AuthenticationTicket ticket,
-            OpenIdConnectMessage request)
+            OpenIdConnectMessage request,
+            AuthenticationTicket ticket)
             : base(context, options) {
-            if (ticket == null) {
-                throw new ArgumentNullException(nameof(ticket));
-            }
-
             Ticket = ticket;
             TokenRequest = request;
         }

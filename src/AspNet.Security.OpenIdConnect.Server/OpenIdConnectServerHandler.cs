@@ -63,7 +63,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 }
 
                 if (!string.IsNullOrWhiteSpace(request.IdTokenHint)) {
-                    var ticket = await ReceiveIdentityTokenAsync(request.IdTokenHint);
+                    var ticket = await ReceiveIdentityTokenAsync(request.IdTokenHint, request);
                     if (ticket == null) {
                         logger.LogVerbose("Invalid id_token_hint");
 
@@ -1022,7 +1022,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             ticket.Properties.IssuedUtc = currentUtc;
             ticket.Properties.ExpiresUtc = currentUtc.Add(Options.AccessTokenLifetime);
 
-            var notification = new TokenEndpointNotification(Context, Options, ticket, request);
+            var notification = new TokenEndpointNotification(Context, Options, request, ticket);
             await Options.Provider.TokenEndpoint(notification);
 
             // Stop processing the request if
@@ -1090,9 +1090,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
         private async Task<AuthenticationTicket> InvokeTokenEndpointAuthorizationCodeGrantAsync(
             ValidateTokenRequestNotification validatingContext, DateTimeOffset currentUtc) {
-            OpenIdConnectMessage tokenRequest = validatingContext.TokenRequest;
+            var request = validatingContext.TokenRequest;
 
-            var ticket = await ReceiveAuthorizationCodeAsync(tokenRequest.Code);
+            var ticket = await ReceiveAuthorizationCodeAsync(request.Code, request);
             if (ticket == null) {
                 logger.LogError("invalid authorization code");
                 validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
@@ -1115,7 +1115,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             string redirectUri;
             if (ticket.Properties.Dictionary.TryGetValue(OpenIdConnectConstants.Extra.RedirectUri, out redirectUri)) {
                 ticket.Properties.Dictionary.Remove(OpenIdConnectConstants.Extra.RedirectUri);
-                if (!string.Equals(redirectUri, tokenRequest.RedirectUri, StringComparison.Ordinal)) {
+                if (!string.Equals(redirectUri, request.RedirectUri, StringComparison.Ordinal)) {
                     logger.LogError("authorization code does not contain matching redirect_uri");
                     validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
                     return null;
@@ -1124,7 +1124,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             await Options.Provider.ValidateTokenRequest(validatingContext);
 
-            var grantContext = new GrantAuthorizationCodeNotification(Context, Options, tokenRequest, ticket);
+            var grantContext = new GrantAuthorizationCodeNotification(Context, Options, request, ticket);
 
             if (validatingContext.IsValidated) {
                 await Options.Provider.GrantAuthorizationCode(grantContext);
@@ -1180,9 +1180,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
         private async Task<AuthenticationTicket> InvokeTokenEndpointRefreshTokenGrantAsync(
             ValidateTokenRequestNotification validatingContext, DateTimeOffset currentUtc) {
-            OpenIdConnectMessage tokenRequest = validatingContext.TokenRequest;
+            var request = validatingContext.TokenRequest;
 
-            var ticket = await ReceiveRefreshTokenAsync(tokenRequest.GetRefreshToken());
+            var ticket = await ReceiveRefreshTokenAsync(request.GetRefreshToken(), request);
             if (ticket == null) {
                 logger.LogError("invalid refresh token");
                 validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
@@ -1204,7 +1204,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             await Options.Provider.ValidateTokenRequest(validatingContext);
 
-            var grantContext = new GrantRefreshTokenNotification(Context, Options, tokenRequest, ticket);
+            var grantContext = new GrantRefreshTokenNotification(Context, Options, request, ticket);
 
             if (validatingContext.IsValidated) {
                 await Options.Provider.GrantRefreshToken(grantContext);
@@ -1288,15 +1288,15 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             AuthenticationTicket ticket;
             if (!string.IsNullOrEmpty(request.Token)) {
-                ticket = await ReceiveAccessTokenAsync(request.Token);
+                ticket = await ReceiveAccessTokenAsync(request.Token, request);
             }
 
             else if (!string.IsNullOrEmpty(request.IdToken)) {
-                ticket = await ReceiveIdentityTokenAsync(request.IdToken);
+                ticket = await ReceiveIdentityTokenAsync(request.IdToken, request);
             }
 
             else if (!string.IsNullOrEmpty(request.GetRefreshToken())) {
-                ticket = await ReceiveRefreshTokenAsync(request.GetRefreshToken());
+                ticket = await ReceiveRefreshTokenAsync(request.GetRefreshToken(), request);
             }
 
             else {
@@ -1346,7 +1346,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return;
             }
 
-            var notification = new ValidationEndpointNotification(Context, Options, ticket, request);
+            var notification = new ValidationEndpointNotification(Context, Options, request, ticket);
 
             // Add the claims extracted from the access token.
             foreach (var claim in ticket.Principal.Claims) {
@@ -1477,7 +1477,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             return false;
         }
 
-        private async Task<string> CreateAuthorizationCodeAsync(AuthenticationTicket ticket, OpenIdConnectMessage request, OpenIdConnectMessage response) {
+        private async Task<string> CreateAuthorizationCodeAsync(AuthenticationTicket ticket,
+            OpenIdConnectMessage request, OpenIdConnectMessage response) {
             // Create a copy to avoid modifying the original properties and compute
             // the expiration date using the registered authorization code lifetime.
             var properties = ticket.Properties?.Copy() ?? new AuthenticationProperties();
@@ -1485,7 +1486,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             properties.ExpiresUtc = properties.IssuedUtc.Value + Options.AuthorizationCodeLifetime;
             ticket = new AuthenticationTicket(ticket.Principal, properties, ticket.AuthenticationScheme);
 
-            var notification = new CreateAuthorizationCodeNotification(Context, Options, ticket);
+            var notification = new CreateAuthorizationCodeNotification(Context, Options, request, response, ticket);
             await Options.Provider.CreateAuthorizationCode(notification);
 
             // Skip the default logic if HandledResponse has been called.
@@ -1518,7 +1519,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             return key;
         }
 
-        private async Task<string> CreateAccessTokenAsync(AuthenticationTicket ticket, OpenIdConnectMessage request, OpenIdConnectMessage response) {
+        private async Task<string> CreateAccessTokenAsync(AuthenticationTicket ticket,
+            OpenIdConnectMessage request, OpenIdConnectMessage response) {
             // Create a copy to avoid modifying the original properties and compute
             // the expiration date using the registered access token lifetime.
             var properties = ticket.Properties?.Copy() ?? new AuthenticationProperties();
@@ -1526,7 +1528,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             properties.ExpiresUtc = properties.IssuedUtc.Value + Options.AccessTokenLifetime;
             ticket = new AuthenticationTicket(ticket.Principal, properties, ticket.AuthenticationScheme);
 
-            var notification = new CreateAccessTokenNotification(Context, Options, ticket);
+            var notification = new CreateAccessTokenNotification(Context, Options, request, response, ticket);
             await Options.Provider.CreateAccessToken(notification);
 
             // Allow the application to change the authentication
@@ -1586,7 +1588,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             return Options.AccessTokenHandler.WriteToken(token);
         }
 
-        private async Task<string> CreateRefreshTokenAsync(AuthenticationTicket ticket, OpenIdConnectMessage request, OpenIdConnectMessage response) {
+        private async Task<string> CreateRefreshTokenAsync(AuthenticationTicket ticket,
+            OpenIdConnectMessage request, OpenIdConnectMessage response) {
             // Create a copy to avoid modifying the original properties and compute
             // the expiration date using the registered refresh token lifetime.
             var properties = ticket.Properties?.Copy() ?? new AuthenticationProperties();
@@ -1594,7 +1597,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             properties.ExpiresUtc = properties.IssuedUtc.Value + Options.RefreshTokenLifetime;
             ticket = new AuthenticationTicket(ticket.Principal, properties, ticket.AuthenticationScheme);
 
-            var notification = new CreateRefreshTokenNotification(Context, Options, ticket);
+            var notification = new CreateRefreshTokenNotification(Context, Options, request, response, ticket);
             await Options.Provider.CreateRefreshToken(notification);
 
             // Allow the application to change the authentication
@@ -1612,7 +1615,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             return Options.RefreshTokenFormat.Protect(ticket);
         }
 
-        private async Task<string> CreateIdentityTokenAsync(AuthenticationTicket ticket, OpenIdConnectMessage request, OpenIdConnectMessage response) {
+        private async Task<string> CreateIdentityTokenAsync(AuthenticationTicket ticket,
+            OpenIdConnectMessage request, OpenIdConnectMessage response) {
             // Create a copy to avoid modifying the original properties and compute
             // the expiration date using the registered identity token lifetime.
             var properties = ticket.Properties?.Copy() ?? new AuthenticationProperties();
@@ -1620,7 +1624,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             properties.ExpiresUtc = properties.IssuedUtc.Value + Options.IdentityTokenLifetime;
             ticket = new AuthenticationTicket(ticket.Principal, properties, ticket.AuthenticationScheme);
 
-            var notification = new CreateIdentityTokenNotification(Context, Options, ticket);
+            var notification = new CreateIdentityTokenNotification(Context, Options, request, response, ticket);
             await Options.Provider.CreateIdentityToken(notification);
 
             // Allow the application to change the authentication
@@ -1713,8 +1717,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             return Options.IdentityTokenHandler.WriteToken(token);
         }
 
-        private async Task<AuthenticationTicket> ReceiveAuthorizationCodeAsync(string code) {
-            var notification = new ReceiveAuthorizationCodeNotification(Context, Options, code);
+        private async Task<AuthenticationTicket> ReceiveAuthorizationCodeAsync(string code, OpenIdConnectMessage request) {
+            var notification = new ReceiveAuthorizationCodeNotification(Context, Options, request, code);
             await Options.Provider.ReceiveAuthorizationCode(notification);
 
             // Directly return the authentication ticket if one
@@ -1739,8 +1743,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             return null;
         }
 
-        private async Task<AuthenticationTicket> ReceiveAccessTokenAsync(string token) {
-            var notification = new ReceiveAccessTokenNotification(Context, Options, token);
+        private async Task<AuthenticationTicket> ReceiveAccessTokenAsync(string token, OpenIdConnectMessage request) {
+            var notification = new ReceiveAccessTokenNotification(Context, Options, request, token);
             await Options.Provider.ReceiveAccessToken(notification);
 
             // Directly return the authentication ticket if one
@@ -1789,8 +1793,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             catch { return null; }
         }
 
-        private async Task<AuthenticationTicket> ReceiveIdentityTokenAsync(string token) {
-            var notification = new ReceiveIdentityTokenNotification(Context, Options, token);
+        private async Task<AuthenticationTicket> ReceiveIdentityTokenAsync(string token, OpenIdConnectMessage request) {
+            var notification = new ReceiveIdentityTokenNotification(Context, Options, request, token);
             await Options.Provider.ReceiveIdentityToken(notification);
 
             // Directly return the authentication ticket if one
@@ -1834,8 +1838,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             catch { return null; }
         }
 
-        private async Task<AuthenticationTicket> ReceiveRefreshTokenAsync(string token) {
-            var notification = new ReceiveRefreshTokenNotification(Context, Options, token);
+        private async Task<AuthenticationTicket> ReceiveRefreshTokenAsync(string token, OpenIdConnectMessage request) {
+            var notification = new ReceiveRefreshTokenNotification(Context, Options, request, token);
             await Options.Provider.ReceiveRefreshToken(notification);
 
             // Directly return the authentication ticket if one
