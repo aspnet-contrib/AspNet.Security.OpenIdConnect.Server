@@ -275,9 +275,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 });
             }
 
-            else if (!request.IsAuthorizationCodeFlow() &&
-                     !request.IsImplicitFlow() &&
-                     !request.IsHybridFlow()) {
+            else if (!request.IsAuthorizationCodeFlow() && !request.IsImplicitFlow() && !request.IsHybridFlow()) {
                 logger.WriteVerbose("Authorization request contains unsupported response_type parameter");
 
                 return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
@@ -288,9 +286,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 });
             }
 
-            else if (!request.IsFormPostResponseMode() &&
-                     !request.IsFragmentResponseMode() &&
-                     !request.IsQueryResponseMode()) {
+            else if (!request.IsFormPostResponseMode() && !request.IsFragmentResponseMode() && !request.IsQueryResponseMode()) {
                 logger.WriteVerbose("Authorization request contains unsupported response_mode parameter");
 
                 return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
@@ -316,6 +312,19 @@ namespace Owin.Security.OpenIdConnect.Server {
                 });
             }
 
+            // response_type=code and response_mode=fragment are not considered as a valid combination.
+            else if (request.IsAuthorizationCodeFlow() && request.IsFragmentResponseMode()) {
+                logger.WriteVerbose("Authorization request contains unsupported response_type/response_mode combination");
+
+                return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
+                    Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = "response_type/response_mode combination unsupported",
+                    RedirectUri = request.RedirectUri,
+                    State = request.State
+                });
+            }
+
+            // Reject requests containing the id_token response_mode if no openid scope has been received.
             else if (request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.IdToken) &&
                     !request.ContainsScope(OpenIdConnectScopes.OpenId)) {
                 logger.WriteVerbose("The 'openid' scope part was missing");
@@ -328,6 +337,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 });
             }
 
+            // Reject requests containing the code response_mode if the token endpoint has been disabled.
             else if (request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.Code) &&
                     !Options.TokenEndpointPath.HasValue) {
                 logger.WriteVerbose("Authorization request contains the disabled code response_type");
@@ -340,6 +350,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 });
             }
 
+            // Reject requests containing the id_token response_mode if no signing credentials have been provided.
             else if (request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.IdToken) &&
                      Options.SigningCredentials == null) {
                 logger.WriteVerbose("Authorization request contains the disabled id_token response_type");
