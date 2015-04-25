@@ -20,7 +20,7 @@ namespace Mvc.Client {
                 options.SignInScheme = "ClientCookie";
             });
 
-            services.AddDataProtection();
+            services.AddAuthentication();
 
             services.AddMvc();
         }

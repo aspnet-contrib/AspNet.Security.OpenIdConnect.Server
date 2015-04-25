@@ -11,7 +11,7 @@ namespace Mvc.Server.Extensions {
                 throw new ArgumentNullException(nameof(context));
             }
 
-            return from description in context.GetAuthenticationSchemes()
+            return from description in context.Authentication.GetAuthenticationSchemes()
                    where !string.IsNullOrWhiteSpace(description.Caption)
                    select description;
         }

@@ -25,8 +25,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// extension method.
     /// </summary>
     public class OpenIdConnectServerMiddleware : AuthenticationMiddleware<OpenIdConnectServerOptions> {
-        private readonly ILogger logger;
-
         /// <summary>
         /// Authorization Server middleware component which is added to an OWIN pipeline. This constructor is not
         /// called by application code directly, instead it is added by calling the the IAppBuilder UseOpenIdConnectServer 
@@ -36,16 +34,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
             RequestDelegate next,
             IServiceProvider services,
             ILoggerFactory loggerFactory,
+            IUrlEncoder encoder,
             IDataProtectionProvider dataProtectionProvider,
             IOptions<OpenIdConnectServerOptions> options,
             ConfigureOptions<OpenIdConnectServerOptions> configuration)
-            : base(next, options, configuration) {
-            logger = loggerFactory.CreateLogger<OpenIdConnectServerMiddleware>();
-
-            if (string.IsNullOrWhiteSpace(Options.AuthenticationScheme)) {
-                throw new ArgumentNullException("options.AuthenticationScheme");
-            }
-
+            : base(next, options, loggerFactory, encoder, configuration) {
             if (Options.Provider == null) {
                 Options.Provider = new OpenIdConnectServerProvider();
             }
@@ -70,6 +63,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             if (Options.HtmlEncoder == null) {
                 Options.HtmlEncoder = services.GetHtmlEncoder();
+            }
+
+            if (string.IsNullOrWhiteSpace(Options.AuthenticationScheme)) {
+                throw new ArgumentNullException(nameof(Options.AuthenticationScheme));
             }
 
             if (Options.Cache == null) {
@@ -128,7 +125,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <returns>A new instance of the request handler</returns>
         protected override AuthenticationHandler<OpenIdConnectServerOptions> CreateHandler() {
-            return new OpenIdConnectServerHandler(logger);
+            return new OpenIdConnectServerHandler();
         }
     }
 }

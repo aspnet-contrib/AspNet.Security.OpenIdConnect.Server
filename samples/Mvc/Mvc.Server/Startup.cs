@@ -34,7 +34,7 @@ namespace Mvc.Server {
                 options.SignInScheme = "ServerCookie";
             });
 
-            services.AddDataProtection();
+            services.AddAuthentication();
 
             services.AddMvc();
         }

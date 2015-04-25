@@ -171,7 +171,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         }
 
         internal static AuthenticationProperties Copy(this AuthenticationProperties properties) {
-            return new AuthenticationProperties(properties.Dictionary.ToDictionary(pair => pair.Key, pair => pair.Value));
+            return new AuthenticationProperties(properties.Items.ToDictionary(pair => pair.Key, pair => pair.Value));
         }
 
         internal static string GetAudience(this AuthenticationProperties properties) {
@@ -180,7 +180,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             string audience;
-            if (!properties.Dictionary.TryGetValue("audience", out audience)) {
+            if (!properties.Items.TryGetValue("audience", out audience)) {
                 return null;
             }
 

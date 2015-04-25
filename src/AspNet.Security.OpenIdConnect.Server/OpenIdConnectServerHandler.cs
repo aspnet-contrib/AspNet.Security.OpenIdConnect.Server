@@ -26,12 +26,6 @@ using Newtonsoft.Json.Linq;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     internal class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions> {
-        private readonly ILogger logger;
-
-        public OpenIdConnectServerHandler(ILogger logger) {
-            this.logger = logger;
-        }
-
         protected override async Task<AuthenticationTicket> AuthenticateCoreAsync() {
             // Implementing AuthenticateCoreAsync allows the inner application
             // to retrieve the identity extracted from the optional
@@ -65,7 +59,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 if (!string.IsNullOrWhiteSpace(request.IdTokenHint)) {
                     var ticket = await ReceiveIdentityTokenAsync(request.IdTokenHint, request);
                     if (ticket == null) {
-                        logger.LogVerbose("Invalid id_token_hint");
+                        Logger.LogVerbose("Invalid id_token_hint");
 
                         return null;
                     }
@@ -120,7 +114,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             if (!Options.AllowInsecureHttp && !Request.IsHttps) {
-                logger.LogWarning("Authorization server ignoring http request because AllowInsecureHttp is false.");
+                Logger.LogWarning("Authorization server ignoring http request because AllowInsecureHttp is false.");
                 return false;
             }
 
@@ -251,7 +245,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 // Update the authorization request in the ASP.NET context.
                 Context.SetOpenIdConnectRequest(request);
 
-                logger.LogVerbose("Unable to validate client information");
+                Logger.LogVerbose("Unable to validate client information");
 
                 return await SendErrorPageAsync(new OpenIdConnectMessage {
                     Error = clientNotification.Error,
@@ -261,7 +255,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             if (string.IsNullOrEmpty(request.ResponseType)) {
-                logger.LogVerbose("Authorization request missing required response_type parameter");
+                Logger.LogVerbose("Authorization request missing required response_type parameter");
 
                 return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
@@ -272,7 +266,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             else if (!request.IsAuthorizationCodeFlow() && !request.IsImplicitFlow() && !request.IsHybridFlow()) {
-                logger.LogVerbose("Authorization request contains unsupported response_type parameter");
+                Logger.LogVerbose("Authorization request contains unsupported response_type parameter");
 
                 return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.UnsupportedResponseType,
@@ -283,7 +277,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             else if (!request.IsFormPostResponseMode() && !request.IsFragmentResponseMode() && !request.IsQueryResponseMode()) {
-                logger.LogVerbose("Authorization request contains unsupported response_mode parameter");
+                Logger.LogVerbose("Authorization request contains unsupported response_mode parameter");
 
                 return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
@@ -298,7 +292,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // See http://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#Security
             else if (request.IsQueryResponseMode() && (request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.IdToken) ||
                                                        request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.Token))) {
-                logger.LogVerbose("Authorization request contains unsafe response_type/response_mode combination");
+                Logger.LogVerbose("Authorization request contains unsafe response_type/response_mode combination");
 
                 return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
@@ -310,7 +304,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
  
             // response_type=code and response_mode=fragment are not considered as a valid combination.
             else if (request.IsAuthorizationCodeFlow() && request.IsFragmentResponseMode()) {
-                logger.LogVerbose("Authorization request contains unsupported response_type/response_mode combination");
+                Logger.LogVerbose("Authorization request contains unsupported response_type/response_mode combination");
 
                 return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
@@ -323,7 +317,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 			// Reject requests containing the id_token response_mode if no openid scope has been received.
             else if (request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.IdToken) &&
                     !request.ContainsScope(OpenIdConnectScopes.OpenId)) {
-                logger.LogVerbose("The 'openid' scope part was missing");
+                Logger.LogVerbose("The 'openid' scope part was missing");
 
                 return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
@@ -336,7 +330,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // Reject requests containing the code response_mode if the token endpoint has been disabled.
             else if (request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.Code) &&
                     !Options.TokenEndpointPath.HasValue) {
-                logger.LogVerbose("Authorization request contains the disabled code response_type");
+                Logger.LogVerbose("Authorization request contains the disabled code response_type");
 
                 return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.UnsupportedResponseType,
@@ -349,7 +343,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // Reject requests containing the id_token response_mode if no signing credentials have been provided.
             else if (request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.IdToken) &&
                      Options.SigningCredentials == null) {
-                logger.LogVerbose("Authorization request contains the disabled id_token response_type");
+                Logger.LogVerbose("Authorization request contains the disabled id_token response_type");
 
                 return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.UnsupportedResponseType,
@@ -436,7 +430,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             if (Response.HeadersSent) {
-                logger.LogCritical(
+                Logger.LogCritical(
                     "OpenIdConnectServerHandler.TeardownCoreAsync cannot be called when " +
                     "the response headers have already been sent back to the user agent. " +
                     "Make sure the response body has not been altered and that no middleware " +
@@ -451,13 +445,15 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 State = request.State
             };
 
-            // Associate client_id with all subsequent tickets.
-            SignInContext.Properties.Dictionary[OpenIdConnectConstants.Extra.Audience] = request.ClientId;
-            var ticket = new AuthenticationTicket(SignInContext.Principal, SignInContext.Properties, Options.AuthenticationScheme);
+            var properties = new AuthenticationProperties(SignInContext.Properties);
+            var ticket = new AuthenticationTicket(SignInContext.Principal, properties, Options.AuthenticationScheme);
 
+            // Associate client_id with all subsequent tickets.
+            ticket.Properties.Items[OpenIdConnectConstants.Extra.Audience] = request.ClientId;
+            
             if (!string.IsNullOrEmpty(request.RedirectUri)) {
                 // Keep original request parameter for later comparison.
-                SignInContext.Properties.Dictionary[OpenIdConnectConstants.Extra.RedirectUri] = request.RedirectUri;
+                ticket.Properties.Items[OpenIdConnectConstants.Extra.RedirectUri] = request.RedirectUri;
             }
 
             // Determine whether an authorization code should be returned
@@ -472,7 +468,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 response.TokenType = OpenIdConnectConstants.TokenTypes.Bearer;
                 response.AccessToken = await CreateAccessTokenAsync(ticket, request, response);
 
-                var accessTokenExpiresUtc = SignInContext.Properties.ExpiresUtc;
+                var accessTokenExpiresUtc = ticket.Properties.ExpiresUtc;
                 if (accessTokenExpiresUtc.HasValue) {
                     var expiresTimeSpan = accessTokenExpiresUtc - Options.SystemClock.UtcNow;
                     var expiresIn = (long) (expiresTimeSpan.Value.TotalSeconds + .5);
@@ -513,7 +509,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             if (Response.HeadersSent) {
-                logger.LogCritical(
+                Logger.LogCritical(
                     "OpenIdConnectServerHandler.TeardownCoreAsync cannot be called when " +
                     "the response headers have already been sent back to the user agent. " +
                     "Make sure the response body has not been altered and that no middleware " +
@@ -627,7 +623,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // Metadata requests must be made via GET.
             // See http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationRequest
             if (!string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
-                logger.LogError(string.Format(CultureInfo.InvariantCulture,
+                Logger.LogError(string.Format(CultureInfo.InvariantCulture,
                     "Configuration endpoint: invalid method '{0}' used", Request.Method));
                 return;
             }
@@ -785,13 +781,13 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // Metadata requests must be made via GET.
             // See http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationRequest
             if (!string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
-                logger.LogError(string.Format(CultureInfo.InvariantCulture,
+                Logger.LogError(string.Format(CultureInfo.InvariantCulture,
                     "Cryptography endpoint: invalid method '{0}' used", Request.Method));
                 return;
             }
 
             if (Options.SigningCredentials == null) {
-                logger.LogError("Cryptography endpoint: no signing credentials provided. " +
+                Logger.LogError("Cryptography endpoint: no signing credentials provided. " +
                     "Make sure valid credentials are assigned to Options.SigningCredentials.");
                 return;
             }
@@ -803,7 +799,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // in OpenIdConnectServerMiddleware's constructor.
             var asymmetricSecurityKey = Options.SigningCredentials.SigningKey as AsymmetricSecurityKey;
             if (asymmetricSecurityKey == null) {
-                logger.LogError(string.Format(CultureInfo.InvariantCulture,
+                Logger.LogError(string.Format(CultureInfo.InvariantCulture,
                     "Cryptography endpoint: invalid signing key registered. " +
                     "Make sure to provide an asymmetric security key deriving from '{0}'.",
                     typeof(AsymmetricSecurityKey).FullName));
@@ -811,7 +807,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             if (!asymmetricSecurityKey.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature)) {
-                logger.LogError(string.Format(CultureInfo.InvariantCulture,
+                Logger.LogError(string.Format(CultureInfo.InvariantCulture,
                     "Cryptography endpoint: invalid signing key registered. " +
                     "Make sure to provide a '{0}' instance exposing " +
                     "an asymmetric security key supporting the '{1}' algorithm.",
@@ -849,7 +845,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             // Ensure at least one key has been added to context.Keys.
             if (!notification.Keys.Any()) {
-                logger.LogError("Cryptography endpoint: no JSON Web Key found.");
+                Logger.LogError("Cryptography endpoint: no JSON Web Key found.");
                 return;
             }
 
@@ -862,7 +858,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 // Ensure a key type has been provided.
                 // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#section-4.1
                 if (string.IsNullOrWhiteSpace(key.Kty)) {
-                    logger.LogWarning("Cryptography endpoint: a JSON Web Key didn't " +
+                    Logger.LogWarning("Cryptography endpoint: a JSON Web Key didn't " +
                         "contain the mandatory 'Kty' parameter and has been ignored.");
                     continue;
                 }
@@ -964,7 +960,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             await Options.Provider.ValidateClientAuthentication(clientNotification);
 
             if (!clientNotification.IsValidated) {
-                logger.LogError("clientID is not valid.");
+                Logger.LogError("clientID is not valid.");
 
                 if (!clientNotification.HasError) {
                     clientNotification.SetError(OpenIdConnectConstants.Errors.InvalidClient);
@@ -1016,7 +1012,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 // Error Response http://tools.ietf.org/html/rfc6749#section-5.2
                 // The authorization grant type is not supported by the
                 // authorization server.
-                logger.LogError("grant type is not recognized");
+                Logger.LogError("grant type is not recognized");
                 validatingContext.SetError(OpenIdConnectConstants.Errors.UnsupportedGrantType);
             }
 
@@ -1105,29 +1101,29 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             var ticket = await ReceiveAuthorizationCodeAsync(request.Code, request);
             if (ticket == null) {
-                logger.LogError("invalid authorization code");
+                Logger.LogError("invalid authorization code");
                 validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
                 return null;
             }
 
             if (!ticket.Properties.ExpiresUtc.HasValue || ticket.Properties.ExpiresUtc < currentUtc) {
-                logger.LogError("expired authorization code");
+                Logger.LogError("expired authorization code");
                 validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
                 return null;
             }
 
             var audience = ticket.Properties.GetAudience();
             if (string.IsNullOrWhiteSpace(audience) || !string.Equals(audience, validatingContext.ClientContext.ClientId, StringComparison.Ordinal)) {
-                logger.LogError("authorization code does not contain matching client_id");
+                Logger.LogError("authorization code does not contain matching client_id");
                 validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
                 return null;
             }
 
             string redirectUri;
-            if (ticket.Properties.Dictionary.TryGetValue(OpenIdConnectConstants.Extra.RedirectUri, out redirectUri)) {
-                ticket.Properties.Dictionary.Remove(OpenIdConnectConstants.Extra.RedirectUri);
+            if (ticket.Properties.Items.TryGetValue(OpenIdConnectConstants.Extra.RedirectUri, out redirectUri)) {
+                ticket.Properties.Items.Remove(OpenIdConnectConstants.Extra.RedirectUri);
                 if (!string.Equals(redirectUri, request.RedirectUri, StringComparison.Ordinal)) {
-                    logger.LogError("authorization code does not contain matching redirect_uri");
+                    Logger.LogError("authorization code does not contain matching redirect_uri");
                     validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
                     return null;
                 }
@@ -1195,20 +1191,20 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             var ticket = await ReceiveRefreshTokenAsync(request.GetRefreshToken(), request);
             if (ticket == null) {
-                logger.LogError("invalid refresh token");
+                Logger.LogError("invalid refresh token");
                 validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
                 return null;
             }
 
             if (!ticket.Properties.ExpiresUtc.HasValue || ticket.Properties.ExpiresUtc < currentUtc) {
-                logger.LogError("expired refresh token");
+                Logger.LogError("expired refresh token");
                 validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
                 return null;
             }
 
             var audience = ticket.Properties.GetAudience();
             if (string.IsNullOrWhiteSpace(audience) || !string.Equals(audience, validatingContext.ClientContext.ClientId, StringComparison.Ordinal)) {
-                logger.LogError("refresh token does not contain matching client_id");
+                Logger.LogError("refresh token does not contain matching client_id");
                 validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
                 return null;
             }
@@ -1321,7 +1317,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             if (ticket == null) {
-                logger.LogError("invalid token");
+                Logger.LogError("invalid token");
 
                 await SendErrorPayloadAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidGrant,
@@ -1332,7 +1328,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             if (!ticket.Properties.ExpiresUtc.HasValue || ticket.Properties.ExpiresUtc < Options.SystemClock.UtcNow) {
-                logger.LogError("expired token");
+                Logger.LogError("expired token");
 
                 await SendErrorPayloadAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidGrant,
@@ -1461,7 +1457,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             await Options.Provider.ValidateClientLogoutRedirectUri(clientNotification);
 
             if (!clientNotification.IsValidated) {
-                logger.LogVerbose("Unable to validate client information");
+                Logger.LogVerbose("Unable to validate client information");
 
                 return await SendErrorPageAsync(new OpenIdConnectMessage {
                     Error = clientNotification.Error,
@@ -1795,7 +1791,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 var audience = principal.FindFirst(JwtRegisteredClaimNames.Aud);
                 if (audience != null) {
-                    properties.Dictionary.Add(OpenIdConnectConstants.Extra.Audience, audience.Value);
+                    properties.Items[OpenIdConnectConstants.Extra.Audience] = audience.Value;
                 }
 
                 return new AuthenticationTicket(principal, properties, Options.AuthenticationScheme);
@@ -1840,7 +1836,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 var audience = principal.FindFirst(JwtRegisteredClaimNames.Aud);
                 if (audience != null) {
-                    properties.Dictionary.Add(OpenIdConnectConstants.Extra.Audience, audience.Value);
+                    properties.Items[OpenIdConnectConstants.Extra.Audience] = audience.Value;
                 }
 
                 return new AuthenticationTicket(principal, properties, Options.AuthenticationScheme);

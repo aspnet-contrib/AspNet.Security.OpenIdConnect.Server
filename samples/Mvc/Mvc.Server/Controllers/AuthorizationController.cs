@@ -146,7 +146,7 @@ namespace Mvc.Server.Controllers {
             // a 'sub' or a 'ClaimTypes.NameIdentifier' claim. In this case, the returned
             // identities always contain the name identifier returned by the external provider.
             // Note: the authenticationScheme parameter must match the value configured in Startup.cs.
-            Response.SignIn(OpenIdConnectDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
+            Context.Authentication.SignIn(OpenIdConnectDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
 
             return new HttpStatusCodeResult(200);
         }
@@ -168,7 +168,7 @@ namespace Mvc.Server.Controllers {
             // When invoked, the logout endpoint might receive an unauthenticated request if the server cookie has expired.
             // When the client application sends an id_token_hint parameter, the corresponding identity can be retrieved
             // using AuthenticateAsync or using User when the authorization server is declared as AuthenticationMode.Active.
-            var identity = await Context.AuthenticateAsync(OpenIdConnectDefaults.AuthenticationScheme);
+            var identity = await Context.Authentication.AuthenticateAsync(OpenIdConnectDefaults.AuthenticationScheme);
 
             // Extract the logout request from the OWIN environment.
             var request = Context.GetOpenIdConnectRequest();
@@ -188,14 +188,14 @@ namespace Mvc.Server.Controllers {
             // Instruct the cookies middleware to delete the local cookie created
             // when the user agent is redirected from the external identity provider
             // after a successful authentication flow (e.g Google or Facebook).
-            Response.SignOut("ServerCookie");
+            Context.Authentication.SignOut("ServerCookie");
 
             // This call will instruct Owin.Security.OpenIdConnect.Server to serialize
             // the specified identity to build appropriate tokens (id_token and token).
             // Note: you should always make sure the identities you return contain either
             // a 'sub' or a 'ClaimTypes.NameIdentifier' claim. In this case, the returned
             // identities always contain the name identifier returned by the external provider.
-            Response.SignOut(OpenIdConnectDefaults.AuthenticationScheme);
+            Context.Authentication.SignOut(OpenIdConnectDefaults.AuthenticationScheme);
 
             return new HttpStatusCodeResult(200);
         }

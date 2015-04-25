@@ -48,7 +48,7 @@ namespace Mvc.Server.Controllers {
             // when the user agent is redirected from the external identity provider
             // after a successful authentication flow (e.g Google or Facebook).
 
-            Response.SignOut("ServerCookie");
+            Context.Authentication.SignOut("ServerCookie");
 
             return new HttpStatusCodeResult(200);
         }
