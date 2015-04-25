@@ -465,13 +465,14 @@ namespace Owin.Security.OpenIdConnect.Server {
                 State = request.State
             };
             
-            // Associate client_id with all subsequent tickets.
-            context.Properties.Dictionary[OpenIdConnectConstants.Extra.Audience] = request.ClientId;
             var ticket = new AuthenticationTicket(context.Identity, context.Properties);
+
+            // Associate client_id with all subsequent tickets.
+            ticket.Properties.Dictionary[OpenIdConnectConstants.Extra.Audience] = request.ClientId;
 
             if (!string.IsNullOrEmpty(request.RedirectUri)) {
                 // Keep original request parameter for later comparison.
-                context.Properties.Dictionary[OpenIdConnectConstants.Extra.RedirectUri] = request.RedirectUri;
+                ticket.Properties.Dictionary[OpenIdConnectConstants.Extra.RedirectUri] = request.RedirectUri;
             }
 
             // Determine whether an authorization code should be returned
@@ -486,7 +487,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 response.TokenType = OpenIdConnectConstants.TokenTypes.Bearer;
                 response.AccessToken = await CreateAccessTokenAsync(ticket, request, response);
 
-                var accessTokenExpiresUtc = context.Properties.ExpiresUtc;
+                var accessTokenExpiresUtc = ticket.Properties.ExpiresUtc;
                 if (accessTokenExpiresUtc.HasValue) {
                     var expiresTimeSpan = accessTokenExpiresUtc - Options.SystemClock.UtcNow;
                     var expiresIn = (long) (expiresTimeSpan.Value.TotalSeconds + .5);
