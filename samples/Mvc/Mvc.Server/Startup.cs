@@ -43,21 +43,7 @@ namespace Mvc.Server {
             var factory = app.ApplicationServices.GetRequiredService<ILoggerFactory>();
             factory.AddConsole();
 
-            X509Certificate2 certificate;
-
-            // Note: in a real world app, you'd probably prefer storing the X.509 certificate
-            // in the user or machine store. To keep this sample easy to use, the certificate
-            // is extracted from the Certificate.pfx file embedded in this assembly.
-            using (var stream = typeof(Startup).GetTypeInfo().Assembly.GetManifestResourceStream("Mvc.Server.Certificate.pfx"))
-            using (var buffer = new MemoryStream()) {
-                stream.CopyTo(buffer);
-                buffer.Flush();
-
-                certificate = new X509Certificate2(
-                    rawData: buffer.ToArray(),
-                    password: "Owin.Security.OpenIdConnect.Server");
-            }
-
+            var certificate = GetCertificate();
             var key = new X509SecurityKey(certificate);
 
             var credentials = new SigningCredentials(key,
@@ -149,6 +135,21 @@ namespace Mvc.Server {
                 });
 
                 database.SaveChanges();
+            }
+        }
+
+        private static X509Certificate2 GetCertificate() {
+            // Note: in a real world app, you'd probably prefer storing the X.509 certificate
+            // in the user or machine store. To keep this sample easy to use, the certificate
+            // is extracted from the Certificate.pfx file embedded in this assembly.
+            using (var stream = typeof(Startup).GetTypeInfo().Assembly.GetManifestResourceStream("Mvc.Server.Certificate.pfx"))
+            using (var buffer = new MemoryStream()) {
+                stream.CopyTo(buffer);
+                buffer.Flush();
+
+                return new X509Certificate2(
+                    rawData: buffer.ToArray(),
+                    password: "Owin.Security.OpenIdConnect.Server");
             }
         }
     }
