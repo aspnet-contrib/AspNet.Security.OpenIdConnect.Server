@@ -1,19 +1,19 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.22609.0
+VisualStudioVersion = 14.0.22823.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "AspNet.Security.OpenIdConnect.Server", "src\AspNet.Security.OpenIdConnect.Server\AspNet.Security.OpenIdConnect.Server.kproj", "{0512E28E-343F-412A-8ADC-0256E07D78DD}"
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "AspNet.Security.OpenIdConnect.Server", "src\AspNet.Security.OpenIdConnect.Server\AspNet.Security.OpenIdConnect.Server.xproj", "{0512E28E-343F-412A-8ADC-0256E07D78DD}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Mvc.Client", "samples\Mvc\Mvc.Client\Mvc.Client.kproj", "{68631868-902A-46FB-9A44-BACF1812FBDE}"
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Mvc.Client", "samples\Mvc\Mvc.Client\Mvc.Client.xproj", "{68631868-902A-46FB-9A44-BACF1812FBDE}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Mvc.Server", "samples\Mvc\Mvc.Server\Mvc.Server.kproj", "{440B6A0C-05F3-4483-B4AA-FB0BC4B239FF}"
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Mvc.Server", "samples\Mvc\Mvc.Server\Mvc.Server.xproj", "{440B6A0C-05F3-4483-B4AA-FB0BC4B239FF}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{630C29B2-7346-47B1-A3AD-B2D8C0464A9A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{FF6097D2-F92B-4AA8-A547-AE90C25DC7AC}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "AspNet.Security.OpenIdConnect.Extensions", "src\AspNet.Security.OpenIdConnect.Extensions\AspNet.Security.OpenIdConnect.Extensions.kproj", "{BA895C47-20DA-4A21-924D-5E5768055359}"
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "AspNet.Security.OpenIdConnect.Extensions", "src\AspNet.Security.OpenIdConnect.Extensions\AspNet.Security.OpenIdConnect.Extensions.xproj", "{BA895C47-20DA-4A21-924D-5E5768055359}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

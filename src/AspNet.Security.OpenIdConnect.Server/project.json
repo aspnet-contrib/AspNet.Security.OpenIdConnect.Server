@@ -11,9 +11,9 @@
         "Microsoft.Framework.Caching.Distributed": "1.0.0-*",
         "Microsoft.Framework.Logging": "1.0.0-*",
         "Microsoft.Framework.WebEncoders": "1.0.0-*",
-        "Microsoft.IdentityModel.Protocol.Extensions": "2.0.0-beta4-204171447",
+        "Microsoft.IdentityModel.Protocol.Extensions": "2.0.0-*",
         "Newtonsoft.Json": "6.0.4",
-        "System.IdentityModel.Tokens": "5.0.0-beta4-204171447"
+        "System.IdentityModel.Tokens": "5.0.0-*"
     },
 
     "frameworks": {
