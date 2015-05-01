@@ -9,8 +9,8 @@
 
         "Microsoft.AspNet.Authentication": "1.0.0-*",
         "Microsoft.Framework.Caching.Distributed": "1.0.0-*",
-        "Microsoft.Framework.Logging": "1.0.0-*",
-        "Microsoft.Framework.WebEncoders": "1.0.0-*",
+        "Microsoft.Framework.Logging.Abstractions": "1.0.0-*",
+        "Microsoft.Framework.WebEncoders.Core": "1.0.0-*",
         "Microsoft.IdentityModel.Protocol.Extensions": "2.0.0-*",
         "Newtonsoft.Json": "6.0.4",
         "System.IdentityModel.Tokens": "5.0.0-*"
@@ -18,11 +18,6 @@
 
     "frameworks": {
         "dnx451": { },
-        "dnxcore50": {
-            "dependencies": {
-                "System.Collections.Specialized": "4.0.0-beta-*",
-                "System.Security.Cryptography.RSA": "4.0.0-beta-*"
-            }
-        }
+        "dnxcore50": { }
     }
 }
