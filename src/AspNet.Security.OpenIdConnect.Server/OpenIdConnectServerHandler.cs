@@ -814,8 +814,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     typeof(SigningCredentials).Name, SecurityAlgorithms.RsaSha256Signature));
                 return;
             }
+
             // Determine whether the security key is an asymmetric key embedded in a X.509 certificate.
-            var x509SecurityKey = Options.SigningCredentials.SigningKey as X509SecurityKey;
+            var x509SecurityKey = asymmetricSecurityKey as X509SecurityKey;
             if (x509SecurityKey != null) {
                 // Create a new JSON Web Key exposing the
                 // certificate instead of its public RSA key.
@@ -866,14 +867,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 // Create a dictionary associating the
                 // JsonWebKey components with their values.
                 var parameters = new Dictionary<string, string> {
-                    { JsonWebKeyParameterNames.Kty, key.Kty },
-                    { JsonWebKeyParameterNames.Alg, key.Alg },
-                    { JsonWebKeyParameterNames.E, key.E },
-                    { JsonWebKeyParameterNames.Kid, key.Kid },
-                    { JsonWebKeyParameterNames.N, key.N },
-                    { JsonWebKeyParameterNames.Use, key.Use },
-                    { JsonWebKeyParameterNames.X5t, key.X5t },
-                    { JsonWebKeyParameterNames.X5u, key.X5u },
+                    [JsonWebKeyParameterNames.Kty] = key.Kty,
+                    [JsonWebKeyParameterNames.Alg] = key.Alg,
+                    [JsonWebKeyParameterNames.E] = key.E,
+                    [JsonWebKeyParameterNames.Kid] = key.Kid,
+                    [JsonWebKeyParameterNames.N] = key.N,
+                    [JsonWebKeyParameterNames.Use] = key.Use,
+                    [JsonWebKeyParameterNames.X5t] = key.X5t,
+                    [JsonWebKeyParameterNames.X5u] = key.X5u,
                 };
 
                 foreach (var parameter in parameters) {

@@ -158,7 +158,7 @@ namespace Mvc.Server.Controllers {
             // In this case, the OpenID Connect request is null and cannot be used.
             // When the user agent can be safely redirected to the client application,
             // OpenIdConnectServerHandler automatically handles the error and MVC is not invoked.
-            // You can safely remove this part and let Owin.Security.OpenIdConnect.Server automatically
+            // You can safely remove this part and let AspNet.Security.OpenIdConnect.Server automatically
             // handle the unrecoverable errors by switching ApplicationCanDisplayErrors to false in Startup.cs
             var response = Context.GetOpenIdConnectResponse();
             if (response != null) {
@@ -190,7 +190,7 @@ namespace Mvc.Server.Controllers {
             // after a successful authentication flow (e.g Google or Facebook).
             Context.Authentication.SignOut("ServerCookie");
 
-            // This call will instruct Owin.Security.OpenIdConnect.Server to serialize
+            // This call will instruct AspNet.Security.OpenIdConnect.Server to serialize
             // the specified identity to build appropriate tokens (id_token and token).
             // Note: you should always make sure the identities you return contain either
             // a 'sub' or a 'ClaimTypes.NameIdentifier' claim. In this case, the returned
@@ -200,11 +200,11 @@ namespace Mvc.Server.Controllers {
             return new HttpStatusCodeResult(200);
         }
 
-        protected async Task<Application> GetApplicationAsync(string identifier, CancellationToken cancellationToken) {
+        protected Task<Application> GetApplicationAsync(string identifier, CancellationToken cancellationToken) {
             // Retrieve the application details corresponding to the requested client_id.
-            return await (from application in database.Applications
-                          where application.ApplicationID == identifier
-                          select application).SingleOrDefaultAsync(cancellationToken);
+            return (from application in database.Applications
+                    where application.ApplicationID == identifier
+                    select application).SingleOrDefaultAsync(cancellationToken);
         }
     }
 }
