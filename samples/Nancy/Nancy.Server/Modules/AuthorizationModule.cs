@@ -2,10 +2,12 @@
 using System.Data.Entity;
 using System.Linq;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
+using Microsoft.Owin.Security;
 using Nancy.Security;
 using Nancy.Server.Extensions;
 using Nancy.Server.Models;
@@ -16,8 +18,8 @@ using Owin.Security.OpenIdConnect.Server;
 namespace Nancy.Server.Modules {
     public class AuthorizationModule : NancyModule {
         public AuthorizationModule() {
-            Get["/connect/authorize", runAsync: true] = async (parameters, cancellationToken) => {
-                this.RequiresMSOwinAuthentication();
+            Get["/connect/authorize", runAsync: true] =
+            Post["/connect/authorize", runAsync: true] = async (parameters, cancellationToken) => {
                 this.CreateNewCsrfToken();
 
                 // Note: when a fatal error occurs during the request processing, an OpenID Connect response
@@ -28,16 +30,35 @@ namespace Nancy.Server.Modules {
                 // handle the unrecoverable errors by switching ApplicationCanDisplayErrors to false in Startup.cs
                 var response = OwinContext.GetOpenIdConnectResponse();
                 if (response != null) {
-                    return View["error.cshtml", response];
+                    return View["Error.cshtml", response];
                 }
 
                 // Extract the authorization request from the OWIN environment.
                 var request = OwinContext.GetOpenIdConnectRequest();
                 if (request == null) {
-                    return View["error.cshtml", new OpenIdConnectMessage {
+                    return View["Error.cshtml", new OpenIdConnectMessage {
                         Error = "invalid_request",
                         ErrorDescription = "An internal error has occurred"
                     }];
+                }
+
+                // Generate a unique 16-bytes identifier and save
+                // the OpenID Connect request in the user's session.
+                var key = GenerateKey();
+                Session.SetOpenIdConnectRequest(key, request);
+
+                // Note: authentication could be theorically enforced at the filter level via AuthorizeAttribute
+                // but this authorization endpoint accepts both GET and POST requests while the cookie middleware
+                // only uses 302 responses to redirect the user agent to the login page, making it incompatible with POST.
+                // To work around this limitation, the OpenID Connect request is saved in the user's session and will
+                // be restored in the other "Authorize" method, after the authentication process has been completed.
+                if (OwinContext.Authentication.User.Identity == null ||
+                   !OwinContext.Authentication.User.Identity.IsAuthenticated) {
+                    OwinContext.Authentication.Challenge(new AuthenticationProperties {
+                        RedirectUri = "/connect/authorize/" + key
+                    });
+
+                    return HttpStatusCode.Unauthorized;
                 }
 
                 // Note: Owin.Security.OpenIdConnect.Server automatically ensures an application
@@ -48,45 +69,32 @@ namespace Nancy.Server.Modules {
                 // details from the database after the initial check made by Owin.Security.OpenIdConnect.Server.
                 var application = await GetApplicationAsync(request.ClientId, cancellationToken);
                 if (application == null) {
-                    return View["error.cshtml", new OpenIdConnectMessage {
+                    return View["Error.cshtml", new OpenIdConnectMessage {
                         Error = "invalid_client",
                         ErrorDescription = "Details concerning the calling client application cannot be found in the database"
                     }];
                 }
 
                 // Note: in a real world application, you'd probably prefer creating a specific view model.
-                return View["authorize.cshtml", Tuple.Create(request, application)];
+                return View["Authorize.cshtml", Tuple.Create(request, application, key)];
             };
 
-            Post["/connect/authorize", condition: context => context.Request.Form.Authorize, runAsync: true] = async (parameters, cancellationToken) => {
+            Get["/connect/authorize/{key}", runAsync: true] = async (parameters, cancellationToken) => {
                 this.RequiresMSOwinAuthentication();
-                this.ValidateCsrfToken();
-
-                // Extract the authorization request from the OWIN environment.
-                var request = OwinContext.GetOpenIdConnectRequest();
+                this.CreateNewCsrfToken();
+                
+                var key = parameters.key as DynamicDictionaryValue;
+                if (key == null) {
+                    return HttpStatusCode.BadRequest;
+                }
+                
+                // Extract the OpenID Connect request stored in the user's session.
+                var request = Session.GetOpenIdConnectRequest(key.ToString());
                 if (request == null) {
-                    return View["error.cshtml", new OpenIdConnectMessage {
+                    return View["Error.cshtml", new OpenIdConnectMessage {
                         Error = "invalid_request",
                         ErrorDescription = "An internal error has occurred"
                     }];
-                }
-
-                // Create a new ClaimsIdentity containing the claims retrieved from the external
-                // identity provider (e.g Google, Facebook, a WS-Fed provider or another OIDC server).
-                // Note: the authenticationType parameter must match the value configured in Startup.cs.
-                var identity = new ClaimsIdentity(OpenIdConnectDefaults.AuthenticationType);
-
-                foreach (var claim in OwinContext.Authentication.User.Claims) {
-                    // Allow ClaimTypes.Name to be added in the id_token.
-                    // ClaimTypes.NameIdentifier is automatically added, even if its
-                    // destination is not defined or doesn't include "id_token".
-                    // The other claims won't be visible for the client application.
-                    if (claim.Type == ClaimTypes.Name) {
-                        claim.WithDestination("id_token")
-                             .WithDestination("token");
-                    }
-
-                    identity.AddClaim(claim);
                 }
 
                 // Note: Owin.Security.OpenIdConnect.Server automatically ensures an application
@@ -97,41 +105,68 @@ namespace Nancy.Server.Modules {
                 // details from the database after the initial check made by Owin.Security.OpenIdConnect.Server.
                 var application = await GetApplicationAsync(request.ClientId, cancellationToken);
                 if (application == null) {
-                    return View["error.cshtml", new OpenIdConnectMessage {
+                    return View["Error.cshtml", new OpenIdConnectMessage {
                         Error = "invalid_client",
                         ErrorDescription = "Details concerning the calling client application cannot be found in the database"
                     }];
                 }
 
-                // Create a new ClaimsIdentity containing the claims associated with the application.
-                // Note: setting identity.Actor is not mandatory but can be useful to access
-                // the whole delegation chain from the resource server (see ResourceModule.cs).
-                identity.Actor = new ClaimsIdentity(OpenIdConnectDefaults.AuthenticationType);
-                identity.Actor.AddClaim(ClaimTypes.NameIdentifier, application.ApplicationID);
-                identity.Actor.AddClaim(ClaimTypes.Name, application.DisplayName, destination: "id_token token");
-
-                // This call will instruct Owin.Security.OpenIdConnect.Server to serialize
-                // the specified identity to build appropriate tokens (id_token and token).
-                // Note: you should always make sure the identities you return contain either
-                // a 'sub' or a 'ClaimTypes.NameIdentifier' claim. In this case, the returned
-                // identities always contain the name identifier returned by the external provider.
-                OwinContext.Authentication.SignIn(identity);
-
-                return HttpStatusCode.OK;
+                // Note: in a real world application, you'd probably prefer creating a specific view model.
+                return View["Authorize.cshtml", Tuple.Create(request, application, key.ToString())];
             };
 
-            Post["/connect/authorize", condition: context => context.Request.Form.Deny] = parameters => {
+            Post["/connect/authorize/accept/{key}", runAsync: true] = async (parameters, cancellationToken) => {
                 this.RequiresMSOwinAuthentication();
                 this.ValidateCsrfToken();
 
-                // Extract the authorization request from the OWIN environment.
-                var request = OwinContext.GetOpenIdConnectRequest();
+                var key = parameters.key as DynamicDictionaryValue;
+                if (key == null) {
+                    return HttpStatusCode.BadRequest;
+                }
+                
+                // Extract the OpenID Connect request stored in the user's session.
+                var request = Session.GetOpenIdConnectRequest(key.ToString());
                 if (request == null) {
-                    return View["error.cshtml", new OpenIdConnectMessage {
+                    return View["Error.cshtml", new OpenIdConnectMessage {
                         Error = "invalid_request",
                         ErrorDescription = "An internal error has occurred"
                     }];
                 }
+
+                // Restore the OpenID Connect request in the OWIN context
+                // so Owin.Security.OpenIdConnect.Server can retrieve it.
+                OwinContext.SetOpenIdConnectRequest(request);
+
+                // Remove the OpenID Connect request stored in the user's session.
+                Session.SetOpenIdConnectRequest(key.ToString(), null);
+
+                return await SignInAsync(request, cancellationToken);
+            };
+
+            Post["/connect/authorize/deny/{key}"] = parameters => {
+                this.RequiresMSOwinAuthentication();
+                this.ValidateCsrfToken();
+
+                var key = parameters.key as DynamicDictionaryValue;
+                if (key == null) {
+                    return HttpStatusCode.BadRequest;
+                }
+
+                // Extract the OpenID Connect request stored in the user's session.
+                var request = Session.GetOpenIdConnectRequest(key.ToString());
+                if (request == null) {
+                    return View["Error.cshtml", new OpenIdConnectMessage {
+                        Error = "invalid_request",
+                        ErrorDescription = "An internal error has occurred"
+                    }];
+                }
+
+                // Restore the OpenID Connect request in the OWIN context
+                // so Owin.Security.OpenIdConnect.Server can retrieve it.
+                OwinContext.SetOpenIdConnectRequest(request);
+
+                // Remove the OpenID Connect request stored in the user's session.
+                Session.SetOpenIdConnectRequest(key.ToString(), null);
 
                 // Notify Owin.Security.OpenIdConnect.Server that the authorization grant has been denied.
                 // Note: OpenIdConnectServerHandler will automatically take care of redirecting
@@ -139,7 +174,8 @@ namespace Nancy.Server.Modules {
                 OwinContext.SetOpenIdConnectResponse(new OpenIdConnectMessage {
                     Error = "access_denied",
                     ErrorDescription = "The authorization grant has been denied by the resource owner",
-                    RedirectUri = request.RedirectUri, State = request.State
+                    RedirectUri = request.RedirectUri,
+                    State = request.State
                 });
 
                 return HttpStatusCode.OK;
@@ -155,7 +191,7 @@ namespace Nancy.Server.Modules {
                 // handle the unrecoverable errors by switching ApplicationCanDisplayErrors to false in Startup.cs
                 var response = OwinContext.GetOpenIdConnectResponse();
                 if (response != null) {
-                    return View["error.cshtml", response];
+                    return View["Error.cshtml", response];
                 }
 
                 // When invoked, the logout endpoint might receive an unauthenticated request if the server cookie has expired.
@@ -166,13 +202,13 @@ namespace Nancy.Server.Modules {
                 // Extract the logout request from the OWIN environment.
                 var request = OwinContext.GetOpenIdConnectRequest();
                 if (request == null) {
-                    return View["error.cshtml", new OpenIdConnectMessage {
+                    return View["Error.cshtml", new OpenIdConnectMessage {
                         Error = "invalid_request",
                         ErrorDescription = "An internal error has occurred"
                     }];
                 }
 
-                return View["logout.cshtml", Tuple.Create(request, identity)];
+                return View["Logout.cshtml", Tuple.Create(request, identity)];
             };
 
             Post["/connect/logout"] = parameters => {
@@ -208,12 +244,71 @@ namespace Nancy.Server.Modules {
             }
         }
 
+        protected async Task<object> SignInAsync(OpenIdConnectMessage request, CancellationToken cancellationToken) {
+            // Create a new ClaimsIdentity containing the claims retrieved from the external
+            // identity provider (e.g Google, Facebook, a WS-Fed provider or another OIDC server).
+            // Note: the authenticationType parameter must match the value configured in Startup.cs.
+            var identity = new ClaimsIdentity(OpenIdConnectDefaults.AuthenticationType);
+
+            foreach (var claim in OwinContext.Authentication.User.Claims) {
+                // Allow ClaimTypes.Name to be added in the id_token.
+                // ClaimTypes.NameIdentifier is automatically added, even if its
+                // destination is not defined or doesn't include "id_token".
+                // The other claims won't be visible for the client application.
+                if (claim.Type == ClaimTypes.Name) {
+                    claim.WithDestination("id_token")
+                         .WithDestination("token");
+                }
+
+                identity.AddClaim(claim);
+            }
+
+            // Note: Owin.Security.OpenIdConnect.Server automatically ensures an application
+            // corresponds to the client_id specified in the authorization request using
+            // IOpenIdConnectServerProvider.ValidateClientRedirectUri (see AuthorizationProvider.cs).
+            // In theory, this null check is thus not strictly necessary. That said, a race condition
+            // and a null reference exception could appear here if you manually removed the application
+            // details from the database after the initial check made by Owin.Security.OpenIdConnect.Server.
+            var application = await GetApplicationAsync(request.ClientId, CancellationToken.None);
+            if (application == null) {
+                return View["Error.cshtml", new OpenIdConnectMessage {
+                    Error = "invalid_client",
+                    ErrorDescription = "Details concerning the calling client application cannot be found in the database"
+                }];
+            }
+
+            // Create a new ClaimsIdentity containing the claims associated with the application.
+            // Note: setting identity.Actor is not mandatory but can be useful to access
+            // the whole delegation chain from the resource server (see ResourceController.cs).
+            identity.Actor = new ClaimsIdentity(OpenIdConnectDefaults.AuthenticationType);
+            identity.Actor.AddClaim(ClaimTypes.NameIdentifier, application.ApplicationID);
+            identity.Actor.AddClaim(ClaimTypes.Name, application.DisplayName, destination: "id_token token");
+
+            // This call will instruct Owin.Security.OpenIdConnect.Server to serialize
+            // the specified identity to build appropriate tokens (id_token and token).
+            // Note: you should always make sure the identities you return contain either
+            // a 'sub' or a 'ClaimTypes.NameIdentifier' claim. In this case, the returned
+            // identities always contain the name identifier returned by the external provider.
+            OwinContext.Authentication.SignIn(identity);
+
+            return HttpStatusCode.OK;
+        }
+
         protected async Task<Application> GetApplicationAsync(string identifier, CancellationToken cancellationToken) {
             using (var context = new ApplicationContext()) {
                 // Retrieve the application details corresponding to the requested client_id.
                 return await (from application in context.Applications
                               where application.ApplicationID == identifier
                               select application).SingleOrDefaultAsync(cancellationToken);
+            }
+        }
+
+        protected virtual string GenerateKey() {
+            using (var generator = RandomNumberGenerator.Create()) {
+                var buffer = new byte[16];
+                generator.GetBytes(buffer);
+
+                return new Guid(buffer).ToString();
             }
         }
     }

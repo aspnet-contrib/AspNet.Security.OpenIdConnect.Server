@@ -38,46 +38,42 @@ namespace Owin.Security.OpenIdConnect.Server {
 
         protected override async Task<AuthenticationTicket> AuthenticateCoreAsync() {
             // Implementing AuthenticateCoreAsync allows the inner application
-            // to retrieve the identity extracted from the optional
-            // id_token_hint parameter when handling a logout request.
-            if (Options.LogoutEndpointPath.HasValue &&
-                Options.LogoutEndpointPath == Request.Path) {
-                OpenIdConnectMessage request = null;
+            // to retrieve the identity extracted from the optional id_token_hint.
+            OpenIdConnectMessage request = null;
                 
-                if (string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
-                    request = new OpenIdConnectMessage(Request.Query) {
+            if (string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
+                request = new OpenIdConnectMessage(Request.Query) {
+                    RequestType = OpenIdConnectRequestType.LogoutRequest
+                };
+            }
+
+            else if (string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase)) {
+                // May have media/type; charset=utf-8, allow partial match.
+                if (!string.IsNullOrWhiteSpace(Request.ContentType) &&
+                    Request.ContentType.StartsWith("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase)) {
+                    request = new OpenIdConnectMessage(await Request.ReadFormAsync()) {
                         RequestType = OpenIdConnectRequestType.LogoutRequest
                     };
                 }
+            }
 
-                else if (string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase)) {
-                    // May have media/type; charset=utf-8, allow partial match.
-                    if (!string.IsNullOrWhiteSpace(Request.ContentType) &&
-                        Request.ContentType.StartsWith("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase)) {
-                        request = new OpenIdConnectMessage(await Request.ReadFormAsync()) {
-                            RequestType = OpenIdConnectRequestType.LogoutRequest
-                        };
-                    }
-                }
+            // Invalid logout requests are ignored in AuthenticateCoreAsync:
+            // in this case, null is always returned to indicate authentication failed.
+            if (request == null) {
+                return null;
+            }
 
-                // Invalid logout requests are ignored in AuthenticateCoreAsync:
-                // in this case, null is always returned to indicate authentication failed.
-                if (request == null) {
+            if (!string.IsNullOrWhiteSpace(request.IdTokenHint)) {
+                var ticket = await ReceiveIdentityTokenAsync(request.IdTokenHint, request);
+                if (ticket == null) {
+                    logger.WriteVerbose("Invalid id_token_hint");
+
                     return null;
                 }
 
-                if (!string.IsNullOrWhiteSpace(request.IdTokenHint)) {
-                    var ticket = await ReceiveIdentityTokenAsync(request.IdTokenHint, request);
-                    if (ticket == null) {
-                        logger.WriteVerbose("Invalid id_token_hint");
-
-                        return null;
-                    }
-
-                    // Tickets are returned even if they
-                    // are considered invalid (e.g expired).
-                    return ticket;
-                }
+                // Tickets are returned even if they
+                // are considered invalid (e.g expired).
+                return ticket;
             }
 
             return null;

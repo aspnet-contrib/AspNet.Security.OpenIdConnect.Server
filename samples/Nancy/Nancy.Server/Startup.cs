@@ -40,9 +40,7 @@ namespace Nancy.Server {
                     LoginPath = new PathString("/signin")
                 });
             });
-
-            app.UseGoogleAuthentication();
-
+            
             // Insert a new middleware responsible of setting the Content-Security-Policy header.
             // See https://nwebsec.codeplex.com/wikipage?title=Configuring%20Content%20Security%20Policy&referringTitle=NWebsec
             app.UseCsp(options => options.DefaultSources(configuration => configuration.Self())

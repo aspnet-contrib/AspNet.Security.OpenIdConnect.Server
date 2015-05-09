@@ -1,18 +1,25 @@
 ﻿@using Microsoft.Owin.Security
 @using Nancy.ViewEngines.Razor
 
-@inherits NancyRazorViewBase<IEnumerable<AuthenticationDescription>>
+@inherits NancyRazorViewBase<string>
 
 <div class="jumbotron">
     <h1>Authentication</h1>
-    <p class="lead text-left">Sign in using one of these external providers:</p>
+    <p class="lead text-left">Sign in using a specific username:</p>
     
-    @foreach (var description in Model) {
-        <form action="/signin" method="post">
-            <input type="hidden" name="Provider" value="@description.AuthenticationType" />
-            <input type="hidden" name="ReturnUrl" value="@ViewBag.ReturnUrl" />
+    <form action="/signin" method="post">
+        <div class="form-group">
+            <label for="identifier">Username: </label>
+            <input class="form-control" type="text" id="identifier" name="Identifier" value="Bob le bricoleur" />
+        </div>
 
-            <button class="btn btn-lg btn-success" type="submit">Connect using @description.Caption</button>
-        </form>
-    }
+        <div class="form-group">
+            <label for="password">Password: </label>
+            <input class="form-control" type="password" id="password" name="Password" value="Bob le bricoleur" />
+        </div>
+
+        <input type="hidden" name="ReturnUrl" value="@Model" />
+
+        <button class="btn btn-lg btn-success" type="submit">Connect using your username</button>
+    </form>
 </div>

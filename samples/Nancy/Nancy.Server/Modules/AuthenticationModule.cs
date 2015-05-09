@@ -1,5 +1,5 @@
 ﻿using System;
-using Microsoft.Owin;
+using System.Security.Claims;
 using Microsoft.Owin.Security;
 using Nancy.Server.Extensions;
 
@@ -10,24 +10,15 @@ namespace Nancy.Server.Modules {
                 // Note: the ReturnUrl parameter corresponds to the endpoint the user agent
                 // will be redirected to after a successful authentication and not
                 // the redirect_uri of the requesting client application.
-                ViewBag.ReturnUrl = (string) Request.Query.ReturnUrl;
-
-                // Note: in a real world application, you'd probably prefer creating a specific view model.
-                return View["signin.cshtml", AuthenticationManager.GetExternalProviders()];
+                return View["SignIn.cshtml", (string) Request.Query.ReturnUrl];
             };
 
             Post["/signin"] = parameters => {
-                // Note: the Provider parameters corresponds to the external
-                // authentication provider choosen by the user agent.
-                var provider = (string) Request.Form.Provider;
-                if (string.IsNullOrWhiteSpace(provider)) {
+                var identifier = (string) Request.Form.Identifier;
+                if (string.IsNullOrWhiteSpace(identifier)) {
                     return HttpStatusCode.BadRequest;
                 }
-
-                if (!AuthenticationManager.IsProviderSupported(provider)) {
-                    return HttpStatusCode.BadRequest;
-                }
-
+                
                 // Note: the ReturnUrl parameter corresponds to the endpoint the user agent
                 // will be redirected to after a successful authentication and not
                 // the redirect_uri of the requesting client application.
@@ -39,13 +30,14 @@ namespace Nancy.Server.Modules {
                 var properties = new AuthenticationProperties {
                     RedirectUri = returnUrl
                 };
+                
+                var identity = new ClaimsIdentity("ServerCookie");
+                identity.AddClaim(new Claim(ClaimTypes.Name, identifier));
+                identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, identifier));
 
-                // Instruct the middleware corresponding to the requested external identity
-                // provider to redirect the user agent to its own authorization endpoint.
-                // Note: the authenticationType parameter must match the value configured in Startup.cs
-                AuthenticationManager.Challenge(properties, provider);
+                AuthenticationManager.SignIn(properties, identity);
 
-                return HttpStatusCode.Unauthorized;
+                return Response.AsRedirect(returnUrl);
             };
 
             Get["/signout"] = Post["/signout"] = parameters => {
@@ -63,7 +55,7 @@ namespace Nancy.Server.Modules {
         /// </summary>
         protected IAuthenticationManager AuthenticationManager {
             get {
-                IOwinContext context = Context.GetOwinContext();
+                var context = Context.GetOwinContext();
                 if (context == null) {
                     throw new NotSupportedException("An OWIN context cannot be extracted from NancyContext");
                 }
