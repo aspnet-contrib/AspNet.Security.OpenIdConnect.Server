@@ -105,6 +105,8 @@ namespace Mvc.Server {
             });
 #endif
 
+            app.UseInMemorySession();
+
             app.UseOpenIdConnectServer(options => {
                 options.AuthenticationScheme = OpenIdConnectDefaults.AuthenticationScheme;
 

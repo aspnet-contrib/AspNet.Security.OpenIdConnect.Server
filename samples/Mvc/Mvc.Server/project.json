@@ -15,6 +15,7 @@
         "Microsoft.AspNet.Authentication.Google": "1.0.0-*",
         "Microsoft.AspNet.Authentication.OAuthBearer": "1.0.0-*",
         "Microsoft.AspNet.Authentication.Twitter": "1.0.0-*",
+        "Microsoft.AspNet.Session": "1.0.0-*",
         "Microsoft.AspNet.Server.IIS": "1.0.0-*",
         "Microsoft.AspNet.Server.WebListener": "1.0.0-*",
         "Microsoft.AspNet.StaticFiles": "1.0.0-*",

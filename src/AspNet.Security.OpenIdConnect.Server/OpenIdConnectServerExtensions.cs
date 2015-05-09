@@ -132,6 +132,76 @@ namespace AspNet.Security.OpenIdConnect.Server {
         }
 
         /// <summary>
+        /// Retrieves the <see cref="OpenIdConnectMessage"/> request from the given session.
+        /// </summary>
+        /// <param name="session">The ASP.NET session which the request must be retrieved from.</param>
+        /// <param name="key">The unique identifier used to retrieve the request from the session.</param>
+        /// <returns>The <see cref="OpenIdConnectMessage"/> stored in the session or <c>null</c> if it cannot be found.</returns>
+        public static OpenIdConnectMessage GetOpenIdConnectRequest(this ISessionCollection session, string key) {
+            if (session == null) {
+                throw new ArgumentNullException(nameof(session));
+            }
+
+            var buffer = session.Get(key);
+            if (buffer == null) {
+                return null;
+            }
+
+            using (var stream = new MemoryStream(buffer))
+            using (var reader = new BinaryReader(stream)) {
+                var version = reader.ReadInt32();
+                if (version != 1) {
+                    session.Remove(key);
+
+                    return null;
+                }
+
+                var request = new OpenIdConnectMessage();
+                var length = reader.ReadInt32();
+
+                for (var index = 0; index < length; index++) {
+                    var name = reader.ReadString();
+                    var value = reader.ReadString();
+
+                    request.SetParameter(name, value);
+                }
+
+                return request;
+            }
+        }
+
+        /// <summary>
+        /// Inserts the <see cref="OpenIdConnectMessage"/> request in the given session.
+        /// </summary>
+        /// <param name="session">The ASP.NET session which the request must be added to.</param>
+        /// <param name="key">The unique identifier used to store the request in the session.</param>
+        /// <param name="request">The <see cref="OpenIdConnectMessage"/> to store.</param>
+        public static void SetOpenIdConnectRequest(this ISessionCollection session, string key, OpenIdConnectMessage request) {
+            if (session == null) {
+                throw new ArgumentNullException(nameof(session));
+            }
+
+            if (request == null) {
+                session.Remove(key);
+
+                return;
+            }
+            
+            using (var stream = new MemoryStream())
+            using (var writer = new BinaryWriter(stream)) {
+                writer.Write(/* version: */ 1);
+                writer.Write(request.Parameters.Count);
+
+                foreach (var parameter in request.Parameters) {
+                    writer.Write(parameter.Key);
+                    writer.Write(parameter.Value);
+                }
+
+                session.Set(key, stream.ToArray());
+            }
+        }
+
+        /// <summary>
         /// Creates a new enhanced ticket format that supports serializing
         /// <see cref="ClaimsIdentity.Actor"/> and <see cref="Claim.Properties"/>.
         /// </summary>
