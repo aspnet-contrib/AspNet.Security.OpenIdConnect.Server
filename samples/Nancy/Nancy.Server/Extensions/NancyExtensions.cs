@@ -55,7 +55,7 @@ namespace Nancy.Server.Extensions {
 
         public static void SetOpenIdConnectRequest(this ISession session, string key, OpenIdConnectMessage request) {
             if (session == null) {
-                throw new ArgumentNullException(nameof(session));
+                throw new ArgumentNullException("session");
             }
 
             if (request == null) {
