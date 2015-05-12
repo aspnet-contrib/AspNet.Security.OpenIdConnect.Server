@@ -1,13 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
     <metadata>
-        <id>$id$</id>
+        <id>Owin.Security.OpenIdConnect.Extensions</id>
         <version>$version$</version>
-		<title>$title$</title>
-        <authors>$authors$</authors>
-        <owners>$authors$</owners>
+        <authors>Kévin Chalet</authors>
+        <owners>Kévin Chalet</owners>
+        <projectUrl>https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server</projectUrl>
+        <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0.html</licenseUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <description>OpenID connect extensions.</description>
+        <description>OpenID Connect extensions for Owin.Security.OpenIdConnect.Server.</description>
         <dependencies>
             <dependency id="Microsoft.IdentityModel.Protocol.Extensions" version="1.0.0" />
         </dependencies>
