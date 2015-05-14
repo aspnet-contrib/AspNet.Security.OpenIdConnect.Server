@@ -20,10 +20,19 @@ namespace Mvc.Server.Controllers {
         public AuthorizationController(ApplicationContext database) {
             this.database = database;
         }
-
+        
         [HttpGet("~/connect/authorize", Order = 1)]
         [HttpPost("~/connect/authorize", Order = 1)]
         public async Task<IActionResult> Authorize(CancellationToken cancellationToken) {
+            // Note: this action is bound to the AuthorizationEndpointPath defined in Startup.cs
+            // (by default "/connect/authorize" if you don't specify an explicit path).
+            // When an OpenID Connect request arrives, it is automatically inspected by
+            // OpenIdConnectServerHandler before this action is executed by ASP.NET MVC.
+            // It is the only endpoint the OpenID Connect request can be extracted from.
+            // For the rest of the authorization process, it will be stored in the user's session and retrieved
+            // using "Context.Session.GetOpenIdConnectRequest" instead of "Context.GetOpenIdConnectRequest",
+            // that would otherwise extract the OpenID Connect request from the query string or from the request body.
+
             // Note: when a fatal error occurs during the request processing, an OpenID Connect response
             // is prematurely forged and added to the ASP.NET context by OpenIdConnectServerHandler.
             // In this case, the OpenID Connect request is null and cannot be used.
@@ -125,8 +134,56 @@ namespace Mvc.Server.Controllers {
 
             // Remove the OpenID Connect request stored in the user's session.
             Context.Session.SetOpenIdConnectRequest(key, null);
-            
-            return await SignInAsync(request, cancellationToken);
+
+            // Create a new ClaimsIdentity containing the claims that
+            // will be used to create an id_token, a token or a code.
+            var identity = new ClaimsIdentity(OpenIdConnectDefaults.AuthenticationScheme);
+
+            // Copy the claims retrieved from the external identity provider
+            // (e.g Google, Facebook, a WS-Fed provider or another OIDC server).
+            foreach (var claim in Context.User.Claims) {
+                // Allow ClaimTypes.Name to be added in the id_token.
+                // ClaimTypes.NameIdentifier is automatically added, even if its
+                // destination is not defined or doesn't include "id_token".
+                // The other claims won't be visible for the client application.
+                if (claim.Type == ClaimTypes.Name) {
+                    claim.WithDestination("id_token")
+                         .WithDestination("token");
+                }
+
+                identity.AddClaim(claim);
+            }
+
+            // Note: AspNet.Security.OpenIdConnect.Server automatically ensures an application
+            // corresponds to the client_id specified in the authorization request using
+            // IOpenIdConnectServerProvider.ValidateClientRedirectUri (see AuthorizationProvider.cs).
+            // In theory, this null check is thus not strictly necessary. That said, a race condition
+            // and a null reference exception could appear here if you manually removed the application
+            // details from the database after the initial check made by AspNet.Security.OpenIdConnect.Server.
+            var application = await GetApplicationAsync(request.ClientId, cancellationToken);
+            if (application == null) {
+                return View("Error", new OpenIdConnectMessage {
+                    Error = "invalid_client",
+                    ErrorDescription = "Details concerning the calling client application cannot be found in the database"
+                });
+            }
+
+            // Create a new ClaimsIdentity containing the claims associated with the application.
+            // Note: setting identity.Actor is not mandatory but can be useful to access
+            // the whole delegation chain from the resource server (see ResourceController.cs).
+            identity.Actor = new ClaimsIdentity(OpenIdConnectDefaults.AuthenticationScheme);
+            identity.Actor.AddClaim(ClaimTypes.NameIdentifier, application.ApplicationID);
+            identity.Actor.AddClaim(ClaimTypes.Name, application.DisplayName, destination: "id_token token");
+
+            // This call will instruct AspNet.Security.OpenIdConnect.Server to serialize
+            // the specified identity to build appropriate tokens (id_token and token).
+            // Note: you should always make sure the identities you return contain either
+            // a 'sub' or a 'ClaimTypes.NameIdentifier' claim. In this case, the returned
+            // identities always contain the name identifier returned by the external provider.
+            // Note: the authenticationScheme parameter must match the value configured in Startup.cs.
+            Context.Authentication.SignIn(OpenIdConnectDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
+
+            return new HttpStatusCodeResult(200);
         }
 
         [Authorize, HttpPost("~/connect/authorize/deny/{key}"), ValidateAntiForgeryToken]
@@ -207,57 +264,7 @@ namespace Mvc.Server.Controllers {
 
             return new HttpStatusCodeResult(200);
         }
-
-        protected async Task<IActionResult> SignInAsync(OpenIdConnectMessage request, CancellationToken cancellationToken) {
-            // Create a new ClaimsIdentity containing the claims retrieved from the external
-            // identity provider (e.g Google, Facebook, a WS-Fed provider or another OIDC server).
-            var identity = new ClaimsIdentity(OpenIdConnectDefaults.AuthenticationScheme);
-
-            foreach (var claim in Context.User.Claims) {
-                // Allow ClaimTypes.Name to be added in the id_token.
-                // ClaimTypes.NameIdentifier is automatically added, even if its
-                // destination is not defined or doesn't include "id_token".
-                // The other claims won't be visible for the client application.
-                if (claim.Type == ClaimTypes.Name) {
-                    claim.WithDestination("id_token")
-                         .WithDestination("token");
-                }
-
-                identity.AddClaim(claim);
-            }
-
-            // Note: AspNet.Security.OpenIdConnect.Server automatically ensures an application
-            // corresponds to the client_id specified in the authorization request using
-            // IOpenIdConnectServerProvider.ValidateClientRedirectUri (see AuthorizationProvider.cs).
-            // In theory, this null check is thus not strictly necessary. That said, a race condition
-            // and a null reference exception could appear here if you manually removed the application
-            // details from the database after the initial check made by AspNet.Security.OpenIdConnect.Server.
-            var application = await GetApplicationAsync(request.ClientId, cancellationToken);
-            if (application == null) {
-                return View("Error", new OpenIdConnectMessage {
-                    Error = "invalid_client",
-                    ErrorDescription = "Details concerning the calling client application cannot be found in the database"
-                });
-            }
-
-            // Create a new ClaimsIdentity containing the claims associated with the application.
-            // Note: setting identity.Actor is not mandatory but can be useful to access
-            // the whole delegation chain from the resource server (see ResourceController.cs).
-            identity.Actor = new ClaimsIdentity(OpenIdConnectDefaults.AuthenticationScheme);
-            identity.Actor.AddClaim(ClaimTypes.NameIdentifier, application.ApplicationID);
-            identity.Actor.AddClaim(ClaimTypes.Name, application.DisplayName, destination: "id_token token");
-
-            // This call will instruct AspNet.Security.OpenIdConnect.Server to serialize
-            // the specified identity to build appropriate tokens (id_token and token).
-            // Note: you should always make sure the identities you return contain either
-            // a 'sub' or a 'ClaimTypes.NameIdentifier' claim. In this case, the returned
-            // identities always contain the name identifier returned by the external provider.
-            // Note: the authenticationScheme parameter must match the value configured in Startup.cs.
-            Context.Authentication.SignIn(OpenIdConnectDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
-
-            return new HttpStatusCodeResult(200);
-        }
-
+        
         protected virtual Task<Application> GetApplicationAsync(string identifier, CancellationToken cancellationToken) {
             // Retrieve the application details corresponding to the requested client_id.
             return (from application in database.Applications
