@@ -192,11 +192,17 @@ namespace AspNet.Security.OpenIdConnect.Server {
             Context.SetOpenIdConnectRequest(request);
 
             // While redirect_uri was not mandatory in OAuth2, this parameter
-            // is now declared as REQUIRED and SHOULD cause an error when missing.
-            // That said, the OIDC specs explicitly allow an authorization server to handle
-            // a token request when redirect_uri was missing from the authorization request.
+            // is now declared as REQUIRED and MUST cause an error when missing.
             // See http://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
-            // and http://openid.net/specs/openid-connect-core-1_0.html#TokenRequestValidation
+            // To keep AspNet.Security.OpenIdConnect.Server compatible with pure OAuth2 clients,
+            // an error is only returned if the request was made by an OpenID Connect client.
+            if (string.IsNullOrEmpty(request.RedirectUri) && request.ContainsScope(OpenIdConnectScopes.OpenId)) {
+                return await SendErrorPageAsync(new OpenIdConnectMessage {
+                    Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = "redirect_uri must be included when making an OpenID Connect request"
+                });
+            }
+
             if (!string.IsNullOrEmpty(request.RedirectUri)) {
                 Uri uri;
                 if (!Uri.TryCreate(request.RedirectUri, UriKind.Absolute, out uri)) {
