@@ -1,7 +1,7 @@
 Owin.Security.OpenIdConnect.Server
 ==================================
 
-**Owin.Security.OpenIdConnect.Server** is an **OpenID Connect server middleware** that you can use in **any OWIN-powered application** and that works with the official **OpenID Connect client middleware** developed by Microsoft or with any **standards-compliant OAuth2/OpenID Connect client**..
+**Owin.Security.OpenIdConnect.Server** is an **OpenID Connect server middleware** that you can use in **any OWIN-powered application** and that works with the official **OpenID Connect client middleware** developed by Microsoft or with any **standards-compliant OAuth2/OpenID Connect client**.
 
 **The latest nightly builds can be found here**: **[https://www.myget.org/F/aspnet-contrib/](https://www.myget.org/F/aspnet-contrib/)**
 
@@ -24,13 +24,13 @@ These dependencies are automatically installed in your project if you download *
 
 ## Get started
 
-Based on **Microsoft.Owin.Security.OAuth**, **OSOS** exposes similar primitives and can be directly registered in **Startup.cs** using the `UseOpenIdConnectServer` extension method:
+Based on **Microsoft.Owin.Security.OAuth**, **Owin.Security.OpenIdConnect.Server** exposes similar primitives and can be directly registered in **Startup.cs** using the `UseOpenIdConnectServer` extension method:
 
-    app.UseOpenIdConnectServer(new OpenIdConnectServerOptions {
-        Issuer = "http://localhost:55938/",
-        SigningCredentials = new X509SigningCredentials(certificate),
+    app.UseOpenIdConnectServer(options => {
+        options.Issuer = "http://localhost:55938/";
+        options.SigningCredentials = new X509SigningCredentials(certificate);
     
-        Provider = new CustomAuthorizationProvider()
+        options.Provider = new CustomAuthorizationProvider();
     });
 
 See [https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server/tree/dev/samples/Mvc](https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server/tree/dev/samples/Mvc) for a sample **using MVC 6 and showing how to configure a new OpenID Connect server using a custom `OpenIdConnectServerProvider` implementation to validate client applications**.
