@@ -58,21 +58,21 @@ namespace Nancy.Server {
             // See https://nwebsec.codeplex.com/wikipage?title=Configuring%20security%20headers&referringTitle=NWebsec
             app.UseXXssProtection(options => options.EnabledWithBlockMode());
 
-            app.UseOpenIdConnectServer(new OpenIdConnectServerOptions {
-                AuthenticationType = OpenIdConnectDefaults.AuthenticationType,
-                AuthenticationMode = AuthenticationMode.Passive,
+            app.UseOpenIdConnectServer(options => {
+                options.AuthenticationType = OpenIdConnectDefaults.AuthenticationType;
+                options.AuthenticationMode = AuthenticationMode.Passive;
 
-                Issuer = "http://localhost:54541/",
-                SigningCredentials = credentials,
+                options.Issuer = "http://localhost:54541/";
+                options.SigningCredentials = credentials;
 
-                Provider = new AuthorizationProvider(),
-                AccessTokenLifetime = TimeSpan.FromDays(14),
-                IdentityTokenLifetime = TimeSpan.FromMinutes(60),
-                AllowInsecureHttp = true,
+                options.Provider = new AuthorizationProvider();
+                options.AccessTokenLifetime = TimeSpan.FromDays(14);
+                options.IdentityTokenLifetime = TimeSpan.FromMinutes(60);
+                options.AllowInsecureHttp = true;
 
                 // Note: see AuthorizationModule.cs for more
                 // information concerning ApplicationCanDisplayErrors.
-                ApplicationCanDisplayErrors = true
+                options.ApplicationCanDisplayErrors = true;
             });
 
             app.UseNancy(options => options.Bootstrapper = new NancyBootstrapper());

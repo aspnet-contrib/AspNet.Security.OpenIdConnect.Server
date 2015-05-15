@@ -30,9 +30,9 @@ namespace Owin {
         /// <summary>
         /// Adds a specs-compliant OpenID Connect server in the OWIN pipeline.
         /// </summary>
-        /// <param name="app">The web application builder</param>
-        /// <param name="options">Options which control the behavior of the OpenID Connect server.</param>
-        /// <returns>The application builder</returns>
+        /// <param name="app">The web application builder.</param>
+        /// <param name="options">The settings controlling the behavior of the OpenID Connect server.</param>
+        /// <returns>The application builder.</returns>
         public static IAppBuilder UseOpenIdConnectServer(this IAppBuilder app, OpenIdConnectServerOptions options) {
             if (app == null) {
                 throw new ArgumentNullException("app");
@@ -41,6 +41,27 @@ namespace Owin {
             if (options == null) {
                 throw new ArgumentNullException("options");
             }
+
+            return app.Use(typeof(OpenIdConnectServerMiddleware), app, options);
+        }
+
+        /// <summary>
+        /// Adds a specs-compliant OpenID Connect server in the OWIN pipeline.
+        /// </summary>
+        /// <param name="app">The web application builder.</param>
+        /// <param name="configuration">A delegate allowing to change the OpenID Connect server's settings.</param>
+        /// <returns>The application builder.</returns>
+        public static IAppBuilder UseOpenIdConnectServer(this IAppBuilder app, Action<OpenIdConnectServerOptions> configuration) {
+            if (app == null) {
+                throw new ArgumentNullException("app");
+            }
+
+            if (configuration == null) {
+                throw new ArgumentNullException("configuration");
+            }
+
+            var options = new OpenIdConnectServerOptions();
+            configuration(options);
 
             return app.Use(typeof(OpenIdConnectServerMiddleware), app, options);
         }
