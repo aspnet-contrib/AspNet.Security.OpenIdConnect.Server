@@ -189,178 +189,216 @@ namespace Owin {
             return new AuthenticationProperties(properties.Dictionary.ToDictionary(pair => pair.Key, pair => pair.Value));
         }
 
-        internal static string GetAudience(this AuthenticationProperties properties) {
+        internal static string GetProperty(this AuthenticationProperties properties, string property) {
             if (properties == null) {
                 return null;
             }
 
-            string audience;
-            if (!properties.Dictionary.TryGetValue("audience", out audience)) {
+            string value;
+            if (!properties.Dictionary.TryGetValue(property, out value)) {
                 return null;
             }
 
-            return audience;
+            return value;
+        }
+
+        internal static IEnumerable<string> GetAudiences(this AuthenticationProperties properties) {
+            if (properties == null) {
+                return null;
+            }
+
+            var audience = properties.GetProperty(OpenIdConnectConstants.Extra.Audience);
+            if (string.IsNullOrWhiteSpace(audience)) {
+                return Enumerable.Empty<string>();
+            }
+
+            return audience.Split(' ');
+        }
+
+        internal static IEnumerable<string> GetResources(this AuthenticationProperties properties) {
+            if (properties == null) {
+                return null;
+            }
+
+            var resource = properties.GetProperty(OpenIdConnectConstants.Extra.Resource);
+            if (string.IsNullOrWhiteSpace(resource)) {
+                return Enumerable.Empty<string>();
+            }
+
+            return resource.Split(' ');
+        }
+
+        internal static void SetAudiences(this AuthenticationProperties properties, IEnumerable<string> audiences) {
+            properties.Dictionary[OpenIdConnectConstants.Extra.Audience] = string.Join(" ", audiences);
+        }
+
+        internal static bool ContainsSet(this IEnumerable<string> source, IEnumerable<string> set) {
+            if (source == null || set == null) {
+                return false;
+            }
+
+            return new HashSet<string>(source).IsSupersetOf(set);
         }
 
         // Remove when the built-in ticket serializer supports Claim.Properties.
         // See https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server/issues/71
-        private sealed class EnhancedTicketSerializer : IDataSerializer<AuthenticationTicket> {
-            private const int FormatVersion = 3;
-
-            public byte[] Serialize(AuthenticationTicket model) {
-                if (model == null) {
-                    throw new ArgumentNullException("model");
-                }
-
-                using (var buffer = new MemoryStream())
-                using (var writer = new BinaryWriter(buffer)) {
-                    writer.Write(FormatVersion);
-
-                    WriteIdentity(writer, model.Identity);
-                    PropertiesSerializer.Write(writer, model.Properties);
-
-                    return buffer.ToArray();
-                }
-            }
-
-            public AuthenticationTicket Deserialize(byte[] data) {
-                if (data == null) {
-                    throw new ArgumentNullException("data");
-                }
-
-                using (var buffer = new MemoryStream(data))
-                using (var reader = new BinaryReader(buffer)) {
-                    if (reader.ReadInt32() != FormatVersion) {
-                        return null;
-                    }
-
-                    var identity = ReadIdentity(reader);
-                    var properties = PropertiesSerializer.Read(reader);
-
-                    return new AuthenticationTicket(identity, properties);
-                }
-            }
-            
-            private static void WriteIdentity(BinaryWriter writer, ClaimsIdentity identity) {
-                writer.Write(identity.AuthenticationType);
-                WriteWithDefault(writer, identity.NameClaimType, DefaultValues.NameClaimType);
-                WriteWithDefault(writer, identity.RoleClaimType, DefaultValues.RoleClaimType);
-                writer.Write(identity.Claims.Count());
-
-                foreach (var claim in identity.Claims) {
-                    WriteClaim(writer, claim, identity.NameClaimType);
-                }
-
-                var context = identity.BootstrapContext as BootstrapContext;
-                if (context == null || string.IsNullOrWhiteSpace(context.Token)) {
-                    writer.Write(0);
-                }
-
-                else {
-                    writer.Write(context.Token.Length);
-                    writer.Write(context.Token);
-                }
-
-                if (identity.Actor != null) {
-                    writer.Write(true);
-                    WriteIdentity(writer, identity.Actor);
-                }
-
-                else {
-                    writer.Write(false);
-                }
-            }
-            
-            private static ClaimsIdentity ReadIdentity(BinaryReader reader) {
-                var authenticationType = reader.ReadString();
-                var nameClaimType = ReadWithDefault(reader, DefaultValues.NameClaimType);
-                var roleClaimType = ReadWithDefault(reader, DefaultValues.RoleClaimType);
-                var count = reader.ReadInt32();
-
-                var claims = new Claim[count];
-
-                for (int index = 0; index != count; ++index) {
-                    claims[index] = ReadClaim(reader, nameClaimType);
-                }
-
-                var identity = new ClaimsIdentity(claims, authenticationType, nameClaimType, roleClaimType);
-
-                int bootstrapContextSize = reader.ReadInt32();
-                if (bootstrapContextSize > 0) {
-                    identity.BootstrapContext = new BootstrapContext(reader.ReadString());
-                }
-
-                if (reader.ReadBoolean()) {
-                    identity.Actor = ReadIdentity(reader);
-                }
-
-                return identity;
-            }
-
-            private static void WriteClaim(BinaryWriter writer, Claim claim, string nameClaimType) {
-                WriteWithDefault(writer, claim.Type, nameClaimType);
-                writer.Write(claim.Value);
-                WriteWithDefault(writer, claim.ValueType, DefaultValues.StringValueType);
-                WriteWithDefault(writer, claim.Issuer, DefaultValues.LocalAuthority);
-                WriteWithDefault(writer, claim.OriginalIssuer, claim.Issuer);
-                writer.Write(claim.Properties.Count);
-
-                foreach (var property in claim.Properties) {
-                    writer.Write(property.Key);
-                    writer.Write(property.Value);
-                }
-            }
-
-            private static Claim ReadClaim(BinaryReader reader, string nameClaimType) {
-                var type = ReadWithDefault(reader, nameClaimType);
-                var value = reader.ReadString();
-                var valueType = ReadWithDefault(reader, DefaultValues.StringValueType);
-                var issuer = ReadWithDefault(reader, DefaultValues.LocalAuthority);
-                var originalIssuer = ReadWithDefault(reader, issuer);
-                var count = reader.ReadInt32();
-
-                var claim = new Claim(type, value, valueType, issuer, originalIssuer);
-
-                for (var index = 0; index != count; ++index) {
-                    claim.Properties.Add(key: reader.ReadString(), value: reader.ReadString());
-                }
-
-                return claim;
-            }
-
-            private static void WriteWithDefault(BinaryWriter writer, string value, string defaultValue) {
-                if (string.Equals(value, defaultValue, StringComparison.Ordinal)) {
-                    writer.Write(DefaultValues.DefaultStringPlaceholder);
-                }
-
-                else {
-                    writer.Write(value);
-                }
-            }
-
-            private static string ReadWithDefault(BinaryReader reader, string defaultValue) {
-                string value = reader.ReadString();
-                if (string.Equals(value, DefaultValues.DefaultStringPlaceholder, StringComparison.Ordinal)) {
-                    return defaultValue;
-                }
-
-                return value;
-            }
-
-            private static class DefaultValues {
-                public const string DefaultStringPlaceholder = "\0";
-                public const string NameClaimType = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name";
-                public const string RoleClaimType = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role";
-                public const string LocalAuthority = "LOCAL AUTHORITY";
-                public const string StringValueType = "http://www.w3.org/2001/XMLSchema#string";
-            }
-        }
-
         private sealed class EnhancedTicketDataFormat : SecureDataFormat<AuthenticationTicket> {
             private static readonly EnhancedTicketSerializer Serializer = new EnhancedTicketSerializer();
 
             public EnhancedTicketDataFormat(IDataProtector protector)
                 : base(Serializer, protector, TextEncodings.Base64Url) {
+            }
+
+            private sealed class EnhancedTicketSerializer : IDataSerializer<AuthenticationTicket> {
+                private const int FormatVersion = 3;
+
+                public byte[] Serialize(AuthenticationTicket model) {
+                    if (model == null) {
+                        throw new ArgumentNullException("model");
+                    }
+
+                    using (var buffer = new MemoryStream())
+                    using (var writer = new BinaryWriter(buffer)) {
+                        writer.Write(FormatVersion);
+
+                        WriteIdentity(writer, model.Identity);
+                        PropertiesSerializer.Write(writer, model.Properties);
+
+                        return buffer.ToArray();
+                    }
+                }
+
+                public AuthenticationTicket Deserialize(byte[] data) {
+                    if (data == null) {
+                        throw new ArgumentNullException("data");
+                    }
+
+                    using (var buffer = new MemoryStream(data))
+                    using (var reader = new BinaryReader(buffer)) {
+                        if (reader.ReadInt32() != FormatVersion) {
+                            return null;
+                        }
+
+                        var identity = ReadIdentity(reader);
+                        var properties = PropertiesSerializer.Read(reader);
+
+                        return new AuthenticationTicket(identity, properties);
+                    }
+                }
+
+                private static void WriteIdentity(BinaryWriter writer, ClaimsIdentity identity) {
+                    writer.Write(identity.AuthenticationType);
+                    WriteWithDefault(writer, identity.NameClaimType, DefaultValues.NameClaimType);
+                    WriteWithDefault(writer, identity.RoleClaimType, DefaultValues.RoleClaimType);
+                    writer.Write(identity.Claims.Count());
+
+                    foreach (var claim in identity.Claims) {
+                        WriteClaim(writer, claim, identity.NameClaimType);
+                    }
+
+                    var context = identity.BootstrapContext as BootstrapContext;
+                    if (context == null || string.IsNullOrWhiteSpace(context.Token)) {
+                        writer.Write(0);
+                    }
+
+                    else {
+                        writer.Write(context.Token.Length);
+                        writer.Write(context.Token);
+                    }
+
+                    if (identity.Actor != null) {
+                        writer.Write(true);
+                        WriteIdentity(writer, identity.Actor);
+                    }
+
+                    else {
+                        writer.Write(false);
+                    }
+                }
+
+                private static ClaimsIdentity ReadIdentity(BinaryReader reader) {
+                    var authenticationType = reader.ReadString();
+                    var nameClaimType = ReadWithDefault(reader, DefaultValues.NameClaimType);
+                    var roleClaimType = ReadWithDefault(reader, DefaultValues.RoleClaimType);
+                    var count = reader.ReadInt32();
+
+                    var claims = new Claim[count];
+
+                    for (int index = 0; index != count; ++index) {
+                        claims[index] = ReadClaim(reader, nameClaimType);
+                    }
+
+                    var identity = new ClaimsIdentity(claims, authenticationType, nameClaimType, roleClaimType);
+
+                    int bootstrapContextSize = reader.ReadInt32();
+                    if (bootstrapContextSize > 0) {
+                        identity.BootstrapContext = new BootstrapContext(reader.ReadString());
+                    }
+
+                    if (reader.ReadBoolean()) {
+                        identity.Actor = ReadIdentity(reader);
+                    }
+
+                    return identity;
+                }
+
+                private static void WriteClaim(BinaryWriter writer, Claim claim, string nameClaimType) {
+                    WriteWithDefault(writer, claim.Type, nameClaimType);
+                    writer.Write(claim.Value);
+                    WriteWithDefault(writer, claim.ValueType, DefaultValues.StringValueType);
+                    WriteWithDefault(writer, claim.Issuer, DefaultValues.LocalAuthority);
+                    WriteWithDefault(writer, claim.OriginalIssuer, claim.Issuer);
+                    writer.Write(claim.Properties.Count);
+
+                    foreach (var property in claim.Properties) {
+                        writer.Write(property.Key);
+                        writer.Write(property.Value);
+                    }
+                }
+
+                private static Claim ReadClaim(BinaryReader reader, string nameClaimType) {
+                    var type = ReadWithDefault(reader, nameClaimType);
+                    var value = reader.ReadString();
+                    var valueType = ReadWithDefault(reader, DefaultValues.StringValueType);
+                    var issuer = ReadWithDefault(reader, DefaultValues.LocalAuthority);
+                    var originalIssuer = ReadWithDefault(reader, issuer);
+                    var count = reader.ReadInt32();
+
+                    var claim = new Claim(type, value, valueType, issuer, originalIssuer);
+
+                    for (var index = 0; index != count; ++index) {
+                        claim.Properties.Add(key: reader.ReadString(), value: reader.ReadString());
+                    }
+
+                    return claim;
+                }
+
+                private static void WriteWithDefault(BinaryWriter writer, string value, string defaultValue) {
+                    if (string.Equals(value, defaultValue, StringComparison.Ordinal)) {
+                        writer.Write(DefaultValues.DefaultStringPlaceholder);
+                    }
+
+                    else {
+                        writer.Write(value);
+                    }
+                }
+
+                private static string ReadWithDefault(BinaryReader reader, string defaultValue) {
+                    string value = reader.ReadString();
+                    if (string.Equals(value, DefaultValues.DefaultStringPlaceholder, StringComparison.Ordinal)) {
+                        return defaultValue;
+                    }
+
+                    return value;
+                }
+
+                private static class DefaultValues {
+                    public const string DefaultStringPlaceholder = "\0";
+                    public const string NameClaimType = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name";
+                    public const string RoleClaimType = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role";
+                    public const string LocalAuthority = "LOCAL AUTHORITY";
+                    public const string StringValueType = "http://www.w3.org/2001/XMLSchema#string";
+                }
             }
         }
     }

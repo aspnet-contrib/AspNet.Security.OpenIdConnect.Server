@@ -242,6 +242,40 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         }
 
         /// <summary>
+        /// Extracts the audiences from an <see cref="OpenIdConnectMessage"/>.
+        /// </summary>
+        /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
+        public static IEnumerable<string> GetAudiences(this OpenIdConnectMessage message) {
+            if (message == null) {
+                throw new ArgumentNullException("message");
+            }
+
+            var audience = message.GetParameter("audience");
+            if (string.IsNullOrWhiteSpace(audience)) {
+                return Enumerable.Empty<string>();
+            }
+
+            return audience.Split(' ');
+        }
+
+        /// <summary>
+        /// Extracts the resources from an <see cref="OpenIdConnectMessage"/>.
+        /// </summary>
+        /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
+        public static IEnumerable<string> GetResources(this OpenIdConnectMessage message) {
+            if (message == null) {
+                throw new ArgumentNullException("message");
+            }
+
+            var resource = message.Resource;
+            if (string.IsNullOrWhiteSpace(resource)) {
+                return Enumerable.Empty<string>();
+            }
+            
+            return resource.Split(' ');
+        }
+
+        /// <summary>
         /// Determines whether the given claim contains a destination.
         /// </summary>
         /// <param name="claim">The <see cref="Claim"/> instance.</param>

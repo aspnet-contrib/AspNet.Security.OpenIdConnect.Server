@@ -470,11 +470,16 @@ namespace Owin.Security.OpenIdConnect.Server {
             var ticket = new AuthenticationTicket(context.Identity, context.Properties);
 
             // Associate client_id with all subsequent tickets.
-            ticket.Properties.Dictionary[OpenIdConnectConstants.Extra.Audience] = request.ClientId;
+            ticket.Properties.Dictionary[OpenIdConnectConstants.Extra.ClientId] = request.ClientId;
 
             if (!string.IsNullOrEmpty(request.RedirectUri)) {
-                // Keep original request parameter for later comparison.
+                // Keep original the original redirect_uri for later comparison.
                 ticket.Properties.Dictionary[OpenIdConnectConstants.Extra.RedirectUri] = request.RedirectUri;
+            }
+
+            if (!string.IsNullOrEmpty(request.Resource)) {
+                // Keep the original resource parameter for later comparison.
+                ticket.Properties.Dictionary[OpenIdConnectConstants.Extra.Resource] = request.Resource;
             }
 
             // Determine whether an authorization code should be returned
@@ -1185,8 +1190,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return null;
             }
 
-            var audience = ticket.Properties.GetAudience();
-            if (string.IsNullOrWhiteSpace(audience) || !string.Equals(audience, validatingContext.ClientContext.ClientId, StringComparison.Ordinal)) {
+            var clientId = ticket.Properties.GetProperty(OpenIdConnectConstants.Extra.ClientId);
+            if (string.IsNullOrWhiteSpace(clientId) || !string.Equals(clientId, request.ClientId, StringComparison.Ordinal)) {
                 logger.WriteError("authorization code does not contain matching client_id");
                 validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
                 return null;
@@ -1195,11 +1200,28 @@ namespace Owin.Security.OpenIdConnect.Server {
             string redirectUri;
             if (ticket.Properties.Dictionary.TryGetValue(OpenIdConnectConstants.Extra.RedirectUri, out redirectUri)) {
                 ticket.Properties.Dictionary.Remove(OpenIdConnectConstants.Extra.RedirectUri);
+
                 if (!string.Equals(redirectUri, request.RedirectUri, StringComparison.Ordinal)) {
                     logger.WriteError("authorization code does not contain matching redirect_uri");
                     validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
                     return null;
                 }
+            }
+
+            var resources = ticket.Properties.GetResources();
+            if (resources.Any() != request.GetResources().Any()) {
+                // Return an error if the client provided a resource parameter in the token request
+                // but didn't provide one during the original authorization request and vice versa.
+                logger.WriteError("token request cannot contain a resource parameter if none has " +
+                                  "been provided during the authorization request and vice versa");
+                validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
+                return null;
+            }
+
+            if (resources.Any() && !resources.ContainsSet(request.GetResources())) {
+                logger.WriteError("authorization code does not contain matching resource");
+                validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
+                return null;
             }
 
             await Options.Provider.ValidateTokenRequest(validatingContext);
@@ -1275,9 +1297,25 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return null;
             }
 
-            var audience = ticket.Properties.GetAudience();
-            if (string.IsNullOrWhiteSpace(audience) || !string.Equals(audience, validatingContext.ClientContext.ClientId, StringComparison.Ordinal)) {
+            var clientId = ticket.Properties.GetProperty(OpenIdConnectConstants.Extra.ClientId);
+            if (string.IsNullOrWhiteSpace(clientId) || !string.Equals(clientId, request.ClientId, StringComparison.Ordinal)) {
                 logger.WriteError("refresh token does not contain matching client_id");
+                validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
+                return null;
+            }
+ 
+            var resources = ticket.Properties.GetResources();
+            if (resources.Any() != request.GetResources().Any()) {
+                // Return an error if the client provided a resource parameter in the token request
+                // but didn't provide one during the original authorization request and vice versa.
+                logger.WriteError("token request cannot contain a resource parameter if none has " +
+                                  "been provided during the authorization request and vice versa");
+                validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
+                return null;
+            }
+
+            if (resources.Any() && !resources.ContainsSet(request.GetResources())) {
+                logger.WriteError("refresh token does not contain matching resource");
                 validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
                 return null;
             }
@@ -1414,9 +1452,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             // Client applications and resource servers are strongly encouraged
             // to provide an audience parameter to mitigate confused deputy attacks.
             // See http://en.wikipedia.org/wiki/Confused_deputy_problem.
-            var audience = request.GetParameter(OpenIdConnectConstants.Extra.Audience);
-            if (!string.IsNullOrWhiteSpace(audience) &&
-                !string.Equals(audience, ticket.Properties.GetAudience(), StringComparison.Ordinal)) {
+            var audiences = ticket.Properties.GetAudiences();
+            if (audiences.Any() && !audiences.ContainsSet(request.GetAudiences())) {
                 await SendErrorPayloadAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidGrant,
                     ErrorDescription = "Invalid access token received: " +
@@ -1446,7 +1483,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             var payload = new JObject();
 
-            payload.Add("audience", ticket.Properties.GetAudience());
+            payload.Add("audiences", JArray.FromObject(ticket.Properties.GetAudiences()));
             payload.Add("expires_in", ticket.Properties.ExpiresUtc.Value);
             
             payload.Add("claims", JArray.FromObject(
@@ -1642,18 +1679,55 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return Options.AccessTokenFormat.Protect(ticket);
             }
 
-            var token = Options.AccessTokenHandler.CreateToken(new SecurityTokenDescriptor {
-                Subject = identity,
-                AppliesToAddress = request.Resource,
-                TokenIssuerName = Options.Issuer + "/",
-                EncryptingCredentials = Options.EncryptingCredentials,
-                SigningCredentials = Options.SigningCredentials,
-                Lifetime = new Lifetime(
-                    properties.IssuedUtc.Value.UtcDateTime,
-                    properties.ExpiresUtc.Value.UtcDateTime)
-            });
+            var handler = Options.AccessTokenHandler as JwtSecurityTokenHandler;
+            if (handler != null) {
+                // When creating an access token intended for a single audience,
+                // it's usually better to format the "aud" claim as a string.
+                // See https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32#section-4.1.3
+                var resources = request.GetResources();
+                if (resources.Count() > 1) {
+                    // CreateToken doesn't support multiple audiences: set audience to null and
+                    // replace JwtPayload.Aud with an array containing the multiple resources.
+                    var token = handler.CreateToken(
+                        audience: null,
+                        subject: identity,
+                        issuer: Options.Issuer + "/",
+                        signingCredentials: Options.SigningCredentials,
+                        notBefore: properties.IssuedUtc.Value.UtcDateTime,
+                        expires: properties.ExpiresUtc.Value.UtcDateTime);
 
-            return Options.AccessTokenHandler.WriteToken(token);
+                    token.Payload[JwtRegisteredClaimNames.Aud] = resources.ToArray();
+
+                    return handler.WriteToken(token);
+                }
+
+                else {
+                    var token = handler.CreateToken(
+                        audience: resources.ElementAtOrDefault(0),
+                        subject: identity,
+                        issuer: Options.Issuer + "/",
+                        signingCredentials: Options.SigningCredentials,
+                        notBefore: properties.IssuedUtc.Value.UtcDateTime,
+                        expires: properties.ExpiresUtc.Value.UtcDateTime);
+
+                    return handler.WriteToken(token);
+                }
+            }
+
+            else {
+                var token = Options.AccessTokenHandler.CreateToken(new SecurityTokenDescriptor {
+                    Subject = identity,
+                    AppliesToAddress = request.Resource,
+                    TokenIssuerName = Options.Issuer + "/",
+                    EncryptingCredentials = Options.EncryptingCredentials,
+                    SigningCredentials = Options.SigningCredentials,
+                    Lifetime = new Lifetime(
+                        properties.IssuedUtc.Value.UtcDateTime,
+                        properties.ExpiresUtc.Value.UtcDateTime)
+                });
+
+                return Options.AccessTokenHandler.WriteToken(token);
+            }
         }
 
         private async Task<string> CreateRefreshTokenAsync(AuthenticationTicket ticket,
@@ -1770,8 +1844,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             var token = Options.IdentityTokenHandler.CreateToken(
                 subject: identity,
                 issuer: Options.Issuer + "/",
-                signingCredentials: Options.SigningCredentials,
                 audience: request.ClientId,
+                signingCredentials: Options.SigningCredentials,
                 notBefore: properties.IssuedUtc.Value.UtcDateTime,
                 expires: properties.ExpiresUtc.Value.UtcDateTime);
 
@@ -1841,9 +1915,9 @@ namespace Owin.Security.OpenIdConnect.Server {
                     IssuedUtc = securityToken.ValidFrom
                 };
 
-                var audience = identity.FindFirst(JwtRegisteredClaimNames.Aud);
-                if (audience != null) {
-                    properties.Dictionary.Add(OpenIdConnectConstants.Extra.Audience, audience.Value);
+                var audiences = principal.FindAll(JwtRegisteredClaimNames.Aud);
+                if (audiences.Any()) {
+                    properties.SetAudiences(audiences.Select(claim => claim.Value));
                 }
 
                 return new AuthenticationTicket(identity, properties);
@@ -1887,9 +1961,9 @@ namespace Owin.Security.OpenIdConnect.Server {
                     IssuedUtc = securityToken.ValidFrom
                 };
 
-                var audience = identity.FindFirst(JwtRegisteredClaimNames.Aud);
-                if (audience != null) {
-                    properties.Dictionary.Add(OpenIdConnectConstants.Extra.Audience, audience.Value);
+                var audiences = principal.FindAll(JwtRegisteredClaimNames.Aud);
+                if (audiences.Any()) {
+                    properties.SetAudiences(audiences.Select(claim => claim.Value));
                 }
 
                 return new AuthenticationTicket(identity, properties);

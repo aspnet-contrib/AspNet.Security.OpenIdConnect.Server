@@ -41,6 +41,9 @@ namespace Mvc.Client {
                 // retrieve the identity provider's configuration and spare you from setting
                 // the different endpoints URIs or the token validation parameters explicitly.
                 Authority = "http://localhost:54540/",
+                
+                // Note: the resource property represents the different endpoints the
+                // access token should be issued for (values must be space-delimited).
                 Resource = "http://localhost:54540/",
 
                 Notifications = new OpenIdConnectAuthenticationNotifications {

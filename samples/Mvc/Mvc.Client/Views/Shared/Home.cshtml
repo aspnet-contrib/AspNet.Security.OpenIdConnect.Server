@@ -1,8 +1,15 @@
-﻿@model string
+﻿@using System.Security.Claims
+@model string
 
 <div class="jumbotron">
     @if (Request.IsAuthenticated) {
         <h1>Welcome, @User.Identity.Name</h1>
+
+        <p>
+            @foreach (var claim in ((ClaimsPrincipal) Context.User).Claims) {
+                <div>@claim.Type: <b>@claim.Value</b></div>
+            }
+        </p>
 
         if (!string.IsNullOrWhiteSpace(Model)) {
             <h3>Message received from the resource controller: @Model</h3>

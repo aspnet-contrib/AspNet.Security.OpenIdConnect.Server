@@ -9,6 +9,12 @@
     @if (principal != null && principal.Identity != null && principal.Identity.IsAuthenticated) {
         <h1>Welcome, @principal.Identity.Name</h1>
 
+        <p>
+            @foreach (var claim in principal.Claims) {
+                <div>@claim.Type: <b>@claim.Value</b></div>
+            }
+        </p>
+
         if (!string.IsNullOrWhiteSpace(Model)) {
             <h3>Message received from the resource controller: @Model</h3>
         }
