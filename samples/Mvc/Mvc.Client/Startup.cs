@@ -53,6 +53,9 @@ namespace Mvc.Client {
                 // retrieve the identity provider's configuration and spare you from setting
                 // the different endpoints URIs or the token validation parameters explicitly.
                 options.Authority = "http://localhost:54540/";
+
+                // Note: the resource property represents the different endpoints the
+                // access token should be issued for (values must be space-delimited).
                 options.Resource = "http://localhost:54540/";
 
                 options.Notifications = new OpenIdConnectAuthenticationNotifications();
@@ -78,12 +81,12 @@ namespace Mvc.Client {
 
                         var request = new HttpRequestMessage(HttpMethod.Post, configuration.TokenEndpoint);
                         request.Content = new FormUrlEncodedContent(new Dictionary<string, string> {
-                            { OpenIdConnectParameterNames.ClientId, notification.Options.ClientId },
-                            { OpenIdConnectParameterNames.ClientSecret, notification.Options.ClientSecret },
-                            { OpenIdConnectParameterNames.Code, notification.ProtocolMessage.Code },
-                            { OpenIdConnectParameterNames.GrantType, "authorization_code" },
-                            { OpenIdConnectParameterNames.RedirectUri, notification.Options.RedirectUri },
-                            { OpenIdConnectParameterNames.Resource, notification.Options.Resource }
+                            [OpenIdConnectParameterNames.ClientId] = notification.Options.ClientId,
+                            [OpenIdConnectParameterNames.ClientSecret] = notification.Options.ClientSecret,
+                            [OpenIdConnectParameterNames.Code] = notification.ProtocolMessage.Code,
+                            [OpenIdConnectParameterNames.GrantType] = "authorization_code",
+                            [OpenIdConnectParameterNames.RedirectUri] = notification.Options.RedirectUri,
+                            [OpenIdConnectParameterNames.Resource] = notification.Options.Resource
                         });
 
                         var response = await client.SendAsync(request, notification.HttpContext.RequestAborted);

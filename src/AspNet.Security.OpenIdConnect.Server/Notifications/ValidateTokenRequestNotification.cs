@@ -5,7 +5,6 @@
  */
 
 using Microsoft.IdentityModel.Protocols;
-using Microsoft.AspNet;
 using Microsoft.AspNet.Http;
 
 namespace AspNet.Security.OpenIdConnect.Server {
@@ -19,14 +18,15 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="request"></param>
-        /// <param name="clientContext"></param>
+        /// <param name="notification"></param>
         internal ValidateTokenRequestNotification(
             HttpContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request,
-            BaseValidatingClientNotification clientContext) : base(context, options) {
+            BaseValidatingClientNotification notification)
+            : base(context, options) {
             TokenRequest = request;
-            ClientContext = clientContext;
+            ClientContext = notification;
         }
 
         /// <summary>
