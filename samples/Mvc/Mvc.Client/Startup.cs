@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens;
 using System.Net.Http;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -105,11 +106,27 @@ namespace Mvc.Client {
                             value: payload.Value<string>(OpenIdConnectParameterNames.AccessToken)));
                     }
                 };
+
+#if DNXCORE50
+                options.SecurityTokenValidators = new[] { new UnsafeJwtSecurityTokenHandler() };
+#endif
             });
 
             app.UseStaticFiles();
 
             app.UseMvc();
         }
+
+#if DNXCORE50
+        // There's currently a bug on CoreCLR that prevents ValidateSignature from working correctly.
+        // To work around this bug, signature validation is temporarily disabled: of course,
+        // NEVER do that in a real world application as it opens a huge security hole.
+        // See https://github.com/aspnet/Security/issues/223
+        private class UnsafeJwtSecurityTokenHandler : JwtSecurityTokenHandler {
+            protected override JwtSecurityToken ValidateSignature(string token, TokenValidationParameters validationParameters) {
+                return ReadToken(token) as JwtSecurityToken;
+            }
+        }
+#endif
     }
 }

@@ -1368,7 +1368,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return;
             }
 
-            if (!ticket.Properties.ExpiresUtc.HasValue || ticket.Properties.ExpiresUtc < Options.SystemClock.UtcNow) {
+            if (!ticket.Properties.ExpiresUtc.HasValue ||
+                 ticket.Properties.ExpiresUtc < Options.SystemClock.UtcNow) {
                 Logger.LogError("expired token");
 
                 await SendErrorPayloadAsync(new OpenIdConnectMessage {

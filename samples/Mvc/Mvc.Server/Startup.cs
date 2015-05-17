@@ -2,6 +2,7 @@ using System;
 using System.IdentityModel.Tokens;
 using System.IO;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using AspNet.Security.OpenIdConnect.Server;
 using Microsoft.AspNet.Authentication;
@@ -38,19 +39,23 @@ namespace Mvc.Server {
             var factory = app.ApplicationServices.GetRequiredService<ILoggerFactory>();
             factory.AddConsole();
 
-            var certificate = GetCertificate();
+            var certificate = LoadCertificate();
             var key = new X509SecurityKey(certificate);
 
             var credentials = new SigningCredentials(key,
                 SecurityAlgorithms.RsaSha256Signature,
                 SecurityAlgorithms.Sha256Digest);
-            
+
             // Create a new branch where the registered middleware will be executed only for API calls.
             app.UseWhen(context => context.Request.Path.StartsWithSegments(new PathString("/api")), branch => {
                 branch.UseOAuthBearerAuthentication(options => {
                     options.AutomaticAuthentication = true;
                     options.Audience = "http://localhost:54540/";
                     options.Authority = "http://localhost:54540/";
+
+#if DNXCORE50
+                    options.SecurityTokenValidators = new[] { new UnsafeJwtSecurityTokenHandler() };
+#endif
                 });
             });
 
@@ -114,6 +119,11 @@ namespace Mvc.Server {
                 options.AllowInsecureHttp = true;
 
                 options.Provider = new AuthorizationProvider();
+
+#if DNXCORE50
+                options.AccessTokenHandler = new UnsafeJwtSecurityTokenHandler();
+                options.IdentityTokenHandler = new UnsafeJwtSecurityTokenHandler();
+#endif
             });
 
             app.UseStaticFiles();
@@ -135,7 +145,8 @@ namespace Mvc.Server {
             }
         }
 
-        private static X509Certificate2 GetCertificate() {
+#if !DNXCORE50
+        private static X509Certificate2 LoadCertificate() {
             // Note: in a real world app, you'd probably prefer storing the X.509 certificate
             // in the user or machine store. To keep this sample easy to use, the certificate
             // is extracted from the Certificate.pfx file embedded in this assembly.
@@ -144,10 +155,58 @@ namespace Mvc.Server {
                 stream.CopyTo(buffer);
                 buffer.Flush();
 
-                return new X509Certificate2(
-                    rawData: buffer.ToArray(),
-                    password: "Owin.Security.OpenIdConnect.Server");
+                return new X509Certificate2(buffer.ToArray(), "Owin.Security.OpenIdConnect.Server");
             }
         }
+#else
+        private static X509Certificate2 LoadCertificate() {
+            // Note: in a real world app, you'd probably prefer storing the X.509 certificate
+            // in the user or machine store. To keep this sample easy to use, the certificate
+            // is extracted from the Certificate.cer file embedded in this assembly.
+            using (var stream = typeof(Startup).GetTypeInfo().Assembly.GetManifestResourceStream("Mvc.Server.Certificate.cer"))
+            using (var buffer = new MemoryStream()) {
+                stream.CopyTo(buffer);
+                buffer.Flush();
+
+                return new X509Certificate2(buffer.ToArray()) {
+                    PrivateKey = LoadPrivateKey()
+                };
+            }
+        }
+
+        private static RSA LoadPrivateKey() {
+            // Note: CoreCLR doesn't support .pfx files yet. To work around this limitation, the private key
+            // is stored in a different - an totally unprotected/unencrypted - .keys file and attached to the
+            // X509Certificate2 instance in LoadCertificate : NEVER do that in a real world application.
+            // See https://github.com/dotnet/corefx/issues/424
+            using (var stream = typeof(Startup).GetTypeInfo().Assembly.GetManifestResourceStream("Mvc.Server.Certificate.keys"))
+            using (var reader = new StreamReader(stream)) {
+                var key = new RSACryptoServiceProvider();
+                
+                key.ImportParameters(new RSAParameters {
+                    D = Convert.FromBase64String(reader.ReadLine()),
+                    DP = Convert.FromBase64String(reader.ReadLine()),
+                    DQ = Convert.FromBase64String(reader.ReadLine()),
+                    Exponent = Convert.FromBase64String(reader.ReadLine()),
+                    InverseQ = Convert.FromBase64String(reader.ReadLine()),
+                    Modulus = Convert.FromBase64String(reader.ReadLine()),
+                    P = Convert.FromBase64String(reader.ReadLine()),
+                    Q = Convert.FromBase64String(reader.ReadLine())
+                });
+
+                return key;
+            }
+        }
+
+        // There's currently a bug on CoreCLR that prevents ValidateSignature from working correctly.
+        // To work around this bug, signature validation is temporarily disabled: of course,
+        // NEVER do that in a real world application as it opens a huge security hole.
+        // See https://github.com/aspnet/Security/issues/223
+        private class UnsafeJwtSecurityTokenHandler : JwtSecurityTokenHandler {
+            protected override JwtSecurityToken ValidateSignature(string token, TokenValidationParameters validationParameters) {
+                return ReadToken(token) as JwtSecurityToken;
+            }
+        }
+#endif
     }
 }
