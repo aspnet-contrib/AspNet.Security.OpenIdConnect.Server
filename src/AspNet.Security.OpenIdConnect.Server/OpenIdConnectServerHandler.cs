@@ -843,6 +843,23 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 });
             }
 
+            else {
+                var rsaSecurityKey = asymmetricSecurityKey as RsaSecurityKey;
+                if (rsaSecurityKey != null) {
+                    // Export the RSA public key.
+                    notification.Keys.Add(new JsonWebKey {
+                        Kty = JsonWebAlgorithmsKeyTypes.RSA,
+                        Alg = JwtAlgorithms.RSA_SHA256,
+                        Use = JsonWebKeyUseNames.Sig,
+
+                        // Both E and N must be base64url-encoded.
+                        // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#appendix-A.1
+                        E = Base64UrlEncoder.Encode(rsaSecurityKey.Parameters.Exponent),
+                        N = Base64UrlEncoder.Encode(rsaSecurityKey.Parameters.Modulus)
+                    });
+                }
+            }
+
             await Options.Provider.CryptographyEndpoint(notification);
 
             // Skip processing the JWKS request if
