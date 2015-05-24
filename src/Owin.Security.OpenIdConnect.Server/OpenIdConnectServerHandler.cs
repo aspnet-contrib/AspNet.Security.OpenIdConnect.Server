@@ -349,6 +349,12 @@ namespace Owin.Security.OpenIdConnect.Server {
             var notification = new AuthorizationEndpointNotification(Context, Options, request);
             await Options.Provider.AuthorizationEndpoint(notification);
 
+            // Store the OpenID Connect request in the cache.
+            var identifier = Base64UrlEncoder.Encode(GenerateKey(256 / 8));
+            request.SetUniqueIdentifier(identifier);
+
+            Options.Cache.SetOpenIdConnectRequest(identifier, request);
+
             // Update the authorization request in the OWIN context.
             Context.SetOpenIdConnectRequest(request);
 
@@ -475,6 +481,9 @@ namespace Owin.Security.OpenIdConnect.Server {
                 response.IdToken = await CreateIdentityTokenAsync(ticket, request, response);
             }
 
+            // Remove the OpenID Connect request from the cache.
+            Options.Cache.Remove(request.GetUniqueIdentifier());
+
             var notification = new AuthorizationEndpointResponseNotification(Context, Options, request, response);
             await Options.Provider.AuthorizationEndpointResponse(notification);
 
@@ -533,6 +542,18 @@ namespace Owin.Security.OpenIdConnect.Server {
             // if HandleResponse has been called.
             if (notification.HandledResponse) {
                 return notification.AuthorizationRequest;
+            }
+
+            // Try to retrieve the authorization request from the local cache.
+            // Note: extracting the OpenID Connect request from the cache
+            // should neither cause an exception nor return null.
+            var identifier = Request.Query.Get("unique_id");
+
+            if (!string.IsNullOrWhiteSpace(identifier)) {
+                var request = Options.Cache.GetOpenIdConnectRequest(identifier);
+                if (request != null) {
+                    return request;
+                }
             }
 
             if (!string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase) &&

@@ -1,8 +1,9 @@
 ﻿@using Microsoft.IdentityModel.Protocols
 @using Nancy.Server.Models
 @using Nancy.ViewEngines.Razor
+@using Owin.Security.OpenIdConnect.Extensions
 
-@inherits NancyRazorViewBase<Tuple<OpenIdConnectMessage, Application, string>>
+@inherits NancyRazorViewBase<Tuple<OpenIdConnectMessage, Application>>
 
 <div class="jumbotron">
     <h1>Authorization</h1>
@@ -11,7 +12,7 @@
     <form enctype="application/x-www-form-urlencoded" method="post">
         @Html.AntiForgeryToken()
 
-        <input formaction="/connect/authorize/accept/@Model.Item3" class="btn btn-lg btn-success" name="Authorize" type="submit" value="Yeah, sure" />
-        <input formaction="/connect/authorize/deny/@Model.Item3" class="btn btn-lg btn-danger" name="Deny" type="submit" value="Hell, no" />
+        <input formaction="/connect/authorize/accept?unique_id=@Model.Item1.GetUniqueIdentifier()" class="btn btn-lg btn-success" name="Authorize" type="submit" value="Yeah, sure" />
+        <input formaction="/connect/authorize/deny?unique_id=@Model.Item1.GetUniqueIdentifier()" class="btn btn-lg btn-danger" name="Deny" type="submit" value="Hell, no" />
     </form>
 </div>

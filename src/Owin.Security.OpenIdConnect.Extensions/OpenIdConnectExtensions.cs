@@ -230,6 +230,18 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         }
 
         /// <summary>
+        /// Extracts the unique identifier associated with an <see cref="OpenIdConnectMessage"/>.
+        /// </summary>
+        /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
+        public static string GetUniqueIdentifier(this OpenIdConnectMessage message) {
+            if (message == null) {
+                throw new ArgumentNullException("message");
+            }
+
+            return message.GetParameter("unique_id");
+        }
+
+        /// <summary>
         /// Extracts the refresh token from an <see cref="OpenIdConnectMessage"/>.
         /// </summary>
         /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
@@ -273,6 +285,24 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             }
             
             return resource.Split(' ');
+        }
+
+        /// <summary>
+        /// Adds a unique identifier to a given <see cref="OpenIdConnectMessage"/>.
+        /// </summary>
+        /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
+        /// <param name="identifier">The unique identifier.</param>
+        public static OpenIdConnectMessage SetUniqueIdentifier(this OpenIdConnectMessage message, string identifier) {
+            if (message == null) {
+                throw new ArgumentNullException("message");
+            }
+
+            if (string.IsNullOrWhiteSpace(identifier)) {
+                throw new ArgumentNullException("identifier");
+            }
+
+            message.SetParameter("unique_id", identifier);
+            return message;
         }
 
         /// <summary>

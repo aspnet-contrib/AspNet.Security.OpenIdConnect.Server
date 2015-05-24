@@ -194,7 +194,6 @@
   <ItemGroup>
     <Compile Include="Controllers\ResourceController.cs" />
     <Compile Include="Extensions\OwinExtensions.cs" />
-    <Compile Include="Extensions\SessionExtensions.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>

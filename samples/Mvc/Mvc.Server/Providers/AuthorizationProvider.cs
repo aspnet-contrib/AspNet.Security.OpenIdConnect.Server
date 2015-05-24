@@ -136,5 +136,16 @@ namespace Mvc.Server.Providers {
                 notification.AuthenticationTicket = notification.DeserializeTicket(nonce.Ticket);
             }
         }
+
+        public override Task MatchEndpoint(MatchEndpointNotification notification) {
+            // Note: by default, OpenIdConnectServerHandler only handles authorization requests made to the authorization endpoint.
+            // This notification handler uses a more relaxed policy that allows extracting authorization requests received at
+            // /connect/authorize/accept and /connect/authorize/deny (see AuthorizationController.cs for more information).
+            if (notification.Request.Path.StartsWithSegments(notification.Options.AuthorizationEndpointPath)) {
+                notification.MatchesAuthorizationEndpoint();
+            }
+
+            return Task.FromResult<object>(null);
+        }
     }
 }

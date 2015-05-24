@@ -9,8 +9,6 @@ using System.Web;
 using System.Web.Mvc;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
-using Microsoft.Owin.Security;
-using Mvc.Server.Extensions;
 using Mvc.Server.Models;
 using Owin;
 using Owin.Security.OpenIdConnect.Extensions;
@@ -19,17 +17,8 @@ using Owin.Security.OpenIdConnect.Server;
 namespace Mvc.Server.Controllers {
     public class AuthorizationController : Controller {
         [AcceptVerbs(HttpVerbs.Get | HttpVerbs.Post)]
-        [Route("~/connect/authorize", Order = 1)]
+        [Route("~/connect/authorize")]
         public async Task<ActionResult> Authorize(CancellationToken cancellationToken) {
-            // Note: this action is bound to the AuthorizationEndpointPath defined in Startup.cs
-            // (by default "/connect/authorize" if you don't specify an explicit path).
-            // When an OpenID Connect request arrives, it is automatically inspected by
-            // OpenIdConnectServerHandler before this action is executed by ASP.NET MVC.
-            // It is the only endpoint the OpenID Connect request can be extracted from.
-            // For the rest of the authorization process, it will be stored in the user's session and retrieved
-            // using "Context.Session.GetOpenIdConnectRequest" instead of "Context.GetOpenIdConnectRequest",
-            // that would otherwise extract the OpenID Connect request from the query string or from the request body.
-
             // Note: when a fatal error occurs during the request processing, an OpenID Connect response
             // is prematurely forged and added to the OWIN context by OpenIdConnectServerHandler.
             // In this case, the OpenID Connect request is null and cannot be used.
@@ -42,7 +31,8 @@ namespace Mvc.Server.Controllers {
                 return View("Error", response);
             }
 
-            // Extract the authorization request from the OWIN environment.
+            // Extract the authorization request from the user's session, the query string or the request form.
+            // Note: OpenIdConnectServerHandler automatically saves the OpenID Connect request in the user's session.
             var request = OwinContext.GetOpenIdConnectRequest();
             if (request == null) {
                 return View("Error", new OpenIdConnectMessage {
@@ -50,51 +40,17 @@ namespace Mvc.Server.Controllers {
                     ErrorDescription = "An internal error has occurred"
                 });
             }
-
-            // Generate a unique 16-bytes identifier and save
-            // the OpenID Connect request in the user's session.
-            var key = GenerateKey();
-            Session.SetOpenIdConnectRequest(key, request);
-
+            
             // Note: authentication could be theorically enforced at the filter level via AuthorizeAttribute
             // but this authorization endpoint accepts both GET and POST requests while the cookie middleware
             // only uses 302 responses to redirect the user agent to the login page, making it incompatible with POST.
             // To work around this limitation, the OpenID Connect request is saved in the user's session and will
             // be restored in the other "Authorize" method, after the authentication process has been completed.
             if (User.Identity == null || !User.Identity.IsAuthenticated) {
-                OwinContext.Authentication.Challenge(new AuthenticationProperties {
-                    RedirectUri = Url.Action("Authorize", new { key })
-                });
-
-                return new HttpStatusCodeResult(401);
-            }
-
-            // Note: Owin.Security.OpenIdConnect.Server automatically ensures an application
-            // corresponds to the client_id specified in the authorization request using
-            // IOpenIdConnectServerProvider.ValidateClientRedirectUri (see AuthorizationProvider.cs).
-            // In theory, this null check is thus not strictly necessary. That said, a race condition
-            // and a null reference exception could appear here if you manually removed the application
-            // details from the database after the initial check made by Owin.Security.OpenIdConnect.Server.
-            var application = await GetApplicationAsync(request.ClientId, cancellationToken);
-            if (application == null) {
-                return View("Error", new OpenIdConnectMessage {
-                    Error = "invalid_client",
-                    ErrorDescription = "Details concerning the calling client application cannot be found in the database"
-                });
-            }
-
-            // Note: in a real world application, you'd probably prefer creating a specific view model.
-            return View("Authorize", Tuple.Create(request, application, key));
-        }
-
-        [Authorize, HttpGet, Route("~/connect/authorize/{key}", Order = 0)]
-        public async Task<ActionResult> Authorize(string key, CancellationToken cancellationToken) {
-            // Extract the OpenID Connect request stored in the user's session.
-            var request = Session.GetOpenIdConnectRequest(key);
-            if (request == null) {
-                return View("Error", new OpenIdConnectMessage {
-                    Error = "invalid_request",
-                    ErrorDescription = "An internal error has occurred"
+                return RedirectToAction("SignIn", "Authentication", new {
+                    returnUrl = Url.Action("Authorize", new {
+                        unique_id = request.GetUniqueIdentifier()
+                    })
                 });
             }
 
@@ -113,26 +69,20 @@ namespace Mvc.Server.Controllers {
             }
 
             // Note: in a real world application, you'd probably prefer creating a specific view model.
-            return View("Authorize", Tuple.Create(request, application, key));
+            return View("Authorize", Tuple.Create(request, application));
         }
-
-        [Authorize, HttpPost, Route("~/connect/authorize/accept/{key}"), ValidateAntiForgeryToken]
-        public async Task<ActionResult> Accept(string key, CancellationToken cancellationToken) {
-            // Extract the OpenID Connect request stored in the user's session.
-            var request = Session.GetOpenIdConnectRequest(key);
+        
+        [Authorize, HttpPost, Route("~/connect/authorize/accept"), ValidateAntiForgeryToken]
+        public async Task<ActionResult> Accept(CancellationToken cancellationToken) {
+            // Extract the authorization request from the user's session, the query string or the request form.
+            // Note: OpenIdConnectServerHandler automatically saves the OpenID Connect request in the user's session.
+            var request = OwinContext.GetOpenIdConnectRequest();
             if (request == null) {
                 return View("Error", new OpenIdConnectMessage {
                     Error = "invalid_request",
                     ErrorDescription = "An internal error has occurred"
                 });
             }
-
-            // Restore the OpenID Connect request in the OWIN context
-            // so Owin.Security.OpenIdConnect.Server can retrieve it.
-            OwinContext.SetOpenIdConnectRequest(request);
-
-            // Remove the OpenID Connect request stored in the user's session.
-            Session.SetOpenIdConnectRequest(key, null);
 
             // Create a new ClaimsIdentity containing the claims that
             // will be used to create an id_token, a token or a code.
@@ -182,23 +132,17 @@ namespace Mvc.Server.Controllers {
             return new HttpStatusCodeResult(200);
         }
 
-        [Authorize, HttpPost, Route("~/connect/authorize/deny/{key}"), ValidateAntiForgeryToken]
-        public ActionResult Deny(string key, CancellationToken cancellationToken) {
-            // Extract the OpenID Connect request stored in the user's session.
-            var request = Session.GetOpenIdConnectRequest(key);
+        [Authorize, HttpPost, Route("~/connect/authorize/deny"), ValidateAntiForgeryToken]
+        public ActionResult Deny(CancellationToken cancellationToken) {
+            // Extract the authorization request from the user's session, the query string or the request form.
+            // Note: OpenIdConnectServerHandler automatically saves the OpenID Connect request in the user's session.
+            var request = OwinContext.GetOpenIdConnectRequest();
             if (request == null) {
                 return View("Error", new OpenIdConnectMessage {
                     Error = "invalid_request",
                     ErrorDescription = "An internal error has occurred"
                 });
             }
-
-            // Restore the OpenID Connect request in the OWIN context
-            // so Owin.Security.OpenIdConnect.Server can retrieve it.
-            OwinContext.SetOpenIdConnectRequest(request);
-
-            // Remove the OpenID Connect request stored in the user's session.
-            Session.SetOpenIdConnectRequest(key, null);
 
             // Notify Owin.Security.OpenIdConnect.Server that the authorization grant has been denied.
             // Note: OpenIdConnectServerHandler will automatically take care of redirecting

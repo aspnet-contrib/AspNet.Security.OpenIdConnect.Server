@@ -220,8 +220,8 @@ namespace Owin.Security.OpenIdConnect.Server {
         public bool AllowInsecureHttp { get; set; }
 
         /// <summary>
-        /// The cache instance used to store authorization codes. You can replace the default
-        /// instance by a distributed implementation to support Web farm environments.
+        /// The cache instance used to store short-lived items like authorization codes or authorization requests.
+        /// You can replace the default instance by a distributed implementation to support Web farm environments.
         /// </summary>
         public ObjectCache Cache { get; set; }
 
