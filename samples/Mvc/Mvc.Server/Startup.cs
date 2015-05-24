@@ -105,6 +105,10 @@ namespace Mvc.Server {
             });
 #endif
 
+            // Note: make sure to always enable sessions support.
+            // This sample uses session to flow the OpenID Connect request between
+            // the first time the user arrives on the authorization endpoint and the
+            // second time, after he has been authenticated by the external provider.
             app.UseInMemorySession();
 
             app.UseOpenIdConnectServer(options => {
