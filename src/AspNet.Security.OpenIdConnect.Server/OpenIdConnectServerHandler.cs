@@ -1625,17 +1625,17 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // CreateAccessTokenAsync and CreateIdentityTokenAsync are responsible of ensuring
             // that subsequent access and identity tokens are correctly filtered.
             var content = Options.AuthorizationCodeFormat.Protect(ticket);
-
             var key = GenerateKey(256 / 8);
 
-            Options.Cache.Set(key, context => {
-                context.SetAbsoluteExpiration(properties.ExpiresUtc.Value);
+            using (var stream = new MemoryStream())
+            using (var writter = new StreamWriter(stream)) {
+                writter.Write(content);
+                writter.Flush();
 
-                using (var writter = new StreamWriter(context.Data)) {
-                    writter.Write(content);
-                    writter.Flush();
-                }
-            });
+                await Options.Cache.SetAsync(key, stream.ToArray(), new DistributedCacheEntryOptions {
+                    AbsoluteExpiration = properties.ExpiresUtc
+                });
+            }
 
             return key;
         }
@@ -1873,19 +1873,19 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return ticket;
             }
 
-            Stream stream;
-            if (Options.Cache.TryGetValue(code, out stream)) {
-                using (stream)
-                using (var reader = new StreamReader(stream)) {
-                    // Because authorization codes are guaranteed to be unique, make sure
-                    // to remove the current code from the global store before using it.
-                    Options.Cache.Remove(code);
-
-                    return Options.AuthorizationCodeFormat.Unprotect(await reader.ReadToEndAsync());
-                }
+            var buffer = await Options.Cache.GetAsync(code);
+            if (buffer == null) {
+                return null;
             }
 
-            return null;
+            using (var stream = new MemoryStream(buffer))
+            using (var reader = new StreamReader(stream)) {
+                // Because authorization codes are guaranteed to be unique, make sure
+                // to remove the current code from the global store before using it.
+                Options.Cache.Remove(code);
+
+                return Options.AuthorizationCodeFormat.Unprotect(await reader.ReadToEndAsync());
+            }
         }
 
         private async Task<AuthenticationTicket> ReceiveAccessTokenAsync(string token, OpenIdConnectMessage request) {

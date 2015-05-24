@@ -193,7 +193,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// instance by a distributed implementation to support Web farm environments.
         /// </summary>
         public IDistributedCache Cache { get; set; } = new LocalCache(new MemoryCache(new MemoryCacheOptions {
-            ListenForMemoryPressure = false
+            CompactOnMemoryPressure = false
         }));
 
         /// <summary>

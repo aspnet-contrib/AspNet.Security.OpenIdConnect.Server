@@ -11,7 +11,7 @@
         "AspNet.Security.OpenIdConnect.Extensions": "",
 
         "Microsoft.AspNet.Authentication": "1.0.0-*",
-        "Microsoft.Framework.Caching.Distributed": "1.0.0-*",
+        "Microsoft.Framework.Caching.Memory": "1.0.0-*",
         "Microsoft.Framework.Logging.Abstractions": "1.0.0-*",
         "Microsoft.Framework.WebEncoders.Core": "1.0.0-*",
         "Microsoft.IdentityModel.Protocol.Extensions": "2.0.0-*",
