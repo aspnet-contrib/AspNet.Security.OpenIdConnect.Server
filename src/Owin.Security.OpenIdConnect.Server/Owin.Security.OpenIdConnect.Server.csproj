@@ -70,6 +70,7 @@
   <ItemGroup>
     <Compile Include="Notifications\LogoutEndpointNotification.cs" />
     <Compile Include="Notifications\LogoutEndpointResponseNotification.cs" />
+    <Compile Include="Notifications\ExtractAuthorizationRequestNotification.cs" />
     <Compile Include="Notifications\ValidateClientLogoutRedirectUriNotification.cs" />
     <Compile Include="Notifications\ValidationEndpointResponseNotification.cs" />
     <Compile Include="Notifications\ValidationEndpointNotification.cs" />

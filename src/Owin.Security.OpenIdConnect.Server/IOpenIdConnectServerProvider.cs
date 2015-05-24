@@ -25,6 +25,15 @@ namespace Owin.Security.OpenIdConnect.Server {
         Task MatchEndpoint(MatchEndpointNotification notification);
 
         /// <summary>
+        /// Called to extract the authorization request from the OWIN context.
+        /// By default, the authorization server middleware extracts the OpenID Connect request from the
+        /// query string when receiving a GET request and from the request body when receiving a POST request.
+        /// </summary>
+        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        Task ExtractAuthorizationRequest(ExtractAuthorizationRequestNotification notification);
+
+        /// <summary>
         /// Called to validate that the context.ClientId is a registered "client_id", and that the context.RedirectUri a "redirect_uri" 
         /// registered for that client. This only occurs when processing the authorization endpoint. The application MUST implement this
         /// call, and it MUST validate both of those factors before calling context.Validated. If the context.Validated method is called
