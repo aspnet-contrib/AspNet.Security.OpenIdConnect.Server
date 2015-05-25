@@ -346,14 +346,14 @@ namespace Owin.Security.OpenIdConnect.Server {
                 });
             }
 
-            var notification = new AuthorizationEndpointNotification(Context, Options, request);
-            await Options.Provider.AuthorizationEndpoint(notification);
-
             // Store the OpenID Connect request in the cache.
             var identifier = Base64UrlEncoder.Encode(GenerateKey(256 / 8));
             request.SetUniqueIdentifier(identifier);
 
             Options.Cache.SetOpenIdConnectRequest(identifier, request);
+
+            var notification = new AuthorizationEndpointNotification(Context, Options, request);
+            await Options.Provider.AuthorizationEndpoint(notification);
 
             // Update the authorization request in the OWIN context.
             Context.SetOpenIdConnectRequest(request);
