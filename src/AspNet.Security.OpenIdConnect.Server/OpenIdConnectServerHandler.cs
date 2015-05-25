@@ -338,9 +338,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 });
             }
 
-            var notification = new AuthorizationEndpointNotification(Context, Options, request);
-            await Options.Provider.AuthorizationEndpoint(notification);
-
             // Store the OpenID Connect request in the
             // user's session if the feature is available.
             if (Context.GetFeature<ISessionFeature>() != null) {
@@ -349,6 +346,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 Context.Session.SetOpenIdConnectRequest(identifier, request);
             }
+
+            var notification = new AuthorizationEndpointNotification(Context, Options, request);
+            await Options.Provider.AuthorizationEndpoint(notification);
 
             // Update the authorization request in the ASP.NET context.
             Context.SetOpenIdConnectRequest(request);
