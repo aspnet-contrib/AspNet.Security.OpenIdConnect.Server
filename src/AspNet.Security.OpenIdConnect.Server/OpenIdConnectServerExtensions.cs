@@ -19,6 +19,7 @@ using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.DataProtection;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Authentication;
+using Microsoft.AspNet.Http.Features;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.OptionsModel;
 using Microsoft.IdentityModel.Protocols;
@@ -138,7 +139,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <param name="session">The ASP.NET session which the request must be retrieved from.</param>
         /// <param name="key">The unique identifier used to retrieve the request from the session.</param>
         /// <returns>The <see cref="OpenIdConnectMessage"/> stored in the session or <c>null</c> if it cannot be found.</returns>
-        internal static OpenIdConnectMessage GetOpenIdConnectRequest(this ISessionCollection session, string key) {
+        internal static OpenIdConnectMessage GetOpenIdConnectRequest(this ISession session, string key) {
             if (session == null) {
                 throw new ArgumentNullException(nameof(session));
             }
@@ -177,7 +178,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <param name="session">The ASP.NET session which the request must be added to.</param>
         /// <param name="key">The unique identifier used to store the request in the session.</param>
         /// <param name="request">The <see cref="OpenIdConnectMessage"/> to store.</param>
-        internal static void SetOpenIdConnectRequest(this ISessionCollection session, string key, OpenIdConnectMessage request) {
+        internal static void SetOpenIdConnectRequest(this ISession session, string key, OpenIdConnectMessage request) {
             if (session == null) {
                 throw new ArgumentNullException(nameof(session));
             }

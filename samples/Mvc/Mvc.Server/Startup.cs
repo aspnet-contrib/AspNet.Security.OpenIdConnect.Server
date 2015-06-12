@@ -31,8 +31,9 @@ namespace Mvc.Server {
             });
 
             services.AddAuthentication();
-
+            services.AddCaching();
             services.AddMvc();
+            services.AddSession();
         }
 
         public void Configure(IApplicationBuilder app) {
@@ -109,7 +110,7 @@ namespace Mvc.Server {
             // This sample uses session to flow the OpenID Connect request between
             // the first time the user arrives on the authorization endpoint and the
             // second time, after he has been authenticated by the external provider.
-            app.UseInMemorySession();
+            app.UseSession();
 
             app.UseOpenIdConnectServer(options => {
                 options.AuthenticationScheme = OpenIdConnectDefaults.AuthenticationScheme;
