@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Server;
 using Microsoft.AspNet.Authorization;
+using Microsoft.AspNet.Http.Authentication;
 using Microsoft.AspNet.Mvc;
 using Microsoft.Data.Entity;
 using Microsoft.IdentityModel.Protocols;
@@ -50,9 +51,8 @@ namespace Mvc.Server.Controllers {
             // To work around this limitation, the OpenID Connect request is automatically saved in the user's session and will
             // be restored by the OpenID Connect server middleware after the external authentication process has been completed.
             if (!User.Identities.Any(identity => identity.IsAuthenticated)) {
-                // See https://github.com/aspnet/Security/pull/275
-                return RedirectToAction("SignIn", "Authentication", new {
-                    returnUrl = Url.Action(nameof(Authorize), new {
+                return new ChallengeResult(new AuthenticationProperties {
+                    RedirectUri = Url.Action(nameof(Authorize), new {
                         unique_id = request.GetUniqueIdentifier()
                     })
                 });
