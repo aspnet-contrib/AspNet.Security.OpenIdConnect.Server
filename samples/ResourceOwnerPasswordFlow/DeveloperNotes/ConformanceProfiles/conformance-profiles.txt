@@ -1,0 +1,4 @@
+﻿http://openid.net/wordpress-content/uploads/2015/03/OpenID-Connect-Conformance-Profiles.pdf
+
+OP-Reponse-code
+OP-Response-missing

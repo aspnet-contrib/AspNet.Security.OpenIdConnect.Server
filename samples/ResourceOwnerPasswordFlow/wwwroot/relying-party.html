@@ -1,0 +1,42 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Relying Party</title>
+    <link href="resources/app.css" rel="stylesheet" />
+</head>
+<body>
+    <section>
+        <a href="http://jwt.calebb.net/" target="_blank">JWT Token Decoder</a>
+        <a href="https://github.com/bigfont/AspNet.Security.OpenIdConnect.Server/tree/bigfont/samples/ResourceOwnerPasswordFlow" target="_blank">Code on GitHub</a>
+    </section>
+    <section>
+        <h1>Sign in with identity provider</h1>
+        <form method="post" action="/connect/token">
+            <label>
+                Username
+                <input name="username" type="text" />
+            </label>
+            <label>
+                Password
+                <input name="password" type="password" />
+            </label>
+            <button id="identity-provider" type="button">Authenticate with Identity Provider</button>
+        </form>
+    </section>
+    <section id="identity-result">
+        Authenticate with the identity provider. The results will appear here.
+    </section>
+    <section>
+        <h1>Request resource from resource server</h1>
+        <button id="resource-server" type="button">Request Protected Resources</button>
+    </section>
+    <section id="resource-result">
+        Request a secure resource. The results will appear here.
+    </section>
+    <!-- Scripts -->
+    <script src="resources/helpers.js"></script>
+    <script src="resources/identity-provider.js"></script>
+    <script src="resources/resource-server.js"></script>
+</body>
+</html>

@@ -2,7 +2,7 @@
 
 <div class="jumbotron">
     @if (User?.Identity?.IsAuthenticated ?? false) {
-        <h1>Welcome, @User.Identity.Name</h1>
+        <h1>Hi, @Context.User.Identity.Name</h1>
 
         <p>
             @foreach (var claim in Context.User.Claims) {
