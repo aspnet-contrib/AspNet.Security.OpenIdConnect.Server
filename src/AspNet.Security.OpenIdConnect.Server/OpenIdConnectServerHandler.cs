@@ -409,7 +409,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return false;
             }
 
-            if (Response.HeadersSent) {
+            if (Response.HasStarted) {
                 Logger.LogCritical(
                     "OpenIdConnectServerHandler.TeardownCoreAsync cannot be called when " +
                     "the response headers have already been sent back to the user agent. " +
@@ -499,7 +499,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return false;
             }
 
-            if (Response.HeadersSent) {
+            if (Response.HasStarted) {
                 Logger.LogCritical(
                     "OpenIdConnectServerHandler.TeardownCoreAsync cannot be called when " +
                     "the response headers have already been sent back to the user agent. " +
