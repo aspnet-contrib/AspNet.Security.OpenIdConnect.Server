@@ -11,6 +11,7 @@ using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Http;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Logging;
+using Microsoft.Framework.Runtime;
 using Microsoft.IdentityModel.Protocols;
 using Newtonsoft.Json.Linq;
 
@@ -26,7 +27,7 @@ namespace Mvc.Client {
             services.AddMvc();
         }
 
-        public void Configure(IApplicationBuilder app) {
+        public void Configure(IApplicationBuilder app, IRuntimeEnvironment environment) {
             var factory = app.ApplicationServices.GetRequiredService<ILoggerFactory>();
             factory.AddConsole();
             
@@ -107,9 +108,10 @@ namespace Mvc.Client {
                     }
                 };
 
-#if DNXCORE50
-                options.SecurityTokenValidators = new[] { new UnsafeJwtSecurityTokenHandler() };
-#endif
+                if (string.Equals(environment.RuntimeType, "CoreCLR", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(environment.RuntimeType, "Mono", StringComparison.OrdinalIgnoreCase)) {
+                    options.SecurityTokenValidators = new[] { new UnsafeJwtSecurityTokenHandler() };
+                }
             });
 
             app.UseStaticFiles();
@@ -117,7 +119,6 @@ namespace Mvc.Client {
             app.UseMvc();
         }
 
-#if DNXCORE50
         // There's currently a bug on CoreCLR that prevents ValidateSignature from working correctly.
         // To work around this bug, signature validation is temporarily disabled: of course,
         // NEVER do that in a real world application as it opens a huge security hole.
@@ -127,6 +128,5 @@ namespace Mvc.Client {
                 return ReadToken(token) as JwtSecurityToken;
             }
         }
-#endif
     }
 }

@@ -11,6 +11,7 @@ using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Http;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Logging;
+using Microsoft.Framework.Runtime;
 using Mvc.Server.Extensions;
 using Mvc.Server.Models;
 using Mvc.Server.Providers;
@@ -36,11 +37,11 @@ namespace Mvc.Server {
             services.AddSession();
         }
 
-        public void Configure(IApplicationBuilder app) {
+        public void Configure(IApplicationBuilder app, IRuntimeEnvironment environment) {
             var factory = app.ApplicationServices.GetRequiredService<ILoggerFactory>();
             factory.AddConsole();
 
-            var certificate = LoadCertificate();
+            var certificate = LoadCertificate(environment);
             var key = new X509SecurityKey(certificate);
 
             var credentials = new SigningCredentials(key,
@@ -54,9 +55,10 @@ namespace Mvc.Server {
                     options.Audience = "http://localhost:54540/";
                     options.Authority = "http://localhost:54540/";
 
-#if DNXCORE50
-                    options.SecurityTokenValidators = new[] { new UnsafeJwtSecurityTokenHandler() };
-#endif
+                    if (string.Equals(environment.RuntimeType, "CoreCLR", StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(environment.RuntimeType, "Mono", StringComparison.OrdinalIgnoreCase)) {
+                        options.SecurityTokenValidators = new[] { new UnsafeJwtSecurityTokenHandler() };
+                    }
                 });
             });
 
@@ -125,10 +127,11 @@ namespace Mvc.Server {
 
                 options.Provider = new AuthorizationProvider();
 
-#if DNXCORE50
-                options.AccessTokenHandler = new UnsafeJwtSecurityTokenHandler();
-                options.IdentityTokenHandler = new UnsafeJwtSecurityTokenHandler();
-#endif
+                if (string.Equals(environment.RuntimeType, "CoreCLR", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(environment.RuntimeType, "Mono", StringComparison.OrdinalIgnoreCase)) {
+                    options.AccessTokenHandler = new UnsafeJwtSecurityTokenHandler();
+                    options.IdentityTokenHandler = new UnsafeJwtSecurityTokenHandler();
+                }
             });
 
             app.UseStaticFiles();
@@ -150,11 +153,23 @@ namespace Mvc.Server {
             }
         }
 
-#if !DNXCORE50
-        private static X509Certificate2 LoadCertificate() {
-            // Note: in a real world app, you'd probably prefer storing the X.509 certificate
-            // in the user or machine store. To keep this sample easy to use, the certificate
-            // is extracted from the Certificate.pfx file embedded in this assembly.
+        // Note: in a real world app, you'd probably prefer storing the X.509 certificate
+        // in the user or machine store. To keep this sample easy to use, the certificate
+        // is extracted from the Certificate.cer/pfx file embedded in this assembly.
+        private static X509Certificate2 LoadCertificate(IRuntimeEnvironment environment) {
+            if (string.Equals(environment.RuntimeType, "CoreCLR", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(environment.RuntimeType, "Mono", StringComparison.OrdinalIgnoreCase)) {
+                using (var stream = typeof(Startup).GetTypeInfo().Assembly.GetManifestResourceStream("Mvc.Server.Certificate.cer"))
+                using (var buffer = new MemoryStream()) {
+                    stream.CopyTo(buffer);
+                    buffer.Flush();
+
+                    return new X509Certificate2(buffer.ToArray()) {
+                        PrivateKey = LoadPrivateKey(environment)
+                    };
+                }
+            }
+
             using (var stream = typeof(Startup).GetTypeInfo().Assembly.GetManifestResourceStream("Mvc.Server.Certificate.pfx"))
             using (var buffer = new MemoryStream()) {
                 stream.CopyTo(buffer);
@@ -163,30 +178,18 @@ namespace Mvc.Server {
                 return new X509Certificate2(buffer.ToArray(), "Owin.Security.OpenIdConnect.Server");
             }
         }
-#else
-        private static X509Certificate2 LoadCertificate() {
-            // Note: in a real world app, you'd probably prefer storing the X.509 certificate
-            // in the user or machine store. To keep this sample easy to use, the certificate
-            // is extracted from the Certificate.cer file embedded in this assembly.
-            using (var stream = typeof(Startup).GetTypeInfo().Assembly.GetManifestResourceStream("Mvc.Server.Certificate.cer"))
-            using (var buffer = new MemoryStream()) {
-                stream.CopyTo(buffer);
-                buffer.Flush();
 
-                return new X509Certificate2(buffer.ToArray()) {
-                    PrivateKey = LoadPrivateKey()
-                };
-            }
-        }
-
-        private static RSA LoadPrivateKey() {
-            // Note: CoreCLR doesn't support .pfx files yet. To work around this limitation, the private key
-            // is stored in a different - an totally unprotected/unencrypted - .keys file and attached to the
-            // X509Certificate2 instance in LoadCertificate : NEVER do that in a real world application.
-            // See https://github.com/dotnet/corefx/issues/424
+        // Note: CoreCLR doesn't support .pfx files yet. To work around this limitation, the private key
+        // is stored in a different - and totally unprotected/unencrypted - .keys file and attached to the
+        // X509Certificate2 instance in LoadCertificate: NEVER do that in a real world application.
+        // See https://github.com/dotnet/corefx/issues/424
+        private static RSA LoadPrivateKey(IRuntimeEnvironment environment) {
             using (var stream = typeof(Startup).GetTypeInfo().Assembly.GetManifestResourceStream("Mvc.Server.Certificate.keys"))
             using (var reader = new StreamReader(stream)) {
-                var key = new RSACryptoServiceProvider();
+                // See https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet/issues/179
+                var key = string.Equals(environment.RuntimeType, "Mono", StringComparison.OrdinalIgnoreCase) ?
+                    new RSACryptoServiceProvider(new CspParameters { ProviderType = 24 }) :
+                    new RSACryptoServiceProvider();
                 
                 key.ImportParameters(new RSAParameters {
                     D = Convert.FromBase64String(reader.ReadLine()),
@@ -212,6 +215,5 @@ namespace Mvc.Server {
                 return ReadToken(token) as JwtSecurityToken;
             }
         }
-#endif
     }
 }
