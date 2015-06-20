@@ -4,7 +4,7 @@
     "authors": ["Kévin Chalet"],
     "owners": ["Kévin Chalet"],
 
-    "projectUrl": "https://github.com/aspnet-contrib/AspNet.Security.OAuth.Providers",
+    "projectUrl": "https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server",
     "licenseUrl": "http://www.apache.org/licenses/LICENSE-2.0.html",
 
     "dependencies": {
