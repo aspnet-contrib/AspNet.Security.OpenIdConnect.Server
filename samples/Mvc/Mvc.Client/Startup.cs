@@ -87,8 +87,7 @@ namespace Mvc.Client {
                             [OpenIdConnectParameterNames.ClientSecret] = notification.Options.ClientSecret,
                             [OpenIdConnectParameterNames.Code] = notification.ProtocolMessage.Code,
                             [OpenIdConnectParameterNames.GrantType] = "authorization_code",
-                            [OpenIdConnectParameterNames.RedirectUri] = notification.Options.RedirectUri,
-                            [OpenIdConnectParameterNames.Resource] = notification.Options.Resource
+                            [OpenIdConnectParameterNames.RedirectUri] = notification.Options.RedirectUri
                         });
 
                         var response = await client.SendAsync(request, notification.HttpContext.RequestAborted);

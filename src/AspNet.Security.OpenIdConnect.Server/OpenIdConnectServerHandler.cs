@@ -1187,7 +1187,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return null;
             }
 
-            if (!ticket.Properties.ExpiresUtc.HasValue || ticket.Properties.ExpiresUtc < currentUtc) {
+            if (!ticket.Properties.ExpiresUtc.HasValue ||
+                 ticket.Properties.ExpiresUtc < currentUtc) {
                 Logger.LogError("expired authorization code");
                 validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
                 return null;
@@ -1211,20 +1212,24 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 }
             }
 
-            var resources = ticket.Properties.GetResources();
-            if (resources.Any() != request.GetResources().Any()) {
-                // Return an error if the client provided a resource parameter in the token request
-                // but didn't provide one during the original authorization request and vice versa.
-                Logger.LogError("token request cannot contain a resource parameter if none has " +
-                                "been provided during the authorization request and vice versa");
-                validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
-                return null;
-            }
+            if (!string.IsNullOrWhiteSpace(request.Resource)) {
+                // When an explicit resource parameter has been included in the token request
+                // but was missing from the authorization request, the request MUST rejected.
+                var resources = ticket.Properties.GetResources();
+                if (!resources.Any()) {
+                    Logger.LogError("authorization code request cannot contain a resource");
+                    validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
+                    return null;
+                }
 
-            if (resources.Any() && !resources.ContainsSet(request.GetResources())) {
-                Logger.LogError("authorization code does not contain matching resource");
-                validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
-                return null;
+                // When an explicit resource parameter has been included in the token request,
+                // the authorization server MUST ensure that it doesn't contain resources
+                // that were not allowed during the authorization request.
+                else if (!resources.ContainsSet(request.GetResources())) {
+                    Logger.LogError("authorization code does not contain matching resource");
+                    validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
+                    return null;
+                }
             }
 
             await Options.Provider.ValidateTokenRequest(validatingContext);
@@ -1294,7 +1299,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return null;
             }
 
-            if (!ticket.Properties.ExpiresUtc.HasValue || ticket.Properties.ExpiresUtc < currentUtc) {
+            if (!ticket.Properties.ExpiresUtc.HasValue ||
+                 ticket.Properties.ExpiresUtc < currentUtc) {
                 Logger.LogError("expired refresh token");
                 validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
                 return null;
@@ -1307,20 +1313,24 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return null;
             }
 
-            var resources = ticket.Properties.GetResources();
-            if (resources.Any() != request.GetResources().Any()) {
-                // Return an error if the client provided a resource parameter in the token request
-                // but didn't provide one during the original authorization request and vice versa.
-                Logger.LogError("token request cannot contain a resource parameter if none has " +
-                                "been provided during the authorization request and vice versa");
-                validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
-                return null;
-            }
+            if (!string.IsNullOrWhiteSpace(request.Resource)) {
+                // When an explicit resource parameter has been included in the token request
+                // but was missing from the authorization request, the request MUST rejected.
+                var resources = ticket.Properties.GetResources();
+                if (!resources.Any()) {
+                    Logger.LogError("refresh token request cannot contain a resource");
+                    validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
+                    return null;
+                }
 
-            if (resources.Any() && !resources.ContainsSet(request.GetResources())) {
-                Logger.LogError("refresh token does not contain matching resource");
-                validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
-                return null;
+                // When an explicit resource parameter has been included in the token request,
+                // the authorization server MUST ensure that it doesn't contain resources
+                // that were not allowed during the authorization request.
+                else if (!resources.ContainsSet(request.GetResources())) {
+                    Logger.LogError("refresh token does not contain matching resource");
+                    validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
+                    return null;
+                }
             }
 
             await Options.Provider.ValidateTokenRequest(validatingContext);
@@ -1699,37 +1709,32 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 actor.BootstrapContext = new JwtSecurityToken(claims: actor.Claims);
             }
 
-            // When creating an access token intended for a single audience,
-            // it's usually better to format the "aud" claim as a string.
-            // See https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32#section-4.1.3
             var resources = request.GetResources();
+            if (!resources.Any()) {
+                // When no explicit resource parameter has been included in the token request,
+                // the optional resource received during the authorization request is used instead
+                // to help reducing cases where access tokens are issued for unknown resources.
+                resources = ticket.Properties.GetResources();
+            }
+
+            // When creating an access token intended for a single audience, it's usually better
+            // to format the "aud" claim as a string, but CreateToken doesn't support multiple audiences:
+            // to work around this limitation, audience is initialized with a single resource and
+            // JwtPayload.Aud is replaced with an array containing the multiple resources if necessary.
+            // See https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32#section-4.1.3
+            var token = Options.AccessTokenHandler.CreateToken(
+                audience: resources.ElementAtOrDefault(0),
+                subject: identity,
+                issuer: Options.Issuer + "/",
+                signingCredentials: Options.SigningCredentials,
+                notBefore: properties.IssuedUtc.Value.UtcDateTime,
+                expires: properties.ExpiresUtc.Value.UtcDateTime);
+
             if (resources.Count() > 1) {
-                // CreateToken doesn't support multiple audiences: set audience to null and
-                // replace JwtPayload.Aud with an array containing the multiple resources.
-                var token = Options.AccessTokenHandler.CreateToken(
-                    audience: null,
-                    subject: identity,
-                    issuer: Options.Issuer + "/",
-                    signingCredentials: Options.SigningCredentials,
-                    notBefore: properties.IssuedUtc.Value.UtcDateTime,
-                    expires: properties.ExpiresUtc.Value.UtcDateTime);
-
                 token.Payload[JwtRegisteredClaimNames.Aud] = resources.ToArray();
-
-                return Options.AccessTokenHandler.WriteToken(token);
             }
 
-            else {
-                var token = Options.AccessTokenHandler.CreateToken(
-                    audience: resources.ElementAtOrDefault(0),
-                    subject: identity,
-                    issuer: Options.Issuer + "/",
-                    signingCredentials: Options.SigningCredentials,
-                    notBefore: properties.IssuedUtc.Value.UtcDateTime,
-                    expires: properties.ExpiresUtc.Value.UtcDateTime);
-
-                return Options.AccessTokenHandler.WriteToken(token);
-            }
+            return Options.AccessTokenHandler.WriteToken(token);
         }
 
         private async Task<string> CreateRefreshTokenAsync(AuthenticationTicket ticket,
