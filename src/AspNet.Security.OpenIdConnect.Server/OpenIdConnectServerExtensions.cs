@@ -229,8 +229,23 @@ namespace AspNet.Security.OpenIdConnect.Server {
         }
 
         internal static bool IsSupportedAlgorithm(this SecurityKey securityKey, string algorithm) {
+            // Note: SecurityKey currently doesn't support IsSupportedAlgorithm.
+            // To work around this limitation, this static extensions tries to
+            // determine whether the security key supports RSA w/ SHA2 or not.
+            if (!string.Equals(algorithm, SecurityAlgorithms.RsaSha256Signature, StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(algorithm, SecurityAlgorithms.RsaSha384Signature, StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(algorithm, SecurityAlgorithms.RsaSha512Signature, StringComparison.OrdinalIgnoreCase)) {
+                return false;
+            }
+
+            var rsaSecurityKey = securityKey as RsaSecurityKey;
+            if (rsaSecurityKey != null) {
+                return rsaSecurityKey.HasPublicKey &&
+                       rsaSecurityKey.HasPrivateKey;
+            }
+
             var x509SecurityKey = securityKey as X509SecurityKey;
-            if (x509SecurityKey == null) {
+            if (x509SecurityKey == null || !x509SecurityKey.HasPublicKey) {
                 return false;
             }
 
