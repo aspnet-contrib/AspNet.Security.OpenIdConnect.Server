@@ -182,66 +182,6 @@ namespace Owin {
             context.Set(key + OpenIdConnectConstants.Environment.Parameters, parameters);
         }
 
-        internal static OpenIdConnectMessage GetOpenIdConnectRequest(this ObjectCache cache, string key) {
-            if (cache == null) {
-                throw new ArgumentNullException("cache");
-            }
-
-            var item = cache[key] as string;
-            if (item == null) {
-                return null;
-            }
-
-            using (var stream = new MemoryStream(Convert.FromBase64String(item)))
-            using (var reader = new BinaryReader(stream)) {
-                var version = reader.ReadInt32();
-                if (version != 1) {
-                    cache.Remove(key);
-
-                    return null;
-                }
-
-                var request = new OpenIdConnectMessage();
-                var length = reader.ReadInt32();
-
-                for (var index = 0; index < length; index++) {
-                    var name = reader.ReadString();
-                    var value = reader.ReadString();
-
-                    request.SetParameter(name, value);
-                }
-
-                return request;
-            }
-        }
-
-        internal static void SetOpenIdConnectRequest(this ObjectCache cache, string key, OpenIdConnectMessage request) {
-            if (cache == null) {
-                throw new ArgumentNullException("cache");
-            }
-
-            if (request == null) {
-                cache.Remove(key);
-
-                return;
-            }
-
-            using (var stream = new MemoryStream())
-            using (var writer = new BinaryWriter(stream)) {
-                writer.Write(/* version: */ 1);
-                writer.Write(request.Parameters.Count);
-
-                foreach (var parameter in request.Parameters) {
-                    writer.Write(parameter.Key);
-                    writer.Write(parameter.Value);
-                }
-
-                cache.Add(key, Convert.ToBase64String(stream.ToArray()), new CacheItemPolicy {
-                    SlidingExpiration = TimeSpan.FromHours(10)
-                });
-            }
-        }
-
         internal static AuthenticationProperties Copy(this AuthenticationProperties properties) {
             if (properties == null) {
                 return null;

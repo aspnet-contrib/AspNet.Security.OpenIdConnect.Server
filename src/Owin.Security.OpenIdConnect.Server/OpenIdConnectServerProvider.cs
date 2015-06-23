@@ -21,7 +21,6 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// Creates new instance of default provider behavior
         /// </summary>
         public OpenIdConnectServerProvider() {
-            OnExtractAuthorizationRequest = notification => Task.FromResult<object>(null);
             OnMatchEndpoint = notification => Task.FromResult<object>(null);
             OnValidateClientRedirectUri = notification => Task.FromResult<object>(null);
             OnValidateClientLogoutRedirectUri = notification => Task.FromResult<object>(null);
@@ -68,13 +67,6 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// will already be true if the request path matches.
         /// </summary>
         public Func<MatchEndpointNotification, Task> OnMatchEndpoint { get; set; }
-
-        /// <summary>
-        /// Called to extract the authorization request from the OWIN context.
-        /// By default, the authorization server middleware extracts the OpenID Connect request from the
-        /// query string when receiving a GET request and from the request body when receiving a POST request.
-        /// </summary>
-        public Func<ExtractAuthorizationRequestNotification, Task> OnExtractAuthorizationRequest { get; set; }
 
         /// <summary>
         /// Called to validate that the context.ClientId is a registered "client_id", and that the context.RedirectUri a "redirect_uri" 
@@ -335,17 +327,6 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <returns>Task to enable asynchronous execution</returns>
         public virtual Task MatchEndpoint(MatchEndpointNotification notification) {
             return OnMatchEndpoint(notification);
-        }
-
-        /// <summary>
-        /// Called to extract the authorization request from the OWIN context.
-        /// By default, the authorization server middleware extracts the OpenID Connect request from the
-        /// query string when receiving a GET request and from the request body when receiving a POST request.
-        /// </summary>
-        /// <param name="notification">The context of the event carries information in and results out.</param>
-        /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task ExtractAuthorizationRequest(ExtractAuthorizationRequestNotification notification) {
-            return OnExtractAuthorizationRequest(notification);
         }
 
         /// <summary>

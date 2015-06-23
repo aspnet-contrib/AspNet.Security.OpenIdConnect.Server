@@ -13,6 +13,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Runtime.Caching;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -157,12 +158,100 @@ namespace Owin.Security.OpenIdConnect.Server {
         }
 
         private async Task<bool> InvokeAuthorizationEndpointAsync() {
-            // ExtractAuthorizationRequestAsync may return null if no authorization request
-            // was found or if the HTTP request was malformed: in this case, it automatically
-            // returns an error to the user agent. true is returned to stop processing the request.
-            var request = await ExtractAuthorizationRequestAsync();
-            if (request == null) {
-                return true;
+            OpenIdConnectMessage request;
+
+            if (string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
+                // Create a new authorization request using the
+                // parameters retrieved from the query string.
+                request = new OpenIdConnectMessage(Request.Query) {
+                    RequestType = OpenIdConnectRequestType.AuthenticationRequest
+                };
+            }
+
+            else if (string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase)) {
+                // See http://openid.net/specs/openid-connect-core-1_0.html#FormSerialization
+                if (string.IsNullOrWhiteSpace(Request.ContentType)) {
+                    logger.WriteInformation("A malformed request has been received by the authorization endpoint.");
+
+                    return await SendErrorPageAsync(new OpenIdConnectMessage {
+                        Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                        ErrorDescription = "A malformed authorization request has been received: " +
+                            "the mandatory 'Content-Type' header was missing from the POST request."
+                    });
+                }
+
+                // May have media/type; charset=utf-8, allow partial match.
+                if (!Request.ContentType.StartsWith("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase)) {
+                    logger.WriteInformation("A malformed request has been received by the authorization endpoint.");
+
+                    return await SendErrorPageAsync(new OpenIdConnectMessage {
+                        Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                        ErrorDescription = "A malformed authorization request has been received: " +
+                            "the 'Content-Type' header contained an unexcepted value. " +
+                            "Make sure to use 'application/x-www-form-urlencoded'."
+                    });
+                }
+
+                // Create a new authorization request using the
+                // parameters retrieved from the request form.
+                request = new OpenIdConnectMessage(await Request.ReadFormAsync()) {
+                    RequestType = OpenIdConnectRequestType.AuthenticationRequest
+                };
+            }
+
+            else {
+                logger.WriteInformation("A malformed request has been received by the authorization endpoint.");
+
+                return await SendErrorPageAsync(new OpenIdConnectMessage {
+                    Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = "A malformed authorization request has been received: " +
+                        "make sure to use either GET or POST."
+                });
+            }
+
+            // Re-assemble the authorization request using the cache if
+            // a 'unique_id' parameter has been extracted from the received message.
+            var identifier = request.GetUniqueIdentifier();
+            if (!string.IsNullOrWhiteSpace(identifier)) {
+                var item = Options.Cache.Get(identifier) as string;
+                if (item == null) {
+                    logger.WriteInformation("A unique_id has been provided but no corresponding " +
+                                            "OpenID Connect request has been found in the cache.");
+
+                    return await SendErrorPageAsync(new OpenIdConnectMessage {
+                        Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                        ErrorDescription = "Invalid request: timeout expired."
+                    });
+                }
+
+                using (var stream = new MemoryStream(Convert.FromBase64String(item)))
+                using (var reader = new BinaryReader(stream)) {
+                    // Make sure the stored authorization request
+                    // has been serialized using the same method.
+                    var version = reader.ReadInt32();
+                    if (version != 1) {
+                        Options.Cache.Remove(identifier);
+
+                        logger.WriteError("An invalid OpenID Connect request has been found in the cache.");
+
+                        return await SendErrorPageAsync(new OpenIdConnectMessage {
+                            Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                            ErrorDescription = "Invalid request: timeout expired."
+                        });
+                    }
+
+                    for (int index = 0, length = reader.ReadInt32(); index < length; index++) {
+                        var name = reader.ReadString();
+                        var value = reader.ReadString();
+
+                        // Skip restoring the parameter retrieved from the stored request
+                        // if the OpenID Connect message extracted from the query string
+                        // or the request form defined the same parameter.
+                        if (!request.Parameters.ContainsKey(name)) {
+                            request.SetParameter(name, value);
+                        }
+                    }
+                }
             }
             
             // Insert the authorization request in the OWIN context.
@@ -346,11 +435,25 @@ namespace Owin.Security.OpenIdConnect.Server {
                 });
             }
 
-            // Store the OpenID Connect request in the cache.
-            var identifier = Base64UrlEncoder.Encode(GenerateKey(256 / 8));
+            // Generate a new 256-bits identifier and associate it with the authorization request.
+            identifier = Base64UrlEncoder.Encode(GenerateKey(length: 256 / 8));
             request.SetUniqueIdentifier(identifier);
 
-            Options.Cache.SetOpenIdConnectRequest(identifier, request);
+            using (var stream = new MemoryStream())
+            using (var writer = new BinaryWriter(stream)) {
+                writer.Write(/* version: */ 1);
+                writer.Write(request.Parameters.Count);
+
+                foreach (var parameter in request.Parameters) {
+                    writer.Write(parameter.Key);
+                    writer.Write(parameter.Value);
+                }
+
+                // Store the authorization request in the cache.
+                Options.Cache.Add(identifier, Convert.ToBase64String(stream.ToArray()), new CacheItemPolicy {
+                    SlidingExpiration = TimeSpan.FromHours(1)
+                });
+            }
 
             var notification = new AuthorizationEndpointNotification(Context, Options, request);
             await Options.Provider.AuthorizationEndpoint(notification);
@@ -482,7 +585,10 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             // Remove the OpenID Connect request from the cache.
-            Options.Cache.Remove(request.GetUniqueIdentifier());
+            var identifier = request.GetUniqueIdentifier();
+            if (!string.IsNullOrWhiteSpace(identifier)) {
+                Options.Cache.Remove(identifier);
+            }
 
             var notification = new AuthorizationEndpointResponseNotification(Context, Options, request, response);
             await Options.Provider.AuthorizationEndpointResponse(notification);
@@ -532,75 +638,6 @@ namespace Owin.Security.OpenIdConnect.Server {
             Response.Redirect(request.PostLogoutRedirectUri);
 
             return true;
-        }
-
-        private async Task<OpenIdConnectMessage> ExtractAuthorizationRequestAsync() {
-            var notification = new ExtractAuthorizationRequestNotification(Context, Options);
-            await Options.Provider.ExtractAuthorizationRequest(notification);
-
-            // Directly return the authorization request
-            // if HandleResponse has been called.
-            if (notification.HandledResponse) {
-                return notification.AuthorizationRequest;
-            }
-
-            // Try to retrieve the authorization request from the local cache.
-            // Note: extracting the OpenID Connect request from the cache
-            // should neither cause an exception nor return null.
-            var identifier = Request.Query.Get("unique_id");
-
-            if (!string.IsNullOrWhiteSpace(identifier)) {
-                var request = Options.Cache.GetOpenIdConnectRequest(identifier);
-                if (request != null) {
-                    return request;
-                }
-            }
-
-            if (!string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase) &&
-                !string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase)) {
-                await SendErrorPageAsync(new OpenIdConnectMessage {
-                    Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                    ErrorDescription = "A malformed authorization request has been received: " +
-                        "make sure to use either GET or POST."
-                });
-
-                return null;
-            }
-            
-            if (string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
-                return new OpenIdConnectMessage(Request.Query) {
-                    RequestType = OpenIdConnectRequestType.AuthenticationRequest
-                };
-            }
-
-            else {
-                // See http://openid.net/specs/openid-connect-core-1_0.html#FormSerialization
-                if (string.IsNullOrWhiteSpace(Request.ContentType)) {
-                    await SendErrorPageAsync(new OpenIdConnectMessage {
-                        Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                        ErrorDescription = "A malformed authorization request has been received: " +
-                            "the mandatory 'Content-Type' header was missing from the POST request."
-                    });
-
-                    return null;
-                }
-
-                // May have media/type; charset=utf-8, allow partial match.
-                if (!Request.ContentType.StartsWith("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase)) {
-                    await SendErrorPageAsync(new OpenIdConnectMessage {
-                        Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                        ErrorDescription = "A malformed authorization request has been received: " +
-                            "the 'Content-Type' header contained an unexcepted value. " +
-                            "Make sure to use 'application/x-www-form-urlencoded'."
-                    });
-
-                    return null;
-                }
-
-                return new OpenIdConnectMessage(await Request.ReadFormAsync()) {
-                    RequestType = OpenIdConnectRequestType.AuthenticationRequest
-                };
-            }
         }
 
         private async Task<bool> ApplyAuthorizationResponseAsync(OpenIdConnectMessage request, OpenIdConnectMessage response) {
@@ -1072,8 +1109,9 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return;
             }
 
-            var request = new OpenIdConnectMessage(await Request.ReadFormAsync());
-            request.RequestType = OpenIdConnectRequestType.TokenRequest;
+            var request = new OpenIdConnectMessage(await Request.ReadFormAsync()) {
+                RequestType = OpenIdConnectRequestType.TokenRequest
+            };
 
             // Remove milliseconds in case they don't round-trip
             var currentUtc = Options.SystemClock.UtcNow;
