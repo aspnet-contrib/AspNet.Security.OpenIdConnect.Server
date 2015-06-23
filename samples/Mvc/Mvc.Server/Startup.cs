@@ -34,7 +34,6 @@ namespace Mvc.Server {
             services.AddAuthentication();
             services.AddCaching();
             services.AddMvc();
-            services.AddSession();
         }
 
         public void Configure(IApplicationBuilder app, IRuntimeEnvironment environment) {
@@ -107,12 +106,6 @@ namespace Mvc.Server {
                 owin.UseXXssProtection(options => options.EnabledWithBlockMode());
             });
 #endif
-
-            // Note: make sure to always enable sessions support.
-            // This sample uses session to flow the OpenID Connect request between
-            // the first time the user arrives on the authorization endpoint and the
-            // second time, after he has been authenticated by the external provider.
-            app.UseSession();
 
             app.UseOpenIdConnectServer(options => {
                 options.AuthenticationScheme = OpenIdConnectDefaults.AuthenticationScheme;

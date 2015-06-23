@@ -5,15 +5,11 @@
  */
 
 using System;
-using System.IO;
-using System.Linq;
-using System.Security.Claims;
 using Microsoft.AspNet.Authentication;
-using Microsoft.AspNet.Authentication.DataHandler;
-using Microsoft.AspNet.Authentication.DataHandler.Encoder;
-using Microsoft.AspNet.Authentication.DataHandler.Serializer;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.DataProtection;
+using Microsoft.Framework.Caching.Distributed;
+using Microsoft.Framework.Internal;
 using Microsoft.Framework.Logging;
 using Microsoft.Framework.OptionsModel;
 using Microsoft.Framework.WebEncoders;
@@ -31,18 +27,15 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// extension method.
         /// </summary>
         public OpenIdConnectServerMiddleware(
-            RequestDelegate next,
-            IServiceProvider services,
-            ILoggerFactory loggerFactory,
-            IUrlEncoder encoder,
-            IDataProtectionProvider dataProtectionProvider,
-            IOptions<OpenIdConnectServerOptions> options,
-            ConfigureOptions<OpenIdConnectServerOptions> configuration)
-            : base(next, options, loggerFactory, encoder, configuration) {
-            if (Options.Provider == null) {
-                Options.Provider = new OpenIdConnectServerProvider();
-            }
-
+            [NotNull] RequestDelegate next,
+            [NotNull] ILoggerFactory loggerFactory,
+            [NotNull] IDistributedCache cache,
+            [NotNull] IHtmlEncoder htmlEncoder,
+            [NotNull] IUrlEncoder urlEncoder,
+            [NotNull] IDataProtectionProvider dataProtectionProvider,
+            [NotNull] IOptions<OpenIdConnectServerOptions> options,
+            [NotNull] ConfigureOptions<OpenIdConnectServerOptions> configuration)
+            : base(next, options, loggerFactory, urlEncoder, configuration) {
             if (Options.AuthorizationCodeFormat == null) {
                 Options.AuthorizationCodeFormat = dataProtectionProvider.CreateTicketFormat(
                     typeof(OpenIdConnectServerMiddleware).FullName,
@@ -61,16 +54,16 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     Options.AuthenticationScheme, "Refresh_Token", "v1");
             }
 
+            if (Options.Cache == null) {
+                Options.Cache = cache;
+            }
+
             if (Options.HtmlEncoder == null) {
-                Options.HtmlEncoder = services.GetHtmlEncoder();
+                Options.HtmlEncoder = htmlEncoder;
             }
 
             if (string.IsNullOrWhiteSpace(Options.AuthenticationScheme)) {
                 throw new ArgumentNullException(nameof(Options.AuthenticationScheme));
-            }
-
-            if (Options.Cache == null) {
-                throw new ArgumentNullException(nameof(Options.Cache));
             }
 
             if (Options.RandomNumberGenerator == null) {

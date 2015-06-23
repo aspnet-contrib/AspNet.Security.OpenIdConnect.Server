@@ -11,7 +11,6 @@ using Microsoft.AspNet.Authentication;
 using Microsoft.AspNet.Authentication.Notifications;
 using Microsoft.AspNet.Http;
 using Microsoft.Framework.Caching.Distributed;
-using Microsoft.Framework.Caching.Memory;
 using Microsoft.Framework.WebEncoders;
 
 namespace AspNet.Security.OpenIdConnect.Server {
@@ -172,7 +171,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Set to true if the web application is able to render error messages on the authorization endpoint. This is only needed for cases where
         /// the browser is not redirected back to the client application, for example, when the client_id or redirect_uri are incorrect. The 
-        /// authorization endpoint should expect to see "oauth.Error", "oauth.ErrorDescription", "oauth.ErrorUri" properties added to the owin environment.
+        /// authorization endpoint should expect to see the OpenID Connect response added to the ASP.NET 5 environment.
         /// </summary>
         public bool ApplicationCanDisplayErrors { get; set; }
 
@@ -189,12 +188,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public bool AllowInsecureHttp { get; set; }
 
         /// <summary>
-        /// The cache instance used to store authorization codes. You can replace the default
-        /// instance by a distributed implementation to support Web farm environments.
+        /// The cache instance used to store short-lived data like authentication requests or authorization codes.
+        /// You can replace the default instance by a distributed implementation to support Web farm environments.
+        /// When this property is not explicitly set, the global cache defined in Startup.cs is used instead.
         /// </summary>
-        public IDistributedCache Cache { get; set; } = new LocalCache(new MemoryCache(new MemoryCacheOptions {
-            CompactOnMemoryPressure = false
-        }));
+        public IDistributedCache Cache { get; set; }
 
         /// <summary>
         /// Used to sanitize HTML responses. If you don't provide an explicit instance,

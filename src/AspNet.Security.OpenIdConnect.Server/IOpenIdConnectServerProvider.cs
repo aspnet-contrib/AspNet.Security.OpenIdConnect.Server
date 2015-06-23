@@ -5,6 +5,7 @@
  */
 
 using System.Threading.Tasks;
+using Microsoft.AspNet.Authentication.Notifications;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
@@ -22,16 +23,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <param name="notification">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
         Task MatchEndpoint(MatchEndpointNotification notification);
-
-        /// <summary>
-        /// Called to extract the authorization request from the ASP.NET 5 context.
-        /// By default, the authorization server middleware extracts the OpenID Connect request from user's session
-        /// if it is available and if the query string includes the required "unique_id" parameter, from the query string
-        /// when receiving a GET request and from the request body when receiving a POST request.
-        /// </summary>
-        /// <param name="notification">The context of the event carries information in and results out.</param>
-        /// <returns>Task to enable asynchronous execution</returns>
-        Task ExtractAuthorizationRequest(ExtractAuthorizationRequestNotification notification);
 
         /// <summary>
         /// Called to validate that the context.ClientId is a registered "client_id", and that the context.RedirectUri a "redirect_uri" 

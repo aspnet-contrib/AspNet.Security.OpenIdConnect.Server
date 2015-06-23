@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
 using Microsoft.AspNet.Authentication;
 using Microsoft.AspNet.Authentication.DataHandler;
 using Microsoft.AspNet.Authentication.DataHandler.Encoder;
@@ -20,6 +21,7 @@ using Microsoft.AspNet.DataProtection;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Authentication;
 using Microsoft.AspNet.Http.Features;
+using Microsoft.Framework.Caching.Distributed;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.OptionsModel;
 using Microsoft.IdentityModel.Protocols;
@@ -134,76 +136,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
         }
 
         /// <summary>
-        /// Retrieves the <see cref="OpenIdConnectMessage"/> request from the given session.
-        /// </summary>
-        /// <param name="session">The ASP.NET session which the request must be retrieved from.</param>
-        /// <param name="key">The unique identifier used to retrieve the request from the session.</param>
-        /// <returns>The <see cref="OpenIdConnectMessage"/> stored in the session or <c>null</c> if it cannot be found.</returns>
-        internal static OpenIdConnectMessage GetOpenIdConnectRequest(this ISession session, string key) {
-            if (session == null) {
-                throw new ArgumentNullException(nameof(session));
-            }
-
-            var buffer = session.Get(key);
-            if (buffer == null) {
-                return null;
-            }
-
-            using (var stream = new MemoryStream(buffer))
-            using (var reader = new BinaryReader(stream)) {
-                var version = reader.ReadInt32();
-                if (version != 1) {
-                    session.Remove(key);
-
-                    return null;
-                }
-
-                var request = new OpenIdConnectMessage();
-                var length = reader.ReadInt32();
-
-                for (var index = 0; index < length; index++) {
-                    var name = reader.ReadString();
-                    var value = reader.ReadString();
-
-                    request.SetParameter(name, value);
-                }
-
-                return request;
-            }
-        }
-
-        /// <summary>
-        /// Inserts the <see cref="OpenIdConnectMessage"/> request in the given session.
-        /// </summary>
-        /// <param name="session">The ASP.NET session which the request must be added to.</param>
-        /// <param name="key">The unique identifier used to store the request in the session.</param>
-        /// <param name="request">The <see cref="OpenIdConnectMessage"/> to store.</param>
-        internal static void SetOpenIdConnectRequest(this ISession session, string key, OpenIdConnectMessage request) {
-            if (session == null) {
-                throw new ArgumentNullException(nameof(session));
-            }
-
-            if (request == null) {
-                session.Remove(key);
-
-                return;
-            }
-            
-            using (var stream = new MemoryStream())
-            using (var writer = new BinaryWriter(stream)) {
-                writer.Write(/* version: */ 1);
-                writer.Write(request.Parameters.Count);
-
-                foreach (var parameter in request.Parameters) {
-                    writer.Write(parameter.Key);
-                    writer.Write(parameter.Value);
-                }
-
-                session.Set(key, stream.ToArray());
-            }
-        }
-
-        /// <summary>
         /// Creates a new enhanced ticket format that supports serializing
         /// <see cref="ClaimsIdentity.Actor"/> and <see cref="Claim.Properties"/>.
         /// </summary>
@@ -226,6 +158,25 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             return feature;
+        }
+
+        internal static Task SetAsync(this IDistributedCache cache, string key, Func<DistributedCacheEntryOptions, byte[]> factory) {
+            if (cache == null) {
+                throw new ArgumentNullException(nameof(cache));
+            }
+
+            if (key == null) {
+                throw new ArgumentNullException(nameof(key));
+            }
+
+            if (factory == null) {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
+            var options = new DistributedCacheEntryOptions();
+            var buffer = factory(options);
+
+            return cache.SetAsync(key, buffer, options);
         }
 
         internal static bool IsSupportedAlgorithm(this SecurityKey securityKey, string algorithm) {

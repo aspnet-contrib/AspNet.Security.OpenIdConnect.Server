@@ -25,14 +25,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public Func<MatchEndpointNotification, Task> OnMatchEndpoint { get; set; } = notification => Task.FromResult<object>(null);
 
         /// <summary>
-        /// Called to extract the authorization request from the ASP.NET 5 context.
-        /// By default, the authorization server middleware extracts the OpenID Connect request from user's session
-        /// if it is available and if the query string includes the required "unique_id" parameter, from the query string
-        /// when receiving a GET request and from the request body when receiving a POST request.
-        /// </summary>
-        public Func<ExtractAuthorizationRequestNotification, Task> OnExtractAuthorizationRequest { get; set; } = notification => Task.FromResult<object>(null);
-
-        /// <summary>
         /// Called to validate that the context.ClientId is a registered "client_id", and that the context.RedirectUri a "redirect_uri" 
         /// registered for that client. This only occurs when processing the authorization endpoint. The application MUST implement this
         /// call, and it MUST validate both of those factors before calling context.Validated. If the context.Validated method is called
@@ -290,16 +282,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <param name="notification">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
         public virtual Task MatchEndpoint(MatchEndpointNotification notification) => OnMatchEndpoint(notification);
-
-        /// <summary>
-        /// Called to extract the authorization request from the ASP.NET 5 context.
-        /// By default, the authorization server middleware extracts the OpenID Connect request from user's session
-        /// if it is available and if the query string includes the required "unique_id" parameter, from the query string
-        /// when receiving a GET request and from the request body when receiving a POST request.
-        /// </summary>
-        /// <param name="notification">The context of the event carries information in and results out.</param>
-        /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task ExtractAuthorizationRequest(ExtractAuthorizationRequestNotification notification) => OnExtractAuthorizationRequest(notification);
 
         /// <summary>
         /// Called to validate that the context.ClientId is a registered "client_id", and that the context.RedirectUri a "redirect_uri" 
