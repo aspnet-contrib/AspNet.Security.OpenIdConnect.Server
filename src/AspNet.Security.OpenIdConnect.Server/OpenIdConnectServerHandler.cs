@@ -1685,19 +1685,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
             var properties = ticket.Properties?.Copy() ?? new AuthenticationProperties();
             properties.IssuedUtc = Options.SystemClock.UtcNow;
             properties.ExpiresUtc = properties.IssuedUtc.Value + Options.AccessTokenLifetime;
-            ticket = new AuthenticationTicket(ticket.Principal, properties, ticket.AuthenticationScheme);
-
-            var notification = new CreateAccessTokenNotification(Context, Options, request, response, ticket);
-            await Options.Provider.CreateAccessToken(notification);
-
-            // Allow the application to change the authentication
-            // ticket from the CreateAccessTokenAsync notification.
-            ticket = notification.AuthenticationTicket;
-
-            // Skip the default logic if HandledResponse has been called.
-            if (notification.HandledResponse) {
-                return notification.AccessToken;
-            }
 
             // Create a new principal containing only the filtered claims.
             // Actors identities are also filtered (delegation scenarios).
@@ -1721,11 +1708,22 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return !claim.HasDestination() || claim.HasDestination(OpenIdConnectConstants.ResponseTypes.Token);
             });
 
-            if (Options.AccessTokenHandler == null) {
-                // Replace the authentication ticket by a new one
-                // exposing the properties and the filtered principal.
-                ticket = new AuthenticationTicket(principal, properties, ticket.AuthenticationScheme);
+            // Create a new ticket containing the updated properties and the filtered principal.
+            ticket = new AuthenticationTicket(principal, properties, ticket.AuthenticationScheme);
 
+            var notification = new CreateAccessTokenNotification(Context, Options, request, response, ticket);
+            await Options.Provider.CreateAccessToken(notification);
+
+            // Allow the application to change the authentication
+            // ticket from the CreateAccessTokenAsync notification.
+            ticket = notification.AuthenticationTicket;
+
+            // Skip the default logic if HandledResponse has been called.
+            if (notification.HandledResponse) {
+                return notification.AccessToken;
+            }
+
+            if (Options.AccessTokenHandler == null) {
                 return Options.AccessTokenFormat.Protect(ticket);
             }
             
@@ -1799,19 +1797,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
             var properties = ticket.Properties?.Copy() ?? new AuthenticationProperties();
             properties.IssuedUtc = Options.SystemClock.UtcNow;
             properties.ExpiresUtc = properties.IssuedUtc.Value + Options.IdentityTokenLifetime;
-            ticket = new AuthenticationTicket(ticket.Principal, properties, ticket.AuthenticationScheme);
-
-            var notification = new CreateIdentityTokenNotification(Context, Options, request, response, ticket);
-            await Options.Provider.CreateIdentityToken(notification);
-
-            // Allow the application to change the authentication
-            // ticket from the CreateIdentityTokenAsync notification.
-            ticket = notification.AuthenticationTicket;
-
-            // Skip the default logic if HandledResponse has been called.
-            if (notification.HandledResponse) {
-                return notification.IdentityToken;
-            }
 
             // Replace the principal by a new one containing only the filtered claims.
             // Actors identities are also filtered (delegation scenarios).
@@ -1827,6 +1812,21 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 // Claims whose destination doesn't contain "id_token" are excluded.
                 return claim.HasDestination(OpenIdConnectConstants.ResponseTypes.IdToken);
             });
+
+            // Create a new ticket containing the updated properties and the filtered principal.
+            ticket = new AuthenticationTicket(principal, properties, ticket.AuthenticationScheme);
+
+            var notification = new CreateIdentityTokenNotification(Context, Options, request, response, ticket);
+            await Options.Provider.CreateIdentityToken(notification);
+
+            // Allow the application to change the authentication
+            // ticket from the CreateIdentityTokenAsync notification.
+            ticket = notification.AuthenticationTicket;
+
+            // Skip the default logic if HandledResponse has been called.
+            if (notification.HandledResponse) {
+                return notification.IdentityToken;
+            }
 
             var identity = (ClaimsIdentity) principal.Identity;
 
