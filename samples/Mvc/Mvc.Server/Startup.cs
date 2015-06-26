@@ -9,6 +9,7 @@ using Microsoft.AspNet.Authentication;
 using Microsoft.AspNet.Authentication.Cookies;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Http;
+using Microsoft.Data.Entity;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Logging;
 using Microsoft.Framework.Runtime;
@@ -24,8 +25,10 @@ namespace Mvc.Server {
     public class Startup {
         public void ConfigureServices(IServiceCollection services) {
             services.AddEntityFramework()
-                .AddInMemoryStore()
-                .AddDbContext<ApplicationContext>();
+                .AddInMemoryDatabase()
+                .AddDbContext<ApplicationContext>(options => {
+                    options.UseInMemoryDatabase();
+                });
 
             services.Configure<ExternalAuthenticationOptions>(options => {
                 options.SignInScheme = "ServerCookie";
