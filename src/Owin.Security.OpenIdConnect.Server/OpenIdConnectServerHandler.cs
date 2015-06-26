@@ -1728,19 +1728,6 @@ namespace Owin.Security.OpenIdConnect.Server {
             var properties = ticket.Properties.Copy() ?? new AuthenticationProperties();
             properties.IssuedUtc = Options.SystemClock.UtcNow;
             properties.ExpiresUtc = properties.IssuedUtc.Value + Options.AccessTokenLifetime;
-            ticket = new AuthenticationTicket(ticket.Identity, properties);
-
-            var notification = new CreateAccessTokenNotification(Context, Options, request, response, ticket);
-            await Options.Provider.CreateAccessToken(notification);
-
-            // Allow the application to change the authentication
-            // ticket from the CreateAccessTokenAsync notification.
-            ticket = notification.AuthenticationTicket;
-
-            // Skip the default logic if HandledResponse has been called.
-            if (notification.HandledResponse) {
-                return notification.AccessToken;
-            }
 
             // Create a new identity containing only the filtered claims.
             // Actors identities are also filtered (delegation scenarios).
@@ -1764,11 +1751,22 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return !claim.HasDestination() || claim.HasDestination(OpenIdConnectConstants.ResponseTypes.Token);
             });
 
-            if (Options.AccessTokenHandler == null) {
-                // Replace the authentication ticket by a new one
-                // exposing the properties and the filtered identity.
-                ticket = new AuthenticationTicket(identity, properties);
+            // Create a new ticket containing the updated properties and the filtered identity.
+            ticket = new AuthenticationTicket(identity, properties);
 
+            var notification = new CreateAccessTokenNotification(Context, Options, request, response, ticket);
+            await Options.Provider.CreateAccessToken(notification);
+
+            // Allow the application to change the authentication
+            // ticket from the CreateAccessTokenAsync notification.
+            ticket = notification.AuthenticationTicket;
+
+            // Skip the default logic if HandledResponse has been called.
+            if (notification.HandledResponse) {
+                return notification.AccessToken;
+            }
+
+            if (Options.AccessTokenHandler == null) {
                 return Options.AccessTokenFormat.Protect(ticket);
             }
 
@@ -1852,19 +1850,6 @@ namespace Owin.Security.OpenIdConnect.Server {
             var properties = ticket.Properties.Copy() ?? new AuthenticationProperties();
             properties.IssuedUtc = Options.SystemClock.UtcNow;
             properties.ExpiresUtc = properties.IssuedUtc.Value + Options.IdentityTokenLifetime;
-            ticket = new AuthenticationTicket(ticket.Identity, properties);
-
-            var notification = new CreateIdentityTokenNotification(Context, Options, request, response, ticket);
-            await Options.Provider.CreateIdentityToken(notification);
-
-            // Allow the application to change the authentication
-            // ticket from the CreateIdentityTokenAsync notification.
-            ticket = notification.AuthenticationTicket;
-
-            // Skip the default logic if HandledResponse has been called.
-            if (notification.HandledResponse) {
-                return notification.IdentityToken;
-            }
 
             // Replace the identity by a new one containing only the filtered claims.
             // Actors identities are also filtered (delegation scenarios).
@@ -1880,6 +1865,21 @@ namespace Owin.Security.OpenIdConnect.Server {
                 // Claims whose destination doesn't contain "id_token" are excluded.
                 return claim.HasDestination(OpenIdConnectConstants.ResponseTypes.IdToken);
             });
+
+            // Create a new ticket containing the updated properties and the filtered identity.
+            ticket = new AuthenticationTicket(identity, properties);
+
+            var notification = new CreateIdentityTokenNotification(Context, Options, request, response, ticket);
+            await Options.Provider.CreateIdentityToken(notification);
+
+            // Allow the application to change the authentication
+            // ticket from the CreateIdentityTokenAsync notification.
+            ticket = notification.AuthenticationTicket;
+
+            // Skip the default logic if HandledResponse has been called.
+            if (notification.HandledResponse) {
+                return notification.IdentityToken;
+            }
 
             identity.AddClaim(JwtRegisteredClaimNames.Iat,
                 EpochTime.GetIntDate(properties.IssuedUtc.Value.UtcDateTime).ToString());
