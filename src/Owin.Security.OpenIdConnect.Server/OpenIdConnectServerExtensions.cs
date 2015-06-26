@@ -6,11 +6,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IdentityModel.Tokens;
 using System.IO;
 using System.Linq;
-using System.Runtime.Caching;
 using System.Security.Claims;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
@@ -78,7 +76,7 @@ namespace Owin {
                 throw new ArgumentNullException("context");
             }
 
-            return context.GetOpenIdConnectMessage(OpenIdConnectConstants.Environment.Request);
+            return context.Get<OpenIdConnectMessage>(OpenIdConnectConstants.Environment.Request);
         }
 
         /// <summary>
@@ -91,7 +89,7 @@ namespace Owin {
                 throw new ArgumentNullException("context");
             }
 
-            context.SetOpenIdConnectMessage(OpenIdConnectConstants.Environment.Request, request);
+            context.Set(OpenIdConnectConstants.Environment.Request, request);
         }
 
         /// <summary>
@@ -105,7 +103,7 @@ namespace Owin {
                 throw new ArgumentNullException("context");
             }
 
-            return context.GetOpenIdConnectMessage(OpenIdConnectConstants.Environment.Response);
+            return context.Get<OpenIdConnectMessage>(OpenIdConnectConstants.Environment.Response);
         }
 
         /// <summary>
@@ -118,7 +116,7 @@ namespace Owin {
                 throw new ArgumentNullException("context");
             }
 
-            context.SetOpenIdConnectMessage(OpenIdConnectConstants.Environment.Response, response);
+            context.Set(OpenIdConnectConstants.Environment.Response, response);
         }
 
         /// <summary>
@@ -133,53 +131,6 @@ namespace Owin {
             }
 
             return new EnhancedTicketDataFormat(app.CreateDataProtector(purposes));
-        }
-
-        private static OpenIdConnectMessage GetOpenIdConnectMessage(this IOwinContext context, string key) {
-            if (context == null) {
-                throw new ArgumentNullException("context");
-            }
-
-            if (string.IsNullOrWhiteSpace(key)) {
-                throw new ArgumentException("key");
-            }
-
-            var message = context.Get<OpenIdConnectMessage>(key + OpenIdConnectConstants.Environment.Message);
-            if (message != null) {
-                return message;
-            }
-
-            var parameters = context.Get<IReadOnlyDictionary<string, string[]>>(key + OpenIdConnectConstants.Environment.Parameters);
-            if (parameters != null) {
-                return new OpenIdConnectMessage(parameters);
-            }
-
-            return null;
-        }
-
-        private static void SetOpenIdConnectMessage(this IOwinContext context, string key, OpenIdConnectMessage message) {
-            if (context == null) {
-                throw new ArgumentNullException("context");
-            }
-
-            if (string.IsNullOrWhiteSpace(key)) {
-                throw new ArgumentException("key");
-            }
-
-            if (message == null) {
-                context.Environment.Remove(key + OpenIdConnectConstants.Environment.Message);
-                context.Environment.Remove(key + OpenIdConnectConstants.Environment.Parameters);
-
-                return;
-            }
-
-            var parameters = new ReadOnlyDictionary<string, string[]>(
-                message.Parameters.ToDictionary(
-                    keySelector: parameter => parameter.Key,
-                    elementSelector: parameter => new[] { parameter.Value }));
-
-            context.Set(key + OpenIdConnectConstants.Environment.Message, message);
-            context.Set(key + OpenIdConnectConstants.Environment.Parameters, parameters);
         }
 
         internal static AuthenticationProperties Copy(this AuthenticationProperties properties) {

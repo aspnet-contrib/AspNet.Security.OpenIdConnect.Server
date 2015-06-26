@@ -94,8 +94,6 @@ namespace Owin.Security.OpenIdConnect.Server {
         }
 
         public static class Environment {
-            public const string Message = "#message";
-            public const string Parameters = "#parameters";
             public const string Request = "OpenIdConnect.Request";
             public const string Response = "OpenIdConnect.Response";
         }
