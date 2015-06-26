@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using Microsoft.AspNet.Authentication;
 using Microsoft.AspNet.Http.Authentication;
+using Microsoft.AspNet.Http.Features.Authentication;
 using Microsoft.AspNet.WebUtilities;
 using Microsoft.Framework.Caching.Distributed;
 using Microsoft.Framework.Logging;
@@ -26,9 +27,9 @@ using Newtonsoft.Json.Linq;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     internal class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions> {
-        // Implementing AuthenticateCoreAsync allows the inner application
+        // Implementing AuthenticateAsync allows the inner application
         // to retrieve the identity extracted from the optional id_token_hint.
-        protected override async Task<AuthenticationTicket> AuthenticateCoreAsync() {
+        protected override async Task<AuthenticationTicket> AuthenticateAsync() {
             var notification = new MatchEndpointNotification(Context, Options);
 
             if (Options.AuthorizationEndpointPath.HasValue &&
@@ -44,7 +45,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             await Options.Provider.MatchEndpoint(notification);
             
             if (notification.IsAuthorizationEndpoint || notification.IsLogoutEndpoint) {
-                // Invalid authorization or logout requests are ignored in AuthenticateCoreAsync:
+                // Invalid authorization or logout requests are ignored in AuthenticateAsync:
                 // in this case, null is always returned to indicate authentication failed.
                 var request = Context.GetOpenIdConnectRequest();
                 if (request == null) {
@@ -460,52 +461,20 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             return false;
         }
-        
-        /// <remarks>
-        /// Authentication handlers cannot reliabily write to the response stream
-        /// from ApplyResponseGrantAsync or ApplyResponseChallengeAsync because these methods
-        /// are susceptible to be invoked from AuthenticationHandler.OnSendingHeaderCallback
-        /// where calling Write or WriteAsync on the response stream may result in a deadlock
-        /// on hosts using streamed responses. To work around this limitation, OpenIdConnectServerHandler
-        /// doesn't implement ApplyResponseGrantAsync but TeardownCoreAsync,
-        /// which is never called by AuthenticationHandler.OnSendingHeaderCallback.
-        /// In theory, this would prevent OpenIdConnectServerHandler from both applying
-        /// the response grant and allowing the next middleware in the pipeline to alter
-        /// the response stream but in practice, the OpenIdConnectServerHandler is assumed to be
-        /// the only middleware allowed to write to the response stream when a response grant has been applied.
-        /// </remarks>
-        protected override async Task TeardownCoreAsync() {
-            if (await HandleAuthorizationResponseAsync()) {
-                return;
-            }
 
-            await HandleLogoutResponseAsync();
-        }
-
-        private async Task<bool> HandleAuthorizationResponseAsync() {
+        protected override async Task HandleSignInAsync(SignInContext context) {
             // request may be null when no authorization request has been received
             // or has been already handled by InvokeAuthorizationEndpointAsync.
             var request = Context.GetOpenIdConnectRequest();
             if (request == null) {
-                return false;
-            }
-
-            // Stop processing the request if an authorization response has been forged by the inner application.
-            // This allows the next middleware to return an OpenID Connect error or a custom response to the client.
-            var response = Context.GetOpenIdConnectResponse();
-            if (response != null && !string.IsNullOrWhiteSpace(response.RedirectUri)) {
-                if (!string.IsNullOrWhiteSpace(response.Error)) {
-                    return await SendErrorRedirectAsync(request, response);
-                }
-
-                return await ApplyAuthorizationResponseAsync(request, response);
+                return;
             }
 
             // Stop processing the request if there's no response grant that matches
             // the authentication type associated with this middleware instance
             // or if the response status code doesn't indicate a successful response.
-            if (SignInContext == null || Response.StatusCode != 200) {
-                return false;
+            if (context == null || Response.StatusCode != 200) {
+                return;
             }
 
             if (Response.HasStarted) {
@@ -514,18 +483,18 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     "the response headers have already been sent back to the user agent. " +
                     "Make sure the response body has not been altered and that no middleware " +
                     "has attempted to write to the response stream during this request.");
-                return false;
+                return;
             }
 
-            response = new OpenIdConnectMessage {
+            var response = new OpenIdConnectMessage {
                 ClientId = request.ClientId,
                 Nonce = request.Nonce,
                 RedirectUri = request.RedirectUri,
                 State = request.State
             };
 
-            var properties = new AuthenticationProperties(SignInContext.Properties);
-            var ticket = new AuthenticationTicket(SignInContext.Principal, properties, Options.AuthenticationScheme);
+            var properties = new AuthenticationProperties(context.Properties);
+            var ticket = new AuthenticationTicket(context.Principal, properties, Options.AuthenticationScheme);
 
             // Associate client_id with all subsequent tickets.
             ticket.Properties.Items[OpenIdConnectConstants.Extra.ClientId] = request.ClientId;
@@ -582,25 +551,25 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             // Stop processing the request if AuthorizationEndpointResponse called RequestCompleted.
             if (notification.IsRequestCompleted) {
-                return true;
+                return;
             }
 
-            return await ApplyAuthorizationResponseAsync(request, response);
+            await ApplyAuthorizationResponseAsync(request, response);
         }
 
-        private async Task<bool> HandleLogoutResponseAsync() {
+        protected override async Task HandleSignOutAsync(SignOutContext context) {
             // request may be null when no logout request has been received
             // or has been already handled by InvokeLogoutEndpointAsync.
             var request = Context.GetOpenIdConnectRequest();
             if (request == null) {
-                return false;
+                return;
             }
 
             // Stop processing the request if there's no signout context that matches
             // the authentication type associated with this middleware instance
             // or if the response status code doesn't indicate a successful response.
-            if (SignOutContext == null || Response.StatusCode != 200) {
-                return false;
+            if (context == null || Response.StatusCode != 200) {
+                return;
             }
 
             if (Response.HasStarted) {
@@ -609,7 +578,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     "the response headers have already been sent back to the user agent. " +
                     "Make sure the response body has not been altered and that no middleware " +
                     "has attempted to write to the response stream during this request.");
-                return false;
+                return;
             }
 
             var notification = new LogoutEndpointResponseNotification(Context, Options, request);
@@ -618,12 +587,34 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // Stop processing the request if
             // LogoutEndpointResponse called RequestCompleted.
             if (notification.IsRequestCompleted) {
-                return true;
+                return;
             }
 
             Response.Redirect(request.PostLogoutRedirectUri);
+        }
 
-            return true;
+        protected override async Task FinishResponseAsync() {
+            // Stop processing the request if no OpenID Connect
+            // message has been found in the current context.
+            var request = Context.GetOpenIdConnectRequest();
+            if (request == null) {
+                return;
+            }
+
+            // Don't apply any modification to the response if no OpenID Connect
+            // message has been explicitly created by the inner application.
+            var response = Context.GetOpenIdConnectResponse();
+            if (response == null) {
+                return;
+            }
+
+            // Successful authorization responses are directly applied by
+            // HandleSignInAsync: only error responses should be handled at this stage.
+            if (string.IsNullOrEmpty(response.Error)) {
+                return;
+            }
+
+            await SendErrorRedirectAsync(request, response);
         }
 
         private async Task<bool> ApplyAuthorizationResponseAsync(OpenIdConnectMessage request, OpenIdConnectMessage response) {
@@ -2233,14 +2224,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
             Options.RandomNumberGenerator.GetBytes(bytes);
             return Convert.ToBase64String(bytes);
         }
-
-        protected override AuthenticationTicket AuthenticateCore() {
-            return AuthenticateCoreAsync().GetAwaiter().GetResult();
-        }
-
-        protected override void ApplyResponseGrant() { }
-
-        protected override void ApplyResponseChallenge() { }
 
         private class Appender {
             private readonly char _delimiter;
