@@ -27,6 +27,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             : base(context, options) {
             ClientContext = clientContext;
             AuthorizationRequest = request;
+            Validated();
         }
 
         /// <summary>
