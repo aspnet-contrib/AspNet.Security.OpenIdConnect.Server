@@ -200,6 +200,19 @@ namespace Owin {
             return resource.Split(' ');
         }
 
+        internal static IEnumerable<string> GetScopes(this AuthenticationProperties properties) {
+            if (properties == null) {
+                return null;
+            }
+
+            var scope = properties.GetProperty(OpenIdConnectConstants.Extra.Scope);
+            if (string.IsNullOrWhiteSpace(scope)) {
+                return Enumerable.Empty<string>();
+            }
+
+            return scope.Split(' ');
+        }
+
         internal static void SetAudiences(this AuthenticationProperties properties, IEnumerable<string> audiences) {
             properties.Dictionary[OpenIdConnectConstants.Extra.Audience] = string.Join(" ", audiences);
         }
