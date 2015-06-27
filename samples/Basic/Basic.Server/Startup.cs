@@ -16,7 +16,6 @@ namespace Basic.Server {
                 AccessTokenLifetime = TimeSpan.FromDays(14),
                 IdentityTokenLifetime = TimeSpan.FromMinutes(60),
 
-                Issuer = "http://localhost:59504/",
                 SigningCredentials = credentials,
 
                 TokenEndpointPath = new PathString("/token"),

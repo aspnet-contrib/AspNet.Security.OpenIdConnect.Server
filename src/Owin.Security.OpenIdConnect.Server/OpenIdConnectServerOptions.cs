@@ -53,7 +53,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// The URI must be absolute and may contain a path, but no query string or fragment part.
         /// Unless AllowInsecureHttp has been set to true, an HTTPS address must be provided.
         /// </summary>
-        public string Issuer { get; set; }
+        public Uri Issuer { get; set; }
 
         /// <summary>
         /// The credentials used to encrypt access tokens, when supported by the access token handler.

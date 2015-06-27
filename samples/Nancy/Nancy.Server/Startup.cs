@@ -62,7 +62,6 @@ namespace Nancy.Server {
                 options.AuthenticationType = OpenIdConnectDefaults.AuthenticationType;
                 options.AuthenticationMode = AuthenticationMode.Passive;
 
-                options.Issuer = "http://localhost:54541/";
                 options.SigningCredentials = credentials;
 
                 options.Provider = new AuthorizationProvider();

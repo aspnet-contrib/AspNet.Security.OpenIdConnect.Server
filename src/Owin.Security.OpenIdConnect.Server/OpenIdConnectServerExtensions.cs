@@ -133,6 +133,26 @@ namespace Owin {
             return new EnhancedTicketDataFormat(app.CreateDataProtector(purposes));
         }
 
+        internal static string GetIssuer(this IOwinContext context, OpenIdConnectServerOptions options) {
+            var issuer = options.Issuer;
+            if (issuer == null) {
+                if (!Uri.TryCreate(context.Request.Scheme + "://" + context.Request.Host +
+                                   context.Request.PathBase, UriKind.Absolute, out issuer)) {
+                    throw new InvalidOperationException("The issuer address cannot be inferred from the current request");
+                }
+            }
+
+            return issuer.AbsoluteUri;
+        }
+
+        internal static string AddPath(this string address, PathString path) {
+            if (address.EndsWith("/")) {
+                address = address.Substring(0, address.Length - 1);
+            }
+
+            return address + path;
+        }
+
         internal static AuthenticationProperties Copy(this AuthenticationProperties properties) {
             if (properties == null) {
                 return null;

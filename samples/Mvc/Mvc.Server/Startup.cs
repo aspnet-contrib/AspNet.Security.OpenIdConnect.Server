@@ -71,7 +71,6 @@ namespace Mvc.Server {
                 options.AuthenticationType = OpenIdConnectDefaults.AuthenticationType;
                 options.AuthenticationMode = AuthenticationMode.Passive;
 
-                options.Issuer = "http://localhost:54540/";
                 options.SigningCredentials = credentials;
 
                 options.Provider = new AuthorizationProvider();
