@@ -540,6 +540,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 ticket.Properties.Items[OpenIdConnectConstants.Extra.Resource] = request.Resource;
             }
 
+            if (!string.IsNullOrEmpty(request.Scope)) {
+                // Keep the original scope parameter for later comparison.
+                ticket.Properties.Items[OpenIdConnectConstants.Extra.Scope] = request.Scope;
+            }
+
             // Determine whether an authorization code should be returned
             // and invoke CreateAuthorizationCodeAsync if necessary.
             if (request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.Code)) {
@@ -1158,8 +1163,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // Only issue a new refresh token if sliding expiration
             // is enabled or if a different grant type has been used.
             if (!request.IsRefreshTokenGrantType() || Options.UseSlidingExpiration) {
-                response.SetParameter(OpenIdConnectConstants.Parameters.RefreshToken,
-                    await CreateRefreshTokenAsync(ticket, request, response));
+                response.SetRefreshToken(await CreateRefreshTokenAsync(ticket, request, response));
             }
 
             var accessTokenExpiresUtc = ticket.Properties.ExpiresUtc;
@@ -1255,6 +1259,26 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 // that were not allowed during the authorization request.
                 else if (!resources.ContainsSet(request.GetResources())) {
                     Logger.LogError("authorization code does not contain matching resource");
+                    validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
+                    return null;
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.Scope)) {
+                // When an explicit scope parameter has been included in the token request
+                // but was missing from the authorization request, the request MUST rejected.
+                var scopes = ticket.Properties.GetScopes();
+                if (!scopes.Any()) {
+                    Logger.LogError("authorization code request cannot contain a scope");
+                    validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
+                    return null;
+                }
+
+                // When an explicit scope parameter has been included in the token request,
+                // the authorization server MUST ensure that it doesn't contain scopes
+                // that were not allowed during the authorization request.
+                else if (!scopes.ContainsSet(request.GetScopes())) {
+                    Logger.LogError("authorization code does not contain matching scope");
                     validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
                     return null;
                 }
@@ -1356,6 +1380,26 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 // that were not allowed during the authorization request.
                 else if (!resources.ContainsSet(request.GetResources())) {
                     Logger.LogError("refresh token does not contain matching resource");
+                    validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
+                    return null;
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.Scope)) {
+                // When an explicit scope parameter has been included in the token request
+                // but was missing from the authorization request, the request MUST rejected.
+                var scopes = ticket.Properties.GetScopes();
+                if (!scopes.Any()) {
+                    Logger.LogError("refresh token request cannot contain a scope");
+                    validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
+                    return null;
+                }
+
+                // When an explicit scope parameter has been included in the token request,
+                // the authorization server MUST ensure that it doesn't contain scopes
+                // that were not allowed during the authorization request.
+                else if (!scopes.ContainsSet(request.GetScopes())) {
+                    Logger.LogError("refresh token does not contain matching scope");
                     validatingContext.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
                     return null;
                 }

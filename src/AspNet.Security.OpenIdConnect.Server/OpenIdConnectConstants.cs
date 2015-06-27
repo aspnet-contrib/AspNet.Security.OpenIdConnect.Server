@@ -66,6 +66,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             public const string Audience = "audience";
             public const string ClientId = "client_id";
             public const string Destination = "destination";
+            public const string Scope = "scope";
             public const string RedirectUri = "redirect_uri";
             public const string Resource = "resource";
         }

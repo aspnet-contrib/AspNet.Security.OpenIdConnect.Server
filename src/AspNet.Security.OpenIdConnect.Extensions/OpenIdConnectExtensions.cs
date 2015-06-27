@@ -278,6 +278,18 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
         }
 
         /// <summary>
+        /// Extracts the scopes from an <see cref="OpenIdConnectMessage"/>.
+        /// </summary>
+        /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
+        public static IEnumerable<string> GetScopes(this OpenIdConnectMessage message) {
+            if (message == null) {
+                throw new ArgumentNullException(nameof(message));
+            }
+
+            return message.Scope?.Split(' ') ?? Enumerable.Empty<string>();
+        }
+
+        /// <summary>
         /// Adds a unique identifier to a given <see cref="OpenIdConnectMessage"/>.
         /// </summary>
         /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
@@ -292,6 +304,24 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
             }
 
             message.SetParameter("unique_id", identifier);
+            return message;
+        }
+
+        /// <summary>
+        /// Adds a refresh token to a given <see cref="OpenIdConnectMessage"/>.
+        /// </summary>
+        /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
+        /// <param name="token">The refresh token.</param>
+        public static OpenIdConnectMessage SetRefreshToken(this OpenIdConnectMessage message, string token) {
+            if (message == null) {
+                throw new ArgumentNullException(nameof(message));
+            }
+
+            if (string.IsNullOrWhiteSpace(token)) {
+                throw new ArgumentNullException(nameof(token));
+            }
+
+            message.SetParameter("refresh_token", token);
             return message;
         }
 

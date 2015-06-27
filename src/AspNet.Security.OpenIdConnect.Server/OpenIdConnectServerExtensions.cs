@@ -253,6 +253,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
             return properties?.GetProperty(OpenIdConnectConstants.Extra.Resource)?.Split(' ') ?? Enumerable.Empty<string>();
         }
 
+        internal static IEnumerable<string> GetScopes(this AuthenticationProperties properties) {
+            return properties?.GetProperty(OpenIdConnectConstants.Extra.Scope)?.Split(' ') ?? Enumerable.Empty<string>();
+        }
+
         internal static void SetAudiences(this AuthenticationProperties properties, IEnumerable<string> audiences) {
             properties.Items[OpenIdConnectConstants.Extra.Audience] = string.Join(" ", audiences);
         }
