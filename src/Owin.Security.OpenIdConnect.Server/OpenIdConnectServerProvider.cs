@@ -26,12 +26,12 @@ namespace Owin.Security.OpenIdConnect.Server {
             OnValidateClientLogoutRedirectUri = notification => Task.FromResult<object>(null);
             OnValidateClientAuthentication = notification => Task.FromResult<object>(null);
 
-            OnValidateAuthorizationRequest = DefaultBehavior.ValidateAuthorizationRequest;
-            OnValidateTokenRequest = DefaultBehavior.ValidateTokenRequest;
+            OnValidateAuthorizationRequest = notification => Task.FromResult<object>(null);
+            OnValidateTokenRequest = notification => Task.FromResult<object>(null);
 
-            OnGrantAuthorizationCode = DefaultBehavior.GrantAuthorizationCode;
+            OnGrantAuthorizationCode = notification => Task.FromResult<object>(null);
             OnGrantResourceOwnerCredentials = notification => Task.FromResult<object>(null);
-            OnGrantRefreshToken = DefaultBehavior.GrantRefreshToken;
+            OnGrantRefreshToken = notification => Task.FromResult<object>(null);
             OnGrantClientCredentials = notification => Task.FromResult<object>(null);
             OnGrantCustomExtension = notification => Task.FromResult<object>(null);
 
@@ -115,12 +115,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Called when a request to the Token endpoint arrives with a "grant_type" of "authorization_code". This occurs after the authorization
         /// endpoint as redirected the user-agent back to the client with a "code" parameter, and the client is exchanging that for an "access_token".
-        /// The claims and properties 
-        /// associated with the authorization code are present in the context.Ticket. The application must call context.Validated to instruct the Authorization
-        /// Server middleware to issue an access token based on those claims and properties. The call to context.Validated may be given a different
-        /// AuthenticationTicket or ClaimsIdentity in order to control which information flows from authorization code to access token.
-        /// The default behavior when using the OpenIdConnectServerProvider is to flow information from the authorization code to 
-        /// the access token unmodified.
+        /// The claims and properties associated with the authorization code are present in the context.Ticket.
+        /// The token request is automatically handled, but the application can call context.Rejected to instruct the Authorization Server middleware to reject the authorization code.
+        /// The application may explicitly call context.Validated and flow a different AuthenticationTicket or ClaimsIdentity in order to control which information flows from authorization code to access token.
+        /// The default behavior when using the OpenIdConnectServerProvider is to flow information from the authorization code to the access token unmodified.
         /// See also http://tools.ietf.org/html/rfc6749#section-4.1.3
         /// </summary>
         public Func<GrantAuthorizationCodeNotification, Task> OnGrantAuthorizationCode { get; set; }
@@ -151,12 +149,11 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Called when a request to the Token endpoint arrives with a "grant_type" of "refresh_token". This occurs if your application has issued a "refresh_token" 
         /// along with the "access_token", and the client is attempting to use the "refresh_token" to acquire a new "access_token", and possibly a new "refresh_token".
-        /// To issue a refresh token the an Options.RefreshTokenProvider must be assigned to create the value which is returned. The claims and properties 
-        /// associated with the refresh token are present in the context.Ticket. The application must call context.Validated to instruct the 
-        /// Authorization Server middleware to issue an access token based on those claims and properties. The call to context.Validated may 
-        /// be given a different AuthenticationTicket or ClaimsIdentity in order to control which information flows from the refresh token to 
-        /// the access token. The default behavior when using the OpenIdConnectServerProvider is to flow information from the refresh token to 
-        /// the access token unmodified.
+       /// The claims and properties associated with the refresh token are present in the context.Ticket. The token request is automatically handled,
+        /// but the application can call context.Rejected to instruct the Authorization Server middleware to reject the token.
+        /// The application may explicitly call context.Validated and flow a different AuthenticationTicket or ClaimsIdentity in order to control
+        /// which information flows from the refresh token to the access token. The default behavior when using the OpenIdConnectServerProvider
+        /// is to flow information from the refresh token to the access token unmodified.
         /// See also http://tools.ietf.org/html/rfc6749#section-6
         /// </summary>
         public Func<GrantRefreshTokenNotification, Task> OnGrantRefreshToken { get; set; }
@@ -394,12 +391,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Called when a request to the Token endpoint arrives with a "grant_type" of "authorization_code". This occurs after the authorization
         /// endpoint as redirected the user-agent back to the client with a "code" parameter, and the client is exchanging that for an "access_token".
-        /// The claims and properties 
-        /// associated with the authorization code are present in the context.Ticket. The application must call context.Validated to instruct the Authorization
-        /// Server middleware to issue an access token based on those claims and properties. The call to context.Validated may be given a different
-        /// AuthenticationTicket or ClaimsIdentity in order to control which information flows from authorization code to access token.
-        /// The default behavior when using the OpenIdConnectServerProvider is to flow information from the authorization code to 
-        /// the access token unmodified.
+        /// The claims and properties associated with the authorization code are present in the context.Ticket.
+        /// The token request is automatically handled, but the application can call context.Rejected to instruct the Authorization Server middleware to reject the authorization code.
+        /// The application may explicitly call context.Validated and flow a different AuthenticationTicket or ClaimsIdentity in order to control which information flows from authorization code to access token.
+        /// The default behavior when using the OpenIdConnectServerProvider is to flow information from the authorization code to the access token unmodified.
         /// See also http://tools.ietf.org/html/rfc6749#section-4.1.3
         /// </summary>
         /// <param name="notification">The context of the event carries information in and results out.</param>
@@ -411,12 +406,11 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Called when a request to the Token endpoint arrives with a "grant_type" of "refresh_token". This occurs if your application has issued a "refresh_token" 
         /// along with the "access_token", and the client is attempting to use the "refresh_token" to acquire a new "access_token", and possibly a new "refresh_token".
-        /// To issue a refresh token the an Options.RefreshTokenProvider must be assigned to create the value which is returned. The claims and properties 
-        /// associated with the refresh token are present in the context.Ticket. The application must call context.Validated to instruct the 
-        /// Authorization Server middleware to issue an access token based on those claims and properties. The call to context.Validated may 
-        /// be given a different AuthenticationTicket or ClaimsIdentity in order to control which information flows from the refresh token to 
-        /// the access token. The default behavior when using the OpenIdConnectServerProvider is to flow information from the refresh token to 
-        /// the access token unmodified.
+        /// The claims and properties associated with the refresh token are present in the context.Ticket. The token request is automatically handled,
+        /// but the application can call context.Rejected to instruct the Authorization Server middleware to reject the token.
+        /// The application may explicitly call context.Validated and flow a different AuthenticationTicket or ClaimsIdentity in order to control
+        /// which information flows from the refresh token to the access token. The default behavior when using the OpenIdConnectServerProvider
+        /// is to flow information from the refresh token to the access token unmodified.
         /// See also http://tools.ietf.org/html/rfc6749#section-6
         /// </summary>
         /// <param name="notification">The context of the event carries information in and results out.</param>

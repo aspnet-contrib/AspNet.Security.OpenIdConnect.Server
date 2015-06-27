@@ -91,7 +91,6 @@
     <Compile Include="Notifications\BaseValidatingClientNotification.cs" />
     <Compile Include="Notifications\BaseValidatingNotification.cs" />
     <Compile Include="Notifications\BaseValidatingTicketNotification.cs" />
-    <Compile Include="Notifications\DefaultBehavior.cs" />
     <Compile Include="IOpenIdConnectServerProvider.cs" />
     <Compile Include="Notifications\ConfigurationEndpointNotification.cs" />
     <Compile Include="Notifications\CryptographyEndpointNotification.cs" />

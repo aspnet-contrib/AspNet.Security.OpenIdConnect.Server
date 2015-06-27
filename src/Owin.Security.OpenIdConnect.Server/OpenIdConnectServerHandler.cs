@@ -768,12 +768,17 @@ namespace Owin.Security.OpenIdConnect.Server {
                 notification.LogoutEndpoint = notification.Issuer.AddPath(Options.LogoutEndpointPath);
             }
 
-            notification.GrantTypes.Add(OpenIdConnectConstants.GrantTypes.Implicit);
+            if (Options.AuthorizationEndpointPath.HasValue) {
+                // Only expose the implicit grant type if the token
+                // endpoint has not been explicitly disabled.
+                notification.GrantTypes.Add(OpenIdConnectConstants.GrantTypes.Implicit);
+            }
 
-            // Only expose the authorization code grant type if
-            // the token endpoint has not been explicitly disabled.
             if (Options.TokenEndpointPath.HasValue) {
+                // Only expose the authorization code and refresh token grant types
+                // if the token endpoint has not been explicitly disabled.
                 notification.GrantTypes.Add(OpenIdConnectConstants.GrantTypes.AuthorizationCode);
+                notification.GrantTypes.Add(OpenIdConnectConstants.GrantTypes.RefreshToken);
             }
 
             notification.ResponseModes.Add(OpenIdConnectConstants.ResponseModes.FormPost);
