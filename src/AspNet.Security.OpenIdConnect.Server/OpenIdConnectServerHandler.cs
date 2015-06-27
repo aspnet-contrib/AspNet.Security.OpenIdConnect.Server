@@ -708,7 +708,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
         private async Task InvokeConfigurationEndpointAsync() {
             var notification = new ConfigurationEndpointNotification(Context, Options);
-            notification.Issuer = Options.Issuer + "/";
+            notification.Issuer = Context.GetIssuer(Options);
 
             // Metadata requests must be made via GET.
             // See http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationRequest
@@ -718,9 +718,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return;
             }
 
-            // Set the default endpoints concatenating Options.Issuer and Options.*EndpointPath.
             if (Options.AuthorizationEndpointPath.HasValue) {
-                notification.AuthorizationEndpoint = Options.Issuer + Options.AuthorizationEndpointPath;
+                // Set the default endpoints concatenating the current path base and Options.*EndpointPath.
+                notification.AuthorizationEndpoint = notification.Issuer.AddPath(Options.AuthorizationEndpointPath);
             }
 
             // While the jwks_uri parameter is in principle mandatory, many OIDC clients are known
@@ -734,15 +734,15 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 Options.SigningCredentials != null &&
                 Options.SigningCredentials.SigningKey is AsymmetricSecurityKey &&
                 Options.SigningCredentials.SigningKey.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature)) {
-                notification.CryptographyEndpoint = Options.Issuer + Options.CryptographyEndpointPath;
+                notification.CryptographyEndpoint = notification.Issuer.AddPath(Options.CryptographyEndpointPath);
             }
 
             if (Options.TokenEndpointPath.HasValue) {
-                notification.TokenEndpoint = Options.Issuer + Options.TokenEndpointPath;
+                notification.TokenEndpoint = notification.Issuer.AddPath(Options.TokenEndpointPath);
             }
 
             if (Options.LogoutEndpointPath.HasValue) {
-                notification.LogoutEndpoint = Options.Issuer + Options.LogoutEndpointPath;
+                notification.LogoutEndpoint = notification.Issuer.AddPath(Options.LogoutEndpointPath);
             }
 
             notification.GrantTypes.Add(OpenIdConnectConstants.GrantTypes.Implicit);
@@ -1751,7 +1751,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             var token = Options.AccessTokenHandler.CreateToken(
                 audience: resources.ElementAtOrDefault(0),
                 subject: identity,
-                issuer: Options.Issuer + "/",
+                issuer: Context.GetIssuer(Options),
                 signingCredentials: Options.SigningCredentials,
                 notBefore: properties.IssuedUtc.Value.UtcDateTime,
                 expires: properties.ExpiresUtc.Value.UtcDateTime);
@@ -1886,7 +1886,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             var token = Options.IdentityTokenHandler.CreateToken(
                 subject: identity,
-                issuer: Options.Issuer + "/",
+                issuer: Context.GetIssuer(Options),
                 audience: request.ClientId,
                 signingCredentials: Options.SigningCredentials,
                 notBefore: properties.IssuedUtc.Value.UtcDateTime,
@@ -1943,7 +1943,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // in InvokeValidationEndpointAsync or InvokeTokenEndpointAsync.
             var parameters = new TokenValidationParameters {
                 IssuerSigningKey = Options.SigningCredentials.SigningKey,
-                ValidIssuer = Options.Issuer + "/",
+                ValidIssuer = Context.GetIssuer(Options),
                 ValidateAudience = false,
                 ValidateLifetime = false
             };
@@ -1988,7 +1988,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // in InvokeValidationEndpointAsync or InvokeTokenEndpointAsync.
             var parameters = new TokenValidationParameters {
                 IssuerSigningKey = Options.SigningCredentials.SigningKey,
-                ValidIssuer = Options.Issuer + "/",
+                ValidIssuer = Context.GetIssuer(Options),
                 ValidateAudience = false,
                 ValidateLifetime = false
             };

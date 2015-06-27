@@ -77,44 +77,35 @@ namespace AspNet.Security.OpenIdConnect.Server {
             if (Options.SystemClock == null) {
                 throw new ArgumentNullException(nameof(Options.SystemClock));
             }
-            
-            if (string.IsNullOrWhiteSpace(Options.Issuer)) {
-                throw new ArgumentNullException(nameof(Options.Issuer));
-            }
 
             if (string.IsNullOrWhiteSpace(Options.AuthenticationScheme)) {
                 throw new ArgumentException("Options.AuthenticationScheme cannot be null or empty", nameof(Options.AuthenticationScheme));
             }
 
-            Uri uri;
-            if (!Uri.TryCreate(Options.Issuer, UriKind.Absolute, out uri)) {
-                throw new ArgumentException("options.Issuer must be a valid absolute URI.", nameof(Options.Issuer));
-            }
-
-            // See http://openid.net/specs/openid-connect-discovery-1_0.html#IssuerDiscovery
-            if (!string.IsNullOrWhiteSpace(uri.Query) || !string.IsNullOrWhiteSpace(uri.Fragment)) {
-                throw new ArgumentException("options.Issuer must contain no query and no fragment parts.", nameof(Options.Issuer));
-            }
-
-            // Note: while the issuer parameter should be a HTTPS URI, making HTTPS mandatory
-            // in Owin.Security.OpenIdConnect.Server would prevent the end developer from
-            // running the different samples in test environments, where HTTPS is often disabled.
-            // To mitigate this issue, AllowInsecureHttp can be set to true to bypass the HTTPS check.
-            // See http://openid.net/specs/openid-connect-discovery-1_0.html#IssuerDiscovery
-            if (!Options.AllowInsecureHttp && string.Equals(uri.Scheme, "http", StringComparison.OrdinalIgnoreCase)) {
-                throw new ArgumentException("options.Issuer must be a HTTPS URI when " +
-                    "options.AllowInsecureHttp is not set to true.", nameof(Options.Issuer));
-            }
-
-            if (Options.Issuer.EndsWith("/")) {
-                // Remove the trailing slash to make concatenation easier in
-                // OpenIdConnectServerHandler.InvokeConfigurationEndpointAsync.
-                Options.Issuer = Options.Issuer.Substring(0, Options.Issuer.Length - 1);
-            }
-
             if (Options.AutomaticAuthentication) {
                 throw new ArgumentException("Automatic authentication cannot be used with the " +
                     "OpenID Connect server middleware", nameof(Options.AutomaticAuthentication));
+            }
+
+            if (Options.Issuer != null) {
+                if (!Options.Issuer.IsAbsoluteUri) {
+                    throw new ArgumentException("options.Issuer must be a valid absolute URI.", "options.Issuer");
+                }
+
+                // See http://openid.net/specs/openid-connect-discovery-1_0.html#IssuerDiscovery
+                if (!string.IsNullOrWhiteSpace(Options.Issuer.Query) || !string.IsNullOrWhiteSpace(Options.Issuer.Fragment)) {
+                    throw new ArgumentException("options.Issuer must contain no query and no fragment parts.", "options.Issuer");
+                }
+
+                // Note: while the issuer parameter should be a HTTPS URI, making HTTPS mandatory
+                // in Owin.Security.OpenIdConnect.Server would prevent the end developer from
+                // running the different samples in test environments, where HTTPS is often disabled.
+                // To mitigate this issue, AllowInsecureHttp can be set to true to bypass the HTTPS check.
+                // See http://openid.net/specs/openid-connect-discovery-1_0.html#IssuerDiscovery
+                if (!Options.AllowInsecureHttp && string.Equals(Options.Issuer.Scheme, "http", StringComparison.OrdinalIgnoreCase)) {
+                    throw new ArgumentException("options.Issuer must be a HTTPS URI when " +
+                        "options.AllowInsecureHttp is not set to true.", "options.Issuer");
+                }
             }
         }
 

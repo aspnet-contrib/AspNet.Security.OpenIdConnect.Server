@@ -113,7 +113,6 @@ namespace Mvc.Server {
             app.UseOpenIdConnectServer(options => {
                 options.AuthenticationScheme = OpenIdConnectDefaults.AuthenticationScheme;
 
-                options.Issuer = "http://localhost:54540/";
                 options.SigningCredentials = credentials;
 
                 // Note: see AuthorizationController.cs for more
