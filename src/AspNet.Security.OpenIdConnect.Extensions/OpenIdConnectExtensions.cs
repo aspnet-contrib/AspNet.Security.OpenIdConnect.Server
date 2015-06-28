@@ -441,6 +441,34 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
             return identity;
         }
 
+        /// <summary>
+        /// Gets the claim value corresponding to the given type.
+        /// </summary>
+        /// <param name="identity">The identity.</param>
+        /// <param name="type">The type associated with the claim.</param>
+        /// <returns>The claim value.</returns>
+        public static string GetClaim(this ClaimsIdentity identity, string type) {
+            if (identity == null) {
+                throw new ArgumentNullException(nameof(identity));
+            }
+
+            return identity.FindFirst(type)?.Value;
+        }
+
+        /// <summary>
+        /// Gets the claim value corresponding to the given type.
+        /// </summary>
+        /// <param name="principal">The principal.</param>
+        /// <param name="type">The type associated with the claim.</param>
+        /// <returns>The claim value.</returns>
+        public static string GetClaim(this ClaimsPrincipal principal, string type) {
+            if (principal == null) {
+                throw new ArgumentNullException(nameof(principal));
+            }
+
+            return principal.FindFirst(type)?.Value;
+        }
+
         private static bool HasValue(string source, string value) {
             if (string.IsNullOrEmpty(source)) {
                 return false;

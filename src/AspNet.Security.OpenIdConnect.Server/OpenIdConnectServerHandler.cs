@@ -38,41 +38,52 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 notification.MatchesLogoutEndpoint();
             }
 
+            else if (Options.ProfileEndpointPath.HasValue &&
+                     Options.ProfileEndpointPath == Request.Path) {
+                notification.MatchesProfileEndpoint();
+            }
+
             await Options.Provider.MatchEndpoint(notification);
             
+            if (!notification.IsAuthorizationEndpoint &&
+                !notification.IsLogoutEndpoint &&
+                !notification.IsProfileEndpoint) {
+                return null;
+            }
+
+            // Try to retrieve the current OpenID Connect request from the ASP.NET context.
+            // If the request cannot be found, this means that this middleware was configured
+            // to use the automatic authentication mode and that HandleAuthenticateAsync
+            // was invoked before Invoke*EndpointAsync: in this case, the OpenID Connect
+            // request is directly extracted from the query string or the request form.
+            var request = Context.GetOpenIdConnectRequest();
+            if (request == null) {
+                if (string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
+                    request = new OpenIdConnectMessage(Request.Query.ToDictionary());
+                }
+
+                else if (string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase)) {
+                    if (string.IsNullOrEmpty(Request.ContentType)) {
+                        return null;
+                    }
+
+                    else if (!Request.ContentType.StartsWith("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase)) {
+                        return null;
+                    }
+
+                    var form = await Request.ReadFormAsync(Context.RequestAborted);
+
+                    request = new OpenIdConnectMessage(form.ToDictionary());
+                }
+            }
+
+            // Missing or invalid requests are ignored in HandleAuthenticateAsync:
+            // in this case, null is always returned to indicate authentication failed.
+            if (request == null) {
+                return null;
+            }
+
             if (notification.IsAuthorizationEndpoint || notification.IsLogoutEndpoint) {
-                // Try to retrieve the current OpenID Connect request from the ASP.NET context.
-                // If the request cannot be found, this means that this middleware was configured
-                // to use the automatic authentication mode and that HandleAuthenticateAsync
-                // was invoked before Invoke*EndpointAsync: in this case, the OpenID Connect
-                // request is directly extracted from the query string or the request form.
-                var request = Context.GetOpenIdConnectRequest();
-                if (request == null) {
-                    if (string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
-                        request = new OpenIdConnectMessage(Request.Query.ToDictionary());
-                    }
-
-                    else if (string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase)) {
-                        if (string.IsNullOrEmpty(Request.ContentType)) {
-                            return null;
-                        }
-
-                        else if (!Request.ContentType.StartsWith("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase)) {
-                            return null;
-                        }
-
-                        var form = await Request.ReadFormAsync(Context.RequestAborted);
-
-                        request = new OpenIdConnectMessage(form.ToDictionary());
-                    }
-                }
-
-                // Missing or invalid requests are ignored in HandleAuthenticateAsync:
-                // in this case, null is always returned to indicate authentication failed.
-                if (request == null) {
-                    return null;
-                }
-
                 if (string.IsNullOrEmpty(request.IdTokenHint)) {
                     return null;
                 }
@@ -86,6 +97,45 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 // Tickets are returned even if they
                 // are considered invalid (e.g expired).
+                return ticket;
+            }
+
+            else if (notification.IsProfileEndpoint) {
+                string token;
+                if (!string.IsNullOrEmpty(request.AccessToken)) {
+                    token = request.AccessToken;
+                }
+
+                else {
+                    string header = Request.Headers[HeaderNames.Authorization];
+                    if (string.IsNullOrEmpty(header)) {
+                        return null;
+                    }
+
+                    if (!header.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)) {
+                        return null;
+                    }
+
+                    token = header.Substring("Bearer ".Length);
+                    if (string.IsNullOrWhiteSpace(token)) {
+                        return null;
+                    }
+                }
+
+                var ticket = await ReceiveAccessTokenAsync(token, request);
+                if (ticket == null) {
+                    Logger.LogVerbose("Invalid access_token");
+
+                    return null;
+                }
+
+                if (!ticket.Properties.ExpiresUtc.HasValue ||
+                     ticket.Properties.ExpiresUtc < Options.SystemClock.UtcNow) {
+                    Logger.LogVerbose("Expired access_token");
+
+                    return null;
+                }
+
                 return ticket;
             }
 
@@ -108,6 +158,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
             else if (Options.ValidationEndpointPath.HasValue &&
                      Options.ValidationEndpointPath == Request.Path) {
                 notification.MatchesValidationEndpoint();
+            }
+
+            else if (Options.ProfileEndpointPath.HasValue &&
+                     Options.ProfileEndpointPath == Request.Path) {
+                notification.MatchesProfileEndpoint();
             }
 
             else if (Options.LogoutEndpointPath.HasValue &&
@@ -150,8 +205,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     return true;
                 }
 
-                else if (notification.IsTokenEndpoint || notification.IsValidationEndpoint ||
-                         notification.IsConfigurationEndpoint || notification.IsCryptographyEndpoint) {
+                else if (notification.IsTokenEndpoint || notification.IsProfileEndpoint ||
+                         notification.IsValidationEndpoint || notification.IsConfigurationEndpoint ||
+                         notification.IsCryptographyEndpoint) {
                     // Return a JSON error for endpoints that don't involve the user participation.
                     await SendErrorPayloadAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
@@ -178,6 +234,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
             else if (notification.IsValidationEndpoint) {
                 await InvokeValidationEndpointAsync();
                 return true;
+            }
+
+            else if (notification.IsProfileEndpoint) {
+                return await InvokeProfileEndpointAsync();
             }
 
             else if (notification.IsConfigurationEndpoint) {
@@ -421,6 +481,28 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             Response.Redirect(location);
+        }
+
+        protected override async Task<bool> HandleUnauthorizedAsync(ChallengeContext context) {
+            var notification = new MatchEndpointContext(Context, Options);
+
+            if (Options.ProfileEndpointPath.HasValue &&
+                Options.ProfileEndpointPath == Request.Path) {
+                notification.MatchesProfileEndpoint();
+            }
+
+            await Options.Provider.MatchEndpoint(notification);
+
+            // Return true to indicate to the authentication pipeline that
+            // the 401 response shouldn't be handled by the other middleware.
+            if (!notification.IsProfileEndpoint) {
+                return true;
+            }
+
+            Response.StatusCode = 401;
+            Response.Headers[HeaderNames.WWWAuthenticate] = "error=" + OpenIdConnectConstants.Errors.InvalidGrant;
+
+            return false;
         }
 
         protected override async Task FinishResponseAsync() {

@@ -45,6 +45,8 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
         public static class Scopes {
             public const string OpenId = "openid";
             public const string OfflineAccess = "offline_access";
+            public const string Profile = "profile";
+            public const string Email = "email";
         }
 
         public static class GrantTypes {
@@ -92,6 +94,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
             public const string ScopesSupported = "scopes_supported";
             public const string SubjectTypesSupported = "subject_types_supported";
             public const string TokenEndpoint = "token_endpoint";
+            public const string UserinfoEndpoint = "userinfo_endpoint";
         }
 
         public static class SubjectTypes {
