@@ -139,8 +139,8 @@ namespace Mvc.Server {
                 database.Applications.Add(new Application {
                     ApplicationID = "myClient",
                     DisplayName = "My client application",
-                    RedirectUri = "http://localhost:53507/oidc",
-                    LogoutRedirectUri = "http://localhost:53507/",
+                    RedirectUri = "http://localhost:37045/index.html",
+                    LogoutRedirectUri = "http://localhost:37045/index.html",
                     Secret = "secret_secret_secret"
                 });
 
