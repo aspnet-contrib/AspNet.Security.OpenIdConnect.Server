@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Web;
 using System.Web.Mvc;
-using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.OpenIdConnect;
-using Owin.Security.OpenIdConnect.Server;
 
 namespace Mvc.Client.Controllers {
     public class AuthenticationController : Controller {
