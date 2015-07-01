@@ -45,6 +45,7 @@ namespace ResourceOwnerPasswordFlow
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddAuthentication();
+            services.AddCaching();
         }
 
         public void Configure(IApplicationBuilder app, IRuntimeEnvironment environment)
