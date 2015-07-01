@@ -1,7 +1,7 @@
 ﻿{
   "webroot": "wwwroot",
 
-  "resources": [ "Certificate.pfx", "Certificate.cer", "Certificate.keys" ],
+  "resource": [ "Certificate.pfx", "Certificate.cer", "Certificate.keys" ],
 
   "dependencies": {
     "AspNet.Security.OpenIdConnect.Server": "",
