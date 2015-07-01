@@ -76,7 +76,7 @@ namespace ResourceOwnerPasswordFlow
                 var credentials = CreateSigningCredentials();
                 app.UseOpenIdConnectServer(options =>
                 {
-                    options.Issuer = Config.Get("OpenId:Issuer");
+                    options.Issuer = Config.Get("OpenId:Issuer") != null ? new Uri(Config.Get("OpenId:Issuer")) : null;
                     options.AllowInsecureHttp = true;
                     options.AuthorizationEndpointPath = PathString.Empty; // Tokens are avaiable by default at ~/connect/token
                     options.SigningCredentials = credentials;
