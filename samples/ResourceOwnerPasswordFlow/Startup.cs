@@ -62,7 +62,7 @@ namespace ResourceOwnerPasswordFlow
             // identity
             services
                 .AddIdentity<IdentityUser, IdentityRole>()
-                .AddEntityFrameworkStores<ApplicationContext>()                
+                .AddEntityFrameworkStores<ApplicationContext>()
                 .AddDefaultTokenProviders(); // What does this do? 
         }
 
@@ -104,7 +104,10 @@ namespace ResourceOwnerPasswordFlow
                     options.AuthorizationEndpointPath = PathString.Empty; // Tokens are avaiable by default at ~/connect/token
                     options.SigningCredentials = credentials;
                     options.AuthenticationScheme = OpenIdConnectDefaults.AuthenticationScheme;
-                    options.Provider = new AuthorizationProvider();
+
+                    // is this the right way to inject a user manager into the Authorization Provider?
+                    var userManager = serviceProvider.GetRequiredService<UserManager<IdentityUser>>();
+                    options.Provider = new AuthorizationProvider(userManager);
                 });
             }
             catch (Exception ex)
@@ -203,7 +206,7 @@ namespace ResourceOwnerPasswordFlow
             bool created = false;
             var db = serviceProvider.GetRequiredService<ApplicationContext>();
 
-            created = db.Database.EnsureCreated();         
+            created = db.Database.EnsureCreated();
             if (created)
             {
                 const string adminRole = "Administrator";

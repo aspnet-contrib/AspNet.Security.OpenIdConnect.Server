@@ -7,11 +7,21 @@ using AspNet.Security.OpenIdConnect.Server;
 using AspNet.Security.OpenIdConnect.Extensions;
 using Microsoft.Framework.DependencyInjection;
 using System.Security.Claims;
+using Microsoft.AspNet.Identity;
+using Microsoft.AspNet.Identity.EntityFramework;
+using Microsoft.AspNet.Hosting;
 
 namespace ResourceOwnerPasswordFlow.Providers
 {
     public sealed class AuthorizationProvider : OpenIdConnectServerProvider
     {
+        private UserManager<IdentityUser> _userManager;
+
+        public AuthorizationProvider(UserManager<IdentityUser> userManager)
+        {
+            _userManager = userManager;
+        }
+
         public override Task ValidateClientAuthentication(
             ValidateClientAuthenticationNotification notification)
         {
@@ -23,27 +33,33 @@ namespace ResourceOwnerPasswordFlow.Providers
             return Task.FromResult<object>(null);
         }
 
-        public override Task GrantResourceOwnerCredentials(
+        public async override Task GrantResourceOwnerCredentials(
             GrantResourceOwnerCredentialsNotification notification)
-        {
-            //
-            // TODO check the username and password
-            // if valid, then...
-            //
+        {             
+            var username = notification.UserName;
+            var password = notification.Password;
 
-            var identity = new ClaimsIdentity(OpenIdConnectDefaults.AuthenticationScheme);
+            var user = await _userManager.FindByNameAsync(username);
+            var isValid = await _userManager.CheckPasswordAsync(user, password);
 
-            // this automatically goes into the token and id_token
-            identity.AddClaim(ClaimTypes.NameIdentifier, "TODO: Add an appropriate name identifier.");
+            if (isValid)
+            {
+                var identity = new ClaimsIdentity(OpenIdConnectDefaults.AuthenticationScheme);
 
-            // the other claims require explicit destinations
-            identity.AddClaim(ClaimTypes.Name, "John", "token id_token");
-            identity.AddClaim(ClaimTypes.Surname, "Doe", "token id_token");
+                // this automatically goes into the token and id_token
+                identity.AddClaim(ClaimTypes.NameIdentifier, "TODO: Add an appropriate name identifier.");
 
-            var principal = new ClaimsPrincipal(identity);
-            notification.Validated(principal);
+                // the other claims require explicit destinations
+                identity.AddClaim(ClaimTypes.Name, username, "token id_token");
+                identity.AddClaim(ClaimTypes.Surname, "Doe", "token id_token");
 
-            return Task.FromResult<object>(null);
+                var principal = new ClaimsPrincipal(identity);
+                notification.Validated(principal);
+            }
+
+            // no return type
+            // because it's async now
+            // is this appropriate?
         }
     }
 }

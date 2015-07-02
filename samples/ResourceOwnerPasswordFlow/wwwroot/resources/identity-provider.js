@@ -5,19 +5,21 @@
     'use strict';
 
     var btn,
-        username,
-        result,
-        password;
+        result;
 
     function authenticationRequest() {
 
         var xmlhttp,
             obj,
-            params;
+            params,
+            username,
+            password,
+            result;
 
         xmlhttp = new XMLHttpRequest();
         xmlhttp.onreadystatechange = function () {
 
+            result = document.getElementById("identity-result");
             result.innerHTML = "";
 
             if (xmlhttp.readyState === XMLHttpRequest.DONE) {
@@ -30,11 +32,13 @@
             }
         };
 
+        username = document.getElementById("username").value;
+        password = document.getElementById("password").value;
+
         // the resource parameter must match the OAuth audience
         // so we're only using it locally
         params = "username=" + username + "&password=" + password + "&grant_type=password";
-        if (document.location.hostname.indexOf("localhost") > -1)
-        {
+        if (document.location.hostname.indexOf("localhost") > -1) {
             params += "&resource=localhost";
         }
 
@@ -46,9 +50,5 @@
 
     btn = document.getElementById("identity-provider");
     btn.addEventListener("click", authenticationRequest);
-
-    username = document.getElementById("username");
-    password = document.getElementById("password");
-    result = document.getElementById("identity-result");
 
 }(document, JSON, helpers, XMLHttpRequest));
