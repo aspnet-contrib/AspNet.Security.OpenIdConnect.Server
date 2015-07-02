@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNet.Identity.EntityFramework;
+﻿
+
+using Microsoft.AspNet.Identity.EntityFramework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,6 +10,5 @@ namespace ResourceOwnerPasswordFlow.Models
 {
     public class ApplicationContext : IdentityDbContext<IdentityUser>
     {
-
     }
 }

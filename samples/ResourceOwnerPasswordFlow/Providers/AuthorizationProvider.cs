@@ -35,7 +35,7 @@ namespace ResourceOwnerPasswordFlow.Providers
 
         public async override Task GrantResourceOwnerCredentials(
             GrantResourceOwnerCredentialsNotification notification)
-        {             
+        {
             var username = notification.UserName;
             var password = notification.Password;
 
