@@ -8,12 +8,15 @@ using System.Text;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Hosting;
+using Microsoft.Data.Entity;
 using Microsoft.Framework.ConfigurationModel;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Runtime;
 
 using ResourceOwnerPasswordFlow.Providers;
-
+using ResourceOwnerPasswordFlow.Models;
+using Microsoft.AspNet.Identity.EntityFramework;
+using Microsoft.AspNet.Identity;
 
 /// <summary>
 /// Configure the resource owner password credential flow. 
@@ -46,15 +49,35 @@ namespace ResourceOwnerPasswordFlow
         {
             services.AddAuthentication();
             services.AddCaching();
+
+            // entity framework
+            services
+                .AddEntityFramework()
+                .AddInMemoryDatabase()
+                .AddDbContext<ApplicationContext>(options =>
+                {
+                    options.UseInMemoryDatabase(persist: true);
+                });
+
+            // identity
+            services
+                .AddIdentity<IdentityUser, IdentityRole>()
+                .AddEntityFrameworkStores<ApplicationContext>()                
+                .AddDefaultTokenProviders(); // What does this do? 
         }
 
-        public void Configure(IApplicationBuilder app, IRuntimeEnvironment environment)
+        public void Configure(IApplicationBuilder app, IRuntimeEnvironment environment, IServiceProvider serviceProvider)
         {
             // HACK: for Azure web apps, 
             // the try-catch block lets us see errors that occur during configuration
             try
             {
                 app.UseErrorPage();
+                app.UseRuntimeInfoPage();
+
+                // ASP.NET Identity
+                app.UseIdentity();
+                CreateAdminUser(serviceProvider);
 
                 // Allow serving of .html files in wwwroot
                 app.UseStaticFiles();
@@ -171,6 +194,59 @@ namespace ResourceOwnerPasswordFlow
                     buffer.ToArray(),
                     "Owin.Security.OpenIdConnect.Server",
                     X509KeyStorageFlags.MachineKeySet);
+            }
+        }
+
+        private void CreateAdminUser(IServiceProvider serviceProvider)
+        {
+            // create admin user
+            bool created = false;
+            var db = serviceProvider.GetRequiredService<ApplicationContext>();
+
+            created = db.Database.EnsureCreated();         
+            if (created)
+            {
+                const string adminRole = "Administrator";
+                const string adminName = "Dave";
+                const string adminPassword = "Testing123!";
+
+                const string developerRole = "Developer";
+                const string developerName = "Shaun";
+                const string developerPassword = adminPassword;
+
+                var userManager = serviceProvider.GetRequiredService<UserManager<IdentityUser>>();
+                var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+                // should we use `.Result` or `await`
+                // I need to learn more about async
+
+                var admin = userManager.FindByNameAsync(adminName).Result;
+                if (admin == null)
+                {
+                    admin = new IdentityUser { UserName = adminName };
+                    userManager.CreateAsync(admin, adminPassword);
+                }
+
+                var developer = userManager.FindByNameAsync(developerName).Result;
+                if (developer == null)
+                {
+                    developer = new IdentityUser { UserName = developerName };
+                    userManager.CreateAsync(developer, developerPassword);
+                }
+
+                if (!roleManager.RoleExistsAsync(adminRole).Result)
+                {
+                    roleManager.CreateAsync(new IdentityRole(adminRole));
+                }
+
+                if (!roleManager.RoleExistsAsync(developerRole).Result)
+                {
+                    roleManager.CreateAsync(new IdentityRole(developerRole));
+                }
+
+                userManager.AddToRoleAsync(admin, adminRole);
+                userManager.AddToRoleAsync(developer, adminRole);
+                userManager.AddToRoleAsync(developer, developerRole);
             }
         }
     }
