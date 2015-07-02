@@ -493,11 +493,32 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// the only middleware allowed to write to the response stream when a response grant has been applied.
         /// </remarks>
         protected override async Task TeardownCoreAsync() {
-            if (await HandleAuthorizationResponseAsync()) {
+            // Stop processing the request if no OpenID Connect
+            // message has been found in the current context.
+            var request = Context.GetOpenIdConnectRequest();
+            if (request == null) {
                 return;
             }
 
-            await HandleLogoutResponseAsync();
+            // Apply the default request processing if no OpenID Connect
+            // response has been forged by the inner application.
+            var response = Context.GetOpenIdConnectResponse();
+            if (response == null) {
+                if (await HandleAuthorizationResponseAsync()) {
+                    return;
+                }
+
+                await HandleLogoutResponseAsync();
+                return;
+            }
+
+            // Successful authorization responses are directly applied by
+            // HandleAuthorizationResponseAsync: only error responses should be handled at this stage.
+            if (string.IsNullOrEmpty(response.Error)) {
+                return;
+            }
+
+            await SendErrorRedirectAsync(request, response);
         }
 
         private async Task<bool> HandleAuthorizationResponseAsync() {
@@ -506,17 +527,6 @@ namespace Owin.Security.OpenIdConnect.Server {
             var request = Context.GetOpenIdConnectRequest();
             if (request == null) {
                 return false;
-            }
-
-            // Stop processing the request if an authorization response has been forged by the inner application.
-            // This allows the next middleware to return an OpenID Connect error or a custom response to the client.
-            var response = Context.GetOpenIdConnectResponse();
-            if (response != null && !string.IsNullOrWhiteSpace(response.RedirectUri)) {
-                if (!string.IsNullOrWhiteSpace(response.Error)) {
-                    return await SendErrorRedirectAsync(request, response);
-                }
-
-                return await ApplyAuthorizationResponseAsync(request, response);
             }
 
             // Stop processing the request if there's no response grant that matches
@@ -536,7 +546,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return false;
             }
 
-            response = new OpenIdConnectMessage {
+            var response = new OpenIdConnectMessage {
                 ClientId = request.ClientId,
                 Nonce = request.Nonce,
                 RedirectUri = request.RedirectUri,
