@@ -77,7 +77,7 @@ namespace ResourceOwnerPasswordFlow
 
                 // ASP.NET Identity
                 app.UseIdentity();
-                CreateAdminUser(serviceProvider);
+                CreateUsers(serviceProvider);
 
                 // Allow serving of .html files in wwwroot
                 app.UseStaticFiles();
@@ -200,7 +200,7 @@ namespace ResourceOwnerPasswordFlow
             }
         }
 
-        private void CreateAdminUser(IServiceProvider serviceProvider)
+        private void CreateUsers(IServiceProvider serviceProvider)
         {
             // create admin user
             bool created = false;
