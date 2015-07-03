@@ -600,6 +600,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return;
             }
 
+            // Stop processing the request if no explicit
+            // post_logout_redirect_uri has been provided.
+            if (string.IsNullOrEmpty(request.PostLogoutRedirectUri)) {
+                return;
+            }
+
             Response.Redirect(request.PostLogoutRedirectUri);
         }
 
@@ -1687,17 +1693,21 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 };
             }
 
-            var clientNotification = new ValidateClientLogoutRedirectUriNotification(Context, Options, request);
-            await Options.Provider.ValidateClientLogoutRedirectUri(clientNotification);
+            // Note: post_logout_redirect_uri is not a mandatory parameter.
+            // See http://openid.net/specs/openid-connect-session-1_0.html#RPLogout
+            if (!string.IsNullOrEmpty(request.PostLogoutRedirectUri)) {
+                var clientNotification = new ValidateClientLogoutRedirectUriNotification(Context, Options, request);
+                await Options.Provider.ValidateClientLogoutRedirectUri(clientNotification);
 
-            if (!clientNotification.IsValidated) {
-                Logger.LogVerbose("Unable to validate client information");
+                if (!clientNotification.IsValidated) {
+                    Logger.LogVerbose("Unable to validate client information");
 
-                return await SendErrorPageAsync(new OpenIdConnectMessage {
-                    Error = clientNotification.Error,
-                    ErrorDescription = clientNotification.ErrorDescription,
-                    ErrorUri = clientNotification.ErrorUri
-                });
+                    return await SendErrorPageAsync(new OpenIdConnectMessage {
+                        Error = clientNotification.Error,
+                        ErrorDescription = clientNotification.ErrorDescription,
+                        ErrorUri = clientNotification.ErrorUri
+                    });
+                }
             }
 
             // Update the logout request in the ASP.NET context.
