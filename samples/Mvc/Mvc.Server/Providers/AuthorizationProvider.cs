@@ -15,7 +15,7 @@ namespace Mvc.Server.Providers {
             // Note: you can also retrieve them from the Authorization
             // header (basic authentication) using TryGetBasicCredentials.
             if (!notification.TryGetFormCredentials(out clientId, out clientSecret) ||
-                string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(clientSecret)) {
+                string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(clientSecret)) {
                 notification.SetError(
                     error: "invalid_request",
                     errorDescription: "Missing credentials: ensure that your credentials " +

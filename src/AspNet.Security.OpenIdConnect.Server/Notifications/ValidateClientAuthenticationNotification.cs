@@ -51,7 +51,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // Client Authentication http://tools.ietf.org/html/rfc6749#section-2.3
             // Client Authentication Password http://tools.ietf.org/html/rfc6749#section-2.3.1
             string authorization = Request.Headers.Get("Authorization");
-            if (!string.IsNullOrWhiteSpace(authorization) && authorization.StartsWith("Basic ", StringComparison.OrdinalIgnoreCase)) {
+            if (!string.IsNullOrEmpty(authorization) && authorization.StartsWith("Basic ", StringComparison.OrdinalIgnoreCase)) {
                 try {
                     byte[] data = Convert.FromBase64String(authorization.Substring("Basic ".Length).Trim());
                     string text = Encoding.UTF8.GetString(data);

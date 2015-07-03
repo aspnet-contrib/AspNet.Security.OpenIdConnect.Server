@@ -20,7 +20,7 @@ namespace Mvc.Server.Controllers {
         public ActionResult SignIn(string provider, string returnUrl) {
             // Note: the "provider" parameter corresponds to the external
             // authentication provider choosen by the user agent.
-            if (string.IsNullOrWhiteSpace(provider)) {
+            if (string.IsNullOrEmpty(provider)) {
                 return HttpBadRequest();
             }
 
@@ -31,7 +31,7 @@ namespace Mvc.Server.Controllers {
             // Note: the "returnUrl" parameter corresponds to the endpoint the user agent
             // will be redirected to after a successful authentication and not
             // the redirect_uri of the requesting client application.
-            if (string.IsNullOrWhiteSpace(returnUrl)) {
+            if (string.IsNullOrEmpty(returnUrl)) {
                 return HttpBadRequest();
             }
 

@@ -12,7 +12,7 @@ namespace Mvc.Server.Extensions {
             }
 
             return from description in context.Authentication.GetAuthenticationSchemes()
-                   where !string.IsNullOrWhiteSpace(description.Caption)
+                   where !string.IsNullOrEmpty(description.Caption)
                    select description;
         }
 

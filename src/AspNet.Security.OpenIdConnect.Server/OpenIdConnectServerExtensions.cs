@@ -338,7 +338,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 }
 
                 private static void WriteIdentity(BinaryWriter writer, ClaimsIdentity identity) {
-                    var authenticationType = string.IsNullOrWhiteSpace(identity.AuthenticationType) ? string.Empty : identity.AuthenticationType;
+                    var authenticationType = identity.AuthenticationType ?? string.Empty;
 
                     writer.Write(authenticationType);
                     WriteWithDefault(writer, identity.NameClaimType, DefaultValues.NameClaimType);
