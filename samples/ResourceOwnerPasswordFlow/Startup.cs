@@ -18,6 +18,8 @@ using ResourceOwnerPasswordFlow.Models;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity;
 using System.Threading.Tasks;
+using System.Security.Cryptography;
+using System.Reflection;
 
 /// <summary>
 /// Configure the resource owner password credential flow. 
@@ -66,7 +68,7 @@ namespace ResourceOwnerPasswordFlow
                 .AddEntityFrameworkStores<ApplicationContext>();
         }
 
-        public void Configure(IApplicationBuilder app, IRuntimeEnvironment environment, IServiceProvider serviceProvider)
+        public void Configure(IApplicationBuilder app, IRuntimeEnvironment runtimeEnv, IServiceProvider serviceProvider)
         {
             // HACK: for Azure web apps, 
             // the try-catch block lets us see errors that occur during configuration
@@ -98,7 +100,7 @@ namespace ResourceOwnerPasswordFlow
 
                 // Add a new middleware issuing tokens.
                 // This middleware is associated with the Identity Provider            
-                var credentials = CreateSigningCredentials();
+                var credentials = CreateSigningCredentials(runtimeEnv);
                 app.UseOpenIdConnectServer(options =>
                 {
                     options.Issuer = Config.Get("OpenId:Issuer") != null ? new Uri(Config.Get("OpenId:Issuer")) : null;
@@ -134,7 +136,7 @@ namespace ResourceOwnerPasswordFlow
                     builder.Append("<h2>General Info</h2>");
 
                     builder.AppendFormat("<p>Time: {0}</p>", DateTime.Now.ToString());
-                    builder.AppendFormat("<p>Environment: {0}</p>", environment.RuntimeType);
+                    builder.AppendFormat("<p>Environment: {0}</p>", runtimeEnv.RuntimeType);
                     builder.AppendFormat("<p>IsAuthenticated: {0}</p>", context.User.Identity.IsAuthenticated);
 
                     if (context.User.Identity.IsAuthenticated)
@@ -167,9 +169,9 @@ namespace ResourceOwnerPasswordFlow
             });
         }
 
-        private SigningCredentials CreateSigningCredentials()
+        private SigningCredentials CreateSigningCredentials(IRuntimeEnvironment runtimeEnv)
         {
-            var certificate = LoadCertificate();
+            var certificate = LoadCertificate(runtimeEnv);
             var key = new X509SecurityKey(certificate);
 
             var credentials = new SigningCredentials(key,
@@ -179,25 +181,81 @@ namespace ResourceOwnerPasswordFlow
             return credentials;
         }
 
-        private X509Certificate2 LoadCertificate()
+        private X509Certificate2 LoadCertificate(IRuntimeEnvironment runtimeEnv)
         {
-            var resourceName = "ResourceOwnerPasswordFlow.Certificate.pfx";
-            using (var stream = this.GetType()
-                .Assembly
-                .GetManifestResourceStream(resourceName))
 
-            using (var buffer = new MemoryStream())
+#if DNXCORE50
+
+            using (var stream = GetType().GetTypeInfo().Assembly.GetManifestResourceStream("Mvc.Server.Certificate.cer"))
             {
-                stream.CopyTo(buffer);
-                buffer.Flush();
+                using (var buffer = new MemoryStream())
+                {
+                    stream.CopyTo(buffer);
+                    buffer.Flush();
 
-                // azure web apps require `MachineKeySet` for this to work
-                return new X509Certificate2(
-                    buffer.ToArray(),
-                    "Owin.Security.OpenIdConnect.Server",
-                    X509KeyStorageFlags.MachineKeySet);
+                    return new X509Certificate2(buffer.ToArray())
+                    {
+                        PrivateKey = LoadPrivateKey(runtimeEnv)
+                    };
+                }
+            }
+
+#elif DNX451
+
+            using (var stream = GetType().GetTypeInfo().Assembly.GetManifestResourceStream("ResourceOwnerPasswordFlow.Certificate.pfx"))
+            {
+                using (var buffer = new MemoryStream())
+                {
+                    stream.CopyTo(buffer);
+                    buffer.Flush();
+
+                    // azure web apps require `MachineKeySet` for this to work
+                    return new X509Certificate2(
+                        buffer.ToArray(),                    
+                        "Owin.Security.OpenIdConnect.Server",
+                        X509KeyStorageFlags.MachineKeySet);
+                }                  
+           }
+
+#endif
+
+        }
+
+#if DNXCORE50
+
+        // Note: CoreCLR doesn't support .pfx files yet. To work around this limitation, the private key
+        // is stored in a different - and totally unprotected/unencrypted - .keys file and attached to the
+        // X509Certificate2 instance in LoadCertificate: NEVER do that in a real world application.
+        // See https://github.com/dotnet/corefx/issues/424
+        private static RSA LoadPrivateKey(IRuntimeEnvironment environment)
+        {
+            using (var stream = typeof(Startup).GetTypeInfo().Assembly.GetManifestResourceStream("Mvc.Server.Certificate.keys"))
+            {
+                using (var reader = new StreamReader(stream))
+                {
+                    // See https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet/issues/179
+                    var key = string.Equals(environment.RuntimeType, "Mono", StringComparison.OrdinalIgnoreCase) ?
+                        new RSACryptoServiceProvider(new CspParameters { ProviderType = 24 }) :
+                        new RSACryptoServiceProvider();
+
+                    key.ImportParameters(new RSAParameters
+                    {
+                        D = Convert.FromBase64String(reader.ReadLine()),
+                        DP = Convert.FromBase64String(reader.ReadLine()),
+                        DQ = Convert.FromBase64String(reader.ReadLine()),
+                        Exponent = Convert.FromBase64String(reader.ReadLine()),
+                        InverseQ = Convert.FromBase64String(reader.ReadLine()),
+                        Modulus = Convert.FromBase64String(reader.ReadLine()),
+                        P = Convert.FromBase64String(reader.ReadLine()),
+                        Q = Convert.FromBase64String(reader.ReadLine())
+                    });
+
+                    return key;
+                }
             }
         }
+
+#endif
 
         private async Task CreateUsersAsync(IServiceProvider serviceProvider)
         {
@@ -233,12 +291,12 @@ namespace ResourceOwnerPasswordFlow
                     await userManager.CreateAsync(developer, developerPassword);
                 }
 
-                if (! await roleManager.RoleExistsAsync(adminRole))
+                if (!await roleManager.RoleExistsAsync(adminRole))
                 {
                     await roleManager.CreateAsync(new IdentityRole(adminRole));
                 }
 
-                if (! await roleManager.RoleExistsAsync(developerRole))
+                if (!await roleManager.RoleExistsAsync(developerRole))
                 {
                     await roleManager.CreateAsync(new IdentityRole(developerRole));
                 }
@@ -247,6 +305,16 @@ namespace ResourceOwnerPasswordFlow
                 await userManager.AddToRoleAsync(developer, adminRole);
                 await userManager.AddToRoleAsync(developer, developerRole);
             }
+        }
+
+        private bool IsCoreCLR(IRuntimeEnvironment env)
+        {
+            return string.Equals(env.RuntimeType, "CoreCLR", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private bool IsMono(IRuntimeEnvironment env)
+        {
+            return string.Equals(env.RuntimeType, "Mono", StringComparison.OrdinalIgnoreCase);
         }
     }
 }
