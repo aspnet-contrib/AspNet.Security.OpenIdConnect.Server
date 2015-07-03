@@ -194,9 +194,11 @@ namespace Owin.Security.OpenIdConnect.Server {
         public TimeSpan RefreshTokenLifetime { get; set; }
 
         /// <summary>
-        /// This property is set to true to instruct the middleware to re-issue a new refresh token
-        /// with a new expiration time each time a grant_type=refresh_token request is served.
-        /// Setting this property to false will prevent the token endpoint from issuing refresh tokens on subsequent requests.
+        /// Determines whether refresh tokens issued during a grant_type=refresh_token request should be generated
+        /// with a new expiration date or should re-use the same expiration date as the original refresh token.
+        /// Set this property to <c>true</c> to assign a new expiration date each time a refresh token is issued,
+        /// <c>false</c> to use the expiration date of the original refresh token. When set to <c>false</c>,
+        /// access and identity tokens' lifetime cannot exceed the expiration date of the refresh token.
         /// </summary>
         public bool UseSlidingExpiration { get; set; }
 

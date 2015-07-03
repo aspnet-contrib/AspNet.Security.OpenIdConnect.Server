@@ -161,6 +161,24 @@ namespace Owin {
             return new AuthenticationProperties(properties.Dictionary.ToDictionary(pair => pair.Key, pair => pair.Value));
         }
 
+        internal static AuthenticationTicket Copy(this AuthenticationTicket ticket) {
+            return new AuthenticationTicket(ticket.Identity, ticket.Properties.Copy());
+        }
+
+        internal static void CopyTo(this AuthenticationProperties source, AuthenticationProperties destination) {
+            if (source == null || destination == null) {
+                return;
+            }
+
+            if (ReferenceEquals(destination, source)) {
+                return;
+            }
+
+            foreach (var property in source.Dictionary) {
+                destination.Dictionary[property.Key] = property.Value;
+            }
+        }
+
         internal static string GetProperty(this AuthenticationProperties properties, string property) {
             if (properties == null) {
                 return null;
