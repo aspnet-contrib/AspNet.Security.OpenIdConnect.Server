@@ -53,7 +53,7 @@ namespace ResourceOwnerPasswordFlow.Providers
 
                 var principal = new ClaimsPrincipal(identity);
                 notification.Validated(principal);
-            }            
+            }
         }
     }
 }
