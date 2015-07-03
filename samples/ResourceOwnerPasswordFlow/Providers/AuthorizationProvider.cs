@@ -55,11 +55,7 @@ namespace ResourceOwnerPasswordFlow.Providers
 
                 var principal = new ClaimsPrincipal(identity);
                 notification.Validated(principal);
-            }
-
-            // no return type
-            // because it's async now
-            // is this appropriate?
+            }            
         }
     }
 }
