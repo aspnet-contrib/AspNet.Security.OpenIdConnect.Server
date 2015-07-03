@@ -2,7 +2,7 @@
     <h1>An OpenID Connect error has occurred</h1>
     <p class="lead text-left">
         <strong>@Model.Error</strong>
-        @if (!string.IsNullOrWhiteSpace(Model.ErrorDescription)) {
+        @if (!string.IsNullOrEmpty(Model.ErrorDescription)) {
             <small>@Model.ErrorDescription</small>
         }
     </p>

@@ -15,7 +15,7 @@ namespace Mvc.Server.Providers {
             // header (basic authentication) using TryGetBasicCredentials.
             notification.TryGetFormCredentials(out clientId, out clientSecret);
 
-            if (string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(clientSecret)) {
+            if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(clientSecret)) {
                 notification.SetError(
                     error: "invalid_request",
                     errorDescription: "Missing credentials: ensure that your credentials " +

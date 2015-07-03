@@ -15,7 +15,7 @@ namespace Nancy.Server.Modules {
 
             Post["/signin"] = parameters => {
                 var identifier = (string) Request.Form.Identifier;
-                if (string.IsNullOrWhiteSpace(identifier)) {
+                if (string.IsNullOrEmpty(identifier)) {
                     return HttpStatusCode.BadRequest;
                 }
                 
@@ -23,7 +23,7 @@ namespace Nancy.Server.Modules {
                 // will be redirected to after a successful authentication and not
                 // the redirect_uri of the requesting client application.
                 var returnUrl = (string) Request.Form.ReturnUrl;
-                if (string.IsNullOrWhiteSpace(returnUrl)) {
+                if (string.IsNullOrEmpty(returnUrl)) {
                     return HttpStatusCode.BadRequest;
                 }
 

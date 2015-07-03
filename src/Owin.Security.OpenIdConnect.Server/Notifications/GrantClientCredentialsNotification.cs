@@ -40,7 +40,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         public IEnumerable<string> Scope {
             get {
-                if (string.IsNullOrWhiteSpace(TokenRequest.Scope)) {
+                if (string.IsNullOrEmpty(TokenRequest.Scope)) {
                     return Enumerable.Empty<string>();
                 }
 

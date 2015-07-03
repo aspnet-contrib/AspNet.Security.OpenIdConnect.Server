@@ -198,7 +198,7 @@ namespace Owin {
             }
 
             var audience = properties.GetProperty(OpenIdConnectConstants.Extra.Audience);
-            if (string.IsNullOrWhiteSpace(audience)) {
+            if (string.IsNullOrEmpty(audience)) {
                 return Enumerable.Empty<string>();
             }
 
@@ -211,7 +211,7 @@ namespace Owin {
             }
 
             var resource = properties.GetProperty(OpenIdConnectConstants.Extra.Resource);
-            if (string.IsNullOrWhiteSpace(resource)) {
+            if (string.IsNullOrEmpty(resource)) {
                 return Enumerable.Empty<string>();
             }
 
@@ -224,7 +224,7 @@ namespace Owin {
             }
 
             var scope = properties.GetProperty(OpenIdConnectConstants.Extra.Scope);
-            if (string.IsNullOrWhiteSpace(scope)) {
+            if (string.IsNullOrEmpty(scope)) {
                 return Enumerable.Empty<string>();
             }
 
@@ -300,7 +300,7 @@ namespace Owin {
                     }
 
                     var context = identity.BootstrapContext as BootstrapContext;
-                    if (context == null || string.IsNullOrWhiteSpace(context.Token)) {
+                    if (context == null || string.IsNullOrEmpty(context.Token)) {
                         writer.Write(0);
                     }
 

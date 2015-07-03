@@ -14,7 +14,7 @@ namespace Nancy.Server.Extensions {
             }
 
             return from description in manager.GetAuthenticationTypes()
-                   where !string.IsNullOrWhiteSpace(description.Caption)
+                   where !string.IsNullOrEmpty(description.Caption)
                    select description;
         }
 

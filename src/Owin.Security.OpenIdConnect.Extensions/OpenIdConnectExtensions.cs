@@ -263,7 +263,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             }
 
             var audience = message.GetParameter("audience");
-            if (string.IsNullOrWhiteSpace(audience)) {
+            if (string.IsNullOrEmpty(audience)) {
                 return Enumerable.Empty<string>();
             }
 
@@ -280,7 +280,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             }
 
             var resource = message.Resource;
-            if (string.IsNullOrWhiteSpace(resource)) {
+            if (string.IsNullOrEmpty(resource)) {
                 return Enumerable.Empty<string>();
             }
             
@@ -297,7 +297,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             }
 
             var scope = message.Scope;
-            if (string.IsNullOrWhiteSpace(scope)) {
+            if (string.IsNullOrEmpty(scope)) {
                 return Enumerable.Empty<string>();
             }
 
@@ -314,7 +314,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException("message");
             }
 
-            if (string.IsNullOrWhiteSpace(identifier)) {
+            if (string.IsNullOrEmpty(identifier)) {
                 throw new ArgumentNullException("identifier");
             }
 
@@ -332,7 +332,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException("message");
             }
 
-            if (string.IsNullOrWhiteSpace(token)) {
+            if (string.IsNullOrEmpty(token)) {
                 throw new ArgumentNullException("token");
             }
 
@@ -363,7 +363,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException("claim");
             }
 
-            if (string.IsNullOrWhiteSpace(value)) {
+            if (string.IsNullOrEmpty(value)) {
                 throw new ArgumentNullException("value");
             }
 
@@ -385,7 +385,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException("claim");
             }
 
-            if (string.IsNullOrWhiteSpace(value)) {
+            if (string.IsNullOrEmpty(value)) {
                 throw new ArgumentNullException("value");
             }
 
@@ -473,7 +473,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         }
 
         private static bool HasValue(string source, string value) {
-            if (string.IsNullOrWhiteSpace(source)) {
+            if (string.IsNullOrEmpty(source)) {
                 return false;
             }
 
@@ -483,7 +483,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         }
 
         private static bool SetEquals(string source, params string[] components) {
-            if (string.IsNullOrWhiteSpace(source)) {
+            if (string.IsNullOrEmpty(source)) {
                 return false;
             }
 

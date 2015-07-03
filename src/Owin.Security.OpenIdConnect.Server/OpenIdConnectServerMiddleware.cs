@@ -66,7 +66,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
 
                 // See http://openid.net/specs/openid-connect-discovery-1_0.html#IssuerDiscovery
-                if (!string.IsNullOrWhiteSpace(Options.Issuer.Query) || !string.IsNullOrWhiteSpace(Options.Issuer.Fragment)) {
+                if (!string.IsNullOrEmpty(Options.Issuer.Query) || !string.IsNullOrEmpty(Options.Issuer.Fragment)) {
                     throw new ArgumentException("options.Issuer must contain no query and no fragment parts.", "options.Issuer");
                 }
 

@@ -14,7 +14,7 @@
     if (response != null) {
         <div>@response.Error</div>
 
-        if (!string.IsNullOrWhiteSpace(response.ErrorDescription)) {
+        if (!string.IsNullOrEmpty(response.ErrorDescription)) {
             <div>@response.ErrorDescription</div>
         }
 

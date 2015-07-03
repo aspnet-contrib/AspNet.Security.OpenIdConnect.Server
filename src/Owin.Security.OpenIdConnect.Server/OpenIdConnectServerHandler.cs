@@ -62,7 +62,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     return null;
                 }
 
-                if (string.IsNullOrWhiteSpace(request.IdTokenHint)) {
+                if (string.IsNullOrEmpty(request.IdTokenHint)) {
                     return null;
                 }
 
@@ -170,7 +170,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             else if (string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase)) {
                 // See http://openid.net/specs/openid-connect-core-1_0.html#FormSerialization
-                if (string.IsNullOrWhiteSpace(Request.ContentType)) {
+                if (string.IsNullOrEmpty(Request.ContentType)) {
                     logger.WriteInformation("A malformed request has been received by the authorization endpoint.");
 
                     return await SendErrorPageAsync(new OpenIdConnectMessage {
@@ -212,7 +212,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             // Re-assemble the authorization request using the cache if
             // a 'unique_id' parameter has been extracted from the received message.
             var identifier = request.GetUniqueIdentifier();
-            if (!string.IsNullOrWhiteSpace(identifier)) {
+            if (!string.IsNullOrEmpty(identifier)) {
                 var item = Options.Cache.Get(identifier) as string;
                 if (item == null) {
                     logger.WriteInformation("A unique_id has been provided but no corresponding " +
@@ -612,7 +612,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             // Remove the OpenID Connect request from the cache.
             var identifier = request.GetUniqueIdentifier();
-            if (!string.IsNullOrWhiteSpace(identifier)) {
+            if (!string.IsNullOrEmpty(identifier)) {
                 Options.Cache.Remove(identifier);
             }
 
@@ -859,19 +859,19 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             payload.Add(OpenIdConnectConstants.Metadata.Issuer, notification.Issuer);
 
-            if (!string.IsNullOrWhiteSpace(notification.AuthorizationEndpoint)) {
+            if (!string.IsNullOrEmpty(notification.AuthorizationEndpoint)) {
                 payload.Add(OpenIdConnectConstants.Metadata.AuthorizationEndpoint, notification.AuthorizationEndpoint);
             }
 
-            if (!string.IsNullOrWhiteSpace(notification.TokenEndpoint)) {
+            if (!string.IsNullOrEmpty(notification.TokenEndpoint)) {
                 payload.Add(OpenIdConnectConstants.Metadata.TokenEndpoint, notification.TokenEndpoint);
             }
 
-            if (!string.IsNullOrWhiteSpace(notification.LogoutEndpoint)) {
+            if (!string.IsNullOrEmpty(notification.LogoutEndpoint)) {
                 payload.Add(OpenIdConnectConstants.Metadata.EndSessionEndpoint, notification.LogoutEndpoint);
             }
 
-            if (!string.IsNullOrWhiteSpace(notification.CryptographyEndpoint)) {
+            if (!string.IsNullOrEmpty(notification.CryptographyEndpoint)) {
                 payload.Add(OpenIdConnectConstants.Metadata.JwksUri, notification.CryptographyEndpoint);
             }
 
@@ -1050,7 +1050,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                 // Ensure a key type has been provided.
                 // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#section-4.1
-                if (string.IsNullOrWhiteSpace(key.Kty)) {
+                if (string.IsNullOrEmpty(key.Kty)) {
                     logger.WriteWarning("Cryptography endpoint: a JSON Web Key didn't " +
                         "contain the mandatory 'Kty' parameter and has been ignored.");
                     continue;
@@ -1117,7 +1117,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             // See http://openid.net/specs/openid-connect-core-1_0.html#FormSerialization
-            if (string.IsNullOrWhiteSpace(Request.ContentType)) {
+            if (string.IsNullOrEmpty(Request.ContentType)) {
                 await SendErrorPayloadAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "A malformed token request has been received: " +
@@ -1189,7 +1189,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 ticket = await InvokeTokenEndpointRefreshTokenGrantAsync(validatingContext);
             }
 
-            else if (!string.IsNullOrWhiteSpace(request.GrantType)) {
+            else if (!string.IsNullOrEmpty(request.GrantType)) {
                 // Defining New Authorization Grant Types
                 // http://tools.ietf.org/html/rfc6749#section-8.3
                 ticket = await InvokeTokenEndpointCustomGrantAsync(validatingContext);
@@ -1369,7 +1369,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             var clientId = ticket.Properties.GetProperty(OpenIdConnectConstants.Extra.ClientId);
-            if (string.IsNullOrWhiteSpace(clientId) || !string.Equals(clientId, request.ClientId, StringComparison.Ordinal)) {
+            if (string.IsNullOrEmpty(clientId) || !string.Equals(clientId, request.ClientId, StringComparison.Ordinal)) {
                 logger.WriteError("authorization code does not contain matching client_id");
                 notification.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
                 return null;
@@ -1386,7 +1386,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
             }
 
-            if (!string.IsNullOrWhiteSpace(request.Resource)) {
+            if (!string.IsNullOrEmpty(request.Resource)) {
                 // When an explicit resource parameter has been included in the token request
                 // but was missing from the authorization request, the request MUST rejected.
                 var resources = ticket.Properties.GetResources();
@@ -1406,7 +1406,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
             }
 
-            if (!string.IsNullOrWhiteSpace(request.Scope)) {
+            if (!string.IsNullOrEmpty(request.Scope)) {
                 // When an explicit scope parameter has been included in the token request
                 // but was missing from the authorization request, the request MUST rejected.
                 var scopes = ticket.Properties.GetScopes();
@@ -1480,13 +1480,13 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             var clientId = ticket.Properties.GetProperty(OpenIdConnectConstants.Extra.ClientId);
-            if (string.IsNullOrWhiteSpace(clientId) || !string.Equals(clientId, request.ClientId, StringComparison.Ordinal)) {
+            if (string.IsNullOrEmpty(clientId) || !string.Equals(clientId, request.ClientId, StringComparison.Ordinal)) {
                 logger.WriteError("refresh token does not contain matching client_id");
                 notification.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
                 return null;
             }
 
-            if (!string.IsNullOrWhiteSpace(request.Resource)) {
+            if (!string.IsNullOrEmpty(request.Resource)) {
                 // When an explicit resource parameter has been included in the token request
                 // but was missing from the authorization request, the request MUST rejected.
                 var resources = ticket.Properties.GetResources();
@@ -1506,7 +1506,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
             }
 
-            if (!string.IsNullOrWhiteSpace(request.Scope)) {
+            if (!string.IsNullOrEmpty(request.Scope)) {
                 // When an explicit scope parameter has been included in the token request
                 // but was missing from the authorization request, the request MUST rejected.
                 var scopes = ticket.Properties.GetScopes();
@@ -1571,7 +1571,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             else {
                 // See http://openid.net/specs/openid-connect-core-1_0.html#FormSerialization
-                if (string.IsNullOrWhiteSpace(Request.ContentType)) {
+                if (string.IsNullOrEmpty(Request.ContentType)) {
                     await SendErrorPayloadAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
                         ErrorDescription = "A malformed validation request has been received: " +
@@ -1734,7 +1734,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             else {
                 // See http://openid.net/specs/openid-connect-core-1_0.html#FormSerialization
-                if (string.IsNullOrWhiteSpace(Request.ContentType)) {
+                if (string.IsNullOrEmpty(Request.ContentType)) {
                     return await SendErrorPageAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
                         ErrorDescription = "A malformed logout request has been received: " +
@@ -2235,7 +2235,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             Context.SetOpenIdConnectRequest(request: null);
 
             // Directly display an error page if redirect_uri cannot be used.
-            if (string.IsNullOrWhiteSpace(response.RedirectUri)) {
+            if (string.IsNullOrEmpty(response.RedirectUri)) {
                 return await SendErrorPageAsync(response);
             }
 
