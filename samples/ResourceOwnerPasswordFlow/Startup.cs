@@ -219,29 +219,26 @@ namespace ResourceOwnerPasswordFlow
                 var userManager = serviceProvider.GetRequiredService<UserManager<IdentityUser>>();
                 var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-                // should we use `.Result` or `await`
-                // I need to learn more about async
-
-                var admin = userManager.FindByNameAsync(adminName).Result;
+                var admin = await userManager.FindByNameAsync(adminName);
                 if (admin == null)
                 {
                     admin = new IdentityUser { UserName = adminName };
                     await userManager.CreateAsync(admin, adminPassword);
                 }
 
-                var developer = userManager.FindByNameAsync(developerName).Result;
+                var developer = await userManager.FindByNameAsync(developerName);
                 if (developer == null)
                 {
                     developer = new IdentityUser { UserName = developerName };
                     await userManager.CreateAsync(developer, developerPassword);
                 }
 
-                if (!roleManager.RoleExistsAsync(adminRole).Result)
+                if (! await roleManager.RoleExistsAsync(adminRole))
                 {
                     await roleManager.CreateAsync(new IdentityRole(adminRole));
                 }
 
-                if (!roleManager.RoleExistsAsync(developerRole).Result)
+                if (! await roleManager.RoleExistsAsync(developerRole))
                 {
                     await roleManager.CreateAsync(new IdentityRole(developerRole));
                 }
