@@ -660,7 +660,13 @@ namespace Owin.Security.OpenIdConnect.Server {
             if (notification.IsRequestCompleted) {
                 return true;
             }
-            
+
+            // Stop processing the request if no explicit
+            // post_logout_redirect_uri has been provided.
+            if (string.IsNullOrEmpty(request.PostLogoutRedirectUri)) {
+                return true;
+            }
+
             Response.Redirect(request.PostLogoutRedirectUri);
 
             return true;
@@ -1756,18 +1762,22 @@ namespace Owin.Security.OpenIdConnect.Server {
                     RequestType = OpenIdConnectRequestType.LogoutRequest
                 };
             }
-            
-            var clientNotification = new ValidateClientLogoutRedirectUriNotification(Context, Options, request);
-            await Options.Provider.ValidateClientLogoutRedirectUri(clientNotification);
 
-            if (!clientNotification.IsValidated) {
-                logger.WriteVerbose("Unable to validate client information");
+            // Note: post_logout_redirect_uri is not a mandatory parameter.
+            // See http://openid.net/specs/openid-connect-session-1_0.html#RPLogout
+            if (!string.IsNullOrEmpty(request.PostLogoutRedirectUri)) {
+                var clientNotification = new ValidateClientLogoutRedirectUriNotification(Context, Options, request);
+                await Options.Provider.ValidateClientLogoutRedirectUri(clientNotification);
 
-                return await SendErrorPageAsync(new OpenIdConnectMessage {
-                    Error = clientNotification.Error,
-                    ErrorDescription = clientNotification.ErrorDescription,
-                    ErrorUri = clientNotification.ErrorUri
-                });
+                if (!clientNotification.IsValidated) {
+                    logger.WriteVerbose("Unable to validate client information");
+
+                    return await SendErrorPageAsync(new OpenIdConnectMessage {
+                        Error = clientNotification.Error,
+                        ErrorDescription = clientNotification.ErrorDescription,
+                        ErrorUri = clientNotification.ErrorUri
+                    });
+                }
             }
 
             // Update the logout request in the OWIN context.
