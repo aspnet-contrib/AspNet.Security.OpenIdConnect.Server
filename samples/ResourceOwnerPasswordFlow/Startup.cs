@@ -62,8 +62,7 @@ namespace ResourceOwnerPasswordFlow
             // identity
             services
                 .AddIdentity<IdentityUser, IdentityRole>()
-                .AddEntityFrameworkStores<ApplicationContext>()
-                .AddDefaultTokenProviders(); // What does this do? 
+                .AddEntityFrameworkStores<ApplicationContext>();
         }
 
         public void Configure(IApplicationBuilder app, IRuntimeEnvironment environment, IServiceProvider serviceProvider)
