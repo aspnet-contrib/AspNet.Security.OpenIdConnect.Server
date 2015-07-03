@@ -17,6 +17,7 @@ using ResourceOwnerPasswordFlow.Providers;
 using ResourceOwnerPasswordFlow.Models;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity;
+using System.Threading.Tasks;
 
 /// <summary>
 /// Configure the resource owner password credential flow. 
@@ -76,7 +77,9 @@ namespace ResourceOwnerPasswordFlow
 
                 // ASP.NET Identity
                 app.UseIdentity();
-                CreateUsers(serviceProvider);
+                CreateUsersAsync(serviceProvider)
+                    .GetAwaiter()
+                    .GetResult();
 
                 // Allow serving of .html files in wwwroot
                 app.UseStaticFiles();
@@ -196,7 +199,7 @@ namespace ResourceOwnerPasswordFlow
             }
         }
 
-        private void CreateUsers(IServiceProvider serviceProvider)
+        private async Task CreateUsersAsync(IServiceProvider serviceProvider)
         {
             // create admin user
             bool created = false;
@@ -223,29 +226,29 @@ namespace ResourceOwnerPasswordFlow
                 if (admin == null)
                 {
                     admin = new IdentityUser { UserName = adminName };
-                    userManager.CreateAsync(admin, adminPassword);
+                    await userManager.CreateAsync(admin, adminPassword);
                 }
 
                 var developer = userManager.FindByNameAsync(developerName).Result;
                 if (developer == null)
                 {
                     developer = new IdentityUser { UserName = developerName };
-                    userManager.CreateAsync(developer, developerPassword);
+                    await userManager.CreateAsync(developer, developerPassword);
                 }
 
                 if (!roleManager.RoleExistsAsync(adminRole).Result)
                 {
-                    roleManager.CreateAsync(new IdentityRole(adminRole));
+                    await roleManager.CreateAsync(new IdentityRole(adminRole));
                 }
 
                 if (!roleManager.RoleExistsAsync(developerRole).Result)
                 {
-                    roleManager.CreateAsync(new IdentityRole(developerRole));
+                    await roleManager.CreateAsync(new IdentityRole(developerRole));
                 }
 
-                userManager.AddToRoleAsync(admin, adminRole);
-                userManager.AddToRoleAsync(developer, adminRole);
-                userManager.AddToRoleAsync(developer, developerRole);
+                await userManager.AddToRoleAsync(admin, adminRole);
+                await userManager.AddToRoleAsync(developer, adminRole);
+                await userManager.AddToRoleAsync(developer, developerRole);
             }
         }
     }
