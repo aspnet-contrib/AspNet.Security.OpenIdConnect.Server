@@ -103,10 +103,7 @@ namespace ResourceOwnerPasswordFlow
                     options.AuthorizationEndpointPath = PathString.Empty; // Tokens are avaiable by default at ~/connect/token
                     options.SigningCredentials = credentials;
                     options.AuthenticationScheme = OpenIdConnectDefaults.AuthenticationScheme;
-
-                    // is this the right way to inject a user manager into the Authorization Provider?
-                    var userManager = serviceProvider.GetRequiredService<UserManager<IdentityUser>>();
-                    options.Provider = new AuthorizationProvider(userManager);
+                    options.Provider = new AuthorizationProvider();
                 });
             }
             catch (Exception ex)

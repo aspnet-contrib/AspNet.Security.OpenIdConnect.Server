@@ -15,13 +15,6 @@ namespace ResourceOwnerPasswordFlow.Providers
 {
     public sealed class AuthorizationProvider : OpenIdConnectServerProvider
     {
-        private UserManager<IdentityUser> _userManager;
-
-        public AuthorizationProvider(UserManager<IdentityUser> userManager)
-        {
-            _userManager = userManager;
-        }
-
         public override Task ValidateClientAuthentication(
             ValidateClientAuthenticationNotification notification)
         {
@@ -39,8 +32,13 @@ namespace ResourceOwnerPasswordFlow.Providers
             var username = notification.UserName;
             var password = notification.Password;
 
-            var user = await _userManager.FindByNameAsync(username);
-            var isValid = await _userManager.CheckPasswordAsync(user, password);
+            var userManager = notification
+                .HttpContext
+                .RequestServices
+                .GetRequiredService<UserManager<IdentityUser>>();
+
+            var user = await userManager.FindByNameAsync(username);
+            var isValid = await userManager.CheckPasswordAsync(user, password);
 
             if (isValid)
             {
