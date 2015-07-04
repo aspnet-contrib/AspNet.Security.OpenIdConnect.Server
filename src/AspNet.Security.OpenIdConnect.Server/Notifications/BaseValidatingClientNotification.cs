@@ -37,5 +37,15 @@ namespace AspNet.Security.OpenIdConnect.Server {
             get { return Request.ClientId; }
             set { Request.ClientId = value; }
         }
+
+        /// <summary>
+        /// The "client_secret" parameter for the current request.
+        /// The authorization server application is responsible for 
+        /// validating this value to ensure it identifies a registered client.
+        /// </summary>
+        public string ClientSecret {
+            get { return Request.ClientSecret; }
+            set { Request.ClientSecret = value; }
+        }
     }
 }

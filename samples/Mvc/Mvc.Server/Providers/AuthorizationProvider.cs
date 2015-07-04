@@ -9,17 +9,11 @@ using Mvc.Server.Models;
 namespace Mvc.Server.Providers {
     public sealed class AuthorizationProvider : OpenIdConnectServerProvider {
         public override async Task ValidateClientAuthentication(ValidateClientAuthenticationNotification notification) {
-            string clientId, clientSecret;
-
-            // Retrieve the client credentials from the request body.
-            // Note: you can also retrieve them from the Authorization
-            // header (basic authentication) using TryGetBasicCredentials.
-            if (!notification.TryGetFormCredentials(out clientId, out clientSecret) ||
-                string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(clientSecret)) {
+            if (string.IsNullOrEmpty(notification.ClientId) || string.IsNullOrEmpty(notification.ClientSecret)) {
                 notification.SetError(
                     error: "invalid_request",
-                    errorDescription: "Missing credentials: ensure that your credentials " +
-                                      "were correctly flowed in the request body");
+                    errorDescription: "Missing credentials: ensure that your credentials were correctly " +
+                                      "flowed in the request body or in the authorization header");
 
                 return;
             }
@@ -28,7 +22,7 @@ namespace Mvc.Server.Providers {
 
             // Retrieve the application details corresponding to the requested client_id.
             var application = await (from entity in context.Applications
-                                     where entity.ApplicationID == clientId
+                                     where entity.ApplicationID == notification.ClientId
                                      select entity).SingleOrDefaultAsync(notification.HttpContext.RequestAborted);
 
             if (application == null) {
@@ -39,7 +33,7 @@ namespace Mvc.Server.Providers {
                 return;
             }
 
-            if (!string.Equals(clientSecret, application.Secret, StringComparison.Ordinal)) {
+            if (!string.Equals(notification.ClientSecret, application.Secret, StringComparison.Ordinal)) {
                 notification.SetError(
                     error: "invalid_client",
                     errorDescription: "Invalid credentials: ensure that you specified a correct client_secret");
@@ -47,7 +41,7 @@ namespace Mvc.Server.Providers {
                 return;
             }
 
-            notification.Validated(clientId);
+            notification.Validated();
         }
 
         public override async Task ValidateClientRedirectUri(ValidateClientRedirectUriNotification notification) {
