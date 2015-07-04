@@ -13,7 +13,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// An event raised after the Authorization Server has processed the request, but before it is passed on to the web application.
     /// Calling RequestCompleted will prevent the request from passing on to the web application.
     /// </summary>
-    public sealed class AuthorizationEndpointNotification : EndpointContext<OpenIdConnectServerOptions> {
+    public sealed class AuthorizationEndpointNotification : BaseNotification<OpenIdConnectServerOptions> {
         /// <summary>
         /// Creates an instance of this context
         /// </summary>
@@ -22,12 +22,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request)
             : base(context, options) {
-            AuthorizationRequest = request;
+            Request = request;
         }
 
         /// <summary>
         /// Gets the authorization request.
         /// </summary>
-        public OpenIdConnectMessage AuthorizationRequest { get; }
+        public new OpenIdConnectMessage Request { get; }
     }
 }

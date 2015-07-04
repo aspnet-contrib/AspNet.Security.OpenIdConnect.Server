@@ -25,15 +25,15 @@ namespace AspNet.Security.OpenIdConnect.Server {
             OpenIdConnectMessage request,
             ValidateClientRedirectUriNotification clientContext)
             : base(context, options) {
+            Request = request;
             ClientContext = clientContext;
-            AuthorizationRequest = request;
             Validated();
         }
 
         /// <summary>
         /// Gets the authorization request.
         /// </summary>
-        public OpenIdConnectMessage AuthorizationRequest { get; }
+        public new OpenIdConnectMessage Request { get; }
 
         /// <summary>
         /// Gets the client context. 

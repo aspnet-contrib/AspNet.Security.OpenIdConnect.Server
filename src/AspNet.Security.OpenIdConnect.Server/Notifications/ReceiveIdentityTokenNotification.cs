@@ -27,14 +27,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
             OpenIdConnectMessage request,
             string token)
             : base(context, options) {
-            TokenRequest = request;
+            Request = request;
             IdentityToken = token;
         }
 
         /// <summary>
         /// Gets the authorization or token request.
         /// </summary>
-        public OpenIdConnectMessage TokenRequest { get; }
+        public new OpenIdConnectMessage Request { get; }
 
         /// <summary>
         /// Gets the identity token used by the client application.

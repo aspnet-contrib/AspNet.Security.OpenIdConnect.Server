@@ -23,22 +23,22 @@ namespace AspNet.Security.OpenIdConnect.Server {
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request)
             : base(context, options, null) {
-            TokenRequest = request;
+            Request = request;
         }
 
         /// <summary>
         /// Gets the client_id parameter.
         /// </summary>
-        public string ClientId => TokenRequest.ClientId;
+        public string ClientId => Request.ClientId;
 
         /// <summary>
         /// Gets the grant_type parameter.
         /// </summary>
-        public string GrantType => TokenRequest.GrantType;
+        public string GrantType => Request.GrantType;
 
         /// <summary>
         /// Gets the token request.
         /// </summary>
-        public OpenIdConnectMessage TokenRequest { get; }
+        public new OpenIdConnectMessage Request { get; }
     }
 }

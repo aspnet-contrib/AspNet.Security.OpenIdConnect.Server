@@ -25,40 +25,40 @@ namespace AspNet.Security.OpenIdConnect.Server {
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request)
             : base(context, options, null) {
-            TokenRequest = request;
+            Request = request;
         }
 
         /// <summary>
         /// OpenIdConnect client id.
         /// </summary>
-        public string ClientId => TokenRequest.ClientId;
+        public string ClientId => Request.ClientId;
 
         /// <summary>
         /// Resource owner username.
         /// </summary>
-        public string UserName => TokenRequest.Username;
+        public string UserName => Request.Username;
 
         /// <summary>
         /// Resource owner password.
         /// </summary>
-        public string Password => TokenRequest.Password;
+        public string Password => Request.Password;
 
         /// <summary>
         /// Gets the list of scopes requested by the client application.
         /// </summary>
         public IEnumerable<string> Scope {
             get {
-                if (string.IsNullOrEmpty(TokenRequest.Scope)) {
+                if (string.IsNullOrEmpty(Request.Scope)) {
                     return Enumerable.Empty<string>();
                 }
 
-                return TokenRequest.Scope.Split(' ');
+                return Request.Scope.Split(' ');
             }
         }
 
         /// <summary>
         /// Gets the token request.
         /// </summary>
-        public OpenIdConnectMessage TokenRequest { get; }
+        public new OpenIdConnectMessage Request { get; }
     }
 }

@@ -106,9 +106,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             await Options.Provider.MatchEndpoint(notification);
 
-            // Stop processing the request if MatchEndpoint called RequestCompleted.
-            if (notification.IsRequestCompleted) {
+            if (notification.HandledResponse) {
                 return true;
+            }
+
+            else if (notification.Skipped) {
+                return false;
             }
 
             if (!Options.AllowInsecureHttp && !Request.IsHttps) {
@@ -453,9 +456,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // Update the authorization request in the ASP.NET context.
             Context.SetOpenIdConnectRequest(request);
 
-            // Stop processing the request if
-            // AuthorizationEndpoint called RequestCompleted.
-            if (notification.IsRequestCompleted) {
+            if (notification.HandledResponse) {
                 return true;
             }
 
@@ -559,8 +560,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             var notification = new AuthorizationEndpointResponseNotification(Context, Options, request, response);
             await Options.Provider.AuthorizationEndpointResponse(notification);
 
-            // Stop processing the request if AuthorizationEndpointResponse called RequestCompleted.
-            if (notification.IsRequestCompleted) {
+            if (notification.HandledResponse) {
                 return;
             }
 
@@ -594,9 +594,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             var notification = new LogoutEndpointResponseNotification(Context, Options, request);
             await Options.Provider.LogoutEndpointResponse(notification);
 
-            // Stop processing the request if
-            // LogoutEndpointResponse called RequestCompleted.
-            if (notification.IsRequestCompleted) {
+            if (notification.HandledResponse) {
                 return;
             }
 
@@ -817,9 +815,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             await Options.Provider.ConfigurationEndpoint(notification);
 
-            // Stop processing the request if
-            // ConfigurationEndpoint called RequestCompleted.
-            if (notification.IsRequestCompleted) {
+            if (notification.HandledResponse) {
                 return;
             }
 
@@ -864,8 +860,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             var responseNotification = new ConfigurationEndpointResponseNotification(Context, Options, payload);
             await Options.Provider.ConfigurationEndpointResponse(responseNotification);
 
-            // Stop processing the request if ConfigurationEndpointResponse called RequestCompleted.
-            if (responseNotification.IsRequestCompleted) {
+            if (responseNotification.HandledResponse) {
                 return;
             }
 
@@ -962,9 +957,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             await Options.Provider.CryptographyEndpoint(notification);
 
-            // Skip processing the JWKS request if
-            // RequestCompleted has been called.
-            if (notification.IsRequestCompleted) {
+            if (notification.HandledResponse) {
                 return;
             }
 
@@ -1023,8 +1016,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             var responseNotification = new CryptographyEndpointResponseNotification(Context, Options, payload);
             await Options.Provider.CryptographyEndpointResponse(responseNotification);
 
-            // Skip processing the request if RequestCompleted has been called.
-            if (responseNotification.IsRequestCompleted) {
+            if (responseNotification.HandledResponse) {
                 return;
             }
 
@@ -1151,9 +1143,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             var notification = new TokenEndpointNotification(Context, Options, request, ticket);
             await Options.Provider.TokenEndpoint(notification);
 
-            // Stop processing the request if
-            // TokenEndpoint called RequestCompleted.
-            if (notification.IsRequestCompleted) {
+            if (notification.HandledResponse) {
                 return;
             }
 
@@ -1263,9 +1253,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             var responseNotification = new TokenEndpointResponseNotification(Context, Options, payload);
             await Options.Provider.TokenEndpointResponse(responseNotification);
 
-            // Stop processing the request if
-            // TokenEndpointResponse called RequestCompleted.
-            if (responseNotification.IsRequestCompleted) {
+            if (responseNotification.HandledResponse) {
                 return;
             }
 
@@ -1287,9 +1275,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         }
 
         private async Task<AuthenticationTicket> InvokeTokenEndpointAuthorizationCodeGrantAsync(ValidateTokenRequestNotification notification) {
-            var request = notification.TokenRequest;
-
-            var ticket = await ReceiveAuthorizationCodeAsync(request.Code, request);
+            var ticket = await ReceiveAuthorizationCodeAsync(notification.Request.Code, notification.Request);
             if (ticket == null) {
                 Logger.LogError("invalid authorization code");
                 notification.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
@@ -1304,7 +1290,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             var clientId = ticket.Properties.GetProperty(OpenIdConnectConstants.Extra.ClientId);
-            if (string.IsNullOrEmpty(clientId) || !string.Equals(clientId, request.ClientId, StringComparison.Ordinal)) {
+            if (string.IsNullOrEmpty(clientId) || !string.Equals(clientId, notification.Request.ClientId, StringComparison.Ordinal)) {
                 Logger.LogError("authorization code does not contain matching client_id");
                 notification.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
                 return null;
@@ -1314,14 +1300,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
             if (ticket.Properties.Items.TryGetValue(OpenIdConnectConstants.Extra.RedirectUri, out redirectUri)) {
                 ticket.Properties.Items.Remove(OpenIdConnectConstants.Extra.RedirectUri);
 
-                if (!string.Equals(redirectUri, request.RedirectUri, StringComparison.Ordinal)) {
+                if (!string.Equals(redirectUri, notification.Request.RedirectUri, StringComparison.Ordinal)) {
                     Logger.LogError("authorization code does not contain matching redirect_uri");
                     notification.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
                     return null;
                 }
             }
 
-            if (!string.IsNullOrEmpty(request.Resource)) {
+            if (!string.IsNullOrEmpty(notification.Request.Resource)) {
                 // When an explicit resource parameter has been included in the token request
                 // but was missing from the authorization request, the request MUST rejected.
                 var resources = ticket.Properties.GetResources();
@@ -1334,14 +1320,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 // When an explicit resource parameter has been included in the token request,
                 // the authorization server MUST ensure that it doesn't contain resources
                 // that were not allowed during the authorization request.
-                else if (!resources.ContainsSet(request.GetResources())) {
+                else if (!resources.ContainsSet(notification.Request.GetResources())) {
                     Logger.LogError("authorization code does not contain matching resource");
                     notification.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
                     return null;
                 }
             }
 
-            if (!string.IsNullOrEmpty(request.Scope)) {
+            if (!string.IsNullOrEmpty(notification.Request.Scope)) {
                 // When an explicit scope parameter has been included in the token request
                 // but was missing from the authorization request, the request MUST rejected.
                 var scopes = ticket.Properties.GetScopes();
@@ -1354,7 +1340,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 // When an explicit scope parameter has been included in the token request,
                 // the authorization server MUST ensure that it doesn't contain scopes
                 // that were not allowed during the authorization request.
-                else if (!scopes.ContainsSet(request.GetScopes())) {
+                else if (!scopes.ContainsSet(notification.Request.GetScopes())) {
                     Logger.LogError("authorization code does not contain matching scope");
                     notification.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
                     return null;
@@ -1363,7 +1349,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             await Options.Provider.ValidateTokenRequest(notification);
 
-            var context = new GrantAuthorizationCodeNotification(Context, Options, request, ticket);
+            var context = new GrantAuthorizationCodeNotification(Context, Options, notification.Request, ticket);
 
             if (notification.IsValidated) {
                 await Options.Provider.GrantAuthorizationCode(context);
@@ -1375,7 +1361,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         private async Task<AuthenticationTicket> InvokeTokenEndpointResourceOwnerPasswordCredentialsGrantAsync(ValidateTokenRequestNotification notification) {
             await Options.Provider.ValidateTokenRequest(notification);
 
-            var context = new GrantResourceOwnerCredentialsNotification(Context, Options, notification.TokenRequest);
+            var context = new GrantResourceOwnerCredentialsNotification(Context, Options, notification.Request);
 
             if (notification.IsValidated) {
                 await Options.Provider.GrantResourceOwnerCredentials(context);
@@ -1391,16 +1377,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return null;
             }
 
-            var context = new GrantClientCredentialsNotification(Context, Options, notification.TokenRequest);
+            var context = new GrantClientCredentialsNotification(Context, Options, notification.Request);
             await Options.Provider.GrantClientCredentials(context);
 
             return ReturnOutcome(notification, context, context.Ticket, OpenIdConnectConstants.Errors.UnauthorizedClient);
         }
 
         private async Task<AuthenticationTicket> InvokeTokenEndpointRefreshTokenGrantAsync(ValidateTokenRequestNotification notification) {
-            var request = notification.TokenRequest;
-
-            var ticket = await ReceiveRefreshTokenAsync(request.GetRefreshToken(), request);
+            var ticket = await ReceiveRefreshTokenAsync(notification.Request.GetRefreshToken(), notification.Request);
             if (ticket == null) {
                 Logger.LogError("invalid refresh token");
                 notification.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
@@ -1415,13 +1399,13 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             var clientId = ticket.Properties.GetProperty(OpenIdConnectConstants.Extra.ClientId);
-            if (string.IsNullOrEmpty(clientId) || !string.Equals(clientId, request.ClientId, StringComparison.Ordinal)) {
+            if (string.IsNullOrEmpty(clientId) || !string.Equals(clientId, notification.Request.ClientId, StringComparison.Ordinal)) {
                 Logger.LogError("refresh token does not contain matching client_id");
                 notification.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
                 return null;
             }
 
-            if (!string.IsNullOrEmpty(request.Resource)) {
+            if (!string.IsNullOrEmpty(notification.Request.Resource)) {
                 // When an explicit resource parameter has been included in the token request
                 // but was missing from the authorization request, the request MUST rejected.
                 var resources = ticket.Properties.GetResources();
@@ -1434,14 +1418,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 // When an explicit resource parameter has been included in the token request,
                 // the authorization server MUST ensure that it doesn't contain resources
                 // that were not allowed during the authorization request.
-                else if (!resources.ContainsSet(request.GetResources())) {
+                else if (!resources.ContainsSet(notification.Request.GetResources())) {
                     Logger.LogError("refresh token does not contain matching resource");
                     notification.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
                     return null;
                 }
             }
 
-            if (!string.IsNullOrEmpty(request.Scope)) {
+            if (!string.IsNullOrEmpty(notification.Request.Scope)) {
                 // When an explicit scope parameter has been included in the token request
                 // but was missing from the authorization request, the request MUST rejected.
                 var scopes = ticket.Properties.GetScopes();
@@ -1454,7 +1438,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 // When an explicit scope parameter has been included in the token request,
                 // the authorization server MUST ensure that it doesn't contain scopes
                 // that were not allowed during the authorization request.
-                else if (!scopes.ContainsSet(request.GetScopes())) {
+                else if (!scopes.ContainsSet(notification.Request.GetScopes())) {
                     Logger.LogError("refresh token does not contain matching scope");
                     notification.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
                     return null;
@@ -1463,7 +1447,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             await Options.Provider.ValidateTokenRequest(notification);
 
-            var context = new GrantRefreshTokenNotification(Context, Options, request, ticket);
+            var context = new GrantRefreshTokenNotification(Context, Options, notification.Request, ticket);
 
             if (notification.IsValidated) {
                 await Options.Provider.GrantRefreshToken(context);
@@ -1475,7 +1459,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         private async Task<AuthenticationTicket> InvokeTokenEndpointCustomGrantAsync(ValidateTokenRequestNotification notification) {
             await Options.Provider.ValidateTokenRequest(notification);
 
-            var context = new GrantCustomExtensionNotification(Context, Options, notification.TokenRequest);
+            var context = new GrantCustomExtensionNotification(Context, Options, notification.Request);
 
             if (notification.IsValidated) {
                 await Options.Provider.GrantCustomExtension(context);
@@ -1605,9 +1589,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // Flow the changes made to the authentication ticket.
             ticket = notification.AuthenticationTicket;
 
-            // Stop processing the request if
-            // ValidationEndpoint called RequestCompleted.
-            if (notification.IsRequestCompleted) {
+            if (notification.HandledResponse) {
                 return;
             }
 
@@ -1624,9 +1606,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             var responseNotification = new ValidationEndpointResponseNotification(Context, Options, payload);
             await Options.Provider.ValidationEndpointResponse(responseNotification);
 
-            // Stop processing the request if
-            // ValidationEndpointResponse called RequestCompleted.
-            if (responseNotification.IsRequestCompleted) {
+            if (responseNotification.HandledResponse) {
                 return;
             }
 
@@ -1719,9 +1699,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // Update the logout request in the ASP.NET context.
             Context.SetOpenIdConnectRequest(request);
 
-            // Stop processing the request if
-            // LogoutEndpoint called RequestCompleted.
-            if (notification.IsRequestCompleted) {
+            if (notification.HandledResponse) {
                 return true;
             }
 
@@ -1751,7 +1729,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
             ticket = notification.AuthenticationTicket;
             ticket.Properties.CopyTo(properties);
 
-            // Skip the default logic if HandledResponse has been called.
             if (notification.HandledResponse) {
                 return notification.AuthorizationCode;
             }
@@ -1823,7 +1800,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
             ticket = notification.AuthenticationTicket;
             ticket.Properties.CopyTo(properties);
 
-            // Skip the default logic if HandledResponse has been called.
             if (notification.HandledResponse) {
                 return notification.AccessToken;
             }
@@ -1891,7 +1867,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
             ticket = notification.AuthenticationTicket;
             ticket.Properties.CopyTo(properties);
 
-            // Skip the default logic if HandledResponse has been called.
             if (notification.HandledResponse) {
                 return notification.RefreshToken;
             }
@@ -1941,7 +1916,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
             ticket = notification.AuthenticationTicket;
             ticket.Properties.CopyTo(properties);
 
-            // Skip the default logic if HandledResponse has been called.
             if (notification.HandledResponse) {
                 return notification.IdentityToken;
             }
