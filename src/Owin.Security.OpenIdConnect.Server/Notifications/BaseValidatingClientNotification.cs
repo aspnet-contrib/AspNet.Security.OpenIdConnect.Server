@@ -20,13 +20,13 @@ namespace Owin.Security.OpenIdConnect.Server {
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request)
             : base(context, options) {
-            AuthorizationRequest = request;
+            Request = request;
         }
 
         /// <summary>
         /// Gets the authorization request. 
         /// </summary>
-        public OpenIdConnectMessage AuthorizationRequest { get; private set; }
+        public new OpenIdConnectMessage Request { get; private set; }
 
         /// <summary>
         /// The "client_id" parameter for the current request.
@@ -34,8 +34,8 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// validating this value to ensure it identifies a registered client.
         /// </summary>
         public string ClientId {
-            get { return AuthorizationRequest.ClientId; }
-            set { AuthorizationRequest.ClientId = value; }
+            get { return Request.ClientId; }
+            set { Request.ClientId = value; }
         }
     }
 }

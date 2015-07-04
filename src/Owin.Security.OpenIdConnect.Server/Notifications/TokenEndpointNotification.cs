@@ -4,18 +4,16 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
-using System;
-using System.Security.Claims;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
-using Microsoft.Owin.Security.Provider;
+using Microsoft.Owin.Security.Notifications;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used when processing an OpenIdConnect token request.
     /// </summary>
-    public sealed class TokenEndpointNotification : EndpointContext<OpenIdConnectServerOptions> {
+    public sealed class TokenEndpointNotification : BaseNotification<OpenIdConnectServerOptions> {
         /// <summary>
         /// Initializes a new instance of the <see cref="TokenEndpointNotification"/> class
         /// </summary>
@@ -29,8 +27,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             OpenIdConnectMessage request,
             AuthenticationTicket ticket)
             : base(context, options) {
+            Request = request;
             Ticket = ticket;
-            TokenRequest = request;
         }
 
         /// <summary>
@@ -41,6 +39,6 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets information about the token endpoint request. 
         /// </summary>
-        public OpenIdConnectMessage TokenRequest { get; set; }
+        public new OpenIdConnectMessage Request { get; set; }
     }
 }

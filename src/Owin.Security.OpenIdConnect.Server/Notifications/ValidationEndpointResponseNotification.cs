@@ -5,7 +5,7 @@
  */
 
 using Microsoft.Owin;
-using Microsoft.Owin.Security.Provider;
+using Microsoft.Owin.Security.Notifications;
 using Newtonsoft.Json.Linq;
 
 namespace Owin.Security.OpenIdConnect.Server {
@@ -13,7 +13,7 @@ namespace Owin.Security.OpenIdConnect.Server {
     /// An event raised before the authorization server starts
     /// writing the token validation to the response stream.
     /// </summary>
-    public sealed class ValidationEndpointResponseNotification : EndpointContext<OpenIdConnectServerOptions> {
+    public sealed class ValidationEndpointResponseNotification : BaseNotification<OpenIdConnectServerOptions> {
         /// <summary>
         /// Creates an instance of this context.
         /// </summary>

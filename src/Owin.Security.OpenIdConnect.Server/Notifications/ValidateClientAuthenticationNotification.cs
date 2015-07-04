@@ -49,7 +49,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         public bool TryGetBasicCredentials(out string clientId, out string clientSecret) {
             // Client Authentication http://tools.ietf.org/html/rfc6749#section-2.3
             // Client Authentication Password http://tools.ietf.org/html/rfc6749#section-2.3.1
-            string authorization = Request.Headers.Get("Authorization");
+            string authorization = OwinContext.Request.Headers.Get("Authorization");
             if (!string.IsNullOrEmpty(authorization) && authorization.StartsWith("Basic ", StringComparison.OrdinalIgnoreCase)) {
                 try {
                     byte[] data = Convert.FromBase64String(authorization.Substring("Basic ".Length).Trim());
@@ -86,7 +86,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         public bool TryGetFormCredentials(out string clientId, out string clientSecret) {
             clientId = ClientId;
             if (!string.IsNullOrEmpty(clientId)) {
-                clientSecret = AuthorizationRequest.ClientSecret;
+                clientSecret = Request.ClientSecret;
                 return true;
             }
             clientId = null;

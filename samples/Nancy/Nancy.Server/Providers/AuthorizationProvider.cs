@@ -28,7 +28,7 @@ namespace Nancy.Server.Providers {
                 // Retrieve the application details corresponding to the requested client_id.
                 var application = await (from entity in context.Applications
                                          where entity.ApplicationID == clientId
-                                         select entity).SingleOrDefaultAsync(notification.Request.CallCancelled);
+                                         select entity).SingleOrDefaultAsync(notification.OwinContext.Request.CallCancelled);
 
                 if (application == null) {
                     notification.SetError(
@@ -56,7 +56,7 @@ namespace Nancy.Server.Providers {
                 // Retrieve the application details corresponding to the requested client_id.
                 var application = await (from entity in context.Applications
                                          where entity.ApplicationID == notification.ClientId
-                                         select entity).SingleOrDefaultAsync(notification.Request.CallCancelled);
+                                         select entity).SingleOrDefaultAsync(notification.OwinContext.Request.CallCancelled);
 
                 if (application == null) {
                     notification.SetError(

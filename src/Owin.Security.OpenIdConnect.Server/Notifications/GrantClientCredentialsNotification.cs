@@ -25,14 +25,14 @@ namespace Owin.Security.OpenIdConnect.Server {
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request)
             : base(context, options, null) {
-            TokenRequest = request;
+            Request = request;
         }
 
         /// <summary>
         /// Gets the client_id parameter.
         /// </summary>
         public string ClientId {
-            get { return TokenRequest.ClientId; }
+            get { return Request.ClientId; }
         }
 
         /// <summary>
@@ -40,17 +40,17 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         public IEnumerable<string> Scope {
             get {
-                if (string.IsNullOrEmpty(TokenRequest.Scope)) {
+                if (string.IsNullOrEmpty(Request.Scope)) {
                     return Enumerable.Empty<string>();
                 }
 
-                return TokenRequest.Scope.Split(' ');
+                return Request.Scope.Split(' ');
             }
         }
 
         /// <summary>
         /// Gets the token request.
         /// </summary>
-        public OpenIdConnectMessage TokenRequest { get; private set; }
+        public new OpenIdConnectMessage Request { get; private set; }
     }
 }

@@ -6,14 +6,14 @@
 
 using System.Collections.Generic;
 using Microsoft.Owin;
-using Microsoft.Owin.Security.Provider;
+using Microsoft.Owin.Security.Notifications;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// An event raised before the authorization server handles
     /// the request made to the configuration metadata endpoint.
     /// </summary>
-    public sealed class ConfigurationEndpointNotification : EndpointContext<OpenIdConnectServerOptions> {
+    public sealed class ConfigurationEndpointNotification : BaseNotification<OpenIdConnectServerOptions> {
         /// <summary>
         /// Creates an instance of this context.
         /// </summary>

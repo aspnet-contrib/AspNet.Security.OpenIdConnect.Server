@@ -6,13 +6,13 @@
 
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
-using Microsoft.Owin.Security.Provider;
+using Microsoft.Owin.Security.Notifications;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information when processing an Authorization Response
     /// </summary>
-    public sealed class AuthorizationEndpointResponseNotification : EndpointContext<OpenIdConnectServerOptions> {
+    public sealed class AuthorizationEndpointResponseNotification : BaseNotification<OpenIdConnectServerOptions> {
         /// <summary>
         /// Initializes a new instance of the <see cref="AuthorizationEndpointResponseNotification"/> class
         /// </summary>
@@ -26,19 +26,19 @@ namespace Owin.Security.OpenIdConnect.Server {
             OpenIdConnectMessage request,
             OpenIdConnectMessage response)
             : base(context, options) {
-            AuthorizationRequest = request;
-            AuthorizationResponse = response;
+            Request = request;
+            Response = response;
         }
 
         /// <summary>
         /// Gets the authorization request. 
         /// </summary>
-        public OpenIdConnectMessage AuthorizationRequest { get; private set; }
+        public new OpenIdConnectMessage Request { get; private set; }
 
         /// <summary>
         /// Gets the authorization response. 
         /// </summary>
-        public OpenIdConnectMessage AuthorizationResponse { get; private set; }
+        public new OpenIdConnectMessage Response { get; private set; }
 
         /// <summary>
         /// Get the access code expected to
@@ -46,7 +46,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// Depending on the flow, it can be null.
         /// </summary>
         public string AccessToken {
-            get { return AuthorizationResponse.AccessToken; }
+            get { return Response.AccessToken; }
         }
 
         /// <summary>
@@ -55,7 +55,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// Depending on the flow, it can be null.
         /// </summary>
         public string AuthorizationCode {
-            get { return AuthorizationResponse.Code; }
+            get { return Response.Code; }
         }
     }
 }

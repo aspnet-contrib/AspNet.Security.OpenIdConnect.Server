@@ -36,8 +36,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             "CA1056:UriPropertiesShouldNotBeStrings",
             Justification = "redirect_uri is a string parameter")]
         public string RedirectUri {
-            get { return AuthorizationRequest.RedirectUri; }
-            set { AuthorizationRequest.RedirectUri = value; }
+            get { return Request.RedirectUri; }
+            set { Request.RedirectUri = value; }
         }
 
         /// <summary>

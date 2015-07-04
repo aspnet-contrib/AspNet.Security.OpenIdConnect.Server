@@ -33,8 +33,8 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// Gets the post logout redirect URI.
         /// </summary>
         public string PostLogoutRedirectUri {
-            get { return AuthorizationRequest.PostLogoutRedirectUri; }
-            set { AuthorizationRequest.PostLogoutRedirectUri = value; }
+            get { return Request.PostLogoutRedirectUri; }
+            set { Request.PostLogoutRedirectUri = value; }
         }
 
         /// <summary>

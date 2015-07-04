@@ -26,7 +26,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             OpenIdConnectMessage request,
             AuthenticationTicket ticket)
             : base(context, options, ticket) {
-            TokenRequest = request;
+            Request = request;
             Validated();
         }
 
@@ -34,12 +34,12 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// The OpenIdConnect client id.
         /// </summary>
         public string ClientId {
-            get { return TokenRequest.ClientId; }
+            get { return Request.ClientId; }
         }
 
         /// <summary>
         /// Gets the token request.
         /// </summary>
-        public OpenIdConnectMessage TokenRequest { get; private set; }
+        public OpenIdConnectMessage Request { get; private set; }
     }
 }

@@ -5,14 +5,14 @@
  */
 
 using Microsoft.Owin;
-using Microsoft.Owin.Security.Provider;
+using Microsoft.Owin.Security.Notifications;
 using Newtonsoft.Json.Linq;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used at the end of a token-endpoint-request.
     /// </summary>
-    public sealed class TokenEndpointResponseNotification : EndpointContext<OpenIdConnectServerOptions> {
+    public sealed class TokenEndpointResponseNotification : BaseNotification<OpenIdConnectServerOptions> {
         /// <summary>
         /// Initializes a new instance of the <see cref="TokenEndpointResponseNotification"/> class
         /// </summary>

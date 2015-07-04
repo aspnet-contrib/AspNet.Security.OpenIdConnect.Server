@@ -27,14 +27,14 @@ namespace Owin.Security.OpenIdConnect.Server {
             OpenIdConnectMessage request,
             string code)
             : base(context, options) {
-            AuthorizationRequest = request;
+            Request = request;
             AuthorizationCode = code;
         }
 
         /// <summary>
         /// Gets the authorization request.
         /// </summary>
-        public OpenIdConnectMessage AuthorizationRequest { get; private set; }
+        public new OpenIdConnectMessage Request { get; private set; }
 
         /// <summary>
         /// Gets or sets the authentication ticket.

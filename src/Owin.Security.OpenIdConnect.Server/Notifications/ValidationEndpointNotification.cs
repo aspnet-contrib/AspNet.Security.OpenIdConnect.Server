@@ -9,14 +9,14 @@ using System.Security.Claims;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
-using Microsoft.Owin.Security.Provider;
+using Microsoft.Owin.Security.Notifications;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// An event raised before the authorization server handles
     /// the request made to the token validation endpoint.
     /// </summary>
-    public sealed class ValidationEndpointNotification : EndpointContext<OpenIdConnectServerOptions> {
+    public sealed class ValidationEndpointNotification : BaseNotification<OpenIdConnectServerOptions> {
         /// <summary>
         /// Creates an instance of this context.
         /// </summary>
@@ -27,7 +27,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             AuthenticationTicket ticket)
             : base(context, options) {
             Claims = new List<Claim>();
-            ValidationRequest = request;
+            Request = request;
             AuthenticationTicket = ticket;
         }
 
@@ -39,7 +39,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the validation request.
         /// </summary>
-        public OpenIdConnectMessage ValidationRequest { get; private set; }
+        public new OpenIdConnectMessage Request { get; private set; }
 
         /// <summary>
         /// Gets the list of claims returned to the caller.

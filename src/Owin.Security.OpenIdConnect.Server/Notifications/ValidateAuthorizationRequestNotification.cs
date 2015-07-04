@@ -25,15 +25,15 @@ namespace Owin.Security.OpenIdConnect.Server {
             OpenIdConnectMessage request,
             ValidateClientRedirectUriNotification clientContext)
             : base(context, options) {
+            Request = request;
             ClientContext = clientContext;
-            AuthorizationRequest = request;
             Validated();
         }
 
         /// <summary>
         /// Gets the authorization request.
         /// </summary>
-        public OpenIdConnectMessage AuthorizationRequest { get; private set; }
+        public new OpenIdConnectMessage Request { get; private set; }
 
         /// <summary>
         /// Gets the client context. 
