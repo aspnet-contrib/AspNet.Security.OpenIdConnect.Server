@@ -1,14 +1,13 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Owin.Security.OpenIdConnect.Server;
 
 namespace Basic.Server {
     public class AuthorizationProvider : OpenIdConnectServerProvider {
         public override Task ValidateClientAuthentication(ValidateClientAuthenticationNotification notification) {
-            if (notification.ClientId == null) {
-                string clientId, clientSecret;
-                notification.TryGetFormCredentials(out clientId, out clientSecret);
-
-                if (clientId == "myClient" && clientSecret == "secret_secret_secret") {
+            if (!string.IsNullOrEmpty(notification.ClientId) && !string.IsNullOrEmpty(notification.ClientSecret)) {
+                if (string.Equals(notification.ClientId, "myClient", StringComparison.Ordinal) &&
+                    string.Equals(notification.ClientSecret, "secret_secret_secret", StringComparison.Ordinal)) {
                     notification.Validated();
                 }
             }
