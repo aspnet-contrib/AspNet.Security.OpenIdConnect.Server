@@ -27,18 +27,7 @@
             <div id="navbar" class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
                     <li class="active"><a href="#">Home</a></li>
-                    <li><a href="#">About</a></li>
-                    <li><a href="#">Contact</a></li>
-                    <li dropdown>
-                        <a href="#" dropdown-toggle>Add <span class="caret"></span></a>
-                        <ul class="dropdown-menu" role="menu">
-                            <li><a ng-click="openAddUserModal()">User</a></li>
-                            <li><a ng-click="openAddDeskModal()">Desk</a></li>
-                            <li><a ng-click="openAddPortfolioModal()">Portfolio</a></li>
-                            <li class="divider" role="presentation"></li>
-                            <li><a ng-click="openAddAdminUserModal()">Admin User</a></li>
-                        </ul>
-                    </li>
+                    <li><a href="#/apicall">API Call</a></li>
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
                     <oauth2 authorization-url="http://localhost:54540/connect/authorize"
@@ -87,5 +76,6 @@
 <script src="routes.js"></script>
 <script src="features/navbar/NavBarController.js"></script>
 <script src="features/home/HomeController.js"></script>
+<script src="features/apicall/ApiCallController.js"></script>
 </body>
 </html>

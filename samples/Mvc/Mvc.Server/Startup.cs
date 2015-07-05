@@ -64,6 +64,7 @@ namespace Mvc.Server {
                     options.AutomaticAuthentication = true;
                     options.Audience = "http://localhost:54540/";
                     options.Authority = "http://localhost:54540/";
+                    options.TokenValidationParameters.ValidateAudience = false;
 
                     if (string.Equals(environment.RuntimeType, "Mono", StringComparison.OrdinalIgnoreCase)) {
                         options.SecurityTokenValidators = new[] { new UnsafeJwtSecurityTokenHandler() };

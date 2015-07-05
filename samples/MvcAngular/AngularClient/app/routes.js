@@ -8,6 +8,11 @@ angular
                     controller: 'HomeController',
                     controllerAs: 'vm'
                 }).
+                when('/apicall' ,{
+                    templateUrl: 'features/apicall/apicall.html',
+                    controller: 'ApiCallController',
+                    controllerAs: 'vm'
+                }).
                 otherwise({
                     redirectTo: '/'
                 });
