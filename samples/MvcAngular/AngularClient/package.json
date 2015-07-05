@@ -22,5 +22,8 @@
   "homepage": "https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server#readme",
   "dependencies": {
     "express": "^4.13.0"
+  },
+  "devDependencies": {
+    "grunt": "^0.4.5"
   }
 }
