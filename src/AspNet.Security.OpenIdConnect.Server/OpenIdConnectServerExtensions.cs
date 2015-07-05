@@ -9,8 +9,10 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Security.Claims;
 using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Authentication;
 using Microsoft.AspNet.Authentication.DataHandler;
@@ -20,9 +22,9 @@ using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.DataProtection;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Authentication;
-using Microsoft.AspNet.Http.Features;
 using Microsoft.Framework.Caching.Distributed;
 using Microsoft.Framework.DependencyInjection;
+using Microsoft.Framework.Internal;
 using Microsoft.Framework.OptionsModel;
 using Microsoft.IdentityModel.Protocols;
 
@@ -38,47 +40,167 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="services">The services collection.</param>
         /// <returns>The services collection.</returns>
-        public static IServiceCollection ConfigureOpenIdConnectServer(this IServiceCollection services, Action<OpenIdConnectServerOptions> options) {
-            if (services == null) {
-                throw new ArgumentNullException(nameof(services));
-            }
-
-            if (options == null) {
-                throw new ArgumentNullException(nameof(options));
-            }
-
+        public static IServiceCollection ConfigureOpenIdConnectServer(
+            [NotNull] this IServiceCollection services,
+            [NotNull] Action<OpenIdConnectServerOptions> options) {
             return services.Configure(options);
         }
 
         /// <summary>
-        /// Adds a specs-compliant OpenID Connect server in the ASP.NET pipeline.
+        /// Adds a new OpenID Connect server instance in the ASP.NET pipeline.
         /// </summary>
         /// <param name="app">The web application builder.</param>
         /// <returns>The application builder.</returns>
-        public static IApplicationBuilder UseOpenIdConnectServer(this IApplicationBuilder app) {
-            if (app == null) {
-                throw new ArgumentNullException(nameof(app));
-            }
-
+        public static IApplicationBuilder UseOpenIdConnectServer([NotNull] this IApplicationBuilder app) {
             return app.UseOpenIdConnectServer(options => { });
         }
 
         /// <summary>
-        /// Adds a specs-compliant OpenID Connect server in the ASP.NET pipeline.
+        /// Adds a new OpenID Connect server instance in the ASP.NET pipeline.
         /// </summary>
         /// <param name="app">The web application builder.</param>
         /// <param name="options">Options which control the behavior of the OpenID Connect server.</param>
         /// <returns>The application builder.</returns>
-        public static IApplicationBuilder UseOpenIdConnectServer(this IApplicationBuilder app, Action<OpenIdConnectServerOptions> options) {
-            if (app == null) {
-                throw new ArgumentNullException(nameof(app));
-            }
-
-            if (options == null) {
-                throw new ArgumentNullException(nameof(options));
-            }
-
+        public static IApplicationBuilder UseOpenIdConnectServer(
+            [NotNull] this IApplicationBuilder app,
+            [NotNull] Action<OpenIdConnectServerOptions> options) {
             return app.UseMiddleware<OpenIdConnectServerMiddleware>(new ConfigureOptions<OpenIdConnectServerOptions>(options));
+        }
+
+        /// <summary>
+        /// Uses a specific <see cref="X509Certificate2"/> to sign tokens issued by the OpenID Connect server.
+        /// </summary>
+        /// <param name="options">The options used to configure the OpenID Connect server.</param>
+        /// <param name="certificate">The certificate used to sign security tokens issued by the server.</param>
+        /// <returns>The options used to configure the OpenID Connect server.</returns>
+        public static OpenIdConnectServerOptions UseCertificate(
+            [NotNull] this OpenIdConnectServerOptions options,
+            [NotNull] X509Certificate2 certificate) {
+            if (certificate.PrivateKey == null) {
+                throw new InvalidOperationException("The certificate doesn't contain the required private key.");
+            }
+
+            return options.UseKey(new X509SecurityKey(certificate));
+        }
+
+        /// <summary>
+        /// Uses a specific <see cref="X509Certificate2"/> retrieved from an
+        /// embedded resource to sign tokens issued by the OpenID Connect server.
+        /// </summary>
+        /// <param name="options">The options used to configure the OpenID Connect server.</param>
+        /// <param name="assembly">The assembly containing the certificate.</param>
+        /// <param name="resource">The name of the embedded resource.</param>
+        /// <param name="password">The password used to open the certificate.</param>
+        /// <returns>The options used to configure the OpenID Connect server.</returns>
+        public static OpenIdConnectServerOptions UseCertificate(
+            [NotNull] this OpenIdConnectServerOptions options, [NotNull] Assembly assembly,
+            [NotNull] string resource, [NotNull] string password) {
+            using (var stream = assembly.GetManifestResourceStream(resource)) {
+                if (stream == null) {
+                    throw new InvalidOperationException("The certificate was not found in the given assembly.");
+                }
+
+                return options.UseCertificate(stream, password);
+            }
+        }
+
+        /// <summary>
+        /// Uses a specific <see cref="X509Certificate2"/> contained in
+        /// a stream to sign tokens issued by the OpenID Connect server.
+        /// </summary>
+        /// <param name="options">The options used to configure the OpenID Connect server.</param>
+        /// <param name="stream">The stream containing the certificate.</param>
+        /// <param name="password">The password used to open the certificate.</param>
+        /// <returns>The options used to configure the OpenID Connect server.</returns>
+        public static OpenIdConnectServerOptions UseCertificate(
+            [NotNull] this OpenIdConnectServerOptions options,
+            [NotNull] Stream stream, [NotNull] string password) {
+            return options.UseCertificate(stream, password, X509KeyStorageFlags.Exportable |
+                                                            X509KeyStorageFlags.MachineKeySet);
+        }
+
+        /// <summary>
+        /// Uses a specific <see cref="X509Certificate2"/> contained in
+        /// a stream to sign tokens issued by the OpenID Connect server.
+        /// </summary>
+        /// <param name="options">The options used to configure the OpenID Connect server.</param>
+        /// <param name="stream">The stream containing the certificate.</param>
+        /// <param name="password">The password used to open the certificate.</param>
+        /// <param name="flags">An enumeration of flags indicating how and where to store the private key of the certificate.</param>
+        /// <returns>The options used to configure the OpenID Connect server.</returns>
+        public static OpenIdConnectServerOptions UseCertificate(
+            [NotNull] this OpenIdConnectServerOptions options,
+            [NotNull] Stream stream, [NotNull] string password, X509KeyStorageFlags flags) {
+            using (var buffer = new MemoryStream()) {
+                stream.CopyTo(buffer);
+
+                return options.UseCertificate(new X509Certificate2(buffer.ToArray(), password, flags));
+            }
+        }
+
+        /// <summary>
+        /// Uses a specific <see cref="X509Certificate2"/> retrieved from the
+        /// X509 machine store to sign tokens issued by the OpenID Connect server.
+        /// </summary>
+        /// <param name="options">The options used to configure the OpenID Connect server.</param>
+        /// <param name="thumbprint">The thumbprint of the certificate used to identify it in the X509 store.</param>
+        /// <param name="password">The password used to open the certificate.</param>
+        /// <returns>The options used to configure the OpenID Connect server.</returns>
+        public static OpenIdConnectServerOptions UseCertificate(
+            [NotNull] this OpenIdConnectServerOptions options,
+            [NotNull] string thumbprint, [NotNull] string password) {
+            return options.UseCertificate(thumbprint, password, StoreName.My, StoreLocation.LocalMachine);
+        }
+
+        /// <summary>
+        /// Uses a specific <see cref="X509Certificate2"/> retrieved from the
+        /// given X509 store to sign tokens issued by the OpenID Connect server.
+        /// </summary>
+        /// <param name="options">The options used to configure the OpenID Connect server.</param>
+        /// <param name="thumbprint">The thumbprint of the certificate used to identify it in the X509 store.</param>
+        /// <param name="password">The password used to open the certificate.</param>
+        /// <param name="name">The name of the X509 store.</param>
+        /// <param name="location">The location of the X509 store.</param>
+        /// <returns>The options used to configure the OpenID Connect server.</returns>
+        public static OpenIdConnectServerOptions UseCertificate([NotNull] this OpenIdConnectServerOptions options,
+            [NotNull] string thumbprint, [NotNull] string password, StoreName name, StoreLocation location) {
+            var store = new X509Store(name, location);
+
+            try {
+                store.Open(OpenFlags.ReadOnly);
+
+                var certificates = store.Certificates.Find(X509FindType.FindByThumbprint, thumbprint, validOnly: false);
+
+                var certificate = certificates.OfType<X509Certificate2>().SingleOrDefault();
+                if (certificate == null) {
+                    throw new InvalidOperationException("The certificate corresponding to the given thumbprint was not found.");
+                }
+
+                return options.UseCertificate(certificate);
+            }
+
+            finally {
+#if DNXCORE50
+                store.Dispose();
+#else
+                store.Close();
+#endif
+            }
+        }
+
+        /// <summary>
+        /// Uses a specific <see cref="SecurityKey"/> to sign tokens issued by the OpenID Connect server.
+        /// </summary>
+        /// <param name="options">The options used to configure the OpenID Connect server.</param>
+        /// <param name="key">The key used to sign security tokens issued by the server.</param>
+        /// <returns>The options used to configure the OpenID Connect server.</returns>
+        public static OpenIdConnectServerOptions UseKey(
+            [NotNull] this OpenIdConnectServerOptions options, [NotNull] SecurityKey key) {
+            options.SigningCredentials = new SigningCredentials(key,
+                SecurityAlgorithms.RsaSha256Signature,
+                SecurityAlgorithms.Sha256Digest);
+
+            return options;
         }
 
         /// <summary>
@@ -87,11 +209,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="notification">The ASP.NET context.</param>
         /// <returns>The <see cref="OpenIdConnectMessage"/> associated with the current request.</returns>
-        public static OpenIdConnectMessage GetOpenIdConnectRequest(this HttpContext context) {
-            if (context == null) {
-                throw new ArgumentNullException(nameof(context));
-            }
-
+        public static OpenIdConnectMessage GetOpenIdConnectRequest([NotNull] this HttpContext context) {
             return GetFeature(context).Request;
         }
 
@@ -100,11 +218,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="notification">The ASP.NET context.</param>
         /// <param name="request">The ambient <see cref="OpenIdConnectMessage"/>.</param>
-        public static void SetOpenIdConnectRequest(this HttpContext context, OpenIdConnectMessage request) {
-            if (context == null) {
-                throw new ArgumentNullException(nameof(context));
-            }
-
+        public static void SetOpenIdConnectRequest([NotNull] this HttpContext context, OpenIdConnectMessage request) {
             GetFeature(context).Request = request;
         }
 
@@ -114,11 +228,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="notification">The ASP.NET context.</param>
         /// <returns>The <see cref="OpenIdConnectMessage"/> associated with the current response.</returns>
-        public static OpenIdConnectMessage GetOpenIdConnectResponse(this HttpContext context) {
-            if (context == null) {
-                throw new ArgumentNullException(nameof(context));
-            }
-
+        public static OpenIdConnectMessage GetOpenIdConnectResponse([NotNull] this HttpContext context) {
             return GetFeature(context).Response;
         }
 
@@ -127,11 +237,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="notification">The ASP.NET context.</param>
         /// <param name="response">The ambient <see cref="OpenIdConnectMessage"/>.</param>
-        public static void SetOpenIdConnectResponse(this HttpContext context, OpenIdConnectMessage response) {
-            if (context == null) {
-                throw new ArgumentNullException(nameof(context));
-            }
-
+        public static void SetOpenIdConnectResponse([NotNull] this HttpContext context, OpenIdConnectMessage response) {
             GetFeature(context).Response = response;
         }
 
@@ -141,15 +247,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="provider">The data protector provider</param>
         /// <param name="purposes">The unique values used to initialize the data protector.</param>
-        public static ISecureDataFormat<AuthenticationTicket> CreateTicketFormat(this IDataProtectionProvider provider, params string[] purposes) {
-            if (provider == null) {
-                throw new ArgumentNullException(nameof(provider));
-            }
-
+        public static ISecureDataFormat<AuthenticationTicket> CreateTicketFormat(
+            [NotNull] this IDataProtectionProvider provider, [NotNull] params string[] purposes) {
             return new EnhancedTicketDataFormat(provider.CreateProtector(purposes));
         }
  
-        internal static string GetIssuer(this HttpContext context, OpenIdConnectServerOptions options) {
+        internal static string GetIssuer([NotNull] this HttpContext context, [NotNull] OpenIdConnectServerOptions options) {
             var issuer = options.Issuer;
             if (issuer == null) {
                 if (!Uri.TryCreate(context.Request.Scheme + "://" + context.Request.Host +
@@ -161,7 +264,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             return issuer.AbsoluteUri;
         }
 
-        internal static string AddPath(this string address, PathString path) {
+        internal static string AddPath([NotNull] this string address, PathString path) {
             if (address.EndsWith("/")) {
                 address = address.Substring(0, address.Length - 1);
             }
@@ -180,26 +283,16 @@ namespace AspNet.Security.OpenIdConnect.Server {
             return feature;
         }
 
-        internal static Task SetAsync(this IDistributedCache cache, string key, Func<DistributedCacheEntryOptions, byte[]> factory) {
-            if (cache == null) {
-                throw new ArgumentNullException(nameof(cache));
-            }
-
-            if (key == null) {
-                throw new ArgumentNullException(nameof(key));
-            }
-
-            if (factory == null) {
-                throw new ArgumentNullException(nameof(factory));
-            }
-
+        internal static Task SetAsync(
+            [NotNull] this IDistributedCache cache, [NotNull] string key,
+            [NotNull] Func<DistributedCacheEntryOptions, byte[]> factory) {
             var options = new DistributedCacheEntryOptions();
             var buffer = factory(options);
 
             return cache.SetAsync(key, buffer, options);
         }
 
-        internal static bool IsSupportedAlgorithm(this SecurityKey securityKey, string algorithm) {
+        internal static bool IsSupportedAlgorithm([NotNull] this SecurityKey securityKey, [NotNull] string algorithm) {
             // Note: SecurityKey currently doesn't support IsSupportedAlgorithm.
             // To work around this limitation, this static extensions tries to
             // determine whether the security key supports RSA w/ SHA2 or not.
@@ -228,11 +321,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
             return true;
         }
 
-        internal static AuthenticationProperties Copy(this AuthenticationProperties properties) {
+        internal static AuthenticationProperties Copy([NotNull] this AuthenticationProperties properties) {
             return new AuthenticationProperties(properties.Items.ToDictionary(pair => pair.Key, pair => pair.Value));
         }
 
-        internal static AuthenticationTicket Copy(this AuthenticationTicket ticket) {
+        internal static AuthenticationTicket Copy([NotNull] this AuthenticationTicket ticket) {
             return new AuthenticationTicket(ticket.Principal, ticket.Properties.Copy(), ticket.AuthenticationScheme);
         }
 

@@ -895,10 +895,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             // Skip processing the metadata request if no supported key can be found.
-            // Note: SigningKey is assumed to be never null under normal circonstances,
-            // given that an initial check is made by SigningCredentials's constructor.
-            // The SigningCredentials property is itself guarded against null values
-            // in OpenIdConnectServerMiddleware's constructor.
             var asymmetricSecurityKey = Options.SigningCredentials.SigningKey as AsymmetricSecurityKey;
             if (asymmetricSecurityKey == null) {
                 Logger.LogError(string.Format(CultureInfo.InvariantCulture,

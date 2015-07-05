@@ -21,12 +21,7 @@ The current version relies on the latest version of **ASP.NET 5** and the **Open
 Based on `OAuthAuthorizationServerMiddleware` from **Katana 3**, **AspNet.Security.OpenIdConnect.Server** exposes similar primitives and can be directly registered in **Startup.cs** using the `UseOpenIdConnectServer` extension method:
 
     app.UseOpenIdConnectServer(options => {
-        options.Issuer = "http://localhost:55938/";
-        options.SigningCredentials = new SigningCredentials(
-            new X509SecurityKey(certificate),
-            SecurityAlgorithms.RsaSha256Signature,
-            SecurityAlgorithms.Sha256Digest);
-    
+        options.UseCertificate(certificate);
         options.Provider = new CustomAuthorizationProvider();
     });
 

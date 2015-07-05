@@ -43,13 +43,6 @@ namespace Mvc.Server {
             var factory = app.ApplicationServices.GetRequiredService<ILoggerFactory>();
             factory.AddConsole();
 
-            var certificate = LoadCertificate(environment);
-            var key = new X509SecurityKey(certificate);
-
-            var credentials = new SigningCredentials(key,
-                SecurityAlgorithms.RsaSha256Signature,
-                SecurityAlgorithms.Sha256Digest);
-
             // Create a new branch where the registered middleware will be executed only for API calls.
             app.UseWhen(context => context.Request.Path.StartsWithSegments(new PathString("/api")), branch => {
                 branch.UseOAuthBearerAuthentication(options => {
@@ -112,7 +105,7 @@ namespace Mvc.Server {
             app.UseOpenIdConnectServer(options => {
                 options.AuthenticationScheme = OpenIdConnectDefaults.AuthenticationScheme;
 
-                options.SigningCredentials = credentials;
+                options.UseCertificate(certificate: LoadCertificate(environment));
 
                 // Note: see AuthorizationController.cs for more
                 // information concerning ApplicationCanDisplayErrors.
