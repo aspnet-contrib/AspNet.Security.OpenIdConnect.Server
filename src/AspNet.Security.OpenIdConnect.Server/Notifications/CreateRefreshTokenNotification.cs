@@ -29,18 +29,20 @@ namespace AspNet.Security.OpenIdConnect.Server {
             OpenIdConnectMessage response,
             AuthenticationTicket ticket)
             : base(context, options) {
+            Request = request;
+            Response = response;
             AuthenticationTicket = ticket;
         }
 
         /// <summary>
         /// Gets the authorization or token request.
         /// </summary>
-        public OpenIdConnectMessage TokenRequest { get; }
+        public new OpenIdConnectMessage Request { get; }
 
         /// <summary>
         /// Gets the authorization or token response.
         /// </summary>
-        public OpenIdConnectMessage TokenResponse { get; }
+        public new OpenIdConnectMessage Response { get; }
 
         /// <summary>
         /// Gets or sets the refresh token

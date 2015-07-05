@@ -25,7 +25,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             OpenIdConnectMessage request,
             BaseValidatingClientNotification notification)
             : base(context, options) {
-            TokenRequest = request;
+            Request = request;
             ClientContext = notification;
             Validated();
         }
@@ -33,7 +33,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the token request data.
         /// </summary>
-        public OpenIdConnectMessage TokenRequest { get; }
+        public new OpenIdConnectMessage Request { get; }
 
         /// <summary>
         /// Gets information about the client.

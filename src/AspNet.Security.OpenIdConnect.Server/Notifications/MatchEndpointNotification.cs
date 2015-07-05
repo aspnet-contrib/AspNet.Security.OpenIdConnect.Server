@@ -11,7 +11,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used when determining the OpenIdConnect flow type based on the request.
     /// </summary>
-    public sealed class MatchEndpointNotification : EndpointContext<OpenIdConnectServerOptions> {
+    public sealed class MatchEndpointNotification : BaseNotification<OpenIdConnectServerOptions> {
         /// <summary>
         /// Initializes a new instance of the <see cref="MatchEndpointNotification"/> class
         /// </summary>

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNet.Authentication.OpenIdConnect;
+﻿using System.Threading.Tasks;
+using Microsoft.AspNet.Authentication.OpenIdConnect;
 using Microsoft.AspNet.Http.Authentication;
 using Microsoft.AspNet.Mvc;
 
@@ -14,16 +15,13 @@ namespace Mvc.Client.Controllers {
         }
 
         [HttpGet("~/signout"), HttpPost("~/signout")]
-        public ActionResult SignOut() {
+        public async Task SignOut() {
             // Instruct the cookies middleware to delete the local cookie created when the user agent
             // is redirected from the identity provider after a successful authorization flow.
-            Context.Authentication.SignOut("ClientCookie");
+            await Context.Authentication.SignOutAsync("ClientCookie");
 
-            // Instruct the OpenID Connect middleware to redirect
-            // the user agent to the identity provider to sign out.
-            Context.Authentication.SignOut(OpenIdConnectAuthenticationDefaults.AuthenticationScheme);
-
-            return Redirect("/");
+            // Instruct the OpenID Connect middleware to redirect the user agent to the identity provider to sign out.
+            await Context.Authentication.SignOutAsync(OpenIdConnectAuthenticationDefaults.AuthenticationScheme);
         }
     }
 }

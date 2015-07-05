@@ -232,6 +232,24 @@ namespace AspNet.Security.OpenIdConnect.Server {
             return new AuthenticationProperties(properties.Items.ToDictionary(pair => pair.Key, pair => pair.Value));
         }
 
+        internal static AuthenticationTicket Copy(this AuthenticationTicket ticket) {
+            return new AuthenticationTicket(ticket.Principal, ticket.Properties.Copy(), ticket.AuthenticationScheme);
+        }
+
+        internal static void CopyTo(this AuthenticationProperties source, AuthenticationProperties destination) {
+            if (source == null || destination == null) {
+                return;
+            }
+
+            if (ReferenceEquals(destination, source)) {
+                return;
+            }
+
+            foreach (var property in source.Items) {
+                destination.Items[property.Key] = property.Value;
+            }
+        }
+
         internal static string GetProperty(this AuthenticationProperties properties, string property) {
             if (properties == null) {
                 return null;
@@ -320,7 +338,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 }
 
                 private static void WriteIdentity(BinaryWriter writer, ClaimsIdentity identity) {
-                    var authenticationType = string.IsNullOrWhiteSpace(identity.AuthenticationType) ? string.Empty : identity.AuthenticationType;
+                    var authenticationType = identity.AuthenticationType ?? string.Empty;
 
                     writer.Write(authenticationType);
                     WriteWithDefault(writer, identity.NameClaimType, DefaultValues.NameClaimType);

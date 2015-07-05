@@ -1,4 +1,5 @@
-﻿using System.Security.Claims;
+using System.Threading.Tasks;
+using System.Security.Claims;
 using Microsoft.AspNet.Http.Authentication;
 using Microsoft.AspNet.Mvc;
 using Mvc.Server.Extensions;
@@ -41,19 +42,19 @@ namespace Mvc.Server.Controllers {
 
             // Note: the "provider" parameter corresponds to the external
             // authentication provider choosen by the user agent.
-            if (string.IsNullOrWhiteSpace(model.Provider)) {
-                return new HttpStatusCodeResult(400);
+            if (string.IsNullOrEmpty(model.Provider)) {
+                return HttpBadRequest();
             }
 
             if (!Context.IsProviderSupported(model.Provider)) {
-                return new HttpStatusCodeResult(400);
+                return HttpBadRequest();
             }
 
             // Note: the "returnUrl" parameter corresponds to the endpoint the user agent
             // will be redirected to after a successful authentication and not
             // the redirect_uri of the requesting client application.
-            if (string.IsNullOrWhiteSpace(model.ReturnUrl)) {
-                return new HttpStatusCodeResult(400);
+            if (string.IsNullOrEmpty(modelReturnUrl)) {
+                return HttpBadRequest();
             }
 
             // Instruct the middleware corresponding to the requested external identity
@@ -65,14 +66,12 @@ namespace Mvc.Server.Controllers {
         }
 
         [HttpGet("~/signout"), HttpPost("~/signout")]
-        public ActionResult SignOut() {
+        public async Task SignOut() {
             // Instruct the cookies middleware to delete the local cookie created
             // when the user agent is redirected from the external identity provider
             // after a successful authentication flow (e.g Google or Facebook).
 
-            Context.Authentication.SignOut("ServerCookie");
-
-            return new HttpStatusCodeResult(200);
+            await Context.Authentication.SignOutAsync("ServerCookie");
         }
     }
 }

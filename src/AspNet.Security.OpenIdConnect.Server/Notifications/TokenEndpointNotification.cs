@@ -16,7 +16,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used when processing an OpenIdConnect token request.
     /// </summary>
-    public sealed class TokenEndpointNotification : EndpointContext<OpenIdConnectServerOptions> {
+    public sealed class TokenEndpointNotification : BaseNotification<OpenIdConnectServerOptions> {
         /// <summary>
         /// Initializes a new instance of the <see cref="TokenEndpointNotification"/> class
         /// </summary>
@@ -30,8 +30,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             OpenIdConnectMessage request,
             AuthenticationTicket ticket)
             : base(context, options) {
+            Request = request;
             Ticket = ticket;
-            TokenRequest = request;
         }
 
         /// <summary>
@@ -42,6 +42,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets information about the token endpoint request. 
         /// </summary>
-        public OpenIdConnectMessage TokenRequest { get; }
+        public new OpenIdConnectMessage Request { get; }
     }
 }

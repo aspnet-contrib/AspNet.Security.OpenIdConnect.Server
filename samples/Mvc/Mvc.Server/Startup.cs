@@ -65,8 +65,7 @@ namespace Mvc.Server {
                     options.Audience = "http://localhost:54540/";
                     options.Authority = "http://localhost:54540/";
 
-                    if (string.Equals(environment.RuntimeType, "CoreCLR", StringComparison.OrdinalIgnoreCase) ||
-                        string.Equals(environment.RuntimeType, "Mono", StringComparison.OrdinalIgnoreCase)) {
+                    if (string.Equals(environment.RuntimeType, "Mono", StringComparison.OrdinalIgnoreCase)) {
                         options.SecurityTokenValidators = new[] { new UnsafeJwtSecurityTokenHandler() };
                     }
                 });
@@ -130,8 +129,7 @@ namespace Mvc.Server {
 
                 options.Provider = new AuthorizationProvider();
 
-                if (string.Equals(environment.RuntimeType, "CoreCLR", StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(environment.RuntimeType, "Mono", StringComparison.OrdinalIgnoreCase)) {
+                if (string.Equals(environment.RuntimeType, "Mono", StringComparison.OrdinalIgnoreCase)) {
                     options.AccessTokenHandler = new UnsafeJwtSecurityTokenHandler();
                     options.IdentityTokenHandler = new UnsafeJwtSecurityTokenHandler();
                 }
@@ -221,10 +219,10 @@ namespace Mvc.Server {
             }
         }
 
-        // There's currently a bug on CoreCLR that prevents ValidateSignature from working correctly.
+        // There's currently a bug on Mono that prevents ValidateSignature from working correctly.
         // To work around this bug, signature validation is temporarily disabled: of course,
         // NEVER do that in a real world application as it opens a huge security hole.
-        // See https://github.com/aspnet/Security/issues/223
+        // See https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet/issues/179
         private class UnsafeJwtSecurityTokenHandler : JwtSecurityTokenHandler {
             protected override JwtSecurityToken ValidateSignature(string token, TokenValidationParameters validationParameters) {
                 return ReadToken(token) as JwtSecurityToken;

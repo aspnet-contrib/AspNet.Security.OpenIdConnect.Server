@@ -26,18 +26,18 @@ namespace AspNet.Security.OpenIdConnect.Server {
             OpenIdConnectMessage request,
             AuthenticationTicket ticket)
             : base(context, options, ticket) {
-            TokenRequest = request;
+            Request = request;
             Validated();
         }
 
         /// <summary>
         /// The OpenIdConnect client id.
         /// </summary>
-        public string ClientId => TokenRequest.ClientId;
+        public string ClientId => Request.ClientId;
 
         /// <summary>
         /// Gets the token request.
         /// </summary>
-        public OpenIdConnectMessage TokenRequest { get; }
+        public new OpenIdConnectMessage Request { get; }
     }
 }

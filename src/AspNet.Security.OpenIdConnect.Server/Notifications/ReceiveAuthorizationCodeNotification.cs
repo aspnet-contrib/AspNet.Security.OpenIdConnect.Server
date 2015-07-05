@@ -27,14 +27,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
             OpenIdConnectMessage request,
             string code)
             : base(context, options) {
-            AuthorizationRequest = request;
+            Request = request;
             AuthorizationCode = code;
         }
 
         /// <summary>
         /// Gets the authorization request.
         /// </summary>
-        public OpenIdConnectMessage AuthorizationRequest { get; }
+        public new OpenIdConnectMessage Request { get; }
 
         /// <summary>
         /// Gets the authorization code

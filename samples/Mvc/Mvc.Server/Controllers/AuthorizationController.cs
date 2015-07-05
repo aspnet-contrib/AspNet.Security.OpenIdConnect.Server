@@ -134,9 +134,9 @@ namespace Mvc.Server.Controllers {
             // a 'sub' or a 'ClaimTypes.NameIdentifier' claim. In this case, the returned
             // identities always contain the name identifier returned by the external provider.
             // Note: the authenticationScheme parameter must match the value configured in Startup.cs.
-            Context.Authentication.SignIn(OpenIdConnectDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
+            await Context.Authentication.SignInAsync(OpenIdConnectDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
 
-            return new HttpStatusCodeResult(200);
+            return new EmptyResult();
         }
 
         [Authorize, HttpPost("~/connect/authorize/deny"), ValidateAntiForgeryToken]
@@ -161,7 +161,7 @@ namespace Mvc.Server.Controllers {
                 State = request.State
             });
 
-            return new HttpStatusCodeResult(200);
+            return new EmptyResult();
         }
 
         [HttpGet("~/connect/logout")]
@@ -196,20 +196,18 @@ namespace Mvc.Server.Controllers {
         }
 
         [HttpPost("~/connect/logout"), ValidateAntiForgeryToken]
-        public ActionResult Logout(CancellationToken cancellationToken) {
+        public async Task Logout(CancellationToken cancellationToken) {
             // Instruct the cookies middleware to delete the local cookie created
             // when the user agent is redirected from the external identity provider
             // after a successful authentication flow (e.g Google or Facebook).
-            Context.Authentication.SignOut("ServerCookie");
+            await Context.Authentication.SignOutAsync("ServerCookie");
 
             // This call will instruct AspNet.Security.OpenIdConnect.Server to serialize
             // the specified identity to build appropriate tokens (id_token and token).
             // Note: you should always make sure the identities you return contain either
             // a 'sub' or a 'ClaimTypes.NameIdentifier' claim. In this case, the returned
             // identities always contain the name identifier returned by the external provider.
-            Context.Authentication.SignOut(OpenIdConnectDefaults.AuthenticationScheme);
-
-            return new HttpStatusCodeResult(200);
+            await Context.Authentication.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
         }
         
         protected virtual Task<Application> GetApplicationAsync(string identifier, CancellationToken cancellationToken) {

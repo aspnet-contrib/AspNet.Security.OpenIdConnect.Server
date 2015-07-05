@@ -62,7 +62,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 Options.HtmlEncoder = htmlEncoder;
             }
 
-            if (string.IsNullOrWhiteSpace(Options.AuthenticationScheme)) {
+            if (string.IsNullOrEmpty(Options.AuthenticationScheme)) {
                 throw new ArgumentNullException(nameof(Options.AuthenticationScheme));
             }
 
@@ -78,10 +78,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 throw new ArgumentNullException(nameof(Options.SystemClock));
             }
 
-            if (string.IsNullOrWhiteSpace(Options.AuthenticationScheme)) {
-                throw new ArgumentException("Options.AuthenticationScheme cannot be null or empty", nameof(Options.AuthenticationScheme));
-            }
-
             if (Options.AutomaticAuthentication) {
                 throw new ArgumentException("Automatic authentication cannot be used with the " +
                     "OpenID Connect server middleware", nameof(Options.AutomaticAuthentication));
@@ -93,7 +89,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 }
 
                 // See http://openid.net/specs/openid-connect-discovery-1_0.html#IssuerDiscovery
-                if (!string.IsNullOrWhiteSpace(Options.Issuer.Query) || !string.IsNullOrWhiteSpace(Options.Issuer.Fragment)) {
+                if (!string.IsNullOrEmpty(Options.Issuer.Query) || !string.IsNullOrEmpty(Options.Issuer.Fragment)) {
                     throw new ArgumentException("options.Issuer must contain no query and no fragment parts.", "options.Issuer");
                 }
 

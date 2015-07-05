@@ -20,13 +20,13 @@ namespace AspNet.Security.OpenIdConnect.Server {
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request)
             : base(context, options) {
-            AuthorizationRequest = request;
+            Request = request;
         }
 
         /// <summary>
         /// Gets the authorization request. 
         /// </summary>
-        public OpenIdConnectMessage AuthorizationRequest { get; }
+        public new OpenIdConnectMessage Request { get; }
 
         /// <summary>
         /// The "client_id" parameter for the current request.
@@ -34,8 +34,18 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// validating this value to ensure it identifies a registered client.
         /// </summary>
         public string ClientId {
-            get { return AuthorizationRequest.ClientId; }
-            set { AuthorizationRequest.ClientId = value; }
+            get { return Request.ClientId; }
+            set { Request.ClientId = value; }
+        }
+
+        /// <summary>
+        /// The "client_secret" parameter for the current request.
+        /// The authorization server application is responsible for 
+        /// validating this value to ensure it identifies a registered client.
+        /// </summary>
+        public string ClientSecret {
+            get { return Request.ClientSecret; }
+            set { Request.ClientSecret = value; }
         }
     }
 }

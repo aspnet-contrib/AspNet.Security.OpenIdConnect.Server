@@ -299,7 +299,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(message));
             }
 
-            if (string.IsNullOrWhiteSpace(identifier)) {
+            if (string.IsNullOrEmpty(identifier)) {
                 throw new ArgumentNullException(nameof(identifier));
             }
 
@@ -317,7 +317,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(message));
             }
 
-            if (string.IsNullOrWhiteSpace(token)) {
+            if (string.IsNullOrEmpty(token)) {
                 throw new ArgumentNullException(nameof(token));
             }
 
@@ -358,7 +358,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(claim));
             }
 
-            if (string.IsNullOrWhiteSpace(value)) {
+            if (string.IsNullOrEmpty(value)) {
                 throw new ArgumentNullException(nameof(value));
             }
 
@@ -462,7 +462,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
         }
 
         private static bool HasValue(string source, string value) {
-            if (string.IsNullOrWhiteSpace(source)) {
+            if (string.IsNullOrEmpty(source)) {
                 return false;
             }
 
@@ -472,7 +472,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
         }
 
         private static bool SetEquals(string source, params string[] components) {
-            if (string.IsNullOrWhiteSpace(source)) {
+            if (string.IsNullOrEmpty(source)) {
                 return false;
             }
 
