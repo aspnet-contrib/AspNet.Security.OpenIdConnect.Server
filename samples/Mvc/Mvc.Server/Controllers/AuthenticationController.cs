@@ -34,7 +34,7 @@ namespace Mvc.Server.Controllers {
 
                 var principal = new ClaimsPrincipal(identity);
 
-                Context.Authentication.SignIn("ServerCookie", principal, properties);
+                Context.Authentication.SignInAsync("ServerCookie", principal, properties);
                 return new EmptyResult();
             }
             
@@ -53,7 +53,7 @@ namespace Mvc.Server.Controllers {
             // Note: the "returnUrl" parameter corresponds to the endpoint the user agent
             // will be redirected to after a successful authentication and not
             // the redirect_uri of the requesting client application.
-            if (string.IsNullOrEmpty(modelReturnUrl)) {
+            if (string.IsNullOrEmpty(model.ReturnUrl)) {
                 return HttpBadRequest();
             }
 
