@@ -40,14 +40,6 @@ namespace Mvc.Server {
         }
 
         public void Configure(IApplicationBuilder app, IRuntimeEnvironment environment) {
-
-            app.UseCors(builder =>
-            {
-                builder.AllowAnyHeader();
-                builder.AllowAnyMethod();
-                builder.WithOrigins("http://localhost:3000");
-            });
-
             var factory = app.ApplicationServices.GetRequiredService<ILoggerFactory>();
             factory.AddConsole();
 
@@ -139,28 +131,16 @@ namespace Mvc.Server {
 
             app.UseStaticFiles();
 
-
             app.UseMvc();
 
             app.UseWelcomePage();
-
-          
 
             using (var database = app.ApplicationServices.GetService<ApplicationContext>()) {
                 database.Applications.Add(new Application {
                     ApplicationID = "myClient",
                     DisplayName = "My client application",
-                    RedirectUri = "http://localhost:53507/oidc",
-                    LogoutRedirectUri = "http://localhost:53507/",
-                    Secret = "secret_secret_secret"
-                });
-
-                database.Applications.Add(new Application
-                {
-                    ApplicationID = "angularClient",
-                    DisplayName = "My AngularJS client application",
-                    RedirectUri = "http://localhost:3000",
-                    LogoutRedirectUri = "http://localhost:3000",
+                    RedirectUri = "http://localhost:37045/index.html",
+                    LogoutRedirectUri = "http://localhost:37045/index.html",
                     Secret = "secret_secret_secret"
                 });
 
