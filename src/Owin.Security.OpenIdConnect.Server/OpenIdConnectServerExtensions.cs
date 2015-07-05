@@ -9,7 +9,9 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Security.Claims;
+using System.Security.Cryptography.X509Certificates;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
@@ -27,7 +29,7 @@ namespace Owin {
     /// </summary>
     public static class OpenIdConnectServerExtensions {
         /// <summary>
-        /// Adds a specs-compliant OpenID Connect server in the OWIN pipeline.
+        /// Adds a new OpenID Connect server instance in the OWIN pipeline.
         /// </summary>
         /// <param name="app">The web application builder.</param>
         /// <param name="options">The settings controlling the behavior of the OpenID Connect server.</param>
@@ -45,7 +47,7 @@ namespace Owin {
         }
 
         /// <summary>
-        /// Adds a specs-compliant OpenID Connect server in the OWIN pipeline.
+        /// Adds a new OpenID Connect server instance in the OWIN pipeline.
         /// </summary>
         /// <param name="app">The web application builder.</param>
         /// <param name="configuration">A delegate allowing to change the OpenID Connect server's settings.</param>
@@ -63,6 +65,186 @@ namespace Owin {
             configuration(options);
 
             return app.Use(typeof(OpenIdConnectServerMiddleware), app, options);
+        }
+
+        /// <summary>
+        /// Uses a specific <see cref="X509Certificate2"/> to sign tokens issued by the OpenID Connect server.
+        /// </summary>
+        /// <param name="options">The options used to configure the OpenID Connect server.</param>
+        /// <param name="certificate">The certificate used to sign security tokens issued by the server.</param>
+        /// <returns>The options used to configure the OpenID Connect server.</returns>
+        public static OpenIdConnectServerOptions UseCertificate(this OpenIdConnectServerOptions options, X509Certificate2 certificate) {
+            if (options == null) {
+                throw new ArgumentNullException("options");
+            }
+
+            if (certificate == null) {
+                throw new ArgumentNullException("certificate");
+            }
+
+            if (certificate.PrivateKey == null) {
+                throw new InvalidOperationException("The certificate doesn't contain the required private key.");
+            }
+
+            return options.UseKey(new X509SecurityKey(certificate));
+        }
+
+        /// <summary>
+        /// Uses a specific <see cref="X509Certificate2"/> retrieved from an
+        /// embedded resource to sign tokens issued by the OpenID Connect server.
+        /// </summary>
+        /// <param name="options">The options used to configure the OpenID Connect server.</param>
+        /// <param name="assembly">The assembly containing the certificate.</param>
+        /// <param name="resource">The name of the embedded resource.</param>
+        /// <param name="password">The password used to open the certificate.</param>
+        /// <returns>The options used to configure the OpenID Connect server.</returns>
+        public static OpenIdConnectServerOptions UseCertificate(
+            this OpenIdConnectServerOptions options,
+            Assembly assembly, string resource, string password) {
+            if (options == null) {
+                throw new ArgumentNullException("options");
+            }
+
+            if (assembly == null) {
+                throw new ArgumentNullException("assembly");
+            }
+
+            if (string.IsNullOrEmpty(resource)) {
+                throw new ArgumentNullException("resource");
+            }
+
+            if (string.IsNullOrEmpty(password)) {
+                throw new ArgumentNullException("password");
+            }
+
+            using (var stream = assembly.GetManifestResourceStream(resource)) {
+                if (stream == null) {
+                    throw new InvalidOperationException("The certificate was not found in the given assembly.");
+                }
+
+                return options.UseCertificate(stream, password);
+            }
+        }
+
+        /// <summary>
+        /// Uses a specific <see cref="X509Certificate2"/> contained in
+        /// a stream to sign tokens issued by the OpenID Connect server.
+        /// </summary>
+        /// <param name="options">The options used to configure the OpenID Connect server.</param>
+        /// <param name="stream">The stream containing the certificate.</param>
+        /// <param name="password">The password used to open the certificate.</param>
+        /// <returns>The options used to configure the OpenID Connect server.</returns>
+        public static OpenIdConnectServerOptions UseCertificate(this OpenIdConnectServerOptions options, Stream stream, string password) {
+            return options.UseCertificate(stream, password, X509KeyStorageFlags.Exportable | X509KeyStorageFlags.MachineKeySet);
+        }
+
+        /// <summary>
+        /// Uses a specific <see cref="X509Certificate2"/> contained in
+        /// a stream to sign tokens issued by the OpenID Connect server.
+        /// </summary>
+        /// <param name="options">The options used to configure the OpenID Connect server.</param>
+        /// <param name="stream">The stream containing the certificate.</param>
+        /// <param name="password">The password used to open the certificate.</param>
+        /// <param name="flags">An enumeration of flags indicating how and where to store the private key of the certificate.</param>
+        /// <returns>The options used to configure the OpenID Connect server.</returns>
+        public static OpenIdConnectServerOptions UseCertificate(
+            this OpenIdConnectServerOptions options, Stream stream,
+            string password, X509KeyStorageFlags flags) {
+            if (options == null) {
+                throw new ArgumentNullException("options");
+            }
+
+            if (stream == null) {
+                throw new ArgumentNullException("stream");
+            }
+
+            if (string.IsNullOrEmpty(password)) {
+                throw new ArgumentNullException("password");
+            }
+            
+            using (var buffer = new MemoryStream()) {
+                stream.CopyTo(buffer);
+
+                return options.UseCertificate(new X509Certificate2(buffer.ToArray(), password, flags));
+            }
+        }
+
+        /// <summary>
+        /// Uses a specific <see cref="X509Certificate2"/> retrieved from the
+        /// X509 machine store to sign tokens issued by the OpenID Connect server.
+        /// </summary>
+        /// <param name="options">The options used to configure the OpenID Connect server.</param>
+        /// <param name="thumbprint">The thumbprint of the certificate used to identify it in the X509 store.</param>
+        /// <param name="password">The password used to open the certificate.</param>
+        /// <returns>The options used to configure the OpenID Connect server.</returns>
+        public static OpenIdConnectServerOptions UseCertificate(this OpenIdConnectServerOptions options, string thumbprint, string password) {
+            return options.UseCertificate(thumbprint, password, StoreName.My, StoreLocation.LocalMachine);
+        }
+
+        /// <summary>
+        /// Uses a specific <see cref="X509Certificate2"/> retrieved from the
+        /// given X509 store to sign tokens issued by the OpenID Connect server.
+        /// </summary>
+        /// <param name="options">The options used to configure the OpenID Connect server.</param>
+        /// <param name="thumbprint">The thumbprint of the certificate used to identify it in the X509 store.</param>
+        /// <param name="password">The password used to open the certificate.</param>
+        /// <param name="name">The name of the X509 store.</param>
+        /// <param name="location">The location of the X509 store.</param>
+        /// <returns>The options used to configure the OpenID Connect server.</returns>
+        public static OpenIdConnectServerOptions UseCertificate(this OpenIdConnectServerOptions options,
+            string thumbprint, string password, StoreName name, StoreLocation location) {
+            if (options == null) {
+                throw new ArgumentNullException("options");
+            }
+
+            if (string.IsNullOrEmpty(thumbprint)) {
+                throw new ArgumentNullException("thumbprint");
+            }
+
+            if (string.IsNullOrEmpty(password)) {
+                throw new ArgumentNullException("password");
+            }
+
+            var store = new X509Store(name, location);
+
+            try {
+                store.Open(OpenFlags.ReadOnly);
+
+                var certificates = store.Certificates.Find(X509FindType.FindByThumbprint, thumbprint, validOnly: false);
+
+                var certificate = certificates.OfType<X509Certificate2>().SingleOrDefault();
+                if (certificate == null) {
+                    throw new InvalidOperationException("The certificate corresponding to the given thumbprint was not found.");
+                }
+
+                return options.UseCertificate(certificate);
+            }
+
+            finally {
+                store.Close();
+            }
+        }
+
+        /// <summary>
+        /// Uses a specific <see cref="SecurityKey"/> to sign tokens issued by the OpenID Connect server.
+        /// </summary>
+        /// <param name="options">The options used to configure the OpenID Connect server.</param>
+        /// <param name="key">The key used to sign security tokens issued by the server.</param>
+        /// <returns>The options used to configure the OpenID Connect server.</returns>
+        public static OpenIdConnectServerOptions UseKey(this OpenIdConnectServerOptions options, SecurityKey key) {
+            if (options == null) {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            if (key == null) {
+                throw new ArgumentNullException(nameof(key));
+            }
+
+            options.SigningCredentials = new SigningCredentials(key,
+                SecurityAlgorithms.RsaSha256Signature,
+                SecurityAlgorithms.Sha256Digest);
+
+            return options;
         }
 
         /// <summary>

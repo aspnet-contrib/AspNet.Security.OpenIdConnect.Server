@@ -27,9 +27,7 @@ These dependencies are automatically installed in your project if you download *
 Based on **Microsoft.Owin.Security.OAuth**, **Owin.Security.OpenIdConnect.Server** exposes similar primitives and can be directly registered in **Startup.cs** using the `UseOpenIdConnectServer` extension method:
 
     app.UseOpenIdConnectServer(options => {
-        options.Issuer = "http://localhost:55938/";
-        options.SigningCredentials = new X509SigningCredentials(certificate);
-    
+        options.UseCertificate(certificate);
         options.Provider = new CustomAuthorizationProvider();
     });
 

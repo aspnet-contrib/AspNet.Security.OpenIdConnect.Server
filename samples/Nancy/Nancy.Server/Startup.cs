@@ -62,7 +62,7 @@ namespace Nancy.Server {
                 options.AuthenticationType = OpenIdConnectDefaults.AuthenticationType;
                 options.AuthenticationMode = AuthenticationMode.Passive;
 
-                options.SigningCredentials = credentials;
+                options.UseCertificate(certificate);
 
                 options.Provider = new AuthorizationProvider();
                 options.AccessTokenLifetime = TimeSpan.FromDays(14);
