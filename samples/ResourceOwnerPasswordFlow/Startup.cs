@@ -95,6 +95,11 @@ namespace ResourceOwnerPasswordFlow
 
                     // if the audience is null or empty, then don't validate it
                     options.TokenValidationParameters.ValidateAudience = Config.Get("OAuth:Audience") != null;
+
+                    if (string.Equals(environment.RuntimeType, "Mono", StringComparison.OrdinalIgnoreCase))
+                    {
+                        options.SecurityTokenValidators = new[] { new UnsafeJwtSecurityTokenHandler() };
+                    }
                 });
 
                 // Add a new middleware issuing tokens.
@@ -108,6 +113,12 @@ namespace ResourceOwnerPasswordFlow
                     options.SigningCredentials = credentials;
                     options.AuthenticationScheme = OpenIdConnectDefaults.AuthenticationScheme;
                     options.Provider = new AuthorizationProvider();
+
+                    if (string.Equals(environment.RuntimeType, "Mono", StringComparison.OrdinalIgnoreCase))
+                    {
+                        options.AccessTokenHandler = new UnsafeJwtSecurityTokenHandler();
+                        options.IdentityTokenHandler = new UnsafeJwtSecurityTokenHandler();
+                    }
                 });
             }
             catch (Exception ex)
@@ -199,6 +210,18 @@ namespace ResourceOwnerPasswordFlow
                     buffer.ToArray(),
                     "Owin.Security.OpenIdConnect.Server",
                     X509KeyStorageFlags.MachineKeySet);
+            }
+        }
+
+        // There's currently a bug on Mono that prevents ValidateSignature from working correctly.
+        // To work around this bug, signature validation is temporarily disabled: of course,
+        // NEVER do that in a real world application as it opens a huge security hole.
+        // See https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet/issues/179
+        private class UnsafeJwtSecurityTokenHandler : JwtSecurityTokenHandler
+        {
+            protected override JwtSecurityToken ValidateSignature(string token, TokenValidationParameters validationParameters)
+            {
+                return ReadToken(token) as JwtSecurityToken;
             }
         }
 
