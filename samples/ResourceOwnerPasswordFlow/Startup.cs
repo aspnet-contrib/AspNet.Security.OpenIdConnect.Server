@@ -2,6 +2,7 @@
 using AspNet.Security.OpenIdConnect.Server;
 using System;
 using System.IdentityModel.Tokens;
+using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.IO;
 using System.Text;
@@ -182,7 +183,9 @@ namespace ResourceOwnerPasswordFlow
         private X509Certificate2 LoadCertificate()
         {
             var resourceName = "ResourceOwnerPasswordFlow.Certificate.pfx";
-            using (var stream = this.GetType()
+            using (var stream = this
+                .GetType()
+                .GetTypeInfo()
                 .Assembly
                 .GetManifestResourceStream(resourceName))
 
