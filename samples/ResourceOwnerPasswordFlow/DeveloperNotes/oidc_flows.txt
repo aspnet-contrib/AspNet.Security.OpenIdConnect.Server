@@ -1,0 +1,30 @@
+﻿# Flow Chart
+
+1. Client prepares an Authentication Request with desired request parameters.
+2. Client sends the request to the Authorization Server.
+3. Authorization Server Authenticates the End-User.
+    * However the hell it wants to. 
+	* Google/Facebook/Fingerprint/Locally/Whatever
+4. Authorization Server obtains End-User Consent/Authorization.
+5. Authorization Server sends the End-User back to the Client...
+
+code-flow : 
+	with an Authorization Code
+	go to (6)
+
+hybrid-flow : 
+	with an Authorization Code 
+	and, depending on the Response Type, one or more additional parameters
+	go to (6)
+
+implicit-flow : 
+	with an ID Token and, if requested, an Access Token
+	go to (8)
+
+6. Client requests a response using the Authorization Code at the Token Endpoint.		
+7. Client receives a response with an ID Token and Access Token in the body.
+8. Client validates the ID Token and retrieves the End-User's Subject Identifier.
+
+# References 
+
+http://openid.net/specs/openid-connect-core-1_0.html
