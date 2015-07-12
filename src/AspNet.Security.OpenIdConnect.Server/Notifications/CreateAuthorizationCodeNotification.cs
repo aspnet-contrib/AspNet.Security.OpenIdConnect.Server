@@ -4,6 +4,7 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
+using System.Threading.Tasks;
 using Microsoft.AspNet.Authentication;
 using Microsoft.AspNet.Authentication.Notifications;
 using Microsoft.AspNet.Http;
@@ -45,16 +46,21 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public new OpenIdConnectMessage Response { get; }
 
         /// <summary>
-        /// Gets or sets the authorization code
-        /// returned to the client application.
+        /// Gets or sets the data format used to serialize the authentication ticket.
+        /// </summary>
+        public ISecureDataFormat<AuthenticationTicket> DataFormat { get; set; }
+
+        /// <summary>
+        /// Gets or sets the authorization code returned to the client application.
         /// </summary>
         public string AuthorizationCode { get; set; }
 
         /// <summary>
-        /// Serialize and protect the authentication ticket using
-        /// <see cref="OpenIdConnectServerOptions.AuthorizationCodeFormat"/>.
+        /// Serialize and sign the authentication ticket using <see cref="DataFormat"/>.
         /// </summary>
-        /// <returns>The serialized and protected ticket.</returns>
-        public string SerializeTicket() => Options.AuthorizationCodeFormat.Protect(AuthenticationTicket);
+        /// <returns>The serialized and signed ticket.</returns>
+        public Task<string> SerializeTicketAsync() {
+            return Task.FromResult(DataFormat?.Protect(AuthenticationTicket));
+        }
     }
 }

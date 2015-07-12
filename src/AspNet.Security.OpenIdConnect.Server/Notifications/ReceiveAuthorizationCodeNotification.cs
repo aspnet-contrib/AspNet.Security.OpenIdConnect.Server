@@ -4,6 +4,7 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
+using System.Threading.Tasks;
 using Microsoft.AspNet.Authentication;
 using Microsoft.AspNet.Authentication.Notifications;
 using Microsoft.AspNet.Http;
@@ -37,24 +38,29 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public new OpenIdConnectMessage Request { get; }
 
         /// <summary>
+        /// Gets or sets the data format used to deserialize the authentication ticket.
+        /// </summary>
+        public ISecureDataFormat<AuthenticationTicket> DataFormat { get; set; }
+
+        /// <summary>
         /// Gets the authorization code
         /// used by the client application.
         /// </summary>
         public string AuthorizationCode { get; }
 
         /// <summary>
-        /// Deserialize and unprotect the authentication ticket using
-        /// <see cref="OpenIdConnectServerOptions.AuthorizationCodeFormat"/>.
+        /// Deserialize and verify the authentication ticket.
         /// </summary>
         /// <returns>The authentication ticket.</returns>
-        public AuthenticationTicket DeserializeTicket() => DeserializeTicket(AuthorizationCode);
+        public Task<AuthenticationTicket> DeserializeTicketAsync() => DeserializeTicketAsync(AuthorizationCode);
 
         /// <summary>
-        /// Deserialize and unprotect the authentication ticket using
-        /// <see cref="OpenIdConnectServerOptions.AuthorizationCodeFormat"/>.
+        /// Deserialize and verify the authentication ticket.
         /// </summary>
         /// <param name="ticket">The serialized ticket.</param>
         /// <returns>The authentication ticket.</returns>
-        public AuthenticationTicket DeserializeTicket(string ticket) => Options.AuthorizationCodeFormat.Unprotect(ticket);
+        public Task<AuthenticationTicket> DeserializeTicketAsync(string ticket) {
+            return Task.FromResult(DataFormat?.Unprotect(ticket));
+        }
     }
 }
