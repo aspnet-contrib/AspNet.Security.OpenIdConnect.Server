@@ -27,9 +27,7 @@ using Newtonsoft.Json.Linq;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     internal class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions> {
-        // Implementing AuthenticateAsync allows the inner application
-        // to retrieve the identity extracted from the optional id_token_hint.
-        protected override async Task<AuthenticationTicket> AuthenticateAsync() {
+        protected override async Task<AuthenticationTicket> HandleAuthenticateAsync() {
             var notification = new MatchEndpointNotification(Context, Options);
 
             if (Options.AuthorizationEndpointPath.HasValue &&
