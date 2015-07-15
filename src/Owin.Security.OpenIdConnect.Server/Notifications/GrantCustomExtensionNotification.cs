@@ -43,6 +43,6 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the token request.
         /// </summary>
-        public OpenIdConnectMessage Request { get; private set; }
+        public new OpenIdConnectMessage Request { get; private set; }
     }
 }

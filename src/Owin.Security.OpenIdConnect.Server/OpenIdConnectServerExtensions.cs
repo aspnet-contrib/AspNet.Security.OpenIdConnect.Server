@@ -233,16 +233,33 @@ namespace Owin {
         /// <returns>The options used to configure the OpenID Connect server.</returns>
         public static OpenIdConnectServerOptions UseKey(this OpenIdConnectServerOptions options, SecurityKey key) {
             if (options == null) {
-                throw new ArgumentNullException(nameof(options));
+                throw new ArgumentNullException("options");
             }
 
             if (key == null) {
-                throw new ArgumentNullException(nameof(key));
+                throw new ArgumentNullException("key");
             }
 
             options.SigningCredentials = new SigningCredentials(key,
                 SecurityAlgorithms.RsaSha256Signature,
                 SecurityAlgorithms.Sha256Digest);
+
+            return options;
+        }
+        
+        /// <summary>
+        /// Configures the OpenID Connect server to issue opaque access tokens produced by the data protection block.
+        /// Opaque tokens cannot be read by client applications or resource servers if they don't share identical keys.
+        /// Note: you can use the validation endpoint to validate opaque tokens directly on the authorization server.
+        /// </summary>
+        /// <param name="options">The options used to configure the OpenID Connect server.</param>
+        /// <returns>The options used to configure the OpenID Connect server.</returns>
+        public static OpenIdConnectServerOptions UseOpaqueTokens(this OpenIdConnectServerOptions options) {
+            if (options == null) {
+                throw new ArgumentNullException("options");
+            }
+
+            options.AccessTokenHandler = null;
 
             return options;
         }

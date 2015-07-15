@@ -28,6 +28,7 @@ namespace Basic.Client {
                 RedirectUri = "http://localhost:57264/oidc",
 
                 Scope = "openid",
+                ResponseType = "code id_token token",
 
                 // Note: setting the Authority allows the OIDC client middleware to automatically
                 // retrieve the identity provider's configuration and spare you from setting

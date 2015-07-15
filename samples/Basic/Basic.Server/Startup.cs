@@ -17,6 +17,8 @@ namespace Basic.Server {
                     resource: "Basic.Server.Certificate.pfx",
                     password: "Owin.Security.OpenIdConnect.Server");
 
+                options.UseOpaqueTokens();
+
                 options.TokenEndpointPath = new PathString("/token");
                 options.AuthorizationEndpointPath = new PathString("/auth.cshtml");
 

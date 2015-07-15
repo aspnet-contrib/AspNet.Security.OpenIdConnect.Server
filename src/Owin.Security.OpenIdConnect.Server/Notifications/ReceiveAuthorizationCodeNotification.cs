@@ -4,6 +4,7 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
+using System.Threading.Tasks;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
@@ -42,28 +43,35 @@ namespace Owin.Security.OpenIdConnect.Server {
         public AuthenticationTicket AuthenticationTicket { get; set; }
 
         /// <summary>
+        /// Gets or sets the data format used to deserialize the authentication ticket.
+        /// </summary>
+        public ISecureDataFormat<AuthenticationTicket> DataFormat { get; set; }
+
+        /// <summary>
         /// Gets the authorization code
         /// used by the client application.
         /// </summary>
         public string AuthorizationCode { get; private set; }
 
         /// <summary>
-        /// Deserialize and unprotect the authentication ticket using
-        /// <see cref="OpenIdConnectServerOptions.AuthorizationCodeFormat"/>.
+        /// Deserialize and verify the authentication ticket.
         /// </summary>
         /// <returns>The authentication ticket.</returns>
-        public AuthenticationTicket DeserializeTicket() {
-            return DeserializeTicket(AuthorizationCode);
+        public Task<AuthenticationTicket> DeserializeTicketAsync() {
+            return DeserializeTicketAsync(AuthorizationCode);
         }
 
         /// <summary>
-        /// Deserialize and unprotect the authentication ticket using
-        /// <see cref="OpenIdConnectServerOptions.AuthorizationCodeFormat"/>.
+        /// Deserialize and verify the authentication ticket.
         /// </summary>
         /// <param name="ticket">The serialized ticket.</param>
         /// <returns>The authentication ticket.</returns>
-        public AuthenticationTicket DeserializeTicket(string ticket) {
-            return Options.AuthorizationCodeFormat.Unprotect(ticket);
+        public Task<AuthenticationTicket> DeserializeTicketAsync(string ticket) {
+            if (DataFormat == null) {
+                return Task.FromResult<AuthenticationTicket>(null);
+            }
+
+            return Task.FromResult(DataFormat.Unprotect(ticket));
         }
     }
 }

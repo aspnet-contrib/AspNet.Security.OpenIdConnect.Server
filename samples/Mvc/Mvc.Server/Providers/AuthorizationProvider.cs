@@ -98,7 +98,7 @@ namespace Mvc.Server.Providers {
 
                 var nonce = new Nonce {
                     NonceID = nonceID,
-                    Ticket = notification.SerializeTicket()
+                    Ticket = await notification.SerializeTicketAsync()
                 };
 
                 context.Nonces.Add(nonce);
@@ -126,7 +126,7 @@ namespace Mvc.Server.Providers {
                 context.Nonces.Remove(nonce);
                 await context.SaveChangesAsync(notification.OwinContext.Request.CallCancelled);
 
-                notification.AuthenticationTicket = notification.DeserializeTicket(nonce.Ticket);
+                notification.AuthenticationTicket = await notification.DeserializeTicketAsync(nonce.Ticket);
             }
         }
 

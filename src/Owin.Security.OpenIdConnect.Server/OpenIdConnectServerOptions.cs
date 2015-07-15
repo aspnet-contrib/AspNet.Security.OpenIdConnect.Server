@@ -232,5 +232,11 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// Replacing the default instance is usually not necessary.
         /// </summary>
         public RandomNumberGenerator RandomNumberGenerator { get; set; }
+
+        /// <summary>
+        /// The signature provider used by the OpenID Connect server
+        /// middleware to sign tokens and to verify their authenticity.
+        /// </summary>
+        public SignatureProvider SignatureProvider { get; set; }
     }
 }
