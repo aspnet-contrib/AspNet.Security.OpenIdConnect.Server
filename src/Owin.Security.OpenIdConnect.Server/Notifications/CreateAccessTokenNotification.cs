@@ -37,6 +37,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             Request = request;
             Response = response;
             AuthenticationTicket = ticket;
+            Audiences = new List<string>();
         }
 
         /// <summary>
@@ -57,7 +58,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the list of audiences.
         /// </summary>
-        public IList<string> Audiences { get; private set; } = new List<string>();
+        public IList<string> Audiences { get; private set; }
 
         /// <summary>
         /// Gets or sets the issuer address.
