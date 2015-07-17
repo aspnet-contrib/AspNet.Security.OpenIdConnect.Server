@@ -248,6 +248,15 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // Insert the authorization request in the ASP.NET context.
             Context.SetOpenIdConnectRequest(request);
 
+            // client_id is mandatory parameter and MUST cause an error when missing.
+            // See http://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
+            if (string.IsNullOrEmpty(request.ClientId)) {
+                return await SendErrorPageAsync(new OpenIdConnectMessage {
+                    Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = "client_id was missing"
+                });
+            }
+
             // While redirect_uri was not mandatory in OAuth2, this parameter
             // is now declared as REQUIRED and MUST cause an error when missing.
             // See http://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
