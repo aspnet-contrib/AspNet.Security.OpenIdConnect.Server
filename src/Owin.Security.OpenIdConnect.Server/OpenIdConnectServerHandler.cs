@@ -319,7 +319,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 logger.WriteVerbose("Unable to validate client information");
 
                 return await SendErrorPageAsync(new OpenIdConnectMessage {
-                    Error = clientNotification.Error,
+                    Error = clientNotification.Error ?? OpenIdConnectConstants.Errors.InvalidClient,
                     ErrorDescription = clientNotification.ErrorDescription,
                     ErrorUri = clientNotification.ErrorUri
                 });
@@ -430,7 +430,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             // Stop processing the request if Validated was not called.
             if (!validationNotification.IsValidated) {
                 return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
-                    Error = validationNotification.Error,
+                    Error = validationNotification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = validationNotification.ErrorDescription,
                     ErrorUri = validationNotification.ErrorUri,
                     RedirectUri = request.RedirectUri,
@@ -2252,6 +2252,11 @@ namespace Owin.Security.OpenIdConnect.Server {
             // TeardownCoreAsync that there's nothing more to handle.
             Context.SetOpenIdConnectRequest(request: null);
 
+            // Use a generic error if none has been explicitly provided.
+            if (string.IsNullOrEmpty(response.Error)) {
+                response.Error = OpenIdConnectConstants.Errors.InvalidRequest;
+            }
+
             // Directly display an error page if redirect_uri cannot be used.
             if (string.IsNullOrEmpty(response.RedirectUri)) {
                 return await SendErrorPageAsync(response);
@@ -2268,6 +2273,11 @@ namespace Owin.Security.OpenIdConnect.Server {
         }
 
         private async Task<bool> SendErrorPageAsync(OpenIdConnectMessage response) {
+            // Use a generic error if none has been explicitly provided.
+            if (string.IsNullOrEmpty(response.Error)) {
+                response.Error = OpenIdConnectConstants.Errors.InvalidRequest;
+            }
+
             if (Options.ApplicationCanDisplayErrors) {
                 Context.SetOpenIdConnectResponse(response);
 
@@ -2277,14 +2287,8 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             using (var buffer = new MemoryStream())
             using (var writer = new StreamWriter(buffer)) {
-                writer.WriteLine("error: {0}", response.Error);
-
-                if (!string.IsNullOrEmpty(response.ErrorDescription)) {
-                    writer.WriteLine("error_description: {0}", response.ErrorDescription);
-                }
-
-                if (!string.IsNullOrEmpty(response.ErrorUri)) {
-                    writer.WriteLine("error_uri: {0}", response.ErrorUri);
+                foreach (var parameter in response.Parameters) {
+                    writer.WriteLine("{0}: {1}", parameter.Key, parameter.Value);
                 }
 
                 writer.Flush();
