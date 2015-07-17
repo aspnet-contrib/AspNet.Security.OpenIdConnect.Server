@@ -30,7 +30,7 @@ namespace Mvc.Server {
                     options.UseInMemoryDatabase();
                 });
 
-            services.Configure<ExternalAuthenticationOptions>(options => {
+            services.Configure<SharedAuthenticationOptions>(options => {
                 options.SignInScheme = "ServerCookie";
             });
 

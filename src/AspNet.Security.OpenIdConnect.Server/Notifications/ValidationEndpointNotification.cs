@@ -7,7 +7,6 @@
 using System.Collections.Generic;
 using System.Security.Claims;
 using Microsoft.AspNet.Authentication;
-using Microsoft.AspNet.Authentication.Notifications;
 using Microsoft.AspNet.Http;
 using Microsoft.IdentityModel.Protocols;
 

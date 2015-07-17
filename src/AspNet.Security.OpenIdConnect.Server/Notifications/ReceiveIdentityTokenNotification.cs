@@ -8,7 +8,6 @@ using System.IdentityModel.Tokens;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Authentication;
-using Microsoft.AspNet.Authentication.Notifications;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Authentication;
 using Microsoft.IdentityModel.Protocols;

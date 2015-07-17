@@ -18,7 +18,7 @@ using Newtonsoft.Json.Linq;
 namespace Mvc.Client {
     public class Startup {
         public void ConfigureServices(IServiceCollection services) {
-            services.Configure<ExternalAuthenticationOptions>(options => {
+            services.Configure<SharedAuthenticationOptions>(options => {
                 options.SignInScheme = "ClientCookie";
             });
 

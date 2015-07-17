@@ -5,7 +5,6 @@
  */
 
 using System.Threading.Tasks;
-using Microsoft.AspNet.Authentication.Notifications;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>

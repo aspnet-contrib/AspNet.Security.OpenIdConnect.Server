@@ -3,8 +3,8 @@
  * See https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server
  * for more information concerning the license and the contributors participating to this project.
  */
- 
-using Microsoft.AspNet.Authentication.Notifications;
+
+using Microsoft.AspNet.Authentication;
 using Microsoft.AspNet.Http;
 using Microsoft.IdentityModel.Protocols;
 

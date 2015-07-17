@@ -8,7 +8,6 @@ using System;
 using System.IdentityModel.Tokens;
 using System.Security.Cryptography;
 using Microsoft.AspNet.Authentication;
-using Microsoft.AspNet.Authentication.Notifications;
 using Microsoft.AspNet.Http;
 using Microsoft.Framework.Caching.Distributed;
 using Microsoft.Framework.WebEncoders;
