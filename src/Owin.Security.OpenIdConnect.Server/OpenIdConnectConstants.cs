@@ -41,6 +41,10 @@ namespace Owin.Security.OpenIdConnect.Server {
             public const string Query = "query";
         }
 
+        public static class Scopes {
+            public const string OpenId = "openid";
+        }
+
         public static class GrantTypes {
             public const string AuthorizationCode = "authorization_code";
             public const string ClientCredentials = "client_credentials";
