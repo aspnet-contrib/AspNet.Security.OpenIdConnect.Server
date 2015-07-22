@@ -262,7 +262,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // See http://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
             // To keep AspNet.Security.OpenIdConnect.Server compatible with pure OAuth2 clients,
             // an error is only returned if the request was made by an OpenID Connect client.
-            if (string.IsNullOrEmpty(request.RedirectUri) && request.ContainsScope(OpenIdConnectScopes.OpenId)) {
+            if (string.IsNullOrEmpty(request.RedirectUri) && request.ContainsScope(OpenIdConnectConstants.Scopes.OpenId)) {
                 return await SendErrorPageAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "redirect_uri must be included when making an OpenID Connect request"
@@ -382,9 +382,25 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 });
             }
 
+            // Reject OpenID Connect implicit/hybrid requests missing the mandatory nonce parameter.
+            // See http://openid.net/specs/openid-connect-core-1_0.html#AuthRequest,
+            // http://openid.net/specs/openid-connect-implicit-1_0.html#RequestParameters
+            // and http://openid.net/specs/openid-connect-core-1_0.html#HybridIDToken.
+            else if (string.IsNullOrEmpty(request.Nonce) && request.ContainsScope(OpenIdConnectConstants.Scopes.OpenId) &&
+                                                           (request.IsImplicitFlow() || request.IsHybridFlow())) {
+                Logger.LogVerbose("The 'nonce' parameter was missing");
+
+                return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
+                    Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = "nonce parameter missing",
+                    RedirectUri = request.RedirectUri,
+                    State = request.State
+                });
+            }
+
 			// Reject requests containing the id_token response_mode if no openid scope has been received.
             else if (request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.IdToken) &&
-                    !request.ContainsScope(OpenIdConnectScopes.OpenId)) {
+                    !request.ContainsScope(OpenIdConnectConstants.Scopes.OpenId)) {
                 Logger.LogVerbose("The 'openid' scope part was missing");
 
                 return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
@@ -813,7 +829,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 }
             }
 
-            notification.Scopes.Add(OpenIdConnectScopes.OpenId);
+            notification.Scopes.Add(OpenIdConnectConstants.Scopes.OpenId);
 
             notification.SubjectTypes.Add(OpenIdConnectConstants.SubjectTypes.Public);
             notification.SubjectTypes.Add(OpenIdConnectConstants.SubjectTypes.Pairwise);
