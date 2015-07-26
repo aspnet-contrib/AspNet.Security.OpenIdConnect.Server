@@ -434,6 +434,10 @@ namespace Owin {
             properties.Dictionary[OpenIdConnectConstants.Extra.Audience] = string.Join(" ", audiences);
         }
 
+        internal static bool ContainsScope(this AuthenticationTicket ticket, string scope) {
+            return ticket.Properties.GetScopes().Contains(scope);
+        }
+
         internal static bool ContainsSet(this IEnumerable<string> source, IEnumerable<string> set) {
             if (source == null || set == null) {
                 return false;

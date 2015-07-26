@@ -64,6 +64,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             public const string UnsupportedResponseType = "unsupported_response_type";
             public const string UnsupportedGrantType = "unsupported_grant_type";
             public const string UnauthorizedClient = "unauthorized_client";
+            public const string ServerError = "server_error";
         }
 
         public static class Extra {

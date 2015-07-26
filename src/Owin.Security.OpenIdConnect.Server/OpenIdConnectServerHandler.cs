@@ -605,6 +605,42 @@ namespace Owin.Security.OpenIdConnect.Server {
                 var properties = context.Properties.Copy();
 
                 response.Code = await CreateAuthorizationCodeAsync(context.Identity, properties, request, response);
+
+                // Ensure that an authorization code is issued to avoid returning an invalid response.
+                // See http://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#Combinations
+                if (string.IsNullOrEmpty(response.Code)) {
+                    logger.WriteError("CreateAuthorizationCodeAsync returned no authorization code");
+
+                    return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
+                        Error = OpenIdConnectConstants.Errors.ServerError,
+                        ErrorDescription = "no valid authorization code was issued",
+                        RedirectUri = request.RedirectUri,
+                        State = request.State
+                    });
+                }
+            }
+
+            // Determine whether an identity token should be returned
+            // and invoke CreateIdentityTokenAsync if necessary.
+            if (request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.IdToken)) {
+                // Make sure to create a copy of the authentication properties
+                // to avoid modifying the properties set on the original ticket.
+                var properties = context.Properties.Copy();
+
+                response.IdToken = await CreateIdentityTokenAsync(context.Identity, properties, request, response);
+
+                // Ensure that an identity token is issued to avoid returning an invalid response.
+                // See http://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#Combinations
+                if (string.IsNullOrEmpty(response.IdToken)) {
+                    logger.WriteError("CreateIdentityTokenAsync returned no identity token.");
+
+                    return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
+                        Error = OpenIdConnectConstants.Errors.ServerError,
+                        ErrorDescription = "no valid identity token was issued",
+                        RedirectUri = request.RedirectUri,
+                        State = request.State
+                    });
+                }
             }
 
             // Determine whether an access token should be returned
@@ -617,6 +653,19 @@ namespace Owin.Security.OpenIdConnect.Server {
                 response.TokenType = OpenIdConnectConstants.TokenTypes.Bearer;
                 response.AccessToken = await CreateAccessTokenAsync(context.Identity, properties, request, response);
 
+                // Ensure that an access token is issued to avoid returning an invalid response.
+                // See http://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#Combinations
+                if (string.IsNullOrEmpty(response.AccessToken)) {
+                    logger.WriteError("CreateAccessTokenAsync returned no access token.");
+
+                    return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
+                        Error = OpenIdConnectConstants.Errors.ServerError,
+                        ErrorDescription = "no valid access token was issued",
+                        RedirectUri = request.RedirectUri,
+                        State = request.State
+                    });
+                }
+
                 // properties.ExpiresUtc is automatically set by CreateAccessTokenAsync but the end user
                 // is free to set a null value directly in the CreateAccessToken notification.
                 if (properties.ExpiresUtc.HasValue && properties.ExpiresUtc > Options.SystemClock.UtcNow) {
@@ -625,15 +674,6 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                     response.ExpiresIn = expiration.ToString(CultureInfo.InvariantCulture);
                 }
-            }
-
-            // Determine whether an identity token should be returned.
-            if (request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.IdToken)) {
-                // Make sure to create a copy of the authentication properties
-                // to avoid modifying the properties set on the original ticket.
-                var properties = context.Properties.Copy();
-
-                response.IdToken = await CreateIdentityTokenAsync(context.Identity, properties, request, response);
             }
 
             // Remove the OpenID Connect request from the cache.
@@ -1266,6 +1306,49 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             var response = new OpenIdConnectMessage();
 
+            // Determine whether an identity token should be returned and invoke CreateIdentityTokenAsync if necessary.
+            // Note: by default, an identity token is always returned, but the client application can use the response_type
+            // parameter to only include specific types of tokens. When this parameter is missing, a token is always generated.
+            if (string.IsNullOrEmpty(request.ResponseType) || request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.IdToken)) {
+                // Make sure to create a copy of the authentication properties
+                // to avoid modifying the properties set on the original ticket.
+                var properties = ticket.Properties.Copy();
+
+                // When the authorization code or the refresh token grant type has been used,
+                // properties.IssuedUtc and properties.ExpiresUtc are explicitly set to null
+                // to avoid aligning the expiration date of the identity token on the lifetime
+                // of the authorization code or the refresh token used by the client application.
+                if (request.IsAuthorizationCodeGrantType() || request.IsRefreshTokenGrantType()) {
+                    properties.IssuedUtc = properties.ExpiresUtc = null;
+                }
+
+                // When sliding expiration is disabled, the identity token added to the response
+                // cannot live longer than the refresh token that was used in the token request.
+                if (request.IsRefreshTokenGrantType() && !Options.UseSlidingExpiration &&
+                    ticket.Properties.ExpiresUtc.HasValue &&
+                    ticket.Properties.ExpiresUtc.Value < (Options.SystemClock.UtcNow + Options.IdentityTokenLifetime)) {
+                    properties.ExpiresUtc = ticket.Properties.ExpiresUtc;
+                }
+
+                response.IdToken = await CreateIdentityTokenAsync(ticket.Identity, properties, request, response);
+
+                // Ensure that an identity token is issued to avoid returning an invalid response, but only if the authorization
+                // request was an OpenID Connect request or if the token request contains the explicit "openid" scope.
+                // See http://openid.net/specs/openid-connect-core-1_0.html#TokenResponse
+                // and http://openid.net/specs/openid-connect-core-1_0.html#RefreshTokenResponse
+                if (string.IsNullOrEmpty(response.IdToken) && (request.ContainsScope(OpenIdConnectConstants.Scopes.OpenId) ||
+                                                               ticket.ContainsScope(OpenIdConnectConstants.Scopes.OpenId))) {
+                    logger.WriteError("CreateIdentityTokenAsync returned no identity token.");
+
+                    await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                        Error = OpenIdConnectConstants.Errors.ServerError,
+                        ErrorDescription = "no valid identity token was issued"
+                    });
+
+                    return;
+                }
+            }
+
             // Determine whether an access token should be returned and invoke CreateAccessTokenAsync if necessary.
             // Note: by default, an access token is always returned, but the client application can use the response_type
             // parameter to only include specific types of tokens. When this parameter is missing, a token is always generated.
@@ -1293,6 +1376,19 @@ namespace Owin.Security.OpenIdConnect.Server {
                 response.TokenType = OpenIdConnectConstants.TokenTypes.Bearer;
                 response.AccessToken = await CreateAccessTokenAsync(ticket.Identity, properties, request, response);
 
+                // Ensure that an access token is issued to avoid returning an invalid response.
+                // See http://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#Combinations
+                if (string.IsNullOrEmpty(response.AccessToken)) {
+                    logger.WriteError("CreateAccessTokenAsync returned no access token.");
+
+                    await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                        Error = OpenIdConnectConstants.Errors.ServerError,
+                        ErrorDescription = "no valid access token was issued"
+                    });
+
+                    return;
+                }
+
                 // properties.ExpiresUtc is automatically set by CreateAccessTokenAsync but the end user
                 // is free to set a null value directly in the CreateAccessToken notification.
                 if (properties.ExpiresUtc.HasValue && properties.ExpiresUtc > Options.SystemClock.UtcNow) {
@@ -1301,34 +1397,6 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                     response.ExpiresIn = expiration.ToString(CultureInfo.InvariantCulture);
                 }
-            }
-
-            // Determine whether an identity token should be returned and invoke CreateIdentityTokenAsync if necessary.
-            // Note: by default, an identity token is always returned, but the client application can use the response_type
-            // parameter to only include specific types of tokens. When this parameter is missing, a token is always generated.
-            if (string.IsNullOrEmpty(request.ResponseType) || request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.IdToken)) {
-                // Make sure to create a copy of the authentication properties
-                // to avoid modifying the properties set on the original ticket.
-                var properties = ticket.Properties.Copy();
-
-                // When the authorization code or the refresh token grant type has been used,
-                // properties.IssuedUtc and properties.ExpiresUtc are explicitly set to null
-                // to avoid aligning the expiration date of the identity token on the lifetime
-                // of the authorization code or the refresh token used by the client application.
-                if (request.IsAuthorizationCodeGrantType() || request.IsRefreshTokenGrantType()) {
-                    properties.IssuedUtc = properties.ExpiresUtc = null;
-                }
-
-                // When sliding expiration is disabled, the identity token added to the response
-                // cannot live longer than the refresh token that was used in the token request.
-                if (request.IsRefreshTokenGrantType() && !Options.UseSlidingExpiration &&
-                    ticket.Properties.ExpiresUtc.HasValue &&
-                    ticket.Properties.ExpiresUtc.Value < (Options.SystemClock.UtcNow + Options.IdentityTokenLifetime)) {
-                    properties.ExpiresUtc = ticket.Properties.ExpiresUtc;
-                }
-
-                // Make sure to create a copy of the authentication properties to avoid modifying the properties set on the original ticket.
-                response.IdToken = await CreateIdentityTokenAsync(ticket.Identity, properties, request, response);
             }
 
             // Determine whether a refresh token should be returned and invoke CreateRefreshTokenAsync if necessary.
