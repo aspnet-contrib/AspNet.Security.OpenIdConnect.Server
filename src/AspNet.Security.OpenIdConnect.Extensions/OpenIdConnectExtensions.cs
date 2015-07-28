@@ -17,11 +17,23 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
     /// </summary>
     public static class OpenIdConnectExtensions {
         /// <summary>
+        /// True if the "response_type" parameter corresponds to the "none" response type.
+        /// See http://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#none
+        /// </summary>
+        public static bool IsNoneResponseType(this OpenIdConnectMessage message) {
+            if (message == null) {
+                throw new ArgumentNullException(nameof(message));
+            }
+
+            return string.Equals(message.ResponseType, OpenIdConnectConstants.ResponseTypes.None, StringComparison.Ordinal);
+        }
+
+        /// <summary>
         /// True if the "response_type" parameter
         /// corresponds to the authorization code flow.
         /// See http://tools.ietf.org/html/rfc6749#section-4.1.1
         /// </summary>
-        public static bool IsAuthorizationCodeFlow(this OpenIdConnectMessage message) {
+        public static bool IsAuthorizationCodeResponseType(this OpenIdConnectMessage message) {
             if (message == null) {
                 throw new ArgumentNullException(nameof(message));
             }
@@ -35,7 +47,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
         /// See http://tools.ietf.org/html/rfc6749#section-4.2.1 and
         /// http://openid.net/specs/openid-connect-core-1_0.html
         /// </summary>
-        public static bool IsImplicitFlow(this OpenIdConnectMessage message) {
+        public static bool IsImplicitResponseType(this OpenIdConnectMessage message) {
             if (message == null) {
                 throw new ArgumentNullException(nameof(message));
             }
@@ -56,7 +68,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
         /// See http://tools.ietf.org/html/rfc6749#section-4.2.1 and
         /// http://openid.net/specs/openid-connect-core-1_0.html
         /// </summary>
-        public static bool IsHybridFlow(this OpenIdConnectMessage message) {
+        public static bool IsHybridResponseType(this OpenIdConnectMessage message) {
             if (message == null) {
                 throw new ArgumentNullException(nameof(message));
             }
@@ -94,7 +106,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
 
             // Both the implicit and the hybrid flows
             // use response_mode=fragment by default.
-            return message.IsImplicitFlow() || message.IsHybridFlow();
+            return message.IsImplicitResponseType() || message.IsHybridResponseType();
         }
 
         /// <summary>
@@ -117,8 +129,8 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 return false;
             }
 
-            // The code flow uses response_mode=query by default.
-            return message.IsAuthorizationCodeFlow();
+            // Code flow and "response_type=none" use response_mode=query by default.
+            return message.IsAuthorizationCodeResponseType() || message.IsNoneResponseType();
         }
 
         /// <summary>
