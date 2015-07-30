@@ -3,11 +3,17 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using Mvc.Server.Models;
+using Owin.Security.OpenIdConnect.Extensions;
 using Owin.Security.OpenIdConnect.Server;
 
 namespace Mvc.Server.Providers {
     public class AuthorizationProvider : OpenIdConnectServerProvider {
         public override async Task ValidateClientAuthentication(ValidateClientAuthenticationNotification notification) {
+            // Note: client authentication is not mandatory for non-confidential client applications like mobile apps
+            // (except when using the client credentials grant type) but this authorization server uses a safer policy
+            // that makes client authentication mandatory and returns an error if client_id or client_secret is missing.
+            // You may consider relaxing it to support the resource owner password credentials grant type
+            // with JavaScript or desktop applications, where client credentials cannot be safely stored.
             if (string.IsNullOrEmpty(notification.ClientId) || string.IsNullOrEmpty(notification.ClientSecret)) {
                 notification.SetError(
                     error: "invalid_request",
@@ -137,6 +143,24 @@ namespace Mvc.Server.Providers {
             if (notification.Request.Path.StartsWithSegments(notification.Options.AuthorizationEndpointPath)) {
                 notification.MatchesAuthorizationEndpoint();
             }
+
+            return Task.FromResult<object>(null);
+        }
+
+        public override Task ValidateTokenRequest(ValidateTokenRequestNotification notification) {
+            // Note: OpenIdConnectServerHandler supports authorization code, refresh token, client credentials
+            // and resource owner password credentials grant types but this authorization server uses a safer policy
+            // rejecting the last two ones. You may consider relaxing it to support the ROPC or client credentials grant types.
+            if (notification.Request.IsAuthorizationCodeGrantType() || notification.Request.IsRefreshTokenGrantType()) {
+                notification.Validated();
+
+                return Task.FromResult<object>(null);
+            }
+
+            notification.SetError(
+                error: "unsupported_grant_type",
+                errorDescription: "Only authorization code and refresh token grant types " +
+                                  "are accepted by this authorization server");
 
             return Task.FromResult<object>(null);
         }
