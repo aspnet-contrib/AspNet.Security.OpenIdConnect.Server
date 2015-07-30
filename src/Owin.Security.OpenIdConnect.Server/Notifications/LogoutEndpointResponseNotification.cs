@@ -19,17 +19,24 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="request"></param>
+        /// <param name="response"></param>
         internal LogoutEndpointResponseNotification(
             IOwinContext context,
             OpenIdConnectServerOptions options,
-            OpenIdConnectMessage request)
+            OpenIdConnectMessage request,
+            OpenIdConnectMessage response)
             : base(context, options) {
             Request = request;
         }
 
         /// <summary>
-        /// Gets the authorization request. 
+        /// Gets the logout request. 
         /// </summary>
         public new OpenIdConnectMessage Request { get; private set; }
+
+        /// <summary>
+        /// Gets the logout response. 
+        /// </summary>
+        public new OpenIdConnectMessage Response { get; private set; }
     }
 }

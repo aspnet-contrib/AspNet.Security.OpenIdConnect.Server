@@ -706,7 +706,14 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return false;
             }
 
-            var notification = new LogoutEndpointResponseNotification(Context, Options, request);
+            // post_logout_redirect_uri is added to the response message since it can be
+            // set or replaced from the ValidateClientLogoutRedirectUri notification.
+            var response = new OpenIdConnectMessage {
+                PostLogoutRedirectUri = request.PostLogoutRedirectUri,
+                State = request.State
+            };
+
+            var notification = new LogoutEndpointResponseNotification(Context, Options, request, response);
             await Options.Provider.LogoutEndpointResponse(notification);
 
             if (notification.HandledResponse) {
@@ -715,11 +722,22 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             // Stop processing the request if no explicit
             // post_logout_redirect_uri has been provided.
-            if (string.IsNullOrEmpty(request.PostLogoutRedirectUri)) {
+            if (string.IsNullOrEmpty(response.PostLogoutRedirectUri)) {
                 return true;
             }
 
-            Response.Redirect(request.PostLogoutRedirectUri);
+            var location = response.PostLogoutRedirectUri;
+
+            foreach (var parameter in response.Parameters) {
+                // Don't include post_logout_redirect_uri in the query string.
+                if (string.Equals(parameter.Key, OpenIdConnectParameterNames.PostLogoutRedirectUri, StringComparison.Ordinal)) {
+                    continue;
+                }
+
+                location = WebUtilities.AddQueryString(location, parameter.Key, parameter.Value);
+            }
+
+            Response.Redirect(location);
 
             return true;
         }
