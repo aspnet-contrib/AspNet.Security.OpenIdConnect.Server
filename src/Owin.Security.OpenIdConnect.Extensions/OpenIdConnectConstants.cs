@@ -21,6 +21,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         }
 
         public static class ResponseTypes {
+            public const string None = "none";
             public const string Code = "code";
             public const string IdToken = "id_token";
             public const string Token = "token";

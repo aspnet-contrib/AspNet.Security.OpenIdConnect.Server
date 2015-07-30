@@ -345,7 +345,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                 });
             }
 
-            else if (!request.IsAuthorizationCodeFlow() && !request.IsImplicitFlow() && !request.IsHybridFlow()) {
+            else if (!request.IsNoneResponseType() && !request.IsAuthorizationCodeResponseType() &&
+                     !request.IsImplicitResponseType() && !request.IsHybridResponseType()) {
                 logger.WriteVerbose("Authorization request contains unsupported response_type parameter");
 
                 return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
@@ -382,24 +383,12 @@ namespace Owin.Security.OpenIdConnect.Server {
                 });
             }
 
-            // response_type=code and response_mode=fragment are not considered as a valid combination.
-            else if (request.IsAuthorizationCodeFlow() && request.IsFragmentResponseMode()) {
-                logger.WriteVerbose("Authorization request contains unsupported response_type/response_mode combination");
-
-                return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
-                    Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                    ErrorDescription = "response_type/response_mode combination unsupported",
-                    RedirectUri = request.RedirectUri,
-                    State = request.State
-                });
-            }
-
             // Reject OpenID Connect implicit/hybrid requests missing the mandatory nonce parameter.
             // See http://openid.net/specs/openid-connect-core-1_0.html#AuthRequest,
             // http://openid.net/specs/openid-connect-implicit-1_0.html#RequestParameters
             // and http://openid.net/specs/openid-connect-core-1_0.html#HybridIDToken.
             else if (string.IsNullOrEmpty(request.Nonce) && request.ContainsScope(OpenIdConnectConstants.Scopes.OpenId) &&
-                                                           (request.IsImplicitFlow() || request.IsHybridFlow())) {
+                                                           (request.IsImplicitResponseType() || request.IsHybridResponseType())) {
                 logger.WriteVerbose("The 'nonce' parameter was missing");
 
                 return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
@@ -572,9 +561,9 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return false;
             }
 
+            // redirect_uri is added to the response message since it's not a mandatory parameter
+            // in OAuth 2.0 and can be set or replaced from the ValidateClientRedirectUri notification.
             var response = new OpenIdConnectMessage {
-                ClientId = request.ClientId,
-                Nonce = request.Nonce,
                 RedirectUri = request.RedirectUri,
                 State = request.State
             };
@@ -750,10 +739,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                     writer.WriteLine("<form name='form' method='post' action='" + WebUtility.HtmlEncode(response.RedirectUri) + "'>");
 
                     foreach (var parameter in response.Parameters) {
-                        // Don't include client_id, redirect_uri or response_mode in the form.
-                        if (string.Equals(parameter.Key, OpenIdConnectParameterNames.ClientId, StringComparison.Ordinal) ||
-                            string.Equals(parameter.Key, OpenIdConnectParameterNames.RedirectUri, StringComparison.Ordinal) ||
-                            string.Equals(parameter.Key, OpenIdConnectParameterNames.ResponseMode, StringComparison.Ordinal)) {
+                        // Don't include redirect_uri in the form.
+                        if (string.Equals(parameter.Key, OpenIdConnectParameterNames.RedirectUri, StringComparison.Ordinal)) {
                             continue;
                         }
 
@@ -785,10 +772,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                 var appender = new Appender(location, '#');
 
                 foreach (var parameter in response.Parameters) {
-                    // Don't include client_id, redirect_uri or response_mode in the fragment.
-                    if (string.Equals(parameter.Key, OpenIdConnectParameterNames.ClientId, StringComparison.Ordinal) || 
-                        string.Equals(parameter.Key, OpenIdConnectParameterNames.RedirectUri, StringComparison.Ordinal) ||
-                        string.Equals(parameter.Key, OpenIdConnectParameterNames.ResponseMode, StringComparison.Ordinal)) {
+                    // Don't include redirect_uri in the fragment.
+                    if (string.Equals(parameter.Key, OpenIdConnectParameterNames.RedirectUri, StringComparison.Ordinal)) {
                         continue;
                     }
 
@@ -803,10 +788,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                 var location = response.RedirectUri;
 
                 foreach (var parameter in response.Parameters) {
-                    // Don't include client_id, redirect_uri or response_mode in the query string.
-                    if (string.Equals(parameter.Key, OpenIdConnectParameterNames.ClientId, StringComparison.Ordinal) || 
-                        string.Equals(parameter.Key, OpenIdConnectParameterNames.RedirectUri, StringComparison.Ordinal) ||
-                        string.Equals(parameter.Key, OpenIdConnectParameterNames.ResponseMode, StringComparison.Ordinal)) {
+                    // Don't include redirect_uri in the query string.
+                    if (string.Equals(parameter.Key, OpenIdConnectParameterNames.RedirectUri, StringComparison.Ordinal)) {
                         continue;
                     }
 
