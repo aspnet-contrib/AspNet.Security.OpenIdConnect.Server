@@ -12,7 +12,7 @@ using Microsoft.AspNet.Http;
 using Microsoft.Data.Entity;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Logging;
-using Microsoft.Framework.Runtime;
+using Microsoft.Dnx.Runtime;
 using Mvc.Server.Extensions;
 using Mvc.Server.Models;
 using Mvc.Server.Providers;
