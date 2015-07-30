@@ -2052,8 +2052,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                     }
 
                     // Claims whose destination is not explicitly referenced or
-                    // doesn't contain "token" are not included in the identity token.
-                    return claim.HasDestination(OpenIdConnectConstants.ResponseTypes.Token);
+                    // doesn't contain "id_token" are not included in the identity token.
+                    return claim.HasDestination(OpenIdConnectConstants.ResponseTypes.IdToken);
                 });
 
                 identity.AddClaim(JwtRegisteredClaimNames.Iat,
