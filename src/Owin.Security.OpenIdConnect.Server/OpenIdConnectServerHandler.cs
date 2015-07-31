@@ -257,7 +257,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
             }
             
-            // Insert the authorization request in the OWIN context.
+            // Store the authorization request in the OWIN context.
             Context.SetOpenIdConnectRequest(request);
 
             // client_id is mandatory parameter and MUST cause an error when missing.
@@ -321,9 +321,6 @@ namespace Owin.Security.OpenIdConnect.Server {
                 // Remove the unvalidated redirect_uri
                 // from the authorization request.
                 request.RedirectUri = null;
-
-                // Update the authorization request in the OWIN context.
-                Context.SetOpenIdConnectRequest(request);
 
                 logger.WriteVerbose("Unable to validate client information");
 
@@ -452,31 +449,31 @@ namespace Owin.Security.OpenIdConnect.Server {
                 });
             }
 
-            // Generate a new 256-bits identifier and associate it with the authorization request.
-            identifier = Base64UrlEncoder.Encode(GenerateKey(length: 256 / 8));
-            request.SetUniqueIdentifier(identifier);
+            identifier = request.GetUniqueIdentifier();
+            if (string.IsNullOrEmpty(identifier)) {
+                // Generate a new 256-bits identifier and associate it with the authorization request.
+                identifier = Base64UrlEncoder.Encode(GenerateKey(length: 256 / 8));
+                request.SetUniqueIdentifier(identifier);
 
-            using (var stream = new MemoryStream())
-            using (var writer = new BinaryWriter(stream)) {
-                writer.Write(/* version: */ 1);
-                writer.Write(request.Parameters.Count);
+                using (var stream = new MemoryStream())
+                using (var writer = new BinaryWriter(stream)) {
+                    writer.Write(/* version: */ 1);
+                    writer.Write(request.Parameters.Count);
 
-                foreach (var parameter in request.Parameters) {
-                    writer.Write(parameter.Key);
-                    writer.Write(parameter.Value);
+                    foreach (var parameter in request.Parameters) {
+                        writer.Write(parameter.Key);
+                        writer.Write(parameter.Value);
+                    }
+
+                    // Store the authorization request in the cache.
+                    Options.Cache.Add(identifier, Convert.ToBase64String(stream.ToArray()), new CacheItemPolicy {
+                        SlidingExpiration = TimeSpan.FromHours(1)
+                    });
                 }
-
-                // Store the authorization request in the cache.
-                Options.Cache.Add(identifier, Convert.ToBase64String(stream.ToArray()), new CacheItemPolicy {
-                    SlidingExpiration = TimeSpan.FromHours(1)
-                });
             }
 
             var notification = new AuthorizationEndpointNotification(Context, Options, request);
             await Options.Provider.AuthorizationEndpoint(notification);
-
-            // Update the authorization request in the OWIN context.
-            Context.SetOpenIdConnectRequest(request);
 
             if (notification.HandledResponse) {
                 return true;
@@ -1855,6 +1852,9 @@ namespace Owin.Security.OpenIdConnect.Server {
                 };
             }
 
+            // Store the logout request in the OWIN context.
+            Context.SetOpenIdConnectRequest(request);
+
             // Note: post_logout_redirect_uri is not a mandatory parameter.
             // See http://openid.net/specs/openid-connect-session-1_0.html#RPLogout
             if (!string.IsNullOrEmpty(request.PostLogoutRedirectUri)) {
@@ -1872,14 +1872,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
             }
 
-            // Update the logout request in the OWIN context.
-            Context.SetOpenIdConnectRequest(request);
-
             var notification = new LogoutEndpointNotification(Context, Options, request);
             await Options.Provider.LogoutEndpoint(notification);
-
-            // Update the logout request in the OWIN context.
-            Context.SetOpenIdConnectRequest(request);
 
             if (notification.HandledResponse) {
                 return true;
