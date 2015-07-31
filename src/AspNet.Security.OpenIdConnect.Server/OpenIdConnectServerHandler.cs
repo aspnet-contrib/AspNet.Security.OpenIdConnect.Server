@@ -245,7 +245,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 }
             }
 
-            // Insert the authorization request in the ASP.NET context.
+            // Store the authorization request in the ASP.NET context.
             Context.SetOpenIdConnectRequest(request);
 
             // client_id is mandatory parameter and MUST cause an error when missing.
@@ -309,9 +309,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 // Remove the unvalidated redirect_uri
                 // from the authorization request.
                 request.RedirectUri = null;
-
-                // Update the authorization request in the ASP.NET context.
-                Context.SetOpenIdConnectRequest(request);
 
                 Logger.LogVerbose("Unable to validate client information");
 
@@ -386,8 +383,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     State = request.State
                 });
             }
-
-			// Reject requests containing the id_token response_mode if no openid scope has been received.
+            
+            // Reject requests containing the id_token response_mode if no openid scope has been received.
             else if (request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.IdToken) &&
                     !request.ContainsScope(OpenIdConnectConstants.Scopes.OpenId)) {
                 Logger.LogVerbose("The 'openid' scope part was missing");
@@ -440,33 +437,33 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 });
             }
 
-            // Generate a new 256-bits identifier and associate it with the authorization request.
-            identifier = Base64UrlEncoder.Encode(GenerateKey(length: 256 / 8));
-            request.SetUniqueIdentifier(identifier);
+            identifier = request.GetUniqueIdentifier();
+            if (string.IsNullOrEmpty(identifier)) {
+                // Generate a new 256-bits identifier and associate it with the authorization request.
+                identifier = Base64UrlEncoder.Encode(GenerateKey(length: 256 / 8));
+                request.SetUniqueIdentifier(identifier);
 
-            using (var stream = new MemoryStream())
-            using (var writer = new BinaryWriter(stream)) {
-                writer.Write(/* version: */ 1);
-                writer.Write(request.Parameters.Count);
+                using (var stream = new MemoryStream())
+                using (var writer = new BinaryWriter(stream)) {
+                    writer.Write(/* version: */ 1);
+                    writer.Write(request.Parameters.Count);
 
-                foreach (var parameter in request.Parameters) {
-                    writer.Write(parameter.Key);
-                    writer.Write(parameter.Value);
+                    foreach (var parameter in request.Parameters) {
+                        writer.Write(parameter.Key);
+                        writer.Write(parameter.Value);
+                    }
+
+                    // Store the authorization request in the distributed cache.
+                    await Options.Cache.SetAsync(request.GetUniqueIdentifier(), options => {
+                        options.SetAbsoluteExpiration(TimeSpan.FromHours(1));
+
+                        return stream.ToArray();
+                    });
                 }
-
-                // Store the authorization request in the distributed cache.
-                await Options.Cache.SetAsync(request.GetUniqueIdentifier(), options => {
-                    options.SetAbsoluteExpiration(TimeSpan.FromHours(1));
-
-                    return stream.ToArray();
-                });
             }
 
             var notification = new AuthorizationEndpointNotification(Context, Options, request);
             await Options.Provider.AuthorizationEndpoint(notification);
-
-            // Update the authorization request in the ASP.NET context.
-            Context.SetOpenIdConnectRequest(request);
 
             if (notification.HandledResponse) {
                 return true;
@@ -1789,6 +1786,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 };
             }
 
+            // Store the logout request in the ASP.NET context.
+            Context.SetOpenIdConnectRequest(request);
+
             // Note: post_logout_redirect_uri is not a mandatory parameter.
             // See http://openid.net/specs/openid-connect-session-1_0.html#RPLogout
             if (!string.IsNullOrEmpty(request.PostLogoutRedirectUri)) {
@@ -1806,14 +1806,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 }
             }
 
-            // Update the logout request in the ASP.NET context.
-            Context.SetOpenIdConnectRequest(request);
-
             var notification = new LogoutEndpointNotification(Context, Options, request);
             await Options.Provider.LogoutEndpoint(notification);
-
-            // Update the logout request in the ASP.NET context.
-            Context.SetOpenIdConnectRequest(request);
 
             if (notification.HandledResponse) {
                 return true;
