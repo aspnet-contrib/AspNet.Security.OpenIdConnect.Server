@@ -5,7 +5,7 @@
  */
 
 using Microsoft.AspNet.Http;
-using Microsoft.IdentityModel.Protocols;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>

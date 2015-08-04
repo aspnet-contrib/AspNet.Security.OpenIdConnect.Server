@@ -4,7 +4,7 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
-using Microsoft.IdentityModel.Protocols;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     public class OpenIdConnectServerFeature : IOpenIdConnectServerFeature {

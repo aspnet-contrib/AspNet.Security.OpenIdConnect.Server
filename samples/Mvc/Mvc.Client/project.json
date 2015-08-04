@@ -32,7 +32,8 @@
 
         "dnxcore50": {
             "dependencies": {
-                "System.Net.Http": "4.0.0-beta-*"
+                "System.Net.Http": "4.0.0-*",
+                "System.Runtime.Serialization.Primitives": "4.0.10-*"
             }
         }
     }

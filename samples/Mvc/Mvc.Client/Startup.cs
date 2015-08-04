@@ -11,7 +11,7 @@ using Microsoft.AspNet.Http;
 using Microsoft.Dnx.Runtime;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Logging;
-using Microsoft.IdentityModel.Protocols;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Newtonsoft.Json.Linq;
 
 namespace Mvc.Client {

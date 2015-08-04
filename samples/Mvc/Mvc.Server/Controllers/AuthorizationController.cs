@@ -9,7 +9,7 @@ using Microsoft.AspNet.Authorization;
 using Microsoft.AspNet.Http.Authentication;
 using Microsoft.AspNet.Mvc;
 using Microsoft.Data.Entity;
-using Microsoft.IdentityModel.Protocols;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Mvc.Server.Models;
 
 namespace Mvc.Server.Controllers {

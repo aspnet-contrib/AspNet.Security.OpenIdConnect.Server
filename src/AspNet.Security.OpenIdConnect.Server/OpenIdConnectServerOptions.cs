@@ -6,6 +6,7 @@
 
 using System;
 using System.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Cryptography;
 using Microsoft.AspNet.Authentication;
 using Microsoft.AspNet.Http;

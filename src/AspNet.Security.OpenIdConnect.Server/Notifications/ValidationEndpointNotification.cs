@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Security.Claims;
 using Microsoft.AspNet.Authentication;
 using Microsoft.AspNet.Http;
-using Microsoft.IdentityModel.Protocols;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>

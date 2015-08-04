@@ -3,12 +3,12 @@
  * See https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server
  * for more information concerning the license and the contributors participating to this project.
  */
- 
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
-using Microsoft.IdentityModel.Protocols;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace AspNet.Security.OpenIdConnect.Extensions {
     /// <summary>
