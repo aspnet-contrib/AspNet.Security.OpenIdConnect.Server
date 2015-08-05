@@ -27,6 +27,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             OpenIdConnectMessage response)
             : base(context, options) {
             Request = request;
+            Response = response;
         }
 
         /// <summary>
