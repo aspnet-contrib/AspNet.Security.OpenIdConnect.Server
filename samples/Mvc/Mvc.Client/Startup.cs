@@ -84,7 +84,24 @@ namespace Mvc.Client {
                             notification.AuthenticationTicket.Identity.AddClaim(new Claim(
                                 type: OpenIdConnectParameterNames.AccessToken,
                                 value: payload.Value<string>(OpenIdConnectParameterNames.AccessToken)));
+
+                            // Add the identity token to the returned ClaimsIdentity to make it easier to retrieve.
+                            notification.AuthenticationTicket.Identity.AddClaim(new Claim(
+                                type: OpenIdConnectParameterNames.IdToken,
+                                value: payload.Value<string>(OpenIdConnectParameterNames.IdToken)));
                         }
+                    },
+
+                    // Attach the id_token stored in the authentication cookie to the logout request.
+                    RedirectToIdentityProvider = notification => {
+                        if (notification.ProtocolMessage.RequestType == OpenIdConnectRequestType.LogoutRequest) {
+                            var token = notification.OwinContext.Authentication.User.FindFirst(OpenIdConnectParameterNames.IdToken);
+                            if (token != null) {
+                                notification.ProtocolMessage.IdTokenHint = token.Value;
+                            }
+                        }
+
+                        return Task.FromResult<object>(null);
                     }
                 }
             });

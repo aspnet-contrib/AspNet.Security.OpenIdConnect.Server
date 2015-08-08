@@ -55,9 +55,32 @@ namespace Owin.Security.OpenIdConnect.Server {
             await Options.Provider.MatchEndpoint(notification);
 
             if (notification.IsAuthorizationEndpoint || notification.IsLogoutEndpoint) {
-                // Invalid authorization or logout requests are ignored in AuthenticateCoreAsync:
-                // in this case, null is always returned to indicate authentication failed.
+                // Try to retrieve the current OpenID Connect request from the OWIN context.
+                // If the request cannot be found, this means that this middleware was configured
+                // to use the automatic authentication mode and that AuthenticateCoreAsync
+                // was invoked before Invoke*EndpointAsync: in this case, the OpenID Connect
+                // request is directly extracted from the query string or the request form.
                 var request = Context.GetOpenIdConnectRequest();
+                if (request == null) {
+                    if (string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
+                        request = new OpenIdConnectMessage(Request.Query);
+                    }
+
+                    else if (string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase)) {
+                        if (string.IsNullOrEmpty(Request.ContentType)) {
+                            return null;
+                        }
+
+                        else if (!Request.ContentType.StartsWith("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase)) {
+                            return null;
+                        }
+
+                        request = new OpenIdConnectMessage(await Request.ReadFormAsync());
+                    }
+                }
+
+                // Missing or invalid requests are ignored in AuthenticateCoreAsync:
+                // in this case, null is always returned to indicate authentication failed.
                 if (request == null) {
                     return null;
                 }
