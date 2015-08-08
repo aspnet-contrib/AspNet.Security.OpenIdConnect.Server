@@ -78,11 +78,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 throw new ArgumentNullException(nameof(Options.SystemClock));
             }
 
-            if (Options.AutomaticAuthentication) {
-                throw new ArgumentException("Automatic authentication cannot be used with the " +
-                    "OpenID Connect server middleware", nameof(Options.AutomaticAuthentication));
-            }
-
             if (Options.Issuer != null) {
                 if (!Options.Issuer.IsAbsoluteUri) {
                     throw new ArgumentException("options.Issuer must be a valid absolute URI.", "options.Issuer");
