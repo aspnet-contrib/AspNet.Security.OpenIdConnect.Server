@@ -21,7 +21,7 @@
 
         "Microsoft.Framework.Logging.Console": "1.0.0-*",
 
-        "AspNet.Security.OpenIdConnect.Server": ""
+        "AspNet.Security.OpenIdConnect.Server": "1.0.0-*"
     },
 
     "commands": {
@@ -40,8 +40,8 @@
 
         "dnxcore50": {
             "dependencies": {
-                "System.Linq": "4.0.0-*",
-                "System.Runtime.Serialization.Primitives": "4.0.10-*"
+                "System.Linq": "4.0.1-*",
+                "System.Runtime.Serialization.Primitives": "4.0.11-*"
             }
         }
     }

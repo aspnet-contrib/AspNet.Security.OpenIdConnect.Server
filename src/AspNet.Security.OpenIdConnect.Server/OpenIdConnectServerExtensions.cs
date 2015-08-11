@@ -73,7 +73,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public static OpenIdConnectServerOptions UseCertificate(
             [NotNull] this OpenIdConnectServerOptions options,
             [NotNull] X509Certificate2 certificate) {
-            if (certificate.PrivateKey == null) {
+            if (!certificate.HasPrivateKey) {
                 throw new InvalidOperationException("The certificate doesn't contain the required private key.");
             }
 
@@ -323,7 +323,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return false;
             }
 
-            var rsaPrivateKey = x509SecurityKey.PrivateKey as RSACryptoServiceProvider;
+            var rsaPrivateKey = x509SecurityKey.PrivateKey as RSA;
             if (rsaPrivateKey == null) {
                 return false;
             }
