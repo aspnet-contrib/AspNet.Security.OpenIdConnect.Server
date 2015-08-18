@@ -311,10 +311,6 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(message));
             }
 
-            if (string.IsNullOrEmpty(identifier)) {
-                throw new ArgumentNullException(nameof(identifier));
-            }
-
             message.SetParameter("unique_id", identifier);
             return message;
         }
@@ -327,10 +323,6 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
         public static OpenIdConnectMessage SetRefreshToken(this OpenIdConnectMessage message, string token) {
             if (message == null) {
                 throw new ArgumentNullException(nameof(message));
-            }
-
-            if (string.IsNullOrEmpty(token)) {
-                throw new ArgumentNullException(nameof(token));
             }
 
             message.SetParameter("refresh_token", token);
