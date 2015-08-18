@@ -326,10 +326,6 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException("message");
             }
 
-            if (string.IsNullOrEmpty(identifier)) {
-                throw new ArgumentNullException("identifier");
-            }
-
             message.SetParameter("unique_id", identifier);
             return message;
         }
@@ -342,10 +338,6 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         public static OpenIdConnectMessage SetRefreshToken(this OpenIdConnectMessage message, string token) {
             if (message == null) {
                 throw new ArgumentNullException("message");
-            }
-
-            if (string.IsNullOrEmpty(token)) {
-                throw new ArgumentNullException("token");
             }
 
             message.SetParameter("refresh_token", token);
