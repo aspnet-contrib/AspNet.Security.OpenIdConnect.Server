@@ -16,10 +16,10 @@ namespace Mvc.Server.Providers {
             // You may consider relaxing it to support the resource owner password credentials grant type
             // with JavaScript or desktop applications, where client credentials cannot be safely stored.
             if (string.IsNullOrEmpty(notification.ClientId) || string.IsNullOrEmpty(notification.ClientSecret)) {
-                notification.SetError(
+                notification.Rejected(
                     error: "invalid_request",
-                    errorDescription: "Missing credentials: ensure that your credentials were correctly " +
-                                      "flowed in the request body or in the authorization header");
+                    description: "Missing credentials: ensure that your credentials were correctly " +
+                                 "flowed in the request body or in the authorization header");
 
                 return;
             }
@@ -32,17 +32,17 @@ namespace Mvc.Server.Providers {
                                      select entity).SingleOrDefaultAsync(notification.HttpContext.RequestAborted);
 
             if (application == null) {
-                notification.SetError(
+                notification.Rejected(
                     error: "invalid_client",
-                    errorDescription: "Application not found in the database: ensure that your client_id is correct");
+                    description: "Application not found in the database: ensure that your client_id is correct");
 
                 return;
             }
 
             if (!string.Equals(notification.ClientSecret, application.Secret, StringComparison.Ordinal)) {
-                notification.SetError(
+                notification.Rejected(
                     error: "invalid_client",
-                    errorDescription: "Invalid credentials: ensure that you specified a correct client_secret");
+                    description: "Invalid credentials: ensure that you specified a correct client_secret");
 
                 return;
             }
@@ -59,18 +59,16 @@ namespace Mvc.Server.Providers {
                                      select entity).SingleOrDefaultAsync(notification.HttpContext.RequestAborted);
 
             if (application == null) {
-                notification.SetError(
+                notification.Rejected(
                     error: "invalid_client",
-                    errorDescription: "Application not found in the database: ensure that your client_id is correct");
+                    description: "Application not found in the database: ensure that your client_id is correct");
 
                 return;
             }
 
             if (!string.IsNullOrEmpty(notification.RedirectUri)) {
                 if (!string.Equals(notification.RedirectUri, application.RedirectUri, StringComparison.Ordinal)) {
-                    notification.SetError(
-                        error: "invalid_client",
-                        errorDescription: "Invalid redirect_uri");
+                    notification.Rejected(error: "invalid_client", description: "Invalid redirect_uri");
 
                     return;
                 }
@@ -83,9 +81,7 @@ namespace Mvc.Server.Providers {
             var context = notification.HttpContext.RequestServices.GetRequiredService<ApplicationContext>();
 
             if (!await context.Applications.AnyAsync(application => application.LogoutRedirectUri == notification.PostLogoutRedirectUri)) {
-                notification.SetError(
-                    error: "invalid_client",
-                    errorDescription: "Invalid post_logout_redirect_uri");
+                notification.Rejected(error: "invalid_client", description: "Invalid post_logout_redirect_uri");
 
                 return;
             }
@@ -114,10 +110,10 @@ namespace Mvc.Server.Providers {
                 return Task.FromResult<object>(null);
             }
 
-            notification.SetError(
+            notification.Rejected(
                 error: "unsupported_grant_type",
-                errorDescription: "Only authorization code and refresh token grant types " +
-                                  "are accepted by this authorization server");
+                description: "Only authorization code and refresh token grant types " +
+                             "are accepted by this authorization server");
 
             return Task.FromResult<object>(null);
         }

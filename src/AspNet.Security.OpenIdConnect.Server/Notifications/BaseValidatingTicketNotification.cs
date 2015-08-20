@@ -22,15 +22,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             TOptions options,
             AuthenticationTicket ticket)
             : base(context, options) {
-            Ticket = ticket;
+            AuthenticationTicket = ticket;
         }
-
-        /// <summary>
-        /// Contains the identity and properties for the application to authenticate. If the Validated method
-        /// is invoked with an AuthenticationTicket or ClaimsIdentity argument, that new value is assigned to 
-        /// this property in addition to changing IsValidated to true.
-        /// </summary>
-        public AuthenticationTicket Ticket { get; private set; }
 
         /// <summary>
         /// Replaces the ticket information on this context and marks it as as validated by the application. 
@@ -39,7 +32,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <param name="ticket">Assigned to the Ticket property</param>
         /// <returns>True if the validation has taken effect.</returns>
         public bool Validated(AuthenticationTicket ticket) {
-            Ticket = ticket;
+            AuthenticationTicket = ticket;
             return Validated();
         }
 
@@ -50,7 +43,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <param name="principal">Assigned to the Ticket.Principal property</param>
         /// <returns>True if the validation has taken effect.</returns>
         public bool Validated(ClaimsPrincipal principal) {
-            var properties = Ticket?.Properties ?? new AuthenticationProperties();
+            var properties = AuthenticationTicket?.Properties ?? new AuthenticationProperties();
             return Validated(new AuthenticationTicket(principal, properties, Options.AuthenticationScheme));
         }
     }
