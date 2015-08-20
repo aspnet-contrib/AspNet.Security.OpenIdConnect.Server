@@ -1379,7 +1379,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     properties.ExpiresUtc = ticket.Properties.ExpiresUtc;
                 }
 
-                response.SetRefreshToken(await CreateRefreshTokenAsync(ticket.Principal, properties, request, response));
+                response.RefreshToken = await CreateRefreshTokenAsync(ticket.Principal, properties, request, response);
             }
 
             var payload = new JObject();
@@ -1522,7 +1522,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         }
 
         private async Task<AuthenticationTicket> InvokeTokenEndpointRefreshTokenGrantAsync(ValidateTokenRequestNotification notification) {
-            var ticket = await ReceiveRefreshTokenAsync(notification.Request.GetRefreshToken(), notification.Request);
+            var ticket = await ReceiveRefreshTokenAsync(notification.Request.RefreshToken, notification.Request);
             if (ticket == null) {
                 Logger.LogError("invalid refresh token");
                 notification.SetError(OpenIdConnectConstants.Errors.InvalidGrant);
@@ -1664,8 +1664,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 ticket = await ReceiveIdentityTokenAsync(request.IdToken, request);
             }
 
-            else if (!string.IsNullOrEmpty(request.GetRefreshToken())) {
-                ticket = await ReceiveRefreshTokenAsync(request.GetRefreshToken(), request);
+            else if (!string.IsNullOrEmpty(request.RefreshToken)) {
+                ticket = await ReceiveRefreshTokenAsync(request.RefreshToken, request);
             }
 
             else {

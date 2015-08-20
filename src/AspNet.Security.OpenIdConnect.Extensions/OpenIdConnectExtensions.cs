@@ -254,18 +254,6 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
         }
 
         /// <summary>
-        /// Extracts the refresh token from an <see cref="OpenIdConnectMessage"/>.
-        /// </summary>
-        /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
-        public static string GetRefreshToken(this OpenIdConnectMessage message) {
-            if (message == null) {
-                throw new ArgumentNullException(nameof(message));
-            }
-
-            return message.GetParameter("refresh_token");
-        }
-
-        /// <summary>
         /// Extracts the audiences from an <see cref="OpenIdConnectMessage"/>.
         /// </summary>
         /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
@@ -312,20 +300,6 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
             }
 
             message.SetParameter("unique_id", identifier);
-            return message;
-        }
-
-        /// <summary>
-        /// Adds a refresh token to a given <see cref="OpenIdConnectMessage"/>.
-        /// </summary>
-        /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
-        /// <param name="token">The refresh token.</param>
-        public static OpenIdConnectMessage SetRefreshToken(this OpenIdConnectMessage message, string token) {
-            if (message == null) {
-                throw new ArgumentNullException(nameof(message));
-            }
-
-            message.SetParameter("refresh_token", token);
             return message;
         }
 
