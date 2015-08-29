@@ -15,9 +15,7 @@
 
         "Microsoft.Framework.Logging.Console": "1.0.0-*",
 
-        "Newtonsoft.Json": "7.0.1",
-
-        "Microsoft.IdentityModel.Protocols.OpenIdConnect": "2.0.0-beta7-208110921"
+        "Newtonsoft.Json": "7.0.1"
     },
 
     "commands": {
