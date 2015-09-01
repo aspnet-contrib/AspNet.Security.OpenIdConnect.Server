@@ -1,0 +1,9 @@
+﻿{
+  "OAuth": {
+    "Authority": "http://localhost:50000/",
+    "Audience": "localhost"
+  },
+  "OpenId": {
+    "Issuer": "http://localhost:50000/"
+  }
+}
