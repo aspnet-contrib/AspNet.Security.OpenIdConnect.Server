@@ -10,7 +10,7 @@ using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Hosting;
 using Microsoft.Data.Entity;
-using Microsoft.Framework.ConfigurationModel;
+using Microsoft.Framework.Configuration;
 using Microsoft.Framework.DependencyInjection;
 
 using ResourceOwnerPasswordFlow.Providers;
@@ -42,9 +42,9 @@ namespace ResourceOwnerPasswordFlow
             // When running in a different environment than the localhost,
             // be sure to update either config.json or environmental variables
             // with appropriate OAuth and OpenId configuration values
-            Config = new Configuration(appEnv.ApplicationBasePath)
-                .AddJsonFile("config.json")
-                .AddEnvironmentVariables();
+            var builder = new ConfigurationBuilder(appEnv.ApplicationBasePath);
+            builder.AddJsonFile("config.json");
+            builder.AddEnvironmentVariables();
         }
 
         public void ConfigureServices(IServiceCollection services)
@@ -90,11 +90,11 @@ namespace ResourceOwnerPasswordFlow
                 app.UseOAuthBearerAuthentication(options =>
                 {
                     options.AutomaticAuthentication = true;
-                    options.Authority = Config.Get("OAuth:Authority");
-                    options.Audience = Config.Get("OAuth:Audience");
+                    options.Authority = Config["OAuth:Authority"];
+                    options.Audience = Config["OAuth:Audience"];
 
                     // if the audience is null or empty, then don't validate it
-                    options.TokenValidationParameters.ValidateAudience = Config.Get("OAuth:Audience") != null;
+                    options.TokenValidationParameters.ValidateAudience = Config["OAuth:Audience"] != null;
                 });
 
                 // Add a new middleware issuing tokens.
@@ -102,7 +102,7 @@ namespace ResourceOwnerPasswordFlow
                 var credentials = CreateSigningCredentials();
                 app.UseOpenIdConnectServer(options =>
                 {
-                    options.Issuer = Config.Get("OpenId:Issuer") != null ? new Uri(Config.Get("OpenId:Issuer")) : null;
+                    options.Issuer = Config["OpenId:Issuer"] != null ? new Uri(Config["OpenId:Issuer"]) : null;
                     options.AllowInsecureHttp = true;
                     options.AuthorizationEndpointPath = PathString.Empty; // Tokens are avaiable by default at ~/connect/token
                     options.SigningCredentials = credentials;

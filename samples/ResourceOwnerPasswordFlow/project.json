@@ -6,9 +6,8 @@
   "dependencies": {
     "AspNet.Security.OpenIdConnect.Server": "",
     "Microsoft.AspNet.Authentication.OAuthBearer": "1.0.0-*",
-    "Microsoft.AspNet.Diagnostics": "1.0.0-*",
-    "Microsoft.Framework.ConfigurationModel": "1.0.0-*",
-    "Microsoft.Framework.ConfigurationModel.Json": "1.0.0-*",
+    "Microsoft.AspNet.Diagnostics": "1.0.0-*",    
+    "Microsoft.Framework.Configuration.Json": "1.0.0-*",
     "Microsoft.AspNet.Server.IIS": "1.0.0-*",
     "Microsoft.AspNet.Server.WebListener": "1.0.0-*",
     "Microsoft.AspNet.StaticFiles": "1.0.0-*",
