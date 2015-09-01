@@ -8,11 +8,15 @@ using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Configuration;
 using Microsoft.AspNet.Hosting;
 using Microsoft.Dnx.Runtime;
-using ROPC.Models;
 using Microsoft.Data.Entity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity;
 using AspNet.Security.OpenIdConnect.Server;
+using System.IdentityModel.Tokens;
+using System.Security.Cryptography;
+using System.Reflection;
+using ROPC.Models;
+using ROPC.Providers;
 
 namespace ROPC
 {
@@ -49,7 +53,10 @@ namespace ROPC
                 .AddEntityFrameworkStores<ApplicationContext>();
         }
 
-        public void Configure(IApplicationBuilder app, IServiceProvider serviceProvider)
+        public void Configure(
+            IApplicationBuilder app,
+            IServiceProvider serviceProvider,
+            IRuntimeEnvironment environment)
         {
             // Diagnostics
             app.UseErrorPage();
@@ -80,6 +87,31 @@ namespace ROPC
             // This middleware is associated with the Identity Provider            
             app.UseOpenIdConnectServer(options =>
             {
+                options.Issuer = Config["OpenId:Issuer"] != null ? new Uri(Config["OpenId:Issuer"]) : null;
+                options.AuthorizationEndpointPath = PathString.Empty; // Tokens are avaiable by default at ~/connect/token
+
+                options.AllowInsecureHttp = true;
+                options.AuthenticationScheme = OpenIdConnectDefaults.AuthenticationScheme;
+                options.Provider = new AuthorizationProvider();
+
+                // There's currently a bug in System.IdentityModel.Tokens that prevents using X509 certificates on Mono.
+                // To work around this bug, a new in-memory RSA key is generated each time this app is started.
+                // See https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet/issues/179
+                if (string.Equals(environment.RuntimeType, "Mono", StringComparison.OrdinalIgnoreCase))
+                {
+                    // mono
+                    var rsaCryptoServiceProvider = new RSACryptoServiceProvider(2048);
+                    var rsaParameters = rsaCryptoServiceProvider.ExportParameters(includePrivateParameters: true);
+                    options.UseKey(new RsaSecurityKey(rsaParameters));
+                }
+                else
+                {
+                    // not mono
+                    options.UseCertificate(
+                        assembly: typeof(Startup).GetTypeInfo().Assembly,
+                        resource: "ROPC.Certificate.pfx",
+                        password: "Owin.Security.OpenIdConnect.Server");
+                }
 
             });
 
