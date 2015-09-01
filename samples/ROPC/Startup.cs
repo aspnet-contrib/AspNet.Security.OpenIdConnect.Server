@@ -11,6 +11,7 @@ using Microsoft.Dnx.Runtime;
 using ROPC.Models;
 using Microsoft.Data.Entity;
 using Microsoft.AspNet.Identity.EntityFramework;
+using Microsoft.AspNet.Identity;
 
 namespace ROPC
 {
@@ -46,15 +47,74 @@ namespace ROPC
                 .AddEntityFrameworkStores<ApplicationContext>();
         }
 
-        public void Configure(IApplicationBuilder app)
+        public void Configure(IApplicationBuilder app, IServiceProvider serviceProvider)
         {
             app.UseErrorPage();
             app.UseRuntimeInfoPage();
+
+            app.UseIdentity();
+            CreateUsersAsync(serviceProvider)
+                .GetAwaiter()
+                .GetResult();
 
             app.Run(async (context) =>
             {
                 await context.Response.WriteAsync("Hello World!");
             });
         }
+
+        #region Private Methods
+
+        private async Task CreateUsersAsync(IServiceProvider serviceProvider)
+        {
+            // create admin user
+            bool created = false;
+            var db = serviceProvider.GetRequiredService<ApplicationContext>();
+
+            created = db.Database.EnsureCreated();
+            if (created)
+            {
+                const string adminRole = "Administrator";
+                const string adminName = "Dave";
+                const string adminPassword = "Testing123!";
+
+                const string developerRole = "Developer";
+                const string developerName = "Shaun";
+                const string developerPassword = adminPassword;
+
+                var userManager = serviceProvider.GetRequiredService<UserManager<IdentityUser>>();
+                var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+                var admin = await userManager.FindByNameAsync(adminName);
+                if (admin == null)
+                {
+                    admin = new IdentityUser { UserName = adminName };
+                    await userManager.CreateAsync(admin, adminPassword);
+                }
+
+                var developer = await userManager.FindByNameAsync(developerName);
+                if (developer == null)
+                {
+                    developer = new IdentityUser { UserName = developerName };
+                    await userManager.CreateAsync(developer, developerPassword);
+                }
+
+                if (!await roleManager.RoleExistsAsync(adminRole))
+                {
+                    await roleManager.CreateAsync(new IdentityRole(adminRole));
+                }
+
+                if (!await roleManager.RoleExistsAsync(developerRole))
+                {
+                    await roleManager.CreateAsync(new IdentityRole(developerRole));
+                }
+
+                await userManager.AddToRoleAsync(admin, adminRole);
+                await userManager.AddToRoleAsync(developer, adminRole);
+                await userManager.AddToRoleAsync(developer, developerRole);
+            }
+        }
+
+        #endregion
     }
 }
