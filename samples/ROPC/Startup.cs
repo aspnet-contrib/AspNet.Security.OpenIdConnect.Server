@@ -49,9 +49,14 @@ namespace ROPC
 
         public void Configure(IApplicationBuilder app, IServiceProvider serviceProvider)
         {
+            // Diagnostics
             app.UseErrorPage();
             app.UseRuntimeInfoPage();
 
+            // Allow serving of .html files in wwwroot
+            app.UseStaticFiles();
+
+            // ASP.NET Identity
             app.UseIdentity();
             CreateUsersAsync(serviceProvider)
                 .GetAwaiter()
