@@ -10,6 +10,7 @@ using Microsoft.AspNet.Hosting;
 using Microsoft.Dnx.Runtime;
 using ROPC.Models;
 using Microsoft.Data.Entity;
+using Microsoft.AspNet.Identity.EntityFramework;
 
 namespace ROPC
 {
@@ -39,6 +40,10 @@ namespace ROPC
                 {
                     options.UseInMemoryDatabase(persist:true);
                 });
+
+            services
+                .AddIdentity<IdentityUser, IdentityRole>()
+                .AddEntityFrameworkStores<ApplicationContext>();
         }
 
         public void Configure(IApplicationBuilder app)
