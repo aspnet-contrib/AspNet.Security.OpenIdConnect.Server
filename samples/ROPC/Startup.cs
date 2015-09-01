@@ -48,6 +48,8 @@ namespace ROPC
 
         public void Configure(IApplicationBuilder app)
         {
+            app.UseErrorPage();
+
             app.Run(async (context) =>
             {
                 await context.Response.WriteAsync("Hello World!");
