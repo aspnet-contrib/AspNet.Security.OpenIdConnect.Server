@@ -49,6 +49,7 @@ namespace ROPC
         public void Configure(IApplicationBuilder app)
         {
             app.UseErrorPage();
+            app.UseRuntimeInfoPage();
 
             app.Run(async (context) =>
             {
