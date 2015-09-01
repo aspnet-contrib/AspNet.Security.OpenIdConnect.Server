@@ -29,6 +29,8 @@ namespace ROPC
         {
             services.AddAuthentication();
             services.AddCaching();
+
+            services.AddEntityFramework();
         }
 
         public void Configure(IApplicationBuilder app)
