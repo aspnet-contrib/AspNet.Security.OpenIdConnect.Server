@@ -12,13 +12,13 @@ using Microsoft.AspNet.Hosting;
 using Microsoft.Data.Entity;
 using Microsoft.Framework.ConfigurationModel;
 using Microsoft.Framework.DependencyInjection;
-using Microsoft.Framework.Runtime;
 
 using ResourceOwnerPasswordFlow.Providers;
 using ResourceOwnerPasswordFlow.Models;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity;
 using System.Threading.Tasks;
+using Microsoft.Dnx.Runtime;
 
 /// <summary>
 /// Configure the resource owner password credential flow. 
