@@ -8,6 +8,8 @@ using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Configuration;
 using Microsoft.AspNet.Hosting;
 using Microsoft.Dnx.Runtime;
+using ROPC.Models;
+using Microsoft.Data.Entity;
 
 namespace ROPC
 {
@@ -30,7 +32,13 @@ namespace ROPC
             services.AddAuthentication();
             services.AddCaching();
 
-            services.AddEntityFramework();
+            services
+                .AddEntityFramework()
+                .AddInMemoryDatabase()
+                .AddDbContext<ApplicationContext>(options =>
+                {
+                    options.UseInMemoryDatabase(persist:true);
+                });
         }
 
         public void Configure(IApplicationBuilder app)

@@ -8,7 +8,9 @@
     "Microsoft.Framework.Configuration.Json": "1.0.0-*",
     "Microsoft.AspNet.Authentication": "1.0.0-*",
     "Microsoft.Framework.Caching.Memory": "1.0.0-*",
-    "EntityFramework.InMemory": "7.0.0-*"
+    "EntityFramework.InMemory": "7.0.0-*",
+    "Microsoft.AspNet.Identity": "3.0.0-*",
+    "Microsoft.AspNet.Identity.EntityFramework": "3.0.0-*"
   },
 
   "commands": {
