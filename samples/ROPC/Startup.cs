@@ -62,6 +62,18 @@ namespace ROPC
                 .GetAwaiter()
                 .GetResult();
 
+            // Add a new middleware validating access tokens issued by the server.
+            // This middleware is associated with the Resource Server
+            app.UseOAuthBearerAuthentication(options =>
+            {
+                options.AutomaticAuthentication = true;
+                options.Authority = Config["OAuth:Authority"];
+                options.Audience = Config["OAuth:Audience"];
+
+                // if the audience is null or empty, then don't validate it
+                options.TokenValidationParameters.ValidateAudience = Config["OAuth:Audience"] != null;
+            });
+
             app.Run(async (context) =>
             {
                 await context.Response.WriteAsync("Hello World!");
