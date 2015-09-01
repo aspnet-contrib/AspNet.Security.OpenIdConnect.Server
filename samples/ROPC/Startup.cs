@@ -27,6 +27,7 @@ namespace ROPC
             var builder = new ConfigurationBuilder(appEnv.ApplicationBasePath);
             builder.AddJsonFile("config.json");
             builder.AddEnvironmentVariables();
+            Config = builder.Build();
         }
 
         public void ConfigureServices(IServiceCollection services)
