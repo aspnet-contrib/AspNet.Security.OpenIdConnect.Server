@@ -24,6 +24,7 @@ using Microsoft.Framework.Caching.Distributed;
 using Microsoft.Framework.Logging;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -53,7 +54,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 var request = Context.GetOpenIdConnectRequest();
                 if (request == null) {
                     if (string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
-                        request = new OpenIdConnectMessage(Request.Query);
+                        request = new OpenIdConnectMessage(Request.Query.ToDictionary());
                     }
 
                     else if (string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase)) {
@@ -65,7 +66,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
                             return null;
                         }
 
-                        request = new OpenIdConnectMessage(await Request.ReadFormAsync());
+                        var form = await Request.ReadFormAsync(Context.RequestAborted);
+
+                        request = new OpenIdConnectMessage(form.ToDictionary());
                     }
                 }
 
@@ -179,7 +182,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             if (string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
                 // Create a new authorization request using the
                 // parameters retrieved from the query string.
-                request = new OpenIdConnectMessage(Request.Query) {
+                request = new OpenIdConnectMessage(Request.Query.ToDictionary()) {
                     RequestType = OpenIdConnectRequestType.AuthenticationRequest
                 };
             }
@@ -210,7 +213,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 // Create a new authorization request using the
                 // parameters retrieved from the request form.
-                request = new OpenIdConnectMessage(await Request.ReadFormAsync()) {
+                var form = await Request.ReadFormAsync(Context.RequestAborted);
+
+                request = new OpenIdConnectMessage(form.ToDictionary()) {
                     RequestType = OpenIdConnectRequestType.AuthenticationRequest
                 };
             }
@@ -1159,7 +1164,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return;
             }
 
-            var request = new OpenIdConnectMessage(await Request.ReadFormAsync()) {
+            var form = await Request.ReadFormAsync(Context.RequestAborted);
+
+            var request = new OpenIdConnectMessage(form.ToDictionary()) {
                 RequestType = OpenIdConnectRequestType.TokenRequest
             };
 
@@ -1167,7 +1174,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // See http://tools.ietf.org/html/rfc6749#section-2.3.1 and
             // http://openid.net/specs/openid-connect-core-1_0.html#ClientAuthentication
             if (string.IsNullOrEmpty(request.ClientId) && string.IsNullOrEmpty(request.ClientSecret)) {
-                var header = Request.Headers.Get("Authorization");
+                string header = Request.Headers[HeaderNames.Authorization];
                 if (!string.IsNullOrEmpty(header) && header.StartsWith("Basic ", StringComparison.OrdinalIgnoreCase)) {
                     try {
                         var value = header.Substring("Basic ".Length).Trim();
@@ -1658,9 +1665,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 Response.ContentLength = buffer.Length;
                 Response.ContentType = "application/json;charset=UTF-8";
 
-                Response.Headers.Set("Cache-Control", "no-cache");
-                Response.Headers.Set("Pragma", "no-cache");
-                Response.Headers.Set("Expires", "-1");
+                Response.Headers[HeaderNames.CacheControl] = "no-cache";
+                Response.Headers[HeaderNames.Pragma] = "no-cache";
+                Response.Headers[HeaderNames.Expires] = "-1";
 
                 buffer.Seek(offset: 0, loc: SeekOrigin.Begin);
                 await buffer.CopyToAsync(Response.Body, 4096, Context.RequestAborted);
@@ -1682,7 +1689,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             if (string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
-                request = new OpenIdConnectMessage(Request.Query) {
+                request = new OpenIdConnectMessage(Request.Query.ToDictionary()) {
                     RequestType = OpenIdConnectRequestType.AuthenticationRequest
                 };
             }
@@ -1711,7 +1718,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     return;
                 }
 
-                request = new OpenIdConnectMessage(await Request.ReadFormAsync()) {
+                var form = await Request.ReadFormAsync(Context.RequestAborted);
+
+                request = new OpenIdConnectMessage(form.ToDictionary()) {
                     RequestType = OpenIdConnectRequestType.AuthenticationRequest
                 };
             }
@@ -1817,9 +1826,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 Response.ContentLength = buffer.Length;
                 Response.ContentType = "application/json;charset=UTF-8";
 
-                Response.Headers.Set("Cache-Control", "no-cache");
-                Response.Headers.Set("Pragma", "no-cache");
-                Response.Headers.Set("Expires", "-1");
+                Response.Headers[HeaderNames.CacheControl] = "no-cache";
+                Response.Headers[HeaderNames.Pragma] = "no-cache";
+                Response.Headers[HeaderNames.Expires] = "-1";
 
                 buffer.Seek(offset: 0, loc: SeekOrigin.Begin);
                 await buffer.CopyToAsync(Response.Body, 4096, Context.RequestAborted);
@@ -1842,7 +1851,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             if (string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
-                request = new OpenIdConnectMessage(Request.Query) {
+                request = new OpenIdConnectMessage(Request.Query.ToDictionary()) {
                     RequestType = OpenIdConnectRequestType.LogoutRequest
                 };
             }
@@ -1867,7 +1876,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     });
                 }
 
-                request = new OpenIdConnectMessage(await Request.ReadFormAsync()) {
+                var form = await Request.ReadFormAsync(Context.RequestAborted);
+
+                request = new OpenIdConnectMessage(form.ToDictionary()) {
                     RequestType = OpenIdConnectRequestType.LogoutRequest
                 };
             }
@@ -2390,9 +2401,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 Response.ContentLength = buffer.Length;
                 Response.ContentType = "text/plain;charset=UTF-8";
 
-                Response.Headers.Set("Cache-Control", "no-cache");
-                Response.Headers.Set("Pragma", "no-cache");
-                Response.Headers.Set("Expires", "-1");
+                Response.Headers[HeaderNames.CacheControl] = "no-cache";
+                Response.Headers[HeaderNames.Pragma] = "no-cache";
+                Response.Headers[HeaderNames.Expires] = "-1";
 
                 buffer.Seek(offset: 0, loc: SeekOrigin.Begin);
                 await buffer.CopyToAsync(Response.Body, 4096, Context.RequestAborted);
@@ -2423,9 +2434,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 Response.ContentLength = buffer.Length;
                 Response.ContentType = "application/json;charset=UTF-8";
 
-                Response.Headers.Set("Cache-Control", "no-cache");
-                Response.Headers.Set("Pragma", "no-cache");
-                Response.Headers.Set("Expires", "-1");
+                Response.Headers[HeaderNames.CacheControl] = "no-cache";
+                Response.Headers[HeaderNames.Pragma] = "no-cache";
+                Response.Headers[HeaderNames.Expires] = "-1";
 
                 buffer.Seek(offset: 0, loc: SeekOrigin.Begin);
                 await buffer.CopyToAsync(Response.Body, 4096, Context.RequestAborted);

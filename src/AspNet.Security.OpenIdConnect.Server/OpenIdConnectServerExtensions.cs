@@ -19,6 +19,7 @@ using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.DataProtection;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Authentication;
+using Microsoft.AspNet.Http.Features;
 using Microsoft.Framework.Caching.Distributed;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Internal;
@@ -282,12 +283,16 @@ namespace AspNet.Security.OpenIdConnect.Server {
             return address + path;
         }
 
+        internal static IEnumerable<KeyValuePair<string, string[]>> ToDictionary(this IReadableStringCollection collection) {
+            return collection.Select(item => new KeyValuePair<string, string[]>(item.Key, item.Value.ToArray()));
+        }
+
         private static IOpenIdConnectServerFeature GetFeature(HttpContext context) {
-            var feature = context.GetFeature<IOpenIdConnectServerFeature>();
+            var feature = context.Features.Get<IOpenIdConnectServerFeature>();
             if (feature == null) {
                 feature = new OpenIdConnectServerFeature();
 
-                context.SetFeature(feature);
+                context.Features.Set(feature);
             }
 
             return feature;
