@@ -27,6 +27,7 @@ namespace ROPC
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddAuthentication();
         }
 
         public void Configure(IApplicationBuilder app)
