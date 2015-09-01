@@ -12,6 +12,7 @@ using ROPC.Models;
 using Microsoft.Data.Entity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity;
+using AspNet.Security.OpenIdConnect.Server;
 
 namespace ROPC
 {
@@ -73,6 +74,13 @@ namespace ROPC
 
                 // if the audience is null or empty, then don't validate it
                 options.TokenValidationParameters.ValidateAudience = Config["OAuth:Audience"] != null;
+            });
+
+            // Add a new middleware issuing tokens.
+            // This middleware is associated with the Identity Provider            
+            app.UseOpenIdConnectServer(options =>
+            {
+
             });
 
             app.Run(async (context) =>
