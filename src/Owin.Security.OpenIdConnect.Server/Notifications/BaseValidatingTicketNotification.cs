@@ -21,7 +21,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             TOptions options,
             AuthenticationTicket ticket)
             : base(context, options) {
-            Ticket = ticket;
+            AuthenticationTicket = ticket;
         }
 
         /// <summary>
@@ -29,7 +29,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// is invoked with an AuthenticationTicket or ClaimsIdentity argument, that new value is assigned to 
         /// this property in addition to changing IsValidated to true.
         /// </summary>
-        public AuthenticationTicket Ticket { get; private set; }
+        public AuthenticationTicket AuthenticationTicket { get; private set; }
 
         /// <summary>
         /// Replaces the ticket information on this context and marks it as as validated by the application. 
@@ -38,7 +38,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <param name="ticket">Assigned to the Ticket property</param>
         /// <returns>True if the validation has taken effect.</returns>
         public bool Validated(AuthenticationTicket ticket) {
-            Ticket = ticket;
+            AuthenticationTicket = ticket;
             return Validated();
         }
 
@@ -49,7 +49,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <param name="identity">Assigned to the Ticket.Identity property</param>
         /// <returns>True if the validation has taken effect.</returns>
         public bool Validated(ClaimsIdentity identity) {
-            AuthenticationProperties properties = Ticket != null ? Ticket.Properties : new AuthenticationProperties();
+            var properties = AuthenticationTicket != null ?
+                             AuthenticationTicket.Properties :
+                             new AuthenticationProperties();
+
             return Validated(new AuthenticationTicket(identity, properties));
         }
     }

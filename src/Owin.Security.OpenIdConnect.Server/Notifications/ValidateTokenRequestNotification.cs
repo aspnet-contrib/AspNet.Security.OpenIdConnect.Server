@@ -6,6 +6,7 @@
 
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
+using Microsoft.Owin.Security;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
@@ -29,6 +30,12 @@ namespace Owin.Security.OpenIdConnect.Server {
             ClientContext = notification;
             Validated();
         }
+
+        /// <summary>
+        /// Gets or sets the ticket corresponding to the authorization code
+        /// or the refresh token used by the client application.
+        /// </summary>
+        public AuthenticationTicket AuthenticationTicket { get; internal set; }
 
         /// <summary>
         /// Gets the token request data.
