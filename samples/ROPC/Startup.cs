@@ -17,6 +17,7 @@ using System.Security.Cryptography;
 using System.Reflection;
 using ROPC.Models;
 using ROPC.Providers;
+using System.Text;
 
 namespace ROPC
 {
@@ -115,9 +116,53 @@ namespace ROPC
 
             });
 
+            // Run on each request
             app.Run(async (context) =>
             {
-                await context.Response.WriteAsync("Hello World!");
+                if (context.Request.Path.Value.Contains("my-resource-server"))
+                {
+                    //
+                    // serve the resource server
+                    //
+
+                    var authenticated = context.User.Identity.IsAuthenticated;
+                    var name = context.User.Identity.Name;
+
+                    var builder = new StringBuilder();
+
+                    builder.Append("<h2>General Info</h2>");
+
+                    builder.AppendFormat("<p>Time: {0}</p>", DateTime.Now.ToString());
+                    builder.AppendFormat("<p>Environment: {0}</p>", environment.RuntimeType);
+                    builder.AppendFormat("<p>IsAuthenticated: {0}</p>", context.User.Identity.IsAuthenticated);
+
+                    if (context.User.Identity.IsAuthenticated)
+                    {
+                        //
+                        // serve protected resources 
+                        // 
+
+                        builder.Append("<h2>Secure Resources</h2>");
+                        builder.AppendFormat("<p>User Name: {0}</p>", context.User.Identity.Name);
+
+                        builder.Append("<h2>User Claims</h2>");
+                        builder.Append("<dl>");
+                        foreach (var claim in context.User.Claims)
+                        {
+                            builder.AppendFormat("<dt>{0}</dt><dd>{1}</dd>", claim.Type, claim.Value);
+                        }
+                    }
+
+                    await context.Response.WriteAsync(builder.ToString());
+                }
+                else
+                {
+                    //
+                    // serve the relying party
+                    //
+
+                    context.Response.Redirect("relying-party.html");
+                }
             });
         }
 
