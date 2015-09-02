@@ -360,8 +360,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 });
             }
 
-            else if (!request.IsNoneResponseType() && !request.IsAuthorizationCodeResponseType() &&
-                     !request.IsImplicitResponseType() && !request.IsHybridResponseType()) {
+            else if (!request.IsNoneFlow() && !request.IsAuthorizationCodeFlow() &&
+                     !request.IsImplicitFlow() && !request.IsHybridFlow()) {
                 Logger.LogVerbose("Authorization request contains unsupported response_type parameter");
 
                 return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
@@ -403,7 +403,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // http://openid.net/specs/openid-connect-implicit-1_0.html#RequestParameters
             // and http://openid.net/specs/openid-connect-core-1_0.html#HybridIDToken.
             else if (string.IsNullOrEmpty(request.Nonce) && request.ContainsScope(OpenIdConnectConstants.Scopes.OpenId) &&
-                                                           (request.IsImplicitResponseType() || request.IsHybridResponseType())) {
+                                                           (request.IsImplicitFlow() || request.IsHybridFlow())) {
                 Logger.LogVerbose("The 'nonce' parameter was missing");
 
                 return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
