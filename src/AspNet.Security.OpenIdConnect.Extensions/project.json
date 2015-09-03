@@ -1,8 +1,8 @@
 {
-    "version": "1.0.0-beta2-*",
+    "version": "1.0.0-*",
     "description": "OpenID Connect extensions for AspNet.Security.OpenIdConnect.Server.",
-    "authors": ["Kévin Chalet"],
-    "owners": ["Kévin Chalet"],
+    "authors": [ "Kévin Chalet" ],
+    "owners": [ "Kévin Chalet" ],
 
     "projectUrl": "https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server",
     "licenseUrl": "http://www.apache.org/licenses/LICENSE-2.0.html",
