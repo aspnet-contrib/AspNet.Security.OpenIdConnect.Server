@@ -43,7 +43,7 @@ namespace Mvc.Server {
 
             // Create a new branch where the registered middleware will be executed only for API calls.
             app.UseWhen(context => context.Request.Path.StartsWithSegments(new PathString("/api")), branch => {
-                branch.UseOAuthBearerAuthentication(options => {
+                branch.UseJwtBearerAuthentication(options => {
                     options.AutomaticAuthentication = true;
                     options.Audience = "http://localhost:54540/";
                     options.Authority = "http://localhost:54540/";
