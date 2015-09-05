@@ -259,7 +259,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Called to create a new authorization code. An application may use this context
         /// to replace the authentication ticket before it is serialized or to use its own code store
-        /// and skip the default logic using <see cref="BaseContext{OpenIdConnectServerOptions}.HandleResponse"/>.
+        /// and skip the default logic using <see cref="BaseControlContext{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
@@ -268,7 +268,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Called to create a new access token. An application may use this context
         /// to replace the authentication ticket before it is serialized or to use its own token format
-        /// and skip the default logic using <see cref="BaseContext{OpenIdConnectServerOptions}.HandleResponse"/>.
+        /// and skip the default logic using <see cref="BaseControlContext{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
@@ -277,7 +277,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Called to create a new identity token. An application may use this context
         /// to replace the authentication ticket before it is serialized or to use its own token format
-        /// and skip the default logic using <see cref="BaseContext{OpenIdConnectServerOptions}.HandleResponse"/>.
+        /// and skip the default logic using <see cref="BaseControlContext{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
@@ -286,7 +286,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Called to create a new refresh token. An application may use this context
         /// to replace the authentication ticket before it is serialized or to use its own token format
-        /// and skip the default logic using <see cref="BaseContext{OpenIdConnectServerOptions}.HandleResponse"/>.
+        /// and skip the default logic using <see cref="BaseControlContext{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
@@ -295,7 +295,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Called when receiving an authorization code. An application may use this context
         /// to deserialize the code using a custom format and to skip the default logic using
-        /// <see cref="BaseContext{OpenIdConnectServerOptions}.HandleResponse"/>.
+        /// <see cref="BaseControlContext{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
@@ -304,7 +304,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Called when receiving an access token. An application may use this context
         /// to deserialize the token using a custom format and to skip the default logic using
-        /// <see cref="BaseContext{OpenIdConnectServerOptions}.HandleResponse"/>.
+        /// <see cref="BaseControlContext{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
@@ -313,7 +313,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Called when receiving an identity token. An application may use this context
         /// to deserialize the token using a custom format and to skip the default logic using
-        /// <see cref="BaseContext{OpenIdConnectServerOptions}.HandleResponse"/>.
+        /// <see cref="BaseControlContext{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
@@ -322,7 +322,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Called when receiving a refresh token. An application may use this context
         /// to deserialize the code using a custom format and to skip the default logic using
-        /// <see cref="BaseContext{OpenIdConnectServerOptions}.HandleResponse"/>.
+        /// <see cref="BaseControlContext{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
