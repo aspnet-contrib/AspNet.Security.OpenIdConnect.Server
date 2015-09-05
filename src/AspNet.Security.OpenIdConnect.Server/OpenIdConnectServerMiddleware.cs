@@ -70,8 +70,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 throw new ArgumentNullException(nameof(Options.RandomNumberGenerator));
             }
 
-            if (Options.Provider == null) {
-                throw new ArgumentNullException(nameof(Options.Provider));
+            if (Options.Events == null) {
+                throw new ArgumentNullException(nameof(Options.Events));
             }
 
             if (Options.SystemClock == null) {

@@ -121,7 +121,7 @@ namespace Mvc.Server {
                 options.ApplicationCanDisplayErrors = true;
                 options.AllowInsecureHttp = true;
 
-                options.Provider = new AuthorizationProvider();
+                options.Events = new AuthorizationProvider();
             });
 
             app.UseStaticFiles();
