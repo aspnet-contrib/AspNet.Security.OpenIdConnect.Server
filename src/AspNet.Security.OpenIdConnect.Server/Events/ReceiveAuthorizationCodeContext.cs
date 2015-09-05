@@ -17,16 +17,16 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Initializes a new instance of the <see cref="ReceiveAuthorizationCodeContext"/> class
         /// </summary>
-        /// <param name="httpContext"></param>
+        /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="request"></param>
         /// <param name="code"></param>
         internal ReceiveAuthorizationCodeContext(
-            HttpContext httpContext,
+            HttpContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request,
             string code)
-            : base(httpContext, options) {
+            : base(context, options) {
             Request = request;
             AuthorizationCode = code;
         }

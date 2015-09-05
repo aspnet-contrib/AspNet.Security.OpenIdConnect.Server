@@ -17,16 +17,16 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Initializes a new instance of the <see cref="ValidateClientLogoutRedirectUriContext"/> class
         /// </summary>
-        /// <param name="httpContext"></param>
+        /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="request"></param>
         [SuppressMessage("Microsoft.Design", "CA1054:UriParametersShouldNotBeStrings",
             MessageId = "3#", Justification = "redirect_uri is a string parameter")]
         internal ValidateClientLogoutRedirectUriContext(
-            HttpContext httpContext,
+            HttpContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request)
-            : base(httpContext, options, request) {
+            : base(context, options, request) {
         }
 
         /// <summary>

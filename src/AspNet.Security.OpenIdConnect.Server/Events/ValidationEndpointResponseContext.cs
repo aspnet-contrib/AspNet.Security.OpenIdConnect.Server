@@ -18,10 +18,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// Creates an instance of this context.
         /// </summary>
         internal ValidationEndpointResponseContext(
-            HttpContext httpContext,
+            HttpContext context,
             OpenIdConnectServerOptions options,
             JObject payload)
-            : base(httpContext, options) {
+            : base(context, options) {
             Payload = payload;
         }
 

@@ -17,16 +17,16 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Initializes a new instance of the <see cref="ReceiveRefreshTokenContext"/> class
         /// </summary>
-        /// <param name="httpContext"></param>
+        /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="request"></param>
         /// <param name="token"></param>
         internal ReceiveRefreshTokenContext(
-            HttpContext httpContext,
+            HttpContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request,
             string token)
-            : base(httpContext, options) {
+            : base(context, options) {
             Request = request;
             RefreshToken = token;
         }

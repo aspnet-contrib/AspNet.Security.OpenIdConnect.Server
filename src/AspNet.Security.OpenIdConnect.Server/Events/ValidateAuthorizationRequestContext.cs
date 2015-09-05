@@ -15,16 +15,16 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Initializes a new instance of the <see cref="ValidateAuthorizationRequestContext"/> class
         /// </summary>
-        /// <param name="httpContext"></param>
+        /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="request"></param>
         /// <param name="clientContext"></param>
         internal ValidateAuthorizationRequestContext(
-            HttpContext httpContext,
+            HttpContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request,
             ValidateClientRedirectUriContext clientContext)
-            : base(httpContext, options) {
+            : base(context, options) {
             Request = request;
             ClientContext = clientContext;
             Validated();

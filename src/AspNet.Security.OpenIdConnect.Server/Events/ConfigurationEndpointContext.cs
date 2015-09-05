@@ -18,9 +18,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// Creates an instance of this context.
         /// </summary>
         internal ConfigurationEndpointContext(
-            HttpContext httpContext,
+            HttpContext context,
             OpenIdConnectServerOptions options)
-            : base(httpContext, options) {
+            : base(context, options) {
         }
 
         /// <summary>

@@ -16,14 +16,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Initializes a new instance of the <see cref="TokenEndpointResponseContext"/> class
         /// </summary>
-        /// <param name="httpContext"></param>
+        /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="payload"></param>
         internal TokenEndpointResponseContext(
-            HttpContext httpContext,
+            HttpContext context,
             OpenIdConnectServerOptions options,
             JObject payload)
-            : base(httpContext, options) {
+            : base(context, options) {
             Payload = payload;
         }
 

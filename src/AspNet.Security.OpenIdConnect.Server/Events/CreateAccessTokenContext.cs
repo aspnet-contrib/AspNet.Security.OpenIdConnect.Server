@@ -22,18 +22,18 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Initializes a new instance of the <see cref="CreateAccessTokenContext"/> class
         /// </summary>
-        /// <param name="httpContext"></param>
+        /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="request"></param>
         /// <param name="response"></param>
         /// <param name="ticket"></param>
         internal CreateAccessTokenContext(
-            HttpContext httpContext,
+            HttpContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request,
             OpenIdConnectMessage response,
             AuthenticationTicket ticket)
-            : base(httpContext, options) {
+            : base(context, options) {
             Request = request;
             Response = response;
             AuthenticationTicket = ticket;
