@@ -85,7 +85,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public PathString LogoutEndpointPath { get; set; } = new PathString(OpenIdConnectDefaults.LogoutEndpointPath);
 
         /// <summary>
-        /// Specifies a provider that the <see cref="OpenIdConnectServerMiddleware" /> invokes
+        /// Specifies a <see cref="IOpenIdConnectServerProvider"/> that the <see cref="OpenIdConnectServerMiddleware" /> invokes
         /// to enable developer control over the while authentication/authorization process.
         /// If not specified, a <see cref="OpenIdConnectServerProvider" /> is automatically instanciated.
         /// </summary>
@@ -106,7 +106,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// servers will use DPAPI data protection.
         /// This property is only used when <see cref="AccessTokenHandler"/> is explicitly set to <value>null</value>
         /// and when <see cref="IOpenIdConnectServerProvider.CreateAccessToken"/> doesn't call
-        /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
+        /// <see cref="BaseControlContext{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
         public ISecureDataFormat<AuthenticationTicket> AccessTokenFormat { get; set; }
 
@@ -116,7 +116,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// The SystemWeb host on IIS will use ASP.NET machine key data protection, and HttpListener and other self-hosted
         /// servers will use DPAPI data protection.
         /// This property is only used when <see cref="IOpenIdConnectServerProvider.CreateRefreshToken"/> doesn't call
-        /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
+        /// <see cref="BaseControlContext{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
         public ISecureDataFormat<AuthenticationTicket> RefreshTokenFormat { get; set; }
 
@@ -124,7 +124,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// The <see cref="JwtSecurityTokenHandler"/> instance used to forge access tokens.
         /// You can set it to null to produce opaque tokens serialized by the data protector subsytem.
         /// This property is only used when <see cref="IOpenIdConnectServerProvider.CreateAccessToken"/> doesn't call
-        /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
+        /// <see cref="BaseControlContext{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
         public JwtSecurityTokenHandler AccessTokenHandler { get; set; } = new JwtSecurityTokenHandler();
 
@@ -132,7 +132,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// The <see cref="JwtSecurityTokenHandler"/> instance used to forge identity tokens.
         /// You can replace the default instance to change the way id_tokens are serialized.
         /// This property is only used when <see cref="IOpenIdConnectServerProvider.CreateIdentityToken"/> doesn't call
-        /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
+        /// <see cref="BaseControlContext{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
         public JwtSecurityTokenHandler IdentityTokenHandler { get; set; } = new JwtSecurityTokenHandler();
 

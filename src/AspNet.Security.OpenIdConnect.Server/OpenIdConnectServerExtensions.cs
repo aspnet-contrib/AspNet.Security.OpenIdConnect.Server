@@ -37,6 +37,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// Configures the settings used by the OpenID Connect server.
         /// </summary>
         /// <param name="services">The services collection.</param>
+        /// <param name="options">Options which control the behavior of the OpenID Connect server.</param>
         /// <returns>The services collection.</returns>
         public static IServiceCollection ConfigureOpenIdConnectServer(
             [NotNull] this IServiceCollection services,
@@ -218,7 +219,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// Retrieves the <see cref="OpenIdConnectMessage"/> instance
         /// associated with the current request from the ASP.NET context.
         /// </summary>
-        /// <param name="notification">The ASP.NET context.</param>
+        /// <param name="context">The ASP.NET context.</param>
         /// <returns>The <see cref="OpenIdConnectMessage"/> associated with the current request.</returns>
         public static OpenIdConnectMessage GetOpenIdConnectRequest([NotNull] this HttpContext context) {
             return GetFeature(context).Request;
@@ -227,7 +228,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Inserts the ambient <see cref="OpenIdConnectMessage"/> request in the ASP.NET context.
         /// </summary>
-        /// <param name="notification">The ASP.NET context.</param>
+        /// <param name="context">The ASP.NET context.</param>
         /// <param name="request">The ambient <see cref="OpenIdConnectMessage"/>.</param>
         public static void SetOpenIdConnectRequest([NotNull] this HttpContext context, OpenIdConnectMessage request) {
             GetFeature(context).Request = request;
@@ -237,7 +238,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// Retrieves the <see cref="OpenIdConnectMessage"/> instance
         /// associated with the current response from the ASP.NET context.
         /// </summary>
-        /// <param name="notification">The ASP.NET context.</param>
+        /// <param name="context">The ASP.NET context.</param>
         /// <returns>The <see cref="OpenIdConnectMessage"/> associated with the current response.</returns>
         public static OpenIdConnectMessage GetOpenIdConnectResponse([NotNull] this HttpContext context) {
             return GetFeature(context).Response;
@@ -246,7 +247,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Inserts the ambient <see cref="OpenIdConnectMessage"/> response in the ASP.NET context.
         /// </summary>
-        /// <param name="notification">The ASP.NET context.</param>
+        /// <param name="context">The ASP.NET context.</param>
         /// <param name="response">The ambient <see cref="OpenIdConnectMessage"/>.</param>
         public static void SetOpenIdConnectResponse([NotNull] this HttpContext context, OpenIdConnectMessage response) {
             GetFeature(context).Response = response;
