@@ -21,8 +21,7 @@
         },
 
         "Microsoft.Framework.WebEncoders.Core": "1.0.0-*",
-        "Newtonsoft.Json": "7.0.1",
-        "System.Dynamic.Runtime": "4.0.0"
+        "Newtonsoft.Json": "7.0.1"
     },
 
     "frameworks": {
