@@ -657,7 +657,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             await ApplyAuthorizationResponseAsync(request, response);
         }
 
-        protected override async Task HandleSignOutAsync(SignOutContext signOutContext) {
+        protected override async Task HandleSignOutAsync(SignOutContext context) {
             // request may be null when no logout request has been received
             // or has been already handled by InvokeLogoutEndpointAsync.
             var request = Context.GetOpenIdConnectRequest();
@@ -668,7 +668,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // Stop processing the request if there's no signout context that matches
             // the authentication type associated with this middleware instance
             // or if the response status code doesn't indicate a successful response.
-            if (signOutContext == null || Response.StatusCode != 200) {
+            if (context == null || Response.StatusCode != 200) {
                 return;
             }
 
@@ -688,10 +688,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 State = request.State
             };
 
-            var context = new LogoutEndpointResponseContext(Context, Options, request, response);
-            await Options.Events.LogoutEndpointResponse(context);
+            var notification = new LogoutEndpointResponseContext(Context, Options, request, response);
+            await Options.Events.LogoutEndpointResponse(notification);
 
-            if (context.HandledResponse) {
+            if (notification.HandledResponse) {
                 return;
             }
 

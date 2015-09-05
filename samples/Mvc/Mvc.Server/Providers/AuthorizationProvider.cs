@@ -78,9 +78,9 @@ namespace Mvc.Server.Providers {
         }
 
         public override async Task ValidateClientLogoutRedirectUri(ValidateClientLogoutRedirectUriContext context) {
-            var applicationContext = context.HttpContext.RequestServices.GetRequiredService<ApplicationContext>();
+            var database = context.HttpContext.RequestServices.GetRequiredService<ApplicationContext>();
 
-            if (!await applicationContext.Applications.AnyAsync(application => application.LogoutRedirectUri == context.PostLogoutRedirectUri)) {
+            if (!await database.Applications.AnyAsync(application => application.LogoutRedirectUri == context.PostLogoutRedirectUri)) {
                 context.Rejected(error: "invalid_client", description: "Invalid post_logout_redirect_uri");
 
                 return;
