@@ -61,7 +61,7 @@ namespace Mvc.Server.Controllers {
             
             // Note: AspNet.Security.OpenIdConnect.Server automatically ensures an application
             // corresponds to the client_id specified in the authorization request using
-            // IOpenIdConnectServerProvider.ValidateClientRedirectUri (see AuthorizationProvider.cs).
+            // IOpenIdConnectServerEvents.ValidateClientRedirectUri (see AuthorizationProvider.cs).
             // In theory, this null check is thus not strictly necessary. That said, a race condition
             // and a null reference exception could appear here if you manually removed the application
             // details from the database after the initial check made by AspNet.Security.OpenIdConnect.Server.
@@ -110,7 +110,7 @@ namespace Mvc.Server.Controllers {
 
             // Note: AspNet.Security.OpenIdConnect.Server automatically ensures an application
             // corresponds to the client_id specified in the authorization request using
-            // IOpenIdConnectServerProvider.ValidateClientRedirectUri (see AuthorizationProvider.cs).
+            // IOpenIdConnectServerEvents.ValidateClientRedirectUri (see AuthorizationProvider.cs).
             // In theory, this null check is thus not strictly necessary. That said, a race condition
             // and a null reference exception could appear here if you manually removed the application
             // details from the database after the initial check made by AspNet.Security.OpenIdConnect.Server.

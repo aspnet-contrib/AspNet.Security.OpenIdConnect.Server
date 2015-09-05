@@ -33,10 +33,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// OpenID Connect-related contexts from the ASP.NET environment.
     /// </summary>
     public static class OpenIdConnectServerExtensions {
+
         /// <summary>
         /// Configures the settings used by the OpenID Connect server.
         /// </summary>
         /// <param name="services">The services collection.</param>
+        /// <param name="options">Options which control the behavior of the OpenID Connect server.</param>
         /// <returns>The services collection.</returns>
         public static IServiceCollection ConfigureOpenIdConnectServer(
             [NotNull] this IServiceCollection services,
@@ -218,38 +220,38 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// Retrieves the <see cref="OpenIdConnectMessage"/> instance
         /// associated with the current request from the ASP.NET context.
         /// </summary>
-        /// <param name="notification">The ASP.NET context.</param>
+        /// <param name="httpContext">The ASP.NET context.</param>
         /// <returns>The <see cref="OpenIdConnectMessage"/> associated with the current request.</returns>
-        public static OpenIdConnectMessage GetOpenIdConnectRequest([NotNull] this HttpContext context) {
-            return GetFeature(context).Request;
+        public static OpenIdConnectMessage GetOpenIdConnectRequest([NotNull] this HttpContext httpContext) {
+            return GetFeature(httpContext).Request;
         }
 
         /// <summary>
         /// Inserts the ambient <see cref="OpenIdConnectMessage"/> request in the ASP.NET context.
         /// </summary>
-        /// <param name="notification">The ASP.NET context.</param>
+        /// <param name="httpContext">The ASP.NET context.</param>
         /// <param name="request">The ambient <see cref="OpenIdConnectMessage"/>.</param>
-        public static void SetOpenIdConnectRequest([NotNull] this HttpContext context, OpenIdConnectMessage request) {
-            GetFeature(context).Request = request;
+        public static void SetOpenIdConnectRequest([NotNull] this HttpContext httpContext, OpenIdConnectMessage request) {
+            GetFeature(httpContext).Request = request;
         }
 
         /// <summary>
         /// Retrieves the <see cref="OpenIdConnectMessage"/> instance
         /// associated with the current response from the ASP.NET context.
         /// </summary>
-        /// <param name="notification">The ASP.NET context.</param>
+        /// <param name="httpContext">The ASP.NET context.</param>
         /// <returns>The <see cref="OpenIdConnectMessage"/> associated with the current response.</returns>
-        public static OpenIdConnectMessage GetOpenIdConnectResponse([NotNull] this HttpContext context) {
-            return GetFeature(context).Response;
+        public static OpenIdConnectMessage GetOpenIdConnectResponse([NotNull] this HttpContext httpContext) {
+            return GetFeature(httpContext).Response;
         }
 
         /// <summary>
         /// Inserts the ambient <see cref="OpenIdConnectMessage"/> response in the ASP.NET context.
         /// </summary>
-        /// <param name="notification">The ASP.NET context.</param>
+        /// <param name="httpContext">The ASP.NET context.</param>
         /// <param name="response">The ambient <see cref="OpenIdConnectMessage"/>.</param>
-        public static void SetOpenIdConnectResponse([NotNull] this HttpContext context, OpenIdConnectMessage response) {
-            GetFeature(context).Response = response;
+        public static void SetOpenIdConnectResponse([NotNull] this HttpContext httpContext, OpenIdConnectMessage response) {
+            GetFeature(httpContext).Response = response;
         }
 
         /// <summary>
@@ -263,11 +265,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
             return new EnhancedTicketDataFormat(provider.CreateProtector(purposes));
         }
  
-        internal static string GetIssuer([NotNull] this HttpContext context, [NotNull] OpenIdConnectServerOptions options) {
+        internal static string GetIssuer([NotNull] this HttpContext httpContext, [NotNull] OpenIdConnectServerOptions options) {
             var issuer = options.Issuer;
             if (issuer == null) {
-                if (!Uri.TryCreate(context.Request.Scheme + "://" + context.Request.Host +
-                                   context.Request.PathBase, UriKind.Absolute, out issuer)) {
+                if (!Uri.TryCreate(httpContext.Request.Scheme + "://" + httpContext.Request.Host +
+                                   httpContext.Request.PathBase, UriKind.Absolute, out issuer)) {
                     throw new InvalidOperationException("The issuer address cannot be inferred from the current request");
                 }
             }
@@ -287,12 +289,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
             return collection.Select(item => new KeyValuePair<string, string[]>(item.Key, item.Value.ToArray()));
         }
 
-        private static IOpenIdConnectServerFeature GetFeature(HttpContext context) {
-            var feature = context.Features.Get<IOpenIdConnectServerFeature>();
+        private static IOpenIdConnectServerFeature GetFeature(HttpContext httpContext) {
+            var feature = httpContext.Features.Get<IOpenIdConnectServerFeature>();
             if (feature == null) {
                 feature = new OpenIdConnectServerFeature();
 
-                context.Features.Set(feature);
+                httpContext.Features.Set(feature);
             }
 
             return feature;
