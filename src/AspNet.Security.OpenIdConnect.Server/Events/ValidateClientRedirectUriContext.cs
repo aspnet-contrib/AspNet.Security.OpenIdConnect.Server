@@ -5,7 +5,6 @@
  */
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNet.Http;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
@@ -20,8 +19,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="request"></param>
-        [SuppressMessage("Microsoft.Design", "CA1054:UriParametersShouldNotBeStrings",
-            MessageId = "3#", Justification = "redirect_uri is a string parameter")]
         internal ValidateClientRedirectUriContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
@@ -32,9 +29,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the client redirect URI
         /// </summary>
-        [SuppressMessage("Microsoft.Design",
-            "CA1056:UriPropertiesShouldNotBeStrings",
-            Justification = "redirect_uri is a string parameter")]
         public string RedirectUri {
             get { return Request.RedirectUri; }
             set { Request.RedirectUri = value; }
@@ -59,14 +53,13 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="redirectUri"></param>
         /// <returns></returns>
-        [SuppressMessage("Microsoft.Design", "CA1054:UriParametersShouldNotBeStrings",
-            MessageId = "0#", Justification = "redirect_uri is a string parameter")]
         public bool Validated(string redirectUri) {
             if (redirectUri == null) {
                 throw new ArgumentNullException("redirectUri");
             }
 
-            if (!string.IsNullOrEmpty(RedirectUri) && !string.Equals(RedirectUri, redirectUri, StringComparison.Ordinal)) {
+            if (!string.IsNullOrEmpty(RedirectUri) &&
+                !string.Equals(RedirectUri, redirectUri, StringComparison.Ordinal)) {
                 // Don't allow validation to alter redirect_uri provided with request
                 return false;
             }
@@ -74,6 +67,28 @@ namespace AspNet.Security.OpenIdConnect.Server {
             RedirectUri = redirectUri;
 
             return Validated();
+        }
+
+        /// <summary>
+        /// Resets redirect_uri and marks the context
+        /// as skipped by the application.
+        /// </summary>
+        public override bool Skipped() {
+            // Reset redirect_uri if validation was skipped.
+            RedirectUri = null;
+
+            return base.Skipped();
+        }
+
+        /// <summary>
+        /// Resets redirect_uri and marks the context
+        /// as rejected by the application.
+        /// </summary>
+        public override bool Rejected() {
+            // Reset redirect_uri if validation failed.
+            RedirectUri = null;
+
+            return base.Rejected();
         }
     }
 }

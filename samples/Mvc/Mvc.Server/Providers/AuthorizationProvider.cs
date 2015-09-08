@@ -15,6 +15,7 @@ namespace Mvc.Server.Providers {
             // that makes client authentication mandatory and returns an error if client_id or client_secret is missing.
             // You may consider relaxing it to support the resource owner password credentials grant type
             // with JavaScript or desktop applications, where client credentials cannot be safely stored.
+            // In this case, call context.Skipped() to inform the server middleware the client is not trusted.
             if (string.IsNullOrEmpty(context.ClientId) || string.IsNullOrEmpty(context.ClientSecret)) {
                 context.Rejected(
                     error: "invalid_request",
@@ -80,6 +81,8 @@ namespace Mvc.Server.Providers {
         public override async Task ValidateClientLogoutRedirectUri(ValidateClientLogoutRedirectUriContext context) {
             var database = context.HttpContext.RequestServices.GetRequiredService<ApplicationContext>();
 
+            // Note: ValidateClientLogoutRedirectUri is not invoked when post_logout_redirect_uri is null.
+            // When provided, post_logout_redirect_uri must exactly match the address registered by the client application.
             if (!await database.Applications.AnyAsync(application => application.LogoutRedirectUri == context.PostLogoutRedirectUri)) {
                 context.Rejected(error: "invalid_client", description: "Invalid post_logout_redirect_uri");
 
@@ -105,16 +108,12 @@ namespace Mvc.Server.Providers {
             // Note: OpenIdConnectServerHandler supports authorization code, refresh token, client credentials
             // and resource owner password credentials grant types but this authorization server uses a safer policy
             // rejecting the last two ones. You may consider relaxing it to support the ROPC or client credentials grant types.
-            if (context.Request.IsAuthorizationCodeGrantType() || context.Request.IsRefreshTokenGrantType()) {
-                context.Validated();
-
-                return Task.FromResult<object>(null);
+            if (!context.Request.IsAuthorizationCodeGrantType() && !context.Request.IsRefreshTokenGrantType()) {
+                context.Rejected(
+                    error: "unsupported_grant_type",
+                    description: "Only authorization code and refresh token grant types " +
+                                 "are accepted by this authorization server");
             }
-
-            context.Rejected(
-                error: "unsupported_grant_type",
-                description: "Only authorization code and refresh token grant types " +
-                             "are accepted by this authorization server");
 
             return Task.FromResult<object>(null);
         }

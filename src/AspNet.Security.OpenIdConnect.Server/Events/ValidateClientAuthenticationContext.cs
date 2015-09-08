@@ -50,5 +50,16 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             return Validated();
         }
+
+        /// <summary>
+        /// Resets client_id and client_secret and marks
+        /// the context as rejected by the application.
+        /// </summary>
+        public override bool Rejected() {
+            ClientId = null;
+            ClientSecret = null;
+
+            return base.Rejected();
+        }
     }
 }
