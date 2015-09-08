@@ -1587,8 +1587,10 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return;
             }
 
-            // Associate client_id with all subsequent tickets.
-            ticket.Properties.Dictionary[OpenIdConnectConstants.Extra.ClientId] = request.ClientId;
+            if (!string.IsNullOrEmpty(request.ClientId)) {
+                // Keep the original client_id parameter for later comparison.
+                ticket.Properties.Dictionary[OpenIdConnectConstants.Extra.ClientId] = request.ClientId;
+            }
 
             if (!string.IsNullOrEmpty(request.Resource)) {
                 // Keep the original resource parameter for later comparison.
