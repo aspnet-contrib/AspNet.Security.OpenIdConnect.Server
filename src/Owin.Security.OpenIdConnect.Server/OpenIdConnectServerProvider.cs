@@ -21,43 +21,43 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// Creates new instance of default provider behavior
         /// </summary>
         public OpenIdConnectServerProvider() {
-            OnMatchEndpoint = notification => Task.FromResult<object>(null);
-            OnValidateClientRedirectUri = notification => Task.FromResult<object>(null);
-            OnValidateClientLogoutRedirectUri = notification => Task.FromResult<object>(null);
-            OnValidateClientAuthentication = notification => Task.FromResult<object>(null);
+            OnMatchEndpoint = context => Task.FromResult<object>(null);
+            OnValidateClientRedirectUri = context => Task.FromResult<object>(null);
+            OnValidateClientLogoutRedirectUri = context => Task.FromResult<object>(null);
+            OnValidateClientAuthentication = context => Task.FromResult<object>(null);
 
-            OnValidateAuthorizationRequest = notification => Task.FromResult<object>(null);
-            OnValidateTokenRequest = notification => Task.FromResult<object>(null);
+            OnValidateAuthorizationRequest = context => Task.FromResult<object>(null);
+            OnValidateTokenRequest = context => Task.FromResult<object>(null);
 
-            OnGrantAuthorizationCode = notification => Task.FromResult<object>(null);
-            OnGrantResourceOwnerCredentials = notification => Task.FromResult<object>(null);
-            OnGrantRefreshToken = notification => Task.FromResult<object>(null);
-            OnGrantClientCredentials = notification => Task.FromResult<object>(null);
-            OnGrantCustomExtension = notification => Task.FromResult<object>(null);
+            OnGrantAuthorizationCode = context => Task.FromResult<object>(null);
+            OnGrantResourceOwnerCredentials = context => Task.FromResult<object>(null);
+            OnGrantRefreshToken = context => Task.FromResult<object>(null);
+            OnGrantClientCredentials = context => Task.FromResult<object>(null);
+            OnGrantCustomExtension = context => Task.FromResult<object>(null);
 
-            OnAuthorizationEndpoint = notification => Task.FromResult<object>(null);
-            OnLogoutEndpoint = notification => Task.FromResult<object>(null);
-            OnConfigurationEndpoint = notification => Task.FromResult<object>(null);
-            OnCryptographyEndpoint = notification => Task.FromResult<object>(null);
-            OnTokenEndpoint = notification => Task.FromResult<object>(null);
-            OnValidationEndpoint = notification => Task.FromResult<object>(null);
+            OnAuthorizationEndpoint = context => Task.FromResult<object>(null);
+            OnLogoutEndpoint = context => Task.FromResult<object>(null);
+            OnConfigurationEndpoint = context => Task.FromResult<object>(null);
+            OnCryptographyEndpoint = context => Task.FromResult<object>(null);
+            OnTokenEndpoint = context => Task.FromResult<object>(null);
+            OnValidationEndpoint = context => Task.FromResult<object>(null);
 
-            OnAuthorizationEndpointResponse = notification => Task.FromResult<object>(null);
-            OnLogoutEndpointResponse = notification => Task.FromResult<object>(null);
-            OnConfigurationEndpointResponse = notification => Task.FromResult<object>(null);
-            OnCryptographyEndpointResponse = notification => Task.FromResult<object>(null);
-            OnTokenEndpointResponse = notification => Task.FromResult<object>(null);
-            OnValidationEndpointResponse = notification => Task.FromResult<object>(null);
+            OnAuthorizationEndpointResponse = context => Task.FromResult<object>(null);
+            OnLogoutEndpointResponse = context => Task.FromResult<object>(null);
+            OnConfigurationEndpointResponse = context => Task.FromResult<object>(null);
+            OnCryptographyEndpointResponse = context => Task.FromResult<object>(null);
+            OnTokenEndpointResponse = context => Task.FromResult<object>(null);
+            OnValidationEndpointResponse = context => Task.FromResult<object>(null);
 
-            OnCreateAuthorizationCode = notification => Task.FromResult<object>(null);
-            OnCreateAccessToken = notification => Task.FromResult<object>(null);
-            OnCreateIdentityToken = notification => Task.FromResult<object>(null);
-            OnCreateRefreshToken = notification => Task.FromResult<object>(null);
+            OnCreateAuthorizationCode = context => Task.FromResult<object>(null);
+            OnCreateAccessToken = context => Task.FromResult<object>(null);
+            OnCreateIdentityToken = context => Task.FromResult<object>(null);
+            OnCreateRefreshToken = context => Task.FromResult<object>(null);
 
-            OnReceiveAuthorizationCode = notification => Task.FromResult<object>(null);
-            OnReceiveAccessToken = notification => Task.FromResult<object>(null);
-            OnReceiveIdentityToken = notification => Task.FromResult<object>(null);
-            OnReceiveRefreshToken = notification => Task.FromResult<object>(null);
+            OnReceiveAuthorizationCode = context => Task.FromResult<object>(null);
+            OnReceiveAccessToken = context => Task.FromResult<object>(null);
+            OnReceiveIdentityToken = context => Task.FromResult<object>(null);
+            OnReceiveRefreshToken = context => Task.FromResult<object>(null);
         }
 
         /// <summary>
@@ -66,7 +66,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// are assigned values, then handling this event is optional and context.IsAuthorizationEndpoint and context.IsTokenEndpoint
         /// will already be true if the request path matches.
         /// </summary>
-        public Func<MatchEndpointNotification, Task> OnMatchEndpoint { get; set; }
+        public Func<MatchEndpointContext, Task> OnMatchEndpoint { get; set; }
 
         /// <summary>
         /// Called to validate that the context.ClientId is a registered "client_id", and that the context.RedirectUri a "redirect_uri" 
@@ -75,7 +75,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// with a given redirectUri parameter, then IsValidated will only become true if the incoming redirect URI matches the given redirect URI. 
         /// If context.Validated is not called the request will not proceed further. 
         /// </summary>
-        public Func<ValidateClientRedirectUriNotification, Task> OnValidateClientRedirectUri { get; set; }
+        public Func<ValidateClientRedirectUriContext, Task> OnValidateClientRedirectUri { get; set; }
 
         /// <summary>
         /// Called to validate that the origin of the request is a registered "client_id", and that the correct credentials for that client are
@@ -85,14 +85,14 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// context.TryGetFormCredentials(out clientId, out clientSecret) may be called to acquire those values if present in the request body.
         /// If context.Validated is not called the request will not proceed further. 
         /// </summary>
-        public Func<ValidateClientAuthenticationNotification, Task> OnValidateClientAuthentication { get; set; }
+        public Func<ValidateClientAuthenticationContext, Task> OnValidateClientAuthentication { get; set; }
 
         /// <summary>
         /// Called for each request to the authorization endpoint to determine if the request is valid and should continue. 
         /// The default behavior when using the OpenIdConnectServerProvider is to assume well-formed requests, with 
         /// validated client redirect URI, should continue processing. An application may add any additional constraints.
         /// </summary>
-        public Func<ValidateAuthorizationRequestNotification, Task> OnValidateAuthorizationRequest { get; set; }
+        public Func<ValidateAuthorizationRequestContext, Task> OnValidateAuthorizationRequest { get; set; }
 
         /// <summary>
         /// Called for each request to the Token endpoint to determine if the request is valid and should continue. 
@@ -101,7 +101,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// The default behavior when using the OpenIdConnectServerProvider is to assume well-formed requests, with 
         /// validated client credentials, should continue processing. An application may add any additional constraints.
         /// </summary>
-        public Func<ValidateTokenRequestNotification, Task> OnValidateTokenRequest { get; set; }
+        public Func<ValidateTokenRequestContext, Task> OnValidateTokenRequest { get; set; }
 
         /// <summary>
         /// Called to validate that context.PostLogoutRedirectUri a valid and registered URL.
@@ -110,7 +110,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// then IsValidated will only become true if the incoming redirect URI matches the given redirect URI. 
         /// If context.Validated is not called the request will not proceed further. 
         /// </summary>
-        public Func<ValidateClientLogoutRedirectUriNotification, Task> OnValidateClientLogoutRedirectUri { get; set; }
+        public Func<ValidateClientLogoutRedirectUriContext, Task> OnValidateClientLogoutRedirectUri { get; set; }
 
         /// <summary>
         /// Called when a request to the Token endpoint arrives with a "grant_type" of "authorization_code". This occurs after the authorization
@@ -121,7 +121,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// The default behavior when using the OpenIdConnectServerProvider is to flow information from the authorization code to the access token unmodified.
         /// See also http://tools.ietf.org/html/rfc6749#section-4.1.3
         /// </summary>
-        public Func<GrantAuthorizationCodeNotification, Task> OnGrantAuthorizationCode { get; set; }
+        public Func<GrantAuthorizationCodeContext, Task> OnGrantAuthorizationCode { get; set; }
 
         /// <summary>
         /// Called when a request to the Token endpoint arrives with a "grant_type" of "password". This occurs when the user has provided name and password
@@ -133,7 +133,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// The default behavior is to reject this grant type.
         /// See also http://tools.ietf.org/html/rfc6749#section-4.3.2
         /// </summary>
-        public Func<GrantResourceOwnerCredentialsNotification, Task> OnGrantResourceOwnerCredentials { get; set; }
+        public Func<GrantResourceOwnerCredentialsContext, Task> OnGrantResourceOwnerCredentials { get; set; }
 
         /// <summary>
         /// Called when a request to the Token endpoint arrives with a "grant_type" of "client_credentials". This occurs when a registered client
@@ -144,7 +144,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// The default behavior is to reject this grant type.
         /// See also http://tools.ietf.org/html/rfc6749#section-4.4.2
         /// </summary>
-        public Func<GrantClientCredentialsNotification, Task> OnGrantClientCredentials { get; set; }
+        public Func<GrantClientCredentialsContext, Task> OnGrantClientCredentials { get; set; }
 
         /// <summary>
         /// Called when a request to the Token endpoint arrives with a "grant_type" of "refresh_token". This occurs if your application has issued a "refresh_token" 
@@ -156,7 +156,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// is to flow information from the refresh token to the access token unmodified.
         /// See also http://tools.ietf.org/html/rfc6749#section-6
         /// </summary>
-        public Func<GrantRefreshTokenNotification, Task> OnGrantRefreshToken { get; set; }
+        public Func<GrantRefreshTokenContext, Task> OnGrantRefreshToken { get; set; }
 
         /// <summary>
         /// Called when a request to the Token andpoint arrives with a "grant_type" of any other value. If the application supports custom grant types
@@ -165,7 +165,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// included they may be added in the final TokenEndpoint call.
         /// See also http://tools.ietf.org/html/rfc6749#section-4.5
         /// </summary>
-        public Func<GrantCustomExtensionNotification, Task> OnGrantCustomExtension { get; set; }
+        public Func<GrantCustomExtensionContext, Task> OnGrantCustomExtension { get; set; }
 
         /// <summary>
         /// Called at the final stage of an incoming authorization endpoint request before the execution continues on to the web application component 
@@ -176,7 +176,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// to grant the authorization directly in the AuthorizationEndpoint call it cay call context.OwinContext.Authentication.SignIn with the
         /// appropriate ClaimsIdentity and should call context.RequestCompleted to stop other handlers from executing.
         /// </summary>
-        public Func<AuthorizationEndpointNotification, Task> OnAuthorizationEndpoint { get; set; }
+        public Func<AuthorizationEndpointContext, Task> OnAuthorizationEndpoint { get; set; }
 
         /// <summary>
         /// Called before the AuthorizationEndpoint redirects its response to the caller.
@@ -186,7 +186,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// context.Response directly and should call context.RequestCompleted to stop other handlers from executing.
         /// This call may also be used to add additional response parameters to the authorization response.
         /// </summary>
-        public Func<AuthorizationEndpointResponseNotification, Task> OnAuthorizationEndpointResponse { get; set; }
+        public Func<AuthorizationEndpointResponseContext, Task> OnAuthorizationEndpointResponse { get; set; }
 
         /// <summary>
         /// Called at the final stage of an incoming logout endpoint request before the execution continues on to the web application component 
@@ -195,7 +195,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// authorization page. If the web application wishes to produce the response directly in the LogoutEndpoint call it may write to the 
         /// context.Response directly and should call context.RequestCompleted to stop other handlers from executing.
         /// </summary>
-        public Func<LogoutEndpointNotification, Task> OnLogoutEndpoint { get; set; }
+        public Func<LogoutEndpointContext, Task> OnLogoutEndpoint { get; set; }
 
         /// <summary>
         /// Called before the LogoutEndpoint endpoint redirects its response to the caller.
@@ -203,116 +203,116 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// context.Response directly and should call context.RequestCompleted to stop other handlers from executing.
         /// This call may also be used to add additional response parameters to the authorization response.
         /// </summary>
-        public Func<LogoutEndpointResponseNotification, Task> OnLogoutEndpointResponse { get; set; }
+        public Func<LogoutEndpointResponseContext, Task> OnLogoutEndpointResponse { get; set; }
 
         /// <summary>
         /// Called by the client applications to retrieve the OpenID Connect configuration associated with this instance.
         /// An application may implement this call in order to do any final modification to the configuration metadata.
         /// </summary>
-        public Func<ConfigurationEndpointNotification, Task> OnConfigurationEndpoint { get; set; }
+        public Func<ConfigurationEndpointContext, Task> OnConfigurationEndpoint { get; set; }
 
         /// <summary>
         /// Called before the authorization server starts emitting the OpenID Connect configuration associated with this instance.
         /// If the web application wishes to produce the configuration metadata directly in this call, it may write to the 
         /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
         /// </summary>
-        public Func<ConfigurationEndpointResponseNotification, Task> OnConfigurationEndpointResponse { get; set; }
+        public Func<ConfigurationEndpointResponseContext, Task> OnConfigurationEndpointResponse { get; set; }
 
         /// <summary>
         /// Called by the client applications to retrieve the OpenID Connect JSON Web Key set associated with this instance.
         /// An application may implement this call in order to do any final modification to the keys set.
         /// </summary>
-        public Func<CryptographyEndpointNotification, Task> OnCryptographyEndpoint { get; set; }
+        public Func<CryptographyEndpointContext, Task> OnCryptographyEndpoint { get; set; }
 
         /// <summary>
         /// Called before the authorization server starts emitting the OpenID Connect JSON Web Key set associated with this instance.
         /// If the web application wishes to produce the JSON Web Key set directly in this call, it may write to the 
         /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
         /// </summary>
-        public Func<CryptographyEndpointResponseNotification, Task> OnCryptographyEndpointResponse { get; set; }
+        public Func<CryptographyEndpointResponseContext, Task> OnCryptographyEndpointResponse { get; set; }
 
         /// <summary>
         /// Called at the final stage of a successful Token endpoint request.
         /// An application may implement this call in order to do any final 
         /// modification of the claims being used to issue access or refresh tokens. 
         /// </summary>
-        public Func<TokenEndpointNotification, Task> OnTokenEndpoint { get; set; }
+        public Func<TokenEndpointContext, Task> OnTokenEndpoint { get; set; }
 
         /// <summary>
         /// Called before the TokenEndpoint redirects its response to the caller.
         /// This call may also be used in order to add additional 
         /// response parameters to the JSON response payload.
         /// </summary>
-        public Func<TokenEndpointResponseNotification, Task> OnTokenEndpointResponse { get; set; }
+        public Func<TokenEndpointResponseContext, Task> OnTokenEndpointResponse { get; set; }
 
         /// <summary>
         /// Called by the client applications to validate an access token, an identity token or a refresh token.
         /// An application may implement this call in order to do any final modification to the configuration metadata.
         /// </summary>
-        public Func<ValidationEndpointNotification, Task> OnValidationEndpoint { get; set; }
+        public Func<ValidationEndpointContext, Task> OnValidationEndpoint { get; set; }
 
         /// <summary>
         /// Called before the authorization server starts emitting the claims associated with the tokens received.
         /// If the web application wishes to produce the configuration metadata directly in this call, it may write to the 
         /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
         /// </summary>
-        public Func<ValidationEndpointResponseNotification, Task> OnValidationEndpointResponse { get; set; }
+        public Func<ValidationEndpointResponseContext, Task> OnValidationEndpointResponse { get; set; }
 
         /// <summary>
         /// Called to create a new authorization code. An application may use this notification
         /// to replace the authentication ticket before it is serialized or to use its own code store
         /// and skip the default logic using <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
-        public Func<CreateAuthorizationCodeNotification, Task> OnCreateAuthorizationCode { get; set; }
+        public Func<CreateAuthorizationCodeContext, Task> OnCreateAuthorizationCode { get; set; }
 
         /// <summary>
         /// Called to create a new access token. An application may use this notification
         /// to replace the authentication ticket before it is serialized or to use its own token format
         /// and skip the default logic using <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
-        public Func<CreateAccessTokenNotification, Task> OnCreateAccessToken { get; set; }
+        public Func<CreateAccessTokenContext, Task> OnCreateAccessToken { get; set; }
 
         /// <summary>
         /// Called to create a new identity token. An application may use this notification
         /// to replace the authentication ticket before it is serialized or to use its own token format
         /// and skip the default logic using <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
-        public Func<CreateIdentityTokenNotification, Task> OnCreateIdentityToken { get; set; }
+        public Func<CreateIdentityTokenContext, Task> OnCreateIdentityToken { get; set; }
 
         /// <summary>
         /// Called to create a new refresh token. An application may use this notification
         /// to replace the authentication ticket before it is serialized or to use its own token format
         /// and skip the default logic using <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
-        public Func<CreateRefreshTokenNotification, Task> OnCreateRefreshToken { get; set; }
+        public Func<CreateRefreshTokenContext, Task> OnCreateRefreshToken { get; set; }
 
         /// <summary>
         /// Called when receiving an authorization code. An application may use this notification
         /// to deserialize the code using a custom format and to skip the default logic using
         /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
-        public Func<ReceiveAuthorizationCodeNotification, Task> OnReceiveAuthorizationCode { get; set; }
+        public Func<ReceiveAuthorizationCodeContext, Task> OnReceiveAuthorizationCode { get; set; }
         
         /// <summary>
         /// Called when receiving an access token. An application may use this notification
         /// to deserialize the token using a custom format and to skip the default logic using
         /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
-        public Func<ReceiveAccessTokenNotification, Task> OnReceiveAccessToken { get; set; }
+        public Func<ReceiveAccessTokenContext, Task> OnReceiveAccessToken { get; set; }
 
         /// <summary>
         /// Called when receiving an identity token. An application may use this notification
         /// to deserialize the token using a custom format and to skip the default logic using
         /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
-        public Func<ReceiveIdentityTokenNotification, Task> OnReceiveIdentityToken { get; set; }
+        public Func<ReceiveIdentityTokenContext, Task> OnReceiveIdentityToken { get; set; }
 
         /// <summary>
         /// Called when receiving a refresh token. An application may use this notification
         /// to deserialize the code using a custom format and to skip the default logic using
         /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
-        public Func<ReceiveRefreshTokenNotification, Task> OnReceiveRefreshToken { get; set; }
+        public Func<ReceiveRefreshTokenContext, Task> OnReceiveRefreshToken { get; set; }
 
         /// <summary>
         /// Called to determine if an incoming request is treated as an authorization or token
@@ -320,10 +320,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// are assigned values, then handling this event is optional and context.IsAuthorizationEndpoint and context.IsTokenEndpoint
         /// will already be true if the request path matches.
         /// </summary>
-        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task MatchEndpoint(MatchEndpointNotification notification) {
-            return OnMatchEndpoint(notification);
+        public virtual Task MatchEndpoint(MatchEndpointContext context) {
+            return OnMatchEndpoint(context);
         }
 
         /// <summary>
@@ -333,10 +333,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// with a given redirectUri parameter, then IsValidated will only become true if the incoming redirect URI matches the given redirect URI. 
         /// If context.Validated is not called the request will not proceed further. 
         /// </summary>
-        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task ValidateClientRedirectUri(ValidateClientRedirectUriNotification notification) {
-            return OnValidateClientRedirectUri(notification);
+        public virtual Task ValidateClientRedirectUri(ValidateClientRedirectUriContext context) {
+            return OnValidateClientRedirectUri(context);
         }
 
         /// <summary>
@@ -346,10 +346,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// then IsValidated will only become true if the incoming redirect URI matches the given redirect URI. 
         /// If context.Validated is not called the request will not proceed further. 
         /// </summary>
-        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task ValidateClientLogoutRedirectUri(ValidateClientLogoutRedirectUriNotification notification) {
-            return OnValidateClientLogoutRedirectUri(notification);
+        public virtual Task ValidateClientLogoutRedirectUri(ValidateClientLogoutRedirectUriContext context) {
+            return OnValidateClientLogoutRedirectUri(context);
         }
 
         /// <summary>
@@ -360,10 +360,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// context.TryGetFormCredentials(out clientId, out clientSecret) may be called to acquire those values if present in the request body.
         /// If context.Validated is not called the request will not proceed further. 
         /// </summary>
-        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task ValidateClientAuthentication(ValidateClientAuthenticationNotification notification) {
-            return OnValidateClientAuthentication(notification);
+        public virtual Task ValidateClientAuthentication(ValidateClientAuthenticationContext context) {
+            return OnValidateClientAuthentication(context);
         }
 
         /// <summary>
@@ -371,10 +371,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// The default behavior when using the OpenIdConnectServerProvider is to assume well-formed requests, with 
         /// validated client redirect URI, should continue processing. An application may add any additional constraints.
         /// </summary>
-        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task ValidateAuthorizationRequest(ValidateAuthorizationRequestNotification notification) {
-            return OnValidateAuthorizationRequest(notification);
+        public virtual Task ValidateAuthorizationRequest(ValidateAuthorizationRequestContext context) {
+            return OnValidateAuthorizationRequest(context);
         }
 
         /// <summary>
@@ -382,10 +382,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// The default behavior when using the OpenIdConnectServerProvider is to assume well-formed requests, with 
         /// validated client credentials, should continue processing. An application may add any additional constraints.
         /// </summary>
-        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task ValidateTokenRequest(ValidateTokenRequestNotification notification) {
-            return OnValidateTokenRequest(notification);
+        public virtual Task ValidateTokenRequest(ValidateTokenRequestContext context) {
+            return OnValidateTokenRequest(context);
         }
 
         /// <summary>
@@ -397,10 +397,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// The default behavior when using the OpenIdConnectServerProvider is to flow information from the authorization code to the access token unmodified.
         /// See also http://tools.ietf.org/html/rfc6749#section-4.1.3
         /// </summary>
-        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task GrantAuthorizationCode(GrantAuthorizationCodeNotification notification) {
-            return OnGrantAuthorizationCode(notification);
+        public virtual Task GrantAuthorizationCode(GrantAuthorizationCodeContext context) {
+            return OnGrantAuthorizationCode(context);
         }
 
         /// <summary>
@@ -413,10 +413,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// is to flow information from the refresh token to the access token unmodified.
         /// See also http://tools.ietf.org/html/rfc6749#section-6
         /// </summary>
-        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task GrantRefreshToken(GrantRefreshTokenNotification notification) {
-            return OnGrantRefreshToken(notification);
+        public virtual Task GrantRefreshToken(GrantRefreshTokenContext context) {
+            return OnGrantRefreshToken(context);
         }
 
         /// <summary>
@@ -429,10 +429,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// The default behavior is to reject this grant type.
         /// See also http://tools.ietf.org/html/rfc6749#section-4.3.2
         /// </summary>
-        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task GrantResourceOwnerCredentials(GrantResourceOwnerCredentialsNotification notification) {
-            return OnGrantResourceOwnerCredentials(notification);
+        public virtual Task GrantResourceOwnerCredentials(GrantResourceOwnerCredentialsContext context) {
+            return OnGrantResourceOwnerCredentials(context);
         }
 
         /// <summary>
@@ -444,10 +444,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// The default behavior is to reject this grant type.
         /// See also http://tools.ietf.org/html/rfc6749#section-4.4.2
         /// </summary>
-        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task GrantClientCredentials(GrantClientCredentialsNotification notification) {
-            return OnGrantClientCredentials(notification);
+        public virtual Task GrantClientCredentials(GrantClientCredentialsContext context) {
+            return OnGrantClientCredentials(context);
         }
 
         /// <summary>
@@ -457,10 +457,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// included they may be added in the final TokenEndpoint call.
         /// See also http://tools.ietf.org/html/rfc6749#section-4.5
         /// </summary>
-        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task GrantCustomExtension(GrantCustomExtensionNotification notification) {
-            return OnGrantCustomExtension(notification);
+        public virtual Task GrantCustomExtension(GrantCustomExtensionContext context) {
+            return OnGrantCustomExtension(context);
         }
 
         /// <summary>
@@ -472,10 +472,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// to grant the authorization directly in the AuthorizationEndpoint call it cay call context.OwinContext.Authentication.SignIn with the
         /// appropriate ClaimsIdentity and should call context.RequestCompleted to stop other handlers from executing.
         /// </summary>
-        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task AuthorizationEndpoint(AuthorizationEndpointNotification notification) {
-            return OnAuthorizationEndpoint(notification);
+        public virtual Task AuthorizationEndpoint(AuthorizationEndpointContext context) {
+            return OnAuthorizationEndpoint(context);
         }
 
         /// <summary>
@@ -486,10 +486,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// context.Response directly and should call context.RequestCompleted to stop other handlers from executing.
         /// This call may also be used to add additional response parameters to the authorization response.
         /// </summary>
-        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task AuthorizationEndpointResponse(AuthorizationEndpointResponseNotification notification) {
-            return OnAuthorizationEndpointResponse(notification);
+        public virtual Task AuthorizationEndpointResponse(AuthorizationEndpointResponseContext context) {
+            return OnAuthorizationEndpointResponse(context);
         }
 
         /// <summary>
@@ -499,10 +499,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// authorization page. If the web application wishes to produce the response directly in the LogoutEndpoint call it may write to the 
         /// context.Response directly and should call context.RequestCompleted to stop other handlers from executing.
         /// </summary>
-        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task LogoutEndpoint(LogoutEndpointNotification notification) {
-            return OnLogoutEndpoint(notification);
+        public virtual Task LogoutEndpoint(LogoutEndpointContext context) {
+            return OnLogoutEndpoint(context);
         }
 
         /// <summary>
@@ -511,20 +511,20 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// context.Response directly and should call context.RequestCompleted to stop other handlers from executing.
         /// This call may also be used to add additional response parameters to the authorization response.
         /// </summary>
-        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task LogoutEndpointResponse(LogoutEndpointResponseNotification notification) {
-            return OnLogoutEndpointResponse(notification);
+        public virtual Task LogoutEndpointResponse(LogoutEndpointResponseContext context) {
+            return OnLogoutEndpointResponse(context);
         }
 
         /// <summary>
         /// Called by the client applications to retrieve the OpenID Connect configuration associated with this instance.
         /// An application may implement this call in order to do any final modification to the configuration metadata.
         /// </summary>
-        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task ConfigurationEndpoint(ConfigurationEndpointNotification notification) {
-            return OnConfigurationEndpoint(notification);
+        public virtual Task ConfigurationEndpoint(ConfigurationEndpointContext context) {
+            return OnConfigurationEndpoint(context);
         }
 
         /// <summary>
@@ -532,20 +532,20 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// If the web application wishes to produce the configuration metadata directly in this call, it may write to the 
         /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
         /// </summary>
-        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task ConfigurationEndpointResponse(ConfigurationEndpointResponseNotification notification) {
-            return OnConfigurationEndpointResponse(notification);
+        public virtual Task ConfigurationEndpointResponse(ConfigurationEndpointResponseContext context) {
+            return OnConfigurationEndpointResponse(context);
         }
 
         /// <summary>
         /// Called by the client applications to retrieve the OpenID Connect JSON Web Key set associated with this instance.
         /// An application may implement this call in order to do any final modification to the keys set.
         /// </summary>
-        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task CryptographyEndpoint(CryptographyEndpointNotification notification) {
-            return OnCryptographyEndpoint(notification);
+        public virtual Task CryptographyEndpoint(CryptographyEndpointContext context) {
+            return OnCryptographyEndpoint(context);
         }
 
         /// <summary>
@@ -553,10 +553,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// If the web application wishes to produce the JSON Web Key set directly in this call, it may write to the 
         /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
         /// </summary>
-        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task CryptographyEndpointResponse(CryptographyEndpointResponseNotification notification) {
-            return OnCryptographyEndpointResponse(notification);
+        public virtual Task CryptographyEndpointResponse(CryptographyEndpointResponseContext context) {
+            return OnCryptographyEndpointResponse(context);
         }
 
         /// <summary>
@@ -564,10 +564,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// An application may implement this call in order to do any final 
         /// modification of the claims being used to issue access or refresh tokens. 
         /// </summary>
-        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task TokenEndpoint(TokenEndpointNotification notification) {
-            return OnTokenEndpoint(notification);
+        public virtual Task TokenEndpoint(TokenEndpointContext context) {
+            return OnTokenEndpoint(context);
         }
 
         /// <summary>
@@ -575,20 +575,20 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// This call may also be used in order to add additional 
         /// response parameters to the JSON response payload.
         /// </summary>
-        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task TokenEndpointResponse(TokenEndpointResponseNotification notification) {
-            return OnTokenEndpointResponse(notification);
+        public virtual Task TokenEndpointResponse(TokenEndpointResponseContext context) {
+            return OnTokenEndpointResponse(context);
         }
 
         /// <summary>
         /// Called by the client applications to validate an access token, an identity token or a refresh token.
         /// An application may implement this call in order to do any final modification to the configuration metadata.
         /// </summary>
-        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task ValidationEndpoint(ValidationEndpointNotification notification) {
-            return OnValidationEndpoint(notification);
+        public virtual Task ValidationEndpoint(ValidationEndpointContext context) {
+            return OnValidationEndpoint(context);
         }
 
         /// <summary>
@@ -596,10 +596,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// If the web application wishes to produce the configuration metadata directly in this call, it may write to the 
         /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
         /// </summary>
-        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task ValidationEndpointResponse(ValidationEndpointResponseNotification notification) {
-            return OnValidationEndpointResponse(notification);
+        public virtual Task ValidationEndpointResponse(ValidationEndpointResponseContext context) {
+            return OnValidationEndpointResponse(context);
         }
 
         /// <summary>
@@ -607,10 +607,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// to replace the authentication ticket before it is serialized or to use its own code store
         /// and skip the default logic using <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
-        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task CreateAuthorizationCode(CreateAuthorizationCodeNotification notification) {
-            return OnCreateAuthorizationCode(notification);
+        public virtual Task CreateAuthorizationCode(CreateAuthorizationCodeContext context) {
+            return OnCreateAuthorizationCode(context);
         }
 
         /// <summary>
@@ -618,10 +618,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// to replace the authentication ticket before it is serialized or to use its own token format
         /// and skip the default logic using <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
-        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task CreateAccessToken(CreateAccessTokenNotification notification) {
-            return OnCreateAccessToken(notification);
+        public virtual Task CreateAccessToken(CreateAccessTokenContext context) {
+            return OnCreateAccessToken(context);
         }
 
         /// <summary>
@@ -629,10 +629,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// to replace the authentication ticket before it is serialized or to use its own token format
         /// and skip the default logic using <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
-        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task CreateIdentityToken(CreateIdentityTokenNotification notification) {
-            return OnCreateIdentityToken(notification);
+        public virtual Task CreateIdentityToken(CreateIdentityTokenContext context) {
+            return OnCreateIdentityToken(context);
         }
 
         /// <summary>
@@ -640,10 +640,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// to replace the authentication ticket before it is serialized or to use its own token format
         /// and skip the default logic using <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
-        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task CreateRefreshToken(CreateRefreshTokenNotification notification) {
-            return OnCreateRefreshToken(notification);
+        public virtual Task CreateRefreshToken(CreateRefreshTokenContext context) {
+            return OnCreateRefreshToken(context);
         }
 
         /// <summary>
@@ -651,10 +651,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// to deserialize the code using a custom format and to skip the default logic using
         /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
-        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task ReceiveAuthorizationCode(ReceiveAuthorizationCodeNotification notification) {
-            return OnReceiveAuthorizationCode(notification);
+        public virtual Task ReceiveAuthorizationCode(ReceiveAuthorizationCodeContext context) {
+            return OnReceiveAuthorizationCode(context);
         }
 
         /// <summary>
@@ -662,10 +662,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// to deserialize the token using a custom format and to skip the default logic using
         /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
-        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task ReceiveAccessToken(ReceiveAccessTokenNotification notification) {
-            return OnReceiveAccessToken(notification);
+        public virtual Task ReceiveAccessToken(ReceiveAccessTokenContext context) {
+            return OnReceiveAccessToken(context);
         }
 
         /// <summary>
@@ -673,10 +673,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// to deserialize the token using a custom format and to skip the default logic using
         /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
-        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task ReceiveIdentityToken(ReceiveIdentityTokenNotification notification) {
-            return OnReceiveIdentityToken(notification);
+        public virtual Task ReceiveIdentityToken(ReceiveIdentityTokenContext context) {
+            return OnReceiveIdentityToken(context);
         }
 
         /// <summary>
@@ -684,10 +684,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// to deserialize the code using a custom format and to skip the default logic using
         /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
-        /// <param name="notification">The context of the event carries information in and results out.</param>
+        /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task ReceiveRefreshToken(ReceiveRefreshTokenNotification notification) {
-            return OnReceiveRefreshToken(notification);
+        public virtual Task ReceiveRefreshToken(ReceiveRefreshTokenContext context) {
+            return OnReceiveRefreshToken(context);
         }
     }
 }

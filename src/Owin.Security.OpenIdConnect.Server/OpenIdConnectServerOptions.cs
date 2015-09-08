@@ -116,7 +116,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         public PathString LogoutEndpointPath { get; set; }
 
         /// <summary>
-        /// Specifies a provider that the <see cref="OpenIdConnectServerMiddleware" /> invokes
+        /// Specifies a <see cref="IOpenIdConnectServerProvider"/> that the <see cref="OpenIdConnectServerMiddleware" /> invokes
         /// to enable developer control over the while authentication/authorization process.
         /// If not specified, a <see cref="OpenIdConnectServerProvider" /> is automatically instanciated.
         /// </summary>

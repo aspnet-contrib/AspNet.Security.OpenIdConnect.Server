@@ -39,7 +39,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         // Implementing AuthenticateCoreAsync allows the inner application
         // to retrieve the identity extracted from the optional id_token_hint.
         protected override async Task<AuthenticationTicket> AuthenticateCoreAsync() {
-            var notification = new MatchEndpointNotification(Context, Options);
+            var notification = new MatchEndpointContext(Context, Options);
 
             if (Options.AuthorizationEndpointPath.HasValue &&
                 Options.AuthorizationEndpointPath == Request.Path) {
@@ -104,7 +104,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         }
 
         public override async Task<bool> InvokeAsync() {
-            var notification = new MatchEndpointNotification(Context, Options);
+            var notification = new MatchEndpointContext(Context, Options);
 
             if (Options.AuthorizationEndpointPath.HasValue &&
                 Options.AuthorizationEndpointPath == Request.Path) {
@@ -336,7 +336,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
             }
 
-            var clientNotification = new ValidateClientRedirectUriNotification(Context, Options, request);
+            var clientNotification = new ValidateClientRedirectUriContext(Context, Options, request);
             await Options.Provider.ValidateClientRedirectUri(clientNotification);
 
             if (!clientNotification.IsValidated) {
@@ -457,7 +457,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 });
             }
 
-            var validationNotification = new ValidateAuthorizationRequestNotification(Context, Options, request, clientNotification);
+            var validationNotification = new ValidateAuthorizationRequestContext(Context, Options, request, clientNotification);
             await Options.Provider.ValidateAuthorizationRequest(validationNotification);
 
             // Stop processing the request if Validated was not called.
@@ -494,7 +494,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
             }
 
-            var notification = new AuthorizationEndpointNotification(Context, Options, request);
+            var notification = new AuthorizationEndpointContext(Context, Options, request);
             await Options.Provider.AuthorizationEndpoint(notification);
 
             if (notification.HandledResponse) {
@@ -581,7 +581,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             // redirect_uri is added to the response message since it's not a mandatory parameter
-            // in OAuth 2.0 and can be set or replaced from the ValidateClientRedirectUri notification.
+            // in OAuth 2.0 and can be set or replaced from the ValidateClientRedirectUri event.
             var response = new OpenIdConnectMessage {
                 RedirectUri = request.RedirectUri,
                 State = request.State
@@ -680,7 +680,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
 
                 // properties.ExpiresUtc is automatically set by CreateAccessTokenAsync but the end user
-                // is free to set a null value directly in the CreateAccessToken notification.
+                // is free to set a null value directly in the CreateAccessToken event.
                 if (properties.ExpiresUtc.HasValue && properties.ExpiresUtc > Options.SystemClock.UtcNow) {
                     var lifetime = properties.ExpiresUtc.Value - Options.SystemClock.UtcNow;
                     var expiration = (long) (lifetime.TotalSeconds + .5);
@@ -695,7 +695,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 Options.Cache.Remove(identifier);
             }
 
-            var notification = new AuthorizationEndpointResponseNotification(Context, Options, request, response);
+            var notification = new AuthorizationEndpointResponseContext(Context, Options, request, response);
             await Options.Provider.AuthorizationEndpointResponse(notification);
 
             if (notification.HandledResponse) {
@@ -731,13 +731,13 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             // post_logout_redirect_uri is added to the response message since it can be
-            // set or replaced from the ValidateClientLogoutRedirectUri notification.
+            // set or replaced from the ValidateClientLogoutRedirectUri event.
             var response = new OpenIdConnectMessage {
                 PostLogoutRedirectUri = request.PostLogoutRedirectUri,
                 State = request.State
             };
 
-            var notification = new LogoutEndpointResponseNotification(Context, Options, request, response);
+            var notification = new LogoutEndpointResponseContext(Context, Options, request, response);
             await Options.Provider.LogoutEndpointResponse(notification);
 
             if (notification.HandledResponse) {
@@ -846,7 +846,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         }
 
         private async Task InvokeConfigurationEndpointAsync() {
-            var notification = new ConfigurationEndpointNotification(Context, Options);
+            var notification = new ConfigurationEndpointContext(Context, Options);
             notification.Issuer = Context.GetIssuer(Options);
 
             // Metadata requests must be made via GET.
@@ -985,10 +985,10 @@ namespace Owin.Security.OpenIdConnect.Server {
             payload.Add(OpenIdConnectConstants.Metadata.IdTokenSigningAlgValuesSupported,
                 JArray.FromObject(notification.SigningAlgorithms));
 
-            var responseNotification = new ConfigurationEndpointResponseNotification(Context, Options, payload);
-            await Options.Provider.ConfigurationEndpointResponse(responseNotification);
+            var context = new ConfigurationEndpointResponseContext(Context, Options, payload);
+            await Options.Provider.ConfigurationEndpointResponse(context);
 
-            if (responseNotification.HandledResponse) {
+            if (context.HandledResponse) {
                 return;
             }
 
@@ -1006,7 +1006,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         }
 
         private async Task InvokeCryptographyEndpointAsync() {
-            var notification = new CryptographyEndpointNotification(Context, Options);
+            var notification = new CryptographyEndpointContext(Context, Options);
 
             // Metadata requests must be made via GET.
             // See http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationRequest
@@ -1170,10 +1170,10 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             payload.Add(JsonWebKeyParameterNames.Keys, keys);
 
-            var responseNotification = new CryptographyEndpointResponseNotification(Context, Options, payload);
-            await Options.Provider.CryptographyEndpointResponse(responseNotification);
+            var context = new CryptographyEndpointResponseContext(Context, Options, payload);
+            await Options.Provider.CryptographyEndpointResponse(context);
 
-            if (responseNotification.HandledResponse) {
+            if (context.HandledResponse) {
                 return;
             }
 
@@ -1249,7 +1249,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
             }
 
-            var clientNotification = new ValidateClientAuthenticationNotification(Context, Options, request);
+            var clientNotification = new ValidateClientAuthenticationContext(Context, Options, request);
             await Options.Provider.ValidateClientAuthentication(clientNotification);
 
             if (!clientNotification.IsValidated) {
@@ -1264,7 +1264,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return;
             }
 
-            var validatingContext = new ValidateTokenRequestNotification(Context, Options, request, clientNotification);
+            var validatingContext = new ValidateTokenRequestContext(Context, Options, request, clientNotification);
 
             // Validate the token request immediately if the grant type used by
             // the client application doesn't rely on a previously-issued token/code.
@@ -1445,7 +1445,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                 if (request.IsAuthorizationCodeGrantType()) {
                     // Note: the authentication ticket is copied to avoid modifying the properties of the authorization code.
-                    var context = new GrantAuthorizationCodeNotification(Context, Options, request, ticket.Copy());
+                    var context = new GrantAuthorizationCodeContext(Context, Options, request, ticket.Copy());
                     await Options.Provider.GrantAuthorizationCode(context);
 
                     if (!context.IsValidated) {
@@ -1464,7 +1464,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                 else {
                     // Note: the authentication ticket is copied to avoid modifying the properties of the refresh token.
-                    var context = new GrantRefreshTokenNotification(Context, Options, request, ticket.Copy());
+                    var context = new GrantRefreshTokenContext(Context, Options, request, ticket.Copy());
                     await Options.Provider.GrantRefreshToken(context);
 
                     if (!context.IsValidated) {
@@ -1497,7 +1497,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             // See http://tools.ietf.org/html/rfc6749#section-4.3
             // and http://tools.ietf.org/html/rfc6749#section-4.3.2
             else if (request.IsPasswordGrantType()) {
-                var context = new GrantResourceOwnerCredentialsNotification(Context, Options, request);
+                var context = new GrantResourceOwnerCredentialsContext(Context, Options, request);
                 await Options.Provider.GrantResourceOwnerCredentials(context);
 
                 if (!context.IsValidated) {
@@ -1517,7 +1517,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             // See http://tools.ietf.org/html/rfc6749#section-4.4
             // and http://tools.ietf.org/html/rfc6749#section-4.4.2
             else if (request.IsClientCredentialsGrantType()) {
-                var context = new GrantClientCredentialsNotification(Context, Options, request);
+                var context = new GrantClientCredentialsContext(Context, Options, request);
                 await Options.Provider.GrantClientCredentials(context);
 
                 if (!context.IsValidated) {
@@ -1536,7 +1536,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             // See http://tools.ietf.org/html/rfc6749#section-8.3
             else if (!string.IsNullOrEmpty(request.GrantType)) {
-                var context = new GrantCustomExtensionNotification(Context, Options, request);
+                var context = new GrantCustomExtensionContext(Context, Options, request);
                 await Options.Provider.GrantCustomExtension(context);
 
                 if (!context.IsValidated) {
@@ -1565,7 +1565,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return;
             }
 
-            var notification = new TokenEndpointNotification(Context, Options, request, ticket);
+            var notification = new TokenEndpointContext(Context, Options, request, ticket);
             await Options.Provider.TokenEndpoint(notification);
 
             if (notification.HandledResponse) {
@@ -1672,7 +1672,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
 
                 // properties.ExpiresUtc is automatically set by CreateAccessTokenAsync but the end user
-                // is free to set a null value directly in the CreateAccessToken notification.
+                // is free to set a null value directly in the CreateAccessToken event.
                 if (properties.ExpiresUtc.HasValue && properties.ExpiresUtc > Options.SystemClock.UtcNow) {
                     var lifetime = properties.ExpiresUtc.Value - Options.SystemClock.UtcNow;
                     var expiration = (long) (lifetime.TotalSeconds + .5);
@@ -1707,7 +1707,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 payload.Add(parameter.Key, parameter.Value);
             }
 
-            var responseNotification = new TokenEndpointResponseNotification(Context, Options, payload);
+            var responseNotification = new TokenEndpointResponseContext(Context, Options, payload);
             await Options.Provider.TokenEndpointResponse(responseNotification);
 
             if (responseNotification.HandledResponse) {
@@ -1839,7 +1839,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return;
             }
 
-            var notification = new ValidationEndpointNotification(Context, Options, request, ticket);
+            var notification = new ValidationEndpointContext(Context, Options, request, ticket);
 
             // Add the claims extracted from the access token.
             foreach (var claim in ticket.Identity.Claims) {
@@ -1865,10 +1865,10 @@ namespace Owin.Security.OpenIdConnect.Server {
                 select new { type = claim.Type, value = claim.Value }
             ));
 
-            var responseNotification = new ValidationEndpointResponseNotification(Context, Options, payload);
-            await Options.Provider.ValidationEndpointResponse(responseNotification);
+            var context = new ValidationEndpointResponseContext(Context, Options, payload);
+            await Options.Provider.ValidationEndpointResponse(context);
 
-            if (responseNotification.HandledResponse) {
+            if (context.HandledResponse) {
                 return;
             }
 
@@ -1941,7 +1941,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             // Note: post_logout_redirect_uri is not a mandatory parameter.
             // See http://openid.net/specs/openid-connect-session-1_0.html#RPLogout
             if (!string.IsNullOrEmpty(request.PostLogoutRedirectUri)) {
-                var clientNotification = new ValidateClientLogoutRedirectUriNotification(Context, Options, request);
+                var clientNotification = new ValidateClientLogoutRedirectUriContext(Context, Options, request);
                 await Options.Provider.ValidateClientLogoutRedirectUri(clientNotification);
 
                 if (!clientNotification.IsValidated) {
@@ -1955,7 +1955,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
             }
 
-            var notification = new LogoutEndpointNotification(Context, Options, request);
+            var notification = new LogoutEndpointContext(Context, Options, request);
             await Options.Provider.LogoutEndpoint(notification);
 
             if (notification.HandledResponse) {
@@ -1984,14 +1984,14 @@ namespace Owin.Security.OpenIdConnect.Server {
                 // that subsequent access and identity tokens are correctly filtered.
                 var ticket = new AuthenticationTicket(identity, properties);
 
-                var notification = new CreateAuthorizationCodeNotification(Context, Options, request, response, ticket) {
+                var notification = new CreateAuthorizationCodeContext(Context, Options, request, response, ticket) {
                     DataFormat = Options.AuthorizationCodeFormat
                 };
 
                 await Options.Provider.CreateAuthorizationCode(notification);
 
                 // Allow the application to change the authentication
-                // ticket from the CreateAuthorizationCode notification.
+                // ticket from the CreateAuthorizationCode event.
                 ticket = notification.AuthenticationTicket;
                 ticket.Properties.CopyTo(properties);
 
@@ -2069,7 +2069,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 // Create a new ticket containing the updated properties and the filtered identity.
                 var ticket = new AuthenticationTicket(identity, properties);
 
-                var notification = new CreateAccessTokenNotification(Context, Options, request, response, ticket) {
+                var notification = new CreateAccessTokenContext(Context, Options, request, response, ticket) {
                     DataFormat = Options.AccessTokenFormat,
                     Issuer = Context.GetIssuer(Options),
                     SecurityTokenHandler = Options.AccessTokenHandler,
@@ -2084,7 +2084,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 await Options.Provider.CreateAccessToken(notification);
 
                 // Allow the application to change the authentication
-                // ticket from the CreateAccessTokenAsync notification.
+                // ticket from the CreateAccessTokenAsync event.
                 ticket = notification.AuthenticationTicket;
                 ticket.Properties.CopyTo(properties);
 
@@ -2179,7 +2179,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 // Create a new ticket containing the updated properties and the filtered identity.
                 var ticket = new AuthenticationTicket(identity, properties);
 
-                var notification = new CreateIdentityTokenNotification(Context, Options, request, response, ticket) {
+                var notification = new CreateIdentityTokenContext(Context, Options, request, response, ticket) {
                     Audiences = { request.ClientId },
                     Issuer = Context.GetIssuer(Options),
                     SecurityTokenHandler = Options.IdentityTokenHandler,
@@ -2190,7 +2190,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 await Options.Provider.CreateIdentityToken(notification);
 
                 // Allow the application to change the authentication
-                // ticket from the CreateIdentityTokenAsync notification.
+                // ticket from the CreateIdentityTokenAsync event.
                 ticket = notification.AuthenticationTicket;
                 ticket.Properties.CopyTo(properties);
 
@@ -2231,14 +2231,14 @@ namespace Owin.Security.OpenIdConnect.Server {
                 // that subsequent access and identity tokens are correctly filtered.
                 var ticket = new AuthenticationTicket(identity, properties);
 
-                var notification = new CreateRefreshTokenNotification(Context, Options, request, response, ticket) {
+                var notification = new CreateRefreshTokenContext(Context, Options, request, response, ticket) {
                     DataFormat = Options.RefreshTokenFormat
                 };
 
                 await Options.Provider.CreateRefreshToken(notification);
 
                 // Allow the application to change the authentication
-                // ticket from the CreateRefreshTokenAsync notification.
+                // ticket from the CreateRefreshTokenAsync event.
                 ticket = notification.AuthenticationTicket;
                 ticket.Properties.CopyTo(properties);
 
@@ -2262,7 +2262,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
         private async Task<AuthenticationTicket> ReceiveAuthorizationCodeAsync(string code, OpenIdConnectMessage request) {
             try {
-                var notification = new ReceiveAuthorizationCodeNotification(Context, Options, request, code) {
+                var notification = new ReceiveAuthorizationCodeContext(Context, Options, request, code) {
                     DataFormat = Options.AuthorizationCodeFormat
                 };
 
@@ -2299,7 +2299,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
         private async Task<AuthenticationTicket> ReceiveAccessTokenAsync(string token, OpenIdConnectMessage request) {
             try {
-                var notification = new ReceiveAccessTokenNotification(Context, Options, request, token) {
+                var notification = new ReceiveAccessTokenContext(Context, Options, request, token) {
                     DataFormat = Options.AccessTokenFormat,
                     Issuer = Context.GetIssuer(Options),
                     SecurityTokenHandler = Options.AccessTokenHandler,
@@ -2331,7 +2331,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
         private async Task<AuthenticationTicket> ReceiveIdentityTokenAsync(string token, OpenIdConnectMessage request) {
             try {
-                var notification = new ReceiveIdentityTokenNotification(Context, Options, request, token) {
+                var notification = new ReceiveIdentityTokenContext(Context, Options, request, token) {
                     Issuer = Context.GetIssuer(Options),
                     SecurityTokenHandler = Options.IdentityTokenHandler,
                     SignatureProvider = Options.SignatureProvider,
@@ -2362,7 +2362,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
         private async Task<AuthenticationTicket> ReceiveRefreshTokenAsync(string token, OpenIdConnectMessage request) {
             try {
-                var notification = new ReceiveRefreshTokenNotification(Context, Options, request, token) {
+                var notification = new ReceiveRefreshTokenContext(Context, Options, request, token) {
                     DataFormat = Options.RefreshTokenFormat
                 };
 
