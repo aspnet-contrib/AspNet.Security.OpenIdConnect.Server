@@ -10,6 +10,7 @@ using System.Runtime.Caching;
 using System.Security.Cryptography;
 using Microsoft.Owin;
 using Microsoft.Owin.Infrastructure;
+using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Notifications;
 
@@ -214,6 +215,12 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// DateTimeOffset.UtcNow. This is typically needed only for unit testing.
         /// </summary>
         public ISystemClock SystemClock { get; set; }
+
+        /// <summary>
+        /// Gets or sets the logger used by <see cref="OpenIdConnectServerMiddleware"/>.
+        /// When unassigned, a default instance is created using the logger factory.
+        /// </summary>
+        public ILogger Logger { get; set; }
 
         /// <summary>
         /// True to allow incoming requests to arrive on HTTP and to allow redirect_uri parameters to have HTTP URI addresses.

@@ -16,19 +16,16 @@ namespace Owin.Security.OpenIdConnect.Server {
     /// extension method.
     /// </summary>
     public class OpenIdConnectServerMiddleware : AuthenticationMiddleware<OpenIdConnectServerOptions> {
-        private readonly ILogger logger;
-
         /// <summary>
         /// Authorization Server middleware component which is added to an OWIN pipeline. This constructor is not
         /// called by application code directly, instead it is added by calling the the IAppBuilder UseOpenIdConnectServer 
         /// extension method.
         /// </summary>
-        public OpenIdConnectServerMiddleware(
-            OwinMiddleware next,
-            IAppBuilder app,
-            OpenIdConnectServerOptions options)
+        public OpenIdConnectServerMiddleware(OwinMiddleware next, IAppBuilder app, OpenIdConnectServerOptions options)
             : base(next, options) {
-            logger = app.CreateLogger<OpenIdConnectServerMiddleware>();
+            if (Options.Logger == null) {
+                Options.Logger = app.CreateLogger<OpenIdConnectServerMiddleware>();
+            }
             
             if (Options.AuthorizationCodeFormat == null) {
                 Options.AuthorizationCodeFormat = app.CreateTicketFormat(
@@ -87,7 +84,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         /// <returns>A new instance of the request handler</returns>
         protected override AuthenticationHandler<OpenIdConnectServerOptions> CreateHandler() {
-            return new OpenIdConnectServerHandler(logger);
+            return new OpenIdConnectServerHandler();
         }
     }
 }
