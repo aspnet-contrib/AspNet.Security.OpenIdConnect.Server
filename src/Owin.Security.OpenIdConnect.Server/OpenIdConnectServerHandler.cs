@@ -887,57 +887,70 @@ namespace Owin.Security.OpenIdConnect.Server {
                 // Only expose the implicit grant type if the token
                 // endpoint has not been explicitly disabled.
                 notification.GrantTypes.Add(OpenIdConnectConstants.GrantTypes.Implicit);
+
+                if (Options.TokenEndpointPath.HasValue) {
+                    // Only expose the authorization code and refresh token grant types
+                    // if both the authorization and the token endpoints are enabled.
+                    notification.GrantTypes.Add(OpenIdConnectConstants.GrantTypes.AuthorizationCode);
+                }
             }
 
             if (Options.TokenEndpointPath.HasValue) {
-                // Only expose the authorization code and refresh token grant types
-                // if the token endpoint has not been explicitly disabled.
-                notification.GrantTypes.Add(OpenIdConnectConstants.GrantTypes.AuthorizationCode);
                 notification.GrantTypes.Add(OpenIdConnectConstants.GrantTypes.RefreshToken);
+
+                // If the authorization endpoint is disabled, assume the authorization server will
+                // allow the client credentials and resource owner password credentials grant types.
+                if (!Options.AuthorizationEndpointPath.HasValue) {
+                    notification.GrantTypes.Add(OpenIdConnectConstants.GrantTypes.ClientCredentials);
+                    notification.GrantTypes.Add(OpenIdConnectConstants.GrantTypes.Password);
+                }
             }
 
-            notification.ResponseModes.Add(OpenIdConnectConstants.ResponseModes.FormPost);
-            notification.ResponseModes.Add(OpenIdConnectConstants.ResponseModes.Fragment);
-            notification.ResponseModes.Add(OpenIdConnectConstants.ResponseModes.Query);
+            // Only populate response_modes_supported and response_types_supported
+            // if the authorization endpoint is available.
+            if (Options.AuthorizationEndpointPath.HasValue) {
+                notification.ResponseModes.Add(OpenIdConnectConstants.ResponseModes.FormPost);
+                notification.ResponseModes.Add(OpenIdConnectConstants.ResponseModes.Fragment);
+                notification.ResponseModes.Add(OpenIdConnectConstants.ResponseModes.Query);
 
-            notification.ResponseTypes.Add(OpenIdConnectConstants.ResponseTypes.Token);
-
-            // Only expose response types containing id_token when
-            // signing credentials have been explicitly provided.
-            if (Options.SigningCredentials != null) {
-                notification.ResponseTypes.Add(OpenIdConnectConstants.ResponseTypes.IdToken);
-                notification.ResponseTypes.Add(
-                    OpenIdConnectConstants.ResponseTypes.IdToken + ' ' +
-                    OpenIdConnectConstants.ResponseTypes.Token);
-            }
-
-            // Only expose response types containing code when
-            // the token endpoint has not been explicitly disabled.
-            if (Options.TokenEndpointPath.HasValue) {
-                notification.ResponseTypes.Add(OpenIdConnectConstants.ResponseTypes.Code);
-
-                notification.ResponseTypes.Add(
-                    OpenIdConnectConstants.ResponseTypes.Code + ' ' +
-                    OpenIdConnectConstants.ResponseTypes.Token);
+                notification.ResponseTypes.Add(OpenIdConnectConstants.ResponseTypes.Token);
 
                 // Only expose response types containing id_token when
                 // signing credentials have been explicitly provided.
                 if (Options.SigningCredentials != null) {
+                    notification.ResponseTypes.Add(OpenIdConnectConstants.ResponseTypes.IdToken);
                     notification.ResponseTypes.Add(
-                        OpenIdConnectConstants.ResponseTypes.Code + ' ' +
-                        OpenIdConnectConstants.ResponseTypes.IdToken);
+                        OpenIdConnectConstants.ResponseTypes.IdToken + ' ' +
+                        OpenIdConnectConstants.ResponseTypes.Token);
+                }
+
+                // Only expose response types containing code when
+                // the token endpoint has not been explicitly disabled.
+                if (Options.TokenEndpointPath.HasValue) {
+                    notification.ResponseTypes.Add(OpenIdConnectConstants.ResponseTypes.Code);
 
                     notification.ResponseTypes.Add(
                         OpenIdConnectConstants.ResponseTypes.Code + ' ' +
-                        OpenIdConnectConstants.ResponseTypes.IdToken + ' ' +
                         OpenIdConnectConstants.ResponseTypes.Token);
+
+                    // Only expose response types containing id_token when
+                    // signing credentials have been explicitly provided.
+                    if (Options.SigningCredentials != null) {
+                        notification.ResponseTypes.Add(
+                            OpenIdConnectConstants.ResponseTypes.Code + ' ' +
+                            OpenIdConnectConstants.ResponseTypes.IdToken);
+
+                        notification.ResponseTypes.Add(
+                            OpenIdConnectConstants.ResponseTypes.Code + ' ' +
+                            OpenIdConnectConstants.ResponseTypes.IdToken + ' ' +
+                            OpenIdConnectConstants.ResponseTypes.Token);
+                    }
                 }
             }
 
             notification.Scopes.Add(OpenIdConnectConstants.Scopes.OpenId);
 
             notification.SubjectTypes.Add(OpenIdConnectConstants.SubjectTypes.Public);
-            notification.SubjectTypes.Add(OpenIdConnectConstants.SubjectTypes.Pairwise);
 
             notification.SigningAlgorithms.Add(OpenIdConnectConstants.Algorithms.RS256);
 
