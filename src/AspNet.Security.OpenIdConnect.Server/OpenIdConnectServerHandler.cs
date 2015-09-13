@@ -470,7 +470,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             identifier = request.GetUniqueIdentifier();
             if (string.IsNullOrEmpty(identifier)) {
                 // Generate a new 256-bits identifier and associate it with the authorization request.
-                identifier = Base64UrlEncoder.Encode(GenerateKey(length: 256 / 8));
+                identifier = GenerateKey(length: 256 / 8);
                 request.SetUniqueIdentifier(identifier);
 
                 using (var stream = new MemoryStream())
@@ -2492,7 +2492,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         private string GenerateKey(int length) {
             var bytes = new byte[length];
             Options.RandomNumberGenerator.GetBytes(bytes);
-            return Convert.ToBase64String(bytes);
+            return Base64UrlEncoder.Encode(bytes);
         }
 
         private class Appender {
