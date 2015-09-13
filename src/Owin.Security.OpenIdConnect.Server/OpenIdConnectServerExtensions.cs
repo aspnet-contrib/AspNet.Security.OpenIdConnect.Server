@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
@@ -175,10 +176,9 @@ namespace Owin {
         /// </summary>
         /// <param name="options">The options used to configure the OpenID Connect server.</param>
         /// <param name="thumbprint">The thumbprint of the certificate used to identify it in the X509 store.</param>
-        /// <param name="password">The password used to open the certificate.</param>
         /// <returns>The options used to configure the OpenID Connect server.</returns>
-        public static OpenIdConnectServerOptions UseCertificate(this OpenIdConnectServerOptions options, string thumbprint, string password) {
-            return options.UseCertificate(thumbprint, password, StoreName.My, StoreLocation.LocalMachine);
+        public static OpenIdConnectServerOptions UseCertificate(this OpenIdConnectServerOptions options, string thumbprint) {
+            return options.UseCertificate(thumbprint, StoreName.My, StoreLocation.LocalMachine);
         }
 
         /// <summary>
@@ -187,22 +187,17 @@ namespace Owin {
         /// </summary>
         /// <param name="options">The options used to configure the OpenID Connect server.</param>
         /// <param name="thumbprint">The thumbprint of the certificate used to identify it in the X509 store.</param>
-        /// <param name="password">The password used to open the certificate.</param>
         /// <param name="name">The name of the X509 store.</param>
         /// <param name="location">The location of the X509 store.</param>
         /// <returns>The options used to configure the OpenID Connect server.</returns>
         public static OpenIdConnectServerOptions UseCertificate(this OpenIdConnectServerOptions options,
-            string thumbprint, string password, StoreName name, StoreLocation location) {
+            string thumbprint, StoreName name, StoreLocation location) {
             if (options == null) {
                 throw new ArgumentNullException("options");
             }
 
             if (string.IsNullOrEmpty(thumbprint)) {
                 throw new ArgumentNullException("thumbprint");
-            }
-
-            if (string.IsNullOrEmpty(password)) {
-                throw new ArgumentNullException("password");
             }
 
             var store = new X509Store(name, location);
@@ -240,13 +235,79 @@ namespace Owin {
                 throw new ArgumentNullException("key");
             }
 
-            options.SigningCredentials = new SigningCredentials(key,
+            options.SigningCredentials.Add(new SigningCredentials(key,
                 SecurityAlgorithms.RsaSha256Signature,
-                SecurityAlgorithms.Sha256Digest);
+                SecurityAlgorithms.Sha256Digest));
 
             return options;
         }
-        
+
+        /// <summary>
+        /// Uses the <see cref="RsaSecurityKey"/> stored in the given file.
+        /// </summary>
+        /// <param name="options">The options used to configure the OpenID Connect server.</param>
+        /// <param name="file">The file containing the encrypted key.</param>
+        /// <param name="protector">The data protector used to decrypt the key.</param>
+        /// <returns>The options used to configure the OpenID Connect server.</returns>
+        public static OpenIdConnectServerOptions UseKey(this OpenIdConnectServerOptions options, FileInfo file, IDataProtector protector) {
+            using (var buffer = new MemoryStream())
+            using (var stream = file.Open(FileMode.Open)) {
+                // Copy the key content to the buffer.
+                stream.CopyTo(buffer);
+
+                // Extract the key material using the data protector.
+                var parameters = protector.DecryptKey(buffer.ToArray());
+                if (parameters == null) {
+                    throw new InvalidOperationException("Invalid or corrupted key");
+                }
+
+                var provider = new RSACryptoServiceProvider();
+                provider.ImportParameters(parameters.Value);
+
+                options.UseKey(new RsaSecurityKey(provider));
+            }
+
+            return options;
+        }
+
+        /// <summary>
+        /// Uses the <see cref="RsaSecurityKey"/> stored in the given directory.
+        /// Note: this extension will automatically ignore incompatible keys.
+        /// </summary>
+        /// <param name="options">The options used to configure the OpenID Connect server.</param>
+        /// <param name="directory">The directory containing the encrypted keys.</param>
+        /// <param name="protector">The data protector used to decrypt the key.</param>
+        /// <returns>The options used to configure the OpenID Connect server.</returns>
+        public static OpenIdConnectServerOptions UseKeys(
+            this OpenIdConnectServerOptions options,
+            DirectoryInfo directory, IDataProtector protector) {
+            if (!directory.Exists) {
+                throw new InvalidOperationException("The directory does not exist");
+            }
+
+            foreach (var file in directory.EnumerateFiles("*.key")) {
+                using (var buffer = new MemoryStream())
+                using (var stream = file.Open(FileMode.Open)) {
+                    // Copy the key content to the buffer.
+                    stream.CopyTo(buffer);
+
+                    // Extract the key material using the data protector.
+                    // Ignore the key if the decryption process failed.
+                    var parameters = protector.DecryptKey(buffer.ToArray());
+                    if (parameters == null) {
+                        continue;
+                    }
+
+                    var provider = new RSACryptoServiceProvider();
+                    provider.ImportParameters(parameters.Value);
+
+                    options.UseKey(new RsaSecurityKey(provider));
+                }
+            }
+
+            return options;
+        }
+
         /// <summary>
         /// Configures the OpenID Connect server to issue opaque access tokens produced by the data protection block.
         /// Opaque tokens cannot be read by client applications or resource servers if they don't share identical keys.
@@ -330,6 +391,99 @@ namespace Owin {
             }
 
             return new EnhancedTicketDataFormat(app.CreateDataProtector(purposes));
+        }
+
+        /// <summary>
+        /// Encrypts a RSA security key using the given data protector.
+        /// </summary>
+        /// <param name="protector">The data protector used to encrypt the key.</param>
+        /// <param name="parameters">The key material.</param>
+        /// <returns>The array of <see cref="byte"/> containing the protected key.</returns>
+        public static byte[] EncryptKey(this IDataProtector protector, RSAParameters parameters) {
+            if (protector == null) {
+                throw new ArgumentNullException("protector");
+            }
+
+            using (var stream = new MemoryStream())
+            using (var writer = new BinaryWriter(stream)) {
+                writer.Write(/* version: */ 1);
+                writer.Write(/* algorithm: */ "RSA");
+
+                // Serialize the RSA parameters to the key file.
+                writer.Write(parameters.D.Length);
+                writer.Write(parameters.D);
+                writer.Write(parameters.DP.Length);
+                writer.Write(parameters.DP);
+                writer.Write(parameters.DQ.Length);
+                writer.Write(parameters.DQ);
+                writer.Write(parameters.Exponent.Length);
+                writer.Write(parameters.Exponent);
+                writer.Write(parameters.InverseQ.Length);
+                writer.Write(parameters.InverseQ);
+                writer.Write(parameters.Modulus.Length);
+                writer.Write(parameters.Modulus);
+                writer.Write(parameters.P.Length);
+                writer.Write(parameters.P);
+                writer.Write(parameters.Q.Length);
+                writer.Write(parameters.Q);
+
+                // Encrypt the key using the data protection block.
+                return protector.Protect(stream.ToArray());
+            }
+        }
+
+        /// <summary>
+        /// Decrypts a RSA key using the given data protector.
+        /// </summary>
+        /// <param name="protector">The data protector used to decrypt the key.</param>
+        /// <param name="buffer">The array of <see cref="byte"/> containing the protected key.</param>
+        /// <returns>The key material or <c>null</c> if the decryption process failed.</returns>
+        public static RSAParameters? DecryptKey(this IDataProtector protector, byte[] buffer) {
+            if (protector == null) {
+                throw new ArgumentNullException("protector");
+            }
+
+            if (buffer == null) {
+                throw new ArgumentNullException("buffer");
+            }
+
+            // Note: an exception thrown in this block may be caused by a corrupted or inappropriate key
+            // (for instance, if the key was created for another application or another environment).
+            // Always catch the exception and return null in this case to avoid leaking sensitive data.
+            try {
+                var bytes = protector.Unprotect(buffer);
+                if (bytes == null) {
+                    return null;
+                }
+
+                using (var stream = new MemoryStream(bytes))
+                using (var reader = new BinaryReader(stream)) {
+                    if (/* version: */ reader.ReadInt32() != 1) {
+                        return null;
+                    }
+
+                    // Note: only RSA keys are currently supported. Return null if another format has been used.
+                    if (!string.Equals(/* algorithm: */ reader.ReadString(), "RSA", StringComparison.OrdinalIgnoreCase)) {
+                        return null;
+                    }
+
+                    // Extract the RSA parameters from the serialized key.
+                    return new RSAParameters {
+                        D = reader.ReadBytes(reader.ReadInt32()),
+                        DP = reader.ReadBytes(reader.ReadInt32()),
+                        DQ = reader.ReadBytes(reader.ReadInt32()),
+                        Exponent = reader.ReadBytes(reader.ReadInt32()),
+                        InverseQ = reader.ReadBytes(reader.ReadInt32()),
+                        Modulus = reader.ReadBytes(reader.ReadInt32()),
+                        P = reader.ReadBytes(reader.ReadInt32()),
+                        Q = reader.ReadBytes(reader.ReadInt32())
+                    };
+                }
+            }
+
+            catch {
+                return null;
+            }
         }
 
         internal static string GetIssuer(this IOwinContext context, OpenIdConnectServerOptions options) {

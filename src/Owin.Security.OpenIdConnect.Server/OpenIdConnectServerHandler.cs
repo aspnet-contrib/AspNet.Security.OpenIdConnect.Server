@@ -856,17 +856,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 notification.AuthorizationEndpoint = notification.Issuer.AddPath(Options.AuthorizationEndpointPath);
             }
 
-            // While the jwks_uri parameter is in principle mandatory, many OIDC clients are known
-            // to work in a degraded mode when this parameter is not provided in the JSON response.
-            // Making it mandatory in Owin.Security.OpenIdConnect.Server would prevent the end developer from
-            // using custom security keys and manage himself the token validation parameters in the OIDC client.
-            // To avoid this issue, the jwks_uri parameter is only added to the response when the JWKS endpoint
-            // is believed to provide a valid response, which is the case with asymmetric keys supporting RSA-SHA256.
-            // See http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
-            if (Options.CryptographyEndpointPath.HasValue &&
-                Options.SigningCredentials != null &&
-                Options.SigningCredentials.SigningKey is AsymmetricSecurityKey &&
-                Options.SigningCredentials.SigningKey.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature)) {
+            if (Options.CryptographyEndpointPath.HasValue) {
                 notification.CryptographyEndpoint = notification.Issuer.AddPath(Options.CryptographyEndpointPath);
             }
 
@@ -1024,114 +1014,106 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return;
             }
 
-            if (Options.SigningCredentials == null) {
-                Options.Logger.WriteError("Cryptography endpoint: no signing credentials provided. " +
-                    "Make sure valid credentials are assigned to Options.SigningCredentials.");
-                return;
-            }
+            foreach (var credentials in Options.SigningCredentials) {
+                // Skip processing the metadata request if the key is not supported.
+                var asymmetricSecurityKey = credentials.SigningKey as AsymmetricSecurityKey;
+                if (asymmetricSecurityKey == null) {
+                    Options.Logger.WriteWarning(string.Format(CultureInfo.InvariantCulture,
+                        "Cryptography endpoint: invalid signing key registered. " +
+                        "Make sure to provide an asymmetric security key deriving from '{0}'.",
+                        typeof(AsymmetricSecurityKey).FullName));
 
-            // Skip processing the metadata request if no supported key can be found.
-            var asymmetricSecurityKey = Options.SigningCredentials.SigningKey as AsymmetricSecurityKey;
-            if (asymmetricSecurityKey == null) {
-                Options.Logger.WriteError(string.Format(CultureInfo.InvariantCulture,
-                    "Cryptography endpoint: invalid signing key registered. " +
-                    "Make sure to provide an asymmetric security key deriving from '{0}'.",
-                    typeof(AsymmetricSecurityKey).FullName));
-                return;
-            }
-
-            if (!asymmetricSecurityKey.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature)) {
-                Options.Logger.WriteError(string.Format(CultureInfo.InvariantCulture,
-                    "Cryptography endpoint: invalid signing key registered. " +
-                    "Make sure to provide a '{0}' instance exposing " +
-                    "an asymmetric security key supporting the '{1}' algorithm.",
-                    typeof(SigningCredentials).Name, SecurityAlgorithms.RsaSha256Signature));
-                return;
-            }
-
-            X509Certificate2 x509Certificate = null;
-
-            // Determine whether the signing credentials are directly based on a X.509 certificate.
-            var x509SigningCredentials = Options.SigningCredentials as X509SigningCredentials;
-            if (x509SigningCredentials != null) {
-                x509Certificate = x509SigningCredentials.Certificate;
-            }
-
-            // Skip looking for a X509SecurityKey in SigningCredentials.SigningKey
-            // if a certificate has been found in the SigningCredentials instance.
-            if (x509Certificate == null) {
-                // Determine whether the security key is an asymmetric key embedded in a X.509 certificate.
-                var x509SecurityKey = Options.SigningCredentials.SigningKey as X509SecurityKey;
-                if (x509SecurityKey != null) {
-                    x509Certificate = x509SecurityKey.Certificate;
+                    continue;
                 }
-            }
 
-            // Skip looking for a X509AsymmetricSecurityKey in SigningCredentials.SigningKey
-            // if a certificate has been found in SigningCredentials or SigningCredentials.SigningKey.
-            if (x509Certificate == null) {
-                // Determine whether the security key is an asymmetric key embedded in a X.509 certificate.
-                var x509AsymmetricSecurityKey = Options.SigningCredentials.SigningKey as X509AsymmetricSecurityKey;
-                if (x509AsymmetricSecurityKey != null) {
-                    // The X.509 certificate is not directly accessible when using X509AsymmetricSecurityKey.
-                    // Reflection is the only way to get the certificate used to create the security key.
-                    var field = typeof(X509AsymmetricSecurityKey).GetField(
-                        name: "certificate",
-                        bindingAttr: BindingFlags.Instance | BindingFlags.NonPublic);
+                if (!asymmetricSecurityKey.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature)) {
+                    Options.Logger.WriteWarning(string.Format(CultureInfo.InvariantCulture,
+                        "Cryptography endpoint: invalid signing key registered. " +
+                        "Make sure to provide a '{0}' instance exposing " +
+                        "an asymmetric security key supporting the '{1}' algorithm.",
+                        typeof(SigningCredentials).Name, SecurityAlgorithms.RsaSha256Signature));
 
-                    x509Certificate = (X509Certificate2) field.GetValue(x509AsymmetricSecurityKey);
+                    continue;
                 }
-            }
 
-            if (x509Certificate != null) {
-                // Create a new JSON Web Key exposing the
-                // certificate instead of its public RSA key.
-                notification.Keys.Add(new JsonWebKey {
-                    Kty = JsonWebAlgorithmsKeyTypes.RSA,
-                    Alg = JwtAlgorithms.RSA_SHA256,
-                    Use = JsonWebKeyUseNames.Sig,
+                X509Certificate2 x509Certificate = null;
 
-                    // x5t must be base64url-encoded.
-                    // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#section-4.8
-                    X5t = Base64UrlEncoder.Encode(x509Certificate.GetCertHash()),
+                // Determine whether the signing credentials are directly based on a X.509 certificate.
+                var x509SigningCredentials = credentials as X509SigningCredentials;
+                if (x509SigningCredentials != null) {
+                    x509Certificate = x509SigningCredentials.Certificate;
+                }
 
-                    // Unlike E or N, the certificates contained in x5c
-                    // must be base64-encoded and not base64url-encoded.
-                    // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#section-4.7
-                    X5c = { Convert.ToBase64String(x509Certificate.RawData) }
-                });
-            }
+                // Skip looking for a X509SecurityKey in SigningCredentials.SigningKey
+                // if a certificate has been found in the SigningCredentials instance.
+                if (x509Certificate == null) {
+                    // Determine whether the security key is an asymmetric key embedded in a X.509 certificate.
+                    var x509SecurityKey = asymmetricSecurityKey as X509SecurityKey;
+                    if (x509SecurityKey != null) {
+                        x509Certificate = x509SecurityKey.Certificate;
+                    }
+                }
 
-            else {
-                // Create a new JSON Web Key exposing the exponent and the modulus of the RSA public key.
-                var asymmetricAlgorithm = (RSA) asymmetricSecurityKey.GetAsymmetricAlgorithm(
-                    algorithm: SecurityAlgorithms.RsaSha256Signature, privateKey: false);
+                // Skip looking for a X509AsymmetricSecurityKey in SigningCredentials.SigningKey
+                // if a certificate has been found in SigningCredentials or SigningCredentials.SigningKey.
+                if (x509Certificate == null) {
+                    // Determine whether the security key is an asymmetric key embedded in a X.509 certificate.
+                    var x509AsymmetricSecurityKey = asymmetricSecurityKey as X509AsymmetricSecurityKey;
+                    if (x509AsymmetricSecurityKey != null) {
+                        // The X.509 certificate is not directly accessible when using X509AsymmetricSecurityKey.
+                        // Reflection is the only way to get the certificate used to create the security key.
+                        var field = typeof(X509AsymmetricSecurityKey).GetField(
+                            name: "certificate",
+                            bindingAttr: BindingFlags.Instance | BindingFlags.NonPublic);
 
-                // Export the RSA public key.
-                var parameters = asymmetricAlgorithm.ExportParameters(
-                    includePrivateParameters: false);
+                        x509Certificate = (X509Certificate2) field.GetValue(x509AsymmetricSecurityKey);
+                    }
+                }
 
-                notification.Keys.Add(new JsonWebKey {
-                    Kty = JsonWebAlgorithmsKeyTypes.RSA,
-                    Alg = JwtAlgorithms.RSA_SHA256,
-                    Use = JsonWebKeyUseNames.Sig,
+                if (x509Certificate != null) {
+                    // Create a new JSON Web Key exposing the
+                    // certificate instead of its public RSA key.
+                    notification.Keys.Add(new JsonWebKey {
+                        Kty = JsonWebAlgorithmsKeyTypes.RSA,
+                        Alg = JwtAlgorithms.RSA_SHA256,
+                        Use = JsonWebKeyUseNames.Sig,
 
-                    // Both E and N must be base64url-encoded.
-                    // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#appendix-A.1
-                    E = Base64UrlEncoder.Encode(parameters.Exponent),
-                    N = Base64UrlEncoder.Encode(parameters.Modulus)
-                });
+                        // x5t must be base64url-encoded.
+                        // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#section-4.8
+                        X5t = Base64UrlEncoder.Encode(x509Certificate.GetCertHash()),
+
+                        // Unlike E or N, the certificates contained in x5c
+                        // must be base64-encoded and not base64url-encoded.
+                        // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#section-4.7
+                        X5c = { Convert.ToBase64String(x509Certificate.RawData) }
+                    });
+                }
+
+                else {
+                    // Create a new JSON Web Key exposing the exponent and the modulus of the RSA public key.
+                    var asymmetricAlgorithm = (RSA) asymmetricSecurityKey.GetAsymmetricAlgorithm(
+                        algorithm: SecurityAlgorithms.RsaSha256Signature, privateKey: false);
+
+                    // Export the RSA public key.
+                    var parameters = asymmetricAlgorithm.ExportParameters(
+                        includePrivateParameters: false);
+
+                    notification.Keys.Add(new JsonWebKey {
+                        Kty = JsonWebAlgorithmsKeyTypes.RSA,
+                        Alg = JwtAlgorithms.RSA_SHA256,
+                        Use = JsonWebKeyUseNames.Sig,
+
+                        // Both E and N must be base64url-encoded.
+                        // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#appendix-A.1
+                        E = Base64UrlEncoder.Encode(parameters.Exponent),
+                        N = Base64UrlEncoder.Encode(parameters.Modulus)
+                    });
+                }
             }
 
             await Options.Provider.CryptographyEndpoint(notification);
 
             if (notification.HandledResponse) {
-                return;
-            }
-
-            // Ensure at least one key has been added to context.Keys.
-            if (!notification.Keys.Any()) {
-                Options.Logger.WriteError("Cryptography endpoint: no JSON Web Key found.");
                 return;
             }
 
@@ -1146,6 +1128,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 if (string.IsNullOrEmpty(key.Kty)) {
                     Options.Logger.WriteWarning("Cryptography endpoint: a JSON Web Key didn't " +
                         "contain the mandatory 'Kty' parameter and has been ignored.");
+
                     continue;
                 }
 
@@ -2084,7 +2067,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     Issuer = Context.GetIssuer(Options),
                     SecurityTokenHandler = Options.AccessTokenHandler,
                     SignatureProvider = Options.SignatureProvider,
-                    SigningCredentials = Options.SigningCredentials
+                    SigningCredentials = Options.SigningCredentials.FirstOrDefault()
                 };
 
                 foreach (var audience in resources) {
@@ -2147,22 +2130,18 @@ namespace Owin.Security.OpenIdConnect.Server {
                 identity.AddClaim(JwtRegisteredClaimNames.Iat,
                     EpochTime.GetIntDate(properties.IssuedUtc.Value.UtcDateTime).ToString());
 
-                // Only add c_hash and at_hash if signing credentials have been explictly provided.
-                // Note: JwtHeader's constructor will automatically use the "none" algorithm in this case.
-                if (Options.SigningCredentials != null) {
-                    if (!string.IsNullOrEmpty(response.Code)) {
-                        // Create the c_hash using the authorization code returned by CreateAuthorizationCodeAsync.
-                        var hash = GenerateHash(response.Code, Options.SigningCredentials.DigestAlgorithm);
+                if (!string.IsNullOrEmpty(response.Code)) {
+                    // Create the c_hash using the authorization code returned by CreateAuthorizationCodeAsync.
+                    var hash = GenerateHash(response.Code, SecurityAlgorithms.Sha256Digest);
 
-                        identity.AddClaim(JwtRegisteredClaimNames.CHash, hash);
-                    }
+                    identity.AddClaim(JwtRegisteredClaimNames.CHash, hash);
+                }
 
-                    if (!string.IsNullOrEmpty(response.AccessToken)) {
-                        // Create the at_hash using the access token returned by CreateAccessTokenAsync.
-                        var hash = GenerateHash(response.AccessToken, Options.SigningCredentials.DigestAlgorithm);
+                if (!string.IsNullOrEmpty(response.AccessToken)) {
+                    // Create the at_hash using the access token returned by CreateAccessTokenAsync.
+                    var hash = GenerateHash(response.AccessToken, SecurityAlgorithms.Sha256Digest);
 
-                        identity.AddClaim("at_hash", hash);
-                    }
+                    identity.AddClaim("at_hash", hash);
                 }
 
                 if (!string.IsNullOrEmpty(request.Nonce)) {
@@ -2194,7 +2173,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     Issuer = Context.GetIssuer(Options),
                     SecurityTokenHandler = Options.IdentityTokenHandler,
                     SignatureProvider = Options.SignatureProvider,
-                    SigningCredentials = Options.SigningCredentials
+                    SigningCredentials = Options.SigningCredentials.FirstOrDefault()
                 };
 
                 await Options.Provider.CreateIdentityToken(notification);
@@ -2314,7 +2293,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                     Issuer = Context.GetIssuer(Options),
                     SecurityTokenHandler = Options.AccessTokenHandler,
                     SignatureProvider = Options.SignatureProvider,
-                    SigningCredentials = Options.SigningCredentials
+                    SigningKey = Options.SigningCredentials.Select(credentials => credentials.SigningKey)
+                                                           .FirstOrDefault()
                 };
 
                 await Options.Provider.ReceiveAccessToken(notification);
@@ -2345,7 +2325,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                     Issuer = Context.GetIssuer(Options),
                     SecurityTokenHandler = Options.IdentityTokenHandler,
                     SignatureProvider = Options.SignatureProvider,
-                    SigningCredentials = Options.SigningCredentials
+                    SigningKey = Options.SigningCredentials.Select(credentials => credentials.SigningKey)
+                                                           .FirstOrDefault()
                 };
 
                 await Options.Provider.ReceiveIdentityToken(notification);

@@ -131,8 +131,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     Subject = AuthenticationTicket.Identity,
                     AppliesToAddress = Audiences.ElementAtOrDefault(0),
                     TokenIssuerName = Issuer,
-                    EncryptingCredentials = Options.EncryptingCredentials,
-                    SigningCredentials = Options.SigningCredentials,
+                    SigningCredentials = SigningCredentials,
                     Lifetime = new Lifetime(
                         AuthenticationTicket.Properties.IssuedUtc.Value.UtcDateTime,
                         AuthenticationTicket.Properties.ExpiresUtc.Value.UtcDateTime)

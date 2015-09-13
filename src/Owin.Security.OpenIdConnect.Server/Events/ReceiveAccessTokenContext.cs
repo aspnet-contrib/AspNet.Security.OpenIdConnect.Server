@@ -57,10 +57,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         public SignatureProvider SignatureProvider { get; set; }
 
         /// <summary>
-        /// Gets or sets the signing credentials used to
+        /// Gets or sets the signing key used to
         /// verify the authenticity of the access token.
         /// </summary>
-        public SigningCredentials SigningCredentials { get; set; }
+        public SecurityKey SigningKey { get; set; }
 
         /// <summary>
         /// Gets or sets the data format used to deserialize the authentication ticket.
@@ -107,7 +107,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             // if necessary, the audience and the expiration can be validated
             // in InvokeValidationEndpointAsync or InvokeTokenEndpointAsync.
             var parameters = new TokenValidationParameters {
-                IssuerSigningKey = SigningCredentials.SigningKey,
+                IssuerSigningKey = SigningKey,
                 ValidIssuer = Issuer,
                 ValidateAudience = false,
                 ValidateLifetime = false
