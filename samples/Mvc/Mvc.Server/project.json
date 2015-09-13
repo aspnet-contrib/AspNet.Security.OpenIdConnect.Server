@@ -1,7 +1,6 @@
 {
     "webroot": "wwwroot",
     "exclude": "wwwroot/**/*.*",
-    "resource": [ "Certificate.pfx" ],
 
     "version": "1.0.0-*",
 

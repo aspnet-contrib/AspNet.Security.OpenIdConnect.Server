@@ -1,7 +1,4 @@
 using System;
-using System.IdentityModel.Tokens;
-using System.Reflection;
-using System.Security.Cryptography;
 using AspNet.Security.OpenIdConnect.Server;
 using Microsoft.AspNet.Authentication;
 using Microsoft.AspNet.Authentication.Cookies;
@@ -99,29 +96,16 @@ namespace Mvc.Server {
             app.UseOpenIdConnectServer(options => {
                 options.AuthenticationScheme = OpenIdConnectDefaults.AuthenticationScheme;
 
-                // There's currently a bug in System.IdentityModel.Tokens that prevents using X509 certificates on Mono.
-                // To work around this bug, a new in-memory RSA key is generated each time this app is started.
-                // See https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet/issues/179
-                if (string.Equals(environment.RuntimeType, "Mono", StringComparison.OrdinalIgnoreCase)) {
-                    var rsaCryptoServiceProvider = new RSACryptoServiceProvider(2048);
-                    var rsaParameters = rsaCryptoServiceProvider.ExportParameters(includePrivateParameters: true);
-
-                    options.UseKey(new RsaSecurityKey(rsaParameters));
-                }
-
-                else {
-                    options.UseCertificate(
-                        assembly: typeof(Startup).GetTypeInfo().Assembly,
-                        resource: "Mvc.Server.Certificate.pfx",
-                        password: "Owin.Security.OpenIdConnect.Server");
-                }
-
                 // Note: see AuthorizationController.cs for more
                 // information concerning ApplicationCanDisplayErrors.
                 options.ApplicationCanDisplayErrors = true;
                 options.AllowInsecureHttp = true;
 
                 options.Provider = new AuthorizationProvider();
+
+                // Note: by default, tokens are signed using dynamically-generated
+                // RSA keys but you can also use your own certificate:
+                // options.UseCertificate(certificate);
             });
 
             app.UseStaticFiles();

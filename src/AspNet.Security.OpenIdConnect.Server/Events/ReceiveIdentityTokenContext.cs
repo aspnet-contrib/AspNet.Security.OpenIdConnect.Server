@@ -52,10 +52,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public SignatureProvider SignatureProvider { get; set; }
 
         /// <summary>
-        /// Gets or sets the signing credentials used to
+        /// Gets or sets the signing key used to
         /// verify the authenticity of the identity token.
         /// </summary>
-        public SigningCredentials SigningCredentials { get; set; }
+        public SecurityKey SigningKey { get; set; }
 
         /// <summary>
         /// Gets or sets the security token handler used to
@@ -89,7 +89,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // if necessary, the audience and the expiration can be validated
             // in InvokeValidationEndpointAsync or InvokeTokenEndpointAsync.
             var parameters = new TokenValidationParameters {
-                IssuerSigningKey = SigningCredentials.SigningKey,
+                IssuerSigningKey = SigningKey,
                 ValidIssuer = Issuer,
                 ValidateAudience = false,
                 ValidateLifetime = false

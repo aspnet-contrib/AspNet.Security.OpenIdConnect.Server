@@ -5,6 +5,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Cryptography;
@@ -34,13 +35,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public Uri Issuer { get; set; }
 
         /// <summary>
-        /// The credentials used to sign id_tokens. You can provide any symmetric (e.g <see cref="InMemorySymmetricSecurityKey"/>)
-        /// or asymmetric (e.g <see cref="RsaSecurityKey"/>, <see cref="X509AsymmetricSecurityKey"/> or <see cref="X509SecurityKey"/>)
-        /// security key, but you're strongly encouraged to use a 2048 or 4096-bits RSA asymmetric key in production.
-        /// Note that only keys supporting the <see cref="SecurityAlgorithms.RsaSha256Signature"/> algorithm can be exposed
-        /// on the configuration metadata endpoint. A <see cref="X509SigningCredentials"/> instance may also be provided.
+        /// Gets the list of the credentials used to sign tokens. You can provide any symmetric (e.g <see cref="SymmetricSecurityKey"/>)
+        /// or asymmetric (e.g <see cref="RsaSecurityKey"/>, or <see cref="X509SecurityKey"/>) security key, but you're strongly
+        /// encouraged to use a 2048 or 4096-bits RSA asymmetric key in production. Note that only keys supporting the
+        /// <see cref="SecurityAlgorithms.RsaSha256Signature"/> algorithm can be exposed on the configuration metadata endpoint.
         /// </summary>
-        public SigningCredentials SigningCredentials { get; set; }
+        public IList<SigningCredentials> SigningCredentials { get; set; } = new List<SigningCredentials>();
 
         /// <summary>
         /// The request path where client applications will redirect the user-agent in order to 
