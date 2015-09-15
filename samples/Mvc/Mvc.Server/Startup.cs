@@ -94,7 +94,7 @@ namespace Mvc.Server {
 #endif
 
             app.UseOpenIdConnectServer(options => {
-                options.AuthenticationScheme = OpenIdConnectDefaults.AuthenticationScheme;
+                options.AuthenticationScheme = OpenIdConnectServerDefaults.AuthenticationScheme;
 
                 // Note: see AuthorizationController.cs for more
                 // information concerning ApplicationCanDisplayErrors.

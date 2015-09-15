@@ -8,13 +8,13 @@ using Microsoft.AspNet.Authentication;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
-    /// Default values used by authorization server and bearer authentication.
+    /// Default values used by authorization server.
     /// </summary>
-    public static class OpenIdConnectDefaults {
+    public static class OpenIdConnectServerDefaults {
         /// <summary>
         /// Default value for <see cref="AuthenticationOptions.AuthenticationScheme"/>.
         /// </summary>
-        public const string AuthenticationScheme = "Bearer";
+        public const string AuthenticationScheme = "oidc-server";
 
         /// <summary>
         /// Default value for <see cref="OpenIdConnectServerOptions.AuthorizationEndpointPath"/>.

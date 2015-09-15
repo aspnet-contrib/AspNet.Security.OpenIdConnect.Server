@@ -41,7 +41,7 @@ namespace Mvc.Client {
             });
 
             app.UseOpenIdConnectAuthentication(options => {
-                options.AuthenticationScheme = OpenIdConnectAuthenticationDefaults.AuthenticationScheme;
+                options.AuthenticationScheme = OpenIdConnectDefaults.AuthenticationScheme;
 
                 // Note: these settings must match the application details
                 // inserted in the database at the server level.
@@ -59,7 +59,7 @@ namespace Mvc.Client {
                 // access token should be issued for (values must be space-delimited).
                 options.Resource = "http://localhost:54540/";
 
-                options.Events = new OpenIdConnectAuthenticationEvents {
+                options.Events = new OpenIdConnectEvents {
                     // Note: by default, the OIDC client throws an OpenIdConnectProtocolException
                     // when an error occurred during the authentication/authorization process.
                     // To prevent a YSOD from being displayed, the response is declared as handled.

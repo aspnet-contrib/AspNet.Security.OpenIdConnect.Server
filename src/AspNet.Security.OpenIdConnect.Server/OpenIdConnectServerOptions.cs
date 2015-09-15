@@ -24,7 +24,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// Creates an instance of authorization server options with default values.
         /// </summary>
         public OpenIdConnectServerOptions() {
-            AuthenticationScheme = OpenIdConnectDefaults.AuthenticationScheme;
+            AuthenticationScheme = OpenIdConnectServerDefaults.AuthenticationScheme;
         }
 
         /// <summary>
@@ -47,42 +47,42 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// obtain user consent to issue a token. Must begin with a leading slash, like "/connect/authorize".
         /// This setting can be set to <see cref="PathString.Empty"/> to disable the authorization endpoint.
         /// </summary>
-        public PathString AuthorizationEndpointPath { get; set; } = new PathString(OpenIdConnectDefaults.AuthorizationEndpointPath);
+        public PathString AuthorizationEndpointPath { get; set; } = new PathString(OpenIdConnectServerDefaults.AuthorizationEndpointPath);
 
         /// <summary>
         /// The request path where client applications will be able to retrieve the configuration metadata associated
         /// with this instance. Must begin with a leading slash, like "/.well-known/openid-configuration".
         /// This setting can be set to <see cref="PathString.Empty"/> to disable the configuration endpoint.
         /// </summary>
-        public PathString ConfigurationEndpointPath { get; set; } = new PathString(OpenIdConnectDefaults.ConfigurationEndpointPath);
+        public PathString ConfigurationEndpointPath { get; set; } = new PathString(OpenIdConnectServerDefaults.ConfigurationEndpointPath);
 
         /// <summary>
         /// The request path where client applications will be able to retrieve the JSON Web Key Set
         /// associated with this instance. Must begin with a leading slash, like "/.well-known/jwks".
         /// This setting can be set to <see cref="PathString.Empty"/> to disable the cryptography endpoint.
         /// </summary>
-        public PathString CryptographyEndpointPath { get; set; } = new PathString(OpenIdConnectDefaults.CryptographyEndpointPath);
+        public PathString CryptographyEndpointPath { get; set; } = new PathString(OpenIdConnectServerDefaults.CryptographyEndpointPath);
 
         /// <summary>
         /// The request path client applications communicate with directly as part of the OpenID Connect protocol. 
         /// Must begin with a leading slash, like "/connect/token". If the client is issued a client_secret, it must
         /// be provided to this endpoint. You can set it to <see cref="PathString.Empty"/> to disable the token endpoint.
         /// </summary>
-        public PathString TokenEndpointPath { get; set; } = new PathString(OpenIdConnectDefaults.TokenEndpointPath);
+        public PathString TokenEndpointPath { get; set; } = new PathString(OpenIdConnectServerDefaults.TokenEndpointPath);
 
         /// <summary>
         /// The request path client applications communicate with to validate identity or access tokens. 
         /// Must begin with a leading slash, like "/connect/token_validation".
         /// You can set it to <see cref="PathString.Empty"/> to disable the validation endpoint.
         /// </summary>
-        public PathString ValidationEndpointPath { get; set; } = new PathString(OpenIdConnectDefaults.ValidationEndpointPath);
+        public PathString ValidationEndpointPath { get; set; } = new PathString(OpenIdConnectServerDefaults.ValidationEndpointPath);
 
         /// <summary>
         /// The request path client applications communicate with to log out. 
         /// Must begin with a leading slash, like "/connect/logout".
         /// You can set it to <see cref="PathString.Empty"/> to disable the logout endpoint.
         /// </summary>
-        public PathString LogoutEndpointPath { get; set; } = new PathString(OpenIdConnectDefaults.LogoutEndpointPath);
+        public PathString LogoutEndpointPath { get; set; } = new PathString(OpenIdConnectServerDefaults.LogoutEndpointPath);
 
         /// <summary>
         /// Specifies a <see cref="IOpenIdConnectServerProvider"/> that the <see cref="OpenIdConnectServerMiddleware" /> invokes

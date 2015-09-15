@@ -91,7 +91,7 @@ namespace Mvc.Server.Controllers {
 
             // Create a new ClaimsIdentity containing the claims that
             // will be used to create an id_token, a token or a code.
-            var identity = new ClaimsIdentity(OpenIdConnectDefaults.AuthenticationScheme);
+            var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
 
             // Copy the claims retrieved from the external identity provider
             // (e.g Google, Facebook, a WS-Fed provider or another OIDC server).
@@ -125,7 +125,7 @@ namespace Mvc.Server.Controllers {
             // Create a new ClaimsIdentity containing the claims associated with the application.
             // Note: setting identity.Actor is not mandatory but can be useful to access
             // the whole delegation chain from the resource server (see ResourceController.cs).
-            identity.Actor = new ClaimsIdentity(OpenIdConnectDefaults.AuthenticationScheme);
+            identity.Actor = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
             identity.Actor.AddClaim(ClaimTypes.NameIdentifier, application.ApplicationID);
             identity.Actor.AddClaim(ClaimTypes.Name, application.DisplayName, destination: "id_token token");
 
@@ -135,7 +135,7 @@ namespace Mvc.Server.Controllers {
             // a 'sub' or a 'ClaimTypes.NameIdentifier' claim. In this case, the returned
             // identities always contain the name identifier returned by the external provider.
             // Note: the authenticationScheme parameter must match the value configured in Startup.cs.
-            await Context.Authentication.SignInAsync(OpenIdConnectDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
+            await Context.Authentication.SignInAsync(OpenIdConnectServerDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
 
             return new EmptyResult();
         }
@@ -182,7 +182,7 @@ namespace Mvc.Server.Controllers {
             // When invoked, the logout endpoint might receive an unauthenticated request if the server cookie has expired.
             // When the client application sends an id_token_hint parameter, the corresponding identity can be retrieved
             // using AuthenticateAsync or using User when the authorization server is declared as AuthenticationMode.Active.
-            var identity = await Context.Authentication.AuthenticateAsync(OpenIdConnectDefaults.AuthenticationScheme);
+            var identity = await Context.Authentication.AuthenticateAsync(OpenIdConnectServerDefaults.AuthenticationScheme);
 
             // Extract the logout request from the ASP.NET environment.
             var request = Context.GetOpenIdConnectRequest();
@@ -208,7 +208,7 @@ namespace Mvc.Server.Controllers {
             // Note: you should always make sure the identities you return contain either
             // a 'sub' or a 'ClaimTypes.NameIdentifier' claim. In this case, the returned
             // identities always contain the name identifier returned by the external provider.
-            await Context.Authentication.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
+            await Context.Authentication.SignOutAsync(OpenIdConnectServerDefaults.AuthenticationScheme);
         }
         
         protected virtual Task<Application> GetApplicationAsync(string identifier, CancellationToken cancellationToken) {

@@ -22,7 +22,7 @@ namespace Mvc.Client.Controllers {
             await Context.Authentication.SignOutAsync("ClientCookie");
 
             // Instruct the OpenID Connect middleware to redirect the user agent to the identity provider to sign out.
-            await Context.Authentication.SignOutAsync(OpenIdConnectAuthenticationDefaults.AuthenticationScheme);
+            await Context.Authentication.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
         }
     }
 }
