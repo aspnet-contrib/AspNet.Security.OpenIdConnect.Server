@@ -118,6 +118,43 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 token.Payload[JwtRegisteredClaimNames.Aud] = Audiences.ToArray();
             }
 
+            if (SigningCredentials != null) {
+                var x509SecurityKey = SigningCredentials.SigningKey as X509SecurityKey;
+                if (x509SecurityKey != null) {
+                    // Note: unlike "kid", "x5t" is not automatically added by JwtHeader's constructor in IdentityModel for ASP.NET 5.
+                    // Though not required by the specifications, this property is needed for IdentityModel for Katana to work correctly.
+                    // See https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server/issues/132
+                    // and https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet/issues/181.
+                    token.Header[JwtHeaderParameterNames.X5t] = Base64UrlEncoder.Encode(x509SecurityKey.Certificate.GetCertHash());
+                }
+
+                object identifier;
+                if (!token.Header.TryGetValue(JwtHeaderParameterNames.Kid, out identifier) || identifier == null) {
+                    // When the token doesn't contain a "kid" parameter in the header, automatically add one
+                    // using the identifier specified in the signing credentials or in the security key.
+                    identifier = SigningCredentials.Kid ?? SigningCredentials.SigningKey.KeyId;
+
+                    if (identifier == null) {
+                        // When no key identifier has been explicitly added by the developer, a "kid" is automatically
+                        // inferred from the hexadecimal representation of the certificate thumbprint (SHA-1).
+                        if (x509SecurityKey != null) {
+                            identifier = x509SecurityKey.Certificate.Thumbprint;
+                        }
+
+                        // When no key identifier has been explicitly added by the developer, a "kid"
+                        // is automatically inferred from the modulus if the signing key is a RSA key.
+                        var rsaSecurityKey = SigningCredentials.SigningKey as RsaSecurityKey;
+                        if (rsaSecurityKey != null) {
+                            // Only use the 40 first chars to match the identifier used by the JWKS endpoint.
+                            identifier = Base64UrlEncoder.Encode(rsaSecurityKey.Parameters.Modulus)
+                                                         .Substring(0, 40).ToUpperInvariant();
+                        }
+                    }
+
+                    token.Header[JwtHeaderParameterNames.Kid] = identifier;
+                }
+            }
+
             return Task.FromResult(SecurityTokenHandler.WriteToken(token));
         }
     }

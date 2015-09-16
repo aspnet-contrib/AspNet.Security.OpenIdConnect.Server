@@ -1003,7 +1003,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     continue;
                 }
 
-                // Determine whether the security key is an asymmetric key embedded in a X.509 certificate.
+                // Determine whether the security key is a RSA key embedded in a X.509 certificate.
                 var x509SecurityKey = credentials.SigningKey as X509SecurityKey;
                 if (x509SecurityKey != null) {
                     // Create a new JSON Web Key exposing the
@@ -1012,6 +1012,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
                         Kty = JsonWebAlgorithmsKeyTypes.RSA,
                         Alg = JwtAlgorithms.RSA_SHA256,
                         Use = JsonWebKeyUseNames.Sig,
+
+                        // By default, use the key identifier specified in the signing credentials. If none is specified,
+                        // use the hexadecimal representation of the certificate's SHA-1 hash as the unique key identifier.
+                        Kid = credentials.Kid ?? x509SecurityKey.KeyId ?? x509SecurityKey.Certificate.Thumbprint,
 
                         // x5t must be base64url-encoded.
                         // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#section-4.8
@@ -1024,21 +1028,27 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     });
                 }
 
-                else {
-                    var rsaSecurityKey = credentials.SigningKey as RsaSecurityKey;
-                    if (rsaSecurityKey != null) {
-                        // Export the RSA public key.
-                        notification.Keys.Add(new JsonWebKey {
-                            Kty = JsonWebAlgorithmsKeyTypes.RSA,
-                            Alg = JwtAlgorithms.RSA_SHA256,
-                            Use = JsonWebKeyUseNames.Sig,
+                var rsaSecurityKey = credentials.SigningKey as RsaSecurityKey;
+                if (rsaSecurityKey != null) {
+                    // Export the RSA public key.
+                    notification.Keys.Add(new JsonWebKey {
+                        Kty = JsonWebAlgorithmsKeyTypes.RSA,
+                        Alg = JwtAlgorithms.RSA_SHA256,
+                        Use = JsonWebKeyUseNames.Sig,
 
-                            // Both E and N must be base64url-encoded.
-                            // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#appendix-A.1
-                            E = Base64UrlEncoder.Encode(rsaSecurityKey.Parameters.Exponent),
-                            N = Base64UrlEncoder.Encode(rsaSecurityKey.Parameters.Modulus)
-                        });
-                    }
+                        // By default, use the key identifier specified in the signing credentials.
+                        // If none is specified, try to extract it from the security key itself or
+                        // create one using the base64url-encoded representation of the modulus.
+                        Kid = credentials.Kid ?? rsaSecurityKey.KeyId ??
+                            // Note: use the first 40 chars to avoid using a too long identifier.
+                            Base64UrlEncoder.Encode(rsaSecurityKey.Parameters.Modulus)
+                                            .Substring(0, 40).ToUpperInvariant(),
+
+                        // Both E and N must be base64url-encoded.
+                        // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#appendix-A.1
+                        E = Base64UrlEncoder.Encode(rsaSecurityKey.Parameters.Exponent),
+                        N = Base64UrlEncoder.Encode(rsaSecurityKey.Parameters.Modulus)
+                    });
                 }
             }
 
@@ -1066,14 +1076,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 // Create a dictionary associating the
                 // JsonWebKey components with their values.
                 var parameters = new Dictionary<string, string> {
+                    [JsonWebKeyParameterNames.Kid] = key.Kid,
+                    [JsonWebKeyParameterNames.Use] = key.Use,
                     [JsonWebKeyParameterNames.Kty] = key.Kty,
                     [JsonWebKeyParameterNames.Alg] = key.Alg,
-                    [JsonWebKeyParameterNames.E] = key.E,
-                    [JsonWebKeyParameterNames.Kid] = key.Kid,
-                    [JsonWebKeyParameterNames.N] = key.N,
-                    [JsonWebKeyParameterNames.Use] = key.Use,
                     [JsonWebKeyParameterNames.X5t] = key.X5t,
                     [JsonWebKeyParameterNames.X5u] = key.X5u,
+                    [JsonWebKeyParameterNames.E] = key.E,
+                    [JsonWebKeyParameterNames.N] = key.N
                 };
 
                 foreach (var parameter in parameters) {
