@@ -81,8 +81,7 @@
     <Compile Include="Events\ReceiveAccessTokenContext.cs" />
     <Compile Include="Events\ReceiveAuthorizationCodeContext.cs" />
     <Compile Include="Events\ReceiveRefreshTokenContext.cs" />
-    <Compile Include="OpenIdConnectConstants.cs" />
-    <Compile Include="OpenIdConnectDefaults.cs" />
+    <Compile Include="OpenIdConnectServerDefaults.cs" />
     <Compile Include="OpenIdConnectServerExtensions.cs" />
     <Compile Include="OpenIdConnectServerHandler.cs" />
     <Compile Include="OpenIdConnectServerMiddleware.cs" />

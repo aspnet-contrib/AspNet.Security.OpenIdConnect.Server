@@ -86,7 +86,7 @@ namespace Mvc.Server.Controllers {
 
             // Create a new ClaimsIdentity containing the claims that
             // will be used to create an id_token, a token or a code.
-            var identity = new ClaimsIdentity(OpenIdConnectDefaults.AuthenticationType);
+            var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationType);
 
             foreach (var claim in OwinContext.Authentication.User.Claims) {
                 // Allow ClaimTypes.Name to be added in the id_token.
@@ -118,7 +118,7 @@ namespace Mvc.Server.Controllers {
             // Create a new ClaimsIdentity containing the claims associated with the application.
             // Note: setting identity.Actor is not mandatory but can be useful to access
             // the whole delegation chain from the resource server (see ResourceController.cs).
-            identity.Actor = new ClaimsIdentity(OpenIdConnectDefaults.AuthenticationType);
+            identity.Actor = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationType);
             identity.Actor.AddClaim(ClaimTypes.NameIdentifier, application.ApplicationID);
             identity.Actor.AddClaim(ClaimTypes.Name, application.DisplayName, destination: "id_token token");
 
@@ -174,7 +174,7 @@ namespace Mvc.Server.Controllers {
             // When invoked, the logout endpoint might receive an unauthenticated request if the server cookie has expired.
             // When the client application sends an id_token_hint parameter, the corresponding identity can be retrieved
             // using AuthenticateAsync or using User when the authorization server is declared as AuthenticationMode.Active.
-            var identity = await OwinContext.Authentication.AuthenticateAsync(OpenIdConnectDefaults.AuthenticationType);
+            var identity = await OwinContext.Authentication.AuthenticateAsync(OpenIdConnectServerDefaults.AuthenticationType);
 
             // Extract the logout request from the OWIN environment.
             var request = OwinContext.GetOpenIdConnectRequest();
@@ -201,7 +201,7 @@ namespace Mvc.Server.Controllers {
             // Note: you should always make sure the identities you return contain either
             // a 'sub' or a 'ClaimTypes.NameIdentifier' claim. In this case, the returned
             // identities always contain the name identifier returned by the external provider.
-            OwinContext.Authentication.SignOut(OpenIdConnectDefaults.AuthenticationType);
+            OwinContext.Authentication.SignOut(OpenIdConnectServerDefaults.AuthenticationType);
 
             return new HttpStatusCodeResult(200);
         }

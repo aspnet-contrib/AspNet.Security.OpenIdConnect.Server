@@ -10,11 +10,11 @@ namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Default values used by authorization server and bearer authentication.
     /// </summary>
-    public static class OpenIdConnectDefaults {
+    public static class OpenIdConnectServerDefaults {
         /// <summary>
         /// Default value for <see cref="AuthenticationOptions.AuthenticationType"/>.
         /// </summary>
-        public const string AuthenticationType = "Bearer";
+        public const string AuthenticationType = "oidc-server";
 
         /// <summary>
         /// Default value for <see cref="OpenIdConnectServerOptions.AuthorizationEndpointPath"/>.

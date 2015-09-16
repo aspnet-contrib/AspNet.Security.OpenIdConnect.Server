@@ -68,7 +68,7 @@ namespace Mvc.Server {
             app.UseXXssProtection(options => options.EnabledWithBlockMode());
 
             app.UseOpenIdConnectServer(options => {
-                options.AuthenticationType = OpenIdConnectDefaults.AuthenticationType;
+                options.AuthenticationType = OpenIdConnectServerDefaults.AuthenticationType;
                 options.AuthenticationMode = AuthenticationMode.Passive;
 
                 options.UseCertificate(certificate);

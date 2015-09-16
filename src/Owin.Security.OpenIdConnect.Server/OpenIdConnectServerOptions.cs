@@ -26,7 +26,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// Creates an instance of authorization server options with default values.
         /// </summary>
         public OpenIdConnectServerOptions()
-            : base(OpenIdConnectDefaults.AuthenticationType) {
+            : base(OpenIdConnectServerDefaults.AuthenticationType) {
             AuthorizationCodeLifetime = TimeSpan.FromMinutes(5);
             AccessTokenLifetime = TimeSpan.FromHours(1);
             IdentityTokenLifetime = TimeSpan.FromMinutes(20);
@@ -34,12 +34,12 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             UseSlidingExpiration = true;
 
-            AuthorizationEndpointPath = new PathString(OpenIdConnectDefaults.AuthorizationEndpointPath);
-            ConfigurationEndpointPath = new PathString(OpenIdConnectDefaults.ConfigurationEndpointPath);
-            CryptographyEndpointPath = new PathString(OpenIdConnectDefaults.CryptographyEndpointPath);
-            TokenEndpointPath = new PathString(OpenIdConnectDefaults.TokenEndpointPath);
-            ValidationEndpointPath = new PathString(OpenIdConnectDefaults.ValidationEndpointPath);
-            LogoutEndpointPath = new PathString(OpenIdConnectDefaults.LogoutEndpointPath);
+            AuthorizationEndpointPath = new PathString(OpenIdConnectServerDefaults.AuthorizationEndpointPath);
+            ConfigurationEndpointPath = new PathString(OpenIdConnectServerDefaults.ConfigurationEndpointPath);
+            CryptographyEndpointPath = new PathString(OpenIdConnectServerDefaults.CryptographyEndpointPath);
+            TokenEndpointPath = new PathString(OpenIdConnectServerDefaults.TokenEndpointPath);
+            ValidationEndpointPath = new PathString(OpenIdConnectServerDefaults.ValidationEndpointPath);
+            LogoutEndpointPath = new PathString(OpenIdConnectServerDefaults.LogoutEndpointPath);
 
             Provider = new OpenIdConnectServerProvider();
             SystemClock = new SystemClock();
