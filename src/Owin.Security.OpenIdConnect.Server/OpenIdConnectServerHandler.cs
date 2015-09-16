@@ -1078,6 +1078,10 @@ namespace Owin.Security.OpenIdConnect.Server {
                         Alg = JwtAlgorithms.RSA_SHA256,
                         Use = JsonWebKeyUseNames.Sig,
 
+                        // By default, use the hexadecimal representation of the
+                        // certificate's SHA-1 hash as the unique key identifier.
+                        Kid = x509Certificate.Thumbprint,
+
                         // x5t must be base64url-encoded.
                         // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#section-4.8
                         X5t = Base64UrlEncoder.Encode(x509Certificate.GetCertHash()),
@@ -1095,13 +1099,18 @@ namespace Owin.Security.OpenIdConnect.Server {
                         algorithm: SecurityAlgorithms.RsaSha256Signature, privateKey: false);
 
                     // Export the RSA public key.
-                    var parameters = asymmetricAlgorithm.ExportParameters(
-                        includePrivateParameters: false);
+                    var parameters = asymmetricAlgorithm.ExportParameters(includePrivateParameters: false);
 
                     notification.Keys.Add(new JsonWebKey {
                         Kty = JsonWebAlgorithmsKeyTypes.RSA,
                         Alg = JwtAlgorithms.RSA_SHA256,
                         Use = JsonWebKeyUseNames.Sig,
+
+                        // Create a unique identifier using the base64url-encoded representation of the modulus.
+                        // Note: use the first 40 chars to avoid using a too long identifier.
+                        Kid = Base64UrlEncoder.Encode(parameters.Modulus)
+                                              .Substring(0, 40)
+                                              .ToUpperInvariant(),
 
                         // Both E and N must be base64url-encoded.
                         // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#appendix-A.1
@@ -1135,15 +1144,15 @@ namespace Owin.Security.OpenIdConnect.Server {
                 // Create a dictionary associating the
                 // JsonWebKey components with their values.
                 var parameters = new Dictionary<string, string> {
-                    { JsonWebKeyParameterNames.Kty, key.Kty },
-                    { JsonWebKeyParameterNames.Alg, key.Alg },
-                    { JsonWebKeyParameterNames.E, key.E },
-                    { JsonWebKeyParameterNames.KeyOps, key.KeyOps },
                     { JsonWebKeyParameterNames.Kid, key.Kid },
-                    { JsonWebKeyParameterNames.N, key.N },
                     { JsonWebKeyParameterNames.Use, key.Use },
+                    { JsonWebKeyParameterNames.Kty, key.Kty },
+                    { JsonWebKeyParameterNames.KeyOps, key.KeyOps },
+                    { JsonWebKeyParameterNames.Alg, key.Alg },
                     { JsonWebKeyParameterNames.X5t, key.X5t },
                     { JsonWebKeyParameterNames.X5u, key.X5u },
+                    { JsonWebKeyParameterNames.E, key.E },
+                    { JsonWebKeyParameterNames.N, key.N }
                 };
 
                 foreach (var parameter in parameters) {

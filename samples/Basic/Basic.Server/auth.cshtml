@@ -26,7 +26,7 @@
         return;
     }
 
-    var identity = new ClaimsIdentity(OpenIdConnectDefaults.AuthenticationType);
+    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationType);
 
     var claims = new List<Claim> {
         // Note: by default, claims are not added in the identity token.

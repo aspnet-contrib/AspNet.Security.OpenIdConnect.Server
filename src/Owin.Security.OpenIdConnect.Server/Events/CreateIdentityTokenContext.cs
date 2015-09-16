@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using System.IdentityModel.Tokens;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
@@ -108,6 +109,42 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             if (Audiences.Count() > 1) {
                 token.Payload[JwtRegisteredClaimNames.Aud] = Audiences.ToArray();
+            }
+
+            if (SigningCredentials != null) {
+                var x509SecurityKey = SigningCredentials.SigningKey as X509SecurityKey;
+                if (x509SecurityKey != null) {
+                    // Note: "x5t" is only added by JwtHeader's constructor if SigningCredentials is a X509SigningCredentials instance.
+                    // To work around this limitation, "x5t" is manually added if a certificate can be extracted from a X509SecurityKey
+                    token.Header[JwtHeaderParameterNames.X5t] = Base64UrlEncoder.Encode(x509SecurityKey.Certificate.GetCertHash());
+                }
+
+                object identifier;
+                if (!token.Header.TryGetValue(JwtHeaderParameterNames.Kid, out identifier) || identifier == null) {
+                    // When no key identifier has been explicitly added, a "kid" is automatically
+                    // inferred from the hexadecimal representation of the certificate thumbprint.
+                    if (x509SecurityKey != null) {
+                        identifier = x509SecurityKey.Certificate.Thumbprint;
+                    }
+
+                    // When no key identifier has been explicitly added by the developer, a "kid"
+                    // is automatically inferred from the modulus if the signing key is a RSA key.
+                    var rsaSecurityKey = SigningCredentials.SigningKey as RsaSecurityKey;
+                    if (rsaSecurityKey != null) {
+                        var algorithm = (RSA) rsaSecurityKey.GetAsymmetricAlgorithm(
+                            SecurityAlgorithms.RsaSha256Signature, false);
+
+                        // Export the RSA public key.
+                        var parameters = algorithm.ExportParameters(includePrivateParameters: false);
+
+                        // Only use the 40 first chars to match the identifier used by the JWKS endpoint.
+                        identifier = Base64UrlEncoder.Encode(parameters.Modulus)
+                                                     .Substring(0, 40)
+                                                     .ToUpperInvariant();
+                    }
+
+                    token.Header[JwtHeaderParameterNames.Kid] = identifier;
+                }
             }
 
             return Task.FromResult(SecurityTokenHandler.WriteToken(token));
