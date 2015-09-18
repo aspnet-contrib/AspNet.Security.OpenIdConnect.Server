@@ -112,6 +112,9 @@
 		Something odd happens here, because there's a 200 response,
 		that doesn't show up in the web browser,
 		and that seems to immediately redirect to the next page.
+		Edit: Aha. The served document contains the inline script
+		<script>document.form.submit();</script>
+		
 
 
 5. Authorization Server sends the End-User back to the Client with an Authorization Code 
