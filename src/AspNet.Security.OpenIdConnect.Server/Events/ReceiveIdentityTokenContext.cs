@@ -70,12 +70,16 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
         /// <summary>
         /// Deserialize and unprotect the authentication ticket.
+        /// Note: the <see cref="AuthenticationTicket"/> property
+        /// is automatically set when this method completes.
         /// </summary>
         /// <returns>The authentication ticket.</returns>
         public Task<AuthenticationTicket> DeserializeTicketAsync() => DeserializeTicketAsync(IdentityToken);
 
         /// <summary>
         /// Deserialize and verify the authentication ticket.
+        /// Note: the <see cref="AuthenticationTicket"/> property
+        /// is automatically set when this method completes.
         /// </summary>
         /// <param name="ticket">The serialized ticket.</param>
         /// <returns>The authentication ticket.</returns>
@@ -111,7 +115,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 properties.SetAudiences(audiences.Select(claim => claim.Value));
             }
 
-            return Task.FromResult(new AuthenticationTicket(principal, properties, Options.AuthenticationScheme));
+            return Task.FromResult(AuthenticationTicket = new AuthenticationTicket(principal, properties, Options.AuthenticationScheme));
         }
     }
 }

@@ -56,10 +56,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
         /// <summary>
         /// Serialize and sign the authentication ticket.
+        /// Note: the <see cref="RefreshToken"/> property
+        /// is automatically set when this method completes.
         /// </summary>
         /// <returns>The serialized and signed ticket.</returns>
         public Task<string> SerializeTicketAsync() {
-            return Task.FromResult(DataFormat?.Protect(AuthenticationTicket));
+            return Task.FromResult(RefreshToken = DataFormat?.Protect(AuthenticationTicket));
         }
     }
 }

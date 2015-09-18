@@ -1934,18 +1934,19 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 await Options.Provider.CreateAuthorizationCode(notification);
 
-                // Allow the application to change the authentication
-                // ticket from the CreateAuthorizationCode event.
-                ticket = notification.AuthenticationTicket;
-                ticket.Properties.CopyTo(properties);
-
-                if (notification.HandledResponse) {
+                // Treat a non-null authorization code like an implicit HandleResponse call.
+                if (notification.HandledResponse || !string.IsNullOrEmpty(notification.AuthorizationCode)) {
                     return notification.AuthorizationCode;
                 }
 
                 else if (notification.Skipped) {
                     return null;
                 }
+
+                // Allow the application to change the authentication
+                // ticket from the CreateAuthorizationCode event.
+                ticket = notification.AuthenticationTicket;
+                ticket.Properties.CopyTo(properties);
 
                 var key = GenerateKey(256 / 8);
 
@@ -2037,18 +2038,19 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 await Options.Provider.CreateAccessToken(notification);
 
-                // Allow the application to change the authentication
-                // ticket from the CreateAccessTokenAsync event.
-                ticket = notification.AuthenticationTicket;
-                ticket.Properties.CopyTo(properties);
-
-                if (notification.HandledResponse) {
+                // Treat a non-null access token like an implicit HandleResponse call.
+                if (notification.HandledResponse || !string.IsNullOrEmpty(notification.AccessToken)) {
                     return notification.AccessToken;
                 }
 
                 else if (notification.Skipped) {
                     return null;
                 }
+
+                // Allow the application to change the authentication
+                // ticket from the CreateAccessTokenAsync event.
+                ticket = notification.AuthenticationTicket;
+                ticket.Properties.CopyTo(properties);
 
                 return await notification.SerializeTicketAsync();
             }
@@ -2141,18 +2143,19 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 await Options.Provider.CreateIdentityToken(notification);
 
-                // Allow the application to change the authentication
-                // ticket from the CreateIdentityTokenAsync event.
-                ticket = notification.AuthenticationTicket;
-                ticket.Properties.CopyTo(properties);
-
-                if (notification.HandledResponse) {
+                // Treat a non-null identity token like an implicit HandleResponse call.
+                if (notification.HandledResponse || !string.IsNullOrEmpty(notification.IdentityToken)) {
                     return notification.IdentityToken;
                 }
 
                 else if (notification.Skipped) {
                     return null;
                 }
+
+                // Allow the application to change the authentication
+                // ticket from the CreateIdentityTokenAsync event.
+                ticket = notification.AuthenticationTicket;
+                ticket.Properties.CopyTo(properties);
 
                 return await notification.SerializeTicketAsync();
             }
@@ -2189,18 +2192,19 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 await Options.Provider.CreateRefreshToken(notification);
 
-                // Allow the application to change the authentication
-                // ticket from the CreateRefreshTokenAsync event.
-                ticket = notification.AuthenticationTicket;
-                ticket.Properties.CopyTo(properties);
-
-                if (notification.HandledResponse) {
+                // Treat a non-null refresh token like an implicit HandleResponse call.
+                if (notification.HandledResponse || !string.IsNullOrEmpty(notification.RefreshToken)) {
                     return notification.RefreshToken;
                 }
 
                 else if (notification.Skipped) {
                     return null;
                 }
+
+                // Allow the application to change the authentication
+                // ticket from the CreateRefreshTokenAsync event.
+                ticket = notification.AuthenticationTicket;
+                ticket.Properties.CopyTo(properties);
 
                 return await notification.SerializeTicketAsync();
             }
@@ -2222,7 +2226,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 // Directly return the authentication ticket if one
                 // has been provided by ReceiveAuthorizationCode.
-                if (notification.HandledResponse) {
+                // Treat a non-null ticket like an implicit HandleResponse call.
+                if (notification.HandledResponse || notification.AuthenticationTicket != null) {
                     return notification.AuthenticationTicket;
                 }
 
@@ -2267,7 +2272,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 // Directly return the authentication ticket if one
                 // has been provided by ReceiveAccessToken.
-                if (notification.HandledResponse) {
+                // Treat a non-null ticket like an implicit HandleResponse call.
+                if (notification.HandledResponse || notification.AuthenticationTicket != null) {
                     return notification.AuthenticationTicket;
                 }
 
@@ -2299,7 +2305,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 // Directly return the authentication ticket if one
                 // has been provided by ReceiveIdentityToken.
-                if (notification.HandledResponse) {
+                // Treat a non-null ticket like an implicit HandleResponse call.
+                if (notification.HandledResponse || notification.AuthenticationTicket != null) {
                     return notification.AuthenticationTicket;
                 }
 
@@ -2327,7 +2334,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 // Directly return the authentication ticket if one
                 // has been provided by ReceiveRefreshToken.
-                if (notification.HandledResponse) {
+                // Treat a non-null ticket like an implicit HandleResponse call.
+                if (notification.HandledResponse || notification.AuthenticationTicket != null) {
                     return notification.AuthenticationTicket;
                 }
 
