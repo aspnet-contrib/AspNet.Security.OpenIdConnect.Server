@@ -87,6 +87,8 @@ namespace Owin.Security.OpenIdConnect.Server {
 
         /// <summary>
         /// Serialize and sign the authentication ticket.
+        /// Note: the <see cref="IdentityToken"/> property
+        /// is automatically set when this method completes.
         /// </summary>
         /// <returns>The serialized and signed ticket.</returns>
         public Task<string> SerializeTicketAsync() {
@@ -147,7 +149,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
             }
 
-            return Task.FromResult(SecurityTokenHandler.WriteToken(token));
+            return Task.FromResult(IdentityToken = SecurityTokenHandler.WriteToken(token));
         }
     }
 }

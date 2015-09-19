@@ -54,6 +54,8 @@ namespace Owin.Security.OpenIdConnect.Server {
 
         /// <summary>
         /// Deserialize and verify the authentication ticket.
+        /// Note: the <see cref="AuthenticationTicket"/> property
+        /// is automatically set when this method completes.
         /// </summary>
         /// <returns>The authentication ticket.</returns>
         public Task<AuthenticationTicket> DeserializeTicketAsync() {
@@ -62,6 +64,8 @@ namespace Owin.Security.OpenIdConnect.Server {
 
         /// <summary>
         /// Deserialize and verify the authentication ticket.
+        /// Note: the <see cref="AuthenticationTicket"/> property
+        /// is automatically set when this method completes.
         /// </summary>
         /// <param name="ticket">The serialized ticket.</param>
         /// <returns>The authentication ticket.</returns>
@@ -70,7 +74,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return Task.FromResult<AuthenticationTicket>(null);
             }
 
-            return Task.FromResult(DataFormat.Unprotect(ticket));
+            return Task.FromResult(AuthenticationTicket = DataFormat.Unprotect(ticket));
         }
     }
 }

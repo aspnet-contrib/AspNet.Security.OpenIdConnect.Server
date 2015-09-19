@@ -62,6 +62,8 @@ namespace Owin.Security.OpenIdConnect.Server {
 
         /// <summary>
         /// Serialize and sign the authentication ticket using <see cref="DataFormat"/>.
+        /// Note: the <see cref="AuthorizationCode"/> property
+        /// is automatically set when this method completes.
         /// </summary>
         /// <returns>The serialized and signed ticket.</returns>
         public Task<string> SerializeTicketAsync() {
@@ -69,7 +71,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return Task.FromResult<string>(null);
             }
 
-            return Task.FromResult(DataFormat.Protect(AuthenticationTicket));
+            return Task.FromResult(AuthorizationCode = DataFormat.Protect(AuthenticationTicket));
         }
     }
 }

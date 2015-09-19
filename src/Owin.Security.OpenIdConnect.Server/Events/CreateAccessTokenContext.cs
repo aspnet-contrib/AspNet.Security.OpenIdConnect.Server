@@ -94,6 +94,8 @@ namespace Owin.Security.OpenIdConnect.Server {
 
         /// <summary>
         /// Serialize and sign the authentication ticket.
+        /// Note: the <see cref="AccessToken"/> property
+        /// is automatically set when this method completes.
         /// </summary>
         /// <returns>The serialized and signed ticket.</returns>
         public Task<string> SerializeTicketAsync() {
@@ -102,7 +104,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     return null;
                 }
 
-                return Task.FromResult(DataFormat.Protect(AuthenticationTicket));
+                return Task.FromResult(AccessToken = DataFormat.Protect(AuthenticationTicket));
             }
 
             var handler = SecurityTokenHandler as JwtSecurityTokenHandler;
@@ -160,7 +162,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     }
                 }
 
-                return Task.FromResult(handler.WriteToken(token));
+                return Task.FromResult(AccessToken = handler.WriteToken(token));
             }
 
             else {
@@ -174,7 +176,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                         AuthenticationTicket.Properties.ExpiresUtc.Value.UtcDateTime)
                 });
 
-                return Task.FromResult(SecurityTokenHandler.WriteToken(token));
+                return Task.FromResult(AccessToken = SecurityTokenHandler.WriteToken(token));
             }
         }
     }
