@@ -1161,6 +1161,46 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 RequestType = OpenIdConnectRequestType.TokenRequest
             };
 
+            // Reject token requests missing the mandatory grant_type parameter.
+            if (string.IsNullOrEmpty(request.GrantType)) {
+                Logger.LogError("grant_type missing");
+
+                await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                    Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = "The mandatory grant_type parameter is missing",
+                });
+
+                return;
+            }
+
+            // Note: client_id is mandatory when using the authorization code grant
+            // and must be manually flowed by non-confidential client applications.
+            // See https://tools.ietf.org/html/rfc6749#section-4.1.3
+            if (request.IsAuthorizationCodeGrantType() && string.IsNullOrEmpty(request.ClientId)) {
+                Logger.LogError("client_id was missing from the token request");
+
+                await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                    Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = "client_id was missing from the token request"
+                });
+
+                return;
+            }
+
+            // Reject grant_type=password requests missing username or password.
+            // See https://tools.ietf.org/html/rfc6749#section-4.3.2
+            if (request.IsPasswordGrantType() && (string.IsNullOrEmpty(request.Username) ||
+                                                  string.IsNullOrEmpty(request.Password))) {
+                Logger.LogError("resource owner credentials missing.");
+
+                await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                    Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = "username and/or password were missing from the request message"
+                });
+
+                return;
+            }
+
             // When client_id and client_secret are both null, try to extract them from the Authorization header.
             // See http://tools.ietf.org/html/rfc6749#section-2.3.1 and
             // http://openid.net/specs/openid-connect-core-1_0.html#ClientAuthentication
@@ -1263,42 +1303,27 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     return;
                 }
 
-                if (request.IsAuthorizationCodeGrantType()) {
-                    // Note: client_id is mandatory when using the authorization code grant
-                    // and must be manually flowed by non-confidential client applications.
-                    // See https://tools.ietf.org/html/rfc6749#section-4.1.3
-                    if (string.IsNullOrEmpty(request.ClientId)) {
-                        Logger.LogError("client_id was missing from the token request");
+                // Validate the redirect_uri flowed by the client application during this token request.
+                // Note: for pure OAuth2 requests, redirect_uri is only mandatory if the authorization request
+                // contained an explicit redirect_uri. OpenID Connect requests MUST include a redirect_uri
+                // but the specifications allow proceeding the token request without returning an error
+                // if the authorization request didn't contain an explicit redirect_uri.
+                // See https://tools.ietf.org/html/rfc6749#section-4.1.3
+                // and http://openid.net/specs/openid-connect-core-1_0.html#TokenRequestValidation
+                string address;
+                if (request.IsAuthorizationCodeGrantType() &&
+                    ticket.Properties.Items.TryGetValue(OpenIdConnectConstants.Extra.RedirectUri, out address)) {
+                    ticket.Properties.Items.Remove(OpenIdConnectConstants.Extra.RedirectUri);
+
+                    if (!string.Equals(address, request.RedirectUri, StringComparison.Ordinal)) {
+                        Logger.LogError("authorization code does not contain matching redirect_uri");
 
                         await SendErrorPayloadAsync(new OpenIdConnectMessage {
-                            Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                            ErrorDescription = "client_id was missing from the token request"
+                            Error = OpenIdConnectConstants.Errors.InvalidGrant,
+                            ErrorDescription = "Authorization code does not contain matching redirect_uri"
                         });
 
                         return;
-                    }
-
-                    // Validate the redirect_uri flowed by the client application during this token request.
-                    // Note: for pure OAuth2 requests, redirect_uri is only mandatory if the authorization request
-                    // contained an explicit redirect_uri. OpenID Connect requests MUST include a redirect_uri
-                    // but the specifications allow proceeding the token request without returning an error
-                    // if the authorization request didn't contain an explicit redirect_uri.
-                    // See https://tools.ietf.org/html/rfc6749#section-4.1.3
-                    // and http://openid.net/specs/openid-connect-core-1_0.html#TokenRequestValidation
-                    string address;
-                    if (ticket.Properties.Items.TryGetValue(OpenIdConnectConstants.Extra.RedirectUri, out address)) {
-                        ticket.Properties.Items.Remove(OpenIdConnectConstants.Extra.RedirectUri);
-
-                        if (!string.Equals(address, request.RedirectUri, StringComparison.Ordinal)) {
-                            Logger.LogError("authorization code does not contain matching redirect_uri");
-
-                            await SendErrorPayloadAsync(new OpenIdConnectMessage {
-                                Error = OpenIdConnectConstants.Errors.InvalidGrant,
-                                ErrorDescription = "Authorization code does not contain matching redirect_uri"
-                            });
-
-                            return;
-                        }
                     }
                 }
 
@@ -1505,7 +1530,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             // See http://tools.ietf.org/html/rfc6749#section-8.3
-            else if (!string.IsNullOrEmpty(request.GrantType)) {
+            else {
                 var context = new GrantCustomExtensionContext(Context, Options, request);
                 await Options.Provider.GrantCustomExtension(context);
 
@@ -1521,18 +1546,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 }
 
                 ticket = context.AuthenticationTicket;
-            }
-
-            // See http://tools.ietf.org/html/rfc6749#section-5.2
-            else {
-                Logger.LogError("grant type is not recognized");
-
-                await SendErrorPayloadAsync(new OpenIdConnectMessage {
-                    Error = OpenIdConnectConstants.Errors.UnsupportedGrantType,
-                    ErrorDescription = "The grant type is not supported",
-                });
-
-                return;
             }
 
             var notification = new TokenEndpointContext(Context, Options, request, ticket);
