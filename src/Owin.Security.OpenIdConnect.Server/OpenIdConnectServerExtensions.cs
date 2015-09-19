@@ -589,6 +589,14 @@ namespace Owin {
             properties.Dictionary[OpenIdConnectConstants.Extra.Audience] = string.Join(" ", audiences);
         }
 
+        internal static bool ContainsProperty(this AuthenticationTicket ticket, string property) {
+            if (ticket == null) {
+                return false;
+            }
+
+            return ticket.Properties.Dictionary.ContainsKey(property);
+        }
+
         internal static bool ContainsScope(this AuthenticationTicket ticket, string scope) {
             return ticket.Properties.GetScopes().Contains(scope);
         }

@@ -332,11 +332,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             var clientNotification = new ValidateClientRedirectUriContext(Context, Options, request);
             await Options.Provider.ValidateClientRedirectUri(clientNotification);
 
+            // Reject the authorization request if the redirect_uri was not validated.
             if (!clientNotification.IsValidated) {
-                // Remove the unvalidated redirect_uri
-                // from the authorization request.
-                request.RedirectUri = null;
-
                 Options.Logger.WriteVerbose("Unable to validate client information");
 
                 return await SendErrorPageAsync(new OpenIdConnectMessage {
@@ -1252,6 +1249,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             var clientNotification = new ValidateClientAuthenticationContext(Context, Options, request);
             await Options.Provider.ValidateClientAuthentication(clientNotification);
 
+            // Reject the request if client authentication was rejected.
             if (!clientNotification.IsValidated) {
                 Options.Logger.WriteError("invalid client authentication.");
 
@@ -1259,6 +1257,18 @@ namespace Owin.Security.OpenIdConnect.Server {
                     Error = clientNotification.Error ?? OpenIdConnectConstants.Errors.InvalidClient,
                     ErrorDescription = clientNotification.ErrorDescription,
                     ErrorUri = clientNotification.ErrorUri
+                });
+
+                return;
+            }
+
+            // Reject grant_type=client_credentials requests if client authentication was skipped.
+            if (clientNotification.IsSkipped && request.IsClientCredentialsGrantType()) {
+                Options.Logger.WriteError("client authentication is required for client_credentials grant type.");
+
+                await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                    Error = OpenIdConnectConstants.Errors.InvalidGrant,
+                    ErrorDescription = "client authentication is required when using client_credentials"
                 });
 
                 return;
@@ -1317,7 +1327,22 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
 
                 if (request.IsAuthorizationCodeGrantType()) {
-                    // Note: for pure OAuth2 request, redirect_uri is only mandatory if the authorization request
+                     // Note: client_id is mandatory when using the authorization code grant
+                    // and must be manually flowed by non-confidential client applications.
+                    // See https://tools.ietf.org/html/rfc6749#section-4.1.3
+                    if (string.IsNullOrEmpty(request.ClientId)) {
+                        Options.Logger.WriteError("client_id was missing from the token request");
+
+                        await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                            Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                            ErrorDescription = "client_id was missing from the token request"
+                        });
+
+                        return;
+                    }
+
+                    // Validate the redirect_uri flowed by the client application during this token request.
+                    // Note: for pure OAuth2 requests, redirect_uri is only mandatory if the authorization request
                     // contained an explicit redirect_uri. OpenID Connect requests MUST include a redirect_uri
                     // but the specifications allow proceeding the token request without returning an error
                     // if the authorization request didn't contain an explicit redirect_uri.
@@ -1340,27 +1365,35 @@ namespace Owin.Security.OpenIdConnect.Server {
                     }
                 }
 
-                // Note: client_id is mandatory when using the authorization code grant
-                // and must be manually flowed by non-confidential client applications.
+                // If the client was fully authenticated when retrieving its refresh token,
+                // the current request must be rejected if client authentication was not enforced.
+                if (request.IsRefreshTokenGrantType() && !clientNotification.IsValidated &&
+                    ticket.ContainsProperty(OpenIdConnectConstants.Extra.ClientAuthenticated)) {
+                    Options.Logger.WriteError("client authentication is required to use this ticket");
+
+                    await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                        Error = OpenIdConnectConstants.Errors.InvalidGrant,
+                        ErrorDescription = "Client authentication is required to use this ticket"
+                    });
+
+                    return;
+                }
+
+                // Note: identifier may be null for non-confidential client applications
+                // whose refresh token has been issued without requiring authentication.
                 // When using the refresh token grant, client_id is optional but must validated if present.
-                // See https://tools.ietf.org/html/rfc6749#section-4.1.3, https://tools.ietf.org/html/rfc6749#section-6
+                // See https://tools.ietf.org/html/rfc6749#section-6
                 // and http://openid.net/specs/openid-connect-core-1_0.html#RefreshingAccessToken
-                if (request.IsAuthorizationCodeGrantType() ||
-                   (request.IsRefreshTokenGrantType() && !string.IsNullOrEmpty(request.ClientId))) {
-                    // Note: client_id may be null for non-confidential client applications
-                    // whose refresh token has been issued without requiring authentication.
-                    var identifier = ticket.Properties.GetProperty(OpenIdConnectConstants.Extra.ClientId);
+                var identifier = ticket.Properties.GetProperty(OpenIdConnectConstants.Extra.ClientId);
+                if (!string.IsNullOrEmpty(identifier) && !string.Equals(identifier, request.ClientId, StringComparison.Ordinal)) {
+                    Options.Logger.WriteError("ticket does not contain matching client_id");
 
-                    if (string.IsNullOrEmpty(identifier) || !string.Equals(identifier, request.ClientId, StringComparison.Ordinal)) {
-                        Options.Logger.WriteError("ticket does not contain matching client_id");
+                    await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                        Error = OpenIdConnectConstants.Errors.InvalidGrant,
+                        ErrorDescription = "Ticket does not contain matching client_id"
+                    });
 
-                        await SendErrorPayloadAsync(new OpenIdConnectMessage {
-                            Error = OpenIdConnectConstants.Errors.InvalidGrant,
-                            ErrorDescription = "Ticket does not contain matching client_id"
-                        });
-
-                        return;
-                    }
+                    return;
                 }
 
                 if (!string.IsNullOrEmpty(request.Resource)) {
@@ -1600,6 +1633,11 @@ namespace Owin.Security.OpenIdConnect.Server {
             if (!string.IsNullOrEmpty(request.Scope)) {
                 // Keep the original scope parameter for later comparison.
                 ticket.Properties.Dictionary[OpenIdConnectConstants.Extra.Scope] = request.Scope;
+            }
+
+            if (clientNotification.IsValidated) {
+                // Store a boolean indicating the client has been fully authenticated.
+                ticket.Properties.Dictionary[OpenIdConnectConstants.Extra.ClientAuthenticated] = "true";
             }
 
             var response = new OpenIdConnectMessage();
@@ -1946,7 +1984,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 var clientNotification = new ValidateClientLogoutRedirectUriContext(Context, Options, request);
                 await Options.Provider.ValidateClientLogoutRedirectUri(clientNotification);
 
-                if (!clientNotification.IsValidated) {
+                if (clientNotification.IsRejected) {
                     Options.Logger.WriteVerbose("Unable to validate client information");
 
                     return await SendErrorPageAsync(new OpenIdConnectMessage {

@@ -4,7 +4,6 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.Owin;
 using Microsoft.Owin.Security.Notifications;
 
@@ -20,13 +19,26 @@ namespace Owin.Security.OpenIdConnect.Server {
             IOwinContext context,
             TOptions options)
             : base(context, options) {
+            IsRejected = true;
         }
 
         /// <summary>
-        /// True if application code has called any of the
-        /// <see cref="Validated"/> methods on this context.
+        /// Gets whether the <see cref="Skipped"/>
+        /// method has been called or not.
+        /// </summary>
+        public bool IsSkipped { get; private set; }
+
+        /// <summary>
+        /// Gets whether the <see cref="Validated"/>
+        /// method has been called or not.
         /// </summary>
         public bool IsValidated { get; private set; }
+
+        /// <summary>
+        /// Gets whether the <see cref="Rejected"/>
+        /// method has been called or not.
+        /// </summary>
+        public bool IsRejected { get; private set; }
 
         /// <summary>
         /// The error argument provided when Rejected was called on this context.
@@ -44,24 +56,41 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// The optional uri argument provided when Rejected was called on this context.
         /// This is eventually returned to the client app as the OpenIdConnect "error_uri" parameter.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1056:UriPropertiesShouldNotBeStrings",
-            Justification = "error_uri is a string value in the protocol")]
         public string ErrorUri { get; private set; }
+
+        /// <summary>
+        /// Marks the context as skipped by the application.
+        /// </summary>
+        /// <returns></returns>
+        public virtual new bool Skipped() {
+            IsSkipped = true;
+            IsRejected = false;
+            IsValidated = false;
+
+            return true;
+        }
 
         /// <summary>
         /// Marks this context as validated by the application.
         /// </summary>
         /// <returns>True if the validation has taken effect.</returns>
         public virtual bool Validated() {
+            IsSkipped = false;
             IsValidated = true;
+            IsRejected = false;
+
             return true;
         }
 
         /// <summary>
         /// Marks this context as not validated by the application.
         /// </summary>
-        public virtual void Rejected() {
-            Rejected(error: null, description: null, uri: null);
+        public virtual bool Rejected() {
+            IsSkipped = false;
+            IsRejected = true;
+            IsValidated = false;
+
+            return true;
         }
 
         /// <summary>
@@ -69,8 +98,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// and assigns various error information properties.
         /// </summary>
         /// <param name="error">Assigned to the <see cref="Error"/> property.</param>
-        public virtual void Rejected(string error) {
-            Rejected(error, description: null, uri: null);
+        public virtual bool Rejected(string error) {
+            Error = error;
+
+            return Rejected();
         }
 
         /// <summary>
@@ -79,8 +110,11 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="error">Assigned to the <see cref="Error"/> property.</param>
         /// <param name="description">Assigned to the <see cref="ErrorDescription"/> property.</param>
-        public virtual void Rejected(string error, string description) {
-            Rejected(error, description, uri: null);
+        public virtual bool Rejected(string error, string description) {
+            Error = error;
+            ErrorDescription = description;
+
+            return Rejected();
         }
 
         /// <summary>
@@ -90,13 +124,12 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <param name="error">Assigned to the <see cref="Error"/> property</param>
         /// <param name="description">Assigned to the <see cref="ErrorDescription"/> property</param>
         /// <param name="uri">Assigned to the <see cref="ErrorUri"/> property</param>
-        [SuppressMessage("Microsoft.Design", "CA1054:UriParametersShouldNotBeStrings",
-            MessageId = "2#", Justification = "error_uri is a string value in the protocol")]
-        public virtual void Rejected(string error, string description, string uri) {
-            IsValidated = false;
+        public virtual bool Rejected(string error, string description, string uri) {
             Error = error;
             ErrorDescription = description;
             ErrorUri = uri;
+
+            return Rejected();
         }
     }
 }
