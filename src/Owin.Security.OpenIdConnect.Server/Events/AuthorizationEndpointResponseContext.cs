@@ -6,6 +6,7 @@
 
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
+using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Notifications;
 
 namespace Owin.Security.OpenIdConnect.Server {
@@ -18,17 +19,26 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
+        /// <param name="ticket"></param>
         /// <param name="request"></param>
         /// <param name="response"></param>
         internal AuthorizationEndpointResponseContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
+            AuthenticationTicket ticket,
             OpenIdConnectMessage request,
             OpenIdConnectMessage response)
             : base(context, options) {
+            AuthenticationTicket = ticket;
             Request = request;
             Response = response;
         }
+
+        /// <summary>
+        /// Gets the authentication ticket containing the
+        /// claims representing the authenticated user.
+        /// </summary>
+        public AuthenticationTicket AuthenticationTicket { get; private set; }
 
         /// <summary>
         /// Gets the authorization request. 

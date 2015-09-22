@@ -687,7 +687,9 @@ namespace Owin.Security.OpenIdConnect.Server {
                 Options.Cache.Remove(identifier);
             }
 
-            var notification = new AuthorizationEndpointResponseContext(Context, Options, request, response);
+            var ticket = new AuthenticationTicket(context.Identity, context.Properties);
+
+            var notification = new AuthorizationEndpointResponseContext(Context, Options, ticket, request, response);
             await Options.Provider.AuthorizationEndpointResponse(notification);
 
             if (notification.HandledResponse) {
@@ -1760,7 +1762,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 payload.Add(parameter.Key, parameter.Value);
             }
 
-            var responseNotification = new TokenEndpointResponseContext(Context, Options, payload);
+            var responseNotification = new TokenEndpointResponseContext(Context, Options, ticket, request, payload);
             await Options.Provider.TokenEndpointResponse(responseNotification);
 
             if (responseNotification.HandledResponse) {
