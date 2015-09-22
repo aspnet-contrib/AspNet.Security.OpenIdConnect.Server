@@ -6,6 +6,7 @@
 
 using Microsoft.AspNet.Authentication;
 using Microsoft.AspNet.Http;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Newtonsoft.Json.Linq;
 
 namespace AspNet.Security.OpenIdConnect.Server {
@@ -18,17 +19,29 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
+        /// <param name="ticket"></param>
+        /// <param name="request"></param>
         /// <param name="payload"></param>
         internal TokenEndpointResponseContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
+            AuthenticationTicket ticket,
+            OpenIdConnectMessage request,
             JObject payload)
             : base(context, options) {
+            AuthenticationTicket = ticket;
+            Request = request;
             Payload = payload;
         }
 
         /// <summary>
-        /// Gets the JSON payload returned to the client application.
+        /// Gets the token request. 
+        /// </summary>
+        public new OpenIdConnectMessage Request { get; }
+
+        /// <summary>
+        /// Gets the JSON payload returned to the client
+        /// application as part of the token response.
         /// </summary>
         public JObject Payload { get; }
     }

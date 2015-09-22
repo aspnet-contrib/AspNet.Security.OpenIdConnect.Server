@@ -19,14 +19,17 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
+        /// <param name="ticket"></param>
         /// <param name="request"></param>
         /// <param name="response"></param>
         internal AuthorizationEndpointResponseContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
+            AuthenticationTicket ticket,
             OpenIdConnectMessage request,
             OpenIdConnectMessage response)
             : base(context, options) {
+            AuthenticationTicket = ticket;
             Request = request;
             Response = response;
         }
