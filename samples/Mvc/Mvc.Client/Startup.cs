@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Net.Http;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Authentication;
@@ -12,7 +10,6 @@ using Microsoft.Dnx.Runtime;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Logging;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
-using Newtonsoft.Json.Linq;
 
 namespace Mvc.Client {
     public class Startup {
@@ -50,6 +47,9 @@ namespace Mvc.Client {
                 options.RedirectUri = "http://localhost:53507/oidc";
                 options.PostLogoutRedirectUri = "http://localhost:53507/";
 
+                // Use the authorization code flow.
+                options.ResponseType = OpenIdConnectResponseTypes.Code;
+
                 // Note: setting the Authority allows the OIDC client middleware to automatically
                 // retrieve the identity provider's configuration and spare you from setting
                 // the different endpoints URIs or the token validation parameters explicitly.
@@ -73,50 +73,31 @@ namespace Mvc.Client {
                         return Task.FromResult<object>(null);
                     },
 
-                    // Retrieve an access token from the remote token endpoint
-                    // using the authorization code received during the current request.
-                    OnAuthorizationCodeReceived = async context => {
-                        using (var client = new HttpClient()) {
-                            var configuration = await context.Options.ConfigurationManager.GetConfigurationAsync(context.HttpContext.RequestAborted);
-
-                            var request = new HttpRequestMessage(HttpMethod.Post, configuration.TokenEndpoint);
-                            request.Content = new FormUrlEncodedContent(new Dictionary<string, string> {
-                                [OpenIdConnectParameterNames.ClientId] = context.Options.ClientId,
-                                [OpenIdConnectParameterNames.ClientSecret] = context.Options.ClientSecret,
-                                [OpenIdConnectParameterNames.Code] = context.ProtocolMessage.Code,
-                                [OpenIdConnectParameterNames.GrantType] = "authorization_code",
-                                [OpenIdConnectParameterNames.RedirectUri] = context.Options.RedirectUri
-                            });
-
-                            var response = await client.SendAsync(request, context.HttpContext.RequestAborted);
-                            response.EnsureSuccessStatusCode();
-
-                            var payload = JObject.Parse(await response.Content.ReadAsStringAsync());
-
-                            var identity = context.AuthenticationTicket.Principal.Identity as ClaimsIdentity;
-                            if (identity == null) {
-                                throw new InvalidOperationException();
-                            }
-
-                            // Add the access token to the returned ClaimsIdentity to make it easier to retrieve.
-                            identity.AddClaim(new Claim(
-                                type: OpenIdConnectParameterNames.AccessToken,
-                                value: payload.Value<string>(OpenIdConnectParameterNames.AccessToken)));
-
-                            // Add the identity token to the returned ClaimsIdentity to make it easier to retrieve.
-                            identity.AddClaim(new Claim(
-                                type: OpenIdConnectParameterNames.IdToken,
-                                value: payload.Value<string>(OpenIdConnectParameterNames.IdToken)));
+                    // Store the access/identity tokens extracted from the token response.
+                    OnAuthenticationValidated = context => {
+                        var identity = context.AuthenticationTicket.Principal.Identity as ClaimsIdentity;
+                        if (identity == null) {
+                            throw new InvalidOperationException();
                         }
+
+                        // Add the access token to the returned ClaimsIdentity to make it easier to retrieve.
+                        identity.AddClaim(new Claim(
+                            type: OpenIdConnectParameterNames.AccessToken,
+                            value: context.TokenEndpointResponse.ProtocolMessage.AccessToken));
+
+                        // Add the identity token to the returned ClaimsIdentity to make it easier to retrieve.
+                        identity.AddClaim(new Claim(
+                            type: OpenIdConnectParameterNames.IdToken,
+                            value: context.TokenEndpointResponse.ProtocolMessage.IdToken));
+
+                        return Task.FromResult<object>(null);
                     },
 
                     // Attach the id_token stored in the authentication cookie to the logout request.
-                    OnRedirectToIdentityProvider = context => {
-                        if (context.ProtocolMessage.RequestType == OpenIdConnectRequestType.LogoutRequest) {
-                            var token = context.HttpContext.User.FindFirst(OpenIdConnectParameterNames.IdToken);
-                            if (token != null) {
-                                context.ProtocolMessage.IdTokenHint = token.Value;
-                            }
+                    OnRedirectToEndSessionEndpoint = context => {
+                        var token = context.HttpContext.User.FindFirst(OpenIdConnectParameterNames.IdToken);
+                        if (token != null) {
+                            context.ProtocolMessage.IdTokenHint = token.Value;
                         }
 
                         return Task.FromResult<object>(null);

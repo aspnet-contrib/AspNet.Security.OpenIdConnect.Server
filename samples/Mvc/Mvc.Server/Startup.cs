@@ -11,6 +11,8 @@ using Microsoft.Dnx.Runtime;
 using Mvc.Server.Extensions;
 using Mvc.Server.Models;
 using Mvc.Server.Providers;
+using Microsoft.IdentityModel.Protocols;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 #if !DNXCORE50
 using NWebsec.Owin;
@@ -44,6 +46,15 @@ namespace Mvc.Server {
                     options.AutomaticAuthentication = true;
                     options.Audience = "http://localhost:54540/";
                     options.Authority = "http://localhost:54540/";
+
+                    // Note: by default, IdentityModel beta8 now refuses to initiate non-HTTPS calls.
+                    // To work around this limitation, the configuration manager is manually
+                    // instantiated with a document retriever allowing HTTP calls.
+                    // Note: Mvc.Client is not impacted yet as it's still using IdentityModel beta7.
+                    options.ConfigurationManager = new ConfigurationManager<OpenIdConnectConfiguration>(
+                        metadataAddress: options.Authority + ".well-known/openid-configuration",
+                        configRetriever: new OpenIdConnectConfigurationRetriever(),
+                        docRetriever: new HttpDocumentRetriever { RequireHttps = options.Authority.StartsWith("https", StringComparison.OrdinalIgnoreCase) });
                 });
             });
 

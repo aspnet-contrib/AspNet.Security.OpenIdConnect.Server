@@ -2,7 +2,6 @@
 using Microsoft.AspNet.Authentication.OpenIdConnect;
 using Microsoft.AspNet.Http.Authentication;
 using Microsoft.AspNet.Mvc;
-using Microsoft.AspNet.Mvc.ActionResults;
 
 namespace Mvc.Client.Controllers {
     public class AuthenticationController : Controller {

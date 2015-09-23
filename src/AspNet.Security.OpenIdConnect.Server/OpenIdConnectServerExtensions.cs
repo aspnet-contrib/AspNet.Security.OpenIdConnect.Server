@@ -22,9 +22,7 @@ using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Authentication;
 using Microsoft.AspNet.Http.Features;
 using Microsoft.Framework.Caching.Distributed;
-using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Internal;
-using Microsoft.Framework.OptionsModel;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace AspNet.Security.OpenIdConnect.Server {
@@ -35,36 +33,30 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// </summary>
     public static class OpenIdConnectServerExtensions {
         /// <summary>
-        /// Configures the settings used by the OpenID Connect server.
-        /// </summary>
-        /// <param name="services">The services collection.</param>
-        /// <param name="options">Options which control the behavior of the OpenID Connect server.</param>
-        /// <returns>The services collection.</returns>
-        public static IServiceCollection ConfigureOpenIdConnectServer(
-            [NotNull] this IServiceCollection services,
-            [NotNull] Action<OpenIdConnectServerOptions> options) {
-            return services.Configure(options);
-        }
-
-        /// <summary>
         /// Adds a new OpenID Connect server instance in the ASP.NET pipeline.
         /// </summary>
         /// <param name="app">The web application builder.</param>
-        /// <returns>The application builder.</returns>
-        public static IApplicationBuilder UseOpenIdConnectServer([NotNull] this IApplicationBuilder app) {
-            return app.UseOpenIdConnectServer(options => { });
-        }
-
-        /// <summary>
-        /// Adds a new OpenID Connect server instance in the ASP.NET pipeline.
-        /// </summary>
-        /// <param name="app">The web application builder.</param>
-        /// <param name="options">Options which control the behavior of the OpenID Connect server.</param>
+        /// <param name="options">The options controlling the behavior of the OpenID Connect server.</param>
         /// <returns>The application builder.</returns>
         public static IApplicationBuilder UseOpenIdConnectServer(
             [NotNull] this IApplicationBuilder app,
-            [NotNull] Action<OpenIdConnectServerOptions> options) {
-            return app.UseMiddleware<OpenIdConnectServerMiddleware>(new ConfigureOptions<OpenIdConnectServerOptions>(options));
+            [NotNull] OpenIdConnectServerOptions options) {
+            return app.UseMiddleware<OpenIdConnectServerMiddleware>(options);
+        }
+
+        /// <summary>
+        /// Adds a new OpenID Connect server instance in the ASP.NET pipeline.
+        /// </summary>
+        /// <param name="app">The web application builder.</param>
+        /// <param name="configuration">A delegate allowing to modify the options controlling the behavior of the OpenID Connect server.</param>
+        /// <returns>The application builder.</returns>
+        public static IApplicationBuilder UseOpenIdConnectServer(
+            [NotNull] this IApplicationBuilder app,
+            [NotNull] Action<OpenIdConnectServerOptions> configuration) {
+            var options = new OpenIdConnectServerOptions();
+            configuration(options);
+
+            return app.UseOpenIdConnectServer(options);
         }
 
         /// <summary>

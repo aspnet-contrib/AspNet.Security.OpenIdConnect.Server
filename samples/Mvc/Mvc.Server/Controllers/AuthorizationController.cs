@@ -8,7 +8,6 @@ using AspNet.Security.OpenIdConnect.Server;
 using Microsoft.AspNet.Authorization;
 using Microsoft.AspNet.Http.Authentication;
 using Microsoft.AspNet.Mvc;
-using Microsoft.AspNet.Mvc.ActionResults;
 using Microsoft.Data.Entity;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Mvc.Server.Models;

@@ -14,7 +14,6 @@ using Microsoft.AspNet.DataProtection;
 using Microsoft.Framework.Caching.Distributed;
 using Microsoft.Framework.Internal;
 using Microsoft.Framework.Logging;
-using Microsoft.Framework.OptionsModel;
 using Microsoft.Framework.WebEncoders;
 
 namespace AspNet.Security.OpenIdConnect.Server {
@@ -31,14 +30,13 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         public OpenIdConnectServerMiddleware(
             [NotNull] RequestDelegate next,
+            [NotNull] OpenIdConnectServerOptions options,
             [NotNull] ILoggerFactory loggerFactory,
             [NotNull] IDistributedCache cache,
             [NotNull] IHtmlEncoder htmlEncoder,
             [NotNull] IUrlEncoder urlEncoder,
-            [NotNull] IDataProtectionProvider dataProtectionProvider,
-            [NotNull] IOptions<OpenIdConnectServerOptions> options,
-            [NotNull] ConfigureOptions<OpenIdConnectServerOptions> configuration)
-            : base(next, options, loggerFactory, urlEncoder, configuration) {
+            [NotNull] IDataProtectionProvider dataProtectionProvider)
+            : base(next, options, loggerFactory, urlEncoder) {
             if (string.IsNullOrEmpty(Options.AuthenticationScheme)) {
                 throw new ArgumentNullException(nameof(Options.AuthenticationScheme));
             }
