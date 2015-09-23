@@ -1,11 +1,43 @@
-﻿@using Microsoft.AspNet.Http.Authentication
-@model IEnumerable<AuthenticationDescription>
+﻿@using System.Threading.Tasks
+@using Mvc.Server.Models
+@model AuthenticationModel
 
 <div class="jumbotron">
     <h1>Authentication</h1>
-    <p class="lead text-left">Sign in using one of these external providers:</p>
+
+    @using (Html.BeginForm())
+    {
+        <p class="lead text-left">Sign in using your credentials</p>
+        <div class="container">
+            <div class="row">
+                <div class="form-group col-md-6 col-md-offset-3 text-left">
+                    @Html.LabelFor(m => m.Username)
+                    @Html.TextBoxFor(m => m.Username, new { @class = "form-control" })
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="form-group col-md-6 col-md-offset-3 text-left">
+                    @Html.LabelFor(m => m.Password)
+                    @Html.PasswordFor(m => m.Password, new { @class = "form-control" })
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="form-group col-md-6 col-md-offset-3 text-left">
+                    <button type="submit" class="btn btn-success">Sign in</button>
+                </div>
+            </div>
+        </div>
+    }
     
-    @foreach (var description in Model) {
+
+    
+
+    <p class="lead text-left">Sign in using one of these external providers:</p>
+
+    @foreach (var description in Model.AuthenticationDescriptions)
+            {
         <form action="/signin" method="post">
             <input type="hidden" name="Provider" value="@description.AuthenticationScheme" />
             <input type="hidden" name="ReturnUrl" value="@ViewBag.ReturnUrl" />
@@ -14,3 +46,4 @@
         </form>
     }
 </div>
+

@@ -37,6 +37,14 @@ namespace Mvc.Server {
         }
 
         public void Configure(IApplicationBuilder app, IRuntimeEnvironment environment) {
+
+            app.UseCors(builder =>
+            {
+                builder.AllowAnyHeader();
+                builder.AllowAnyMethod();
+                builder.WithOrigins("http://localhost:3000");
+            });
+
             var factory = app.ApplicationServices.GetRequiredService<ILoggerFactory>();
             factory.AddConsole();
 
@@ -46,6 +54,7 @@ namespace Mvc.Server {
                     options.AutomaticAuthentication = true;
                     options.Audience = "http://localhost:54540/";
                     options.Authority = "http://localhost:54540/";
+                    options.TokenValidationParameters.ValidateAudience = false;
 
                     // Note: by default, IdentityModel beta8 now refuses to initiate non-HTTPS calls.
                     // To work around this limitation, the configuration manager is manually
@@ -121,9 +130,12 @@ namespace Mvc.Server {
 
             app.UseStaticFiles();
 
+
             app.UseMvc();
 
             app.UseWelcomePage();
+
+          
 
             using (var database = app.ApplicationServices.GetService<ApplicationContext>()) {
                 database.Applications.Add(new Application {
@@ -131,6 +143,15 @@ namespace Mvc.Server {
                     DisplayName = "My client application",
                     RedirectUri = "http://localhost:53507/oidc",
                     LogoutRedirectUri = "http://localhost:53507/",
+                    Secret = "secret_secret_secret"
+                });
+
+                database.Applications.Add(new Application
+                {
+                    ApplicationID = "angularClient",
+                    DisplayName = "My AngularJS client application",
+                    RedirectUri = "http://localhost:3000",
+                    LogoutRedirectUri = "http://localhost:3000",
                     Secret = "secret_secret_secret"
                 });
 

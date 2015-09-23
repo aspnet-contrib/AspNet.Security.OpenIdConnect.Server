@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <link rel="stylesheet" href="dist/bootstrap/dist/css/bootstrap.css">
+    <link rel="stylesheet" href="styles/navbar.css">
+</head>
+<body ng-app="openiddemoclient">
+
+
+<div class="container">
+
+    <!-- Static navbar -->
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
+                        aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#/">Angular Client</a>
+            </div>
+            <div id="navbar" class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    <li class="active"><a href="#">Home</a></li>
+                    <li><a href="#/apicall">API Call</a></li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <oauth2 authorization-url="http://localhost:54540/connect/authorize"
+                            sign-out-url="http://localhost:54540/connect/logout"
+                            sign-out-append-token="true"
+                            sign-out-redirect-url="http://localhost:3000"
+                            client-id="angularClient"
+                            redirect-url="http://localhost:3000"
+                            response-type="id_token token"
+                            scope="openid">
+                    </oauth2>
+                </ul>
+
+            </div>
+            <!--/.nav-collapse -->
+        </div>
+        <!--/.container-fluid -->
+    </nav>
+
+    <!-- Main component for a primary marketing message or call to action -->
+    <div class="jumbotron">
+        <h1>Navbar example</h1>
+
+        <p>This example is a quick exercise to illustrate how the default, static navbar and fixed to top navbar work.
+            It includes the responsive CSS and HTML, so it also adapts to your viewport and device.</p>
+
+        <p>
+            <a class="btn btn-lg btn-primary" href="../../components/#navbar" role="button">View navbar docs &raquo;</a>
+        </p>
+    </div>
+    <div ng-view=""></div>
+
+
+
+
+</div>
+<!-- /container -->
+
+<script src="dist/angular/angular.js"></script>
+<script src="dist/angular-route/angular-route.js"></script>
+<script src="dist/angular-bootstrap/ui-bootstrap.js"></script>
+<script src="dist/angular-md5/angular-md5.js"></script>
+<script src="dist/angularjs-oauth2/dist/angularJsOAuth2.js"></script>
+
+<script src="app.js"></script>
+<script src="routes.js"></script>
+<script src="features/navbar/NavBarController.js"></script>
+<script src="features/home/HomeController.js"></script>
+<script src="features/apicall/ApiCallController.js"></script>
+</body>
+</html>

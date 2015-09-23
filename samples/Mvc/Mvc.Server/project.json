@@ -9,6 +9,7 @@
 
         "Microsoft.AspNet.Diagnostics": "1.0.0-*",
         "Microsoft.AspNet.Mvc": "6.0.0-*",
+        "Microsoft.AspNet.Cors": "1.0.0-*",
         "Microsoft.AspNet.Authentication.Cookies": "1.0.0-*",
         "Microsoft.AspNet.Authentication.Google": "1.0.0-*",
         "Microsoft.AspNet.Authentication.JwtBearer": "1.0.0-*",

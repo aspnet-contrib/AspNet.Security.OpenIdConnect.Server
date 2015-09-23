@@ -1,0 +1,29 @@
+{
+  "name": "angularclient",
+  "version": "0.1.0",
+  "description": "AngularJS client for AspNet.Security.OpenIdConnect.Server",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server.git"
+  },
+  "keywords": [
+    "angularjs",
+    "openid"
+  ],
+  "author": "Alexander Zeitler",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server/issues"
+  },
+  "homepage": "https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server#readme",
+  "dependencies": {
+    "express": "^4.13.0"
+  },
+  "devDependencies": {
+    "grunt": "^0.4.5"
+  }
+}
