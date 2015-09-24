@@ -22,7 +22,6 @@ using Microsoft.AspNet.Http.Features.Authentication;
 using Microsoft.AspNet.WebUtilities;
 using Microsoft.Framework.Caching.Distributed;
 using Microsoft.Framework.Logging;
-using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
@@ -2161,7 +2160,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     // Create the at_hash using the access token returned by CreateAccessTokenAsync.
                     var hash = GenerateHash(response.AccessToken, SecurityAlgorithms.Sha256Digest);
 
-                    identity.AddClaim("at_hash", hash);
+                    identity.AddClaim(JwtRegisteredClaimNames.AtHash, hash);
                 }
 
                 if (!string.IsNullOrEmpty(request.Nonce)) {
