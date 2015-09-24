@@ -40,12 +40,12 @@ namespace Nancy.Server.Modules {
                         ErrorDescription = "An internal error has occurred"
                     }];
                 }
-                
+
                 // Note: authentication could be theorically enforced at the filter level via AuthorizeAttribute
                 // but this authorization endpoint accepts both GET and POST requests while the cookie middleware
                 // only uses 302 responses to redirect the user agent to the login page, making it incompatible with POST.
-                // To work around this limitation, the OpenID Connect request is automatically saved in the user's session and will
-                // be restored in the other "Authorize" method, after the authentication process has been completed.
+                // To work around this limitation, the OpenID Connect request is automatically saved in the cache and will be
+                // restored in the other "Authorize" method, after the authentication process has been completed.
                 if (OwinContext.Authentication.User.Identity == null ||
                    !OwinContext.Authentication.User.Identity.IsAuthenticated) {
                     return Response.AsRedirect("/signin?returnUrl=" + Uri.EscapeUriString("/connect/authorize?unique_id=" +
@@ -74,8 +74,7 @@ namespace Nancy.Server.Modules {
                 this.RequiresMSOwinAuthentication();
                 this.ValidateCsrfToken();
                 
-                // Extract the authorization request from the user's session, the query string or the request form.
-                // Note: OpenIdConnectServerHandler automatically saves the OpenID Connect request in the user's session.
+                // Extract the authorization request from the cache, the query string or the request form.
                 var request = OwinContext.GetOpenIdConnectRequest();
                 if (request == null) {
                     return View["Error.cshtml", new OpenIdConnectMessage {
@@ -136,8 +135,7 @@ namespace Nancy.Server.Modules {
                 this.RequiresMSOwinAuthentication();
                 this.ValidateCsrfToken();
                 
-                // Extract the authorization request from the user's session, the query string or the request form.
-                // Note: OpenIdConnectServerHandler automatically saves the OpenID Connect request in the user's session.
+                // Extract the authorization request from the cache, the query string or the request form.
                 var request = OwinContext.GetOpenIdConnectRequest();
                 if (request == null) {
                     return View["Error.cshtml", new OpenIdConnectMessage {
