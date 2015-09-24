@@ -35,8 +35,7 @@ namespace Mvc.Server.Controllers {
                 return View("Error", response);
             }
 
-            // Extract the authorization request from the user's session, the query string or the request form.
-            // Note: OpenIdConnectServerHandler automatically saves the OpenID Connect request in the user's session.
+            // Extract the authorization request from the cache, the query string or the request form.
             var request = Context.GetOpenIdConnectRequest();
             if (request == null) {
                 return View("Error", new OpenIdConnectMessage {
@@ -44,12 +43,12 @@ namespace Mvc.Server.Controllers {
                     ErrorDescription = "An internal error has occurred"
                 });
             }
-            
+
             // Note: authentication could be theorically enforced at the filter level via AuthorizeAttribute
             // but this authorization endpoint accepts both GET and POST requests while the cookie middleware
             // only uses 302 responses to redirect the user agent to the login page, making it incompatible with POST.
-            // To work around this limitation, the OpenID Connect request is automatically saved in the user's session and will
-            // be restored by the OpenID Connect server middleware after the external authentication process has been completed.
+            // To work around this limitation, the OpenID Connect request is automatically saved in the cache and will be
+            // restored by the OpenID Connect server middleware after the external authentication process has been completed.
             if (!User.Identities.Any(identity => identity.IsAuthenticated)) {
                 return new ChallengeResult(new AuthenticationProperties {
                     RedirectUri = Url.Action(nameof(Authorize), new {
@@ -78,8 +77,7 @@ namespace Mvc.Server.Controllers {
 
         [Authorize, HttpPost("~/connect/authorize/accept"), ValidateAntiForgeryToken]
         public async Task<IActionResult> Accept(CancellationToken cancellationToken) {
-            // Extract the authorization request from the user's session, the query string or the request form.
-            // Note: OpenIdConnectServerHandler automatically saves the OpenID Connect request in the user's session.
+            // Extract the authorization request from the cache, the query string or the request form.
             var request = Context.GetOpenIdConnectRequest();
             if (request == null) {
                 return View("Error", new OpenIdConnectMessage {
@@ -141,8 +139,7 @@ namespace Mvc.Server.Controllers {
 
         [Authorize, HttpPost("~/connect/authorize/deny"), ValidateAntiForgeryToken]
         public IActionResult Deny(CancellationToken cancellationToken) {
-            // Extract the authorization request from the user's session, the query string or the request form.
-            // Note: OpenIdConnectServerHandler automatically saves the OpenID Connect request in the user's session.
+            // Extract the authorization request from the cache, the query string or the request form.
             var request = Context.GetOpenIdConnectRequest();
             if (request == null) {
                 return View("Error", new OpenIdConnectMessage {
