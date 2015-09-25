@@ -5,14 +5,14 @@ using Microsoft.AspNet.Authentication.Cookies;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Http;
 using Microsoft.Data.Entity;
+using Microsoft.Dnx.Runtime;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Logging;
-using Microsoft.Dnx.Runtime;
+using Microsoft.IdentityModel.Protocols;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Mvc.Server.Extensions;
 using Mvc.Server.Models;
 using Mvc.Server.Providers;
-using Microsoft.IdentityModel.Protocols;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 #if !DNXCORE50
 using NWebsec.Owin;
@@ -104,19 +104,17 @@ namespace Mvc.Server {
             });
 #endif
 
-            app.UseOpenIdConnectServer(options => {
-                options.AuthenticationScheme = OpenIdConnectServerDefaults.AuthenticationScheme;
+            app.UseOpenIdConnectServer(configuration => {
+                configuration.Provider = new AuthorizationProvider();
 
                 // Note: see AuthorizationController.cs for more
                 // information concerning ApplicationCanDisplayErrors.
-                options.ApplicationCanDisplayErrors = true;
-                options.AllowInsecureHttp = true;
-
-                options.Provider = new AuthorizationProvider();
+                configuration.Options.ApplicationCanDisplayErrors = true;
+                configuration.Options.AllowInsecureHttp = true;
 
                 // Note: by default, tokens are signed using dynamically-generated
                 // RSA keys but you can also use your own certificate:
-                // options.UseCertificate(certificate);
+                // configuration.UseCertificate(certificate);
             });
 
             app.UseStaticFiles();
