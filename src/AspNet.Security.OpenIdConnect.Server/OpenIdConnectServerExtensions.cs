@@ -18,10 +18,12 @@ using AspNet.Security.OpenIdConnect.Extensions;
 using Microsoft.AspNet.Authentication;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.DataProtection;
+using Microsoft.AspNet.Hosting;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Authentication;
 using Microsoft.AspNet.Http.Features;
 using Microsoft.Framework.Caching.Distributed;
+using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Internal;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
@@ -42,6 +44,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
             [NotNull] this IApplicationBuilder app,
             [NotNull] Action<OpenIdConnectServerConfiguration> configuration) {
             var options = new OpenIdConnectServerConfiguration(app);
+
+            // By default, enable AllowInsecureHttp in development/testing environments.
+            var environment = app.ApplicationServices.GetRequiredService<IHostingEnvironment>();
+            options.Options.AllowInsecureHttp = environment.IsDevelopment() || environment.IsEnvironment("Testing");
+
             configuration(options);
 
             // If no key has been explicitly added, use the fallback mode.

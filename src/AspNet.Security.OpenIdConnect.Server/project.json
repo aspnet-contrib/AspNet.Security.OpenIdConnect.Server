@@ -11,6 +11,7 @@
         "AspNet.Security.OpenIdConnect.Extensions": "1.0.0-*",
 
         "Microsoft.AspNet.Authentication": "1.0.0-*",
+        "Microsoft.AspNet.Hosting.Abstractions": "1.0.0-*",
 
         "Microsoft.Framework.Caching.Abstractions": "1.0.0-*",
         "Microsoft.Framework.Logging.Abstractions": "1.0.0-*",

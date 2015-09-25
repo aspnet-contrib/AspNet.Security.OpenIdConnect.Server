@@ -140,8 +140,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             if (!Options.AllowInsecureHttp && !Request.IsHttps) {
-                Logger.LogWarning("Authorization server ignoring http request because AllowInsecureHttp is false.");
-                return false;
+                Logger.LogWarning("Authorization server rejecting http request because AllowInsecureHttp is false.");
+                return true;
             }
 
             else if (notification.IsAuthorizationEndpoint) {
