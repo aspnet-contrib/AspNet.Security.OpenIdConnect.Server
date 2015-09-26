@@ -140,8 +140,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
             
             if (!Options.AllowInsecureHttp && string.Equals(Request.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase)) {
-                Options.Logger.WriteWarning("Authorization server ignoring http request because AllowInsecureHttp is false.");
-                return false;
+                Options.Logger.WriteWarning("Authorization server rejecting http request because AllowInsecureHttp is false.");
+                return true;
             }
 
             else if (notification.IsAuthorizationEndpoint) {

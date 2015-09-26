@@ -11,7 +11,6 @@ using Microsoft.Owin.Security.Jwt;
 using Mvc.Server.Providers;
 using NWebsec.Owin;
 using Owin;
-using Owin.Security.OpenIdConnect.Server;
 
 namespace Mvc.Server {
     public class Startup {
@@ -67,20 +66,15 @@ namespace Mvc.Server {
             // See https://nwebsec.codeplex.com/wikipage?title=Configuring%20security%20headers&referringTitle=NWebsec
             app.UseXXssProtection(options => options.EnabledWithBlockMode());
 
-            app.UseOpenIdConnectServer(options => {
-                options.AuthenticationType = OpenIdConnectServerDefaults.AuthenticationType;
-                options.AuthenticationMode = AuthenticationMode.Passive;
+            app.UseOpenIdConnectServer(configuration => {
+                configuration.Provider = new AuthorizationProvider();
 
-                options.UseCertificate(certificate);
-
-                options.Provider = new AuthorizationProvider();
-                options.AccessTokenLifetime = TimeSpan.FromDays(14);
-                options.IdentityTokenLifetime = TimeSpan.FromMinutes(60);
-                options.AllowInsecureHttp = true;
+                configuration.UseCertificate(certificate);
 
                 // Note: see AuthorizationController.cs for more
                 // information concerning ApplicationCanDisplayErrors.
-                options.ApplicationCanDisplayErrors = true;
+                configuration.Options.ApplicationCanDisplayErrors = true;
+                configuration.Options.AllowInsecureHttp = true;
             });
         }
 
