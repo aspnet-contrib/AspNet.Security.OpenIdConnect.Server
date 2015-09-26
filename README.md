@@ -12,10 +12,31 @@ Owin.Security.OpenIdConnect.Server
 
 Based on **Microsoft.Owin.Security.OAuth**, **Owin.Security.OpenIdConnect.Server** exposes similar primitives and can be directly registered in **Startup.cs** using the `UseOpenIdConnectServer` extension method:
 
-    app.UseOpenIdConnectServer(options => {
-        options.UseCertificate(certificate);
-        options.Provider = new CustomAuthorizationProvider();
-    });
+```csharp
+app.UseOpenIdConnectServer(configuration => {
+    configuration.Provider = new OpenIdConnectServerProvider {
+        // Implement OnValidateClientRedirectUri to support interactive flows like code/implicit/hybrid.
+        OnValidateClientRedirectUri = context => {
+            if (string.Equals(context.ClientId, "client_id", StringComparison.Ordinal) &&
+                string.Equals(context.RedirectUri, "redirect_uri", StringComparison.Ordinal)) {
+                context.Validated();
+            }
+
+            return Task.FromResult<object>(null);
+        }
+
+        // Implement OnValidateClientAuthentication to support flows using the token endpoint.
+        OnValidateClientAuthentication = context => {
+            if (string.Equals(context.ClientId, "client_id", StringComparison.Ordinal) &&
+                string.Equals(context.ClientSecret, "client_secret", StringComparison.Ordinal)) {
+                context.Validated();
+            }
+
+            return Task.FromResult<object>(null);
+        }
+    };
+});
+```
 
 See [https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server/tree/dev/samples/Mvc](https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server/tree/dev/samples/Mvc) for a sample **using MVC 6 and showing how to configure a new OpenID Connect server using a custom `OpenIdConnectServerProvider` implementation to validate client applications**.
 
