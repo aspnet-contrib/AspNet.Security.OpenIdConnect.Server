@@ -1776,8 +1776,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             AuthenticationTicket ticket;
-            if (!string.IsNullOrEmpty(request.Token)) {
-                ticket = await ReceiveAccessTokenAsync(request.Token, request);
+            if (!string.IsNullOrEmpty(request.AccessToken)) {
+                ticket = await ReceiveAccessTokenAsync(request.AccessToken, request);
             }
 
             else if (!string.IsNullOrEmpty(request.IdToken)) {
