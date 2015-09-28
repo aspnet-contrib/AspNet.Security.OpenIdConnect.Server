@@ -72,21 +72,24 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             if (Options.AuthorizationCodeFormat == null) {
-                Options.AuthorizationCodeFormat = dataProtectionProvider.CreateTicketFormat(
-                    typeof(OpenIdConnectServerMiddleware).FullName,
-                    Options.AuthenticationScheme, "Authentication_Code", "v1");
+                Options.AuthorizationCodeFormat = new TicketDataFormat(
+                    dataProtectionProvider.CreateProtector(
+                        typeof(OpenIdConnectServerMiddleware).FullName,
+                        Options.AuthenticationScheme, "Authentication_Code", "v1"));
             }
 
             if (Options.AccessTokenFormat == null) {
-                Options.AccessTokenFormat = dataProtectionProvider.CreateTicketFormat(
-                    typeof(OpenIdConnectServerMiddleware).FullName,
-                    Options.AuthenticationScheme, "Access_Token", "v1");
+                Options.AccessTokenFormat = new TicketDataFormat(
+                    dataProtectionProvider.CreateProtector(
+                        typeof(OpenIdConnectServerMiddleware).FullName,
+                        Options.AuthenticationScheme, "Access_Token", "v1"));
             }
 
             if (Options.RefreshTokenFormat == null) {
-                Options.RefreshTokenFormat = dataProtectionProvider.CreateTicketFormat(
-                    typeof(OpenIdConnectServerMiddleware).Namespace,
-                    Options.AuthenticationScheme, "Refresh_Token", "v1");
+                Options.RefreshTokenFormat = new TicketDataFormat(
+                    dataProtectionProvider.CreateProtector(
+                        typeof(OpenIdConnectServerMiddleware).Namespace,
+                        Options.AuthenticationScheme, "Refresh_Token", "v1"));
             }
 
             if (Options.Cache == null) {
