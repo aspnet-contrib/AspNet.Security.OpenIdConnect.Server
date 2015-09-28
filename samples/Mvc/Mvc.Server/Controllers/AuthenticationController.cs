@@ -13,7 +13,7 @@ namespace Mvc.Server.Controllers {
             ViewBag.ReturnUrl = returnUrl;
 
             // Note: in a real world application, you'd probably prefer creating a specific view model.
-            return View("SignIn", Context.GetExternalProviders());
+            return View("SignIn", HttpContext.GetExternalProviders());
         }
 
         [HttpPost("~/signin")]
@@ -24,7 +24,7 @@ namespace Mvc.Server.Controllers {
                 return HttpBadRequest();
             }
 
-            if (!Context.IsProviderSupported(provider)) {
+            if (!HttpContext.IsProviderSupported(provider)) {
                 return HttpBadRequest();
             }
 
@@ -49,7 +49,7 @@ namespace Mvc.Server.Controllers {
             // when the user agent is redirected from the external identity provider
             // after a successful authentication flow (e.g Google or Facebook).
 
-            await Context.Authentication.SignOutAsync("ServerCookie");
+            await HttpContext.Authentication.SignOutAsync("ServerCookie");
         }
     }
 }

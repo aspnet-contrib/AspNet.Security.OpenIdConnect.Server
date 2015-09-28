@@ -18,10 +18,10 @@ namespace Mvc.Client.Controllers {
         public async Task SignOut() {
             // Instruct the cookies middleware to delete the local cookie created when the user agent
             // is redirected from the identity provider after a successful authorization flow.
-            await Context.Authentication.SignOutAsync("ClientCookie");
+            await HttpContext.Authentication.SignOutAsync("ClientCookie");
 
             // Instruct the OpenID Connect middleware to redirect the user agent to the identity provider to sign out.
-            await Context.Authentication.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
+            await HttpContext.Authentication.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
         }
     }
 }

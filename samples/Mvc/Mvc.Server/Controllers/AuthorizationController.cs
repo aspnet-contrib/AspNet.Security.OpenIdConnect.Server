@@ -30,13 +30,13 @@ namespace Mvc.Server.Controllers {
             // OpenIdConnectServerHandler automatically handles the error and MVC is not invoked.
             // You can safely remove this part and let AspNet.Security.OpenIdConnect.Server automatically
             // handle the unrecoverable errors by switching ApplicationCanDisplayErrors to false in Startup.cs
-            var response = Context.GetOpenIdConnectResponse();
+            var response = HttpContext.GetOpenIdConnectResponse();
             if (response != null) {
                 return View("Error", response);
             }
 
             // Extract the authorization request from the cache, the query string or the request form.
-            var request = Context.GetOpenIdConnectRequest();
+            var request = HttpContext.GetOpenIdConnectRequest();
             if (request == null) {
                 return View("Error", new OpenIdConnectMessage {
                     Error = "invalid_request",
@@ -78,7 +78,7 @@ namespace Mvc.Server.Controllers {
         [Authorize, HttpPost("~/connect/authorize/accept"), ValidateAntiForgeryToken]
         public async Task<IActionResult> Accept(CancellationToken cancellationToken) {
             // Extract the authorization request from the cache, the query string or the request form.
-            var request = Context.GetOpenIdConnectRequest();
+            var request = HttpContext.GetOpenIdConnectRequest();
             if (request == null) {
                 return View("Error", new OpenIdConnectMessage {
                     Error = "invalid_request",
@@ -92,7 +92,7 @@ namespace Mvc.Server.Controllers {
 
             // Copy the claims retrieved from the external identity provider
             // (e.g Google, Facebook, a WS-Fed provider or another OIDC server).
-            foreach (var claim in Context.User.Claims) {
+            foreach (var claim in HttpContext.User.Claims) {
                 // Allow ClaimTypes.Name to be added in the id_token.
                 // ClaimTypes.NameIdentifier is automatically added, even if its
                 // destination is not defined or doesn't include "id_token".
@@ -132,7 +132,7 @@ namespace Mvc.Server.Controllers {
             // a 'sub' or a 'ClaimTypes.NameIdentifier' claim. In this case, the returned
             // identities always contain the name identifier returned by the external provider.
             // Note: the authenticationScheme parameter must match the value configured in Startup.cs.
-            await Context.Authentication.SignInAsync(OpenIdConnectServerDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
+            await HttpContext.Authentication.SignInAsync(OpenIdConnectServerDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
 
             return new EmptyResult();
         }
@@ -140,7 +140,7 @@ namespace Mvc.Server.Controllers {
         [Authorize, HttpPost("~/connect/authorize/deny"), ValidateAntiForgeryToken]
         public IActionResult Deny(CancellationToken cancellationToken) {
             // Extract the authorization request from the cache, the query string or the request form.
-            var request = Context.GetOpenIdConnectRequest();
+            var request = HttpContext.GetOpenIdConnectRequest();
             if (request == null) {
                 return View("Error", new OpenIdConnectMessage {
                     Error = "invalid_request",
@@ -151,7 +151,7 @@ namespace Mvc.Server.Controllers {
             // Notify AspNet.Security.OpenIdConnect.Server that the authorization grant has been denied.
             // Note: OpenIdConnectServerHandler will automatically take care of redirecting
             // the user agent to the client application using the appropriate response_mode.
-            Context.SetOpenIdConnectResponse(new OpenIdConnectMessage {
+            HttpContext.SetOpenIdConnectResponse(new OpenIdConnectMessage {
                 Error = "access_denied",
                 ErrorDescription = "The authorization grant has been denied by the resource owner",
                 RedirectUri = request.RedirectUri,
@@ -170,7 +170,7 @@ namespace Mvc.Server.Controllers {
             // OpenIdConnectServerHandler automatically handles the error and MVC is not invoked.
             // You can safely remove this part and let AspNet.Security.OpenIdConnect.Server automatically
             // handle the unrecoverable errors by switching ApplicationCanDisplayErrors to false in Startup.cs
-            var response = Context.GetOpenIdConnectResponse();
+            var response = HttpContext.GetOpenIdConnectResponse();
             if (response != null) {
                 return View("Error", response);
             }
@@ -178,10 +178,10 @@ namespace Mvc.Server.Controllers {
             // When invoked, the logout endpoint might receive an unauthenticated request if the server cookie has expired.
             // When the client application sends an id_token_hint parameter, the corresponding identity can be retrieved
             // using AuthenticateAsync or using User when the authorization server is declared as AuthenticationMode.Active.
-            var identity = await Context.Authentication.AuthenticateAsync(OpenIdConnectServerDefaults.AuthenticationScheme);
+            var identity = await HttpContext.Authentication.AuthenticateAsync(OpenIdConnectServerDefaults.AuthenticationScheme);
 
             // Extract the logout request from the ASP.NET environment.
-            var request = Context.GetOpenIdConnectRequest();
+            var request = HttpContext.GetOpenIdConnectRequest();
             if (request == null) {
                 return View("Error", new OpenIdConnectMessage {
                     Error = "invalid_request",
@@ -197,14 +197,14 @@ namespace Mvc.Server.Controllers {
             // Instruct the cookies middleware to delete the local cookie created
             // when the user agent is redirected from the external identity provider
             // after a successful authentication flow (e.g Google or Facebook).
-            await Context.Authentication.SignOutAsync("ServerCookie");
+            await HttpContext.Authentication.SignOutAsync("ServerCookie");
 
             // This call will instruct AspNet.Security.OpenIdConnect.Server to serialize
             // the specified identity to build appropriate tokens (id_token and token).
             // Note: you should always make sure the identities you return contain either
             // a 'sub' or a 'ClaimTypes.NameIdentifier' claim. In this case, the returned
             // identities always contain the name identifier returned by the external provider.
-            await Context.Authentication.SignOutAsync(OpenIdConnectServerDefaults.AuthenticationScheme);
+            await HttpContext.Authentication.SignOutAsync(OpenIdConnectServerDefaults.AuthenticationScheme);
         }
         
         protected virtual Task<Application> GetApplicationAsync(string identifier, CancellationToken cancellationToken) {

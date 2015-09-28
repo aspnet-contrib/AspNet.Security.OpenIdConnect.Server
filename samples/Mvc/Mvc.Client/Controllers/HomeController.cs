@@ -28,7 +28,7 @@ namespace Mvc.Client.Controllers {
 
         protected string AccessToken {
             get {
-                var claim = Context.User?.FindFirst("access_token");
+                var claim = HttpContext.User?.FindFirst("access_token");
                 if (claim == null) {
                     throw new InvalidOperationException();
                 }
