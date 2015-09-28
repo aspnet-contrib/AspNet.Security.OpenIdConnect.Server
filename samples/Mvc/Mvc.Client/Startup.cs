@@ -1,6 +1,4 @@
 using System;
-using System.Security.Claims;
-using System.Threading.Tasks;
 using Microsoft.AspNet.Authentication;
 using Microsoft.AspNet.Authentication.Cookies;
 using Microsoft.AspNet.Authentication.OpenIdConnect;
@@ -58,51 +56,6 @@ namespace Mvc.Client {
                 // Note: the resource property represents the different endpoints the
                 // access token should be issued for (values must be space-delimited).
                 options.Resource = "http://localhost:54540/";
-
-                options.Events = new OpenIdConnectEvents {
-                    // Note: by default, the OIDC client throws an OpenIdConnectProtocolException
-                    // when an error occurred during the authentication/authorization process.
-                    // To prevent a YSOD from being displayed, the response is declared as handled.
-                    OnAuthenticationFailed = context => {
-                        if (string.Equals(context.ProtocolMessage.Error, "access_denied", StringComparison.Ordinal)) {
-                            context.HandleResponse();
-
-                            context.Response.Redirect("/");
-                        }
-
-                        return Task.FromResult<object>(null);
-                    },
-
-                    // Store the access/identity tokens extracted from the token response.
-                    OnAuthenticationValidated = context => {
-                        var identity = context.AuthenticationTicket.Principal.Identity as ClaimsIdentity;
-                        if (identity == null) {
-                            throw new InvalidOperationException();
-                        }
-
-                        // Add the access token to the returned ClaimsIdentity to make it easier to retrieve.
-                        identity.AddClaim(new Claim(
-                            type: OpenIdConnectParameterNames.AccessToken,
-                            value: context.TokenEndpointResponse.ProtocolMessage.AccessToken));
-
-                        // Add the identity token to the returned ClaimsIdentity to make it easier to retrieve.
-                        identity.AddClaim(new Claim(
-                            type: OpenIdConnectParameterNames.IdToken,
-                            value: context.TokenEndpointResponse.ProtocolMessage.IdToken));
-
-                        return Task.FromResult<object>(null);
-                    },
-
-                    // Attach the id_token stored in the authentication cookie to the logout request.
-                    OnRedirectToEndSessionEndpoint = context => {
-                        var token = context.HttpContext.User.FindFirst(OpenIdConnectParameterNames.IdToken);
-                        if (token != null) {
-                            context.ProtocolMessage.IdTokenHint = token.Value;
-                        }
-
-                        return Task.FromResult<object>(null);
-                    },
-                };
             });
 
             app.UseStaticFiles();
