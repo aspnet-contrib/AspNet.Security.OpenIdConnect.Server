@@ -46,6 +46,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
 
         public static class Scopes {
             public const string OpenId = "openid";
+            public const string OfflineAccess = "offline_access";
         }
 
         public static class GrantTypes {
