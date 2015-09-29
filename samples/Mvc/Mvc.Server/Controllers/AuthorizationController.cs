@@ -225,14 +225,5 @@ namespace Mvc.Server.Controllers {
                               select application).SingleOrDefaultAsync(cancellationToken);
             }
         }
-
-        protected virtual string GenerateKey() {
-            using (var generator = RandomNumberGenerator.Create()) {
-                var buffer = new byte[16];
-                generator.GetBytes(buffer);
-
-                return new Guid(buffer).ToString();
-            }
-        }
     }
 }
