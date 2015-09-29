@@ -2088,6 +2088,13 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     }
                 }
 
+                // Remove the ClaimTypes.NameIdentifier claims to avoid getting duplicate claims.
+                // Note: the "sub" claim is automatically mapped by JwtSecurityTokenHandler
+                // to ClaimTypes.NameIdentifier when validating a JWT token.
+                foreach (var claim in identity.FindAll(ClaimTypes.NameIdentifier)) {
+                    identity.RemoveClaim(claim);
+                }
+
                 // Create a new ticket containing the updated properties and the filtered principal.
                 var ticket = new AuthenticationTicket(principal, properties, Options.AuthenticationScheme);
 
@@ -2195,6 +2202,13 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     }
 
                     identity.AddClaim(JwtRegisteredClaimNames.Sub, identifier.Value);
+                }
+
+                // Remove the ClaimTypes.NameIdentifier claims to avoid getting duplicate claims.
+                // Note: the "sub" claim is automatically mapped by JwtSecurityTokenHandler
+                // to ClaimTypes.NameIdentifier when validating a JWT token.
+                foreach (var claim in identity.FindAll(ClaimTypes.NameIdentifier)) {
+                    identity.RemoveClaim(claim);
                 }
 
                 // Create a new ticket containing the updated properties and the filtered principal.
