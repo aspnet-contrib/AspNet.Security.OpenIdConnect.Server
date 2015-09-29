@@ -4,6 +4,8 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
+using System;
+using System.ComponentModel;
 using System.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
@@ -58,6 +60,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public SecurityKey SigningKey { get; set; }
 
         /// <summary>
+        /// Gets or sets the deserializer used to resolve the authentication ticket.
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public Func<string, Task<AuthenticationTicket>> Deserializer { get; set; }
+
+        /// <summary>
         /// Gets or sets the data format used to deserialize the authentication ticket.
         /// Note: this property is only used when <see cref="SecurityTokenHandler"/> is <c>null</c>.
         /// </summary>
@@ -87,40 +95,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="ticket">The serialized ticket.</param>
         /// <returns>The authentication ticket.</returns>
-        public Task<AuthenticationTicket> DeserializeTicketAsync(string ticket) {
-            var handler = SecurityTokenHandler as ISecurityTokenValidator;
-            if (handler == null) {
-                return Task.FromResult(AuthenticationTicket = DataFormat?.Unprotect(ticket));
-            }
-
-            // Create new validation parameters to validate the security token.
-            // ValidateAudience and ValidateLifetime are always set to false:
-            // if necessary, the audience and the expiration can be validated
-            // in InvokeValidationEndpointAsync or InvokeTokenEndpointAsync.
-            var parameters = new TokenValidationParameters {
-                IssuerSigningKey = SigningKey,
-                ValidIssuer = Issuer,
-                ValidateAudience = false,
-                ValidateLifetime = false
-            };
-
-            SecurityToken token;
-            var principal = handler.ValidateToken(ticket, parameters, out token);
-
-            // Parameters stored in AuthenticationProperties are lost
-            // when the identity token is serialized using a security token handler.
-            // To mitigate that, they are inferred from the claims or the security token.
-            var properties = new AuthenticationProperties {
-                ExpiresUtc = token.ValidTo,
-                IssuedUtc = token.ValidFrom
-            };
-
-            var audiences = principal.FindAll(JwtRegisteredClaimNames.Aud);
-            if (audiences.Any()) {
-                properties.SetAudiences(audiences.Select(claim => claim.Value));
-            }
-
-            return Task.FromResult(AuthenticationTicket = new AuthenticationTicket(principal, properties, Options.AuthenticationScheme));
+        public async Task<AuthenticationTicket> DeserializeTicketAsync(string ticket) {
+            return AuthenticationTicket = await Deserializer(ticket);
         }
     }
 }

@@ -4,6 +4,8 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
+using System;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Authentication;
 using Microsoft.AspNet.Http;
@@ -45,6 +47,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public new OpenIdConnectMessage Response { get; }
 
         /// <summary>
+        /// Gets or sets the serializer used to forge the authorization code.
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public Func<AuthenticationTicket, Task<string>> Serializer { get; set; }
+
+        /// <summary>
         /// Gets or sets the data format used to serialize the authentication ticket.
         /// </summary>
         public ISecureDataFormat<AuthenticationTicket> DataFormat { get; set; }
@@ -60,8 +68,17 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// is automatically set when this method completes.
         /// </summary>
         /// <returns>The serialized and signed ticket.</returns>
-        public Task<string> SerializeTicketAsync() {
-            return Task.FromResult(AuthorizationCode = DataFormat?.Protect(AuthenticationTicket));
+        public Task<string> SerializeTicketAsync() => SerializeTicketAsync(AuthenticationTicket);
+
+        /// <summary>
+        /// Serialize and sign the authentication ticket using <see cref="DataFormat"/>.
+        /// Note: the <see cref="AuthorizationCode"/> property
+        /// is automatically set when this method completes.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket to serialize.</param>
+        /// <returns>The serialized and signed ticket.</returns>
+        public async Task<string> SerializeTicketAsync(AuthenticationTicket ticket) {
+            return AuthorizationCode = await Serializer(ticket);
         }
     }
 }
