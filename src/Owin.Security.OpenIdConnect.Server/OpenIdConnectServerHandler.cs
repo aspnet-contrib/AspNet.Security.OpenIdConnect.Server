@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IdentityModel.Protocols.WSTrust;
 using System.IdentityModel.Tokens;
 using System.IO;
 using System.Linq;
@@ -2056,6 +2057,15 @@ namespace Owin.Security.OpenIdConnect.Server {
                     DataFormat = Options.AuthorizationCodeFormat
                 };
 
+                // Sets the default authorization code serializer.
+                notification.Serializer = payload => {
+                    if (notification.DataFormat == null) {
+                        return Task.FromResult<string>(null);
+                    }
+
+                    return Task.FromResult(notification.DataFormat.Protect(payload));
+                };
+
                 await Options.Provider.CreateAuthorizationCode(notification);
 
                 // Treat a non-null authorization code like an implicit HandleResponse call.
@@ -2156,6 +2166,90 @@ namespace Owin.Security.OpenIdConnect.Server {
                 foreach (var audience in resources) {
                     notification.Audiences.Add(audience);
                 }
+
+                // Sets the default access token serializer.
+                notification.Serializer = payload => {
+                    if (notification.SecurityTokenHandler == null) {
+                        if (notification.DataFormat == null) {
+                            return null;
+                        }
+
+                        return Task.FromResult(notification.DataFormat.Protect(payload));
+                    }
+
+                    var handler = notification.SecurityTokenHandler as JwtSecurityTokenHandler;
+                    if (handler != null) {
+                        // When creating an access token intended for a single audience, it's usually better
+                        // to format the "aud" claim as a string, but CreateToken doesn't support multiple audiences:
+                        // to work around this limitation, audience is initialized with a single resource and
+                        // JwtPayload.Aud is replaced with an array containing the multiple resources if necessary.
+                        // See https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32#section-4.1.3
+                        var token = handler.CreateToken(
+                            subject: payload.Identity,
+                            issuer: notification.Issuer,
+                            audience: notification.Audiences.ElementAtOrDefault(0),
+                            signatureProvider: notification.SignatureProvider,
+                            signingCredentials: notification.SigningCredentials,
+                            notBefore: notification.AuthenticationTicket.Properties.IssuedUtc.Value.UtcDateTime,
+                            expires: notification.AuthenticationTicket.Properties.ExpiresUtc.Value.UtcDateTime);
+
+                        if (notification.Audiences.Count() > 1) {
+                            token.Payload[JwtRegisteredClaimNames.Aud] = notification.Audiences.ToArray();
+                        }
+
+                        if (notification.SigningCredentials != null) {
+                            var x509SecurityKey = notification.SigningCredentials.SigningKey as X509SecurityKey;
+                            if (x509SecurityKey != null) {
+                                // Note: "x5t" is only added by JwtHeader's constructor if SigningCredentials is a X509SigningCredentials instance.
+                                // To work around this limitation, "x5t" is manually added if a certificate can be extracted from a X509SecurityKey
+                                token.Header[JwtHeaderParameterNames.X5t] = Base64UrlEncoder.Encode(x509SecurityKey.Certificate.GetCertHash());
+                            }
+
+                            object identifier;
+                            if (!token.Header.TryGetValue(JwtHeaderParameterNames.Kid, out identifier) || identifier == null) {
+                                // When no key identifier has been explicitly added, a "kid" is automatically
+                                // inferred from the hexadecimal representation of the certificate thumbprint.
+                                if (x509SecurityKey != null) {
+                                    identifier = x509SecurityKey.Certificate.Thumbprint;
+                                }
+
+                                // When no key identifier has been explicitly added by the developer, a "kid"
+                                // is automatically inferred from the modulus if the signing key is a RSA key.
+                                var rsaSecurityKey = notification.SigningCredentials.SigningKey as RsaSecurityKey;
+                                if (rsaSecurityKey != null) {
+                                    var algorithm = (RSA) rsaSecurityKey.GetAsymmetricAlgorithm(
+                                        SecurityAlgorithms.RsaSha256Signature, false);
+
+                                    // Export the RSA public key.
+                                    var parameters = algorithm.ExportParameters(includePrivateParameters: false);
+
+                                    // Only use the 40 first chars to match the identifier used by the JWKS endpoint.
+                                    identifier = Base64UrlEncoder.Encode(parameters.Modulus)
+                                                                 .Substring(0, 40)
+                                                                 .ToUpperInvariant();
+                                }
+
+                                token.Header[JwtHeaderParameterNames.Kid] = identifier;
+                            }
+                        }
+
+                        return Task.FromResult(handler.WriteToken(token));
+                    }
+
+                    else {
+                        var token = notification.SecurityTokenHandler.CreateToken(new SecurityTokenDescriptor {
+                            Subject = notification.AuthenticationTicket.Identity,
+                            AppliesToAddress = notification.Audiences.ElementAtOrDefault(0),
+                            TokenIssuerName = notification.Issuer,
+                            SigningCredentials = notification.SigningCredentials,
+                            Lifetime = new Lifetime(
+                                notification.AuthenticationTicket.Properties.IssuedUtc.Value.UtcDateTime,
+                                notification.AuthenticationTicket.Properties.ExpiresUtc.Value.UtcDateTime)
+                        });
+
+                        return Task.FromResult(notification.SecurityTokenHandler.WriteToken(token));
+                    }
+                };
 
                 await Options.Provider.CreateAccessToken(notification);
 
@@ -2267,6 +2361,69 @@ namespace Owin.Security.OpenIdConnect.Server {
                     SigningCredentials = Options.SigningCredentials.FirstOrDefault()
                 };
 
+                // Sets the default identity token serializer.
+                notification.Serializer = payload => {
+                    if (notification.SecurityTokenHandler == null) {
+                        return Task.FromResult<string>(null);
+                    }
+
+                    // When creating an identity token intended for a single audience, it's usually better
+                    // to format the "aud" claim as a string, but CreateToken doesn't support multiple audiences:
+                    // to work around this limitation, audience is initialized with a single resource and
+                    // JwtPayload.Aud is replaced with an array containing the multiple resources if necessary.
+                    // See http://openid.net/specs/openid-connect-core-1_0.html#IDToken
+                    var token = notification.SecurityTokenHandler.CreateToken(
+                        subject: notification.AuthenticationTicket.Identity,
+                        issuer: notification.Issuer,
+                        audience: notification.Audiences.ElementAtOrDefault(0),
+                        signatureProvider: notification.SignatureProvider,
+                        signingCredentials: notification.SigningCredentials,
+                        notBefore: notification.AuthenticationTicket.Properties.IssuedUtc.Value.UtcDateTime,
+                        expires: notification.AuthenticationTicket.Properties.ExpiresUtc.Value.UtcDateTime);
+
+                    if (notification.Audiences.Count() > 1) {
+                        token.Payload[JwtRegisteredClaimNames.Aud] = notification.Audiences.ToArray();
+                    }
+
+                    if (notification.SigningCredentials != null) {
+                        var x509SecurityKey = notification.SigningCredentials.SigningKey as X509SecurityKey;
+                        if (x509SecurityKey != null) {
+                            // Note: "x5t" is only added by JwtHeader's constructor if SigningCredentials is a X509SigningCredentials instance.
+                            // To work around this limitation, "x5t" is manually added if a certificate can be extracted from a X509SecurityKey
+                            token.Header[JwtHeaderParameterNames.X5t] = Base64UrlEncoder.Encode(x509SecurityKey.Certificate.GetCertHash());
+                        }
+
+                        object identifier;
+                        if (!token.Header.TryGetValue(JwtHeaderParameterNames.Kid, out identifier) || identifier == null) {
+                            // When no key identifier has been explicitly added, a "kid" is automatically
+                            // inferred from the hexadecimal representation of the certificate thumbprint.
+                            if (x509SecurityKey != null) {
+                                identifier = x509SecurityKey.Certificate.Thumbprint;
+                            }
+
+                            // When no key identifier has been explicitly added by the developer, a "kid"
+                            // is automatically inferred from the modulus if the signing key is a RSA key.
+                            var rsaSecurityKey = notification.SigningCredentials.SigningKey as RsaSecurityKey;
+                            if (rsaSecurityKey != null) {
+                                var algorithm = (RSA) rsaSecurityKey.GetAsymmetricAlgorithm(
+                                    SecurityAlgorithms.RsaSha256Signature, false);
+
+                                // Export the RSA public key.
+                                var parameters = algorithm.ExportParameters(includePrivateParameters: false);
+
+                                // Only use the 40 first chars to match the identifier used by the JWKS endpoint.
+                                identifier = Base64UrlEncoder.Encode(parameters.Modulus)
+                                                             .Substring(0, 40)
+                                                             .ToUpperInvariant();
+                            }
+
+                            token.Header[JwtHeaderParameterNames.Kid] = identifier;
+                        }
+                    }
+
+                    return Task.FromResult(notification.SecurityTokenHandler.WriteToken(token));
+                };
+
                 await Options.Provider.CreateIdentityToken(notification);
 
                 // Treat a non-null identity token like an implicit HandleResponse call.
@@ -2316,6 +2473,15 @@ namespace Owin.Security.OpenIdConnect.Server {
                     DataFormat = Options.RefreshTokenFormat
                 };
 
+                // Sets the default refresh token serializer.
+                notification.Serializer = payload => {
+                    if (notification.DataFormat == null) {
+                        return Task.FromResult<string>(null);
+                    }
+
+                    return Task.FromResult(notification.DataFormat.Protect(payload));
+                };
+
                 await Options.Provider.CreateRefreshToken(notification);
 
                 // Treat a non-null refresh token like an implicit HandleResponse call.
@@ -2346,6 +2512,16 @@ namespace Owin.Security.OpenIdConnect.Server {
             try {
                 var notification = new ReceiveAuthorizationCodeContext(Context, Options, request, code) {
                     DataFormat = Options.AuthorizationCodeFormat
+                };
+
+                // Sets the default deserializer used to resolve the
+                // authentication ticket corresponding to the authorization code.
+                notification.Deserializer = ticket => {
+                    if (notification.DataFormat == null) {
+                        return Task.FromResult<AuthenticationTicket>(null);
+                    }
+
+                    return Task.FromResult(notification.DataFormat.Unprotect(ticket));
                 };
 
                 await Options.Provider.ReceiveAuthorizationCode(notification);
@@ -2391,6 +2567,48 @@ namespace Owin.Security.OpenIdConnect.Server {
                                                            .FirstOrDefault()
                 };
 
+                // Sets the default deserializer used to resolve the
+                // authentication ticket corresponding to the access token.
+                notification.Deserializer = ticket => {
+                    var handler = notification.SecurityTokenHandler as ISecurityTokenValidator;
+                    if (handler == null) {
+                        if (notification.DataFormat == null) {
+                            return null;
+                        }
+
+                        return Task.FromResult(notification.DataFormat.Unprotect(ticket));
+                    }
+
+                    // Create new validation parameters to validate the security token.
+                    // ValidateAudience and ValidateLifetime are always set to false:
+                    // if necessary, the audience and the expiration can be validated
+                    // in InvokeValidationEndpointAsync or InvokeTokenEndpointAsync.
+                    var parameters = new TokenValidationParameters {
+                        IssuerSigningKey = notification.SigningKey,
+                        ValidIssuer = notification.Issuer,
+                        ValidateAudience = false,
+                        ValidateLifetime = false
+                    };
+
+                    SecurityToken securityToken;
+                    var principal = handler.ValidateToken(ticket, parameters, out securityToken);
+
+                    // Parameters stored in AuthenticationProperties are lost
+                    // when the identity token is serialized using a security token handler.
+                    // To mitigate that, they are inferred from the claims or the security token.
+                    var properties = new AuthenticationProperties {
+                        ExpiresUtc = securityToken.ValidTo,
+                        IssuedUtc = securityToken.ValidFrom
+                    };
+
+                    var audiences = principal.FindAll(JwtRegisteredClaimNames.Aud);
+                    if (audiences.Any()) {
+                        properties.SetAudiences(audiences.Select(claim => claim.Value));
+                    }
+
+                    return Task.FromResult(new AuthenticationTicket((ClaimsIdentity) principal.Identity, properties));
+                };
+
                 await Options.Provider.ReceiveAccessToken(notification);
 
                 // Directly return the authentication ticket if one
@@ -2424,6 +2642,43 @@ namespace Owin.Security.OpenIdConnect.Server {
                                                            .FirstOrDefault()
                 };
 
+                // Sets the default deserializer used to resolve the
+                // authentication ticket corresponding to the identity token.
+                notification.Deserializer = ticket => {
+                    if (notification.SecurityTokenHandler == null) {
+                        return Task.FromResult<AuthenticationTicket>(null);
+                    }
+
+                    // Create new validation parameters to validate the security token.
+                    // ValidateAudience and ValidateLifetime are always set to false:
+                    // if necessary, the audience and the expiration can be validated
+                    // in InvokeValidationEndpointAsync or InvokeTokenEndpointAsync.
+                    var parameters = new TokenValidationParameters {
+                        IssuerSigningKey = notification.SigningKey,
+                        ValidIssuer = notification.Issuer,
+                        ValidateAudience = false,
+                        ValidateLifetime = false
+                    };
+
+                    SecurityToken securityToken;
+                    var principal = notification.SecurityTokenHandler.ValidateToken(ticket, parameters, out securityToken);
+
+                    // Parameters stored in AuthenticationProperties are lost
+                    // when the identity token is serialized using a security token handler.
+                    // To mitigate that, they are inferred from the claims or the security token.
+                    var properties = new AuthenticationProperties {
+                        ExpiresUtc = securityToken.ValidTo,
+                        IssuedUtc = securityToken.ValidFrom
+                    };
+
+                    var audiences = principal.FindAll(JwtRegisteredClaimNames.Aud);
+                    if (audiences.Any()) {
+                        properties.SetAudiences(audiences.Select(claim => claim.Value));
+                    }
+
+                    return Task.FromResult(new AuthenticationTicket((ClaimsIdentity) principal.Identity, properties));
+                };
+
                 await Options.Provider.ReceiveIdentityToken(notification);
 
                 // Directly return the authentication ticket if one
@@ -2451,6 +2706,16 @@ namespace Owin.Security.OpenIdConnect.Server {
             try {
                 var notification = new ReceiveRefreshTokenContext(Context, Options, request, token) {
                     DataFormat = Options.RefreshTokenFormat
+                };
+
+                // Sets the default deserializer used to resolve the
+                // authentication ticket corresponding to the refresh token.
+                notification.Deserializer = ticket => {
+                    if (notification.DataFormat == null) {
+                        return Task.FromResult<AuthenticationTicket>(null);
+                    }
+
+                    return Task.FromResult(notification.DataFormat.Unprotect(ticket));
                 };
 
                 await Options.Provider.ReceiveRefreshToken(notification);

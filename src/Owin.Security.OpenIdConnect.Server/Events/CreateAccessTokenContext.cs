@@ -4,11 +4,10 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
+using System;
 using System.Collections.Generic;
-using System.IdentityModel.Protocols.WSTrust;
+using System.ComponentModel;
 using System.IdentityModel.Tokens;
-using System.Linq;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
@@ -77,6 +76,12 @@ namespace Owin.Security.OpenIdConnect.Server {
         public SigningCredentials SigningCredentials { get; set; }
 
         /// <summary>
+        /// Gets or sets the serializer used to forge the access token.
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public Func<AuthenticationTicket, Task<string>> Serializer { get; set; }
+
+        /// <summary>
         /// Gets or sets the data format used to serialize the authentication ticket.
         /// Note: this property is only used when <see cref="SecurityTokenHandler"/> is <c>null</c>.
         /// </summary>
@@ -98,86 +103,19 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// is automatically set when this method completes.
         /// </summary>
         /// <returns>The serialized and signed ticket.</returns>
-        public Task<string> SerializeTicketAsync() {
-            if (SecurityTokenHandler == null) {
-                if (DataFormat == null) {
-                    return null;
-                }
+        public async Task<string> SerializeTicketAsync() {
+            return AccessToken = await Serializer(AuthenticationTicket);
+        }
 
-                return Task.FromResult(AccessToken = DataFormat.Protect(AuthenticationTicket));
-            }
-
-            var handler = SecurityTokenHandler as JwtSecurityTokenHandler;
-            if (handler != null) {
-                // When creating an access token intended for a single audience, it's usually better
-                // to format the "aud" claim as a string, but CreateToken doesn't support multiple audiences:
-                // to work around this limitation, audience is initialized with a single resource and
-                // JwtPayload.Aud is replaced with an array containing the multiple resources if necessary.
-                // See https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32#section-4.1.3
-                var token = handler.CreateToken(
-                    subject: AuthenticationTicket.Identity, issuer: Issuer,
-                    audience: Audiences.ElementAtOrDefault(0),
-                    signatureProvider: SignatureProvider,
-                    signingCredentials: SigningCredentials,
-                    notBefore: AuthenticationTicket.Properties.IssuedUtc.Value.UtcDateTime,
-                    expires: AuthenticationTicket.Properties.ExpiresUtc.Value.UtcDateTime);
-
-                if (Audiences.Count() > 1) {
-                    token.Payload[JwtRegisteredClaimNames.Aud] = Audiences.ToArray();
-                }
-
-                if (SigningCredentials != null) {
-                    var x509SecurityKey = SigningCredentials.SigningKey as X509SecurityKey;
-                    if (x509SecurityKey != null) {
-                        // Note: "x5t" is only added by JwtHeader's constructor if SigningCredentials is a X509SigningCredentials instance.
-                        // To work around this limitation, "x5t" is manually added if a certificate can be extracted from a X509SecurityKey
-                        token.Header[JwtHeaderParameterNames.X5t] = Base64UrlEncoder.Encode(x509SecurityKey.Certificate.GetCertHash());
-                    }
-
-                    object identifier;
-                    if (!token.Header.TryGetValue(JwtHeaderParameterNames.Kid, out identifier) || identifier == null) {
-                        // When no key identifier has been explicitly added, a "kid" is automatically
-                        // inferred from the hexadecimal representation of the certificate thumbprint.
-                        if (x509SecurityKey != null) {
-                            identifier = x509SecurityKey.Certificate.Thumbprint;
-                        }
-
-                        // When no key identifier has been explicitly added by the developer, a "kid"
-                        // is automatically inferred from the modulus if the signing key is a RSA key.
-                        var rsaSecurityKey = SigningCredentials.SigningKey as RsaSecurityKey;
-                        if (rsaSecurityKey != null) {
-                            var algorithm = (RSA) rsaSecurityKey.GetAsymmetricAlgorithm(
-                                SecurityAlgorithms.RsaSha256Signature, false);
-
-                            // Export the RSA public key.
-                            var parameters = algorithm.ExportParameters(includePrivateParameters: false);
-
-                            // Only use the 40 first chars to match the identifier used by the JWKS endpoint.
-                            identifier = Base64UrlEncoder.Encode(parameters.Modulus)
-                                                         .Substring(0, 40)
-                                                         .ToUpperInvariant();
-                        }
-
-                        token.Header[JwtHeaderParameterNames.Kid] = identifier;
-                    }
-                }
-
-                return Task.FromResult(AccessToken = handler.WriteToken(token));
-            }
-
-            else {
-                var token = SecurityTokenHandler.CreateToken(new SecurityTokenDescriptor {
-                    Subject = AuthenticationTicket.Identity,
-                    AppliesToAddress = Audiences.ElementAtOrDefault(0),
-                    TokenIssuerName = Issuer,
-                    SigningCredentials = SigningCredentials,
-                    Lifetime = new Lifetime(
-                        AuthenticationTicket.Properties.IssuedUtc.Value.UtcDateTime,
-                        AuthenticationTicket.Properties.ExpiresUtc.Value.UtcDateTime)
-                });
-
-                return Task.FromResult(AccessToken = SecurityTokenHandler.WriteToken(token));
-            }
+        /// <summary>
+        /// Serialize and sign the authentication ticket.
+        /// Note: the <see cref="AccessToken"/> property
+        /// is automatically set when this method completes.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket to serialize.</param>
+        /// <returns>The serialized and signed ticket.</returns>
+        public async Task<string> SerializeTicketAsync(AuthenticationTicket ticket) {
+            return AccessToken = await Serializer(ticket);
         }
     }
 }

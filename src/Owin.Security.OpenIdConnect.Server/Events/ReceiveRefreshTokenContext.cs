@@ -4,6 +4,8 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
+using System;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
@@ -43,6 +45,12 @@ namespace Owin.Security.OpenIdConnect.Server {
         public AuthenticationTicket AuthenticationTicket { get; set; }
 
         /// <summary>
+        /// Gets or sets the deserializer used to resolve the authentication ticket.
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public Func<string, Task<AuthenticationTicket>> Deserializer { get; set; }
+
+        /// <summary>
         /// Gets or sets the data format used to deserialize the authentication ticket.
         /// </summary>
         public ISecureDataFormat<AuthenticationTicket> DataFormat { get; set; }
@@ -69,12 +77,8 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="ticket">The serialized ticket.</param>
         /// <returns>The authentication ticket.</returns>
-        public Task<AuthenticationTicket> DeserializeTicketAsync(string ticket) {
-            if (DataFormat == null) {
-                return Task.FromResult<AuthenticationTicket>(null);
-            }
-
-            return Task.FromResult(AuthenticationTicket = DataFormat.Unprotect(ticket));
+        public async Task<AuthenticationTicket> DeserializeTicketAsync(string ticket) {
+            return AuthenticationTicket = await Deserializer(ticket);
         }
     }
 }
