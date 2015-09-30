@@ -522,6 +522,18 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return;
             }
 
+            if (!context.Principal.HasClaim(claim => claim.Type == ClaimTypes.NameIdentifier) &&
+                !context.Principal.HasClaim(claim => claim.Type == JwtRegisteredClaimNames.Sub)) {
+                Logger.LogError("The returned identity doesn't contain the mandatory ClaimTypes.NameIdentifier claim.");
+
+                await SendNativeErrorPageAsync(new OpenIdConnectMessage {
+                    Error = OpenIdConnectConstants.Errors.ServerError,
+                    ErrorDescription = "no ClaimTypes.NameIdentifier or sub claim found"
+                });
+
+                return;
+            }
+
             // redirect_uri is added to the response message since it's not a mandatory parameter
             // in OAuth 2.0 and can be set or replaced from the ValidateClientRedirectUri event.
             var response = new OpenIdConnectMessage {
@@ -566,11 +578,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 if (string.IsNullOrEmpty(response.Code)) {
                     Logger.LogError("CreateAuthorizationCodeAsync returned no authorization code");
 
-                    await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
+                    await SendNativeErrorPageAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.ServerError,
-                        ErrorDescription = "no valid authorization code was issued",
-                        RedirectUri = request.RedirectUri,
-                        State = request.State
+                        ErrorDescription = "no valid authorization code was issued"
                     });
 
                     return;
@@ -591,11 +601,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 if (string.IsNullOrEmpty(response.IdToken)) {
                     Logger.LogError("CreateIdentityTokenAsync returned no identity token.");
 
-                    await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
+                    await SendNativeErrorPageAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.ServerError,
                         ErrorDescription = "no valid identity token was issued",
-                        RedirectUri = request.RedirectUri,
-                        State = request.State
                     });
 
                     return;
@@ -617,11 +625,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 if (string.IsNullOrEmpty(response.AccessToken)) {
                     Logger.LogError("CreateAccessTokenAsync returned no access token.");
 
-                    await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
+                    await SendNativeErrorPageAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.ServerError,
-                        ErrorDescription = "no valid access token was issued",
-                        RedirectUri = request.RedirectUri,
-                        State = request.State
+                        ErrorDescription = "no valid access token was issued"
                     });
 
                     return;
@@ -2697,6 +2703,13 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return false;
             }
 
+            await SendNativeErrorPageAsync(response);
+
+            // Request is always handled when rendering the default error page.
+            return true;
+        }
+
+        private async Task SendNativeErrorPageAsync(OpenIdConnectMessage response) {
             using (var buffer = new MemoryStream())
             using (var writer = new StreamWriter(buffer)) {
                 foreach (var parameter in response.Parameters) {
@@ -2715,8 +2728,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 buffer.Seek(offset: 0, loc: SeekOrigin.Begin);
                 await buffer.CopyToAsync(Response.Body, 4096, Context.RequestAborted);
-
-                return true;
             }
         }
 
