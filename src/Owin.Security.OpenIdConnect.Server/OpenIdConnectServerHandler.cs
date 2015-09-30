@@ -570,7 +570,20 @@ namespace Owin.Security.OpenIdConnect.Server {
                     "the response headers have already been sent back to the user agent. " +
                     "Make sure the response body has not been altered and that no middleware " +
                     "has attempted to write to the response stream during this request.");
-                return false;
+
+                return true;
+            }
+
+            if (!context.Principal.HasClaim(claim => claim.Type == ClaimTypes.NameIdentifier) &&
+                !context.Principal.HasClaim(claim => claim.Type == JwtRegisteredClaimNames.Sub)) {
+                Options.Logger.WriteError("The returned identity doesn't contain the mandatory ClaimTypes.NameIdentifier claim.");
+
+                await SendNativeErrorPageAsync(new OpenIdConnectMessage {
+                    Error = OpenIdConnectConstants.Errors.ServerError,
+                    ErrorDescription = "no ClaimTypes.NameIdentifier or sub claim found"
+                });
+
+                return true;
             }
 
             // redirect_uri is added to the response message since it's not a mandatory parameter
@@ -617,12 +630,12 @@ namespace Owin.Security.OpenIdConnect.Server {
                 if (string.IsNullOrEmpty(response.Code)) {
                     Options.Logger.WriteError("CreateAuthorizationCodeAsync returned no authorization code");
 
-                    return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
+                    await SendNativeErrorPageAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.ServerError,
-                        ErrorDescription = "no valid authorization code was issued",
-                        RedirectUri = request.RedirectUri,
-                        State = request.State
+                        ErrorDescription = "no valid authorization code was issued"
                     });
+
+                    return true;
                 }
             }
 
@@ -640,12 +653,12 @@ namespace Owin.Security.OpenIdConnect.Server {
                 if (string.IsNullOrEmpty(response.IdToken)) {
                     Options.Logger.WriteError("CreateIdentityTokenAsync returned no identity token.");
 
-                    return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
+                    await SendNativeErrorPageAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.ServerError,
-                        ErrorDescription = "no valid identity token was issued",
-                        RedirectUri = request.RedirectUri,
-                        State = request.State
+                        ErrorDescription = "no valid identity token was issued"
                     });
+
+                    return true;
                 }
             }
 
@@ -664,12 +677,12 @@ namespace Owin.Security.OpenIdConnect.Server {
                 if (string.IsNullOrEmpty(response.AccessToken)) {
                     Options.Logger.WriteError("CreateAccessTokenAsync returned no access token.");
 
-                    return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
+                    await SendNativeErrorPageAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.ServerError,
-                        ErrorDescription = "no valid access token was issued",
-                        RedirectUri = request.RedirectUri,
-                        State = request.State
+                        ErrorDescription = "no valid access token was issued"
                     });
+
+                    return true;
                 }
 
                 // properties.ExpiresUtc is automatically set by CreateAccessTokenAsync but the end user
@@ -2779,6 +2792,13 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return false;
             }
 
+            await SendNativeErrorPageAsync(response);
+
+            // Request is always handled when rendering the default error page.
+            return true;
+        }
+
+        private async Task SendNativeErrorPageAsync(OpenIdConnectMessage response) {
             using (var buffer = new MemoryStream())
             using (var writer = new StreamWriter(buffer)) {
                 foreach (var parameter in response.Parameters) {
@@ -2797,8 +2817,6 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                 buffer.Seek(offset: 0, loc: SeekOrigin.Begin);
                 await buffer.CopyToAsync(Response.Body, 4096, Request.CallCancelled);
-
-                return true;
             }
         }
 
