@@ -629,6 +629,14 @@ namespace Owin {
             return audience.Split(' ');
         }
 
+        internal static string GetNonce(this AuthenticationProperties properties) {
+            if (properties == null) {
+                return null;
+            }
+
+            return properties.GetProperty(OpenIdConnectConstants.Extra.Nonce);
+        }
+
         internal static IEnumerable<string> GetResources(this AuthenticationProperties properties) {
             if (properties == null) {
                 return null;
