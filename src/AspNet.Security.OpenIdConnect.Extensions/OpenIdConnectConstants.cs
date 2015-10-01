@@ -74,6 +74,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
             public const string ClientId = "client_id";
             public const string ClientAuthenticated = "client_authenticated";
             public const string Destination = "destination";
+            public const string Nonce = "nonce";
             public const string Scope = "scope";
             public const string RedirectUri = "redirect_uri";
             public const string Resource = "resource";

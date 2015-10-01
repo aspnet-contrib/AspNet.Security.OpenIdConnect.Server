@@ -573,6 +573,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
             return properties?.GetProperty(OpenIdConnectConstants.Extra.Audience)?.Split(' ') ?? Enumerable.Empty<string>();
         }
 
+        internal static string GetNonce(this AuthenticationProperties properties) {
+            return properties?.GetProperty(OpenIdConnectConstants.Extra.Nonce);
+        }
+
         internal static IEnumerable<string> GetResources(this AuthenticationProperties properties) {
             return properties?.GetProperty(OpenIdConnectConstants.Extra.Resource)?.Split(' ') ?? Enumerable.Empty<string>();
         }
