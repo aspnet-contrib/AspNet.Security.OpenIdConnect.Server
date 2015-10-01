@@ -7,6 +7,7 @@ using Microsoft.AspNet.Http;
 using Microsoft.Dnx.Runtime;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Logging;
+using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace Mvc.Client {
@@ -56,6 +57,14 @@ namespace Mvc.Client {
                 // Note: the resource property represents the different endpoints the
                 // access token should be issued for (values must be space-delimited).
                 options.Resource = "http://localhost:54540/";
+
+                // Note: by default, IdentityModel beta8 now refuses to initiate non-HTTPS calls.
+                // To work around this limitation, the configuration manager is manually
+                // instantiated with a document retriever allowing HTTP calls.
+                options.ConfigurationManager = new ConfigurationManager<OpenIdConnectConfiguration>(
+                    metadataAddress: options.Authority + ".well-known/openid-configuration",
+                    configRetriever: new OpenIdConnectConfigurationRetriever(),
+                    docRetriever: new HttpDocumentRetriever { RequireHttps = false });
             });
 
             app.UseStaticFiles();

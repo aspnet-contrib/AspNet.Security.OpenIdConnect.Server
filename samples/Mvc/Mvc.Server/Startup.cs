@@ -50,11 +50,10 @@ namespace Mvc.Server {
                     // Note: by default, IdentityModel beta8 now refuses to initiate non-HTTPS calls.
                     // To work around this limitation, the configuration manager is manually
                     // instantiated with a document retriever allowing HTTP calls.
-                    // Note: Mvc.Client is not impacted yet as it's still using IdentityModel beta7.
                     options.ConfigurationManager = new ConfigurationManager<OpenIdConnectConfiguration>(
                         metadataAddress: options.Authority + ".well-known/openid-configuration",
                         configRetriever: new OpenIdConnectConfigurationRetriever(),
-                        docRetriever: new HttpDocumentRetriever { RequireHttps = options.Authority.StartsWith("https", StringComparison.OrdinalIgnoreCase) });
+                        docRetriever: new HttpDocumentRetriever { RequireHttps = false });
                 });
             });
 
