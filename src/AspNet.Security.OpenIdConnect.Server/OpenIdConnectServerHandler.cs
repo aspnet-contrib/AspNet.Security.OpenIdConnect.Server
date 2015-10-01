@@ -587,29 +587,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 }
             }
 
-            // Determine whether an identity token should be returned
-            // and invoke CreateIdentityTokenAsync if necessary.
-            if (request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.IdToken)) {
-                // Make sure to create a copy of the authentication properties
-                // to avoid modifying the properties set on the original ticket.
-                var properties = new AuthenticationProperties(context.Properties).Copy();
-
-                response.IdToken = await CreateIdentityTokenAsync(context.Principal, properties, request, response);
-
-                // Ensure that an identity token is issued to avoid returning an invalid response.
-                // See http://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#Combinations
-                if (string.IsNullOrEmpty(response.IdToken)) {
-                    Logger.LogError("CreateIdentityTokenAsync returned no identity token.");
-
-                    await SendNativeErrorPageAsync(new OpenIdConnectMessage {
-                        Error = OpenIdConnectConstants.Errors.ServerError,
-                        ErrorDescription = "no valid identity token was issued",
-                    });
-
-                    return;
-                }
-            }
-
             // Determine whether an access token should be returned
             // and invoke CreateAccessTokenAsync if necessary.
             if (request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.Token)) {
@@ -640,6 +617,31 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     var expiration = (long) (lifetime.TotalSeconds + .5);
 
                     response.ExpiresIn = expiration.ToString(CultureInfo.InvariantCulture);
+                }
+            }
+
+            // Determine whether an identity token should be returned
+            // and invoke CreateIdentityTokenAsync if necessary.
+            // Note: the identity token MUST be created after the authorization code
+            // and the access token to create appropriate at_hash and c_hash claims.
+            if (request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.IdToken)) {
+                // Make sure to create a copy of the authentication properties
+                // to avoid modifying the properties set on the original ticket.
+                var properties = new AuthenticationProperties(context.Properties).Copy();
+
+                response.IdToken = await CreateIdentityTokenAsync(context.Principal, properties, request, response);
+
+                // Ensure that an identity token is issued to avoid returning an invalid response.
+                // See http://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#Combinations
+                if (string.IsNullOrEmpty(response.IdToken)) {
+                    Logger.LogError("CreateIdentityTokenAsync returned no identity token.");
+
+                    await SendNativeErrorPageAsync(new OpenIdConnectMessage {
+                        Error = OpenIdConnectConstants.Errors.ServerError,
+                        ErrorDescription = "no valid identity token was issued",
+                    });
+
+                    return;
                 }
             }
 
