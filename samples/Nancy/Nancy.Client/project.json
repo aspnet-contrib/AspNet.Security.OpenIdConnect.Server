@@ -1,0 +1,30 @@
+﻿{
+  "version": "1.0.0-*",
+
+  "projectUrl": "https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server",
+  "licenseUrl": "http://www.apache.org/licenses/LICENSE-2.0.html",
+
+  "commands": {
+    "run": "Nancy.Client"
+  },
+
+
+  "dependencies": {
+    "Microsoft.Owin.SelfHost": "3.0.1",
+    "Nancy.Owin": "1.3.0",
+    "Nancy.MSOwinSecurity": "1.0.1",
+    "Nancy.Viewengines.Razor": "1.3.0",
+    "Microsoft.AspNet.Razor": "3.2.3",
+    "Microsoft.IdentityModel.Protocol.Extensions": "1.0.2.202250711",
+    "Microsoft.Owin.Security.OpenIdConnect": "3.0.1",
+    "Microsoft.Owin.Security.OAuth": "3.0.1",
+    "Microsoft.Owin.Security.Cookies": "3.0.1",
+    "Newtonsoft.Json": "7.0.1",
+    "System.IdentityModel.Tokens.Jwt": "4.0.2.202250711",
+    "Owin.Security.OpenIdConnect.Extensions" :  { "version": "1.0.0-*", "target": "project" }
+  },
+
+  "frameworks": {
+    "dnx451": { }
+  }
+}

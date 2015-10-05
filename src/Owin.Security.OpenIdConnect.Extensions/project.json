@@ -1,0 +1,18 @@
+﻿{
+  "version": "1.0.0-*",
+  "description": "OpenID Connect extensions for Owin.Security.OpenIdConnect.Server.",
+  "authors": [ "Kévin Chalet" ],
+  "owners": [ "Kévin Chalet" ],
+
+  "projectUrl": "https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server",
+  "licenseUrl": "http://www.apache.org/licenses/LICENSE-2.0.html",
+
+  "dependencies": {
+    "Microsoft.IdentityModel.Protocol.Extensions": "1.0.2.202250711",
+    "System.IdentityModel.Tokens.Jwt": "4.0.2.202250711"
+  },
+
+  "frameworks": {
+    "net45": { }
+  }
+}
