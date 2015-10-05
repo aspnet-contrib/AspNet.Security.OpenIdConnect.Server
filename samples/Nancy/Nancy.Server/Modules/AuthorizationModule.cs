@@ -2,7 +2,6 @@
 using System.Data.Entity;
 using System.Linq;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.IdentityModel.Protocols;
@@ -46,7 +45,7 @@ namespace Nancy.Server.Modules {
                 // only uses 302 responses to redirect the user agent to the login page, making it incompatible with POST.
                 // To work around this limitation, the OpenID Connect request is automatically saved in the cache and will be
                 // restored in the other "Authorize" method, after the authentication process has been completed.
-                if (OwinContext.Authentication.User.Identity == null ||
+                if (OwinContext.Authentication.User?.Identity == null ||
                    !OwinContext.Authentication.User.Identity.IsAuthenticated) {
                     return Response.AsRedirect("/signin?returnUrl=" + Uri.EscapeUriString("/connect/authorize?unique_id=" +
                                                                                           request.GetUniqueIdentifier()));
@@ -66,14 +65,20 @@ namespace Nancy.Server.Modules {
                     }];
                 }
 
-                // Note: in a real world application, you'd probably prefer creating a specific view model.
-                return View["Authorize.cshtml", Tuple.Create(request, application)];
+                // Note: in a real world application, you'd probably
+                // prefer creating a specific view model.
+                return View["Authorize.cshtml", new {
+                    Application = application,
+                    Request = request,
+                    Resources = request.GetResources(),
+                    UniqueId = request.GetUniqueIdentifier()
+                }];
             };
             
             Post["/connect/authorize/accept", runAsync: true] = async (parameters, cancellationToken) => {
                 this.RequiresMSOwinAuthentication();
                 this.ValidateCsrfToken();
-                
+
                 // Extract the authorization request from the cache, the query string or the request form.
                 var request = OwinContext.GetOpenIdConnectRequest();
                 if (request == null) {
@@ -134,7 +139,7 @@ namespace Nancy.Server.Modules {
             Post["/connect/authorize/deny"] = parameters => {
                 this.RequiresMSOwinAuthentication();
                 this.ValidateCsrfToken();
-                
+
                 // Extract the authorization request from the cache, the query string or the request form.
                 var request = OwinContext.GetOpenIdConnectRequest();
                 if (request == null) {

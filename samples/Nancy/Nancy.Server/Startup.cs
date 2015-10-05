@@ -6,7 +6,6 @@ using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
 using Microsoft.Owin.Security.Jwt;
-using Nancy.Owin;
 using Nancy.Server.Extensions;
 using Nancy.Server.Providers;
 using NWebsec.Owin;
@@ -39,7 +38,7 @@ namespace Nancy.Server {
                     LoginPath = new PathString("/signin")
                 });
             });
-            
+
             // Insert a new middleware responsible of setting the Content-Security-Policy header.
             // See https://nwebsec.codeplex.com/wikipage?title=Configuring%20Content%20Security%20Policy&referringTitle=NWebsec
             app.UseCsp(options => options.DefaultSources(configuration => configuration.Self())
@@ -57,6 +56,41 @@ namespace Nancy.Server {
             // See https://nwebsec.codeplex.com/wikipage?title=Configuring%20security%20headers&referringTitle=NWebsec
             app.UseXXssProtection(options => options.EnabledWithBlockMode());
 
+            app.Use(async (context, next) => {
+                // Keep the original stream in a separate
+                // variable to restore it later if necessary.
+                var stream = context.Request.Body;
+
+                // Optimization: don't buffer the request if
+                // there was no stream or if it is rewindable.
+                if (stream == Stream.Null || stream.CanSeek) {
+                    await next();
+
+                    return;
+                }
+
+                try {
+                    using (var buffer = new MemoryStream()) {
+                        // Copy the request stream to the memory stream.
+                        await stream.CopyToAsync(buffer);
+
+                        // Rewind the memory stream.
+                        buffer.Position = 0L;
+
+                        // Replace the request stream by the memory stream.
+                        context.Request.Body = buffer;
+
+                        // Invoke the rest of the pipeline.
+                        await next();
+                    }
+                }
+
+                finally {
+                    // Restore the original stream.
+                    context.Request.Body = stream;
+                }
+            });
+
             app.UseOpenIdConnectServer(configuration => {
                 configuration.Provider = new AuthorizationProvider();
 
@@ -66,6 +100,14 @@ namespace Nancy.Server {
                 // information concerning ApplicationCanDisplayErrors.
                 configuration.Options.ApplicationCanDisplayErrors = true;
                 configuration.Options.AllowInsecureHttp = true;
+            });
+
+            app.Use((context, next) => {
+                if (context.Request.Body.CanSeek) {
+                    context.Request.Body.Position = 0L;
+                }
+
+                return next();
             });
 
             app.UseNancy(options => options.Bootstrapper = new NancyBootstrapper());
