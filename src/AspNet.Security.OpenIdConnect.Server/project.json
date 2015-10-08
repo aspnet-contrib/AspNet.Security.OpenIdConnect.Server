@@ -13,15 +13,15 @@
         "Microsoft.AspNet.Authentication": "1.0.0-*",
         "Microsoft.AspNet.Hosting.Abstractions": "1.0.0-*",
 
-        "Microsoft.Framework.Caching.Abstractions": "1.0.0-*",
-        "Microsoft.Framework.Logging.Abstractions": "1.0.0-*",
+        "Microsoft.Extensions.Caching.Abstractions": "1.0.0-*",
+        "Microsoft.Extensions.Logging.Abstractions": "1.0.0-*",
 
-        "Microsoft.Framework.NotNullAttribute.Sources": {
+        "Microsoft.Extensions.NotNullAttribute.Sources": {
             "type": "build",
             "version": "1.0.0-*"
         },
 
-        "Microsoft.Framework.WebEncoders.Core": "1.0.0-*",
+        "Microsoft.Extensions.WebEncoders.Core": "1.0.0-*",
 
         "Newtonsoft.Json": "7.0.1"
     },

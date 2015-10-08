@@ -11,8 +11,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Cryptography;
 using Microsoft.AspNet.Authentication;
 using Microsoft.AspNet.Http;
-using Microsoft.Framework.Caching.Distributed;
-using Microsoft.Framework.WebEncoders;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.WebEncoders;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
