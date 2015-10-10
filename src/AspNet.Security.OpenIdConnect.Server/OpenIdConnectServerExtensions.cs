@@ -237,7 +237,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             foreach (var file in directory.EnumerateFiles("*.key")) {
                 using (var buffer = new MemoryStream())
-                using (var stream = file.Open(FileMode.Open)) {
+                using (var stream = file.Open(FileMode.Open, FileAccess.Read, FileShare.Read)) {
                     // Copy the key content to the buffer.
                     stream.CopyTo(buffer);
 
@@ -252,8 +252,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 }
             }
 
-            // If no signing key has been found,
-            // generate and persist a new RSA key.
+            // If no signing key has been found, generate and persist a new RSA key.
             if (configuration.Options.SigningCredentials.Count == 0) {
                 // Generate a new 2048 bit RSA key and export its public/private parameters.
                 var provider = new RSACryptoServiceProvider(2048);
