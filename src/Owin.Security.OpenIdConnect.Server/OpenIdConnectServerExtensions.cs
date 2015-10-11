@@ -292,7 +292,7 @@ namespace Owin {
 
             foreach (var file in directory.EnumerateFiles("*.key")) {
                 using (var buffer = new MemoryStream())
-                using (var stream = file.Open(FileMode.Open)) {
+                using (var stream = file.Open(FileMode.Open, FileAccess.Read, FileShare.Read)) {
                     // Copy the key content to the buffer.
                     stream.CopyTo(buffer);
 
