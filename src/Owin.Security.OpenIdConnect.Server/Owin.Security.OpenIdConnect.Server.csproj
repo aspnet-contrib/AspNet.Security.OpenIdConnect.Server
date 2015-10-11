@@ -84,6 +84,12 @@
     <Compile Include="OpenIdConnectServerConfiguration.cs" />
     <Compile Include="OpenIdConnectServerDefaults.cs" />
     <Compile Include="OpenIdConnectServerExtensions.cs" />
+    <Compile Include="OpenIdConnectServerHandler.Tokens.cs">
+        <DependentUpon>OpenIdConnectServerHandler.cs</DependentUpon>
+    </Compile>
+    <Compile Include="OpenIdConnectServerHandler.Endpoints.cs">
+        <DependentUpon>OpenIdConnectServerHandler.cs</DependentUpon>
+    </Compile>
     <Compile Include="OpenIdConnectServerHandler.cs" />
     <Compile Include="OpenIdConnectServerMiddleware.cs" />
     <Compile Include="OpenIdConnectServerOptions.cs" />
