@@ -139,12 +139,34 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return false;
             }
 
+            // Reject non-HTTPS requests handled by the OpenID Connect
+            // server middleware if AllowInsecureHttp is not set to true.
             if (!Options.AllowInsecureHttp && !Request.IsHttps) {
-                Logger.LogWarning("Authorization server rejecting http request because AllowInsecureHttp is false.");
-                return true;
+                Logger.LogWarning("The HTTP request was rejected because AllowInsecureHttp was false.");
+
+                if (notification.IsAuthorizationEndpoint || notification.IsLogoutEndpoint) {
+                    // Return the native error page for endpoints involving the user participation.
+                    await SendNativeErrorPageAsync(new OpenIdConnectMessage {
+                        Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                        ErrorDescription = "This server only accepts HTTPS requests."
+                    });
+
+                    return true;
+                }
+
+                else if (notification.IsTokenEndpoint || notification.IsValidationEndpoint ||
+                         notification.IsConfigurationEndpoint || notification.IsCryptographyEndpoint) {
+                    // Return a JSON error for endpoints that don't involve the user participation.
+                    await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                        Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                        ErrorDescription = "This server only accepts HTTPS requests."
+                    });
+
+                    return true;
+                }
             }
 
-            else if (notification.IsAuthorizationEndpoint) {
+            if (notification.IsAuthorizationEndpoint) {
                 return await InvokeAuthorizationEndpointAsync();
             }
 
