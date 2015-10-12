@@ -414,6 +414,8 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         public static ClaimsIdentity Clone(this ClaimsIdentity identity, Func<Claim, bool> filter) {
             var clone = identity.Clone();
 
+            // Note: make sure to call ToArray() to avoid modifying
+            // the initial collection iterated by ClaimsIdentity.Claims.
             foreach (var claim in clone.Claims.ToArray()) {
                 if (!filter(claim)) {
                     clone.RemoveClaim(claim);
