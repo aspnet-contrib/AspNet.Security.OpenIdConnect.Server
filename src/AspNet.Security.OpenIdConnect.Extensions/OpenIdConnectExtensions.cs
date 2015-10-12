@@ -369,6 +369,8 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
 
             var clone = identity.Clone();
 
+            // Note: make sure to call ToArray() to avoid modifying
+            // the initial collection iterated by ClaimsIdentity.Claims.
             foreach (var claim in clone.Claims.ToArray()) {
                 if (!filter(claim)) {
                     clone.RemoveClaim(claim);

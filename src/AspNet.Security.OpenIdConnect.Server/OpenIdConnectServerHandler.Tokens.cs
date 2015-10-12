@@ -139,7 +139,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 // Remove the ClaimTypes.NameIdentifier claims to avoid getting duplicate claims.
                 // Note: the "sub" claim is automatically mapped by JwtSecurityTokenHandler
                 // to ClaimTypes.NameIdentifier when validating a JWT token.
-                foreach (var claim in identity.FindAll(ClaimTypes.NameIdentifier)) {
+                // Note: make sure to call ToArray() to avoid an InvalidOperationException
+                // on old versions of Mono, where FindAll() is implemented using an iterator.
+                foreach (var claim in identity.FindAll(ClaimTypes.NameIdentifier).ToArray()) {
                     identity.RemoveClaim(claim);
                 }
 
@@ -330,7 +332,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 // Remove the ClaimTypes.NameIdentifier claims to avoid getting duplicate claims.
                 // Note: the "sub" claim is automatically mapped by JwtSecurityTokenHandler
                 // to ClaimTypes.NameIdentifier when validating a JWT token.
-                foreach (var claim in identity.FindAll(ClaimTypes.NameIdentifier)) {
+                // Note: make sure to call ToArray() to avoid an InvalidOperationException
+                // on old versions of Mono, where FindAll() is implemented using an iterator.
+                foreach (var claim in identity.FindAll(ClaimTypes.NameIdentifier).ToArray()) {
                     identity.RemoveClaim(claim);
                 }
 
