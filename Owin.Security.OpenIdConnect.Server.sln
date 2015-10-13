@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.22609.0
+VisualStudioVersion = 14.0.22823.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Owin.Security.OpenIdConnect.Server", "src\Owin.Security.OpenIdConnect.Server\Owin.Security.OpenIdConnect.Server.csproj", "{C3877D8E-DB9D-4D6B-AB21-B0B11F50185B}"
 EndProject
@@ -28,6 +28,10 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{D1A41606-5EFC-436F-9D9A-AE75D4433214}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Owin.Security.OpenIdConnect.Extensions", "src\Owin.Security.OpenIdConnect.Extensions\Owin.Security.OpenIdConnect.Extensions.csproj", "{169AF883-34C4-4A39-85F7-13C94AD9D678}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{3C6717A3-8372-4125-8DA4-E02911FD09AD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Owin.Security.OpenIdConnect.Server.Tests", "tests\Owin.Security.OpenIdConnect.Server.Tests\Owin.Security.OpenIdConnect.Server.Tests.csproj", "{BB8BDC55-69A6-49C4-A109-5DF5FCA29542}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -67,6 +71,10 @@ Global
 		{169AF883-34C4-4A39-85F7-13C94AD9D678}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{169AF883-34C4-4A39-85F7-13C94AD9D678}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{169AF883-34C4-4A39-85F7-13C94AD9D678}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB8BDC55-69A6-49C4-A109-5DF5FCA29542}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB8BDC55-69A6-49C4-A109-5DF5FCA29542}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB8BDC55-69A6-49C4-A109-5DF5FCA29542}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB8BDC55-69A6-49C4-A109-5DF5FCA29542}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -83,5 +91,6 @@ Global
 		{EA041886-3D3C-457C-AFEE-DAEF0EEC2953} = {152F762D-4FF8-45C9-97BC-FCCBB87174E8}
 		{6A888AB8-A84F-499E-9ED4-0A7FCAE38BA1} = {152F762D-4FF8-45C9-97BC-FCCBB87174E8}
 		{169AF883-34C4-4A39-85F7-13C94AD9D678} = {D1A41606-5EFC-436F-9D9A-AE75D4433214}
+		{BB8BDC55-69A6-49C4-A109-5DF5FCA29542} = {3C6717A3-8372-4125-8DA4-E02911FD09AD}
 	EndGlobalSection
 EndGlobal
