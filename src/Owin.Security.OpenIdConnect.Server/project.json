@@ -1,0 +1,28 @@
+﻿{
+  "version": "1.0.0-*",
+  "description": "OpenID Connect server implementation for OWIN/Katana.",
+  "authors": [ "Kévin Chalet" ],
+  "owners": [ "Kévin Chalet" ],
+
+  "projectUrl": "https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server",
+  "licenseUrl": "http://www.apache.org/licenses/LICENSE-2.0.html",
+
+  "dependencies": {
+    "Owin": "1.0.0",
+    "Microsoft.Owin": "3.0.1",
+    "Microsoft.Owin.Security": "3.0.1",
+    "Newtonsoft.Json": "6.0.8",
+    "System.IdentityModel.Tokens.Jwt": "4.0.2.202250711",
+    "Owin.Security.OpenIdConnect.Extensions": { "version": "1.0.0-*", "target": "project" }
+  },
+
+
+  "frameworks": {
+    "net45": {
+      "frameworkAssemblies": {
+        "System.IdentityModel" : "",
+        "System.Runtime.Caching" : ""
+      }
+    }
+  }
+}

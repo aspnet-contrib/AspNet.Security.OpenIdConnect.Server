@@ -3,8 +3,8 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using Nancy.Server.Models;
-using Owin.Security.OpenIdConnect.Extensions;
 using Owin.Security.OpenIdConnect.Server;
+using Owin.Security.OpenIdConnect.Extensions;
 
 namespace Nancy.Server.Providers {
     public class AuthorizationProvider : OpenIdConnectServerProvider {

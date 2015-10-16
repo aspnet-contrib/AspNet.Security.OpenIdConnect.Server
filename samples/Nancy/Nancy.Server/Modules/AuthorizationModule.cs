@@ -16,6 +16,7 @@ using Owin.Security.OpenIdConnect.Server;
 
 namespace Nancy.Server.Modules {
     public class AuthorizationModule : NancyModule {
+
         public AuthorizationModule() {
             Get["/connect/authorize", runAsync: true] =
             Post["/connect/authorize", runAsync: true] = async (parameters, cancellationToken) => {
@@ -44,9 +45,9 @@ namespace Nancy.Server.Modules {
                 // Note: authentication could be theorically enforced at the filter level via AuthorizeAttribute
                 // but this authorization endpoint accepts both GET and POST requests while the cookie middleware
                 // only uses 302 responses to redirect the user agent to the login page, making it incompatible with POST.
-                // To work around this limitation, the OpenID Connect request is automatically saved in the cache and will be
-                // restored in the other "Authorize" method, after the authentication process has been completed.
-                if (OwinContext.Authentication.User.Identity == null ||
+                // To work around this limitation, the OpenID Connect request is automatically saved in the user's session and will
+                // be restored in the other "Authorize" method, after the authentication process has been completed.
+                if (OwinContext.Authentication.User?.Identity == null ||
                    !OwinContext.Authentication.User.Identity.IsAuthenticated) {
                     return Response.AsRedirect("/signin?returnUrl=" + Uri.EscapeUriString("/connect/authorize?unique_id=" +
                                                                                           request.GetUniqueIdentifier()));
@@ -67,13 +68,13 @@ namespace Nancy.Server.Modules {
                 }
 
                 // Note: in a real world application, you'd probably prefer creating a specific view model.
-                return View["Authorize.cshtml", Tuple.Create(request, application)];
+                return View["Authorize.cshtml", new { Request = request, Resources = request.GetResources() , UniqueId = request.GetUniqueIdentifier(), Application = application }];
             };
             
             Post["/connect/authorize/accept", runAsync: true] = async (parameters, cancellationToken) => {
                 this.RequiresMSOwinAuthentication();
                 this.ValidateCsrfToken();
-                
+
                 // Extract the authorization request from the cache, the query string or the request form.
                 var request = OwinContext.GetOpenIdConnectRequest();
                 if (request == null) {
@@ -134,7 +135,7 @@ namespace Nancy.Server.Modules {
             Post["/connect/authorize/deny"] = parameters => {
                 this.RequiresMSOwinAuthentication();
                 this.ValidateCsrfToken();
-                
+
                 // Extract the authorization request from the cache, the query string or the request form.
                 var request = OwinContext.GetOpenIdConnectRequest();
                 if (request == null) {

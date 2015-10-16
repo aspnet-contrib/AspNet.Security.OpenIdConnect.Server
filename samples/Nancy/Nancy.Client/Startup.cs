@@ -41,7 +41,7 @@ namespace Nancy.Client {
                 // retrieve the identity provider's configuration and spare you from setting
                 // the different endpoints URIs or the token validation parameters explicitly.
                 Authority = "http://localhost:54541/",
-                
+
                 // Note: the resource property represents the different endpoints the
                 // access token should be issued for (values must be space-delimited).
                 Resource = "http://localhost:54541/",
@@ -83,7 +83,7 @@ namespace Nancy.Client {
                             // Add the access token to the returned ClaimsIdentity to make it easier to retrieve.
                             notification.AuthenticationTicket.Identity.AddClaim(new Claim(
                                 type: OpenIdConnectParameterNames.AccessToken,
-                                value: payload.Value<string>(OpenIdConnectParameterNames.AccessToken)));
+                                value :payload.Value<string>(OpenIdConnectParameterNames.AccessToken)));
 
                             // Add the identity token to the returned ClaimsIdentity to make it easier to retrieve.
                             notification.AuthenticationTicket.Identity.AddClaim(new Claim(
@@ -106,7 +106,10 @@ namespace Nancy.Client {
                 }
             });
 
-            app.UseNancy(options => options.PerformPassThrough = context => context.Response.StatusCode == HttpStatusCode.NotFound);
+            app.UseNancy(options => {
+                options.Bootstrapper = new NancyBootstrapper();
+                options.PerformPassThrough = context => context.Response.StatusCode == HttpStatusCode.NotFound;
+            });
         }
     }
 }
