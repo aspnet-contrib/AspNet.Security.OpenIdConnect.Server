@@ -33,13 +33,11 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// The OpenIdConnect client id.
         /// </summary>
-        public string ClientId {
-            get { return Request.ClientId; }
-        }
+        public string ClientId => Request.ClientId;
 
         /// <summary>
         /// Gets the token request.
         /// </summary>
-        public new OpenIdConnectMessage Request { get; private set; }
+        public new OpenIdConnectMessage Request { get; }
     }
 }

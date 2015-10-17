@@ -40,11 +40,11 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the token request data.
         /// </summary>
-        public new OpenIdConnectMessage Request { get; private set; }
+        public new OpenIdConnectMessage Request { get; }
 
         /// <summary>
         /// Gets information about the client.
         /// </summary>
-        public BaseValidatingClientContext ClientContext { get; private set; }
+        public BaseValidatingClientContext ClientContext { get; }
     }
 }

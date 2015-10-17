@@ -14,20 +14,18 @@ namespace Owin.Security.OpenIdConnect.Server {
     public class OpenIdConnectServerConfiguration {
         internal OpenIdConnectServerConfiguration(IAppBuilder builder) {
             Builder = builder;
-            Options = new OpenIdConnectServerOptions();
-            Properties = new Dictionary<string, object>();
         }
 
         /// <summary>
         /// Gets the ASP.NET application builder used by this instance.
         /// </summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public IAppBuilder Builder { get; private set; }
+        public IAppBuilder Builder { get; }
 
         /// <summary>
         /// Gets the options used by the OpenID Connect server middleware.
         /// </summary>
-        public OpenIdConnectServerOptions Options { get; private set; }
+        public OpenIdConnectServerOptions Options { get; } = new OpenIdConnectServerOptions();
 
         /// <summary>
         /// Sets the <see cref="OpenIdConnectServerProvider"/> used to control the authorization process.
@@ -42,6 +40,6 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// Gets the properties dictionary associated with this instance.
         /// </summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public IDictionary<string, object> Properties { get; private set; }
+        public IDictionary<string, object> Properties { get; } = new Dictionary<string, object>();
     }
 }

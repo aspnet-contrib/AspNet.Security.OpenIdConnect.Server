@@ -617,50 +617,19 @@ namespace Owin {
         }
 
         internal static IEnumerable<string> GetAudiences(this AuthenticationProperties properties) {
-            if (properties == null) {
-                return null;
-            }
-
-            var audience = properties.GetProperty(OpenIdConnectConstants.Extra.Audience);
-            if (string.IsNullOrEmpty(audience)) {
-                return Enumerable.Empty<string>();
-            }
-
-            return audience.Split(' ');
+            return properties?.GetProperty(OpenIdConnectConstants.Extra.Audience)?.Split(' ') ?? Enumerable.Empty<string>();
         }
 
         internal static string GetNonce(this AuthenticationProperties properties) {
-            if (properties == null) {
-                return null;
-            }
-
-            return properties.GetProperty(OpenIdConnectConstants.Extra.Nonce);
+            return properties?.GetProperty(OpenIdConnectConstants.Extra.Nonce);
         }
 
         internal static IEnumerable<string> GetResources(this AuthenticationProperties properties) {
-            if (properties == null) {
-                return null;
-            }
-
-            var resource = properties.GetProperty(OpenIdConnectConstants.Extra.Resource);
-            if (string.IsNullOrEmpty(resource)) {
-                return Enumerable.Empty<string>();
-            }
-
-            return resource.Split(' ');
+            return properties?.GetProperty(OpenIdConnectConstants.Extra.Resource)?.Split(' ') ?? Enumerable.Empty<string>();
         }
 
         internal static IEnumerable<string> GetScopes(this AuthenticationProperties properties) {
-            if (properties == null) {
-                return null;
-            }
-
-            var scope = properties.GetProperty(OpenIdConnectConstants.Extra.Scope);
-            if (string.IsNullOrEmpty(scope)) {
-                return Enumerable.Empty<string>();
-            }
-
-            return scope.Split(' ');
+            return properties?.GetProperty(OpenIdConnectConstants.Extra.Scope)?.Split(' ') ?? Enumerable.Empty<string>();
         }
 
         internal static void SetAudiences(this AuthenticationProperties properties, IEnumerable<string> audiences) {

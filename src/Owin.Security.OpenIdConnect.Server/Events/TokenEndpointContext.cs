@@ -37,8 +37,8 @@ namespace Owin.Security.OpenIdConnect.Server {
         public AuthenticationTicket Ticket { get; set; }
 
         /// <summary>
-        /// Gets information about the token endpoint request. 
+        /// Gets the token endpoint request. 
         /// </summary>
-        public new OpenIdConnectMessage Request { get; set; }
+        public new OpenIdConnectMessage Request { get; }
     }
 }

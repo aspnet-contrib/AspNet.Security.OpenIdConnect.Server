@@ -29,20 +29,16 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the client_id parameter.
         /// </summary>
-        public string ClientId {
-            get { return Request.ClientId; }
-        }
+        public string ClientId => Request.ClientId;
 
         /// <summary>
         /// Gets the grant_type parameter.
         /// </summary>
-        public string GrantType {
-            get { return Request.GrantType; }
-        }
+        public string GrantType => Request.GrantType;
 
         /// <summary>
         /// Gets the token request.
         /// </summary>
-        public new OpenIdConnectMessage Request { get; private set; }
+        public new OpenIdConnectMessage Request { get; }
     }
 }

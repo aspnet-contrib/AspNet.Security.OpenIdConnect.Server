@@ -39,17 +39,17 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// Gets the authentication ticket containing the
         /// claims representing the authenticated user.
         /// </summary>
-        public AuthenticationTicket AuthenticationTicket { get; private set; }
+        public AuthenticationTicket AuthenticationTicket { get; }
 
         /// <summary>
         /// Gets the token request. 
         /// </summary>
-        public new OpenIdConnectMessage Request { get; private set; }
+        public new OpenIdConnectMessage Request { get; }
 
         /// <summary>
         /// Gets the JSON payload returned to the client
         /// application as part of the token response.
         /// </summary>
-        public JObject Payload { get; private set; }
+        public JObject Payload { get; }
     }
 }

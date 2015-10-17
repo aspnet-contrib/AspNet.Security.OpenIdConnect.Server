@@ -31,23 +31,17 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// OpenIdConnect client id.
         /// </summary>
-        public string ClientId {
-            get { return Request.ClientId; }
-        }
+        public string ClientId => Request.ClientId;
 
         /// <summary>
         /// Resource owner username.
         /// </summary>
-        public string UserName {
-            get { return Request.Username; }
-        }
+        public string UserName => Request.Username;
 
         /// <summary>
         /// Resource owner password.
         /// </summary>
-        public string Password {
-            get { return Request.Password; }
-        }
+        public string Password => Request.Password;
 
         /// <summary>
         /// Gets the list of scopes requested by the client application.
@@ -65,6 +59,6 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the token request.
         /// </summary>
-        public new OpenIdConnectMessage Request { get; private set; }
+        public new OpenIdConnectMessage Request { get; }
     }
 }

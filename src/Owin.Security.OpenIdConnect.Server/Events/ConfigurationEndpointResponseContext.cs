@@ -28,6 +28,6 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the JSON payload returned to the client application.
         /// </summary>
-        public JObject Payload { get; private set; }
+        public JObject Payload { get; }
     }
 }

@@ -28,6 +28,6 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the logout request.
         /// </summary>
-        public new OpenIdConnectMessage Request { get; private set; }
+        public new OpenIdConnectMessage Request { get; }
     }
 }

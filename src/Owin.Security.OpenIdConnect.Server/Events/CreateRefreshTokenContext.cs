@@ -40,17 +40,17 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the authorization or token request.
         /// </summary>
-        public new OpenIdConnectMessage Request { get; private set; }
+        public new OpenIdConnectMessage Request { get; }
 
         /// <summary>
         /// Gets the authorization or token response.
         /// </summary>
-        public new OpenIdConnectMessage Response { get; private set; }
+        public new OpenIdConnectMessage Response { get; }
         
         /// <summary>
         /// Gets the authentication ticket.
         /// </summary>
-        public AuthenticationTicket AuthenticationTicket { get; private set; }
+        public AuthenticationTicket AuthenticationTicket { get; }
 
         /// <summary>
         /// Gets or sets the serializer used to forge the refresh token.

@@ -21,12 +21,6 @@ namespace Owin.Security.OpenIdConnect.Server {
             IOwinContext context,
             OpenIdConnectServerOptions options)
             : base(context, options) {
-            GrantTypes = new List<string>();
-            ResponseModes = new List<string>();
-            ResponseTypes = new List<string>();
-            Scopes = new List<string>();
-            SigningAlgorithms = new List<string>();
-            SubjectTypes = new List<string>();
         }
 
         /// <summary>
@@ -58,36 +52,36 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// Gets a list of the grant types
         /// supported by the authorization server.
         /// </summary>
-        public IList<string> GrantTypes { get; private set; }
+        public IList<string> GrantTypes { get; } = new List<string>();
 
         /// <summary>
         /// Gets a list of the response modes
         /// supported by the authorization server.
         /// </summary>
-        public IList<string> ResponseModes { get; private set; }
+        public IList<string> ResponseModes { get; } = new List<string>();
 
         /// <summary>
         /// Gets a list of the response types
         /// supported by the authorization server.
         /// </summary>
-        public IList<string> ResponseTypes { get; private set; }
+        public IList<string> ResponseTypes { get; } = new List<string>();
 
         /// <summary>
         /// Gets a list of the scope values
         /// supported by the authorization server.
         /// </summary>
-        public IList<string> Scopes { get; private set; }
+        public IList<string> Scopes { get; } = new List<string>();
 
         /// <summary>
         /// Gets a list of the signing algorithms
         /// supported by the authorization server.
         /// </summary>
-        public IList<string> SigningAlgorithms { get; private set; }
+        public IList<string> SigningAlgorithms { get; } = new List<string>();
 
         /// <summary>
         /// Gets a list of the subject types
         /// supported by the authorization server.
         /// </summary>
-        public IList<string> SubjectTypes { get; private set; }
+        public IList<string> SubjectTypes { get; } = new List<string>();
     }
 }

@@ -26,7 +26,6 @@ namespace Owin.Security.OpenIdConnect.Server {
             OpenIdConnectMessage request,
             AuthenticationTicket ticket)
             : base(context, options) {
-            Claims = new List<Claim>();
             Request = request;
             AuthenticationTicket = ticket;
         }
@@ -39,11 +38,11 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the validation request.
         /// </summary>
-        public new OpenIdConnectMessage Request { get; private set; }
+        public new OpenIdConnectMessage Request { get; }
 
         /// <summary>
         /// Gets the list of claims returned to the caller.
         /// </summary>
-        public IList<Claim> Claims { get; private set; }
+        public IList<Claim> Claims { get; } = new List<Claim>();
     }
 }

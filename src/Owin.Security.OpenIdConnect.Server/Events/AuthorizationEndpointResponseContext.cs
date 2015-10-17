@@ -38,34 +38,30 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// Gets the authentication ticket containing the
         /// claims representing the authenticated user.
         /// </summary>
-        public AuthenticationTicket AuthenticationTicket { get; private set; }
+        public AuthenticationTicket AuthenticationTicket { get; }
 
         /// <summary>
         /// Gets the authorization request. 
         /// </summary>
-        public new OpenIdConnectMessage Request { get; private set; }
+        public new OpenIdConnectMessage Request { get; }
 
         /// <summary>
         /// Gets the authorization response. 
         /// </summary>
-        public new OpenIdConnectMessage Response { get; private set; }
+        public new OpenIdConnectMessage Response { get; }
 
         /// <summary>
         /// Get the access code expected to
         /// be returned to the client application.
         /// Depending on the flow, it can be null.
         /// </summary>
-        public string AccessToken {
-            get { return Response.AccessToken; }
-        }
+        public string AccessToken => Response.AccessToken;
 
         /// <summary>
         /// Get the authorization code expected to
         /// be returned to the client application.
         /// Depending on the flow, it can be null.
         /// </summary>
-        public string AuthorizationCode {
-            get { return Response.Code; }
-        }
+        public string AuthorizationCode => Response.Code;
     }
 }

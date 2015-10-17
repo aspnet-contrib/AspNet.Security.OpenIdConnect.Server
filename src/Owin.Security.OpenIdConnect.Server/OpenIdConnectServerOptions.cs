@@ -5,6 +5,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens;
 using System.Runtime.Caching;
 using System.Security.Cryptography;
@@ -15,7 +16,6 @@ using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Notifications;
 
 namespace Owin.Security.OpenIdConnect.Server {
-    using System.Collections.Generic;
     using Microsoft.IdentityModel.Tokens;
 
     /// <summary>
@@ -27,28 +27,6 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         public OpenIdConnectServerOptions()
             : base(OpenIdConnectServerDefaults.AuthenticationType) {
-            AuthorizationCodeLifetime = TimeSpan.FromMinutes(5);
-            AccessTokenLifetime = TimeSpan.FromHours(1);
-            IdentityTokenLifetime = TimeSpan.FromMinutes(20);
-            RefreshTokenLifetime =  TimeSpan.FromHours(6);
-
-            UseSlidingExpiration = true;
-
-            AuthorizationEndpointPath = new PathString(OpenIdConnectServerDefaults.AuthorizationEndpointPath);
-            ConfigurationEndpointPath = new PathString(OpenIdConnectServerDefaults.ConfigurationEndpointPath);
-            CryptographyEndpointPath = new PathString(OpenIdConnectServerDefaults.CryptographyEndpointPath);
-            TokenEndpointPath = new PathString(OpenIdConnectServerDefaults.TokenEndpointPath);
-            ValidationEndpointPath = new PathString(OpenIdConnectServerDefaults.ValidationEndpointPath);
-            LogoutEndpointPath = new PathString(OpenIdConnectServerDefaults.LogoutEndpointPath);
-
-            Provider = new OpenIdConnectServerProvider();
-            SystemClock = new SystemClock();
-            Cache = new MemoryCache(typeof(OpenIdConnectServerMiddleware).Name);
-            RandomNumberGenerator = RandomNumberGenerator.Create();
-
-            SigningCredentials = new List<SigningCredentials>();
-            AccessTokenHandler = new JwtSecurityTokenHandler();
-            IdentityTokenHandler = new JwtSecurityTokenHandler();
         }
 
         /// <summary>
@@ -65,56 +43,56 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// Note that only keys supporting the <see cref="SecurityAlgorithms.RsaSha256Signature"/> algorithm can be exposed
         /// on the configuration metadata endpoint. A <see cref="X509SigningCredentials"/> instance may also be provided.
         /// </summary>
-        public IList<SigningCredentials> SigningCredentials { get; set; }
+        public IList<SigningCredentials> SigningCredentials { get; } = new List<SigningCredentials>();
 
         /// <summary>
         /// The request path where client applications will redirect the user-agent in order to 
         /// obtain user consent to issue a token. Must begin with a leading slash, like "/connect/authorize".
         /// This setting can be set to <see cref="PathString.Empty"/> to disable the authorization endpoint.
         /// </summary>
-        public PathString AuthorizationEndpointPath { get; set; }
+        public PathString AuthorizationEndpointPath { get; set; } = new PathString(OpenIdConnectServerDefaults.AuthorizationEndpointPath);
 
         /// <summary>
         /// The request path where client applications will be able to retrieve the configuration metadata associated
         /// with this instance. Must begin with a leading slash, like "/.well-known/openid-configuration".
         /// This setting can be set to <see cref="PathString.Empty"/> to disable the configuration endpoint.
         /// </summary>
-        public PathString ConfigurationEndpointPath { get; set; }
+        public PathString ConfigurationEndpointPath { get; set; } = new PathString(OpenIdConnectServerDefaults.ConfigurationEndpointPath);
 
         /// <summary>
         /// The request path where client applications will be able to retrieve the JSON Web Key Set
         /// associated with this instance. Must begin with a leading slash, like "/.well-known/jwks".
         /// This setting can be set to <see cref="PathString.Empty"/> to disable the cryptography endpoint.
         /// </summary>
-        public PathString CryptographyEndpointPath { get; set; }
+        public PathString CryptographyEndpointPath { get; set; } = new PathString(OpenIdConnectServerDefaults.CryptographyEndpointPath);
 
         /// <summary>
         /// The request path client applications communicate with directly as part of the OpenID Connect protocol. 
         /// Must begin with a leading slash, like "/connect/token". If the client is issued a client_secret, it must
         /// be provided to this endpoint. You can set it to <see cref="PathString.Empty"/> to disable the token endpoint.
         /// </summary>
-        public PathString TokenEndpointPath { get; set; }
+        public PathString TokenEndpointPath { get; set; } = new PathString(OpenIdConnectServerDefaults.TokenEndpointPath);
 
         /// <summary>
         /// The request path client applications communicate with to validate identity or access tokens. 
         /// Must begin with a leading slash, like "/connect/token_validation".
         /// You can set it to <see cref="PathString.Empty"/> to disable the validation endpoint.
         /// </summary>
-        public PathString ValidationEndpointPath { get; set; }
+        public PathString ValidationEndpointPath { get; set; } = new PathString(OpenIdConnectServerDefaults.ValidationEndpointPath);
 
         /// <summary>
         /// The request path client applications communicate with to log out. 
         /// Must begin with a leading slash, like "/connect/logout".
         /// You can set it to <see cref="PathString.Empty"/> to disable the logout endpoint.
         /// </summary>
-        public PathString LogoutEndpointPath { get; set; }
+        public PathString LogoutEndpointPath { get; set; } = new PathString(OpenIdConnectServerDefaults.LogoutEndpointPath);
 
         /// <summary>
         /// Specifies a <see cref="IOpenIdConnectServerProvider"/> that the <see cref="OpenIdConnectServerMiddleware" /> invokes
         /// to enable developer control over the while authentication/authorization process.
         /// If not specified, a <see cref="OpenIdConnectServerProvider" /> is automatically instanciated.
         /// </summary>
-        public IOpenIdConnectServerProvider Provider { get; set; }
+        public IOpenIdConnectServerProvider Provider { get; set; } = new OpenIdConnectServerProvider();
 
         /// <summary>
         /// The data format used to protect and unprotect the information contained in the authorization code. 
@@ -152,7 +130,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// This property is only used when <see cref="IOpenIdConnectServerProvider.CreateAccessToken"/> doesn't call
         /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
-        public SecurityTokenHandler AccessTokenHandler { get; set; }
+        public SecurityTokenHandler AccessTokenHandler { get; set; } = new JwtSecurityTokenHandler();
 
         /// <summary>
         /// The <see cref="JwtSecurityTokenHandler"/> instance used to forge identity tokens.
@@ -160,32 +138,32 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// This property is only used when <see cref="IOpenIdConnectServerProvider.CreateIdentityToken"/> doesn't call
         /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
-        public JwtSecurityTokenHandler IdentityTokenHandler { get; set; }
+        public JwtSecurityTokenHandler IdentityTokenHandler { get; set; } = new JwtSecurityTokenHandler();
 
         /// <summary>
         /// The period of time the authorization code remains valid after being issued. The default is 5 minutes.
         /// This time span must also take into account clock synchronization between servers in a web farm, so a very 
         /// brief value could result in unexpectedly expired tokens.
         /// </summary>
-        public TimeSpan AuthorizationCodeLifetime { get; set; }
+        public TimeSpan AuthorizationCodeLifetime { get; set; } = TimeSpan.FromMinutes(5);
 
         /// <summary>
         /// The period of time the access token remains valid after being issued. The default is 1 hour.
         /// The client application is expected to refresh or acquire a new access token after the token has expired. 
         /// </summary>
-        public TimeSpan AccessTokenLifetime { get; set; }
+        public TimeSpan AccessTokenLifetime { get; set; } = TimeSpan.FromHours(1);
 
         /// <summary>
         /// The period of time the identity token remains valid after being issued. The default is 20 minutes.
         /// The client application is expected to refresh or acquire a new identity token after the token has expired. 
         /// </summary>
-        public TimeSpan IdentityTokenLifetime { get; set; }
+        public TimeSpan IdentityTokenLifetime { get; set; } = TimeSpan.FromMinutes(20);
 
         /// <summary>
         /// The period of time the refresh token remains valid after being issued. The default is 6 hours.
         /// The client application is expected to start a whole new authentication flow after the refresh token has expired. 
         /// </summary>
-        public TimeSpan RefreshTokenLifetime { get; set; }
+        public TimeSpan RefreshTokenLifetime { get; set; } = TimeSpan.FromHours(6);
 
         /// <summary>
         /// Determines whether refresh tokens issued during a grant_type=refresh_token request should be generated
@@ -194,7 +172,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <c>false</c> to use the expiration date of the original refresh token. When set to <c>false</c>,
         /// access and identity tokens' lifetime cannot exceed the expiration date of the refresh token.
         /// </summary>
-        public bool UseSlidingExpiration { get; set; }
+        public bool UseSlidingExpiration { get; set; } = true;
 
         /// <summary>
         /// Set to true if the web application is able to render error messages on the authorization endpoint. This is only needed for cases where
@@ -207,7 +185,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// Used to know what the current clock time is when calculating or validating token expiration. When not assigned default is based on
         /// DateTimeOffset.UtcNow. This is typically needed only for unit testing.
         /// </summary>
-        public ISystemClock SystemClock { get; set; }
+        public ISystemClock SystemClock { get; set; } = new SystemClock();
 
         /// <summary>
         /// Gets or sets the logger used by <see cref="OpenIdConnectServerMiddleware"/>.
@@ -225,13 +203,13 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// The cache instance used to store short-lived items like authorization codes or authorization requests.
         /// You can replace the default instance by a distributed implementation to support Web farm environments.
         /// </summary>
-        public ObjectCache Cache { get; set; }
+        public ObjectCache Cache { get; set; } = new MemoryCache(typeof(OpenIdConnectServerMiddleware).Name);
 
         /// <summary>
         /// The random number generator used for cryptographic operations.
         /// Replacing the default instance is usually not necessary.
         /// </summary>
-        public RandomNumberGenerator RandomNumberGenerator { get; set; }
+        public RandomNumberGenerator RandomNumberGenerator { get; set; } = RandomNumberGenerator.Create();
 
         /// <summary>
         /// The signature provider used by the OpenID Connect server

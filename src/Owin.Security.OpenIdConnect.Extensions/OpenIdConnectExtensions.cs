@@ -22,7 +22,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         public static bool IsNoneFlow(this OpenIdConnectMessage message) {
             if (message == null) {
-                throw new ArgumentNullException("message");
+                throw new ArgumentNullException(nameof(message));
             }
 
             return string.Equals(message.ResponseType, OpenIdConnectConstants.ResponseTypes.None, StringComparison.Ordinal);
@@ -35,7 +35,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         public static bool IsAuthorizationCodeFlow(this OpenIdConnectMessage message) {
             if (message == null) {
-                throw new ArgumentNullException("message");
+                throw new ArgumentNullException(nameof(message));
             }
 
             return string.Equals(message.ResponseType, OpenIdConnectConstants.ResponseTypes.Code, StringComparison.Ordinal);
@@ -49,7 +49,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         public static bool IsImplicitFlow(this OpenIdConnectMessage message) {
             if (message == null) {
-                throw new ArgumentNullException("message");
+                throw new ArgumentNullException(nameof(message));
             }
 
             // Note: while the OIDC specs do not reuse the OAuth2-inherited response_type=token,
@@ -70,7 +70,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         public static bool IsHybridFlow(this OpenIdConnectMessage message) {
             if (message == null) {
-                throw new ArgumentNullException("message");
+                throw new ArgumentNullException(nameof(message));
             }
 
             return SetEquals(message.ResponseType, OpenIdConnectConstants.ResponseTypes.Code,
@@ -78,7 +78,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
 
                    SetEquals(message.ResponseType, OpenIdConnectConstants.ResponseTypes.Code,
                                                    OpenIdConnectConstants.ResponseTypes.Token) ||
-                                                   
+
                    SetEquals(message.ResponseType, OpenIdConnectConstants.ResponseTypes.Code,
                                                    OpenIdConnectConstants.ResponseTypes.IdToken,
                                                    OpenIdConnectConstants.ResponseTypes.Token);
@@ -91,7 +91,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         public static bool IsFragmentResponseMode(this OpenIdConnectMessage message) {
             if (message == null) {
-                throw new ArgumentNullException("message");
+                throw new ArgumentNullException(nameof(message));
             }
 
             if (string.Equals(message.ResponseMode, OpenIdConnectConstants.ResponseModes.Fragment, StringComparison.Ordinal)) {
@@ -116,7 +116,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         public static bool IsQueryResponseMode(this OpenIdConnectMessage message) {
             if (message == null) {
-                throw new ArgumentNullException("message");
+                throw new ArgumentNullException(nameof(message));
             }
 
             if (string.Equals(message.ResponseMode, OpenIdConnectConstants.ResponseModes.Query, StringComparison.Ordinal)) {
@@ -139,7 +139,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         public static bool IsFormPostResponseMode(this OpenIdConnectMessage message) {
             if (message == null) {
-                throw new ArgumentNullException("message");
+                throw new ArgumentNullException(nameof(message));
             }
 
             return string.Equals(message.ResponseMode, OpenIdConnectConstants.ResponseModes.FormPost, StringComparison.Ordinal);
@@ -151,7 +151,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>    
         public static bool IsAuthorizationCodeGrantType(this OpenIdConnectMessage message) {
             if (message == null) {
-                throw new ArgumentNullException("message");
+                throw new ArgumentNullException(nameof(message));
             }
 
             return string.Equals(message.GrantType, OpenIdConnectConstants.GrantTypes.AuthorizationCode, StringComparison.Ordinal);
@@ -163,7 +163,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>  
         public static bool IsClientCredentialsGrantType(this OpenIdConnectMessage message) {
             if (message == null) {
-                throw new ArgumentNullException("message");
+                throw new ArgumentNullException(nameof(message));
             }
 
             return string.Equals(message.GrantType, OpenIdConnectConstants.GrantTypes.ClientCredentials, StringComparison.Ordinal);
@@ -175,7 +175,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>    
         public static bool IsRefreshTokenGrantType(this OpenIdConnectMessage message) {
             if (message == null) {
-                throw new ArgumentNullException("message");
+                throw new ArgumentNullException(nameof(message));
             }
 
             return string.Equals(message.GrantType, OpenIdConnectConstants.GrantTypes.RefreshToken, StringComparison.Ordinal);
@@ -187,7 +187,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>    
         public static bool IsPasswordGrantType(this OpenIdConnectMessage message) {
             if (message == null) {
-                throw new ArgumentNullException("message");
+                throw new ArgumentNullException(nameof(message));
             }
 
             return string.Equals(message.GrantType, OpenIdConnectConstants.GrantTypes.Password, StringComparison.Ordinal);
@@ -201,7 +201,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="component">The component to look for in the parameter.</param>
         public static bool ContainsResponseType(this OpenIdConnectMessage message, string component) {
             if (message == null) {
-                throw new ArgumentNullException("message");
+                throw new ArgumentNullException(nameof(message));
             }
 
             return HasValue(message.ResponseType, component);
@@ -215,7 +215,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="component">The component to look for in the parameter.</param>
         public static bool ContainsScope(this OpenIdConnectMessage message, string component) {
             if (message == null) {
-                throw new ArgumentNullException("message");
+                throw new ArgumentNullException(nameof(message));
             }
 
             return HasValue(message.Scope, component);
@@ -231,11 +231,11 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         public static bool HasComponent(this OpenIdConnectMessage message,
             Func<OpenIdConnectMessage, string> parameter, string component) {
             if (message == null) {
-                throw new ArgumentNullException("message");
+                throw new ArgumentNullException(nameof(message));
             }
 
             if (parameter == null) {
-                throw new ArgumentNullException("parameter");
+                throw new ArgumentNullException(nameof(parameter));
             }
 
             return HasValue(source: parameter(message), value: component);
@@ -247,7 +247,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
         public static string GetUniqueIdentifier(this OpenIdConnectMessage message) {
             if (message == null) {
-                throw new ArgumentNullException("message");
+                throw new ArgumentNullException(nameof(message));
             }
 
             return message.GetParameter("unique_id");
@@ -271,15 +271,10 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
         public static IEnumerable<string> GetAudiences(this OpenIdConnectMessage message) {
             if (message == null) {
-                throw new ArgumentNullException("message");
+                throw new ArgumentNullException(nameof(message));
             }
 
-            var audience = message.GetParameter("audience");
-            if (string.IsNullOrEmpty(audience)) {
-                return Enumerable.Empty<string>();
-            }
-
-            return audience.Split(' ');
+            return message.GetParameter("audience")?.Split(' ') ?? Enumerable.Empty<string>();
         }
 
         /// <summary>
@@ -288,15 +283,10 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
         public static IEnumerable<string> GetResources(this OpenIdConnectMessage message) {
             if (message == null) {
-                throw new ArgumentNullException("message");
+                throw new ArgumentNullException(nameof(message));
             }
 
-            var resource = message.Resource;
-            if (string.IsNullOrEmpty(resource)) {
-                return Enumerable.Empty<string>();
-            }
-            
-            return resource.Split(' ');
+            return message.Resource?.Split(' ') ?? Enumerable.Empty<string>();
         }
 
         /// <summary>
@@ -305,15 +295,10 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
         public static IEnumerable<string> GetScopes(this OpenIdConnectMessage message) {
             if (message == null) {
-                throw new ArgumentNullException("message");
+                throw new ArgumentNullException(nameof(message));
             }
 
-            var scope = message.Scope;
-            if (string.IsNullOrEmpty(scope)) {
-                return Enumerable.Empty<string>();
-            }
-
-            return scope.Split(' ');
+            return message.Scope?.Split(' ') ?? Enumerable.Empty<string>();
         }
 
         /// <summary>
@@ -323,7 +308,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="identifier">The unique identifier.</param>
         public static OpenIdConnectMessage SetUniqueIdentifier(this OpenIdConnectMessage message, string identifier) {
             if (message == null) {
-                throw new ArgumentNullException("message");
+                throw new ArgumentNullException(nameof(message));
             }
 
             message.SetParameter("unique_id", identifier);
@@ -349,10 +334,6 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="claim">The <see cref="Claim"/> instance.</param>
         public static bool HasDestination(this Claim claim) {
-            if (claim == null) {
-                throw new ArgumentNullException("claim");
-            }
-
             return claim.Properties.ContainsKey("destination");
         }
 
@@ -363,14 +344,6 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="claim">The <see cref="Claim"/> instance.</param>
         /// <param name="value">The required destination.</param>
         public static bool HasDestination(this Claim claim, string value) {
-            if (claim == null) {
-                throw new ArgumentNullException("claim");
-            }
-
-            if (string.IsNullOrEmpty(value)) {
-                throw new ArgumentNullException("value");
-            }
-
             string destination;
             if (!claim.Properties.TryGetValue("destination", out destination)) {
                 return false;
@@ -386,11 +359,11 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="value">The destination.</param>
         public static Claim WithDestination(this Claim claim, string value) {
             if (claim == null) {
-                throw new ArgumentNullException("claim");
+                throw new ArgumentNullException(nameof(claim));
             }
 
             if (string.IsNullOrEmpty(value)) {
-                throw new ArgumentNullException("value");
+                throw new ArgumentNullException(nameof(value));
             }
 
             string destination;
@@ -412,6 +385,14 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// to accept the claim, <c>false</c> to remove it.
         /// </param>
         public static ClaimsIdentity Clone(this ClaimsIdentity identity, Func<Claim, bool> filter) {
+            if (identity == null) {
+                throw new ArgumentNullException(nameof(identity));
+            }
+
+            if (filter == null) {
+                throw new ArgumentNullException(nameof(filter));
+            }
+
             var clone = identity.Clone();
 
             // Note: make sure to call ToArray() to avoid modifying
@@ -438,6 +419,14 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// to accept the claim, <c>false</c> to remove it.
         /// </param>
         public static ClaimsPrincipal Clone(this ClaimsPrincipal principal, Func<Claim, bool> filter) {
+            if (principal == null) {
+                throw new ArgumentNullException(nameof(principal));
+            }
+
+            if (filter == null) {
+                throw new ArgumentNullException(nameof(filter));
+            }
+
             var clone = new ClaimsPrincipal();
 
             foreach (var identity in principal.Identities) {
@@ -455,7 +444,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="value">The value associated with the claim.</param>
         public static ClaimsIdentity AddClaim(this ClaimsIdentity identity, string type, string value) {
             if (identity == null) {
-                throw new ArgumentNullException("identity");
+                throw new ArgumentNullException(nameof(identity));
             }
 
             identity.AddClaim(new Claim(type, value));
@@ -471,7 +460,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="destination">The destination associated with the claim.</param>
         public static ClaimsIdentity AddClaim(this ClaimsIdentity identity, string type, string value, string destination) {
             if (identity == null) {
-                throw new ArgumentNullException("identity");
+                throw new ArgumentNullException(nameof(identity));
             }
 
             identity.AddClaim(new Claim(type, value).WithDestination(destination));

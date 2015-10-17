@@ -37,7 +37,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the authorization or token request.
         /// </summary>
-        public new OpenIdConnectMessage Request { get; private set; }
+        public new OpenIdConnectMessage Request { get; }
 
         /// <summary>
         /// Gets or sets the authentication ticket.
@@ -58,7 +58,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the refresh code used by the client application.
         /// </summary>
-        public string RefreshToken { get; private set; }
+        public string RefreshToken { get; }
 
         /// <summary>
         /// Deserialize and verify the authentication ticket.

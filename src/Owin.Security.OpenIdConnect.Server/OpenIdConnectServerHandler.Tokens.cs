@@ -44,11 +44,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                 // Sets the default authorization code serializer.
                 notification.Serializer = payload => {
-                    if (notification.DataFormat == null) {
-                        return Task.FromResult<string>(null);
-                    }
-
-                    return Task.FromResult(notification.DataFormat.Protect(payload));
+                    return Task.FromResult(notification.DataFormat?.Protect(payload));
                 };
 
                 await Options.Provider.CreateAuthorizationCode(notification);
@@ -157,11 +153,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 // Sets the default access token serializer.
                 notification.Serializer = payload => {
                     if (notification.SecurityTokenHandler == null) {
-                        if (notification.DataFormat == null) {
-                            return null;
-                        }
-
-                        return Task.FromResult(notification.DataFormat.Protect(payload));
+                        return Task.FromResult(notification.DataFormat?.Protect(payload));
                     }
 
                     var handler = notification.SecurityTokenHandler as JwtSecurityTokenHandler;
@@ -475,11 +467,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                 // Sets the default refresh token serializer.
                 notification.Serializer = payload => {
-                    if (notification.DataFormat == null) {
-                        return Task.FromResult<string>(null);
-                    }
-
-                    return Task.FromResult(notification.DataFormat.Protect(payload));
+                    return Task.FromResult(notification.DataFormat?.Protect(payload));
                 };
 
                 await Options.Provider.CreateRefreshToken(notification);
@@ -517,11 +505,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 // Sets the default deserializer used to resolve the
                 // authentication ticket corresponding to the authorization code.
                 notification.Deserializer = ticket => {
-                    if (notification.DataFormat == null) {
-                        return Task.FromResult<AuthenticationTicket>(null);
-                    }
-
-                    return Task.FromResult(notification.DataFormat.Unprotect(ticket));
+                    return Task.FromResult(notification.DataFormat?.Unprotect(ticket));
                 };
 
                 await Options.Provider.ReceiveAuthorizationCode(notification);
@@ -572,11 +556,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 notification.Deserializer = ticket => {
                     var handler = notification.SecurityTokenHandler as ISecurityTokenValidator;
                     if (handler == null) {
-                        if (notification.DataFormat == null) {
-                            return null;
-                        }
-
-                        return Task.FromResult(notification.DataFormat.Unprotect(ticket));
+                        return Task.FromResult(notification.DataFormat?.Unprotect(ticket));
                     }
 
                     // Create new validation parameters to validate the security token.
@@ -711,11 +691,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 // Sets the default deserializer used to resolve the
                 // authentication ticket corresponding to the refresh token.
                 notification.Deserializer = ticket => {
-                    if (notification.DataFormat == null) {
-                        return Task.FromResult<AuthenticationTicket>(null);
-                    }
-
-                    return Task.FromResult(notification.DataFormat.Unprotect(ticket));
+                    return Task.FromResult(notification.DataFormat?.Unprotect(ticket));
                 };
 
                 await Options.Provider.ReceiveRefreshToken(notification);

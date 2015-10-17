@@ -1388,7 +1388,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return;
             }
 
-            if (!ticket.Properties.ExpiresUtc.HasValue || ticket.Properties.ExpiresUtc < Options.SystemClock.UtcNow) {
+            if (!ticket.Properties.ExpiresUtc.HasValue ||
+                 ticket.Properties.ExpiresUtc < Options.SystemClock.UtcNow) {
                 Options.Logger.WriteError("expired token");
 
                 await SendErrorPayloadAsync(new OpenIdConnectMessage {
