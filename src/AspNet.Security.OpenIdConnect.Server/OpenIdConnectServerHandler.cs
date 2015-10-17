@@ -10,7 +10,6 @@ using System.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
@@ -621,37 +620,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 buffer.Seek(offset: 0, loc: SeekOrigin.Begin);
                 await buffer.CopyToAsync(Response.Body, 4096, Context.RequestAborted);
-            }
-        }
-
-        private static HashAlgorithm GetHashAlgorithm(string algorithm) {
-            if (string.IsNullOrEmpty(algorithm)) {
-                throw new ArgumentNullException(nameof(algorithm));
-            }
-
-            switch (algorithm) {
-                case SecurityAlgorithms.Sha1Digest:
-                    return SHA1.Create();
-
-                case SecurityAlgorithms.Sha256Digest:
-                    return SHA256.Create();
-
-                case SecurityAlgorithms.Sha512Digest:
-                    return SHA512.Create();
-
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(algorithm));
-            }
-        }
-
-        private static string GenerateHash(string value, string algorithm = null) {
-            using (var hashAlgorithm = GetHashAlgorithm(algorithm ?? SecurityAlgorithms.Sha256Digest)) {
-                byte[] hashBytes = hashAlgorithm.ComputeHash(Encoding.UTF8.GetBytes(value));
-
-                var hashString = Convert.ToBase64String(hashBytes, 0, hashBytes.Length / 2);
-                hashString = hashString.Split('=')[0]; // Remove any trailing padding
-                hashString = hashString.Replace('+', '-'); // 62nd char of encoding
-                return hashString.Replace('/', '_'); // 63rd char of encoding
             }
         }
 
