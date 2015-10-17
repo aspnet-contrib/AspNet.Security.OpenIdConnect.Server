@@ -10,7 +10,6 @@ using System.IdentityModel.Tokens;
 using System.IO;
 using System.Net;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.IdentityModel.Protocols;
@@ -648,17 +647,6 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                 buffer.Seek(offset: 0, loc: SeekOrigin.Begin);
                 await buffer.CopyToAsync(Response.Body, 4096, Request.CallCancelled);
-            }
-        }
-
-        private static string GenerateHash(string value, string algorithm = null) {
-            using (var hashAlgorithm = HashAlgorithm.Create(algorithm)) {
-                byte[] hashBytes = hashAlgorithm.ComputeHash(Encoding.UTF8.GetBytes(value));
-
-                var hashString = Convert.ToBase64String(hashBytes, 0, hashBytes.Length / 2);
-                hashString = hashString.Split('=')[0]; // Remove any trailing padding
-                hashString = hashString.Replace('+', '-'); // 62nd char of encoding
-                return hashString.Replace('/', '_'); // 63rd char of encoding
             }
         }
 

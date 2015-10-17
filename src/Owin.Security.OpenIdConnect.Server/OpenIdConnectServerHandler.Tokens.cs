@@ -10,6 +10,7 @@ using System.IdentityModel.Tokens;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin.Logging;
@@ -288,17 +289,25 @@ namespace Owin.Security.OpenIdConnect.Server {
                     EpochTime.GetIntDate(properties.IssuedUtc.Value.UtcDateTime).ToString());
 
                 if (!string.IsNullOrEmpty(response.Code)) {
-                    // Create the c_hash using the authorization code returned by CreateAuthorizationCodeAsync.
-                    var hash = GenerateHash(response.Code, SecurityAlgorithms.Sha256Digest);
+                    using (var algorithm = HashAlgorithm.Create(SecurityAlgorithms.Sha256Digest)) {
+                        // Create the c_hash using the authorization code returned by CreateAuthorizationCodeAsync.
+                        var hash = algorithm.ComputeHash(Encoding.ASCII.GetBytes(response.Code));
 
-                    identity.AddClaim(JwtRegisteredClaimNames.CHash, hash);
+                        // Note: only the left-most half of the hash of the octets is used.
+                        // See http://openid.net/specs/openid-connect-core-1_0.html#HybridIDToken
+                        identity.AddClaim(JwtRegisteredClaimNames.CHash, Base64UrlEncoder.Encode(hash, 0, hash.Length / 2));
+                    }
                 }
 
                 if (!string.IsNullOrEmpty(response.AccessToken)) {
-                    // Create the at_hash using the access token returned by CreateAccessTokenAsync.
-                    var hash = GenerateHash(response.AccessToken, SecurityAlgorithms.Sha256Digest);
+                    using (var algorithm = HashAlgorithm.Create(SecurityAlgorithms.Sha256Digest)) {
+                        // Create the at_hash using the access token returned by CreateAccessTokenAsync.
+                        var hash = algorithm.ComputeHash(Encoding.ASCII.GetBytes(response.AccessToken));
 
-                    identity.AddClaim("at_hash", hash);
+                        // Note: only the left-most half of the hash of the octets is used.
+                        // See http://openid.net/specs/openid-connect-core-1_0.html#CodeIDToken
+                        identity.AddClaim("at_hash", Base64UrlEncoder.Encode(hash, 0, hash.Length / 2));
+                    }
                 }
 
                 var nonce = request.Nonce;

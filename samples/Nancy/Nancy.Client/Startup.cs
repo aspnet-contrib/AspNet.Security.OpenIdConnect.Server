@@ -95,7 +95,7 @@ namespace Nancy.Client {
                     // Attach the id_token stored in the authentication cookie to the logout request.
                     RedirectToIdentityProvider = notification => {
                         if (notification.ProtocolMessage.RequestType == OpenIdConnectRequestType.LogoutRequest) {
-                            var token = notification.OwinContext.Authentication.User.FindFirst(OpenIdConnectParameterNames.IdToken);
+                            var token = notification.OwinContext.Authentication.User?.FindFirst(OpenIdConnectParameterNames.IdToken);
                             if (token != null) {
                                 notification.ProtocolMessage.IdTokenHint = token.Value;
                             }
