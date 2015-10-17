@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Security.Claims;
 using Microsoft.Owin.Security;
+using Nancy.Security;
 using Nancy.Server.Extensions;
 
 namespace Nancy.Server.Modules {
     public class AuthenticationModule : NancyModule {
         public AuthenticationModule() {
             Get["/signin"] = parameters => {
+                this.CreateNewCsrfToken();
+
                 // Note: the ReturnUrl parameter corresponds to the endpoint the user agent
                 // will be redirected to after a successful authentication and not
                 // the redirect_uri of the requesting client application.
@@ -14,6 +17,8 @@ namespace Nancy.Server.Modules {
             };
 
             Post["/signin"] = parameters => {
+                this.ValidateCsrfToken();
+
                 var identifier = (string) Request.Form.Identifier;
                 if (string.IsNullOrEmpty(identifier)) {
                     return HttpStatusCode.BadRequest;

@@ -8,6 +8,8 @@
     <p class="lead text-left">Sign in using a specific username:</p>
     
     <form action="/signin" method="post">
+        @Html.AntiForgeryToken()
+
         <div class="form-group">
             <label for="identifier">Username: </label>
             <input class="form-control" type="text" id="identifier" name="Identifier" value="Bob le bricoleur" />
