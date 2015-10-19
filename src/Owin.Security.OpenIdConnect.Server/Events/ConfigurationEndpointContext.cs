@@ -34,6 +34,11 @@ namespace Owin.Security.OpenIdConnect.Server {
         public string CryptographyEndpoint { get; set; }
 
         /// <summary>
+        /// Gets or sets the userinfo endpoint address.
+        /// </summary>
+        public string ProfileEndpoint { get; set; }
+
+        /// <summary>
         /// Gets or sets the token endpoint address.
         /// </summary>
         public string TokenEndpoint { get; set; }

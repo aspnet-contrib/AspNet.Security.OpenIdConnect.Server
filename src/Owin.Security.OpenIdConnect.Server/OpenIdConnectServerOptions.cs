@@ -74,6 +74,13 @@ namespace Owin.Security.OpenIdConnect.Server {
         public PathString TokenEndpointPath { get; set; } = new PathString(OpenIdConnectServerDefaults.TokenEndpointPath);
 
         /// <summary>
+        /// The request path client applications communicate with to retrieve user information. 
+        /// Must begin with a leading slash, like "/connect/userinfo".
+        /// You can set it to <see cref="PathString.Empty"/> to disable the profile endpoint.
+        /// </summary>
+        public PathString ProfileEndpointPath { get; set; } = new PathString(OpenIdConnectServerDefaults.ProfileEndpointPath);
+
+        /// <summary>
         /// The request path client applications communicate with to validate identity or access tokens. 
         /// Must begin with a leading slash, like "/connect/token_validation".
         /// You can set it to <see cref="PathString.Empty"/> to disable the validation endpoint.

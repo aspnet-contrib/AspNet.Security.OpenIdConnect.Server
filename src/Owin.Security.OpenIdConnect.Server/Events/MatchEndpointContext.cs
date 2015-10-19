@@ -48,6 +48,11 @@ namespace Owin.Security.OpenIdConnect.Server {
         public bool IsTokenEndpoint { get; private set; }
 
         /// <summary>
+        /// Gets whether or not the endpoint is an userinfo endpoint.
+        /// </summary>
+        public bool IsProfileEndpoint { get; private set; }
+
+        /// <summary>
         /// Gets whether or not the endpoint is a validation endpoint.
         /// </summary>
         public bool IsValidationEndpoint { get; private set; }
@@ -65,6 +70,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             IsConfigurationEndpoint = false;
             IsCryptographyEndpoint = false;
             IsTokenEndpoint = false;
+            IsProfileEndpoint = false;
             IsValidationEndpoint = false;
             IsLogoutEndpoint = false;
         }
@@ -77,6 +83,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             IsConfigurationEndpoint = true;
             IsCryptographyEndpoint = false;
             IsTokenEndpoint = false;
+            IsProfileEndpoint = false;
             IsValidationEndpoint = false;
             IsLogoutEndpoint = false;
         }
@@ -89,6 +96,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             IsConfigurationEndpoint = false;
             IsCryptographyEndpoint = true;
             IsTokenEndpoint = false;
+            IsProfileEndpoint = false;
             IsValidationEndpoint = false;
             IsLogoutEndpoint = false;
         }
@@ -101,6 +109,20 @@ namespace Owin.Security.OpenIdConnect.Server {
             IsConfigurationEndpoint = false;
             IsCryptographyEndpoint = false;
             IsTokenEndpoint = true;
+            IsProfileEndpoint = false;
+            IsValidationEndpoint = false;
+            IsLogoutEndpoint = false;
+        }
+
+        /// <summary>
+        /// Sets the endpoint type to userinfo endpoint.
+        /// </summary>
+        public void MatchesProfileEndpoint() {
+            IsAuthorizationEndpoint = false;
+            IsConfigurationEndpoint = false;
+            IsCryptographyEndpoint = false;
+            IsTokenEndpoint = false;
+            IsProfileEndpoint = true;
             IsValidationEndpoint = false;
             IsLogoutEndpoint = false;
         }
@@ -113,6 +135,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             IsConfigurationEndpoint = false;
             IsCryptographyEndpoint = false;
             IsTokenEndpoint = false;
+            IsProfileEndpoint = false;
             IsValidationEndpoint = true;
             IsLogoutEndpoint = false;
         }
@@ -125,6 +148,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             IsConfigurationEndpoint = false;
             IsCryptographyEndpoint = false;
             IsTokenEndpoint = false;
+            IsProfileEndpoint = false;
             IsValidationEndpoint = false;
             IsLogoutEndpoint = true;
         }
@@ -137,6 +161,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             IsConfigurationEndpoint = false;
             IsCryptographyEndpoint = false;
             IsTokenEndpoint = false;
+            IsProfileEndpoint = false;
             IsValidationEndpoint = false;
             IsLogoutEndpoint = false;
         }

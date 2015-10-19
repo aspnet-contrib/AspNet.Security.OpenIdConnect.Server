@@ -12,6 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Caching;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -365,6 +366,10 @@ namespace Owin.Security.OpenIdConnect.Server {
                 notification.CryptographyEndpoint = notification.Issuer.AddPath(Options.CryptographyEndpointPath);
             }
 
+            if (Options.ProfileEndpointPath.HasValue) {
+                notification.ProfileEndpoint = notification.Issuer.AddPath(Options.ProfileEndpointPath);
+            }
+
             if (Options.TokenEndpointPath.HasValue) {
                 notification.TokenEndpoint = notification.Issuer.AddPath(Options.TokenEndpointPath);
             }
@@ -456,6 +461,10 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             if (!string.IsNullOrEmpty(notification.AuthorizationEndpoint)) {
                 payload.Add(OpenIdConnectConstants.Metadata.AuthorizationEndpoint, notification.AuthorizationEndpoint);
+            }
+
+            if (!string.IsNullOrEmpty(notification.ProfileEndpoint)) {
+                payload.Add(OpenIdConnectConstants.Metadata.UserinfoEndpoint, notification.ProfileEndpoint);
             }
 
             if (!string.IsNullOrEmpty(notification.TokenEndpoint)) {
@@ -1303,6 +1312,197 @@ namespace Owin.Security.OpenIdConnect.Server {
                 buffer.Seek(offset: 0, loc: SeekOrigin.Begin);
                 await buffer.CopyToAsync(Response.Body, 4096, Request.CallCancelled);
             }
+        }
+
+        private async Task<bool> InvokeProfileEndpointAsync() {
+            OpenIdConnectMessage request;
+
+            if (!string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase)) {
+                await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                    Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = "A malformed userinfo request has been received: " +
+                        "make sure to use either GET or POST."
+                });
+
+                return true;
+            }
+
+            if (string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
+                request = new OpenIdConnectMessage(Request.Query);
+            }
+
+            else {
+                // See http://openid.net/specs/openid-connect-core-1_0.html#FormSerialization
+                if (string.IsNullOrWhiteSpace(Request.ContentType)) {
+                    await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                        Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                        ErrorDescription = "A malformed userinfo request has been received: " +
+                            "the mandatory 'Content-Type' header was missing from the POST request."
+                    });
+
+                    return true;
+                }
+
+                // May have media/type; charset=utf-8, allow partial match.
+                if (!Request.ContentType.StartsWith("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase)) {
+                    await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                        Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                        ErrorDescription = "A malformed userinfo request has been received: " +
+                            "the 'Content-Type' header contained an unexcepted value. " +
+                            "Make sure to use 'application/x-www-form-urlencoded'."
+                    });
+
+                    return true;
+                }
+
+                request = new OpenIdConnectMessage(await Request.ReadFormAsync());
+            }
+
+            string token;
+            if (!string.IsNullOrEmpty(request.AccessToken)) {
+                token = request.AccessToken;
+            }
+
+            else {
+                var header = Request.Headers.Get("Authorization");
+                if (string.IsNullOrEmpty(header)) {
+                    await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                        Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                        ErrorDescription = "A malformed userinfo request has been received."
+                    });
+
+                    return true;
+                }
+
+                if (!header.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)) {
+                    await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                        Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                        ErrorDescription = "A malformed userinfo request has been received."
+                    });
+
+                    return true;
+                }
+
+                token = header.Substring("Bearer ".Length);
+                if (string.IsNullOrEmpty(token)) {
+                    await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                        Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                        ErrorDescription = "A malformed userinfo request has been received."
+                    });
+
+                    return true;
+                }
+            }
+
+            var ticket = await ReceiveAccessTokenAsync(token, request);
+            if (ticket == null) {
+                Options.Logger.WriteError("invalid token");
+
+                // Note: an invalid token should result in an unauthorized response
+                // but returning a 401 status would invoke the previously registered
+                // authentication middleware and potentially replace it by a 302 response.
+                // To work around this limitation, a 400 error is returned instead.
+                // See http://openid.net/specs/openid-connect-core-1_0.html#UserInfoError
+                await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                    Error = OpenIdConnectConstants.Errors.InvalidGrant,
+                    ErrorDescription = "Invalid token."
+                });
+
+                return true;
+            }
+
+            if (!ticket.Properties.ExpiresUtc.HasValue ||
+                 ticket.Properties.ExpiresUtc < Options.SystemClock.UtcNow) {
+                Options.Logger.WriteError("expired token");
+
+                // Note: an invalid token should result in an unauthorized response
+                // but returning a 401 status would invoke the previously registered
+                // authentication middleware and potentially replace it by a 302 response.
+                // To work around this limitation, a 400 error is returned instead.
+                // See http://openid.net/specs/openid-connect-core-1_0.html#UserInfoError
+                await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                    Error = OpenIdConnectConstants.Errors.InvalidGrant,
+                    ErrorDescription = "Expired token."
+                });
+
+                return true;
+            }
+
+            // Insert the userinfo request in the ASP.NET context.
+            Context.SetOpenIdConnectRequest(request);
+
+            var notification = new ProfileEndpointContext(Context, Options, request, ticket);
+
+            var claims = new Dictionary<string, string> {
+                // 'sub' is a mandatory claim but is not necessarily present as-is: when missing,
+                // the name identifier extracted from the authentication ticket is used instead.
+                // See http://openid.net/specs/openid-connect-core-1_0.html#UserInfoResponse
+                [JwtRegisteredClaimNames.Sub] = ticket.Identity.GetClaim(JwtRegisteredClaimNames.Sub) ??
+                                                ticket.Identity.GetClaim(ClaimTypes.NameIdentifier)
+            };
+
+            // The following claims are all optional and should be excluded when
+            // no corresponding value has been found in the authentication ticket.
+            if (ticket.ContainsScope(OpenIdConnectConstants.Scopes.Profile)) {
+                claims[JwtRegisteredClaimNames.FamilyName] = ticket.Identity.GetClaim(ClaimTypes.Surname);
+                claims[JwtRegisteredClaimNames.GivenName] = ticket.Identity.GetClaim(ClaimTypes.GivenName);
+                claims[JwtRegisteredClaimNames.Birthdate] = ticket.Identity.GetClaim(ClaimTypes.DateOfBirth);
+            }
+
+            if (ticket.ContainsScope(OpenIdConnectConstants.Scopes.Email)) {
+                claims[JwtRegisteredClaimNames.Email] = ticket.Identity.GetClaim(ClaimTypes.Email);
+            };
+            
+            foreach (var claim in claims) {
+                // Ignore claims whose value is null.
+                if (string.IsNullOrEmpty(claim.Value)) {
+                    continue;
+                }
+
+                notification.Claims.Add(claim);
+            }
+
+            await Options.Provider.ProfileEndpoint(notification);
+
+            if (notification.HandledResponse) {
+                return true;
+            }
+
+            else if (notification.Skipped) {
+                return false;
+            }
+
+            var payload = new JObject();
+
+            foreach (var claim in notification.Claims) {
+                payload.Add(claim.Key, claim.Value);
+            }
+
+            var context = new ProfileEndpointResponseContext(Context, Options, request, payload);
+            await Options.Provider.ProfileEndpointResponse(context);
+
+            if (context.HandledResponse) {
+                return true;
+            }
+
+            using (var buffer = new MemoryStream())
+            using (var writer = new JsonTextWriter(new StreamWriter(buffer))) {
+                payload.WriteTo(writer);
+                writer.Flush();
+
+                Response.ContentLength = buffer.Length;
+                Response.ContentType = "application/json;charset=UTF-8";
+
+                Response.Headers.Set("Cache-Control", "no-cache");
+                Response.Headers.Set("Pragma", "no-cache");
+                Response.Headers.Set("Expires", "-1");
+
+                buffer.Seek(offset: 0, loc: SeekOrigin.Begin);
+                await buffer.CopyToAsync(Response.Body, 4096, Request.CallCancelled);
+            }
+
+            return true;
         }
 
         private async Task InvokeValidationEndpointAsync() {
