@@ -10,17 +10,13 @@ using System.IdentityModel.Tokens;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
-using AspNet.Security.OpenIdConnect.Extensions;
-using Microsoft.AspNet.Authentication;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.DataProtection;
 using Microsoft.AspNet.Hosting;
 using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Http.Authentication;
 using Microsoft.AspNet.Http.Features;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
@@ -531,73 +527,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             return true;
-        }
-
-        internal static AuthenticationProperties Copy([NotNull] this AuthenticationProperties properties) {
-            return new AuthenticationProperties(properties.Items.ToDictionary(pair => pair.Key, pair => pair.Value));
-        }
-
-        internal static AuthenticationTicket Copy([NotNull] this AuthenticationTicket ticket) {
-            return new AuthenticationTicket(ticket.Principal, ticket.Properties.Copy(), ticket.AuthenticationScheme);
-        }
-
-        internal static void CopyTo(this AuthenticationProperties source, AuthenticationProperties destination) {
-            if (source == null || destination == null) {
-                return;
-            }
-
-            if (ReferenceEquals(destination, source)) {
-                return;
-            }
-
-            foreach (var property in source.Items) {
-                destination.Items[property.Key] = property.Value;
-            }
-        }
-
-        internal static string GetProperty(this AuthenticationProperties properties, string property) {
-            if (properties == null) {
-                return null;
-            }
-
-            string value;
-            if (!properties.Items.TryGetValue(property, out value)) {
-                return null;
-            }
-
-            return value;
-        }
-
-        internal static IEnumerable<string> GetAudiences(this AuthenticationProperties properties) {
-            return properties?.GetProperty(OpenIdConnectConstants.Extra.Audience)?.Split(' ') ?? Enumerable.Empty<string>();
-        }
-
-        internal static string GetNonce(this AuthenticationProperties properties) {
-            return properties?.GetProperty(OpenIdConnectConstants.Extra.Nonce);
-        }
-
-        internal static IEnumerable<string> GetResources(this AuthenticationProperties properties) {
-            return properties?.GetProperty(OpenIdConnectConstants.Extra.Resource)?.Split(' ') ?? Enumerable.Empty<string>();
-        }
-
-        internal static IEnumerable<string> GetScopes(this AuthenticationProperties properties) {
-            return properties?.GetProperty(OpenIdConnectConstants.Extra.Scope)?.Split(' ') ?? Enumerable.Empty<string>();
-        }
-
-        internal static void SetAudiences(this AuthenticationProperties properties, IEnumerable<string> audiences) {
-            properties.Items[OpenIdConnectConstants.Extra.Audience] = string.Join(" ", audiences);
-        }
-
-        internal static bool ContainsProperty(this AuthenticationTicket ticket, string property) {
-            if (ticket == null) {
-                return false;
-            }
-
-            return ticket.Properties.Items.ContainsKey(property);
-        }
-
-        internal static bool ContainsScope(this AuthenticationTicket ticket, string scope) {
-            return ticket.Properties.GetScopes().Contains(scope);
         }
 
         internal static bool ContainsSet(this IEnumerable<string> source, IEnumerable<string> set) {
