@@ -9,7 +9,9 @@
     "licenseUrl": "http://www.apache.org/licenses/LICENSE-2.0.html",
 
     "dependencies": {
-        "Microsoft.IdentityModel.Protocol.Extensions": "1.0.2.202250711"
+        "Microsoft.IdentityModel.Protocol.Extensions": "1.0.2.202250711",
+
+        "Microsoft.Owin.Security": "3.0.1"
     },
 
     "frameworks": {

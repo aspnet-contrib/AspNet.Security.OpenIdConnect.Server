@@ -3,12 +3,13 @@
  * See https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server
  * for more information concerning the license and the contributors participating to this project.
  */
- 
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using Microsoft.IdentityModel.Protocols;
+using Microsoft.Owin.Security;
 
 namespace Owin.Security.OpenIdConnect.Extensions {
     /// <summary>
@@ -493,6 +494,298 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             }
 
             return principal.FindFirst(type)?.Value;
+        }
+
+        /// <summary>
+        /// Copies the authentication properties in a new instance.
+        /// </summary>
+        /// <param name="properties">The authentication properties to copy.</param>
+        /// <returns>A new instance containing the copied properties.</returns>
+        public static AuthenticationProperties Copy(this AuthenticationProperties properties) {
+            if (properties == null) {
+                throw new ArgumentNullException(nameof(properties));
+            }
+
+            return new AuthenticationProperties(properties.Dictionary.ToDictionary(pair => pair.Key, pair => pair.Value));
+        }
+
+        /// <summary>
+        /// Copies the authentication ticket in a new instance.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket to copy.</param>
+        /// <returns>A new instance containing the copied ticket</returns>
+        public static AuthenticationTicket Copy(this AuthenticationTicket ticket) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            return new AuthenticationTicket(ticket.Identity, ticket.Properties.Copy());
+        }
+
+        /// <summary>
+        /// Copies the authentication properties to another instance.
+        /// </summary>
+        /// <param name="source">The source instance.</param>
+        /// <param name="destination">The destination instance.</param>
+        public static void CopyTo(this AuthenticationProperties source, AuthenticationProperties destination) {
+            if (source == null) {
+                throw new ArgumentNullException(nameof(source));
+            }
+
+            if (destination == null) {
+                throw new ArgumentNullException(nameof(destination));
+            }
+
+            // Don't copy values if the source
+            // and destination instances are identical.
+            if (ReferenceEquals(destination, source)) {
+                return;
+            }
+
+            foreach (var property in source.Dictionary) {
+                destination.Dictionary[property.Key] = property.Value;
+            }
+        }
+
+        /// <summary>
+        /// Gets a given property from the authentication properties.
+        /// </summary>
+        /// <param name="properties">The authentication properties.</param>
+        /// <param name="property">The specific property to look for.</param>
+        /// <returns>The value corresponding to the property, or <c>null</c> if the property cannot be found.</returns>
+        public static string GetProperty(this AuthenticationProperties properties, string property) {
+            if (properties == null) {
+                throw new ArgumentNullException(nameof(properties));
+            }
+
+            string value;
+            if (!properties.Dictionary.TryGetValue(property, out value)) {
+                return null;
+            }
+
+            return value;
+        }
+
+        /// <summary>
+        /// Gets a given property from the authentication ticket.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <param name="property">The specific property to look for.</param>
+        /// <returns>The value corresponding to the property, or <c>null</c> if the property cannot be found.</returns>
+        public static string GetProperty(this AuthenticationTicket ticket, string property) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            return ticket.Properties.GetProperty(property);
+        }
+
+        /// <summary>
+        /// Gets the audiences list stored in the authentication properties.
+        /// Note: this method automatically excludes duplicate audiences.
+        /// </summary>
+        /// <param name="properties">The authentication properties.</param>
+        /// <returns>The audiences list or <c>Enumerable.Empty</c> is the property cannot be found.</returns>
+        public static IEnumerable<string> GetAudiences(this AuthenticationProperties properties) {
+            if (properties == null) {
+                throw new ArgumentNullException(nameof(properties));
+            }
+
+            return properties.GetProperty(OpenIdConnectConstants.Extra.Audience)
+                            ?.Split(' ')
+                            ?.Distinct(StringComparer.OrdinalIgnoreCase)
+                   ?? Enumerable.Empty<string>();
+        }
+
+        /// <summary>
+        /// Gets the audiences list stored in the authentication ticket.
+        /// Note: this method automatically excludes duplicate audiences.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <returns>The audiences list or <c>Enumerable.Empty</c> is the property cannot be found.</returns>
+        public static IEnumerable<string> GetAudiences(this AuthenticationTicket ticket) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            return ticket.Properties.GetAudiences();
+        }
+
+        /// <summary>
+        /// Gets the nonce stored in the authentication properties.
+        /// </summary>
+        /// <param name="properties">The authentication properties.</param>
+        /// <returns>The nonce or <c>null</c> is the property cannot be found.</returns>
+        public static string GetNonce(this AuthenticationProperties properties) {
+            if (properties == null) {
+                throw new ArgumentNullException(nameof(properties));
+            }
+
+            return properties.GetProperty(OpenIdConnectConstants.Extra.Nonce);
+        }
+
+        /// <summary>
+        /// Gets the nonce stored in the authentication ticket.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <returns>The nonce or <c>null</c> is the property cannot be found.</returns>
+        public static string GetNonce(this AuthenticationTicket ticket) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            return ticket.Properties.GetNonce();
+        }
+
+        /// <summary>
+        /// Gets the resources list stored in the authentication properties.
+        /// Note: this method automatically excludes duplicate resources.
+        /// </summary>
+        /// <param name="properties">The authentication properties.</param>
+        /// <returns>The resources list or <c>Enumerable.Empty</c> is the property cannot be found.</returns>
+        public static IEnumerable<string> GetResources(this AuthenticationProperties properties) {
+            if (properties == null) {
+                throw new ArgumentNullException(nameof(properties));
+            }
+
+            return properties.GetProperty(OpenIdConnectConstants.Extra.Resource)
+                            ?.Split(' ')
+                            ?.Distinct(StringComparer.OrdinalIgnoreCase)
+                   ?? Enumerable.Empty<string>();
+        }
+
+        /// <summary>
+        /// Gets the resources list stored in the authentication ticket.
+        /// Note: this method automatically excludes duplicate resources.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <returns>The resources list or <c>Enumerable.Empty</c> is the property cannot be found.</returns>
+        public static IEnumerable<string> GetResources(this AuthenticationTicket ticket) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            return ticket.Properties.GetResources();
+        }
+
+        /// <summary>
+        /// Gets the scopes list stored in the authentication properties.
+        /// Note: this method automatically excludes duplicate scopes.
+        /// </summary>
+        /// <param name="properties">The authentication properties.</param>
+        /// <returns>The scopes list or <c>Enumerable.Empty</c> is the property cannot be found.</returns>
+        public static IEnumerable<string> GetScopes(this AuthenticationProperties properties) {
+            if (properties == null) {
+                throw new ArgumentNullException(nameof(properties));
+            }
+
+            return properties.GetProperty(OpenIdConnectConstants.Extra.Scope)
+                            ?.Split(' ')
+                            ?.Distinct(StringComparer.OrdinalIgnoreCase)
+                   ?? Enumerable.Empty<string>();
+        }
+
+        /// <summary>
+        /// Gets the scopes list stored in the authentication ticket.
+        /// Note: this method automatically excludes duplicate scopes.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <returns>The scopes list or <c>Enumerable.Empty</c> is the property cannot be found.</returns>
+        public static IEnumerable<string> GetScopes(this AuthenticationTicket ticket) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            return ticket.Properties.GetScopes();
+        }
+
+        /// <summary>
+        /// Sets the audiences list in the authentication properties.
+        /// Note: this method automatically excludes duplicate audiences.
+        /// </summary>
+        /// <param name="properties">The authentication properties where the list should be stored.</param>
+        /// <param name="audiences">The audiences to store.</param>
+        public static void SetAudiences(this AuthenticationProperties properties, IEnumerable<string> audiences) {
+            if (properties == null) {
+                throw new ArgumentNullException(nameof(properties));
+            }
+
+            if (audiences == null) {
+                throw new ArgumentNullException(nameof(audiences));
+            }
+
+            properties.Dictionary[OpenIdConnectConstants.Extra.Audience] =
+                string.Join(" ", audiences.Distinct(StringComparer.OrdinalIgnoreCase));
+        }
+
+        /// <summary>
+        /// Sets the audiences list in the authentication ticket.
+        /// Note: this method automatically excludes duplicate audiences.
+        /// </summary>
+        /// <param name="ticket">The authentication properties where the list should be stored.</param>
+        /// <param name="audiences">The audiences to store.</param>
+        public static void SetAudiences(this AuthenticationTicket ticket, IEnumerable<string> audiences) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            ticket.Properties.SetAudiences(audiences);
+        }
+
+        /// <summary>
+        /// Determines whether the authentication properties contains the given property.
+        /// </summary>
+        /// <param name="properties">The authentication properties the property should be extracted from.</param>
+        /// <param name="property">The property to look for.</param>
+        /// <returns><c>true</c> if the property exists or <c>false</c> if the property cannot be found.</returns>
+        public static bool ContainsProperty(this AuthenticationProperties properties, string property) {
+            if (properties == null) {
+                throw new ArgumentNullException(nameof(properties));
+            }
+
+            return properties.Dictionary.ContainsKey(property);
+        }
+
+        /// <summary>
+        /// Determines whether the authentication ticket contains the given property.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket the property should be extracted from.</param>
+        /// <param name="property">The property to look for.</param>
+        /// <returns><c>true</c> if the property exists or <c>false</c> if the property cannot be found.</returns>
+        public static bool ContainsProperty(this AuthenticationTicket ticket, string property) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            return ticket.Properties.ContainsProperty(property);
+        }
+
+        /// <summary>
+        /// Determines whether the authentication properties contains the given scope.
+        /// </summary>
+        /// <param name="ticket">The authentication properties the scope should be extracted from.</param>
+        /// <param name="scope">The scope to look for.</param>
+        /// <returns><c>true</c> if the scope exists or <c>false</c> if the scope cannot be found.</returns>
+        public static bool ContainsScope(this AuthenticationProperties properties, string scope) {
+            if (properties == null) {
+                throw new ArgumentNullException(nameof(properties));
+            }
+
+            return properties.GetScopes().Contains(scope);
+        }
+
+        /// <summary>
+        /// Determines whether the authentication ticket contains the given scope.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket the scope should be extracted from.</param>
+        /// <param name="scope">The scope to look for.</param>
+        /// <returns><c>true</c> if the scope exists or <c>false</c> if the scope cannot be found.</returns>
+        public static bool ContainsScope(this AuthenticationTicket ticket, string scope) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            return ticket.Properties.ContainsScope(scope);
         }
 
         private static bool HasValue(string source, string value) {
