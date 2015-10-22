@@ -8,6 +8,10 @@
 
 namespace Owin.Security.OpenIdConnect.Extensions {
     public static class OpenIdConnectConstants {
+        public static class Claims {
+            public const string Scope = "scope";
+        }
+
         public static class Parameters {
             public const string ResponseType = "response_type";
             public const string GrantType = "grant_type";
