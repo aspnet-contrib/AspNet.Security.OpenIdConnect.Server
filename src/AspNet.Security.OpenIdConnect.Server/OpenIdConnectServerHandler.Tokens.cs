@@ -35,6 +35,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     properties.ExpiresUtc = properties.IssuedUtc + Options.AuthorizationCodeLifetime;
                 }
 
+                properties.SetUsage(OpenIdConnectConstants.Usages.Code);
+
                 // Claims in authorization codes are never filtered as they are supposed to be opaque:
                 // CreateAccessTokenAsync and CreateIdentityTokenAsync are responsible of ensuring
                 // that subsequent access and identity tokens are correctly filtered.
@@ -102,6 +104,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 if (properties.ExpiresUtc == null) {
                     properties.ExpiresUtc = properties.IssuedUtc + Options.AccessTokenLifetime;
                 }
+
+                properties.SetUsage(OpenIdConnectConstants.Usages.AccessToken);
 
                 // Create a new principal containing only the filtered claims.
                 // Actors identities are also filtered (delegation scenarios).
@@ -198,14 +202,20 @@ namespace AspNet.Security.OpenIdConnect.Server {
                         return Task.FromResult(notification.DataFormat?.Protect(payload));
                     }
 
+                    // Extract the main identity from the principal.
+                    identity = (ClaimsIdentity) payload.Principal.Identity;
+
+                    // Store the "usage" property as a claim.
+                    identity.AddClaim(OpenIdConnectConstants.Extra.Usage, properties.GetUsage());
+
                     // When creating an access token intended for a single audience, it's usually better
                     // to format the "aud" claim as a string, but CreateToken doesn't support multiple audiences:
                     // to work around this limitation, audience is initialized with a single resource and
                     // JwtPayload.Aud is replaced with an array containing the multiple resources if necessary.
                     // See https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32#section-4.1.3
                     var token = notification.SecurityTokenHandler.CreateToken(
+                        subject: identity,
                         issuer: notification.Issuer,
-                        subject: (ClaimsIdentity) payload.Principal.Identity,
                         audience: notification.Audiences.ElementAtOrDefault(0),
                         signatureProvider: notification.SignatureProvider,
                         signingCredentials: notification.SigningCredentials,
@@ -295,6 +305,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 if (properties.ExpiresUtc == null) {
                     properties.ExpiresUtc = properties.IssuedUtc + Options.IdentityTokenLifetime;
                 }
+
+                properties.SetUsage(OpenIdConnectConstants.Usages.IdToken);
 
                 // Replace the principal by a new one containing only the filtered claims.
                 // Actors identities are also filtered (delegation scenarios).
@@ -395,14 +407,20 @@ namespace AspNet.Security.OpenIdConnect.Server {
                         return Task.FromResult<string>(null);
                     }
 
+                    // Extract the main identity from the principal.
+                    identity = (ClaimsIdentity) payload.Principal.Identity;
+
+                    // Store the "usage" property as a claim.
+                    identity.AddClaim(OpenIdConnectConstants.Extra.Usage, properties.GetUsage());
+
                     // When creating an identity token intended for a single audience, it's usually better
                     // to format the "aud" claim as a string, but CreateToken doesn't support multiple audiences:
                     // to work around this limitation, audience is initialized with a single resource and
                     // JwtPayload.Aud is replaced with an array containing the multiple resources if necessary.
                     // See http://openid.net/specs/openid-connect-core-1_0.html#IDToken
                     var token = notification.SecurityTokenHandler.CreateToken(
+                        subject: identity,
                         issuer: notification.Issuer,
-                        subject: (ClaimsIdentity) payload.Principal.Identity,
                         audience: notification.Audiences.ElementAtOrDefault(0),
                         signatureProvider: notification.SignatureProvider,
                         signingCredentials: notification.SigningCredentials,
@@ -493,6 +511,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     properties.ExpiresUtc = properties.IssuedUtc + Options.RefreshTokenLifetime;
                 }
 
+                properties.SetUsage(OpenIdConnectConstants.Usages.RefreshToken);
+
                 // Claims in refresh tokens are never filtered as they are supposed to be opaque:
                 // CreateAccessTokenAsync and CreateIdentityTokenAsync are responsible of ensuring
                 // that subsequent access and identity tokens are correctly filtered.
@@ -541,8 +561,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 // Sets the default deserializer used to resolve the
                 // authentication ticket corresponding to the authorization code.
-                notification.Deserializer = ticket => {
-                    return Task.FromResult(notification.DataFormat?.Unprotect(ticket));
+                notification.Deserializer = payload => {
+                    return Task.FromResult(notification.DataFormat?.Unprotect(payload));
                 };
 
                 await Options.Provider.ReceiveAuthorizationCode(notification);
@@ -551,6 +571,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 // has been provided by ReceiveAuthorizationCode.
                 // Treat a non-null ticket like an implicit HandleResponse call.
                 if (notification.HandledResponse || notification.AuthenticationTicket != null) {
+                    // Ensure the received ticket is an authorization code.
+                    if (!string.Equals(notification.AuthenticationTicket.GetUsage(),
+                                       OpenIdConnectConstants.Usages.Code, StringComparison.Ordinal)) {
+                        Logger.LogVerbose("The received token was not an authorization code: {0}.", code);
+
+                        return null;
+                    }
+
                     return notification.AuthenticationTicket;
                 }
 
@@ -569,7 +597,16 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     // to remove the current code from the global store before using it.
                     await Options.Cache.RemoveAsync(code);
 
-                    return await notification.DeserializeTicketAsync(await reader.ReadToEndAsync());
+                    var ticket = await notification.DeserializeTicketAsync(await reader.ReadToEndAsync());
+
+                    // Ensure the received ticket is an authorization code.
+                    if (!string.Equals(ticket.GetUsage(), OpenIdConnectConstants.Usages.Code, StringComparison.Ordinal)) {
+                        Logger.LogVerbose("The received token was not an authorization code: {0}.", code);
+
+                        return null;
+                    }
+
+                    return ticket;
                 }
             }
 
@@ -593,10 +630,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 // Sets the default deserializer used to resolve the
                 // authentication ticket corresponding to the access token.
-                notification.Deserializer = ticket => {
+                notification.Deserializer = payload => {
                     var handler = notification.SecurityTokenHandler as ISecurityTokenValidator;
                     if (handler == null) {
-                        return Task.FromResult(notification.DataFormat?.Unprotect(ticket));
+                        return Task.FromResult(notification.DataFormat?.Unprotect(payload));
                     }
 
                     // Create new validation parameters to validate the security token.
@@ -611,7 +648,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     };
 
                     SecurityToken securityToken;
-                    var principal = handler.ValidateToken(ticket, parameters, out securityToken);
+                    var principal = handler.ValidateToken(payload, parameters, out securityToken);
 
                     // Parameters stored in AuthenticationProperties are lost
                     // when the identity token is serialized using a security token handler.
@@ -626,6 +663,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
                         properties.SetAudiences(audiences.Select(claim => claim.Value));
                     }
 
+                    var usage = principal.FindFirst(OpenIdConnectConstants.Extra.Usage);
+                    if (usage != null) {
+                        properties.SetUsage(usage.Value);
+                    }
+
                     return Task.FromResult(new AuthenticationTicket(principal, properties, Options.AuthenticationScheme));
                 };
 
@@ -635,6 +677,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 // has been provided by ReceiveAccessToken.
                 // Treat a non-null ticket like an implicit HandleResponse call.
                 if (notification.HandledResponse || notification.AuthenticationTicket != null) {
+                    // Ensure the received ticket is an access token.
+                    if (!string.Equals(notification.AuthenticationTicket.GetUsage(),
+                                       OpenIdConnectConstants.Usages.AccessToken, StringComparison.Ordinal)) {
+                        Logger.LogVerbose("The received token was not an access token: {0}.", token);
+
+                        return null;
+                    }
+
                     return notification.AuthenticationTicket;
                 }
 
@@ -642,7 +692,16 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     return null;
                 }
 
-                return await notification.DeserializeTicketAsync(token);
+                var ticket = await notification.DeserializeTicketAsync(token);
+
+                // Ensure the received ticket is an access token.
+                if (!string.Equals(ticket.GetUsage(), OpenIdConnectConstants.Usages.AccessToken, StringComparison.Ordinal)) {
+                    Logger.LogVerbose("The received token was not an access token: {0}.", token);
+
+                    return null;
+                }
+
+                return ticket;
             }
 
             catch (Exception exception) {
@@ -664,7 +723,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 // Sets the default deserializer used to resolve the
                 // authentication ticket corresponding to the identity token.
-                notification.Deserializer = ticket => {
+                notification.Deserializer = payload => {
                     if (notification.SecurityTokenHandler == null) {
                         return Task.FromResult<AuthenticationTicket>(null);
                     }
@@ -681,7 +740,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     };
 
                     SecurityToken securityToken;
-                    var principal = notification.SecurityTokenHandler.ValidateToken(ticket, parameters, out securityToken);
+                    var principal = notification.SecurityTokenHandler.ValidateToken(payload, parameters, out securityToken);
 
                     // Parameters stored in AuthenticationProperties are lost
                     // when the identity token is serialized using a security token handler.
@@ -696,6 +755,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
                         properties.SetAudiences(audiences.Select(claim => claim.Value));
                     }
 
+                    var usage = principal.FindFirst(OpenIdConnectConstants.Extra.Usage);
+                    if (usage != null) {
+                        properties.SetUsage(usage.Value);
+                    }
+
                     return Task.FromResult(new AuthenticationTicket(principal, properties, Options.AuthenticationScheme));
                 };
 
@@ -705,6 +769,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 // has been provided by ReceiveIdentityToken.
                 // Treat a non-null ticket like an implicit HandleResponse call.
                 if (notification.HandledResponse || notification.AuthenticationTicket != null) {
+                    // Ensure the received ticket is an identity token.
+                    if (!string.Equals(notification.AuthenticationTicket.GetUsage(),
+                                       OpenIdConnectConstants.Usages.IdToken, StringComparison.Ordinal)) {
+                        Logger.LogVerbose("The received token was not an identity token: {0}.", token);
+
+                        return null;
+                    }
+
                     return notification.AuthenticationTicket;
                 }
 
@@ -712,7 +784,16 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     return null;
                 }
 
-                return await notification.DeserializeTicketAsync(token);
+                var ticket = await notification.DeserializeTicketAsync(token);
+                
+                // Ensure the received ticket is an identity token.
+                if (!string.Equals(ticket.GetUsage(), OpenIdConnectConstants.Usages.IdToken, StringComparison.Ordinal)) {
+                    Logger.LogVerbose("The received token was not an identity token: {0}.", token);
+
+                    return null;
+                }
+
+                return ticket;
             }
 
             catch (Exception exception) {
@@ -730,8 +811,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 // Sets the default deserializer used to resolve the
                 // authentication ticket corresponding to the refresh token.
-                notification.Deserializer = ticket => {
-                    return Task.FromResult(notification.DataFormat?.Unprotect(ticket));
+                notification.Deserializer = payload => {
+                    return Task.FromResult(notification.DataFormat?.Unprotect(payload));
                 };
 
                 await Options.Provider.ReceiveRefreshToken(notification);
@@ -740,6 +821,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 // has been provided by ReceiveRefreshToken.
                 // Treat a non-null ticket like an implicit HandleResponse call.
                 if (notification.HandledResponse || notification.AuthenticationTicket != null) {
+                    // Ensure the received ticket is a refresh token.
+                    if (!string.Equals(notification.AuthenticationTicket.GetUsage(),
+                                       OpenIdConnectConstants.Usages.RefreshToken, StringComparison.Ordinal)) {
+                        Logger.LogVerbose("The received token was not a refresh token: {0}.", token);
+
+                        return null;
+                    }
+
                     return notification.AuthenticationTicket;
                 }
 
@@ -747,7 +836,16 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     return null;
                 }
 
-                return await notification.DeserializeTicketAsync(token);
+                var ticket = await notification.DeserializeTicketAsync(token);
+
+                // Ensure the received ticket is a refresh token.
+                if (!string.Equals(ticket.GetUsage(), OpenIdConnectConstants.Usages.RefreshToken, StringComparison.Ordinal)) {
+                    Logger.LogVerbose("The received token was not a refresh token: {0}.", token);
+
+                    return null;
+                }
+
+                return ticket;
             }
 
             catch (Exception exception) {

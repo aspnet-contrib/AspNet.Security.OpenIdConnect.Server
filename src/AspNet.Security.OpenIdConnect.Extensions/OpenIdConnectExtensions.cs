@@ -675,6 +675,32 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
         }
 
         /// <summary>
+        /// Gets the usage of the token stored in the authentication properties.
+        /// </summary>
+        /// <param name="properties">The authentication properties.</param>
+        /// <returns>The usage of the token or <c>null</c> is the property cannot be found.</returns>
+        public static string GetUsage(this AuthenticationProperties properties) {
+            if (properties == null) {
+                throw new ArgumentNullException(nameof(properties));
+            }
+
+            return properties.GetProperty(OpenIdConnectConstants.Extra.Usage);
+        }
+
+        /// <summary>
+        /// Gets the usage of the token stored in the authentication ticket.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <returns>The usage of the token or <c>null</c> is the property cannot be found.</returns>
+        public static string GetUsage(this AuthenticationTicket ticket) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            return ticket.Properties.GetUsage();
+        }
+
+        /// <summary>
         /// Sets the audiences list in the authentication properties.
         /// Note: this method automatically excludes duplicate audiences.
         /// </summary>
@@ -705,6 +731,32 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
             }
 
             ticket.Properties.SetAudiences(audiences);
+        }
+
+        /// <summary>
+        /// Sets the usage of the token in the authentication properties.
+        /// </summary>
+        /// <param name="properties">The authentication properties where the usage should be stored.</param>
+        /// <param name="usage">The usage of the token.</param>
+        public static void SetUsage(this AuthenticationProperties properties, string usage) {
+            if (properties == null) {
+                throw new ArgumentNullException(nameof(properties));
+            }
+
+            properties.Items[OpenIdConnectConstants.Extra.Usage] = usage;
+        }
+
+        /// <summary>
+        /// Sets the usage of the token in the authentication ticket.
+        /// </summary>
+        /// <param name="properties">The authentication ticket where the usage should be stored.</param>
+        /// <param name="usage">The usage of the token.</param>
+        public static void SetUsage(this AuthenticationTicket ticket, string usage) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            ticket.Properties.SetUsage(usage);
         }
 
         /// <summary>
