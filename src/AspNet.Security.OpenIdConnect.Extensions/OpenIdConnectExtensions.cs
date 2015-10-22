@@ -746,7 +746,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(properties));
             }
 
-            return properties.GetScopes().Contains(scope);
+            return properties.GetScopes().Contains(scope, StringComparer.OrdinalIgnoreCase);
         }
 
         /// <summary>
