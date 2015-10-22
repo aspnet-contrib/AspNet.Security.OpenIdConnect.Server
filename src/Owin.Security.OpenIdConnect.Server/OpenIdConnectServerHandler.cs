@@ -304,16 +304,21 @@ namespace Owin.Security.OpenIdConnect.Server {
         }
 
         protected override async Task ApplyResponseChallengeAsync() {
-            var context = new MatchEndpointContext(Context, Options);
+            var context = Helper.LookupChallenge(Options.AuthenticationType, Options.AuthenticationMode);
+            if (context == null || Response.StatusCode != 401) {
+                return;
+            }
+
+            var notification = new MatchEndpointContext(Context, Options);
 
             if (Options.ProfileEndpointPath.HasValue &&
                 Options.ProfileEndpointPath == Request.Path) {
-                context.MatchesProfileEndpoint();
+                notification.MatchesProfileEndpoint();
             }
 
-            await Options.Provider.MatchEndpoint(context);
+            await Options.Provider.MatchEndpoint(notification);
 
-            if (!context.IsProfileEndpoint) {
+            if (!notification.IsProfileEndpoint) {
                 return;
             }
 
