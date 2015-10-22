@@ -86,6 +86,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             public const string Scope = "scope";
             public const string RedirectUri = "redirect_uri";
             public const string Resource = "resource";
+            public const string Usage = "usage";
         }
 
         public static class Metadata {
@@ -106,6 +107,13 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         public static class SubjectTypes {
             public const string Public = "public";
             public const string Pairwise = "pairwise";
+        }
+
+        public static class Usages {
+            public const string AccessToken = "access_token";
+            public const string Code = "code";
+            public const string IdToken = "id_token";
+            public const string RefreshToken = "refresh_token";
         }
 
         public static class Algorithms {
