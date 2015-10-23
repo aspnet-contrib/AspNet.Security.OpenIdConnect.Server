@@ -37,7 +37,7 @@ namespace Owin {
         /// <param name="configuration">A delegate allowing to change the OpenID Connect server's settings.</param>
         /// <returns>The application builder.</returns>
         public static IAppBuilder UseOpenIdConnectServer(
-            this IAppBuilder app, Action<OpenIdConnectServerConfiguration> configuration) {
+            this IAppBuilder app, Action<OpenIdConnectServerBuilder> configuration) {
             if (app == null) {
                 throw new ArgumentNullException("app");
             }
@@ -46,11 +46,15 @@ namespace Owin {
                 throw new ArgumentNullException("configuration");
             }
 
-            var options = new OpenIdConnectServerConfiguration(app);
-            configuration(options);
+            var builder = new OpenIdConnectServerBuilder(app);
+            configuration(builder);
+
+            if (builder.Options == null) {
+                throw new ArgumentException($"The '{nameof(builder.Options)}' property cannot be null.", nameof(builder));
+            }
 
             // If no key has been explicitly added, use the fallback mode.
-            if (options.Options.SigningCredentials.Count == 0) {
+            if (builder.Options.SigningCredentials.Count == 0) {
                 var directory = GetDefaultKeyStorageDirectory();
 
                 // Ensure the directory exists.
@@ -59,22 +63,22 @@ namespace Owin {
                     directory.Refresh();
                 }
 
-                options.UseKeys(directory);
+                builder.UseKeys(directory);
             }
 
-            return app.Use(typeof(OpenIdConnectServerMiddleware), app, options.Options);
+            return app.Use(typeof(OpenIdConnectServerMiddleware), app, builder.Options);
         }
 
         /// <summary>
         /// Uses a specific <see cref="X509Certificate2"/> to sign tokens issued by the OpenID Connect server.
         /// </summary>
-        /// <param name="configuration">The options used to configure the OpenID Connect server.</param>
+        /// <param name="builder">The options used to configure the OpenID Connect server.</param>
         /// <param name="certificate">The certificate used to sign security tokens issued by the server.</param>
         /// <returns>The options used to configure the OpenID Connect server.</returns>
-        public static OpenIdConnectServerConfiguration UseCertificate(
-            this OpenIdConnectServerConfiguration configuration, X509Certificate2 certificate) {
-            if (configuration == null) {
-                throw new ArgumentNullException("configuration");
+        public static OpenIdConnectServerBuilder UseCertificate(
+            this OpenIdConnectServerBuilder builder, X509Certificate2 certificate) {
+            if (builder == null) {
+                throw new ArgumentNullException("builder");
             }
 
             if (certificate == null) {
@@ -85,23 +89,23 @@ namespace Owin {
                 throw new InvalidOperationException("The certificate doesn't contain the required private key.");
             }
 
-            return configuration.UseKey(new X509SecurityKey(certificate));
+            return builder.UseKey(new X509SecurityKey(certificate));
         }
 
         /// <summary>
         /// Uses a specific <see cref="X509Certificate2"/> retrieved from an
         /// embedded resource to sign tokens issued by the OpenID Connect server.
         /// </summary>
-        /// <param name="configuration">The options used to configure the OpenID Connect server.</param>
+        /// <param name="builder">The options used to configure the OpenID Connect server.</param>
         /// <param name="assembly">The assembly containing the certificate.</param>
         /// <param name="resource">The name of the embedded resource.</param>
         /// <param name="password">The password used to open the certificate.</param>
         /// <returns>The options used to configure the OpenID Connect server.</returns>
-        public static OpenIdConnectServerConfiguration UseCertificate(
-            this OpenIdConnectServerConfiguration configuration,
+        public static OpenIdConnectServerBuilder UseCertificate(
+            this OpenIdConnectServerBuilder builder,
             Assembly assembly, string resource, string password) {
-            if (configuration == null) {
-                throw new ArgumentNullException("configuration");
+            if (builder == null) {
+                throw new ArgumentNullException("builder");
             }
 
             if (assembly == null) {
@@ -121,7 +125,7 @@ namespace Owin {
                     throw new InvalidOperationException("The certificate was not found in the given assembly.");
                 }
 
-                return configuration.UseCertificate(stream, password);
+                return builder.UseCertificate(stream, password);
             }
         }
 
@@ -129,13 +133,13 @@ namespace Owin {
         /// Uses a specific <see cref="X509Certificate2"/> contained in
         /// a stream to sign tokens issued by the OpenID Connect server.
         /// </summary>
-        /// <param name="configuration">The options used to configure the OpenID Connect server.</param>
+        /// <param name="builder">The options used to configure the OpenID Connect server.</param>
         /// <param name="stream">The stream containing the certificate.</param>
         /// <param name="password">The password used to open the certificate.</param>
         /// <returns>The options used to configure the OpenID Connect server.</returns>
-        public static OpenIdConnectServerConfiguration UseCertificate(
-            this OpenIdConnectServerConfiguration configuration, Stream stream, string password) {
-            return configuration.UseCertificate(stream, password, X509KeyStorageFlags.Exportable |
+        public static OpenIdConnectServerBuilder UseCertificate(
+            this OpenIdConnectServerBuilder builder, Stream stream, string password) {
+            return builder.UseCertificate(stream, password, X509KeyStorageFlags.Exportable |
                                                                   X509KeyStorageFlags.MachineKeySet);
         }
 
@@ -143,16 +147,16 @@ namespace Owin {
         /// Uses a specific <see cref="X509Certificate2"/> contained in
         /// a stream to sign tokens issued by the OpenID Connect server.
         /// </summary>
-        /// <param name="configuration">The options used to configure the OpenID Connect server.</param>
+        /// <param name="builder">The options used to configure the OpenID Connect server.</param>
         /// <param name="stream">The stream containing the certificate.</param>
         /// <param name="password">The password used to open the certificate.</param>
         /// <param name="flags">An enumeration of flags indicating how and where to store the private key of the certificate.</param>
         /// <returns>The options used to configure the OpenID Connect server.</returns>
-        public static OpenIdConnectServerConfiguration UseCertificate(
-            this OpenIdConnectServerConfiguration configuration, Stream stream,
+        public static OpenIdConnectServerBuilder UseCertificate(
+            this OpenIdConnectServerBuilder builder, Stream stream,
             string password, X509KeyStorageFlags flags) {
-            if (configuration == null) {
-                throw new ArgumentNullException("configuration");
+            if (builder == null) {
+                throw new ArgumentNullException("builder");
             }
 
             if (stream == null) {
@@ -166,7 +170,7 @@ namespace Owin {
             using (var buffer = new MemoryStream()) {
                 stream.CopyTo(buffer);
 
-                return configuration.UseCertificate(new X509Certificate2(buffer.ToArray(), password, flags));
+                return builder.UseCertificate(new X509Certificate2(buffer.ToArray(), password, flags));
             }
         }
 
@@ -174,28 +178,28 @@ namespace Owin {
         /// Uses a specific <see cref="X509Certificate2"/> retrieved from the
         /// X509 machine store to sign tokens issued by the OpenID Connect server.
         /// </summary>
-        /// <param name="configuration">The options used to configure the OpenID Connect server.</param>
+        /// <param name="builder">The options used to configure the OpenID Connect server.</param>
         /// <param name="thumbprint">The thumbprint of the certificate used to identify it in the X509 store.</param>
         /// <returns>The options used to configure the OpenID Connect server.</returns>
-        public static OpenIdConnectServerConfiguration UseCertificate(
-            this OpenIdConnectServerConfiguration configuration, string thumbprint) {
-            return configuration.UseCertificate(thumbprint, StoreName.My, StoreLocation.LocalMachine);
+        public static OpenIdConnectServerBuilder UseCertificate(
+            this OpenIdConnectServerBuilder builder, string thumbprint) {
+            return builder.UseCertificate(thumbprint, StoreName.My, StoreLocation.LocalMachine);
         }
 
         /// <summary>
         /// Uses a specific <see cref="X509Certificate2"/> retrieved from the
         /// given X509 store to sign tokens issued by the OpenID Connect server.
         /// </summary>
-        /// <param name="configuration">The options used to configure the OpenID Connect server.</param>
+        /// <param name="builder">The options used to configure the OpenID Connect server.</param>
         /// <param name="thumbprint">The thumbprint of the certificate used to identify it in the X509 store.</param>
         /// <param name="name">The name of the X509 store.</param>
         /// <param name="location">The location of the X509 store.</param>
         /// <returns>The options used to configure the OpenID Connect server.</returns>
-        public static OpenIdConnectServerConfiguration UseCertificate(
-            this OpenIdConnectServerConfiguration configuration,
+        public static OpenIdConnectServerBuilder UseCertificate(
+            this OpenIdConnectServerBuilder builder,
             string thumbprint, StoreName name, StoreLocation location) {
-            if (configuration == null) {
-                throw new ArgumentNullException("configuration");
+            if (builder == null) {
+                throw new ArgumentNullException("builder");
             }
 
             if (string.IsNullOrEmpty(thumbprint)) {
@@ -214,7 +218,7 @@ namespace Owin {
                     throw new InvalidOperationException("The certificate corresponding to the given thumbprint was not found.");
                 }
 
-                return configuration.UseCertificate(certificate);
+                return builder.UseCertificate(certificate);
             }
 
             finally {
@@ -225,23 +229,23 @@ namespace Owin {
         /// <summary>
         /// Uses a specific <see cref="SecurityKey"/> to sign tokens issued by the OpenID Connect server.
         /// </summary>
-        /// <param name="configuration">The options used to configure the OpenID Connect server.</param>
+        /// <param name="builder">The options used to configure the OpenID Connect server.</param>
         /// <param name="key">The key used to sign security tokens issued by the server.</param>
         /// <returns>The options used to configure the OpenID Connect server.</returns>
-        public static OpenIdConnectServerConfiguration UseKey(this OpenIdConnectServerConfiguration configuration, SecurityKey key) {
-            if (configuration == null) {
-                throw new ArgumentNullException("configuration");
+        public static OpenIdConnectServerBuilder UseKey(this OpenIdConnectServerBuilder builder, SecurityKey key) {
+            if (builder == null) {
+                throw new ArgumentNullException("builder");
             }
 
             if (key == null) {
                 throw new ArgumentNullException("key");
             }
 
-            configuration.Options.SigningCredentials.Add(new SigningCredentials(key,
+            builder.Options.SigningCredentials.Add(new SigningCredentials(key,
                 SecurityAlgorithms.RsaSha256Signature,
                 SecurityAlgorithms.Sha256Digest));
 
-            return configuration;
+            return builder;
         }
 
         /// <summary>
@@ -249,17 +253,17 @@ namespace Owin {
         /// Note: this extension will automatically ignore incompatible keys and
         /// create a new RSA key if none has been previously added.
         /// </summary>
-        /// <param name="configuration">The options used to configure the OpenID Connect server.</param>
+        /// <param name="builder">The options used to configure the OpenID Connect server.</param>
         /// <param name="directory">The directory containing the encrypted keys.</param>
         /// <returns>The options used to configure the OpenID Connect server.</returns>
-        public static OpenIdConnectServerConfiguration UseKeys(
-            this OpenIdConnectServerConfiguration configuration, DirectoryInfo directory) {
+        public static OpenIdConnectServerBuilder UseKeys(
+            this OpenIdConnectServerBuilder builder, DirectoryInfo directory) {
             // Gets a data protector from the services provider.
-            var protector = configuration.Builder.CreateDataProtector(
+            var protector = builder.Builder.CreateDataProtector(
                 typeof(OpenIdConnectServerMiddleware).Namespace,
-                configuration.Options.AuthenticationType, "Signing_Credentials", "v1");
+                builder.Options.AuthenticationType, "Signing_Credentials", "v1");
 
-            return configuration.UseKeys(directory, protector);
+            return builder.UseKeys(directory, protector);
         }
 
         /// <summary>
@@ -267,15 +271,15 @@ namespace Owin {
         /// Note: this extension will automatically ignore incompatible keys and
         /// create a new RSA key if none has been previously added.
         /// </summary>
-        /// <param name="configuration">The options used to configure the OpenID Connect server.</param>
+        /// <param name="builder">The options used to configure the OpenID Connect server.</param>
         /// <param name="directory">The directory containing the encrypted keys.</param>
         /// <param name="protector">The data protector used to decrypt the key.</param>
         /// <returns>The options used to configure the OpenID Connect server.</returns>
-        public static OpenIdConnectServerConfiguration UseKeys(
-            this OpenIdConnectServerConfiguration configuration,
+        public static OpenIdConnectServerBuilder UseKeys(
+            this OpenIdConnectServerBuilder builder,
             DirectoryInfo directory, IDataProtector protector) {
-            if (configuration == null) {
-                throw new ArgumentNullException("configuration");
+            if (builder == null) {
+                throw new ArgumentNullException("builder");
             }
 
             if (directory == null) {
@@ -306,12 +310,12 @@ namespace Owin {
                     var provider = new RSACryptoServiceProvider();
                     provider.ImportParameters(parameters.Value);
 
-                    configuration.UseKey(new RsaSecurityKey(provider));
+                    builder.UseKey(new RsaSecurityKey(provider));
                 }
             }
 
             // If no signing key has been found, generate and persist a new RSA key.
-            if (configuration.Options.SigningCredentials.Count == 0) {
+            if (builder.Options.SigningCredentials.Count == 0) {
                 // Generate a new 2048 bit RSA key and export its public/private parameters.
                 var provider = new RSACryptoServiceProvider(2048);
                 var parameters = provider.ExportParameters(includePrivateParameters: true);
@@ -327,10 +331,10 @@ namespace Owin {
                     stream.Write(bytes, 0, bytes.Length);
                 }
 
-                configuration.UseKey(new RsaSecurityKey(provider));
+                builder.UseKey(new RsaSecurityKey(provider));
             }
 
-            return configuration;
+            return builder;
         }
 
         /// <summary>
@@ -338,16 +342,16 @@ namespace Owin {
         /// Opaque tokens cannot be read by client applications or resource servers if they don't share identical keys.
         /// Note: you can use the validation endpoint to validate opaque tokens directly on the authorization server.
         /// </summary>
-        /// <param name="configuration">The options used to configure the OpenID Connect server.</param>
+        /// <param name="builder">The options used to configure the OpenID Connect server.</param>
         /// <returns>The options used to configure the OpenID Connect server.</returns>
-        public static OpenIdConnectServerConfiguration UseOpaqueTokens(this OpenIdConnectServerConfiguration configuration) {
-            if (configuration == null) {
-                throw new ArgumentNullException("configuration");
+        public static OpenIdConnectServerBuilder UseOpaqueTokens(this OpenIdConnectServerBuilder builder) {
+            if (builder == null) {
+                throw new ArgumentNullException("builder");
             }
 
-            configuration.Options.AccessTokenHandler = null;
+            builder.Options.AccessTokenHandler = null;
 
-            return configuration;
+            return builder;
         }
 
         /// <summary>
