@@ -13,8 +13,6 @@ namespace Owin.Security.OpenIdConnect.Server {
     /// Holds various properties allowing to configure the OpenID Connect server middleware.
     /// </summary>
     public class OpenIdConnectServerBuilder {
-        private OpenIdConnectServerOptions _options = new OpenIdConnectServerOptions();
-
         internal OpenIdConnectServerBuilder(IAppBuilder builder) {
             Builder = builder;
         }
@@ -28,19 +26,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the options used by the OpenID Connect server middleware.
         /// </summary>
-        public OpenIdConnectServerOptions Options
-        {
-            get { return _options; }
-            set
-            {
-                if (value == null)
-                {
-                    throw new ArgumentNullException("value");
-                }
-
-                _options = value;
-            }
-        }
+        public OpenIdConnectServerOptions Options { get; set; } = new OpenIdConnectServerOptions();
 
         /// <summary>
         /// Sets the <see cref="OpenIdConnectServerProvider"/> used to control the authorization process.
