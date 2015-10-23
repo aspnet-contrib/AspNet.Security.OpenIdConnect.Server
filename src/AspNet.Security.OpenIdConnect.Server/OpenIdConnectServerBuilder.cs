@@ -12,8 +12,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
     /// Holds various properties allowing to configure the OpenID Connect server middleware.
     /// </summary>
-    public class OpenIdConnectServerConfiguration {
-        internal OpenIdConnectServerConfiguration(IApplicationBuilder builder) {
+    public class OpenIdConnectServerBuilder {
+        internal OpenIdConnectServerBuilder(IApplicationBuilder builder) {
             Builder = builder;
         }
 
@@ -26,7 +26,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the options used by the OpenID Connect server middleware.
         /// </summary>
-        public OpenIdConnectServerOptions Options { get; } = new OpenIdConnectServerOptions();
+        public OpenIdConnectServerOptions Options { get; set; } = new OpenIdConnectServerOptions();
 
         /// <summary>
         /// Sets the <see cref="OpenIdConnectServerProvider"/> used to control the authorization process.
