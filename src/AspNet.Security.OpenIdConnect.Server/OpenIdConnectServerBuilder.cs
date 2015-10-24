@@ -6,14 +6,14 @@
 
 using System.Collections.Generic;
 using System.ComponentModel;
-using Microsoft.AspNet.Builder;
+using AspNet.Security.OpenIdConnect.Server;
 
-namespace AspNet.Security.OpenIdConnect.Server {
+namespace Microsoft.AspNet.Builder {
     /// <summary>
     /// Holds various properties allowing to configure the OpenID Connect server middleware.
     /// </summary>
     public class OpenIdConnectServerBuilder {
-        internal OpenIdConnectServerBuilder(IApplicationBuilder builder) {
+        public OpenIdConnectServerBuilder(IApplicationBuilder builder) {
             Builder = builder;
         }
 

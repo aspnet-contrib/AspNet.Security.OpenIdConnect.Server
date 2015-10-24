@@ -14,6 +14,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using Microsoft.AspNet.Authentication;
+using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Http.Authentication;
 using Microsoft.AspNet.Http.Features.Authentication;
 using Microsoft.AspNet.WebUtilities;

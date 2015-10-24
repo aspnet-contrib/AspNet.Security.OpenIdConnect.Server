@@ -1,5 +1,4 @@
 using System;
-using AspNet.Security.OpenIdConnect.Server;
 using Microsoft.AspNet.Authentication;
 using Microsoft.AspNet.Authentication.Cookies;
 using Microsoft.AspNet.Builder;

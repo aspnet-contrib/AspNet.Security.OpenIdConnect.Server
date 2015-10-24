@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Server;
 using Microsoft.AspNet.Authorization;
+using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Http.Authentication;
 using Microsoft.AspNet.Mvc;
 using Microsoft.Data.Entity;

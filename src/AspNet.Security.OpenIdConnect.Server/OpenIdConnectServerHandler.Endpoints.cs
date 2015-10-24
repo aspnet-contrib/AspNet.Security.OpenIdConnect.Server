@@ -16,6 +16,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using Microsoft.AspNet.Authentication;
+using Microsoft.AspNet.Builder;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
