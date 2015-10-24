@@ -1506,8 +1506,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                 payload[JwtRegisteredClaimNames.Email] = notification.Email;
             }
 
-            if (!string.IsNullOrEmpty(notification.EmailVerified)) {
-                payload[OpenIdConnectConstants.Claims.EmailVerified] = notification.EmailVerified;
+            if (notification.EmailVerified.HasValue) {
+                payload[OpenIdConnectConstants.Claims.EmailVerified] = notification.EmailVerified.Value;
             }
 
             if (!string.IsNullOrEmpty(notification.FamilyName)) {
@@ -1526,8 +1526,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                 payload[OpenIdConnectConstants.Claims.PhoneNumber] = notification.PhoneNumber;
             }
 
-            if (!string.IsNullOrEmpty(notification.PhoneNumberVerified)) {
-                payload[OpenIdConnectConstants.Claims.PhoneNumberVerified] = notification.PhoneNumberVerified;
+            if (notification.PhoneNumberVerified.HasValue) {
+                payload[OpenIdConnectConstants.Claims.PhoneNumberVerified] = notification.PhoneNumberVerified.Value;
             }
 
             if (!string.IsNullOrEmpty(notification.PreferredUsername)) {
