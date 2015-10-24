@@ -13,7 +13,7 @@ namespace Owin.Security.OpenIdConnect.Server {
     /// Holds various properties allowing to configure the OpenID Connect server middleware.
     /// </summary>
     public class OpenIdConnectServerBuilder {
-        internal OpenIdConnectServerBuilder(IAppBuilder builder) {
+        public OpenIdConnectServerBuilder(IAppBuilder builder) {
             Builder = builder;
         }
 
