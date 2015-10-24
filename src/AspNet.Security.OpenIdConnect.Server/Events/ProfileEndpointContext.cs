@@ -70,7 +70,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// Note: this value should only be populated if the "email"
         /// scope was requested and accepted by the user agent.
         /// </summary>
-        public string EmailVerified { get; set; }
+        public bool? EmailVerified { get; set; }
 
         /// <summary>
         /// Gets or sets the value used for the "family_name" claim.
@@ -103,7 +103,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// Note: this value should only be populated if the "phone"
         /// scope was requested and accepted by the user agent.
         /// </summary>
-        public string PhoneNumberVerified { get; set; }
+        public bool? PhoneNumberVerified { get; set; }
 
         /// <summary>
         /// Gets or sets the value used for the "preferred_username" claim.
