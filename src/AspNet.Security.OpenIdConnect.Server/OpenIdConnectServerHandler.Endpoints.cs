@@ -1397,34 +1397,31 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             var notification = new ProfileEndpointContext(Context, Options, request, ticket);
 
-            var claims = new Dictionary<string, string> {
-                // 'sub' is a mandatory claim but is not necessarily present as-is: when missing,
-                // the name identifier extracted from the authentication ticket is used instead.
-                // See http://openid.net/specs/openid-connect-core-1_0.html#UserInfoResponse
-                [JwtRegisteredClaimNames.Sub] = ticket.Principal.GetClaim(JwtRegisteredClaimNames.Sub) ??
-                                                ticket.Principal.GetClaim(ClaimTypes.NameIdentifier)
-            };
+            // 'sub' is a mandatory claim but is not necessarily present as-is: when missing,
+            // the name identifier extracted from the authentication ticket is used instead.
+            // See http://openid.net/specs/openid-connect-core-1_0.html#UserInfoResponse
+            notification.Subject = ticket.Principal.GetClaim(JwtRegisteredClaimNames.Sub) ??
+                                   ticket.Principal.GetClaim(ClaimTypes.NameIdentifier);
+
+            notification.Issuer = Context.GetIssuer(Options);
 
             // The following claims are all optional and should be excluded when
             // no corresponding value has been found in the authentication ticket.
             if (ticket.ContainsScope(OpenIdConnectConstants.Scopes.Profile)) {
-                claims[JwtRegisteredClaimNames.FamilyName] = ticket.Principal.GetClaim(ClaimTypes.Surname);
-                claims[JwtRegisteredClaimNames.GivenName] = ticket.Principal.GetClaim(ClaimTypes.GivenName);
-                claims[JwtRegisteredClaimNames.Birthdate] = ticket.Principal.GetClaim(ClaimTypes.DateOfBirth);
+                notification.FamilyName = ticket.Principal.GetClaim(ClaimTypes.Surname);
+                notification.GivenName = ticket.Principal.GetClaim(ClaimTypes.GivenName);
+                notification.BirthDate = ticket.Principal.GetClaim(ClaimTypes.DateOfBirth);
             }
 
             if (ticket.ContainsScope(OpenIdConnectConstants.Scopes.Email)) {
-                claims[JwtRegisteredClaimNames.Email] = ticket.Principal.GetClaim(ClaimTypes.Email);
+                notification.Email = ticket.Principal.GetClaim(ClaimTypes.Email);
             };
-            
-            foreach (var claim in claims) {
-                // Ignore claims whose value is null.
-                if (string.IsNullOrEmpty(claim.Value)) {
-                    continue;
-                }
 
-                notification.Claims.Add(claim);
-            }
+            if (ticket.ContainsScope(OpenIdConnectConstants.Scopes.Phone)) {
+                notification.PhoneNumber = ticket.Principal.GetClaim(ClaimTypes.HomePhone) ??
+                                           ticket.Principal.GetClaim(ClaimTypes.MobilePhone) ??
+                                           ticket.Principal.GetClaim(ClaimTypes.OtherPhone);
+            };
 
             await Options.Provider.ProfileEndpoint(notification);
 
@@ -1436,9 +1433,82 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return false;
             }
 
-            var payload = new JObject();
+            // Ensure the "sub" claim has been correctly populated.
+            if (string.IsNullOrEmpty(notification.Subject)) {
+                Logger.LogError("The mandatory 'sub' claim was missing from the userinfo response.");
+
+                Response.StatusCode = 500;
+
+                await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                    Error = OpenIdConnectConstants.Errors.ServerError,
+                    ErrorDescription = "The mandatory 'sub' claim was missing."
+                });
+
+                return true;
+            }
+
+            var payload = new JObject {
+                [JwtRegisteredClaimNames.Sub] = notification.Subject
+            };
+
+            if (notification.Address != null) {
+                payload[OpenIdConnectConstants.Claims.Address] = notification.Address;
+            }
+
+            if (!string.IsNullOrEmpty(notification.Audience)) {
+                payload[JwtRegisteredClaimNames.Aud] = notification.Audience;
+            }
+
+            if (!string.IsNullOrEmpty(notification.BirthDate)) {
+                payload[JwtRegisteredClaimNames.Birthdate] = notification.BirthDate;
+            }
+
+            if (!string.IsNullOrEmpty(notification.Email)) {
+                payload[JwtRegisteredClaimNames.Email] = notification.Email;
+            }
+
+            if (!string.IsNullOrEmpty(notification.EmailVerified)) {
+                payload[OpenIdConnectConstants.Claims.EmailVerified] = notification.EmailVerified;
+            }
+
+            if (!string.IsNullOrEmpty(notification.FamilyName)) {
+                payload[JwtRegisteredClaimNames.FamilyName] = notification.FamilyName;
+            }
+
+            if (!string.IsNullOrEmpty(notification.GivenName)) {
+                payload[JwtRegisteredClaimNames.GivenName] = notification.GivenName;
+            }
+
+            if (!string.IsNullOrEmpty(notification.Issuer)) {
+                payload[JwtRegisteredClaimNames.Iss] = notification.Issuer;
+            }
+
+            if (!string.IsNullOrEmpty(notification.PhoneNumber)) {
+                payload[OpenIdConnectConstants.Claims.PhoneNumber] = notification.PhoneNumber;
+            }
+
+            if (!string.IsNullOrEmpty(notification.PhoneNumberVerified)) {
+                payload[OpenIdConnectConstants.Claims.PhoneNumberVerified] = notification.PhoneNumberVerified;
+            }
+
+            if (!string.IsNullOrEmpty(notification.PreferredUsername)) {
+                payload[OpenIdConnectConstants.Claims.PreferredUsername] = notification.PreferredUsername;
+            }
+
+            if (!string.IsNullOrEmpty(notification.Profile)) {
+                payload[OpenIdConnectConstants.Claims.Profile] = notification.Profile;
+            }
+
+            if (!string.IsNullOrEmpty(notification.Website)) {
+                payload[OpenIdConnectConstants.Claims.Website] = notification.Website;
+            }
 
             foreach (var claim in notification.Claims) {
+                // Ignore claims whose value is null.
+                if (claim.Value == null) {
+                    continue;
+                }
+
                 payload.Add(claim.Key, claim.Value);
             }
 
