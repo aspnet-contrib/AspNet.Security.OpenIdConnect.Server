@@ -1403,6 +1403,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             notification.Subject = ticket.Principal.GetClaim(JwtRegisteredClaimNames.Sub) ??
                                    ticket.Principal.GetClaim(ClaimTypes.NameIdentifier);
 
+            notification.Audience = ticket.Principal.GetClaim(JwtRegisteredClaimNames.Azp);
+
             notification.Issuer = Context.GetIssuer(Options);
 
             // The following claims are all optional and should be excluded when
