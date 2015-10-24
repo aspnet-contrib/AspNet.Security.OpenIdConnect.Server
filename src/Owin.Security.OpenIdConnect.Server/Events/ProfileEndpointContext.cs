@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Notifications;
+using Newtonsoft.Json.Linq;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
@@ -42,6 +43,99 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the list of claims returned to the client application.
         /// </summary>
-        public IDictionary<string, string> Claims { get; } = new Dictionary<string, string>();
+        public IDictionary<string, JToken> Claims { get; } = new Dictionary<string, JToken>();
+
+        /// <summary>
+        /// Gets or sets the value used for the "address" claim.
+        /// Note: this value should only be populated if the "address"
+        /// scope was requested and accepted by the user agent.
+        /// </summary>
+        public JObject Address { get; set; }
+
+        /// <summary>
+        /// Gets or sets the value used for the "aud" claim.
+        /// </summary>
+        public string Audience { get; set; }
+
+        /// <summary>
+        /// Gets or sets the value used for the "birthdate" claim.
+        /// Note: this value should only be populated if the "profile"
+        /// scope was requested and accepted by the user agent.
+        /// </summary>
+        public string BirthDate { get; set; }
+
+        /// <summary>
+        /// Gets or sets the value used for the "email" claim.
+        /// Note: this value should only be populated if the "email"
+        /// scope was requested and accepted by the user agent.
+        /// </summary>
+        public string Email { get; set; }
+
+        /// <summary>
+        /// Gets or sets the value used for the "email_verified" claim.
+        /// Note: this value should only be populated if the "email"
+        /// scope was requested and accepted by the user agent.
+        /// </summary>
+        public string EmailVerified { get; set; }
+
+        /// <summary>
+        /// Gets or sets the value used for the "family_name" claim.
+        /// Note: this value should only be populated if the "profile"
+        /// scope was requested and accepted by the user agent.
+        /// </summary>
+        public string FamilyName { get; set; }
+
+        /// <summary>
+        /// Gets or sets the value used for the "given_name" claim.
+        /// Note: this value should only be populated if the "profile"
+        /// scope was requested and accepted by the user agent.
+        /// </summary>
+        public string GivenName { get; set; }
+
+        /// <summary>
+        /// Gets or sets the value used for the "iss" claim.
+        /// </summary>
+        public string Issuer { get; set; }
+
+        /// <summary>
+        /// Gets or sets the value used for the "phone_number" claim.
+        /// Note: this value should only be populated if the "phone"
+        /// scope was requested and accepted by the user agent.
+        /// </summary>
+        public string PhoneNumber { get; set; }
+
+        /// <summary>
+        /// Gets or sets the value used for the "phone_number_verified" claim.
+        /// Note: this value should only be populated if the "phone"
+        /// scope was requested and accepted by the user agent.
+        /// </summary>
+        public string PhoneNumberVerified { get; set; }
+
+        /// <summary>
+        /// Gets or sets the value used for the "preferred_username" claim.
+        /// Note: this value should only be populated if the "profile"
+        /// scope was requested and accepted by the user agent.
+        /// </summary>
+        public string PreferredUsername { get; set; }
+
+        /// <summary>
+        /// Gets or sets the value used for the "profile" claim.
+        /// Note: this value should only be populated if the "profile"
+        /// scope was requested and accepted by the user agent.
+        /// </summary>
+        public string Profile { get; set; }
+
+        /// <summary>
+        /// Gets or sets the unique value 
+        /// used for the mandatory "sub" claim.
+        /// </summary>
+        public string Subject { get; set; }
+
+        /// <summary>
+        /// Gets or sets the value used for the "website" claim.
+        /// Note: this value should only be populated if the "profile"
+        /// scope was requested and accepted by the user agent.
+        /// </summary>
+        public string Website { get; set; }
     }
 }

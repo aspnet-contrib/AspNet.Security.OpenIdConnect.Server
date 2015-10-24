@@ -9,7 +9,14 @@
 namespace Owin.Security.OpenIdConnect.Extensions {
     public static class OpenIdConnectConstants {
         public static class Claims {
+            public const string Address = "address";
+            public const string EmailVerified = "email_verified";
+            public const string PhoneNumber = "phone_number";
+            public const string PhoneNumberVerified = "phone_number_verified";
+            public const string PreferredUsername = "preferred_username";
+            public const string Profile = "profile";
             public const string Scope = "scope";
+            public const string Website = "website";
         }
 
         public static class Parameters {
@@ -49,10 +56,11 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         }
 
         public static class Scopes {
-            public const string OpenId = "openid";
-            public const string OfflineAccess = "offline_access";
-            public const string Profile = "profile";
             public const string Email = "email";
+            public const string OfflineAccess = "offline_access";
+            public const string OpenId = "openid";
+            public const string Phone = "phone";
+            public const string Profile = "profile";
         }
 
         public static class GrantTypes {
