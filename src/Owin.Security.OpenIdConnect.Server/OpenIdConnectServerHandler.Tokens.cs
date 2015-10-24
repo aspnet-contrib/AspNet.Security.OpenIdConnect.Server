@@ -112,6 +112,9 @@ namespace Owin.Security.OpenIdConnect.Server {
                     return claim.HasDestination(OpenIdConnectConstants.ResponseTypes.Token);
                 });
 
+                // List the client application as an authorized party.
+                identity.AddClaim(JwtRegisteredClaimNames.Azp, request.ClientId);
+
                 // Use the resource parameter added to the OpenID Connect
                 // response if one has been explicitly provided.
                 var resources = response.GetResources();
@@ -192,27 +195,22 @@ namespace Owin.Security.OpenIdConnect.Server {
                     }
 
                     // Store the "usage" property as a claim.
-                    payload.Identity.AddClaim(OpenIdConnectConstants.Extra.Usage, properties.GetUsage());
+                    payload.Identity.AddClaim(OpenIdConnectConstants.Extra.Usage, payload.Properties.GetUsage());
+
+                    // Store the audiences as claims.
+                    foreach (var audience in notification.Audiences) {
+                        identity.AddClaim(JwtRegisteredClaimNames.Aud, audience);
+                    }
 
                     var handler = notification.SecurityTokenHandler as JwtSecurityTokenHandler;
                     if (handler != null) {
-                        // When creating an access token intended for a single audience, it's usually better
-                        // to format the "aud" claim as a string, but CreateToken doesn't support multiple audiences:
-                        // to work around this limitation, audience is initialized with a single resource and
-                        // JwtPayload.Aud is replaced with an array containing the multiple resources if necessary.
-                        // See https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32#section-4.1.3
                         var token = handler.CreateToken(
                             subject: payload.Identity,
                             issuer: notification.Issuer,
-                            audience: notification.Audiences.ElementAtOrDefault(0),
                             signatureProvider: notification.SignatureProvider,
                             signingCredentials: notification.SigningCredentials,
-                            notBefore: notification.AuthenticationTicket.Properties.IssuedUtc.Value.UtcDateTime,
-                            expires: notification.AuthenticationTicket.Properties.ExpiresUtc.Value.UtcDateTime);
-
-                        if (notification.Audiences.Count() > 1) {
-                            token.Payload[JwtRegisteredClaimNames.Aud] = notification.Audiences.ToArray();
-                        }
+                            notBefore: payload.Properties.IssuedUtc.Value.UtcDateTime,
+                            expires: payload.Properties.ExpiresUtc.Value.UtcDateTime);
 
                         if (notification.SigningCredentials != null) {
                             var x509SecurityKey = notification.SigningCredentials.SigningKey as X509SecurityKey;
@@ -410,23 +408,18 @@ namespace Owin.Security.OpenIdConnect.Server {
                     // Store the "usage" property as a claim.
                     payload.Identity.AddClaim(OpenIdConnectConstants.Extra.Usage, properties.GetUsage());
 
-                    // When creating an identity token intended for a single audience, it's usually better
-                    // to format the "aud" claim as a string, but CreateToken doesn't support multiple audiences:
-                    // to work around this limitation, audience is initialized with a single resource and
-                    // JwtPayload.Aud is replaced with an array containing the multiple resources if necessary.
-                    // See http://openid.net/specs/openid-connect-core-1_0.html#IDToken
+                    // Store the audiences as claims.
+                    foreach (var audience in notification.Audiences) {
+                        identity.AddClaim(JwtRegisteredClaimNames.Aud, audience);
+                    }
+
                     var token = notification.SecurityTokenHandler.CreateToken(
                         subject: payload.Identity,
                         issuer: notification.Issuer,
-                        audience: notification.Audiences.ElementAtOrDefault(0),
                         signatureProvider: notification.SignatureProvider,
                         signingCredentials: notification.SigningCredentials,
                         notBefore: notification.AuthenticationTicket.Properties.IssuedUtc.Value.UtcDateTime,
                         expires: notification.AuthenticationTicket.Properties.ExpiresUtc.Value.UtcDateTime);
-
-                    if (notification.Audiences.Count() > 1) {
-                        token.Payload[JwtRegisteredClaimNames.Aud] = notification.Audiences.ToArray();
-                    }
 
                     if (notification.SigningCredentials != null) {
                         var x509SecurityKey = notification.SigningCredentials.SigningKey as X509SecurityKey;

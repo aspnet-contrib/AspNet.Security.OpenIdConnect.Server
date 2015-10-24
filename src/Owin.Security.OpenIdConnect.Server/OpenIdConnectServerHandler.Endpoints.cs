@@ -1440,6 +1440,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             notification.Subject = ticket.Identity.GetClaim(JwtRegisteredClaimNames.Sub) ??
                                    ticket.Identity.GetClaim(ClaimTypes.NameIdentifier);
 
+            notification.Audience = ticket.Identity.GetClaim(JwtRegisteredClaimNames.Azp);
+
             notification.Issuer = Context.GetIssuer(Options);
 
             // The following claims are all optional and should be excluded when
