@@ -93,24 +93,24 @@ namespace Owin {
         /// <summary>
         /// Adds a specific <see cref="X509Certificate2"/> to sign tokens issued by the OpenID Connect server.
         /// </summary>
-        /// <param name="signingCredentials">The options used to configure the OpenID Connect server.</param>
+        /// <param name="credentials">The options used to configure the OpenID Connect server.</param>
         /// <param name="certificate">The certificate used to sign security tokens issued by the server.</param>
         /// <returns>The options used to configure the OpenID Connect server.</returns>
         public static IList<SigningCredentials> AddCertificate(
-            this IList<SigningCredentials> signingCredentials, X509Certificate2 certificate) {
-            if (signingCredentials == null) {
-                throw new ArgumentNullException("signingCredentials");
+            this IList<SigningCredentials> credentials, X509Certificate2 certificate) {
+            if (credentials == null) {
+                throw new ArgumentNullException(nameof(credentials));
             }
 
             if (certificate == null) {
-                throw new ArgumentNullException("certificate");
+                throw new ArgumentNullException(nameof(certificate));
             }
 
             if (certificate.PrivateKey == null) {
                 throw new InvalidOperationException("The certificate doesn't contain the required private key.");
             }
 
-            return signingCredentials.AddKey(new X509SecurityKey(certificate));
+            return credentials.AddKey(new X509SecurityKey(certificate));
         }
 
         /// <summary>
@@ -150,28 +150,28 @@ namespace Owin {
         /// Adds a specific <see cref="X509Certificate2"/> retrieved from an
         /// embedded resource to sign tokens issued by the OpenID Connect server.
         /// </summary>
-        /// <param name="signingCredentials">The options used to configure the OpenID Connect server.</param>
+        /// <param name="credentials">The options used to configure the OpenID Connect server.</param>
         /// <param name="assembly">The assembly containing the certificate.</param>
         /// <param name="resource">The name of the embedded resource.</param>
         /// <param name="password">The password used to open the certificate.</param>
         /// <returns>The options used to configure the OpenID Connect server.</returns>
         public static IList<SigningCredentials> AddCertificate(
-            this IList<SigningCredentials> signingCredentials,
+            this IList<SigningCredentials> credentials,
             Assembly assembly, string resource, string password) {
-            if (signingCredentials == null) {
-                throw new ArgumentNullException("signingCredentials");
+            if (credentials == null) {
+                throw new ArgumentNullException(nameof(credentials));
             }
 
             if (assembly == null) {
-                throw new ArgumentNullException("assembly");
+                throw new ArgumentNullException(nameof(assembly));
             }
 
             if (string.IsNullOrEmpty(resource)) {
-                throw new ArgumentNullException("resource");
+                throw new ArgumentNullException(nameof(resource));
             }
 
             if (string.IsNullOrEmpty(password)) {
-                throw new ArgumentNullException("password");
+                throw new ArgumentNullException(nameof(password));
             }
 
             using (var stream = assembly.GetManifestResourceStream(resource)) {
@@ -179,7 +179,7 @@ namespace Owin {
                     throw new InvalidOperationException("The certificate was not found in the given assembly.");
                 }
 
-                return signingCredentials.AddCertificate(stream, password);
+                return credentials.AddCertificate(stream, password);
             }
         }
 
@@ -202,13 +202,13 @@ namespace Owin {
         /// Adds a specific <see cref="X509Certificate2"/> contained in
         /// a stream to sign tokens issued by the OpenID Connect server.
         /// </summary>
-        /// <param name="signingCredentials">The options used to configure the OpenID Connect server.</param>
+        /// <param name="credentials">The options used to configure the OpenID Connect server.</param>
         /// <param name="stream">The stream containing the certificate.</param>
         /// <param name="password">The password used to open the certificate.</param>
         /// <returns>The options used to configure the OpenID Connect server.</returns>
         public static IList<SigningCredentials> AddCertificate(
-            this IList<SigningCredentials> signingCredentials, Stream stream, string password) {
-            return signingCredentials.AddCertificate(stream, password, X509KeyStorageFlags.Exportable |
+            this IList<SigningCredentials> credentials, Stream stream, string password) {
+            return credentials.AddCertificate(stream, password, X509KeyStorageFlags.Exportable |
                                                                   X509KeyStorageFlags.MachineKeySet);
         }
 
@@ -245,30 +245,30 @@ namespace Owin {
         /// Adds a specific <see cref="X509Certificate2"/> contained in
         /// a stream to sign tokens issued by the OpenID Connect server.
         /// </summary>
-        /// <param name="signingCredentials">The options used to configure the OpenID Connect server.</param>
+        /// <param name="credentials">The options used to configure the OpenID Connect server.</param>
         /// <param name="stream">The stream containing the certificate.</param>
         /// <param name="password">The password used to open the certificate.</param>
         /// <param name="flags">An enumeration of flags indicating how and where to store the private key of the certificate.</param>
         /// <returns>The options used to configure the OpenID Connect server.</returns>
         public static IList<SigningCredentials> AddCertificate(
-            this IList<SigningCredentials> signingCredentials, Stream stream,
+            this IList<SigningCredentials> credentials, Stream stream,
             string password, X509KeyStorageFlags flags) {
-            if (signingCredentials == null) {
-                throw new ArgumentNullException("builder");
+            if (credentials == null) {
+                throw new ArgumentNullException(nameof(credentials));
             }
 
             if (stream == null) {
-                throw new ArgumentNullException("stream");
+                throw new ArgumentNullException(nameof(stream));
             }
 
             if (string.IsNullOrEmpty(password)) {
-                throw new ArgumentNullException("password");
+                throw new ArgumentNullException(nameof(password));
             }
             
             using (var buffer = new MemoryStream()) {
                 stream.CopyTo(buffer);
 
-                return signingCredentials.AddCertificate(new X509Certificate2(buffer.ToArray(), password, flags));
+                return credentials.AddCertificate(new X509Certificate2(buffer.ToArray(), password, flags));
             }
         }
 
@@ -288,12 +288,12 @@ namespace Owin {
         /// Adds a specific <see cref="X509Certificate2"/> retrieved from the
         /// X509 machine store to sign tokens issued by the OpenID Connect server.
         /// </summary>
-        /// <param name="signingCredentials">The options used to configure the OpenID Connect server.</param>
+        /// <param name="credentials">The options used to configure the OpenID Connect server.</param>
         /// <param name="thumbprint">The thumbprint of the certificate used to identify it in the X509 store.</param>
         /// <returns>The options used to configure the OpenID Connect server.</returns>
         public static IList<SigningCredentials> AddCertificate(
-            this IList<SigningCredentials> signingCredentials, string thumbprint) {
-            return signingCredentials.AddCertificate(thumbprint, StoreName.My, StoreLocation.LocalMachine);
+            this IList<SigningCredentials> credentials, string thumbprint) {
+            return credentials.AddCertificate(thumbprint, StoreName.My, StoreLocation.LocalMachine);
         }
 
         /// <summary>
@@ -325,20 +325,20 @@ namespace Owin {
         /// Adds a specific <see cref="X509Certificate2"/> retrieved from the
         /// given X509 store to sign tokens issued by the OpenID Connect server.
         /// </summary>
-        /// <param name="signingCredentials">The options used to configure the OpenID Connect server.</param>
+        /// <param name="credentials">The options used to configure the OpenID Connect server.</param>
         /// <param name="thumbprint">The thumbprint of the certificate used to identify it in the X509 store.</param>
         /// <param name="name">The name of the X509 store.</param>
         /// <param name="location">The location of the X509 store.</param>
         /// <returns>The options used to configure the OpenID Connect server.</returns>
         public static IList<SigningCredentials> AddCertificate(
-            this IList<SigningCredentials> signingCredentials,
+            this IList<SigningCredentials> credentials,
             string thumbprint, StoreName name, StoreLocation location) {
-            if (signingCredentials == null) {
-                throw new ArgumentNullException("signingCredentials");
+            if (credentials == null) {
+                throw new ArgumentNullException(nameof(credentials));
             }
 
             if (string.IsNullOrEmpty(thumbprint)) {
-                throw new ArgumentNullException("thumbprint");
+                throw new ArgumentNullException(nameof(thumbprint));
             }
 
             var store = new X509Store(name, location);
@@ -353,7 +353,7 @@ namespace Owin {
                     throw new InvalidOperationException("The certificate corresponding to the given thumbprint was not found.");
                 }
 
-                return signingCredentials.AddCertificate(certificate);
+                return credentials.AddCertificate(certificate);
             }
 
             finally {
@@ -384,23 +384,23 @@ namespace Owin {
         /// <summary>
         /// Adds a specific <see cref="SecurityKey"/> to sign tokens issued by the OpenID Connect server.
         /// </summary>
-        /// <param name="signingCredentials">The options used to configure the OpenID Connect server.</param>
+        /// <param name="credentials">The options used to configure the OpenID Connect server.</param>
         /// <param name="key">The key used to sign security tokens issued by the server.</param>
         /// <returns>The options used to configure the OpenID Connect server.</returns>
-        public static IList<SigningCredentials> AddKey(this IList<SigningCredentials> signingCredentials, SecurityKey key) {
-            if (signingCredentials == null) {
-                throw new ArgumentNullException("signingCredentials");
+        public static IList<SigningCredentials> AddKey(this IList<SigningCredentials> credentials, SecurityKey key) {
+            if (credentials == null) {
+                throw new ArgumentNullException(nameof(credentials));
             }
 
             if (key == null) {
-                throw new ArgumentNullException("key");
+                throw new ArgumentNullException(nameof(key));
             }
 
-            signingCredentials.Add(new SigningCredentials(key,
+            credentials.Add(new SigningCredentials(key,
                 SecurityAlgorithms.RsaSha256Signature,
                 SecurityAlgorithms.Sha256Digest));
 
-            return signingCredentials;
+            return credentials;
         }
 
         /// <summary>
@@ -455,23 +455,23 @@ namespace Owin {
         /// Note: this extension will automatically ignore incompatible keys and
         /// create a new RSA key if none has been previously added.
         /// </summary>
-        /// <param name="signingCredentials">The options used to configure the OpenID Connect server.</param>
+        /// <param name="credentials">The options used to configure the OpenID Connect server.</param>
         /// <param name="directory">The directory containing the encrypted keys.</param>
         /// <param name="protector">The data protector used to decrypt the key.</param>
         /// <returns>The options used to configure the OpenID Connect server.</returns>
         public static IList<SigningCredentials> AddKeys(
-            this IList<SigningCredentials> signingCredentials,
+            this IList<SigningCredentials> credentials,
             DirectoryInfo directory, IDataProtector protector) {
-            if (signingCredentials == null) {
-                throw new ArgumentNullException("signingCredentials");
+            if (credentials == null) {
+                throw new ArgumentNullException(nameof(credentials));
             }
 
             if (directory == null) {
-                throw new ArgumentNullException("directory");
+                throw new ArgumentNullException(nameof(directory));
             }
 
             if (protector == null) {
-                throw new ArgumentNullException("protector");
+                throw new ArgumentNullException(nameof(protector));
             }
 
             if (!directory.Exists) {
@@ -494,12 +494,12 @@ namespace Owin {
                     var provider = new RSACryptoServiceProvider();
                     provider.ImportParameters(parameters.Value);
 
-                    signingCredentials.AddKey(new RsaSecurityKey(provider));
+                    credentials.AddKey(new RsaSecurityKey(provider));
                 }
             }
 
             // If no signing key has been found, generate and persist a new RSA key.
-            if (signingCredentials.Count == 0) {
+            if (credentials.Count == 0) {
                 // Generate a new 2048 bit RSA key and export its public/private parameters.
                 var provider = new RSACryptoServiceProvider(2048);
                 var parameters = provider.ExportParameters(includePrivateParameters: true);
@@ -515,10 +515,10 @@ namespace Owin {
                     stream.Write(bytes, 0, bytes.Length);
                 }
 
-                signingCredentials.AddKey(new RsaSecurityKey(provider));
+                credentials.AddKey(new RsaSecurityKey(provider));
             }
 
-            return signingCredentials;
+            return credentials;
         }
 
         /// <summary>
