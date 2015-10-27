@@ -697,6 +697,20 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
         }
 
+        private async Task SendPayloadAsync(JToken payload) {
+            using (var buffer = new MemoryStream())
+            using (var writer = new JsonTextWriter(new StreamWriter(buffer))) {
+                payload.WriteTo(writer);
+                writer.Flush();
+
+                Response.ContentLength = buffer.Length;
+                Response.ContentType = "application/json;charset=UTF-8";
+
+                buffer.Seek(offset: 0, loc: SeekOrigin.Begin);
+                await buffer.CopyToAsync(Response.Body, 4096, Context.RequestAborted);
+            }
+        }
+
         private async Task SendErrorPayloadAsync(OpenIdConnectMessage response) {
             using (var buffer = new MemoryStream())
             using (var writer = new JsonTextWriter(new StreamWriter(buffer))) {
