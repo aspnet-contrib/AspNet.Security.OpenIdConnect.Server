@@ -276,7 +276,7 @@ namespace Microsoft.AspNet.Builder {
         /// <summary>
         /// Configures the OpenID Connect server to issue opaque access tokens produced by the data protection block.
         /// Opaque tokens cannot be read by client applications or resource servers if they don't share identical keys.
-        /// Note: you can use the validation endpoint to validate opaque tokens directly on the authorization server.
+        /// Note: you can use the validation/introspection endpoint to determine token status and metadata directly on the authorization server.
         /// </summary>
         /// <param name="builder">The options used to configure the OpenID Connect server.</param>
         /// <returns>The options used to configure the OpenID Connect server.</returns>
