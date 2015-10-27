@@ -370,6 +370,10 @@ namespace Owin.Security.OpenIdConnect.Server {
                 notification.ProfileEndpoint = notification.Issuer.AddPath(Options.ProfileEndpointPath);
             }
 
+            if (Options.ValidationEndpointPath.HasValue) {
+                notification.ValidationEndpoint = notification.Issuer.AddPath(Options.ValidationEndpointPath);
+            }
+
             if (Options.TokenEndpointPath.HasValue) {
                 notification.TokenEndpoint = notification.Issuer.AddPath(Options.TokenEndpointPath);
             }
@@ -465,6 +469,10 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             if (!string.IsNullOrEmpty(notification.ProfileEndpoint)) {
                 payload.Add(OpenIdConnectConstants.Metadata.UserinfoEndpoint, notification.ProfileEndpoint);
+            }
+
+            if (!string.IsNullOrWhiteSpace(notification.ValidationEndpoint)) {
+                payload.Add(OpenIdConnectConstants.Metadata.ValidationEndpoint, notification.ValidationEndpoint);
             }
 
             if (!string.IsNullOrEmpty(notification.TokenEndpoint)) {
@@ -1579,7 +1587,13 @@ namespace Owin.Security.OpenIdConnect.Server {
 
         private async Task InvokeValidationEndpointAsync() {
             OpenIdConnectMessage request;
-
+            
+            // Note: The updated RFC standard says nothing about allowing GET requests beyond
+            // one mention that "...an authorization server offering token introspection MAY disallow
+            // the use of HTTP GET on the introspection endpoint and instead require the HTTP POST
+            // method to be used..." - previous versions of the standard explicitly mentioned the
+            // allowance of the HTTP GET method.
+            // See https://tools.ietf.org/html/rfc7662#section-2.1 and https://tools.ietf.org/html/rfc7662#section-4
             if (!string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase) &&
                 !string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase)) {
                 await SendErrorPayloadAsync(new OpenIdConnectMessage {
@@ -1597,7 +1611,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                 };
             }
 
-            else {
+            else
+            {
                 // See http://openid.net/specs/openid-connect-core-1_0.html#FormSerialization
                 if (string.IsNullOrEmpty(Request.ContentType)) {
                     await SendErrorPayloadAsync(new OpenIdConnectMessage {
@@ -1625,97 +1640,153 @@ namespace Owin.Security.OpenIdConnect.Server {
                     RequestType = OpenIdConnectRequestType.AuthenticationRequest
                 };
             }
-            
-            AuthenticationTicket ticket;
-            if (!string.IsNullOrEmpty(request.AccessToken)) {
-                ticket = await ReceiveAccessTokenAsync(request.AccessToken, request);
-            }
 
-            else if (!string.IsNullOrEmpty(request.IdToken)) {
-                ticket = await ReceiveIdentityTokenAsync(request.IdToken, request);
-            }
-
-            else if (!string.IsNullOrEmpty(request.GetRefreshToken())) {
-                ticket = await ReceiveRefreshTokenAsync(request.GetRefreshToken(), request);
-            }
-
-            else {
+            if (string.IsNullOrWhiteSpace(request.Token)) {
                 await SendErrorPayloadAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "A malformed validation request has been received: " +
-                        "either an identity token, an access token or a refresh token must be provided."
+                        "a 'token' parameter with an access, refresh, or id token is required."
                 });
 
                 return;
             }
-
-            if (ticket == null) {
-                Options.Logger.WriteError("invalid token");
-
-                await SendErrorPayloadAsync(new OpenIdConnectMessage {
-                    Error = OpenIdConnectConstants.Errors.InvalidGrant,
-                    ErrorDescription = "Invalid access token received"
-                });
-
-                return;
-            }
-
-            if (!ticket.Properties.ExpiresUtc.HasValue ||
-                 ticket.Properties.ExpiresUtc < Options.SystemClock.UtcNow) {
-                Options.Logger.WriteError("expired token");
-
-                await SendErrorPayloadAsync(new OpenIdConnectMessage {
-                    Error = OpenIdConnectConstants.Errors.InvalidGrant,
-                    ErrorDescription = "Expired access token received"
-                });
-
-                return;
-            }
-
-            // Client applications and resource servers are strongly encouraged
-            // to provide an audience parameter to mitigate confused deputy attacks.
-            // See http://en.wikipedia.org/wiki/Confused_deputy_problem.
-            var audiences = ticket.Properties.GetAudiences();
-            if (audiences.Any() && !audiences.ContainsSet(request.GetAudiences())) {
-                await SendErrorPayloadAsync(new OpenIdConnectMessage {
-                    Error = OpenIdConnectConstants.Errors.InvalidGrant,
-                    ErrorDescription = "Invalid access token received: " +
-                        "the audience doesn't correspond to the registered value"
-                });
-
-                return;
-            }
-
-            var notification = new ValidationEndpointContext(Context, Options, request, ticket);
-
-            // Add the claims extracted from the access token.
-            foreach (var claim in ticket.Identity.Claims) {
-                notification.Claims.Add(claim);
-            }
-
-            await Options.Provider.ValidationEndpoint(notification);
-
-            // Flow the changes made to the authentication ticket.
-            ticket = notification.AuthenticationTicket;
-
-            if (notification.HandledResponse) {
-                return;
-            }
-
-            var payload = new JObject();
-
-            payload.Add("audiences", JArray.FromObject(ticket.Properties.GetAudiences()));
-            payload.Add("expires_in", ticket.Properties.ExpiresUtc.Value);
             
-            payload.Add("claims", JArray.FromObject(
-                from claim in notification.Claims
-                select new { type = claim.Type, value = claim.Value }
-            ));
+            // TODO: Add support for authentication/authorization using access tokens.
+            var clientNotification = new ValidateClientAuthenticationContext(Context, Options, request);
+            await Options.Provider.ValidateClientAuthentication(clientNotification);
+    
+            // Reject the request if client authentication was rejected.
+            if (!clientNotification.IsValidated) {
+                Options.Logger.WriteError("invalid client authentication.");
 
-            var context = new ValidationEndpointResponseContext(Context, Options, payload);
-            await Options.Provider.ValidationEndpointResponse(context);
+                await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                    Error = clientNotification.Error ?? OpenIdConnectConstants.Errors.InvalidClient,
+                    ErrorDescription = clientNotification.ErrorDescription,
+                    ErrorUri = clientNotification.ErrorUri
+                });
 
-            if (context.HandledResponse) {
+                return;
+            }
+
+            // Note: use the token_type_hint parameter to look up a token
+            // See https://tools.ietf.org/html/rfc7662#section-2.1
+            AuthenticationTicket ticket = null;
+            string hint = request.GetTokenTypeHint();
+            if (!string.IsNullOrWhiteSpace(hint)) {
+                switch (hint) {
+                    case OpenIdConnectConstants.Usages.AccessToken:
+                        ticket = await ReceiveAccessTokenAsync(request.Token, request);
+                        break;
+                    case OpenIdConnectConstants.Usages.RefreshToken:
+                        ticket = await ReceiveRefreshTokenAsync(request.Token, request);
+                        break;
+                    case OpenIdConnectConstants.Usages.IdToken:
+                        ticket = await ReceiveIdentityTokenAsync(request.Token, request);
+                        break;
+                }
+            }
+
+            // Note: if the coken can't be found using the hint or hint is not sent, search all supported token types.
+            // See https://tools.ietf.org/html/rfc7662#section-2.1
+            if (ticket == null) {
+                ticket = await ReceiveAccessTokenAsync(request.Token, request) ??
+                         await ReceiveIdentityTokenAsync(request.Token, request) ??
+                         await ReceiveRefreshTokenAsync(request.Token, request);
+            }
+            
+            var payload = new JObject();
+            if (ticket == null) {
+                Options.Logger.WriteVerbose("invalid token");
+                //Handles cases when the request is valid but token is invalid or not deserialized into a ticket
+                payload.Add("active", false);
+            }
+            else {
+                var endpointContext = new ValidationEndpointContext(Context, Options, request, ticket);
+
+                // Add the claims extracted from the access token.
+                foreach (var claim in ticket.Identity.Claims) {
+                    endpointContext.Claims.Add(claim);
+                }
+
+                await Options.Provider.ValidationEndpoint(endpointContext);
+
+                // Flow the changes made to the authentication ticket.
+                ticket = endpointContext.AuthenticationTicket;
+
+                if (endpointContext.HandledResponse) {
+                    return;
+                }
+
+                if (ticket.Properties.ExpiresUtc.HasValue && ticket.Properties.ExpiresUtc < Options.SystemClock.UtcNow) {
+                    Options.Logger.WriteVerbose("expired token");
+                    payload.Add("active", false);
+                }
+
+                //TODO: do more testing for token validity.
+
+                else {
+                    payload.Add(OpenIdConnectConstants.Claims.Active, true);
+
+                    var scopes = ticket.GetScopes();
+                    if (scopes.Any()) {
+                        payload.Add(OpenIdConnectConstants.Claims.Scope, string.Join(" ", scopes));
+                    }
+                    
+                    payload.Add(OpenIdConnectConstants.Claims.ClientId, request.ClientId);
+                    
+                    if (!string.IsNullOrWhiteSpace(ticket.Identity.Name)) {
+                        payload.Add(OpenIdConnectConstants.Claims.Username, ticket.Identity.Name);
+                    }
+                    
+                    // See https://tools.ietf.org/html/rfc7662#section-2.2 and https://tools.ietf.org/html/rfc6749#section-5.1
+                    if (string.Equals(ticket.GetUsage(), OpenIdConnectConstants.Usages.AccessToken)) {
+                        payload.Add(OpenIdConnectConstants.Claims.TokenType, "Bearer");
+                    }
+
+                    if (ticket.Properties.ExpiresUtc.HasValue) {
+                        payload.Add(JwtRegisteredClaimNames.Exp, ticket.Properties.ExpiresUtc.Value.Ticks);
+                    }
+                    
+                    if (ticket.Properties.IssuedUtc.HasValue) {
+                        payload.Add(JwtRegisteredClaimNames.Iat,
+                            EpochTime.GetIntDate(ticket.Properties.IssuedUtc.Value.UtcDateTime).ToString());
+                        payload.Add(JwtRegisteredClaimNames.Nbf,
+                            EpochTime.GetIntDate(ticket.Properties.IssuedUtc.Value.UtcDateTime).ToString());
+                    }
+
+                    // Note: uses the name claim type in the identity instead of the specific ClaimTypes.NameIdentifier to get the subject
+                    // TODO: Determine if this should be the correct logic for the middleware instead of being tightly-coupled for the name claim type
+                    var subject = ticket.Identity.GetClaim(JwtRegisteredClaimNames.Sub) ??
+                                  ticket.Identity.GetClaim(ClaimTypes.NameIdentifier);
+                    if (!string.IsNullOrWhiteSpace(subject)) {
+                        payload.Add(JwtRegisteredClaimNames.Sub, subject);
+                    }
+                    
+                    var audiences = ticket.Properties.GetAudiences();
+                    if (audiences.Count() == 1) {
+                        payload.Add(JwtRegisteredClaimNames.Aud, audiences.First());
+                    }
+                    else if (audiences.Count() > 1) {
+                        payload.Add(JwtRegisteredClaimNames.Aud, JArray.FromObject(audiences));
+                    }
+
+                    payload.Add(JwtRegisteredClaimNames.Iss, Context.GetIssuer(Options));
+
+                    // TODO: Add 'jti' if token is a JWT somehow.
+
+                    // Note: claims as extensions to the token introspection information
+                    // Should this get the claims from ticket.Identity instead of the ValidationEndpointContext object?
+                    // TODO: Determine if the additional claims should be returned based on the audience values somehow?
+                    foreach (var claim in endpointContext.Claims.Where(claim => claim.Value != null)){
+                        payload.Add(claim.Type, claim.Value);
+                    }
+                }
+            }
+
+            var responseNotification = new ValidationEndpointResponseContext(Context, Options, payload);
+            await Options.Provider.ValidationEndpointResponse(responseNotification);
+
+            if (responseNotification.HandledResponse) {
                 return;
             }
 
