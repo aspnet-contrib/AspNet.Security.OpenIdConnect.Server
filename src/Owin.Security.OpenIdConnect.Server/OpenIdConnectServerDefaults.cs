@@ -44,7 +44,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Default value for <see cref="OpenIdConnectServerOptions.ValidationEndpointPath"/>.
         /// </summary>
-        public const string ValidationEndpointPath = "/connect/token_validation";
+        public const string ValidationEndpointPath = "/connect/introspect";
 
         /// <summary>
         /// Default value for <see cref="OpenIdConnectServerOptions.LogoutEndpointPath"/>.

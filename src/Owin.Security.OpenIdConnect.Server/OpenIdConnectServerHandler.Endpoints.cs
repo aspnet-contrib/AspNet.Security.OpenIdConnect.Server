@@ -370,6 +370,10 @@ namespace Owin.Security.OpenIdConnect.Server {
                 notification.ProfileEndpoint = notification.Issuer.AddPath(Options.ProfileEndpointPath);
             }
 
+            if (Options.ValidationEndpointPath.HasValue) {
+                notification.ValidationEndpoint = notification.Issuer.AddPath(Options.ValidationEndpointPath);
+            }
+
             if (Options.TokenEndpointPath.HasValue) {
                 notification.TokenEndpoint = notification.Issuer.AddPath(Options.TokenEndpointPath);
             }
@@ -465,6 +469,10 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             if (!string.IsNullOrEmpty(notification.ProfileEndpoint)) {
                 payload.Add(OpenIdConnectConstants.Metadata.UserinfoEndpoint, notification.ProfileEndpoint);
+            }
+
+            if (!string.IsNullOrWhiteSpace(notification.ValidationEndpoint)) {
+                payload.Add(OpenIdConnectConstants.Metadata.IntrospectionEndpoint, notification.ValidationEndpoint);
             }
 
             if (!string.IsNullOrEmpty(notification.TokenEndpoint)) {
@@ -1609,6 +1617,8 @@ namespace Owin.Security.OpenIdConnect.Server {
         private async Task InvokeValidationEndpointAsync() {
             OpenIdConnectMessage request;
 
+            // See https://tools.ietf.org/html/rfc7662#section-2.1
+            // and https://tools.ietf.org/html/rfc7662#section-4
             if (!string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase) &&
                 !string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase)) {
                 await SendErrorPayloadAsync(new OpenIdConnectMessage {
@@ -1654,72 +1664,113 @@ namespace Owin.Security.OpenIdConnect.Server {
                     RequestType = OpenIdConnectRequestType.AuthenticationRequest
                 };
             }
-            
-            AuthenticationTicket ticket;
-            if (!string.IsNullOrEmpty(request.AccessToken)) {
-                ticket = await ReceiveAccessTokenAsync(request.AccessToken, request);
-            }
 
-            else if (!string.IsNullOrEmpty(request.IdToken)) {
-                ticket = await ReceiveIdentityTokenAsync(request.IdToken, request);
-            }
-
-            else if (!string.IsNullOrEmpty(request.GetRefreshToken())) {
-                ticket = await ReceiveRefreshTokenAsync(request.GetRefreshToken(), request);
-            }
-
-            else {
+            if (string.IsNullOrWhiteSpace(request.Token)) {
                 await SendErrorPayloadAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "A malformed validation request has been received: " +
-                        "either an identity token, an access token or a refresh token must be provided."
+                        "a 'token' parameter with an access, refresh, or identity token is required."
                 });
 
                 return;
+            }
+
+            var clientNotification = new ValidateClientAuthenticationContext(Context, Options, request);
+            await Options.Provider.ValidateClientAuthentication(clientNotification);
+
+            // Reject the request if client authentication was rejected.
+            if (!clientNotification.IsValidated) {
+                Options.Logger.WriteError("invalid client authentication.");
+
+                await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                    Error = clientNotification.Error ?? OpenIdConnectConstants.Errors.InvalidClient,
+                    ErrorDescription = clientNotification.ErrorDescription,
+                    ErrorUri = clientNotification.ErrorUri
+                });
+
+                return;
+            }
+
+            AuthenticationTicket ticket = null;
+
+            // Note: use the "token_type_hint" parameter to determine
+            // the type of the token sent by the client application.
+            // See https://tools.ietf.org/html/rfc7662#section-2.1
+            switch (request.GetTokenTypeHint()) {
+                case OpenIdConnectConstants.Usages.AccessToken:
+                    ticket = await ReceiveAccessTokenAsync(request.Token, request);
+                    break;
+
+                case OpenIdConnectConstants.Usages.RefreshToken:
+                    ticket = await ReceiveRefreshTokenAsync(request.Token, request);
+                    break;
+
+                case OpenIdConnectConstants.Usages.IdToken:
+                    ticket = await ReceiveIdentityTokenAsync(request.Token, request);
+                    break;
+            }
+
+            // Note: if the token can't be found using "token_type_hint",
+            // extend the search across all of the supported token types.
+            // See https://tools.ietf.org/html/rfc7662#section-2.1
+            if (ticket == null) {
+                ticket = await ReceiveAccessTokenAsync(request.Token, request) ??
+                         await ReceiveIdentityTokenAsync(request.Token, request) ??
+                         await ReceiveRefreshTokenAsync(request.Token, request);
             }
 
             if (ticket == null) {
-                Options.Logger.WriteError("invalid token");
+                Options.Logger.WriteVerbose("invalid token");
 
-                await SendErrorPayloadAsync(new OpenIdConnectMessage {
-                    Error = OpenIdConnectConstants.Errors.InvalidGrant,
-                    ErrorDescription = "Invalid access token received"
+                await SendPayloadAsync(new JObject {
+                    [OpenIdConnectConstants.Claims.Active] = false
                 });
 
                 return;
             }
 
-            if (!ticket.Properties.ExpiresUtc.HasValue ||
-                 ticket.Properties.ExpiresUtc < Options.SystemClock.UtcNow) {
-                Options.Logger.WriteError("expired token");
+            if (ticket.Properties.ExpiresUtc.HasValue &&
+                ticket.Properties.ExpiresUtc < Options.SystemClock.UtcNow) {
+                Options.Logger.WriteVerbose("expired token");
 
-                await SendErrorPayloadAsync(new OpenIdConnectMessage {
-                    Error = OpenIdConnectConstants.Errors.InvalidGrant,
-                    ErrorDescription = "Expired access token received"
+                await SendPayloadAsync(new JObject {
+                    [OpenIdConnectConstants.Claims.Active] = false
                 });
 
                 return;
             }
 
-            // Client applications and resource servers are strongly encouraged
-            // to provide an audience parameter to mitigate confused deputy attacks.
-            // See http://en.wikipedia.org/wiki/Confused_deputy_problem.
-            var audiences = ticket.Properties.GetAudiences();
-            if (audiences.Any() && !audiences.ContainsSet(request.GetAudiences())) {
-                await SendErrorPayloadAsync(new OpenIdConnectMessage {
-                    Error = OpenIdConnectConstants.Errors.InvalidGrant,
-                    ErrorDescription = "Invalid access token received: " +
-                        "the audience doesn't correspond to the registered value"
-                });
-
-                return;
-            }
+            // Insert the validation request in the ASP.NET context.
+            Context.SetOpenIdConnectRequest(request);
 
             var notification = new ValidationEndpointContext(Context, Options, request, ticket);
+            notification.Active = true;
 
-            // Add the claims extracted from the access token.
-            foreach (var claim in ticket.Identity.Claims) {
-                notification.Claims.Add(claim);
+            // Try to resolve the issuer from the "iss" claim extracted from the token.
+            // If none can be found, a generic value is determined from the value
+            // registered in the options or from the current URL.
+            notification.Issuer = ticket.Identity.GetClaim(JwtRegisteredClaimNames.Iss) ??
+                                  Context.GetIssuer(Options);
+
+            notification.Username = ticket.Identity.Name;
+            notification.Subject = ticket.Identity.GetClaim(JwtRegisteredClaimNames.Sub) ??
+                                   ticket.Identity.GetClaim(ClaimTypes.NameIdentifier);
+
+            notification.Scope = ticket.GetProperty(OpenIdConnectConstants.Extra.Scope);
+
+            notification.IssuedAt = ticket.Properties.IssuedUtc;
+            notification.ExpiresAt = ticket.Properties.ExpiresUtc;
+
+            // Note: only add "token_type" when the received token is an access token.
+            // See https://tools.ietf.org/html/rfc7662#section-2.2
+            // and https://tools.ietf.org/html/rfc6749#section-5.1
+            if (string.Equals(ticket.GetUsage(), OpenIdConnectConstants.Usages.AccessToken, StringComparison.Ordinal)) {
+                notification.TokenType = OpenIdConnectConstants.TokenTypes.Bearer;
+            }
+
+            // Copy the audiences extracted from the "aud" claim.
+            foreach (var audience in ticket.GetAudiences()) {
+                notification.Audiences.Add(audience);
             }
 
             await Options.Provider.ValidationEndpoint(notification);
@@ -1733,13 +1784,57 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             var payload = new JObject();
 
-            payload.Add("audiences", JArray.FromObject(ticket.Properties.GetAudiences()));
-            payload.Add("expires_in", ticket.Properties.ExpiresUtc.Value);
-            
-            payload.Add("claims", JArray.FromObject(
-                from claim in notification.Claims
-                select new { type = claim.Type, value = claim.Value }
-            ));
+            payload.Add(OpenIdConnectConstants.Claims.Active, notification.Active);
+
+            if (!string.IsNullOrEmpty(notification.Issuer)) {
+                payload.Add(JwtRegisteredClaimNames.Iss, notification.Issuer);
+            }
+
+            if (!string.IsNullOrEmpty(notification.Username)) {
+                payload.Add(OpenIdConnectConstants.Claims.Username, notification.Username);
+            }
+
+            if (!string.IsNullOrEmpty(notification.Subject)) {
+                payload.Add(JwtRegisteredClaimNames.Sub, notification.Subject);
+            }
+
+            if (!string.IsNullOrEmpty(notification.Scope)) {
+                payload.Add(OpenIdConnectConstants.Claims.Scope, notification.Scope);
+            }
+
+            if (notification.IssuedAt.HasValue) {
+                payload.Add(JwtRegisteredClaimNames.Iat, EpochTime.GetIntDate(notification.IssuedAt.Value.UtcDateTime));
+                payload.Add(JwtRegisteredClaimNames.Nbf, EpochTime.GetIntDate(notification.IssuedAt.Value.UtcDateTime));
+            }
+
+            if (notification.ExpiresAt.HasValue) {
+                payload.Add(JwtRegisteredClaimNames.Exp, EpochTime.GetIntDate(notification.ExpiresAt.Value.UtcDateTime));
+            }
+
+            if (!string.IsNullOrEmpty(notification.TokenType)) {
+                payload.Add(OpenIdConnectConstants.Claims.TokenType, notification.TokenType);
+            }
+
+            switch (notification.Audiences.Count) {
+                case 0: break;
+
+                case 1:
+                    payload.Add(JwtRegisteredClaimNames.Aud, notification.Audiences[0]);
+                    break;
+
+                default:
+                    payload.Add(JwtRegisteredClaimNames.Aud, JArray.FromObject(notification.Audiences));
+                    break;
+            }
+
+            foreach (var claim in notification.Claims) {
+                // Ignore claims whose value is null.
+                if (claim.Value == null) {
+                    continue;
+                }
+
+                payload.Add(claim.Key, claim.Value);
+            }
 
             var context = new ValidationEndpointResponseContext(Context, Options, payload);
             await Options.Provider.ValidationEndpointResponse(context);

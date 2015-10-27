@@ -9,13 +9,17 @@
 namespace Owin.Security.OpenIdConnect.Extensions {
     public static class OpenIdConnectConstants {
         public static class Claims {
+            public const string Active = "active";
             public const string Address = "address";
+            public const string ClientId = "client_id";
             public const string EmailVerified = "email_verified";
             public const string PhoneNumber = "phone_number";
             public const string PhoneNumberVerified = "phone_number_verified";
             public const string PreferredUsername = "preferred_username";
             public const string Profile = "profile";
             public const string Scope = "scope";
+            public const string TokenType = "token_type";
+            public const string Username = "username";
             public const string Website = "website";
         }
 
@@ -40,6 +44,8 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             public const string AccessToken = "access_token";
             public const string TokenType = "token_type";
             public const string ResponseMode = "response_mode";
+            public const string Token = "token";
+            public const string TokenTypeHint = "token_type_hint";
         }
 
         public static class ResponseTypes {
@@ -101,6 +107,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             public const string AuthorizationEndpoint = "authorization_endpoint";
             public const string EndSessionEndpoint = "end_session_endpoint";
             public const string IdTokenSigningAlgValuesSupported = "id_token_signing_alg_values_supported";
+            public const string IntrospectionEndpoint = "introspection_endpoint";
             public const string Issuer = "issuer";
             public const string JwksUri = "jwks_uri";
             public const string GrantTypesSupported = "grant_types_supported";

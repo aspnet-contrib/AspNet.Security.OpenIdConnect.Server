@@ -530,6 +530,10 @@ namespace Owin.Security.OpenIdConnect.Server {
                 // has been provided by ReceiveAuthorizationCode.
                 // Treat a non-null ticket like an implicit HandleResponse call.
                 if (notification.HandledResponse || notification.AuthenticationTicket != null) {
+                    if (notification.AuthenticationTicket == null) {
+                        return null;
+                    }
+
                     // Ensure the received ticket is an authorization code.
                     if (!string.Equals(notification.AuthenticationTicket.GetUsage(),
                                        OpenIdConnectConstants.Usages.Code, StringComparison.Ordinal)) {
@@ -555,6 +559,9 @@ namespace Owin.Security.OpenIdConnect.Server {
                 Options.Cache.Remove(code);
 
                 var ticket = await notification.DeserializeTicketAsync(value);
+                if (ticket == null) {
+                    return null;
+                }
 
                 // Ensure the received ticket is an authorization code.
                 if (!string.Equals(ticket.GetUsage(), OpenIdConnectConstants.Usages.Code, StringComparison.Ordinal)) {
@@ -633,6 +640,10 @@ namespace Owin.Security.OpenIdConnect.Server {
                 // has been provided by ReceiveAccessToken.
                 // Treat a non-null ticket like an implicit HandleResponse call.
                 if (notification.HandledResponse || notification.AuthenticationTicket != null) {
+                    if (notification.AuthenticationTicket == null) {
+                        return null;
+                    }
+
                     // Ensure the received ticket is an access token.
                     if (!string.Equals(notification.AuthenticationTicket.GetUsage(),
                                        OpenIdConnectConstants.Usages.AccessToken, StringComparison.Ordinal)) {
@@ -649,6 +660,9 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
 
                 var ticket = await notification.DeserializeTicketAsync(token);
+                if (ticket == null) {
+                    return null;
+                }
 
                 // Ensure the received ticket is an access token.
                 if (!string.Equals(ticket.GetUsage(), OpenIdConnectConstants.Usages.AccessToken, StringComparison.Ordinal)) {
@@ -725,6 +739,10 @@ namespace Owin.Security.OpenIdConnect.Server {
                 // has been provided by ReceiveIdentityToken.
                 // Treat a non-null ticket like an implicit HandleResponse call.
                 if (notification.HandledResponse || notification.AuthenticationTicket != null) {
+                    if (notification.AuthenticationTicket == null) {
+                        return null;
+                    }
+
                     // Ensure the received ticket is an identity token.
                     if (!string.Equals(notification.AuthenticationTicket.GetUsage(),
                                        OpenIdConnectConstants.Usages.IdToken, StringComparison.Ordinal)) {
@@ -741,6 +759,9 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
 
                 var ticket = await notification.DeserializeTicketAsync(token);
+                if (ticket == null) {
+                    return null;
+                }
 
                 // Ensure the received ticket is an identity token.
                 if (!string.Equals(ticket.GetUsage(), OpenIdConnectConstants.Usages.IdToken, StringComparison.Ordinal)) {
@@ -777,6 +798,10 @@ namespace Owin.Security.OpenIdConnect.Server {
                 // has been provided by ReceiveRefreshToken.
                 // Treat a non-null ticket like an implicit HandleResponse call.
                 if (notification.HandledResponse || notification.AuthenticationTicket != null) {
+                    if (notification.AuthenticationTicket == null) {
+                        return null;
+                    }
+
                     // Ensure the received ticket is an identity token.
                     if (!string.Equals(notification.AuthenticationTicket.GetUsage(),
                                        OpenIdConnectConstants.Usages.IdToken, StringComparison.Ordinal)) {
@@ -793,6 +818,9 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
 
                 var ticket = await notification.DeserializeTicketAsync(token);
+                if (ticket == null) {
+                    return null;
+                }
 
                 // Ensure the received ticket is an identity token.
                 if (!string.Equals(ticket.GetUsage(), OpenIdConnectConstants.Usages.IdToken, StringComparison.Ordinal)) {
