@@ -260,16 +260,18 @@ namespace Owin.Security.OpenIdConnect.Server {
         Task TokenEndpointResponse(TokenEndpointResponseContext context);
 
         /// <summary>
-        /// Called by the client applications to validate an access token, an identity token or a refresh token.
-        /// An application may implement this call in order to do any final modification to the configuration metadata.
+        /// Called by the client applications to determine active status and meta-data about a token.
+        /// Validation conforms to the OAuth 2.0 Token Introspection specification with some additions. See documentation for details.
+        /// An application may implement this call in order to do any final modification to the validation metadata.
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
         Task ValidationEndpoint(ValidationEndpointContext context);
 
         /// <summary>
-        /// Called before the authorization server starts emitting the claims associated with the tokens received.
-        /// If the web application wishes to produce the configuration metadata directly in this call, it may write to the 
+        /// Called before the authorization server starts emitting the status and meta-data associated with the token received.
+        /// Validation conforms to the OAuth 2.0 Token Introspection specification with some additions. See documentation for details.
+        /// If the web application wishes to produce the validation metadata directly in this call, it may write to the 
         /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>

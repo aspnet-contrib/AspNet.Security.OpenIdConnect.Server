@@ -11,7 +11,7 @@ using Newtonsoft.Json.Linq;
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// An event raised before the authorization server starts
-    /// writing the token validation to the response stream.
+    /// writing the token active status and metadata to the response stream.
     /// </summary>
     public sealed class ValidationEndpointResponseContext : BaseNotification<OpenIdConnectServerOptions> {
         /// <summary>

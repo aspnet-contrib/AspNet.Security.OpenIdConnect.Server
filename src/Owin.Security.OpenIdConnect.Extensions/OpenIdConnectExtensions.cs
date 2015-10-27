@@ -260,10 +260,23 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
         public static string GetRefreshToken(this OpenIdConnectMessage message) {
             if (message == null) {
-                throw new ArgumentNullException("message");
+                throw new ArgumentNullException(nameof(message));
             }
 
             return message.GetParameter("refresh_token");
+        }
+
+        /// <summary>
+        /// Gets the token type hint from an <see cref="OpenIdConnectMessage"/>.
+        /// </summary>
+        /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
+        /// <returns></returns>
+        public static string GetTokenTypeHint(this OpenIdConnectMessage message) {
+            if (message == null) {
+                throw new ArgumentNullException(nameof(message));
+            }
+
+            return message.GetParameter(OpenIdConnectConstants.Parameters.TokenTypeHint);
         }
 
         /// <summary>
@@ -323,7 +336,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="token">The refresh token.</param>
         public static OpenIdConnectMessage SetRefreshToken(this OpenIdConnectMessage message, string token) {
             if (message == null) {
-                throw new ArgumentNullException("message");
+                throw new ArgumentNullException(nameof(message));
             }
 
             message.SetParameter("refresh_token", token);
@@ -723,6 +736,21 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             }
 
             return ticket.Properties.GetUsage();
+        }
+
+        /// <summary>
+        /// Sets the token type hint for a message.
+        /// </summary>
+        /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
+        /// <param name="hint">The hint given for the token type hint.</param>
+        /// <returns></returns>
+        public static OpenIdConnectMessage SetTokenTypeHint(this OpenIdConnectMessage message, string hint) {
+            if (message == null) {
+                throw new ArgumentNullException(nameof(message));
+            }
+
+            message.SetParameter(OpenIdConnectConstants.Parameters.TokenTypeHint, hint);
+            return message;
         }
 
         /// <summary>
