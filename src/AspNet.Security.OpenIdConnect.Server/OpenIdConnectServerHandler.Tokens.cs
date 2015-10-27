@@ -124,7 +124,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 var identity = (ClaimsIdentity) principal.Identity;
 
                 // List the client application as an authorized party.
-                identity.AddClaim(JwtRegisteredClaimNames.Azp, request.ClientId);
+                if (!string.IsNullOrEmpty(request.ClientId)) {
+                    identity.AddClaim(JwtRegisteredClaimNames.Azp, request.ClientId);
+                }
 
                 // Create a new claim per scope item, that will result
                 // in a "scope" array being added in the access token.
