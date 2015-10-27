@@ -256,6 +256,32 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
         }
 
         /// <summary>
+        /// Gets the token parameter from an <see cref="OpenIdConnectMessage"/>.
+        /// </summary>
+        /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
+        /// <returns></returns>
+        public static string GetToken(this OpenIdConnectMessage message) {
+            if (message == null) {
+                throw new ArgumentNullException(nameof(message));
+            }
+
+            return message.GetParameter(OpenIdConnectConstants.Parameters.Token);
+        }
+
+        /// <summary>
+        /// Gets the token type hint from an <see cref="OpenIdConnectMessage"/>.
+        /// </summary>
+        /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
+        /// <returns></returns>
+        public static string GetTokenTypeHint(this OpenIdConnectMessage message) {
+            if (message == null) {
+                throw new ArgumentNullException(nameof(message));
+            }
+
+            return message.GetParameter(OpenIdConnectConstants.Parameters.TokenTypeHint);
+        }
+
+        /// <summary>
         /// Extracts the audiences from an <see cref="OpenIdConnectMessage"/>.
         /// </summary>
         /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
@@ -698,6 +724,23 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
             }
 
             return ticket.Properties.GetUsage();
+        }
+
+        /// <summary>
+        /// Sets the token type hint for a message.
+        /// </summary>
+        /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
+        /// <param name="hint">The hint given for the token type hint.</param>
+        public static void SetTokenTypeHint(this OpenIdConnectMessage message, string hint) {
+            if (message == null) {
+                throw new ArgumentNullException(nameof(message));
+            }
+
+            if (string.IsNullOrWhiteSpace(hint)) {
+                throw new ArgumentNullException(nameof(hint));
+            }
+
+            message.SetParameter(OpenIdConnectConstants.Parameters.TokenTypeHint, hint);
         }
 
         /// <summary>

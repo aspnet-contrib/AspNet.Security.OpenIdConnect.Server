@@ -78,7 +78,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public PathString ProfileEndpointPath { get; set; } = new PathString(OpenIdConnectServerDefaults.ProfileEndpointPath);
 
         /// <summary>
-        /// The request path client applications communicate with to validate identity or access tokens. 
+        /// The request path client applications communicate with to determine status and metadata for a token. 
         /// Must begin with a leading slash, like "/connect/token_validation".
         /// You can set it to <see cref="PathString.Empty"/> to disable the validation endpoint.
         /// </summary>

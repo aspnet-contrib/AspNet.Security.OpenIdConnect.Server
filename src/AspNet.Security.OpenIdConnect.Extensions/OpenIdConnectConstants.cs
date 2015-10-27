@@ -15,6 +15,11 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
             public const string Profile = "profile";
             public const string Scope = "scope";
             public const string Website = "website";
+            //Added by Introspection Spec
+            public const string Active = "active";
+            public const string ClientId = "client_id";
+            public const string Username = "username";
+            public const string TokenType = "token_type";
         }
 
         public static class Parameters {
@@ -38,6 +43,9 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
             public const string AccessToken = "access_token";
             public const string TokenType = "token_type";
             public const string ResponseMode = "response_mode";
+            //Added by Introspection Spec
+            public const string Token = "token";
+            public const string TokenTypeHint = "token_type_hint";
         }
 
         public static class ResponseTypes {
@@ -108,6 +116,8 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
             public const string SubjectTypesSupported = "subject_types_supported";
             public const string TokenEndpoint = "token_endpoint";
             public const string UserinfoEndpoint = "userinfo_endpoint";
+            //Added by Introspection
+            public const string ValidationEndpoint = "introspection_endpoint";
         }
 
         public static class SubjectTypes {
