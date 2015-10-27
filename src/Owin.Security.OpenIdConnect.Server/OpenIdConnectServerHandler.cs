@@ -384,12 +384,20 @@ namespace Owin.Security.OpenIdConnect.Server {
                 context.Properties.Dictionary[OpenIdConnectConstants.Extra.RedirectUri] = request.RedirectUri;
             }
 
-            if (!string.IsNullOrEmpty(request.Resource)) {
+            // Note: the application is allowed to specify a different "resource"
+            // parameter when calling AuthenticationManager.SignIn: in this case,
+            // don't replace the "resource" property stored in the authentication ticket.
+            if (!string.IsNullOrEmpty(request.Resource) &&
+                !context.Properties.Dictionary.ContainsKey(OpenIdConnectConstants.Extra.Resource)) {
                 // Keep the original resource parameter for later comparison.
                 context.Properties.Dictionary[OpenIdConnectConstants.Extra.Resource] = request.Resource;
             }
 
-            if (!string.IsNullOrEmpty(request.Scope)) {
+            // Note: the application is allowed to specify a different "scope"
+            // parameter when calling AuthenticationManager.SignIn: in this case,
+            // don't replace the "scope" property stored in the authentication ticket.
+            if (!string.IsNullOrEmpty(request.Scope) &&
+                !context.Properties.Dictionary.ContainsKey(OpenIdConnectConstants.Extra.Scope)) {
                 // Keep the original scope parameter for later comparison.
                 context.Properties.Dictionary[OpenIdConnectConstants.Extra.Scope] = request.Scope;
             }
@@ -428,6 +436,20 @@ namespace Owin.Security.OpenIdConnect.Server {
                 // Make sure to create a copy of the authentication properties
                 // to avoid modifying the properties set on the original ticket.
                 var properties = context.Properties.Copy();
+
+                // Note: when the "resource" parameter added to the OpenID Connect response
+                // is identical to the request parameter, keeping it is not necessary.
+                var resource = properties.GetProperty(OpenIdConnectConstants.Extra.Resource);
+                if (!string.Equals(request.Resource, resource, StringComparison.Ordinal)) {
+                    response.Resource = resource;
+                }
+
+                // Note: when the "scope" parameter added to the OpenID Connect response
+                // is identical to the request parameter, keeping it is not necessary.
+                var scope = properties.GetProperty(OpenIdConnectConstants.Extra.Scope);
+                if (!string.Equals(request.Scope, scope, StringComparison.Ordinal)) {
+                    response.Scope = scope;
+                }
 
                 response.TokenType = OpenIdConnectConstants.TokenTypes.Bearer;
                 response.AccessToken = await CreateAccessTokenAsync(context.Identity, properties, request, response);

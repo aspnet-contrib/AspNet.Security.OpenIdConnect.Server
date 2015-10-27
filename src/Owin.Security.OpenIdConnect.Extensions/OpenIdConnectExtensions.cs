@@ -593,7 +593,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
 
             return properties.GetProperty(OpenIdConnectConstants.Extra.Audience)
                             ?.Split(' ')
-                            ?.Distinct(StringComparer.OrdinalIgnoreCase)
+                            ?.Distinct(StringComparer.Ordinal)
                    ?? Enumerable.Empty<string>();
         }
 
@@ -650,7 +650,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
 
             return properties.GetProperty(OpenIdConnectConstants.Extra.Resource)
                             ?.Split(' ')
-                            ?.Distinct(StringComparer.OrdinalIgnoreCase)
+                            ?.Distinct(StringComparer.Ordinal)
                    ?? Enumerable.Empty<string>();
         }
 
@@ -681,7 +681,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
 
             return properties.GetProperty(OpenIdConnectConstants.Extra.Scope)
                             ?.Split(' ')
-                            ?.Distinct(StringComparer.OrdinalIgnoreCase)
+                            ?.Distinct(StringComparer.Ordinal)
                    ?? Enumerable.Empty<string>();
         }
 
@@ -741,7 +741,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             }
 
             properties.Dictionary[OpenIdConnectConstants.Extra.Audience] =
-                string.Join(" ", audiences.Distinct(StringComparer.OrdinalIgnoreCase));
+                string.Join(" ", audiences.Distinct(StringComparer.Ordinal));
         }
 
         /// <summary>
@@ -756,6 +756,60 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             }
 
             ticket.Properties.SetAudiences(audiences);
+        }
+
+        /// <summary>
+        /// Sets the resources list in the authentication properties.
+        /// </summary>
+        /// <param name="properties">The authentication properties.</param>
+        /// <param name="resources">The resources to store.</param>
+        public static void SetResources(this AuthenticationProperties properties, IEnumerable<string> resources) {
+            if (properties == null) {
+                throw new ArgumentNullException(nameof(properties));
+            }
+
+            properties.Dictionary[OpenIdConnectConstants.Extra.Resource] =
+                string.Join(" ", resources.Distinct(StringComparer.Ordinal));
+        }
+
+        /// <summary>
+        /// Sets the resources list in the authentication ticket.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <param name="resources">The resources to store.</param>
+        public static void SetResources(this AuthenticationTicket ticket, IEnumerable<string> resources) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            ticket.Properties.SetResources(resources);
+        }
+
+        /// <summary>
+        /// Sets the scopes list in the authentication properties.
+        /// </summary>
+        /// <param name="properties">The authentication properties.</param>
+        /// <param name="scopes">The scopes to store.</param>
+        public static void SetScopes(this AuthenticationProperties properties, IEnumerable<string> scopes) {
+            if (properties == null) {
+                throw new ArgumentNullException(nameof(properties));
+            }
+
+            properties.Dictionary[OpenIdConnectConstants.Extra.Scope] =
+                string.Join(" ", scopes.Distinct(StringComparer.Ordinal));
+        }
+
+        /// <summary>
+        /// Sets the resources list in the authentication ticket.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <param name="scopes">The scopes to store.</param>
+        public static void SetScopes(this AuthenticationTicket ticket, IEnumerable<string> scopes) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            ticket.Properties.SetScopes(scopes);
         }
 
         /// <summary>
@@ -774,7 +828,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <summary>
         /// Sets the usage of the token in the authentication ticket.
         /// </summary>
-        /// <param name="properties">The authentication ticket where the usage should be stored.</param>
+        /// <param name="ticket">The authentication ticket where the usage should be stored.</param>
         /// <param name="usage">The usage of the token.</param>
         public static void SetUsage(this AuthenticationTicket ticket, string usage) {
             if (ticket == null) {
@@ -823,7 +877,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(properties));
             }
 
-            return properties.GetScopes().Contains(scope, StringComparer.OrdinalIgnoreCase);
+            return properties.GetScopes().Contains(scope, StringComparer.Ordinal);
         }
 
         /// <summary>

@@ -940,7 +940,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                 if (!string.IsNullOrEmpty(request.Resource)) {
                     // When an explicit resource parameter has been included in the token request
-                    // but was missing from the authorization request, the request MUST rejected.
+                    // but was missing from the authorization request, the request MUST be rejected.
                     var resources = ticket.Properties.GetResources();
                     if (!resources.Any()) {
                         Options.Logger.WriteError("token request cannot contain a resource");
@@ -967,11 +967,22 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                         return;
                     }
+
+                    // Remove the "resource" property from the authentication ticket corresponding
+                    // to the authorization code/refresh token to force the token endpoint
+                    // to use the "resource" parameter flowed in the token request.
+                    ticket.Properties.Dictionary.Remove(OpenIdConnectConstants.Extra.Resource);
+                }
+
+                else {
+                    // When no explicit "resource" parameter has been received, the "resource" parameter sent
+                    // during the authorization request or the previous token request is used instead.
+                    request.Resource = ticket.GetProperty(OpenIdConnectConstants.Extra.Resource);
                 }
 
                 if (!string.IsNullOrEmpty(request.Scope)) {
                     // When an explicit scope parameter has been included in the token request
-                    // but was missing from the authorization request, the request MUST rejected.
+                    // but was missing from the authorization request, the request MUST be rejected.
                     // See http://tools.ietf.org/html/rfc6749#section-6
                     var scopes = ticket.Properties.GetScopes();
                     if (!scopes.Any()) {
@@ -989,6 +1000,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     // When an explicit scope parameter has been included in the token request,
                     // the authorization server MUST ensure that it doesn't contain scopes
                     // that were not allowed during the authorization request.
+                    // See https://tools.ietf.org/html/rfc6749#section-6
                     else if (!scopes.ContainsSet(request.GetScopes())) {
                         Options.Logger.WriteError("authorization code does not contain matching scope");
 
@@ -999,6 +1011,17 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                         return;
                     }
+
+                    // Remove the "scope" property from the authentication ticket corresponding
+                    // to the authorization code/refresh token to force the token endpoint
+                    // to use the "scope" parameter flowed in the token request.
+                    ticket.Properties.Dictionary.Remove(OpenIdConnectConstants.Extra.Scope);
+                }
+
+                else {
+                    // When no explicit "scope" parameter has been received, the "scope" parameter sent
+                    // during the authorization request or the previous token request is used instead.
+                    request.Scope = ticket.GetProperty(OpenIdConnectConstants.Extra.Scope);
                 }
 
                 // Expose the authentication ticket extracted from the authorization
@@ -1155,12 +1178,18 @@ namespace Owin.Security.OpenIdConnect.Server {
                 ticket.Properties.Dictionary[OpenIdConnectConstants.Extra.ClientId] = request.ClientId;
             }
 
-            if (!string.IsNullOrEmpty(request.Resource)) {
+            // Note: the application is allowed to specify a different "resource": in this case,
+            // don't replace the "resource" property stored in the authentication ticket.
+            if (!string.IsNullOrEmpty(request.Resource) &&
+                !ticket.Properties.Dictionary.ContainsKey(OpenIdConnectConstants.Extra.Resource)) {
                 // Keep the original resource parameter for later comparison.
                 ticket.Properties.Dictionary[OpenIdConnectConstants.Extra.Resource] = request.Resource;
             }
 
-            if (!string.IsNullOrEmpty(request.Scope)) {
+            // Note: the application is allowed to specify a different "scope": in this case,
+            // don't replace the "scope" property stored in the authentication ticket.
+            if (!string.IsNullOrEmpty(request.Scope) &&
+                !ticket.Properties.Dictionary.ContainsKey(OpenIdConnectConstants.Extra.Scope)) {
                 // Keep the original scope parameter for later comparison.
                 ticket.Properties.Dictionary[OpenIdConnectConstants.Extra.Scope] = request.Scope;
             }
@@ -1172,54 +1201,26 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             var response = new OpenIdConnectMessage();
 
-            // Determine whether an identity token should be returned and invoke CreateIdentityTokenAsync if necessary.
-            // Note: by default, an identity token is always returned when the openid scope has been requested,
-            // but the client application can use the response_type parameter to only include specific types of tokens.
-            // When this parameter is missing, a token is always generated.
-            if (string.IsNullOrEmpty(request.ResponseType) || request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.IdToken)) {
-                // When receiving a grant_type=authorization_code or grant_type=refresh_token request,
-                // only issue an id_token if the openid scope had been requested during the authorization request.
-                if (request.IsAuthorizationCodeGrantType() || request.IsRefreshTokenGrantType() ?
-                    validatingContext.AuthenticationTicket.ContainsScope(OpenIdConnectConstants.Scopes.OpenId) :
-                    request.ContainsScope(OpenIdConnectConstants.Scopes.OpenId)) {
-                    // Make sure to create a copy of the authentication properties
-                    // to avoid modifying the properties set on the original ticket.
-                    var properties = ticket.Properties.Copy();
-
-                    // When sliding expiration is disabled, the identity token added to the response
-                    // cannot live longer than the refresh token that was used in the token request.
-                    if (request.IsRefreshTokenGrantType() && !Options.UseSlidingExpiration &&
-                        validatingContext.AuthenticationTicket.Properties.ExpiresUtc.HasValue &&
-                        validatingContext.AuthenticationTicket.Properties.ExpiresUtc.Value <
-                            (Options.SystemClock.UtcNow + Options.IdentityTokenLifetime)) {
-                        properties.ExpiresUtc = validatingContext.AuthenticationTicket.Properties.ExpiresUtc;
-                    }
-
-                    response.IdToken = await CreateIdentityTokenAsync(ticket.Identity, properties, request, response);
-
-                    // Ensure that an identity token is issued to avoid returning an invalid response.
-                    // See http://openid.net/specs/openid-connect-core-1_0.html#TokenResponse
-                    // and http://openid.net/specs/openid-connect-core-1_0.html#RefreshTokenResponse
-                    if (string.IsNullOrEmpty(response.IdToken)) {
-                        Options.Logger.WriteError("CreateIdentityTokenAsync returned no identity token.");
-
-                        await SendErrorPayloadAsync(new OpenIdConnectMessage {
-                            Error = OpenIdConnectConstants.Errors.ServerError,
-                            ErrorDescription = "no valid identity token was issued"
-                        });
-
-                        return;
-                    }
-                }
-            }
-
-            // Determine whether an access token should be returned and invoke CreateAccessTokenAsync if necessary.
-            // Note: by default, an access token is always returned, but the client application can use the response_type
-            // parameter to only include specific types of tokens. When this parameter is missing, a token is always generated.
+            // Note: by default, an access token is always returned, but the client application can use the "response_type" parameter
+            // to only include specific types of tokens. When this parameter is missing, an access token is always generated.
             if (string.IsNullOrEmpty(request.ResponseType) || request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.Token)) {
                 // Make sure to create a copy of the authentication properties
                 // to avoid modifying the properties set on the original ticket.
                 var properties = ticket.Properties.Copy();
+
+                // Note: when the "resource" parameter added to the OpenID Connect response
+                // is identical to the request parameter, keeping it is not necessary.
+                var resource = properties.GetProperty(OpenIdConnectConstants.Extra.Resource);
+                if (request.IsAuthorizationCodeGrantType() || !string.Equals(request.Resource, resource, StringComparison.Ordinal)) {
+                    response.Resource = resource;
+                }
+
+                // Note: when the "scope" parameter added to the OpenID Connect response
+                // is identical to the request parameter, keeping it is not necessary.
+                var scope = properties.GetProperty(OpenIdConnectConstants.Extra.Scope);
+                if (request.IsAuthorizationCodeGrantType() || !string.Equals(request.Scope, scope, StringComparison.Ordinal)) {
+                    response.Scope = scope;
+                }
 
                 // When sliding expiration is disabled, the access token added to the response
                 // cannot live longer than the refresh token that was used in the token request.
@@ -1256,32 +1257,60 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
             }
 
-            // Determine whether a refresh token should be returned and invoke CreateRefreshTokenAsync if necessary.
-            // Note: by default, a refresh token is always returned when the offline_access scope has been requested,
-            // but the client application can use the response_type parameter to only include specific types of tokens.
-            // When this parameter is missing, a token is always generated.
-            if (string.IsNullOrEmpty(request.ResponseType) || request.ContainsResponseType("refresh_token")) {
-                // When receiving a grant_type=authorization_code or grant_type=refresh_token request,
-                // ensure the offline_access scope had been requested during the authorization request.
-                // For other grant types, the offline_access scope must be present in the token request.
-                if (request.IsAuthorizationCodeGrantType() || request.IsRefreshTokenGrantType() ?
-                    validatingContext.AuthenticationTicket.ContainsScope(OpenIdConnectConstants.Scopes.OfflineAccess) :
-                    request.ContainsScope(OpenIdConnectConstants.Scopes.OfflineAccess)) {
-                    // Make sure to create a copy of the authentication properties
-                    // to avoid modifying the properties set on the original ticket.
-                    var properties = ticket.Properties.Copy();
+            // Note: by default, an identity token is always returned when the "openid" scope has been requested,
+            // but the client application can use the "response_type" parameter to only include specific types of tokens.
+            // When this parameter is missing, an identity token is always generated.
+            if (request.ContainsScope(OpenIdConnectConstants.Scopes.OpenId) && (string.IsNullOrEmpty(request.ResponseType) ||
+                                                                                request.ContainsResponseType("id_token"))) {
+                // Make sure to create a copy of the authentication properties
+                // to avoid modifying the properties set on the original ticket.
+                var properties = ticket.Properties.Copy();
 
-                    // When sliding expiration is disabled, the refresh token added to the response
-                    // cannot live longer than the refresh token that was used in the token request.
-                    if (request.IsRefreshTokenGrantType() && !Options.UseSlidingExpiration &&
-                        validatingContext.AuthenticationTicket.Properties.ExpiresUtc.HasValue &&
-                        validatingContext.AuthenticationTicket.Properties.ExpiresUtc.Value <
-                            (Options.SystemClock.UtcNow + Options.RefreshTokenLifetime)) {
-                        properties.ExpiresUtc = validatingContext.AuthenticationTicket.Properties.ExpiresUtc;
-                    }
-
-                    response.SetRefreshToken(await CreateRefreshTokenAsync(ticket.Identity, properties, request, response));
+                // When sliding expiration is disabled, the identity token added to the response
+                // cannot live longer than the refresh token that was used in the token request.
+                if (request.IsRefreshTokenGrantType() && !Options.UseSlidingExpiration &&
+                    validatingContext.AuthenticationTicket.Properties.ExpiresUtc.HasValue &&
+                    validatingContext.AuthenticationTicket.Properties.ExpiresUtc.Value <
+                        (Options.SystemClock.UtcNow + Options.IdentityTokenLifetime)) {
+                    properties.ExpiresUtc = validatingContext.AuthenticationTicket.Properties.ExpiresUtc;
                 }
+
+                response.IdToken = await CreateIdentityTokenAsync(ticket.Identity, properties, request, response);
+
+                // Ensure that an identity token is issued to avoid returning an invalid response.
+                // See http://openid.net/specs/openid-connect-core-1_0.html#TokenResponse
+                // and http://openid.net/specs/openid-connect-core-1_0.html#RefreshTokenResponse
+                if (string.IsNullOrEmpty(response.IdToken)) {
+                    Options.Logger.WriteError("CreateIdentityTokenAsync returned no identity token.");
+
+                    await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                        Error = OpenIdConnectConstants.Errors.ServerError,
+                        ErrorDescription = "no valid identity token was issued"
+                    });
+
+                    return;
+                }
+            }
+
+            // Note: by default, a refresh token is always returned when the "offline_access" scope has been requested,
+            // but the client application can use the "response_type" parameter to only include specific types of tokens.
+            // When this parameter is missing, a refresh token is always generated.
+            if (request.ContainsScope(OpenIdConnectConstants.Scopes.OfflineAccess) && (string.IsNullOrEmpty(request.ResponseType) ||
+                                                                                       request.ContainsResponseType("refresh_token"))) {
+                // Make sure to create a copy of the authentication properties
+                // to avoid modifying the properties set on the original ticket.
+                var properties = ticket.Properties.Copy();
+
+                // When sliding expiration is disabled, the refresh token added to the response
+                // cannot live longer than the refresh token that was used in the token request.
+                if (request.IsRefreshTokenGrantType() && !Options.UseSlidingExpiration &&
+                    validatingContext.AuthenticationTicket.Properties.ExpiresUtc.HasValue &&
+                    validatingContext.AuthenticationTicket.Properties.ExpiresUtc.Value <
+                        (Options.SystemClock.UtcNow + Options.RefreshTokenLifetime)) {
+                    properties.ExpiresUtc = validatingContext.AuthenticationTicket.Properties.ExpiresUtc;
+                }
+
+                response.SetRefreshToken(await CreateRefreshTokenAsync(ticket.Identity, properties, request, response));
             }
 
             var payload = new JObject();
