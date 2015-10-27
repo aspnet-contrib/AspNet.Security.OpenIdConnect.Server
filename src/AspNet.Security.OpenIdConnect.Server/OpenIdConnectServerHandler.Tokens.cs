@@ -126,41 +126,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 // List the client application as an authorized party.
                 identity.AddClaim(JwtRegisteredClaimNames.Azp, request.ClientId);
 
-                // Use the resource parameter added to the OpenID Connect
-                // response if one has been explicitly provided.
-                var resources = response.GetResources();
-                if (!resources.Any()) {
-                    // Try to use the resources parameter
-                    // extracted from the token request.
-                    resources = request.GetResources();
-
-                    // When no explicit resource parameter has been included in the token request,
-                    // the optional resource received during the authorization request is used instead
-                    // to help reducing cases where access tokens are issued for unknown resources.
-                    if (!resources.Any()) {
-                        resources = properties.GetResources();
-                    }
-                }
-
-                // Use the scope parameter added to the OpenID Connect
-                // response if one has been explicitly provided.
-                var scopes = response.GetScopes();
-                if (!scopes.Any()) {
-                    // Try to use the scope parameter
-                    // extracted from the token request.
-                    scopes = request.GetScopes();
-
-                    // When no explicit scope parameter has been included in the token request,
-                    // the optional scope received during the authorization request is used instead
-                    // to help reducing cases where access tokens are issued without any "scope" claim.
-                    if (!scopes.Any()) {
-                        scopes = properties.GetScopes();
-                    }
-                }
-
                 // Create a new claim per scope item, that will result
                 // in a "scope" array being added in the access token.
-                foreach (var scope in scopes) {
+                foreach (var scope in properties.GetScopes()) {
                     identity.AddClaim(OpenIdConnectConstants.Claims.Scope, scope);
                 }
 
@@ -195,7 +163,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     SigningCredentials = Options.SigningCredentials.FirstOrDefault()
                 };
 
-                foreach (var audience in resources) {
+                foreach (var audience in properties.GetResources()) {
                     notification.Audiences.Add(audience);
                 }
 

@@ -127,13 +127,31 @@ namespace Mvc.Server.Controllers {
             identity.Actor.AddClaim(ClaimTypes.NameIdentifier, application.ApplicationID);
             identity.Actor.AddClaim(ClaimTypes.Name, application.DisplayName, destination: "id_token token");
 
+            var properties = new AuthenticationProperties();
+
+            // Note: you can change the list of scopes granted
+            // to the client application using SetScopes:
+            properties.SetScopes(new[] {
+                /* openid: */ OpenIdConnectConstants.Scopes.OpenId,
+                /* email: */ OpenIdConnectConstants.Scopes.Email,
+                /* profile: */ OpenIdConnectConstants.Scopes.Profile
+            });
+
+            // You can also limit the resources endpoints
+            // the access token should be issued for:
+            properties.SetResources(new[] {
+                "http://localhost:54540/"
+            });
+
             // This call will instruct AspNet.Security.OpenIdConnect.Server to serialize
             // the specified identity to build appropriate tokens (id_token and token).
             // Note: you should always make sure the identities you return contain either
             // a 'sub' or a 'ClaimTypes.NameIdentifier' claim. In this case, the returned
             // identities always contain the name identifier returned by the external provider.
             // Note: the authenticationScheme parameter must match the value configured in Startup.cs.
-            await HttpContext.Authentication.SignInAsync(OpenIdConnectServerDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
+            await HttpContext.Authentication.SignInAsync(
+                OpenIdConnectServerDefaults.AuthenticationScheme,
+                new ClaimsPrincipal(identity), properties);
 
             return new EmptyResult();
         }
