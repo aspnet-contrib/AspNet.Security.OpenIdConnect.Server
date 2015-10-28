@@ -362,12 +362,16 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 var ticket = new AuthenticationTicket(principal, properties, Options.AuthenticationScheme);
 
                 var notification = new CreateIdentityTokenContext(Context, Options, request, response, ticket) {
-                    Audiences = { request.ClientId },
                     Issuer = Context.GetIssuer(Options),
                     SecurityTokenHandler = Options.IdentityTokenHandler,
                     SignatureProvider = Options.SignatureProvider,
                     SigningCredentials = Options.SigningCredentials.FirstOrDefault()
                 };
+
+                // Only add client_id in the audiences list if it is non-null.
+                if (!string.IsNullOrEmpty(request.ClientId)) {
+                    notification.Audiences.Add(request.ClientId);
+                }
 
                 // Sets the default identity token serializer.
                 notification.Serializer = payload => {
