@@ -26,7 +26,7 @@ using Newtonsoft.Json.Linq;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     internal partial class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions> {
-        protected override async Task<AuthenticationTicket> HandleAuthenticateAsync() {
+        protected override async Task<AuthenticateResult> HandleAuthenticateAsync() {
             var notification = new MatchEndpointContext(Context, Options);
 
             if (Options.AuthorizationEndpointPath.HasValue &&
@@ -98,7 +98,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 // Tickets are returned even if they
                 // are considered invalid (e.g expired).
-                return ticket;
+                return AuthenticateResult.Success(ticket);
             }
 
             else if (notification.IsProfileEndpoint) {
@@ -137,13 +137,13 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     return null;
                 }
 
-                return ticket;
+                return AuthenticateResult.Success(ticket);
             }
 
             return null;
         }
 
-        public override async Task<bool> InvokeAsync() {
+        public override async Task<bool> HandleRequestAsync() {
             var notification = new MatchEndpointContext(Context, Options);
 
             if (Options.AuthorizationEndpointPath.HasValue &&

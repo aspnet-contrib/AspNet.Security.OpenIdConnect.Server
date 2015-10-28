@@ -13,7 +13,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// An event raised before the authorization server starts
     /// writing the token status/metadata to the response stream.
     /// </summary>
-    public sealed class ValidationEndpointResponseContext : BaseControlContext<OpenIdConnectServerOptions> {
+    public sealed class ValidationEndpointResponseContext : BaseControlContext {
         /// <summary>
         /// Creates an instance of this context.
         /// </summary>
@@ -21,9 +21,15 @@ namespace AspNet.Security.OpenIdConnect.Server {
             HttpContext context,
             OpenIdConnectServerOptions options,
             JObject payload)
-            : base(context, options) {
+            : base(context) {
+            Options = options;
             Payload = payload;
         }
+
+        /// <summary>
+        /// Gets the options used by the OpenID Connect server.
+        /// </summary>
+        public OpenIdConnectServerOptions Options { get; }
 
         /// <summary>
         /// Gets the JSON payload returned to the caller.

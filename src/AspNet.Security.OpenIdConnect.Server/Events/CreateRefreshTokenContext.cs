@@ -15,7 +15,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used when issuing a refresh token.
     /// </summary>
-    public sealed class CreateRefreshTokenContext : BaseControlContext<OpenIdConnectServerOptions> {
+    public sealed class CreateRefreshTokenContext : BaseControlContext {
         /// <summary>
         /// Initializes a new instance of the <see cref="CreateRefreshTokenContext"/> class
         /// </summary>
@@ -30,11 +30,17 @@ namespace AspNet.Security.OpenIdConnect.Server {
             OpenIdConnectMessage request,
             OpenIdConnectMessage response,
             AuthenticationTicket ticket)
-            : base(context, options) {
+            : base(context) {
+            Options = options;
             Request = request;
             Response = response;
             AuthenticationTicket = ticket;
         }
+
+        /// <summary>
+        /// Gets the options used by the OpenID Connect server.
+        /// </summary>
+        public OpenIdConnectServerOptions Options { get; }
 
         /// <summary>
         /// Gets the authorization or token request.

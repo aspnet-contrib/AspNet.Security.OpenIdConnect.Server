@@ -11,15 +11,21 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
     /// Base class used for certain event contexts.
     /// </summary>
-    public abstract class BaseValidatingContext<TOptions> : BaseControlContext<TOptions> {
+    public abstract class BaseValidatingContext : BaseControlContext {
         /// <summary>
         /// Initializes base class used for certain event contexts.
         /// </summary>
         protected BaseValidatingContext(
             HttpContext context,
-            TOptions options)
-            : base(context, options) {
+            OpenIdConnectServerOptions options)
+            : base(context) {
+            Options = options;
         }
+
+        /// <summary>
+        /// Gets the options used by the OpenID Connect server.
+        /// </summary>
+        public OpenIdConnectServerOptions Options { get; }
 
         /// <summary>
         /// Gets whether the <see cref="Skipped"/>

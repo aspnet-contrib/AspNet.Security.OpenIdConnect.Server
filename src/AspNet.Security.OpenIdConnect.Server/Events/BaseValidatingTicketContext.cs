@@ -13,13 +13,13 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
     /// Base class used for certain event contexts
     /// </summary>
-    public abstract class BaseValidatingTicketContext<TOptions> : BaseValidatingContext<TOptions> where TOptions : AuthenticationOptions {
+    public abstract class BaseValidatingTicketContext<TOptions> : BaseValidatingContext {
         /// <summary>
         /// Initializes base class used for certain event contexts
         /// </summary>
         protected BaseValidatingTicketContext(
             HttpContext context,
-            TOptions options,
+            OpenIdConnectServerOptions options,
             AuthenticationTicket ticket)
             : base(context, options) {
             AuthenticationTicket = ticket;

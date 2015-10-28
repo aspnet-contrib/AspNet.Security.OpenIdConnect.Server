@@ -4,11 +4,8 @@ using Microsoft.AspNet.Authentication.Cookies;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Http;
 using Microsoft.Data.Entity;
-using Microsoft.Dnx.Runtime;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Protocols;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Mvc.Server.Extensions;
 using Mvc.Server.Models;
 using Mvc.Server.Providers;
@@ -35,24 +32,19 @@ namespace Mvc.Server {
             services.AddMvc();
         }
 
-        public void Configure(IApplicationBuilder app, IRuntimeEnvironment environment) {
+        public void Configure(IApplicationBuilder app) {
             var factory = app.ApplicationServices.GetRequiredService<ILoggerFactory>();
             factory.AddConsole();
 
             // Create a new branch where the registered middleware will be executed only for API calls.
             app.UseWhen(context => context.Request.Path.StartsWithSegments(new PathString("/api")), branch => {
                 branch.UseJwtBearerAuthentication(options => {
-                    options.AutomaticAuthentication = true;
+                    options.AutomaticAuthenticate = true;
+                    options.AutomaticChallenge = true;
+                    options.RequireHttpsMetadata = false;
+
                     options.Audience = "http://localhost:54540/";
                     options.Authority = "http://localhost:54540/";
-
-                    // Note: by default, IdentityModel beta8 now refuses to initiate non-HTTPS calls.
-                    // To work around this limitation, the configuration manager is manually
-                    // instantiated with a document retriever allowing HTTP calls.
-                    options.ConfigurationManager = new ConfigurationManager<OpenIdConnectConfiguration>(
-                        metadataAddress: options.Authority + ".well-known/openid-configuration",
-                        configRetriever: new OpenIdConnectConfigurationRetriever(),
-                        docRetriever: new HttpDocumentRetriever { RequireHttps = false });
                 });
             });
 
@@ -61,7 +53,8 @@ namespace Mvc.Server {
                 // Insert a new cookies middleware in the pipeline to store
                 // the user identity returned by the external identity provider.
                 branch.UseCookieAuthentication(options => {
-                    options.AutomaticAuthentication = true;
+                    options.AutomaticAuthenticate = true;
+                    options.AutomaticChallenge = true;
                     options.AuthenticationScheme = "ServerCookie";
                     options.CookieName = CookieAuthenticationDefaults.CookiePrefix + "ServerCookie";
                     options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
@@ -125,7 +118,7 @@ namespace Mvc.Server {
                 database.Applications.Add(new Application {
                     ApplicationID = "myClient",
                     DisplayName = "My client application",
-                    RedirectUri = "http://localhost:53507/oidc",
+                    RedirectUri = "http://localhost:53507/signin-oidc",
                     LogoutRedirectUri = "http://localhost:53507/",
                     Secret = "secret_secret_secret"
                 });

@@ -12,7 +12,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information when processing a logout response.
     /// </summary>
-    public sealed class LogoutEndpointResponseContext : BaseControlContext<OpenIdConnectServerOptions> {
+    public sealed class LogoutEndpointResponseContext : BaseControlContext {
         /// <summary>
         /// Initializes a new instance of the <see cref="LogoutEndpointResponseContext"/> class
         /// </summary>
@@ -25,10 +25,16 @@ namespace AspNet.Security.OpenIdConnect.Server {
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request,
             OpenIdConnectMessage response)
-            : base(context, options) {
+            : base(context) {
+            Options = options;
             Request = request;
             Response = response;
         }
+
+        /// <summary>
+        /// Gets the options used by the OpenID Connect server.
+        /// </summary>
+        public OpenIdConnectServerOptions Options { get; }
 
         /// <summary>
         /// Gets the logout request. 

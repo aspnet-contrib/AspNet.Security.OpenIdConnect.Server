@@ -11,7 +11,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used in validating an OpenIdConnect authorization request.
     /// </summary>
-    public sealed class ValidateAuthorizationRequestContext : BaseValidatingContext<OpenIdConnectServerOptions> {
+    public sealed class ValidateAuthorizationRequestContext : BaseValidatingContext {
         /// <summary>
         /// Initializes a new instance of the <see cref="ValidateAuthorizationRequestContext"/> class
         /// </summary>

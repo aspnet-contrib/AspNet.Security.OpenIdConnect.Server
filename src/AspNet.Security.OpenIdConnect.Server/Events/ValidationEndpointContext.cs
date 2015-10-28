@@ -17,7 +17,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// An event raised before the authorization server handles
     /// the request made to the token validation endpoint.
     /// </summary>
-    public sealed class ValidationEndpointContext : BaseControlContext<OpenIdConnectServerOptions> {
+    public sealed class ValidationEndpointContext : BaseControlContext {
         /// <summary>
         /// Creates an instance of this context.
         /// </summary>
@@ -26,10 +26,16 @@ namespace AspNet.Security.OpenIdConnect.Server {
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request,
             AuthenticationTicket ticket)
-            : base(context, options) {
+            : base(context) {
+            Options = options;
             Request = request;
             AuthenticationTicket = ticket;
         }
+
+        /// <summary>
+        /// Gets the options used by the OpenID Connect server.
+        /// </summary>
+        public OpenIdConnectServerOptions Options { get; }
 
         /// <summary>
         /// Gets the validation request.
