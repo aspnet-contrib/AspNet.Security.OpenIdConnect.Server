@@ -207,6 +207,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 });
             }
 
+            // Reject requests whose flow is unsupported.
             else if (!request.IsNoneFlow() && !request.IsAuthorizationCodeFlow() &&
                      !request.IsImplicitFlow() && !request.IsHybridFlow()) {
                 Logger.LogVerbose("Authorization request contains unsupported response_type parameter");
@@ -219,6 +220,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 });
             }
 
+            // Reject requests whose response_mode is unsupported.
             else if (!request.IsFormPostResponseMode() && !request.IsFragmentResponseMode() && !request.IsQueryResponseMode()) {
                 Logger.LogVerbose("Authorization request contains unsupported response_mode parameter");
 
@@ -282,19 +284,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.UnsupportedResponseType,
                     ErrorDescription = "response_type=code is not supported by this server",
-                    RedirectUri = request.RedirectUri,
-                    State = request.State
-                });
-            }
-
-            // Reject requests containing the id_token response_mode if no signing credentials have been provided.
-            else if (request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.IdToken) &&
-                     Options.SigningCredentials == null) {
-                Logger.LogVerbose("Authorization request contains the disabled id_token response_type");
-
-                return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
-                    Error = OpenIdConnectConstants.Errors.UnsupportedResponseType,
-                    ErrorDescription = "response_type=id_token is not supported by this server",
                     RedirectUri = request.RedirectUri,
                     State = request.State
                 });
