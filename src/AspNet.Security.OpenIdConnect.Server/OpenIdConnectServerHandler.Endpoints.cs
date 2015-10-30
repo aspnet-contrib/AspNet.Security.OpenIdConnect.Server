@@ -1634,7 +1634,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             await Options.Provider.ValidateClientAuthentication(clientNotification);
 
             // Reject the request if client authentication was rejected.
-            if (!clientNotification.IsValidated) {
+            if (clientNotification.IsRejected) {
                 Logger.LogError("invalid client authentication.");
 
                 await SendErrorPayloadAsync(new OpenIdConnectMessage {
@@ -1695,6 +1695,89 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return;
             }
 
+            var usage = ticket.GetUsage();
+            var identifier = ticket.GetProperty(OpenIdConnectConstants.Extra.ClientId);
+            var audiences = ticket.GetAudiences();
+            if (string.Equals(usage, OpenIdConnectConstants.Usages.RefreshToken, StringComparison.Ordinal)) {
+                // For Refresh tokens
+                if (clientNotification.IsSkipped && ticket.IsClientAuthenticated()) {
+                    // If the caller was not authenticated
+                    //  AND the token was issued to an authenticated client
+                    Logger.LogVerbose("refresh token issued to authenticated client but caller was not authenticated");
+
+                    await SendPayloadAsync(new JObject {
+                        [OpenIdConnectConstants.Claims.Active] = false
+                    });
+
+                    return;
+                }
+
+
+                if (clientNotification.IsValidated &&
+                     (!ticket.IsClientAuthenticated() || !string.Equals(identifier, clientNotification.ClientId))) {
+                    // OR if the caller was authenticated 
+                    //  AND either the token was not issued to an authenticated client OR the token was issued to a different authenticated client
+                    // Then the token belongs to a different client, reject the request.
+                    Logger.LogVerbose("refresh token issued to different client");
+
+                    await SendPayloadAsync(new JObject {
+                        [OpenIdConnectConstants.Claims.Active] = false
+                    });
+
+                    return;
+                }
+            }
+
+            else if (string.Equals(usage, OpenIdConnectConstants.Usages.IdToken, StringComparison.Ordinal)) {
+                //For Identity tokens
+                if (clientNotification.IsSkipped ||
+                    (!string.IsNullOrWhiteSpace(clientNotification.ClientId) &&
+                     !audiences.Contains(clientNotification.ClientId))) {
+                    // If the caller is not authenticated OR is not one of the specified audiences,
+                    if (ticket.IsClientAuthenticated()) {
+                        // And if the token was issued to an authenticated client, it was issued to a different client
+                        Logger.LogVerbose("identity token issued to different client");
+
+                        await SendPayloadAsync(new JObject {
+                            [OpenIdConnectConstants.Claims.Active] = false
+                        });
+
+                        return;
+                    }
+                }
+            }
+
+            else if (string.Equals(usage, OpenIdConnectConstants.Usages.AccessToken, StringComparison.Ordinal)) {
+                // For access tokens
+                if (clientNotification.IsValidated && !string.IsNullOrWhiteSpace(clientNotification.ClientId)) {
+                    if (!audiences.Contains(clientNotification.ClientId)) {
+                        //If the client is authenticated but not in the audiences, they're not allowed to validate the token.
+                        Logger.LogVerbose("invalid audience for access token");
+
+                        await SendPayloadAsync(new JObject {
+                            [OpenIdConnectConstants.Claims.Active] = false
+                        });
+
+                        return;
+                    }
+                }
+
+                else {
+                    //If the caller is not authenticated
+                    if (!ticket.IsClientAuthenticated() &&
+                        !ticket.Principal.HasClaim(JwtRegisteredClaimNames.Azp, clientNotification.ClientId)) {
+                        //If the token was issued to an authenticated client and the caller isn't an authorized party
+                        Logger.LogVerbose("unauthorized party for access token");
+
+                        await SendPayloadAsync(new JObject {
+                            [OpenIdConnectConstants.Claims.Active] = false
+                        });
+
+                        return;
+                    }
+                }
+            }
+
             // Insert the validation request in the ASP.NET context.
             Context.SetOpenIdConnectRequest(request);
 
@@ -1719,7 +1802,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // Note: only add "token_type" when the received token is an access token.
             // See https://tools.ietf.org/html/rfc7662#section-2.2
             // and https://tools.ietf.org/html/rfc6749#section-5.1
-            if (string.Equals(ticket.GetUsage(), OpenIdConnectConstants.Usages.AccessToken, StringComparison.Ordinal)) {
+            if (string.Equals(usage, OpenIdConnectConstants.Usages.AccessToken, StringComparison.Ordinal)) {
                 notification.TokenType = OpenIdConnectConstants.TokenTypes.Bearer;
             }
 
@@ -1782,13 +1865,20 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     break;
             }
 
-            foreach (var claim in notification.Claims) {
-                // Ignore claims whose value is null.
-                if (claim.Value == null) {
-                    continue;
-                }
+            // Note: only return non-standard claims if the caller is authenticated AND the caller is in the
+            // specified audiences AND if the introspection request is for an identity or access token.
+            if (clientNotification.IsValidated && !string.IsNullOrWhiteSpace(clientNotification.ClientId) &&
+                notification.Audiences.Contains(clientNotification.ClientId) &&
+                (string.Equals(ticket.GetUsage(), OpenIdConnectConstants.Usages.AccessToken, StringComparison.Ordinal) ||
+                 string.Equals(ticket.GetUsage(), OpenIdConnectConstants.Usages.IdToken, StringComparison.Ordinal))) {
+                foreach (var claim in notification.Claims) {
+                    // Ignore claims whose value is null.
+                    if (claim.Value == null) {
+                        continue;
+                    }
 
-                payload.Add(claim.Key, claim.Value);
+                    payload.Add(claim.Key, claim.Value);
+                }
             }
 
             var context = new ValidationEndpointResponseContext(Context, Options, payload);

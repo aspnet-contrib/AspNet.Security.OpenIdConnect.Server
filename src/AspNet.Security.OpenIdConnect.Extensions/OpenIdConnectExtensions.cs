@@ -759,6 +759,19 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
         }
 
         /// <summary>
+        /// Gets whether or not the client was authenticated when the AuthenticationTicket was issued.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <returns>A boolean indicating client authentication status.</returns>
+        public static bool IsClientAuthenticated(this AuthenticationTicket ticket) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            return ticket.ContainsProperty(OpenIdConnectConstants.Extra.ClientAuthenticated);
+        }
+
+        /// <summary>
         /// Sets the audiences list in the authentication properties.
         /// Note: this method automatically excludes duplicate audiences.
         /// </summary>
