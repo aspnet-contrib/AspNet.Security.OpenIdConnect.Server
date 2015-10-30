@@ -751,6 +751,16 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             return ticket.Properties.GetUsage();
         }
 
+        public static bool IsClientAuthenticated(this AuthenticationTicket ticket)
+        {
+            if (ticket == null)
+            {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            return ticket.ContainsProperty(OpenIdConnectConstants.Extra.ClientAuthenticated);
+        }
+
         /// <summary>
         /// Sets the audiences list in the authentication properties.
         /// Note: this method automatically excludes duplicate audiences.
