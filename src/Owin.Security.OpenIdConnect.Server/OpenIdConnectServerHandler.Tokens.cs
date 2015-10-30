@@ -167,6 +167,12 @@ namespace Owin.Security.OpenIdConnect.Server {
                     // Store the "usage" property as a claim.
                     payload.Identity.AddClaim(OpenIdConnectConstants.Extra.Usage, payload.Properties.GetUsage());
 
+                    // If the ticket is marked as confidential,
+                    // add a new "conf" claim in the JWT token.
+                    if (payload.Properties.IsConfidential()) {
+                        identity.AddClaim(OpenIdConnectConstants.Extra.Confidential, "true");
+                    }
+
                     // Store the audiences as claims.
                     foreach (var audience in notification.Audiences) {
                         identity.AddClaim(JwtRegisteredClaimNames.Aud, audience);
@@ -382,6 +388,12 @@ namespace Owin.Security.OpenIdConnect.Server {
                     // Store the "usage" property as a claim.
                     payload.Identity.AddClaim(OpenIdConnectConstants.Extra.Usage, properties.GetUsage());
 
+                    // If the ticket is marked as confidential,
+                    // add a new "conf" claim in the JWT token.
+                    if (payload.Properties.IsConfidential()) {
+                        identity.AddClaim(OpenIdConnectConstants.Extra.Confidential, "true");
+                    }
+
                     // Store the audiences as claims.
                     foreach (var audience in notification.Audiences) {
                         identity.AddClaim(JwtRegisteredClaimNames.Aud, audience);
@@ -539,8 +551,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     }
 
                     // Ensure the received ticket is an authorization code.
-                    if (!string.Equals(notification.AuthenticationTicket.GetUsage(),
-                                       OpenIdConnectConstants.Usages.Code, StringComparison.Ordinal)) {
+                    if (!notification.AuthenticationTicket.IsAuthorizationCode()) {
                         Options.Logger.WriteVerbose($"The received token was not an authorization code: {code}.");
 
                         return null;
@@ -568,7 +579,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
 
                 // Ensure the received ticket is an authorization code.
-                if (!string.Equals(ticket.GetUsage(), OpenIdConnectConstants.Usages.Code, StringComparison.Ordinal)) {
+                if (!ticket.IsAuthorizationCode()) {
                     Options.Logger.WriteVerbose($"The received token was not an authorization code: {code}.");
 
                     return null;
@@ -635,6 +646,10 @@ namespace Owin.Security.OpenIdConnect.Server {
                         properties.SetUsage(usage.Value);
                     }
 
+                    if (principal.Claims.Any(claim => claim.Type == OpenIdConnectConstants.Extra.Confidential)) {
+                        properties.Dictionary[OpenIdConnectConstants.Extra.Confidential] = "true";
+                    }
+
                     return Task.FromResult(new AuthenticationTicket((ClaimsIdentity) principal.Identity, properties));
                 };
 
@@ -649,8 +664,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     }
 
                     // Ensure the received ticket is an access token.
-                    if (!string.Equals(notification.AuthenticationTicket.GetUsage(),
-                                       OpenIdConnectConstants.Usages.AccessToken, StringComparison.Ordinal)) {
+                    if (!notification.AuthenticationTicket.IsAccessToken()) {
                         Options.Logger.WriteVerbose($"The received token was not an access token: {token}.");
 
                         return null;
@@ -669,7 +683,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
 
                 // Ensure the received ticket is an access token.
-                if (!string.Equals(ticket.GetUsage(), OpenIdConnectConstants.Usages.AccessToken, StringComparison.Ordinal)) {
+                if (!ticket.IsAccessToken()) {
                     Options.Logger.WriteVerbose($"The received token was not an access token: {token}.");
 
                     return null;
@@ -734,6 +748,10 @@ namespace Owin.Security.OpenIdConnect.Server {
                         properties.SetUsage(usage.Value);
                     }
 
+                    if (principal.Claims.Any(claim => claim.Type == OpenIdConnectConstants.Extra.Confidential)) {
+                        properties.Dictionary[OpenIdConnectConstants.Extra.Confidential] = "true";
+                    }
+
                     return Task.FromResult(new AuthenticationTicket((ClaimsIdentity) principal.Identity, properties));
                 };
 
@@ -748,8 +766,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     }
 
                     // Ensure the received ticket is an identity token.
-                    if (!string.Equals(notification.AuthenticationTicket.GetUsage(),
-                                       OpenIdConnectConstants.Usages.IdToken, StringComparison.Ordinal)) {
+                    if (!notification.AuthenticationTicket.IsIdentityToken()) {
                         Options.Logger.WriteVerbose($"The received token was not an identity token: {token}.");
 
                         return null;
@@ -768,7 +785,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
 
                 // Ensure the received ticket is an identity token.
-                if (!string.Equals(ticket.GetUsage(), OpenIdConnectConstants.Usages.IdToken, StringComparison.Ordinal)) {
+                if (!ticket.IsIdentityToken()) {
                     Options.Logger.WriteVerbose($"The received token was not an identity token: {token}.");
 
                     return null;
@@ -807,8 +824,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     }
 
                     // Ensure the received ticket is an identity token.
-                    if (!string.Equals(notification.AuthenticationTicket.GetUsage(),
-                                       OpenIdConnectConstants.Usages.IdToken, StringComparison.Ordinal)) {
+                    if (!notification.AuthenticationTicket.IsRefreshToken()) {
                         Options.Logger.WriteVerbose($"The received token was not a refresh token: {token}.");
 
                         return null;
@@ -827,7 +843,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
 
                 // Ensure the received ticket is an identity token.
-                if (!string.Equals(ticket.GetUsage(), OpenIdConnectConstants.Usages.IdToken, StringComparison.Ordinal)) {
+                if (!ticket.IsRefreshToken()) {
                     Options.Logger.WriteVerbose($"The received token was not a refresh token: {token}.");
 
                     return null;

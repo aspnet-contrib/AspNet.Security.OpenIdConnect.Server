@@ -804,7 +804,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             await Options.Provider.ValidateClientAuthentication(clientNotification);
 
             // Reject the request if client authentication was rejected.
-            if (!clientNotification.IsValidated) {
+            if (clientNotification.IsRejected) {
                 Options.Logger.WriteError("invalid client authentication.");
 
                 await SendErrorPayloadAsync(new OpenIdConnectMessage {
@@ -906,8 +906,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                 // If the client was fully authenticated when retrieving its refresh token,
                 // the current request must be rejected if client authentication was not enforced.
-                if (request.IsRefreshTokenGrantType() && !clientNotification.IsValidated &&
-                    ticket.ContainsProperty(OpenIdConnectConstants.Extra.ClientAuthenticated)) {
+                if (request.IsRefreshTokenGrantType() && !clientNotification.IsValidated && ticket.IsConfidential()) {
                     Options.Logger.WriteError("client authentication is required to use this ticket");
 
                     await SendErrorPayloadAsync(new OpenIdConnectMessage {
@@ -1192,8 +1191,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             if (clientNotification.IsValidated) {
-                // Store a boolean indicating the client has been fully authenticated.
-                ticket.Properties.Dictionary[OpenIdConnectConstants.Extra.ClientAuthenticated] = "true";
+                // Store a boolean indicating whether the ticket should be marked as confidential.
+                ticket.Properties.Dictionary[OpenIdConnectConstants.Extra.Confidential] = "true";
             }
 
             var response = new OpenIdConnectMessage();
@@ -1668,13 +1667,12 @@ namespace Owin.Security.OpenIdConnect.Server {
             await Options.Provider.ValidateClientAuthentication(clientNotification);
 
             // Reject the request if client authentication was rejected.
-            if (!clientNotification.IsValidated) {
-                Options.Logger.WriteError("invalid client authentication.");
+            if (clientNotification.IsRejected) {
+                Options.Logger.WriteError("The validation request was rejected " +
+                                          "because client authentication was invalid.");
 
-                await SendErrorPayloadAsync(new OpenIdConnectMessage {
-                    Error = clientNotification.Error ?? OpenIdConnectConstants.Errors.InvalidClient,
-                    ErrorDescription = clientNotification.ErrorDescription,
-                    ErrorUri = clientNotification.ErrorUri
+                await SendPayloadAsync(new JObject {
+                    [OpenIdConnectConstants.Claims.Active] = false
                 });
 
                 return;
@@ -1709,7 +1707,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             if (ticket == null) {
-                Options.Logger.WriteVerbose("invalid token");
+                Options.Logger.WriteInformation("The validation request was rejected because the token was invalid.");
 
                 await SendPayloadAsync(new JObject {
                     [OpenIdConnectConstants.Claims.Active] = false
@@ -1718,6 +1716,21 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return;
             }
 
+            // Note: unlike refresh or identity tokens that can only be validated by client applications,
+            // access tokens can be validated by either resource servers or client applications:
+            // in both cases, the caller must be authenticated if the ticket is marked as confidential.
+            if (clientNotification.IsSkipped && ticket.IsConfidential()) {
+                Options.Logger.WriteWarning("The validation request was rejected " +
+                                            "because the caller was not authenticated.");
+
+                await SendPayloadAsync(new JObject {
+                    [OpenIdConnectConstants.Claims.Active] = false
+                });
+
+                return;
+            }
+
+            // If the ticket is already expired, directly return active=false.
             if (ticket.Properties.ExpiresUtc.HasValue &&
                 ticket.Properties.ExpiresUtc < Options.SystemClock.UtcNow) {
                 Options.Logger.WriteVerbose("expired token");
@@ -1729,11 +1742,64 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return;
             }
 
+            if (ticket.IsAccessToken()) {
+                // When the caller is authenticated, ensure it is
+                // listed as a valid audience or authorized party.
+                var audiences = ticket.GetAudiences();
+                if (clientNotification.IsValidated && !audiences.Contains(clientNotification.ClientId, StringComparer.Ordinal) &&
+                                                      !ticket.Identity.HasClaim(JwtRegisteredClaimNames.Azp, clientNotification.ClientId)) {
+                    Options.Logger.WriteWarning("The validation request was rejected because the access token " +
+                                                "was issued to a different client or for another resource server.");
+
+                    await SendPayloadAsync(new JObject {
+                        [OpenIdConnectConstants.Claims.Active] = false
+                    });
+
+                    return;
+                }
+            }
+
+            else if (ticket.IsIdentityToken()) {
+                // When the caller is authenticated, reject the validation
+                // request if the caller is not listed as a valid audience.
+                var audiences = ticket.GetAudiences();
+                if (clientNotification.IsValidated && !audiences.Contains(clientNotification.ClientId, StringComparer.Ordinal)) {
+                    Options.Logger.WriteWarning("The validation request was rejected because the " +
+                                                "identity token was issued to a different client.");
+
+                    await SendPayloadAsync(new JObject {
+                        [OpenIdConnectConstants.Claims.Active] = false
+                    });
+
+                    return;
+                }
+            }
+
+            else if (ticket.IsRefreshToken()) {
+                // When the caller is authenticated, reject the validation request if the caller
+                // doesn't correspond to the client application the token was issued to.
+                var identifier = ticket.GetProperty(OpenIdConnectConstants.Extra.ClientId);
+                if (clientNotification.IsValidated && !string.Equals(identifier, clientNotification.ClientId, StringComparison.Ordinal)) {
+                    Options.Logger.WriteWarning("The validation request was rejected because the " +
+                                                "refresh token was issued to a different client.");
+
+                    await SendPayloadAsync(new JObject {
+                        [OpenIdConnectConstants.Claims.Active] = false
+                    });
+
+                    return;
+                }
+            }
+
             // Insert the validation request in the ASP.NET context.
             Context.SetOpenIdConnectRequest(request);
 
             var notification = new ValidationEndpointContext(Context, Options, request, ticket);
             notification.Active = true;
+
+            // Note: "token_type" may be null when the received token is not an access token.
+            // See https://tools.ietf.org/html/rfc7662#section-2.2 and https://tools.ietf.org/html/rfc6749#section-5.1
+            notification.TokenType = ticket.Identity.GetClaim(OpenIdConnectConstants.Claims.TokenType);
 
             // Try to resolve the issuer from the "iss" claim extracted from the token.
             // If none can be found, a generic value is determined from the value
@@ -1741,25 +1807,59 @@ namespace Owin.Security.OpenIdConnect.Server {
             notification.Issuer = ticket.Identity.GetClaim(JwtRegisteredClaimNames.Iss) ??
                                   Context.GetIssuer(Options);
 
-            notification.Username = ticket.Identity.Name;
             notification.Subject = ticket.Identity.GetClaim(JwtRegisteredClaimNames.Sub) ??
                                    ticket.Identity.GetClaim(ClaimTypes.NameIdentifier);
-
-            notification.Scope = ticket.GetProperty(OpenIdConnectConstants.Extra.Scope);
 
             notification.IssuedAt = ticket.Properties.IssuedUtc;
             notification.ExpiresAt = ticket.Properties.ExpiresUtc;
 
-            // Note: only add "token_type" when the received token is an access token.
-            // See https://tools.ietf.org/html/rfc7662#section-2.2
-            // and https://tools.ietf.org/html/rfc6749#section-5.1
-            if (string.Equals(ticket.GetUsage(), OpenIdConnectConstants.Usages.AccessToken, StringComparison.Ordinal)) {
-                notification.TokenType = OpenIdConnectConstants.TokenTypes.Bearer;
-            }
-
             // Copy the audiences extracted from the "aud" claim.
             foreach (var audience in ticket.GetAudiences()) {
                 notification.Audiences.Add(audience);
+            }
+
+            // Note: non-metadata claims are only added if the caller is authenticated AND is in the specified audiences.
+            if (clientNotification.IsValidated && notification.Audiences.Contains(clientNotification.ClientId)) {
+                notification.Username = ticket.Identity.Name;
+                notification.Scope = ticket.GetProperty(OpenIdConnectConstants.Extra.Scope);
+
+                // Potentially sensitive claims are only exposed to trusted callers
+                // if the ticket corresponds to an access or identity token.
+                if (ticket.IsAccessToken() || ticket.IsIdentityToken()) {
+                    foreach (var claim in ticket.Identity.Claims) {
+                        // Exclude standard claims, that are already handled via strongly-typed properties.
+                        // Make sure to always update this list when adding new built-in claim properties.
+                        if (string.Equals(claim.Type, ticket.Identity.NameClaimType, StringComparison.Ordinal) ||
+                            string.Equals(claim.Type, ClaimTypes.NameIdentifier, StringComparison.Ordinal)) {
+                            continue;
+                        }
+
+                        if (string.Equals(claim.Type, JwtRegisteredClaimNames.Aud, StringComparison.Ordinal) ||
+                            string.Equals(claim.Type, JwtRegisteredClaimNames.Exp, StringComparison.Ordinal) ||
+                            string.Equals(claim.Type, JwtRegisteredClaimNames.Iat, StringComparison.Ordinal) ||
+                            string.Equals(claim.Type, JwtRegisteredClaimNames.Iss, StringComparison.Ordinal) ||
+                            string.Equals(claim.Type, JwtRegisteredClaimNames.Nbf, StringComparison.Ordinal) ||
+                            string.Equals(claim.Type, JwtRegisteredClaimNames.Sub, StringComparison.Ordinal)) {
+                            continue;
+                        }
+
+                        if (string.Equals(claim.Type, OpenIdConnectConstants.Claims.TokenType, StringComparison.Ordinal) ||
+                            string.Equals(claim.Type, OpenIdConnectConstants.Claims.Scope, StringComparison.Ordinal)) {
+                            continue;
+                        }
+
+                        string type;
+                        // Try to resolve the short name associated with the claim type:
+                        // if none can be found, the claim type is used as-is.
+                        if (!JwtSecurityTokenHandler.OutboundClaimTypeMap.TryGetValue(claim.Type, out type)) {
+                            type = claim.Type;
+                        }
+
+                        // Note: make sure to use the indexer
+                        // syntax to avoid duplicate properties.
+                        notification.Claims[type] = claim.Value;
+                    }
+                }
             }
 
             await Options.Provider.ValidationEndpoint(notification);
@@ -1822,7 +1922,9 @@ namespace Owin.Security.OpenIdConnect.Server {
                     continue;
                 }
 
-                payload.Add(claim.Key, claim.Value);
+                // Note: make sure to use the indexer
+                // syntax to avoid duplicate properties.
+                payload[claim.Key] = claim.Value;
             }
 
             var context = new ValidationEndpointResponseContext(Context, Options, payload);
