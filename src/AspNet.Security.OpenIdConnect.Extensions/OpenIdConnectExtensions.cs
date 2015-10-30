@@ -759,6 +759,171 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
         }
 
         /// <summary>
+        /// Gets a boolean value indicating whether
+        /// the ticket is marked as confidential.
+        /// </summary>
+        /// <param name="properties">The authentication properties.</param>
+        /// <returns><c>true</c> if the ticket is confidential, or <c>false</c> if it's not.</returns>
+        public static bool IsConfidential(this AuthenticationProperties properties) {
+            if (properties == null) {
+                throw new ArgumentNullException(nameof(properties));
+            }
+
+            var value = properties.GetProperty(OpenIdConnectConstants.Extra.Confidential);
+            if (string.IsNullOrEmpty(value)) {
+                return false;
+            }
+
+            return string.Equals(value, "true", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// Gets a boolean value indicating whether
+        /// the ticket is marked as confidential.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <returns><c>true</c> if the ticket is confidential, or <c>false</c> if it's not.</returns>
+        public static bool IsConfidential(this AuthenticationTicket ticket) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            return ticket.Properties.IsConfidential();
+        }
+
+        /// <summary>
+        /// Gets a boolean value indicating whether
+        /// the properties corresponds to an authorization code.
+        /// </summary>
+        /// <param name="properties">The authentication properties.</param>
+        /// <returns><c>true</c> if the properties corresponds to an authorization code.</returns>
+        public static bool IsAuthorizationCode(this AuthenticationProperties properties) {
+            if (properties == null) {
+                throw new ArgumentNullException(nameof(properties));
+            }
+
+            var value = properties.GetProperty(OpenIdConnectConstants.Extra.Usage);
+            if (string.IsNullOrEmpty(value)) {
+                return false;
+            }
+
+            return string.Equals(value, OpenIdConnectConstants.Usages.Code, StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// Gets a boolean value indicating whether the
+        /// authentication ticket corresponds to an access token.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <returns><c>true</c> if the ticket corresponds to an authorization code.</returns>
+        public static bool IsAuthorizationCode(this AuthenticationTicket ticket) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            return ticket.Properties.IsAuthorizationCode();
+        }
+
+        /// <summary>
+        /// Gets a boolean value indicating whether
+        /// the properties corresponds to an access token.
+        /// </summary>
+        /// <param name="properties">The authentication properties.</param>
+        /// <returns><c>true</c> if the properties corresponds to an access token.</returns>
+        public static bool IsAccessToken(this AuthenticationProperties properties) {
+            if (properties == null) {
+                throw new ArgumentNullException(nameof(properties));
+            }
+
+            var value = properties.GetProperty(OpenIdConnectConstants.Extra.Usage);
+            if (string.IsNullOrEmpty(value)) {
+                return false;
+            }
+
+            return string.Equals(value, OpenIdConnectConstants.Usages.AccessToken, StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// Gets a boolean value indicating whether the
+        /// authentication ticket corresponds to an access token.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <returns><c>true</c> if the ticket corresponds to an access token.</returns>
+        public static bool IsAccessToken(this AuthenticationTicket ticket) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            return ticket.Properties.IsAccessToken();
+        }
+
+        /// <summary>
+        /// Gets a boolean value indicating whether
+        /// the properties corresponds to an identity token.
+        /// </summary>
+        /// <param name="properties">The authentication properties.</param>
+        /// <returns><c>true</c> if the properties corresponds to an identity token.</returns>
+        public static bool IsIdentityToken(this AuthenticationProperties properties) {
+            if (properties == null) {
+                throw new ArgumentNullException(nameof(properties));
+            }
+
+            var value = properties.GetProperty(OpenIdConnectConstants.Extra.Usage);
+            if (string.IsNullOrEmpty(value)) {
+                return false;
+            }
+
+            return string.Equals(value, OpenIdConnectConstants.Usages.IdToken, StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// Gets a boolean value indicating whether the
+        /// authentication ticket corresponds to an identity token.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <returns><c>true</c> if the ticket corresponds to an identity token.</returns>
+        public static bool IsIdentityToken(this AuthenticationTicket ticket) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            return ticket.Properties.IsIdentityToken();
+        }
+
+        /// <summary>
+        /// Gets a boolean value indicating whether
+        /// the properties corresponds to a refresh token.
+        /// </summary>
+        /// <param name="properties">The authentication properties.</param>
+        /// <returns><c>true</c> if the properties corresponds to a refresh token.</returns>
+        public static bool IsRefreshToken(this AuthenticationProperties properties) {
+            if (properties == null) {
+                throw new ArgumentNullException(nameof(properties));
+            }
+
+            var value = properties.GetProperty(OpenIdConnectConstants.Extra.Usage);
+            if (string.IsNullOrEmpty(value)) {
+                return false;
+            }
+
+            return string.Equals(value, OpenIdConnectConstants.Usages.RefreshToken, StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// Gets a boolean value indicating whether the
+        /// authentication ticket corresponds to a refresh token.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <returns><c>true</c> if the ticket corresponds to a refresh token.</returns>
+        public static bool IsRefreshToken(this AuthenticationTicket ticket) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            return ticket.Properties.IsRefreshToken();
+        }
+
+        /// <summary>
         /// Sets the audiences list in the authentication properties.
         /// Note: this method automatically excludes duplicate audiences.
         /// </summary>
