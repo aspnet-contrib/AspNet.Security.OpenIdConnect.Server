@@ -405,15 +405,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 notification.ResponseModes.Add(OpenIdConnectConstants.ResponseModes.Query);
 
                 notification.ResponseTypes.Add(OpenIdConnectConstants.ResponseTypes.Token);
+                notification.ResponseTypes.Add(OpenIdConnectConstants.ResponseTypes.IdToken);
 
-                // Only expose response types containing id_token when
-                // signing credentials have been explicitly provided.
-                if (Options.SigningCredentials != null) {
-                    notification.ResponseTypes.Add(OpenIdConnectConstants.ResponseTypes.IdToken);
-                    notification.ResponseTypes.Add(
-                        OpenIdConnectConstants.ResponseTypes.IdToken + ' ' +
-                        OpenIdConnectConstants.ResponseTypes.Token);
-                }
+                notification.ResponseTypes.Add(
+                    OpenIdConnectConstants.ResponseTypes.IdToken + ' ' +
+                    OpenIdConnectConstants.ResponseTypes.Token);
 
                 // Only expose response types containing code when
                 // the token endpoint has not been explicitly disabled.
@@ -424,18 +420,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
                         OpenIdConnectConstants.ResponseTypes.Code + ' ' +
                         OpenIdConnectConstants.ResponseTypes.Token);
 
-                    // Only expose response types containing id_token when
-                    // signing credentials have been explicitly provided.
-                    if (Options.SigningCredentials != null) {
-                        notification.ResponseTypes.Add(
-                            OpenIdConnectConstants.ResponseTypes.Code + ' ' +
-                            OpenIdConnectConstants.ResponseTypes.IdToken);
+                    notification.ResponseTypes.Add(
+                        OpenIdConnectConstants.ResponseTypes.Code + ' ' +
+                        OpenIdConnectConstants.ResponseTypes.IdToken);
 
-                        notification.ResponseTypes.Add(
-                            OpenIdConnectConstants.ResponseTypes.Code + ' ' +
-                            OpenIdConnectConstants.ResponseTypes.IdToken + ' ' +
-                            OpenIdConnectConstants.ResponseTypes.Token);
-                    }
+                    notification.ResponseTypes.Add(
+                        OpenIdConnectConstants.ResponseTypes.Code + ' ' +
+                        OpenIdConnectConstants.ResponseTypes.IdToken + ' ' +
+                        OpenIdConnectConstants.ResponseTypes.Token);
                 }
             }
 
