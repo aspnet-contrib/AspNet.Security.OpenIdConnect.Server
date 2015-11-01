@@ -469,22 +469,22 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             payload.Add(OpenIdConnectConstants.Metadata.GrantTypesSupported,
-                JArray.FromObject(notification.GrantTypes));
+                JArray.FromObject(notification.GrantTypes.Distinct()));
 
             payload.Add(OpenIdConnectConstants.Metadata.ResponseModesSupported,
-                JArray.FromObject(notification.ResponseModes));
+                JArray.FromObject(notification.ResponseModes.Distinct()));
 
             payload.Add(OpenIdConnectConstants.Metadata.ResponseTypesSupported,
-                JArray.FromObject(notification.ResponseTypes));
+                JArray.FromObject(notification.ResponseTypes.Distinct()));
 
             payload.Add(OpenIdConnectConstants.Metadata.SubjectTypesSupported,
-                JArray.FromObject(notification.SubjectTypes));
+                JArray.FromObject(notification.SubjectTypes.Distinct()));
 
             payload.Add(OpenIdConnectConstants.Metadata.ScopesSupported,
-                JArray.FromObject(notification.Scopes));
+                JArray.FromObject(notification.Scopes.Distinct()));
 
             payload.Add(OpenIdConnectConstants.Metadata.IdTokenSigningAlgValuesSupported,
-                JArray.FromObject(notification.SigningAlgorithms));
+                JArray.FromObject(notification.SigningAlgorithms.Distinct()));
 
             var context = new ConfigurationEndpointResponseContext(Context, Options, payload);
             await Options.Provider.ConfigurationEndpointResponse(context);
