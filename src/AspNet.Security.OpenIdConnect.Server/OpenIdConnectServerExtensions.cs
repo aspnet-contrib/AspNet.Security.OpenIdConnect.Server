@@ -192,9 +192,7 @@ namespace Microsoft.AspNet.Builder {
         /// <returns>The options used to configure the OpenID Connect server.</returns>
         public static OpenIdConnectServerBuilder UseKey(
             [NotNull] this OpenIdConnectServerBuilder builder, [NotNull] SecurityKey key) {
-            builder.Options.SigningCredentials.Add(new SigningCredentials(key,
-                SecurityAlgorithms.RsaSha256Signature,
-                SecurityAlgorithms.Sha256Digest));
+            builder.Options.SigningCredentials.Add(new SigningCredentials(key, SecurityAlgorithms.RsaSha256Signature));
 
             return builder;
         }

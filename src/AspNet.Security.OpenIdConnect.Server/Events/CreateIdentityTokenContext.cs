@@ -66,11 +66,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public string Issuer { get; set; }
 
         /// <summary>
-        /// Gets or sets the signature provider used to sign the access token.
-        /// </summary>
-        public SignatureProvider SignatureProvider { get; set; }
-
-        /// <summary>
         /// Gets or sets the signing credentials used to sign the identity token.
         /// </summary>
         public SigningCredentials SigningCredentials { get; set; }

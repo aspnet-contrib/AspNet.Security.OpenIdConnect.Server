@@ -161,7 +161,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     DataFormat = Options.AccessTokenFormat,
                     Issuer = Context.GetIssuer(Options),
                     SecurityTokenHandler = Options.AccessTokenHandler,
-                    SignatureProvider = Options.SignatureProvider,
                     SigningCredentials = Options.SigningCredentials.FirstOrDefault()
                 };
 
@@ -195,13 +194,13 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     var token = notification.SecurityTokenHandler.CreateToken(
                         subject: identity,
                         issuer: notification.Issuer,
-                        signatureProvider: notification.SignatureProvider,
                         signingCredentials: notification.SigningCredentials,
+                        issuedAt: payload.Properties.IssuedUtc.Value.UtcDateTime,
                         notBefore: payload.Properties.IssuedUtc.Value.UtcDateTime,
                         expires: payload.Properties.ExpiresUtc.Value.UtcDateTime);
 
                     if (notification.SigningCredentials != null) {
-                        var x509SecurityKey = notification.SigningCredentials.SigningKey as X509SecurityKey;
+                        var x509SecurityKey = notification.SigningCredentials.Key as X509SecurityKey;
                         if (x509SecurityKey != null) {
                             // Note: unlike "kid", "x5t" is not automatically added by JwtHeader's constructor in IdentityModel for ASP.NET 5.
                             // Though not required by the specifications, this property is needed for IdentityModel for Katana to work correctly.
@@ -212,9 +211,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                         object identifier;
                         if (!token.Header.TryGetValue(JwtHeaderParameterNames.Kid, out identifier) || identifier == null) {
-                            // When the token doesn't contain a "kid" parameter in the header, automatically add one
-                            // using the identifier specified in the signing credentials or in the security key.
-                            identifier = notification.SigningCredentials.Kid ?? notification.SigningCredentials.SigningKey.KeyId;
+                            // When the token doesn't contain a "kid" parameter in the header, automatically
+                            // add one using the identifier specified in the signing credentials.
+                            identifier = notification.SigningCredentials.Kid;
 
                             if (identifier == null) {
                                 // When no key identifier has been explicitly added by the developer, a "kid" is automatically
@@ -225,7 +224,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                                 // When no key identifier has been explicitly added by the developer, a "kid"
                                 // is automatically inferred from the modulus if the signing key is a RSA key.
-                                var rsaSecurityKey = notification.SigningCredentials.SigningKey as RsaSecurityKey;
+                                var rsaSecurityKey = notification.SigningCredentials.Key as RsaSecurityKey;
                                 if (rsaSecurityKey != null) {
                                     // Only use the 40 first chars to match the identifier used by the JWKS endpoint.
                                     identifier = Base64UrlEncoder.Encode(rsaSecurityKey.Parameters.Modulus)
@@ -298,9 +297,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 var identity = (ClaimsIdentity) principal.Identity;
 
-                identity.AddClaim(JwtRegisteredClaimNames.Iat,
-                    EpochTime.GetIntDate(properties.IssuedUtc.Value.UtcDateTime).ToString());
-
                 if (!string.IsNullOrEmpty(response.Code)) {
                     using (var algorithm = SHA256.Create()) {
                         // Create the c_hash using the authorization code returned by CreateAuthorizationCodeAsync.
@@ -370,7 +366,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 var notification = new CreateIdentityTokenContext(Context, Options, request, response, ticket) {
                     Issuer = Context.GetIssuer(Options),
                     SecurityTokenHandler = Options.IdentityTokenHandler,
-                    SignatureProvider = Options.SignatureProvider,
                     SigningCredentials = Options.SigningCredentials.FirstOrDefault()
                 };
 
@@ -405,13 +400,13 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     var token = notification.SecurityTokenHandler.CreateToken(
                         subject: identity,
                         issuer: notification.Issuer,
-                        signatureProvider: notification.SignatureProvider,
                         signingCredentials: notification.SigningCredentials,
+                        issuedAt: payload.Properties.IssuedUtc.Value.UtcDateTime,
                         notBefore: payload.Properties.IssuedUtc.Value.UtcDateTime,
                         expires: payload.Properties.ExpiresUtc.Value.UtcDateTime);
 
                     if (notification.SigningCredentials != null) {
-                        var x509SecurityKey = notification.SigningCredentials.SigningKey as X509SecurityKey;
+                        var x509SecurityKey = notification.SigningCredentials.Key as X509SecurityKey;
                         if (x509SecurityKey != null) {
                             // Note: unlike "kid", "x5t" is not automatically added by JwtHeader's constructor in IdentityModel for ASP.NET 5.
                             // Though not required by the specifications, this property is needed for IdentityModel for Katana to work correctly.
@@ -422,9 +417,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                         object identifier;
                         if (!token.Header.TryGetValue(JwtHeaderParameterNames.Kid, out identifier) || identifier == null) {
-                            // When the token doesn't contain a "kid" parameter in the header, automatically add one
-                            // using the identifier specified in the signing credentials or in the security key.
-                            identifier = notification.SigningCredentials.Kid ?? notification.SigningCredentials.SigningKey.KeyId;
+                            // When the token doesn't contain a "kid" parameter in the header, automatically
+                            // add one using the identifier specified in the signing credentials.
+                            identifier = notification.SigningCredentials.Kid;
 
                             if (identifier == null) {
                                 // When no key identifier has been explicitly added by the developer, a "kid" is automatically
@@ -435,7 +430,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                                 // When no key identifier has been explicitly added by the developer, a "kid"
                                 // is automatically inferred from the modulus if the signing key is a RSA key.
-                                var rsaSecurityKey = notification.SigningCredentials.SigningKey as RsaSecurityKey;
+                                var rsaSecurityKey = notification.SigningCredentials.Key as RsaSecurityKey;
                                 if (rsaSecurityKey != null) {
                                     // Only use the 40 first chars to match the identifier used by the JWKS endpoint.
                                     identifier = Base64UrlEncoder.Encode(rsaSecurityKey.Parameters.Modulus)
@@ -609,8 +604,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     Issuer = Context.GetIssuer(Options),
                     SecurityTokenHandler = Options.AccessTokenHandler,
                     SignatureProvider = Options.SignatureProvider,
-                    SigningKey = Options.SigningCredentials.Select(credentials => credentials.SigningKey)
-                                                           .FirstOrDefault()
+                    SigningKey = Options.SigningCredentials.Select(credentials => credentials.Key).FirstOrDefault()
                 };
 
                 // Sets the default deserializer used to resolve the
@@ -712,8 +706,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     Issuer = Context.GetIssuer(Options),
                     SecurityTokenHandler = Options.IdentityTokenHandler,
                     SignatureProvider = Options.SignatureProvider,
-                    SigningKey = Options.SigningCredentials.Select(credentials => credentials.SigningKey)
-                                                           .FirstOrDefault()
+                    SigningKey = Options.SigningCredentials.Select(credentials => credentials.Key).FirstOrDefault()
                 };
 
                 // Sets the default deserializer used to resolve the

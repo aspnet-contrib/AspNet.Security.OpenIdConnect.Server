@@ -521,7 +521,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             foreach (var credentials in Options.SigningCredentials) {
-                if (!credentials.SigningKey.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature)) {
+                if (!credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature)) {
                     Logger.LogWarning(string.Format(CultureInfo.InvariantCulture,
                         "Cryptography endpoint: invalid signing key registered. " +
                         "Make sure to provide a '{0}' instance exposing " +
@@ -532,7 +532,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 }
 
                 // Determine whether the security key is a RSA key embedded in a X.509 certificate.
-                var x509SecurityKey = credentials.SigningKey as X509SecurityKey;
+                var x509SecurityKey = credentials.Key as X509SecurityKey;
                 if (x509SecurityKey != null) {
                     // Create a new JSON Web Key exposing the
                     // certificate instead of its public RSA key.
@@ -556,7 +556,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     });
                 }
 
-                var rsaSecurityKey = credentials.SigningKey as RsaSecurityKey;
+                var rsaSecurityKey = credentials.Key as RsaSecurityKey;
                 if (rsaSecurityKey != null) {
                     // Export the RSA public key.
                     notification.Keys.Add(new JsonWebKey {
