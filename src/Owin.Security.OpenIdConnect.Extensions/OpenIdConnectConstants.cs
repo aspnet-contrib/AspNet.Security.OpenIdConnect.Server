@@ -24,28 +24,30 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         }
 
         public static class Parameters {
-            public const string ResponseType = "response_type";
-            public const string GrantType = "grant_type";
+            public const string AccessToken = "access_token";
             public const string ClientId = "client_id";
             public const string ClientSecret = "client_secret";
-            public const string RedirectUri = "redirect_uri";
-            public const string Scope = "scope";
-            public const string Nonce = "nonce";
-            public const string State = "state";
             public const string Code = "code";
-            public const string IdToken = "id_token";
-            public const string RefreshToken = "refresh_token";
-            public const string Username = "username";
-            public const string Password = "password";
             public const string Error = "error";
             public const string ErrorDescription = "error_description";
             public const string ErrorUri = "error_uri";
             public const string ExpiresIn = "expires_in";
-            public const string AccessToken = "access_token";
-            public const string TokenType = "token_type";
+            public const string GrantType = "grant_type";
+            public const string IdToken = "id_token";
+            public const string Nonce = "nonce";
+            public const string Password = "password";
+            public const string RedirectUri = "redirect_uri";
+            public const string RefreshToken = "refresh_token";
+            public const string Request = "request";
+            public const string RequestUri = "request_uri";
             public const string ResponseMode = "response_mode";
+            public const string ResponseType = "response_type";
+            public const string Scope = "scope";
+            public const string State = "state";
             public const string Token = "token";
+            public const string TokenType = "token_type";
             public const string TokenTypeHint = "token_type_hint";
+            public const string Username = "username";
         }
 
         public static class ResponseTypes {
@@ -73,8 +75,8 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             public const string AuthorizationCode = "authorization_code";
             public const string ClientCredentials = "client_credentials";
             public const string Implicit = "implicit";
-            public const string RefreshToken = "refresh_token";
             public const string Password = "password";
+            public const string RefreshToken = "refresh_token";
         }
 
         public static class TokenTypes {
@@ -82,13 +84,19 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         }
 
         public static class Errors {
-            public const string InvalidRequest = "invalid_request";
+            public const string AccountSelectionRequired = "account_selection_required";
+            public const string ConsentRequired = "consent_required";
+            public const string InteractionRequired = "interaction_required";
             public const string InvalidClient = "invalid_client";
             public const string InvalidGrant = "invalid_grant";
-            public const string UnsupportedResponseType = "unsupported_response_type";
-            public const string UnsupportedGrantType = "unsupported_grant_type";
-            public const string UnauthorizedClient = "unauthorized_client";
+            public const string InvalidRequest = "invalid_request";
+            public const string LoginRequired = "login_required";
+            public const string RequestNotSupported = "request_not_supported";
+            public const string RequestUriNotSupported = "request_uri_not_supported";
             public const string ServerError = "server_error";
+            public const string UnauthorizedClient = "unauthorized_client";
+            public const string UnsupportedGrantType = "unsupported_grant_type";
+            public const string UnsupportedResponseType = "unsupported_response_type";
         }
 
         public static class Extra {
@@ -97,20 +105,20 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             public const string Confidential = "confidential";
             public const string Destination = "destination";
             public const string Nonce = "nonce";
-            public const string Scope = "scope";
             public const string RedirectUri = "redirect_uri";
             public const string Resource = "resource";
+            public const string Scope = "scope";
             public const string Usage = "usage";
         }
 
         public static class Metadata {
             public const string AuthorizationEndpoint = "authorization_endpoint";
             public const string EndSessionEndpoint = "end_session_endpoint";
+            public const string GrantTypesSupported = "grant_types_supported";
             public const string IdTokenSigningAlgValuesSupported = "id_token_signing_alg_values_supported";
             public const string IntrospectionEndpoint = "introspection_endpoint";
             public const string Issuer = "issuer";
             public const string JwksUri = "jwks_uri";
-            public const string GrantTypesSupported = "grant_types_supported";
             public const string ResponseModesSupported = "response_modes_supported";
             public const string ResponseTypesSupported = "response_types_supported";
             public const string ScopesSupported = "scopes_supported";
@@ -120,8 +128,8 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         }
 
         public static class SubjectTypes {
-            public const string Public = "public";
             public const string Pairwise = "pairwise";
+            public const string Public = "public";
         }
 
         public static class Usages {

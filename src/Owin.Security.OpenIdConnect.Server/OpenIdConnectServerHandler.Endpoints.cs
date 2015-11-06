@@ -195,7 +195,29 @@ namespace Owin.Security.OpenIdConnect.Server {
                 });
             }
 
-            if (string.IsNullOrEmpty(request.ResponseType)) {
+            if (!string.IsNullOrEmpty(request.GetParameter(OpenIdConnectConstants.Parameters.Request))) {
+                Options.Logger.WriteVerbose("The authorization request contained the unsupported request parameter.");
+
+                return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
+                    Error = OpenIdConnectConstants.Errors.RequestNotSupported,
+                    ErrorDescription = "The request parameter is not supported.",
+                    RedirectUri = request.RedirectUri,
+                    State = request.State
+                });
+            }
+
+            else if (!string.IsNullOrEmpty(request.RequestUri)) {
+                Options.Logger.WriteVerbose("The authorization request contained the unsupported request_uri parameter.");
+
+                return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
+                    Error = OpenIdConnectConstants.Errors.RequestUriNotSupported,
+                    ErrorDescription = "The request_uri parameter is not supported.",
+                    RedirectUri = request.RedirectUri,
+                    State = request.State
+                });
+            }
+
+            else if (string.IsNullOrEmpty(request.ResponseType)) {
                 Options.Logger.WriteVerbose("Authorization request missing required response_type parameter");
 
                 return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
