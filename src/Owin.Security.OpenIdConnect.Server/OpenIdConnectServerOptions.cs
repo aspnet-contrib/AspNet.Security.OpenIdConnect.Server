@@ -167,10 +167,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         public TimeSpan IdentityTokenLifetime { get; set; } = TimeSpan.FromMinutes(20);
 
         /// <summary>
-        /// The period of time the refresh token remains valid after being issued. The default is 6 hours.
+        /// The period of time the refresh token remains valid after being issued. The default is 14 days.
         /// The client application is expected to start a whole new authentication flow after the refresh token has expired. 
         /// </summary>
-        public TimeSpan RefreshTokenLifetime { get; set; } = TimeSpan.FromHours(6);
+        public TimeSpan RefreshTokenLifetime { get; set; } = TimeSpan.FromDays(14);
 
         /// <summary>
         /// Determines whether refresh tokens issued during a grant_type=refresh_token request should be generated
