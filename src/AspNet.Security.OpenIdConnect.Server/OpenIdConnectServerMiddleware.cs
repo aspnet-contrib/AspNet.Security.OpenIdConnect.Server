@@ -5,13 +5,13 @@
  */
 
 using System;
+using System.Text.Encodings.Web;
 using Microsoft.AspNet.Authentication;
-using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.DataProtection;
+using Microsoft.AspNet.Http;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.WebEncoders;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
@@ -30,8 +30,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             [NotNull] OpenIdConnectServerOptions options,
             [NotNull] ILoggerFactory loggerFactory,
             [NotNull] IDistributedCache cache,
-            [NotNull] IHtmlEncoder htmlEncoder,
-            [NotNull] IUrlEncoder urlEncoder,
+            [NotNull] HtmlEncoder htmlEncoder,
+            [NotNull] UrlEncoder urlEncoder,
             [NotNull] IDataProtectionProvider dataProtectionProvider)
             : base(next, options, loggerFactory, urlEncoder) {
             if (string.IsNullOrEmpty(Options.AuthenticationScheme)) {

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Internal;
+using Microsoft.Extensions.Primitives;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     internal static class OpenIdConnectServerHelpers {
@@ -84,7 +85,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             return address + path;
         }
 
-        internal static IEnumerable<KeyValuePair<string, string[]>> ToDictionary(this IReadableStringCollection collection) {
+        internal static IEnumerable<KeyValuePair<string, string[]>> ToDictionary(this IEnumerable<KeyValuePair<string, StringValues>> collection) {
             return collection.Select(item => new KeyValuePair<string, string[]>(item.Key, item.Value.ToArray()));
         }
 

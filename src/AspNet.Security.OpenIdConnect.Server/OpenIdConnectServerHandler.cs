@@ -564,7 +564,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     // by IOpenIdConnectServerProvider.ValidateClientRedirectUri,
                     // it's still safer to encode it to avoid cross-site scripting attacks
                     // if the authorization server has a relaxed policy concerning redirect URIs.
-                    writer.WriteLine("<form name='form' method='post' action='" + Options.HtmlEncoder.HtmlEncode(response.RedirectUri) + "'>");
+                    writer.WriteLine("<form name='form' method='post' action='" + Options.HtmlEncoder.Encode(response.RedirectUri) + "'>");
 
                     foreach (var parameter in response.Parameters) {
                         // Don't include redirect_uri in the form.
@@ -572,8 +572,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
                             continue;
                         }
 
-                        var name = Options.HtmlEncoder.HtmlEncode(parameter.Key);
-                        var value = Options.HtmlEncoder.HtmlEncode(parameter.Value);
+                        var name = Options.HtmlEncoder.Encode(parameter.Key);
+                        var value = Options.HtmlEncoder.Encode(parameter.Value);
 
                         writer.WriteLine("<input type='hidden' name='" + name + "' value='" + value + "' />");
                     }

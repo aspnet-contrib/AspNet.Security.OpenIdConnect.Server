@@ -9,10 +9,10 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Cryptography;
+using System.Text.Encodings.Web;
 using Microsoft.AspNet.Authentication;
 using Microsoft.AspNet.Http;
 using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.WebEncoders;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
@@ -207,7 +207,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// Used to sanitize HTML responses. If you don't provide an explicit instance,
         /// one will be automatically retrieved through the dependency injection system.
         /// </summary>
-        public IHtmlEncoder HtmlEncoder { get; set; }
+        public HtmlEncoder HtmlEncoder { get; set; }
 
         /// <summary>
         /// The random number generator used for cryptographic operations.
