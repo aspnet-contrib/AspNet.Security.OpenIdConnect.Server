@@ -19,6 +19,7 @@ using Microsoft.AspNet.Http.Features;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Internal;
+using Microsoft.Extensions.PlatformAbstractions;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace Microsoft.AspNet.Builder {
@@ -250,9 +251,16 @@ namespace Microsoft.AspNet.Builder {
 
             // If no signing key has been found, generate and persist a new RSA key.
             if (builder.Options.SigningCredentials.Count == 0) {
+                // Resolve the runtime environment from the services container or from the default platform services.
+                var environment = builder.Builder.ApplicationServices.GetService<IRuntimeEnvironment>() ??
+                                  PlatformServices.Default?.Runtime;
+                if (environment == null) {
+                    throw new InvalidOperationException("The runtime environment cannot be resolved from the services.");
+                }
+
                 // Generate a new 2048 bit RSA key and export its public/private parameters.
-                var provider = new RSACryptoServiceProvider(2048);
-                var parameters = provider.ExportParameters(includePrivateParameters: true);
+                var provider = OpenIdConnectServerHelpers.GenerateKey(environment);
+                var parameters = provider.ExportParameters(/* includePrivateParameters */ true);
 
                 // Generate a new file name for the key and determine its absolute path.
                 var path = Path.Combine(directory.FullName, Guid.NewGuid().ToString() + ".key");

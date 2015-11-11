@@ -8,10 +8,39 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Internal;
+using Microsoft.Extensions.PlatformAbstractions;
 using Microsoft.Extensions.Primitives;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     internal static class OpenIdConnectServerHelpers {
+        internal static RSA GenerateKey(IRuntimeEnvironment environment) {
+            if (string.Equals(environment.OperatingSystem, "Windows", StringComparison.OrdinalIgnoreCase)) {
+#if DNXCORE50
+                // On CoreCLR, use RSACng.
+                return new RSACng(2048);
+#else
+                // On desktop CLR, use RSACryptoServiceProvider.
+                return new RSACryptoServiceProvider(2048);
+#endif
+            }
+
+            // When the runtime is identified as Mono, use RSACryptoServiceProvider, independently of the operating system.
+            if (string.Equals(environment.RuntimeType, "Mono", StringComparison.OrdinalIgnoreCase)) {
+                return new RSACryptoServiceProvider(2048);
+            }
+
+#if DNXCORE50
+            // On Linux and Darwin, use RSAOpenSsl when running on CoreCLR.
+            if (string.Equals(environment.OperatingSystem, "Linux", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(environment.OperatingSystem, "Darwin", StringComparison.OrdinalIgnoreCase)) {
+                return new RSAOpenSsl(2048);
+            }
+#endif
+
+            // If no appropriate implementation can be found, throw an exception.
+            throw new PlatformNotSupportedException("No RSA implementation compatible with your configuration can be found.");
+        }
+
         internal static DirectoryInfo GetDefaultKeyStorageDirectory() {
             string path;
 
