@@ -18,15 +18,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="request"></param>
-        /// <param name="notification"></param>
         internal ValidateAuthorizationRequestContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
-            OpenIdConnectMessage request,
-            ValidateClientRedirectUriContext notification)
+            OpenIdConnectMessage request)
             : base(context, options) {
             Request = request;
-            ClientContext = notification;
             Validated();
         }
 
@@ -36,8 +33,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public new OpenIdConnectMessage Request { get; }
 
         /// <summary>
-        /// Gets the client context. 
+        /// Gets the client identifier.
         /// </summary>
-        public ValidateClientRedirectUriContext ClientContext { get; }
+        public string ClientId => Request.ClientId;
     }
 }
