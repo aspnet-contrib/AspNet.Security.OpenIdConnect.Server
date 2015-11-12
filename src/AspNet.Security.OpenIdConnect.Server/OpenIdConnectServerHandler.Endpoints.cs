@@ -716,11 +716,37 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             // Reject token requests missing the mandatory grant_type parameter.
             if (string.IsNullOrEmpty(request.GrantType)) {
-                Logger.LogError("grant_type missing");
+                Logger.LogError("The token request was rejected because the grant type was missing.");
 
                 await SendErrorPayloadAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                    ErrorDescription = "The mandatory grant_type parameter is missing",
+                    ErrorDescription = "The mandatory 'grant_type' parameter was missing.",
+                });
+
+                return;
+            }
+
+            // Reject grant_type=authorization_code requests missing the authorization code.
+            // See https://tools.ietf.org/html/rfc6749#section-4.1.3
+            else if (request.IsAuthorizationCodeGrantType() && string.IsNullOrEmpty(request.Code)) {
+                Logger.LogError("The token request was rejected because the authorization code was missing.");
+
+                await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                    Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = "The mandatory 'code' parameter was missing."
+                });
+
+                return;
+            }
+
+            // Reject grant_type=refresh_token requests missing the refresh token.
+            // See https://tools.ietf.org/html/rfc6749#section-6
+            else if (request.IsRefreshTokenGrantType() && string.IsNullOrEmpty(request.RefreshToken)) {
+                Logger.LogError("The token request was rejected because the refresh token was missing.");
+
+                await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                    Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = "The mandatory 'refresh_token' parameter was missing."
                 });
 
                 return;
@@ -728,13 +754,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             // Reject grant_type=password requests missing username or password.
             // See https://tools.ietf.org/html/rfc6749#section-4.3.2
-            if (request.IsPasswordGrantType() && (string.IsNullOrEmpty(request.Username) ||
-                                                  string.IsNullOrEmpty(request.Password))) {
-                Logger.LogError("resource owner credentials missing.");
+            else if (request.IsPasswordGrantType() && (string.IsNullOrEmpty(request.Username) ||
+                                                       string.IsNullOrEmpty(request.Password))) {
+                Logger.LogError("The token request was rejected because the resource owner credentials were missing.");
 
                 await SendErrorPayloadAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                    ErrorDescription = "username and/or password were missing from the request message"
+                    ErrorDescription = "The mandatory 'username' and/or 'password' parameters " +
+                                       "was/were missing from the request message."
                 });
 
                 return;
