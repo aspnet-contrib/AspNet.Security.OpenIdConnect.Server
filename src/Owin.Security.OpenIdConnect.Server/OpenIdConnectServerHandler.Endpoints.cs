@@ -310,7 +310,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 });
             }
 
-            var validationNotification = new ValidateAuthorizationRequestContext(Context, Options, request, clientNotification);
+            var validationNotification = new ValidateAuthorizationRequestContext(Context, Options, request);
             await Options.Provider.ValidateAuthorizationRequest(validationNotification);
 
             // Stop processing the request if Validated was not called.
@@ -855,7 +855,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return;
             }
 
-            var validatingContext = new ValidateTokenRequestContext(Context, Options, request, clientNotification);
+            var validatingContext = new ValidateTokenRequestContext(Context, Options, request);
 
             // Validate the token request immediately if the grant type used by
             // the client application doesn't rely on a previously-issued token/code.

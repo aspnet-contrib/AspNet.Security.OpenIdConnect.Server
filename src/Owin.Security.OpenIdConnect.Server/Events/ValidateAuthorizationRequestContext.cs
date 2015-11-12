@@ -18,15 +18,12 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="request"></param>
-        /// <param name="clientContext"></param>
         internal ValidateAuthorizationRequestContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
-            OpenIdConnectMessage request,
-            ValidateClientRedirectUriContext clientContext)
+            OpenIdConnectMessage request)
             : base(context, options) {
             Request = request;
-            ClientContext = clientContext;
             Validated();
         }
 
@@ -36,8 +33,8 @@ namespace Owin.Security.OpenIdConnect.Server {
         public new OpenIdConnectMessage Request { get; }
 
         /// <summary>
-        /// Gets the client context. 
+        /// Gets the client identifier.
         /// </summary>
-        public ValidateClientRedirectUriContext ClientContext { get; }
+        public string ClientId => Request.ClientId;
     }
 }
