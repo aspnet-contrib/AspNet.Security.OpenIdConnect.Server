@@ -238,56 +238,56 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// to replace the authentication ticket before it is serialized or to use its own code store
         /// and skip the default logic using <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
-        public Func<CreateAuthorizationCodeContext, Task> OnCreateAuthorizationCode { get; set; } = context => Task.FromResult<object>(null);
+        public Func<SerializeAuthorizationCodeContext, Task> OnSerializeAuthorizationCode { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
         /// Called to create a new access token. An application may use this notification
         /// to replace the authentication ticket before it is serialized or to use its own token format
         /// and skip the default logic using <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
-        public Func<CreateAccessTokenContext, Task> OnCreateAccessToken { get; set; } = context => Task.FromResult<object>(null);
+        public Func<SerializeAccessTokenContext, Task> OnSerializeAccessToken { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
         /// Called to create a new identity token. An application may use this notification
         /// to replace the authentication ticket before it is serialized or to use its own token format
         /// and skip the default logic using <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
-        public Func<CreateIdentityTokenContext, Task> OnCreateIdentityToken { get; set; } = context => Task.FromResult<object>(null);
+        public Func<SerializeIdentityTokenContext, Task> OnSerializeIdentityToken { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
         /// Called to create a new refresh token. An application may use this notification
         /// to replace the authentication ticket before it is serialized or to use its own token format
         /// and skip the default logic using <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
-        public Func<CreateRefreshTokenContext, Task> OnCreateRefreshToken { get; set; } = context => Task.FromResult<object>(null);
+        public Func<SerializeRefreshTokenContext, Task> OnSerializeRefreshToken { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
         /// Called when receiving an authorization code. An application may use this notification
         /// to deserialize the code using a custom format and to skip the default logic using
         /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
-        public Func<ReceiveAuthorizationCodeContext, Task> OnReceiveAuthorizationCode { get; set; } = context => Task.FromResult<object>(null);
+        public Func<DeserializeAuthorizationCodeContext, Task> OnDeserializeAuthorizationCode { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
         /// Called when receiving an access token. An application may use this notification
         /// to deserialize the token using a custom format and to skip the default logic using
         /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
-        public Func<ReceiveAccessTokenContext, Task> OnReceiveAccessToken { get; set; } = context => Task.FromResult<object>(null);
+        public Func<DeserializeAccessTokenContext, Task> OnDeserializeAccessToken { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
         /// Called when receiving an identity token. An application may use this notification
         /// to deserialize the token using a custom format and to skip the default logic using
         /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
-        public Func<ReceiveIdentityTokenContext, Task> OnReceiveIdentityToken { get; set; } = context => Task.FromResult<object>(null);
+        public Func<DeserializeIdentityTokenContext, Task> OnDeserializeIdentityToken { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
         /// Called when receiving a refresh token. An application may use this notification
         /// to deserialize the code using a custom format and to skip the default logic using
         /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
-        public Func<ReceiveRefreshTokenContext, Task> OnReceiveRefreshToken { get; set; } = context => Task.FromResult<object>(null);
+        public Func<DeserializeRefreshTokenContext, Task> OnDeserializeRefreshToken { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
         /// Called to determine if an incoming request is treated as an authorization or token
@@ -560,7 +560,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task CreateAuthorizationCode(CreateAuthorizationCodeContext context) => OnCreateAuthorizationCode(context);
+        public virtual Task SerializeAuthorizationCode(SerializeAuthorizationCodeContext context) => OnSerializeAuthorizationCode(context);
 
         /// <summary>
         /// Called to create a new access token. An application may use this notification
@@ -569,7 +569,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task CreateAccessToken(CreateAccessTokenContext context) => OnCreateAccessToken(context);
+        public virtual Task SerializeAccessToken(SerializeAccessTokenContext context) => OnSerializeAccessToken(context);
 
         /// <summary>
         /// Called to create a new identity token. An application may use this notification
@@ -578,7 +578,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task CreateIdentityToken(CreateIdentityTokenContext context) => OnCreateIdentityToken(context);
+        public virtual Task SerializeIdentityToken(SerializeIdentityTokenContext context) => OnSerializeIdentityToken(context);
 
         /// <summary>
         /// Called to create a new refresh token. An application may use this notification
@@ -587,7 +587,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task CreateRefreshToken(CreateRefreshTokenContext context) => OnCreateRefreshToken(context);
+        public virtual Task SerializeRefreshToken(SerializeRefreshTokenContext context) => OnSerializeRefreshToken(context);
 
         /// <summary>
         /// Called when receiving an authorization code. An application may use this notification
@@ -596,7 +596,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task ReceiveAuthorizationCode(ReceiveAuthorizationCodeContext context) => OnReceiveAuthorizationCode(context);
+        public virtual Task DeserializeAuthorizationCode(DeserializeAuthorizationCodeContext context) => OnDeserializeAuthorizationCode(context);
 
         /// <summary>
         /// Called when receiving an access token. An application may use this notification
@@ -605,7 +605,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task ReceiveAccessToken(ReceiveAccessTokenContext context) => OnReceiveAccessToken(context);
+        public virtual Task DeserializeAccessToken(DeserializeAccessTokenContext context) => OnDeserializeAccessToken(context);
 
         /// <summary>
         /// Called when receiving an identity token. An application may use this notification
@@ -614,7 +614,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task ReceiveIdentityToken(ReceiveIdentityTokenContext context) => OnReceiveIdentityToken(context);
+        public virtual Task DeserializeIdentityToken(DeserializeIdentityTokenContext context) => OnDeserializeIdentityToken(context);
 
         /// <summary>
         /// Called when receiving a refresh token. An application may use this notification
@@ -623,6 +623,6 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task ReceiveRefreshToken(ReceiveRefreshTokenContext context) => OnReceiveRefreshToken(context);
+        public virtual Task DeserializeRefreshToken(DeserializeRefreshTokenContext context) => OnDeserializeRefreshToken(context);
     }
 }

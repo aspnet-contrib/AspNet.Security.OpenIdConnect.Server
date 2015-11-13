@@ -285,7 +285,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        Task CreateAuthorizationCode(CreateAuthorizationCodeContext context);
+        Task SerializeAuthorizationCode(SerializeAuthorizationCodeContext context);
 
         /// <summary>
         /// Called to create a new access token. An application may use this notification
@@ -294,7 +294,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        Task CreateAccessToken(CreateAccessTokenContext context);
+        Task SerializeAccessToken(SerializeAccessTokenContext context);
 
         /// <summary>
         /// Called to create a new identity token. An application may use this notification
@@ -303,7 +303,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        Task CreateIdentityToken(CreateIdentityTokenContext context);
+        Task SerializeIdentityToken(SerializeIdentityTokenContext context);
 
         /// <summary>
         /// Called to create a new refresh token. An application may use this notification
@@ -312,7 +312,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        Task CreateRefreshToken(CreateRefreshTokenContext context);
+        Task SerializeRefreshToken(SerializeRefreshTokenContext context);
 
         /// <summary>
         /// Called when receiving an authorization code. An application may use this notification
@@ -321,7 +321,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        Task ReceiveAuthorizationCode(ReceiveAuthorizationCodeContext context);
+        Task DeserializeAuthorizationCode(DeserializeAuthorizationCodeContext context);
 
         /// <summary>
         /// Called when receiving an access token. An application may use this notification
@@ -330,7 +330,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        Task ReceiveAccessToken(ReceiveAccessTokenContext context);
+        Task DeserializeAccessToken(DeserializeAccessTokenContext context);
 
         /// <summary>
         /// Called when receiving an identity token. An application may use this notification
@@ -339,7 +339,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        Task ReceiveIdentityToken(ReceiveIdentityTokenContext context);
+        Task DeserializeIdentityToken(DeserializeIdentityTokenContext context);
 
         /// <summary>
         /// Called when receiving a refresh token. An application may use this notification
@@ -348,6 +348,6 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        Task ReceiveRefreshToken(ReceiveRefreshTokenContext context);
+        Task DeserializeRefreshToken(DeserializeRefreshTokenContext context);
     }
 }

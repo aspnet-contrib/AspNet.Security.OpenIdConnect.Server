@@ -881,8 +881,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             // See http://tools.ietf.org/html/rfc6749#section-6 (refresh token grant).
             if (request.IsAuthorizationCodeGrantType() || request.IsRefreshTokenGrantType()) {
                 ticket = request.IsAuthorizationCodeGrantType() ?
-                    await ReceiveAuthorizationCodeAsync(request.Code, request) :
-                    await ReceiveRefreshTokenAsync(request.GetRefreshToken(), request);
+                    await DeserializeAuthorizationCodeAsync(request.Code, request) :
+                    await DeserializeRefreshTokenAsync(request.GetRefreshToken(), request);
 
                 if (ticket == null) {
                     Options.Logger.WriteError("invalid ticket");
@@ -1295,12 +1295,12 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
 
                 response.TokenType = OpenIdConnectConstants.TokenTypes.Bearer;
-                response.AccessToken = await CreateAccessTokenAsync(ticket.Identity, properties, request, response);
+                response.AccessToken = await SerializeAccessTokenAsync(ticket.Identity, properties, request, response);
 
                 // Ensure that an access token is issued to avoid returning an invalid response.
                 // See http://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#Combinations
                 if (string.IsNullOrEmpty(response.AccessToken)) {
-                    Options.Logger.WriteError("CreateAccessTokenAsync returned no access token.");
+                    Options.Logger.WriteError("SerializeAccessTokenAsync returned no access token.");
 
                     await SendErrorPayloadAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.ServerError,
@@ -1310,8 +1310,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                     return;
                 }
 
-                // properties.ExpiresUtc is automatically set by CreateAccessTokenAsync but the end user
-                // is free to set a null value directly in the CreateAccessToken event.
+                // properties.ExpiresUtc is automatically set by SerializeAccessTokenAsync but the end user
+                // is free to set a null value directly in the SerializeAccessToken event.
                 if (properties.ExpiresUtc.HasValue && properties.ExpiresUtc > Options.SystemClock.UtcNow) {
                     var lifetime = properties.ExpiresUtc.Value - Options.SystemClock.UtcNow;
                     var expiration = (long) (lifetime.TotalSeconds + .5);
@@ -1338,13 +1338,13 @@ namespace Owin.Security.OpenIdConnect.Server {
                     properties.ExpiresUtc = validatingContext.AuthenticationTicket.Properties.ExpiresUtc;
                 }
 
-                response.IdToken = await CreateIdentityTokenAsync(ticket.Identity, properties, request, response);
+                response.IdToken = await SerializeIdentityTokenAsync(ticket.Identity, properties, request, response);
 
                 // Ensure that an identity token is issued to avoid returning an invalid response.
                 // See http://openid.net/specs/openid-connect-core-1_0.html#TokenResponse
                 // and http://openid.net/specs/openid-connect-core-1_0.html#RefreshTokenResponse
                 if (string.IsNullOrEmpty(response.IdToken)) {
-                    Options.Logger.WriteError("CreateIdentityTokenAsync returned no identity token.");
+                    Options.Logger.WriteError("SerializeIdentityTokenAsync returned no identity token.");
 
                     await SendErrorPayloadAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.ServerError,
@@ -1373,7 +1373,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     properties.ExpiresUtc = validatingContext.AuthenticationTicket.Properties.ExpiresUtc;
                 }
 
-                response.SetRefreshToken(await CreateRefreshTokenAsync(ticket.Identity, properties, request, response));
+                response.SetRefreshToken(await SerializeRefreshTokenAsync(ticket.Identity, properties, request, response));
             }
 
             var payload = new JObject();
@@ -1487,7 +1487,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
             }
 
-            var ticket = await ReceiveAccessTokenAsync(token, request);
+            var ticket = await DeserializeAccessTokenAsync(token, request);
             if (ticket == null) {
                 Options.Logger.WriteError("invalid token");
 
@@ -1752,15 +1752,15 @@ namespace Owin.Security.OpenIdConnect.Server {
             // See https://tools.ietf.org/html/rfc7662#section-2.1
             switch (request.GetTokenTypeHint()) {
                 case OpenIdConnectConstants.Usages.AccessToken:
-                    ticket = await ReceiveAccessTokenAsync(request.Token, request);
+                    ticket = await DeserializeAccessTokenAsync(request.Token, request);
                     break;
 
                 case OpenIdConnectConstants.Usages.RefreshToken:
-                    ticket = await ReceiveRefreshTokenAsync(request.Token, request);
+                    ticket = await DeserializeRefreshTokenAsync(request.Token, request);
                     break;
 
                 case OpenIdConnectConstants.Usages.IdToken:
-                    ticket = await ReceiveIdentityTokenAsync(request.Token, request);
+                    ticket = await DeserializeIdentityTokenAsync(request.Token, request);
                     break;
             }
 
@@ -1768,9 +1768,9 @@ namespace Owin.Security.OpenIdConnect.Server {
             // extend the search across all of the supported token types.
             // See https://tools.ietf.org/html/rfc7662#section-2.1
             if (ticket == null) {
-                ticket = await ReceiveAccessTokenAsync(request.Token, request) ??
-                         await ReceiveIdentityTokenAsync(request.Token, request) ??
-                         await ReceiveRefreshTokenAsync(request.Token, request);
+                ticket = await DeserializeAccessTokenAsync(request.Token, request) ??
+                         await DeserializeIdentityTokenAsync(request.Token, request) ??
+                         await DeserializeRefreshTokenAsync(request.Token, request);
             }
 
             if (ticket == null) {

@@ -14,28 +14,28 @@ using Microsoft.Owin.Security.Notifications;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
-    /// Provides context information used when receiving an authorization code.
+    /// Provides context information used when receiving a refresh token.
     /// </summary>
-    public sealed class ReceiveAuthorizationCodeContext : BaseNotification<OpenIdConnectServerOptions> {
+    public sealed class DeserializeRefreshTokenContext : BaseNotification<OpenIdConnectServerOptions> {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ReceiveAuthorizationCodeContext"/> class
+        /// Initializes a new instance of the <see cref="DeserializeRefreshTokenContext"/> class
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="request"></param>
-        /// <param name="code"></param>
-        internal ReceiveAuthorizationCodeContext(
+        /// <param name="token"></param>
+        internal DeserializeRefreshTokenContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request,
-            string code)
+            string token)
             : base(context, options) {
             Request = request;
-            AuthorizationCode = code;
+            RefreshToken = token;
         }
 
         /// <summary>
-        /// Gets the authorization request.
+        /// Gets the authorization or token request.
         /// </summary>
         public new OpenIdConnectMessage Request { get; }
 
@@ -56,10 +56,9 @@ namespace Owin.Security.OpenIdConnect.Server {
         public ISecureDataFormat<AuthenticationTicket> DataFormat { get; set; }
 
         /// <summary>
-        /// Gets the authorization code
-        /// used by the client application.
+        /// Gets the refresh code used by the client application.
         /// </summary>
-        public string AuthorizationCode { get; }
+        public string RefreshToken { get; }
 
         /// <summary>
         /// Deserialize and verify the authentication ticket.
@@ -68,7 +67,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         /// <returns>The authentication ticket.</returns>
         public Task<AuthenticationTicket> DeserializeTicketAsync() {
-            return DeserializeTicketAsync(AuthorizationCode);
+            return DeserializeTicketAsync(RefreshToken);
         }
 
         /// <summary>
