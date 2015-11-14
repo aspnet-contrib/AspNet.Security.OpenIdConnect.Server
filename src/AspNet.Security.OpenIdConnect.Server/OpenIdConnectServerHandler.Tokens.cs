@@ -13,6 +13,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 using AspNet.Security.OpenIdConnect.Extensions;
 using Microsoft.AspNet.Authentication;
 using Microsoft.AspNet.Http.Authentication;
@@ -21,7 +22,7 @@ using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     internal partial class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions> {
-        private async Task<string> CreateAuthorizationCodeAsync(
+        private async Task<string> SerializeAuthorizationCodeAsync(
             ClaimsPrincipal principal, AuthenticationProperties properties,
             OpenIdConnectMessage request, OpenIdConnectMessage response) {
             try {
@@ -38,11 +39,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 properties.SetUsage(OpenIdConnectConstants.Usages.Code);
 
                 // Claims in authorization codes are never filtered as they are supposed to be opaque:
-                // CreateAccessTokenAsync and CreateIdentityTokenAsync are responsible of ensuring
+                // SerializeAccessTokenAsync and SerializeIdentityTokenAsync are responsible of ensuring
                 // that subsequent access and identity tokens are correctly filtered.
                 var ticket = new AuthenticationTicket(principal, properties, Options.AuthenticationScheme);
 
-                var notification = new CreateAuthorizationCodeContext(Context, Options, request, response, ticket) {
+                var notification = new SerializeAuthorizationCodeContext(Context, Options, request, response, ticket) {
                     DataFormat = Options.AuthorizationCodeFormat
                 };
 
@@ -51,7 +52,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     return Task.FromResult(notification.DataFormat?.Protect(payload));
                 };
 
-                await Options.Provider.CreateAuthorizationCode(notification);
+                await Options.Provider.SerializeAuthorizationCode(notification);
 
                 // Treat a non-null authorization code like an implicit HandleResponse call.
                 if (notification.HandledResponse || !string.IsNullOrEmpty(notification.AuthorizationCode)) {
@@ -63,7 +64,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 }
 
                 // Allow the application to change the authentication
-                // ticket from the CreateAuthorizationCode event.
+                // ticket from the SerializeAuthorizationCode event.
                 ticket = notification.AuthenticationTicket;
                 ticket.Properties.CopyTo(properties);
 
@@ -91,7 +92,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
         }
 
-        private async Task<string> CreateAccessTokenAsync(
+        private async Task<string> SerializeAccessTokenAsync(
             ClaimsPrincipal principal, AuthenticationProperties properties,
             OpenIdConnectMessage request, OpenIdConnectMessage response) {
             try {
@@ -123,41 +124,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 var identity = (ClaimsIdentity) principal.Identity;
 
-                // List the client application as an authorized party.
-                if (!string.IsNullOrEmpty(request.ClientId)) {
-                    identity.AddClaim(JwtRegisteredClaimNames.Azp, request.ClientId);
-                }
-
-                // Create a new claim per scope item, that will result
-                // in a "scope" array being added in the access token.
-                foreach (var scope in properties.GetScopes()) {
-                    identity.AddClaim(OpenIdConnectConstants.Claims.Scope, scope);
-                }
-
-                // Note: when used as an access token, a JWT token doesn't have to expose a "sub" claim
-                // but the name identifier claim is used as a substitute when it has been explicitly added.
-                // See https://tools.ietf.org/html/rfc7519#section-4.1.2
-                var subject = identity.FindFirst(JwtRegisteredClaimNames.Sub);
-                if (subject == null) {
-                    var identifier = identity.FindFirst(ClaimTypes.NameIdentifier);
-                    if (identifier != null) {
-                        identity.AddClaim(JwtRegisteredClaimNames.Sub, identifier.Value);
-                    }
-                }
-
-                // Remove the ClaimTypes.NameIdentifier claims to avoid getting duplicate claims.
-                // Note: the "sub" claim is automatically mapped by JwtSecurityTokenHandler
-                // to ClaimTypes.NameIdentifier when validating a JWT token.
-                // Note: make sure to call ToArray() to avoid an InvalidOperationException
-                // on old versions of Mono, where FindAll() is implemented using an iterator.
-                foreach (var claim in identity.FindAll(ClaimTypes.NameIdentifier).ToArray()) {
-                    identity.RemoveClaim(claim);
-                }
-
                 // Create a new ticket containing the updated properties and the filtered principal.
                 var ticket = new AuthenticationTicket(principal, properties, Options.AuthenticationScheme);
 
-                var notification = new CreateAccessTokenContext(Context, Options, request, response, ticket) {
+                var notification = new SerializeAccessTokenContext(Context, Options, request, response, ticket) {
+                    Client = request.ClientId,
+                    Confidential = properties.IsConfidential(),
                     DataFormat = Options.AccessTokenFormat,
                     Issuer = Context.GetIssuer(Options),
                     SecurityTokenHandler = Options.AccessTokenHandler,
@@ -166,6 +138,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 foreach (var audience in properties.GetResources()) {
                     notification.Audiences.Add(audience);
+                }
+
+                foreach (var scope in properties.GetScopes()) {
+                    notification.Scopes.Add(scope);
                 }
 
                 // Sets the default access token serializer.
@@ -180,10 +156,27 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     // Store the "usage" property as a claim.
                     identity.AddClaim(OpenIdConnectConstants.Extra.Usage, payload.Properties.GetUsage());
 
-                    // If the ticket is marked as confidential,
-                    // add a new "conf" claim in the JWT token.
-                    if (payload.Properties.IsConfidential()) {
-                        identity.AddClaim(OpenIdConnectConstants.Extra.Confidential, "true");
+                    // If the ticket is marked as confidential, add a new
+                    // "confidential" claim in the security token.
+                    if (notification.Confidential) {
+                        identity.AddClaim(new Claim(OpenIdConnectConstants.Extra.Confidential, "true", ClaimValueTypes.Boolean));
+                    }
+
+                    // Create a new claim per scope item, that will result
+                    // in a "scope" array being added in the access token.
+                    foreach (var scope in notification.Scopes) {
+                        identity.AddClaim(OpenIdConnectConstants.Claims.Scope, scope);
+                    }
+
+                    // Note: when used as an access token, a JWT token doesn't have to expose a "sub" claim
+                    // but the name identifier claim is used as a substitute when it has been explicitly added.
+                    // See https://tools.ietf.org/html/rfc7519#section-4.1.2
+                    var subject = identity.FindFirst(JwtRegisteredClaimNames.Sub);
+                    if (subject == null) {
+                        var identifier = identity.FindFirst(ClaimTypes.NameIdentifier);
+                        if (identifier != null) {
+                            identity.AddClaim(JwtRegisteredClaimNames.Sub, identifier.Value);
+                        }
                     }
 
                     // Store the audiences as claims.
@@ -191,55 +184,87 @@ namespace AspNet.Security.OpenIdConnect.Server {
                         identity.AddClaim(JwtRegisteredClaimNames.Aud, audience);
                     }
 
-                    var token = notification.SecurityTokenHandler.CreateToken(
-                        subject: identity,
-                        issuer: notification.Issuer,
-                        signingCredentials: notification.SigningCredentials,
-                        issuedAt: payload.Properties.IssuedUtc.Value.UtcDateTime,
-                        notBefore: payload.Properties.IssuedUtc.Value.UtcDateTime,
-                        expires: payload.Properties.ExpiresUtc.Value.UtcDateTime);
-
-                    if (notification.SigningCredentials != null) {
-                        var x509SecurityKey = notification.SigningCredentials.Key as X509SecurityKey;
-                        if (x509SecurityKey != null) {
-                            // Note: unlike "kid", "x5t" is not automatically added by JwtHeader's constructor in IdentityModel for ASP.NET 5.
-                            // Though not required by the specifications, this property is needed for IdentityModel for Katana to work correctly.
-                            // See https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server/issues/132
-                            // and https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet/issues/181.
-                            token.Header[JwtHeaderParameterNames.X5t] = Base64UrlEncoder.Encode(x509SecurityKey.Certificate.GetCertHash());
-                        }
-
-                        object identifier;
-                        if (!token.Header.TryGetValue(JwtHeaderParameterNames.Kid, out identifier) || identifier == null) {
-                            // When the token doesn't contain a "kid" parameter in the header, automatically
-                            // add one using the identifier specified in the signing credentials.
-                            identifier = notification.SigningCredentials.Kid;
-
-                            if (identifier == null) {
-                                // When no key identifier has been explicitly added by the developer, a "kid" is automatically
-                                // inferred from the hexadecimal representation of the certificate thumbprint (SHA-1).
-                                if (x509SecurityKey != null) {
-                                    identifier = x509SecurityKey.Certificate.Thumbprint;
-                                }
-
-                                // When no key identifier has been explicitly added by the developer, a "kid"
-                                // is automatically inferred from the modulus if the signing key is a RSA key.
-                                var rsaSecurityKey = notification.SigningCredentials.Key as RsaSecurityKey;
-                                if (rsaSecurityKey != null) {
-                                    // Only use the 40 first chars to match the identifier used by the JWKS endpoint.
-                                    identifier = Base64UrlEncoder.Encode(rsaSecurityKey.Parameters.Modulus)
-                                                                 .Substring(0, 40).ToUpperInvariant();
-                                }
-                            }
-
-                            token.Header[JwtHeaderParameterNames.Kid] = identifier;
-                        }
+                    // List the client application as an authorized party.
+                    if (!string.IsNullOrEmpty(notification.Client)) {
+                        identity.AddClaim(JwtRegisteredClaimNames.Azp, notification.Client);
                     }
 
-                    return Task.FromResult(notification.SecurityTokenHandler.WriteToken(token));
+                    var handler = notification.SecurityTokenHandler as JwtSecurityTokenHandler;
+                    if (handler != null) {
+                        var token = handler.CreateToken(
+                            subject: identity,
+                            issuer: notification.Issuer,
+                            signingCredentials: notification.SigningCredentials,
+                            issuedAt: payload.Properties.IssuedUtc.Value.UtcDateTime,
+                            notBefore: payload.Properties.IssuedUtc.Value.UtcDateTime,
+                            expires: payload.Properties.ExpiresUtc.Value.UtcDateTime);
+
+                        if (notification.SigningCredentials != null) {
+                            var x509SecurityKey = notification.SigningCredentials.Key as X509SecurityKey;
+                            if (x509SecurityKey != null) {
+                                // Note: unlike "kid", "x5t" is not automatically added by JwtHeader's constructor in IdentityModel for ASP.NET 5.
+                                // Though not required by the specifications, this property is needed for IdentityModel for Katana to work correctly.
+                                // See https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server/issues/132
+                                // and https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet/issues/181.
+                                token.Header[JwtHeaderParameterNames.X5t] = Base64UrlEncoder.Encode(x509SecurityKey.Certificate.GetCertHash());
+                            }
+
+                            object identifier;
+                            if (!token.Header.TryGetValue(JwtHeaderParameterNames.Kid, out identifier) || identifier == null) {
+                                // When the token doesn't contain a "kid" parameter in the header, automatically
+                                // add one using the identifier specified in the signing credentials.
+                                identifier = notification.SigningCredentials.Kid;
+
+                                if (identifier == null) {
+                                    // When no key identifier has been explicitly added by the developer, a "kid" is automatically
+                                    // inferred from the hexadecimal representation of the certificate thumbprint (SHA-1).
+                                    if (x509SecurityKey != null) {
+                                        identifier = x509SecurityKey.Certificate.Thumbprint;
+                                    }
+
+                                    // When no key identifier has been explicitly added by the developer, a "kid"
+                                    // is automatically inferred from the modulus if the signing key is a RSA key.
+                                    var rsaSecurityKey = notification.SigningCredentials.Key as RsaSecurityKey;
+                                    if (rsaSecurityKey != null) {
+                                        // Only use the 40 first chars to match the identifier used by the JWKS endpoint.
+                                        identifier = Base64UrlEncoder.Encode(rsaSecurityKey.Parameters.Modulus)
+                                                                     .Substring(0, 40)
+                                                                     .ToUpperInvariant();
+                                    }
+                                }
+
+                                token.Header[JwtHeaderParameterNames.Kid] = identifier;
+                            }
+                        }
+
+                        return Task.FromResult(handler.WriteToken(token));
+                    }
+
+                    else {
+                        var token = notification.SecurityTokenHandler.CreateToken(new SecurityTokenDescriptor {
+                            Claims = payload.Principal.Claims,
+                            Issuer = notification.Issuer,
+                            Audience = notification.Audiences.ElementAtOrDefault(0),
+                            SigningCredentials = notification.SigningCredentials,
+                            IssuedAt = notification.AuthenticationTicket.Properties.IssuedUtc.Value.UtcDateTime,
+                            NotBefore = notification.AuthenticationTicket.Properties.IssuedUtc.Value.UtcDateTime,
+                            Expires = notification.AuthenticationTicket.Properties.ExpiresUtc.Value.UtcDateTime
+                        });
+
+                        // Note: the security token is manually serialized to prevent
+                        // an exception from being thrown if the handler doesn't implement
+                        // the SecurityTokenHandler.WriteToken overload returning a string.
+                        var builder = new StringBuilder();
+                        using (var writer = XmlWriter.Create(builder, new XmlWriterSettings {
+                            Encoding = new UTF8Encoding(false), OmitXmlDeclaration = true })) {
+                            notification.SecurityTokenHandler.WriteToken(writer, token);
+                        }
+
+                        return Task.FromResult(builder.ToString());
+                    }
                 };
 
-                await Options.Provider.CreateAccessToken(notification);
+                await Options.Provider.SerializeAccessToken(notification);
 
                 // Treat a non-null access token like an implicit HandleResponse call.
                 if (notification.HandledResponse || !string.IsNullOrEmpty(notification.AccessToken)) {
@@ -251,7 +276,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 }
 
                 // Allow the application to change the authentication
-                // ticket from the CreateAccessTokenAsync event.
+                // ticket from the SerializeAccessTokenAsync event.
                 ticket = notification.AuthenticationTicket;
                 ticket.Properties.CopyTo(properties);
 
@@ -265,7 +290,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
         }
 
-        private async Task<string> CreateIdentityTokenAsync(
+        private async Task<string> SerializeIdentityTokenAsync(
             ClaimsPrincipal principal, AuthenticationProperties properties,
             OpenIdConnectMessage request, OpenIdConnectMessage response) {
             try {
@@ -297,29 +322,16 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 var identity = (ClaimsIdentity) principal.Identity;
 
-                if (!string.IsNullOrEmpty(response.Code)) {
-                    using (var algorithm = SHA256.Create()) {
-                        // Create the c_hash using the authorization code returned by CreateAuthorizationCodeAsync.
-                        var hash = algorithm.ComputeHash(Encoding.ASCII.GetBytes(response.Code));
+                // Create a new ticket containing the updated properties and the filtered principal.
+                var ticket = new AuthenticationTicket(principal, properties, Options.AuthenticationScheme);
 
-                        // Note: only the left-most half of the hash of the octets is used.
-                        // See http://openid.net/specs/openid-connect-core-1_0.html#HybridIDToken
-                        identity.AddClaim(JwtRegisteredClaimNames.CHash, Base64UrlEncoder.Encode(hash, 0, hash.Length / 2));
-                    }
-                }
-
-                if (!string.IsNullOrEmpty(response.AccessToken)) {
-                    using (var algorithm = SHA256.Create()) {
-                        // Create the at_hash using the access token returned by CreateAccessTokenAsync.
-                        var hash = algorithm.ComputeHash(Encoding.ASCII.GetBytes(response.AccessToken));
-
-                        // Note: only the left-most half of the hash of the octets is used.
-                        // See http://openid.net/specs/openid-connect-core-1_0.html#CodeIDToken
-                        identity.AddClaim(JwtRegisteredClaimNames.AtHash, Base64UrlEncoder.Encode(hash, 0, hash.Length / 2));
-                    }
-                }
-
-                var nonce = request.Nonce;
+                var notification = new SerializeIdentityTokenContext(Context, Options, request, response, ticket) {
+                    Confidential = properties.IsConfidential(),
+                    Issuer = Context.GetIssuer(Options),
+                    Nonce = request.Nonce,
+                    SecurityTokenHandler = Options.IdentityTokenHandler,
+                    SigningCredentials = Options.SigningCredentials.FirstOrDefault()
+                };
 
                 // If a nonce was present in the authorization request, it MUST
                 // be included in the id_token generated by the token endpoint.
@@ -327,51 +339,41 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 if (request.IsAuthorizationCodeGrantType()) {
                     // Restore the nonce stored in the authentication
                     // ticket extracted from the authorization code.
-                    nonce = properties.GetNonce();
-                }
-
-                if (!string.IsNullOrEmpty(nonce)) {
-                    identity.AddClaim(JwtRegisteredClaimNames.Nonce, nonce);
+                    notification.Nonce = properties.GetNonce();
                 }
 
                 // While the 'sub' claim is declared mandatory by the OIDC specs,
                 // it is not always issued as-is by the authorization servers.
                 // When missing, the name identifier claim is used as a substitute.
                 // See http://openid.net/specs/openid-connect-core-1_0.html#IDToken
-                var subject = principal.FindFirst(JwtRegisteredClaimNames.Sub);
-                if (subject == null) {
-                    var identifier = principal.FindFirst(ClaimTypes.NameIdentifier);
-                    if (identifier == null) {
-                        throw new InvalidOperationException(
-                            "A unique identifier cannot be found to generate a 'sub' claim. " +
-                            "Make sure to either add a 'sub' or a 'ClaimTypes.NameIdentifier' claim " +
-                            "in the returned ClaimsIdentity before calling SignIn.");
-                    }
-
-                    identity.AddClaim(JwtRegisteredClaimNames.Sub, identifier.Value);
-                }
-
-                // Remove the ClaimTypes.NameIdentifier claims to avoid getting duplicate claims.
-                // Note: the "sub" claim is automatically mapped by JwtSecurityTokenHandler
-                // to ClaimTypes.NameIdentifier when validating a JWT token.
-                // Note: make sure to call ToArray() to avoid an InvalidOperationException
-                // on old versions of Mono, where FindAll() is implemented using an iterator.
-                foreach (var claim in identity.FindAll(ClaimTypes.NameIdentifier).ToArray()) {
-                    identity.RemoveClaim(claim);
-                }
-
-                // Create a new ticket containing the updated properties and the filtered principal.
-                var ticket = new AuthenticationTicket(principal, properties, Options.AuthenticationScheme);
-
-                var notification = new CreateIdentityTokenContext(Context, Options, request, response, ticket) {
-                    Issuer = Context.GetIssuer(Options),
-                    SecurityTokenHandler = Options.IdentityTokenHandler,
-                    SigningCredentials = Options.SigningCredentials.FirstOrDefault()
-                };
+                notification.Subject = identity.GetClaim(JwtRegisteredClaimNames.Sub) ??
+                                       identity.GetClaim(ClaimTypes.NameIdentifier);
 
                 // Only add client_id in the audiences list if it is non-null.
                 if (!string.IsNullOrEmpty(request.ClientId)) {
                     notification.Audiences.Add(request.ClientId);
+                }
+
+                if (!string.IsNullOrEmpty(response.Code)) {
+                    using (var algorithm = SHA256.Create()) {
+                        // Create the c_hash using the authorization code returned by SerializeAuthorizationCodeAsync.
+                        var hash = algorithm.ComputeHash(Encoding.ASCII.GetBytes(response.Code));
+
+                        // Note: only the left-most half of the hash of the octets is used.
+                        // See http://openid.net/specs/openid-connect-core-1_0.html#HybridIDToken
+                        notification.CHash = Base64UrlEncoder.Encode(hash, 0, hash.Length / 2);
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(response.AccessToken)) {
+                    using (var algorithm = SHA256.Create()) {
+                        // Create the at_hash using the access token returned by SerializeAccessTokenAsync.
+                        var hash = algorithm.ComputeHash(Encoding.ASCII.GetBytes(response.AccessToken));
+
+                        // Note: only the left-most half of the hash of the octets is used.
+                        // See http://openid.net/specs/openid-connect-core-1_0.html#CodeIDToken
+                        notification.AtHash = Base64UrlEncoder.Encode(hash, 0, hash.Length / 2);
+                    }
                 }
 
                 // Sets the default identity token serializer.
@@ -380,21 +382,43 @@ namespace AspNet.Security.OpenIdConnect.Server {
                         return Task.FromResult<string>(null);
                     }
 
+                    if (string.IsNullOrEmpty(notification.Subject)) {
+                        throw new InvalidOperationException(
+                            "A unique identifier cannot be found to generate a 'sub' claim. " +
+                            "Make sure to either add a 'sub' or a 'ClaimTypes.NameIdentifier' claim " +
+                            "in the returned ClaimsIdentity before calling SignIn.");
+                    }
+
                     // Extract the main identity from the principal.
                     identity = (ClaimsIdentity) payload.Principal.Identity;
+
+                    // Store the unique subject identifier as a claim.
+                    identity.AddClaim(JwtRegisteredClaimNames.Sub, notification.Subject);
 
                     // Store the "usage" property as a claim.
                     identity.AddClaim(OpenIdConnectConstants.Extra.Usage, payload.Properties.GetUsage());
 
-                    // If the ticket is marked as confidential,
-                    // add a new "conf" claim in the JWT token.
-                    if (payload.Properties.IsConfidential()) {
-                        identity.AddClaim(OpenIdConnectConstants.Extra.Confidential, "true");
-                    }
-
                     // Store the audiences as claims.
                     foreach (var audience in notification.Audiences) {
                         identity.AddClaim(JwtRegisteredClaimNames.Aud, audience);
+                    }
+
+                    if (!string.IsNullOrEmpty(notification.AtHash)) {
+                        identity.AddClaim("at_hash", notification.AtHash);
+                    }
+
+                    if (!string.IsNullOrEmpty(notification.CHash)) {
+                        identity.AddClaim(JwtRegisteredClaimNames.CHash, notification.CHash);
+                    }
+
+                    if (!string.IsNullOrEmpty(notification.Nonce)) {
+                        identity.AddClaim(JwtRegisteredClaimNames.Nonce, notification.Nonce);
+                    }
+
+                    // If the ticket is marked as confidential, add a new
+                    // "confidential" claim in the security token.
+                    if (notification.Confidential) {
+                        identity.AddClaim(new Claim(OpenIdConnectConstants.Extra.Confidential, "true", ClaimValueTypes.Boolean));
                     }
 
                     var token = notification.SecurityTokenHandler.CreateToken(
@@ -434,7 +458,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
                                 if (rsaSecurityKey != null) {
                                     // Only use the 40 first chars to match the identifier used by the JWKS endpoint.
                                     identifier = Base64UrlEncoder.Encode(rsaSecurityKey.Parameters.Modulus)
-                                                                 .Substring(0, 40).ToUpperInvariant();
+                                                                 .Substring(0, 40)
+                                                                 .ToUpperInvariant();
                                 }
                             }
 
@@ -445,7 +470,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     return Task.FromResult(notification.SecurityTokenHandler.WriteToken(token));
                 };
 
-                await Options.Provider.CreateIdentityToken(notification);
+                await Options.Provider.SerializeIdentityToken(notification);
 
                 // Treat a non-null identity token like an implicit HandleResponse call.
                 if (notification.HandledResponse || !string.IsNullOrEmpty(notification.IdentityToken)) {
@@ -457,7 +482,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 }
 
                 // Allow the application to change the authentication
-                // ticket from the CreateIdentityTokenAsync event.
+                // ticket from the SerializeIdentityTokenAsync event.
                 ticket = notification.AuthenticationTicket;
                 ticket.Properties.CopyTo(properties);
 
@@ -471,7 +496,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
         }
 
-        private async Task<string> CreateRefreshTokenAsync(
+        private async Task<string> SerializeRefreshTokenAsync(
             ClaimsPrincipal principal, AuthenticationProperties properties,
             OpenIdConnectMessage request, OpenIdConnectMessage response) {
             try {
@@ -488,11 +513,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 properties.SetUsage(OpenIdConnectConstants.Usages.RefreshToken);
 
                 // Claims in refresh tokens are never filtered as they are supposed to be opaque:
-                // CreateAccessTokenAsync and CreateIdentityTokenAsync are responsible of ensuring
+                // SerializeAccessTokenAsync and SerializeIdentityTokenAsync are responsible of ensuring
                 // that subsequent access and identity tokens are correctly filtered.
                 var ticket = new AuthenticationTicket(principal, properties, Options.AuthenticationScheme);
 
-                var notification = new CreateRefreshTokenContext(Context, Options, request, response, ticket) {
+                var notification = new SerializeRefreshTokenContext(Context, Options, request, response, ticket) {
                     DataFormat = Options.RefreshTokenFormat
                 };
 
@@ -501,7 +526,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     return Task.FromResult(notification.DataFormat?.Protect(payload));
                 };
 
-                await Options.Provider.CreateRefreshToken(notification);
+                await Options.Provider.SerializeRefreshToken(notification);
 
                 // Treat a non-null refresh token like an implicit HandleResponse call.
                 if (notification.HandledResponse || !string.IsNullOrEmpty(notification.RefreshToken)) {
@@ -513,7 +538,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 }
 
                 // Allow the application to change the authentication
-                // ticket from the CreateRefreshTokenAsync event.
+                // ticket from the SerializeRefreshTokenAsync event.
                 ticket = notification.AuthenticationTicket;
                 ticket.Properties.CopyTo(properties);
 
@@ -527,9 +552,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
         }
 
-        private async Task<AuthenticationTicket> ReceiveAuthorizationCodeAsync(string code, OpenIdConnectMessage request) {
+        private async Task<AuthenticationTicket> DeserializeAuthorizationCodeAsync(string code, OpenIdConnectMessage request) {
             try {
-                var notification = new ReceiveAuthorizationCodeContext(Context, Options, request, code) {
+                var notification = new DeserializeAuthorizationCodeContext(Context, Options, request, code) {
                     DataFormat = Options.AuthorizationCodeFormat
                 };
 
@@ -539,10 +564,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     return Task.FromResult(notification.DataFormat?.Unprotect(payload));
                 };
 
-                await Options.Provider.ReceiveAuthorizationCode(notification);
+                await Options.Provider.DeserializeAuthorizationCode(notification);
 
                 // Directly return the authentication ticket if one
-                // has been provided by ReceiveAuthorizationCode.
+                // has been provided by DeserializeAuthorizationCode.
                 // Treat a non-null ticket like an implicit HandleResponse call.
                 if (notification.HandledResponse || notification.AuthenticationTicket != null) {
                     if (notification.AuthenticationTicket == null) {
@@ -597,9 +622,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
         }
 
-        private async Task<AuthenticationTicket> ReceiveAccessTokenAsync(string token, OpenIdConnectMessage request) {
+        private async Task<AuthenticationTicket> DeserializeAccessTokenAsync(string token, OpenIdConnectMessage request) {
             try {
-                var notification = new ReceiveAccessTokenContext(Context, Options, request, token) {
+                var notification = new DeserializeAccessTokenContext(Context, Options, request, token) {
                     DataFormat = Options.AccessTokenFormat,
                     Issuer = Context.GetIssuer(Options),
                     SecurityTokenHandler = Options.AccessTokenHandler,
@@ -654,10 +679,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     return Task.FromResult(new AuthenticationTicket(principal, properties, Options.AuthenticationScheme));
                 };
 
-                await Options.Provider.ReceiveAccessToken(notification);
+                await Options.Provider.DeserializeAccessToken(notification);
 
                 // Directly return the authentication ticket if one
-                // has been provided by ReceiveAccessToken.
+                // has been provided by DeserializeAccessToken.
                 // Treat a non-null ticket like an implicit HandleResponse call.
                 if (notification.HandledResponse || notification.AuthenticationTicket != null) {
                     if (notification.AuthenticationTicket == null) {
@@ -700,9 +725,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
         }
 
-        private async Task<AuthenticationTicket> ReceiveIdentityTokenAsync(string token, OpenIdConnectMessage request) {
+        private async Task<AuthenticationTicket> DeserializeIdentityTokenAsync(string token, OpenIdConnectMessage request) {
             try {
-                var notification = new ReceiveIdentityTokenContext(Context, Options, request, token) {
+                var notification = new DeserializeIdentityTokenContext(Context, Options, request, token) {
                     Issuer = Context.GetIssuer(Options),
                     SecurityTokenHandler = Options.IdentityTokenHandler,
                     SignatureProvider = Options.SignatureProvider,
@@ -755,10 +780,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     return Task.FromResult(new AuthenticationTicket(principal, properties, Options.AuthenticationScheme));
                 };
 
-                await Options.Provider.ReceiveIdentityToken(notification);
+                await Options.Provider.DeserializeIdentityToken(notification);
 
                 // Directly return the authentication ticket if one
-                // has been provided by ReceiveIdentityToken.
+                // has been provided by DeserializeIdentityToken.
                 // Treat a non-null ticket like an implicit HandleResponse call.
                 if (notification.HandledResponse || notification.AuthenticationTicket != null) {
                     if (notification.AuthenticationTicket == null) {
@@ -801,9 +826,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
         }
 
-        private async Task<AuthenticationTicket> ReceiveRefreshTokenAsync(string token, OpenIdConnectMessage request) {
+        private async Task<AuthenticationTicket> DeserializeRefreshTokenAsync(string token, OpenIdConnectMessage request) {
             try {
-                var notification = new ReceiveRefreshTokenContext(Context, Options, request, token) {
+                var notification = new DeserializeRefreshTokenContext(Context, Options, request, token) {
                     DataFormat = Options.RefreshTokenFormat
                 };
 
@@ -813,10 +838,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     return Task.FromResult(notification.DataFormat?.Unprotect(payload));
                 };
 
-                await Options.Provider.ReceiveRefreshToken(notification);
+                await Options.Provider.DeserializeRefreshToken(notification);
 
                 // Directly return the authentication ticket if one
-                // has been provided by ReceiveRefreshToken.
+                // has been provided by DeserializeRefreshToken.
                 // Treat a non-null ticket like an implicit HandleResponse call.
                 if (notification.HandledResponse || notification.AuthenticationTicket != null) {
                     if (notification.AuthenticationTicket == null) {

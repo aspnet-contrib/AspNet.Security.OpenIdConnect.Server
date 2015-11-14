@@ -17,17 +17,17 @@ using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
-    /// Provides context information used when receiving an access token.
+    /// Provides context information used when receiving an identity token.
     /// </summary>
-    public sealed class ReceiveAccessTokenContext : BaseControlContext {
+    public sealed class DeserializeIdentityTokenContext : BaseControlContext {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ReceiveAccessTokenContext"/> class
+        /// Initializes a new instance of the <see cref="DeserializeIdentityTokenContext"/> class
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="request"></param>
         /// <param name="token"></param>
-        internal ReceiveAccessTokenContext(
+        internal DeserializeIdentityTokenContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request,
@@ -35,7 +35,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             : base(context) {
             Options = options;
             Request = request;
-            AccessToken = token;
+            IdentityToken = token;
         }
 
         /// <summary>
@@ -55,13 +55,13 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
         /// <summary>
         /// Gets or sets the signature provider used to
-        /// verify the authenticity of the access token.
+        /// verify the authenticity of the identity token.
         /// </summary>
         public SignatureProvider SignatureProvider { get; set; }
 
         /// <summary>
         /// Gets or sets the signing key used to
-        /// verify the authenticity of the access token.
+        /// verify the authenticity of the identity token.
         /// </summary>
         public SecurityKey SigningKey { get; set; }
 
@@ -72,21 +72,15 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public Func<string, Task<AuthenticationTicket>> Deserializer { get; set; }
 
         /// <summary>
-        /// Gets or sets the data format used to deserialize the authentication ticket.
-        /// Note: this property is only used when <see cref="SecurityTokenHandler"/> is <c>null</c>.
-        /// </summary>
-        public ISecureDataFormat<AuthenticationTicket> DataFormat { get; set; }
-
-        /// <summary>
         /// Gets or sets the security token handler used to
         /// deserialize the authentication ticket.
         /// </summary>
         public JwtSecurityTokenHandler SecurityTokenHandler { get; set; }
 
         /// <summary>
-        /// Gets the access token used by the client application.
+        /// Gets the identity token used by the client application.
         /// </summary>
-        public string AccessToken { get; }
+        public string IdentityToken { get; }
 
         /// <summary>
         /// Deserialize and unprotect the authentication ticket.
@@ -94,10 +88,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// is automatically set when this method completes.
         /// </summary>
         /// <returns>The authentication ticket.</returns>
-        public Task<AuthenticationTicket> DeserializeTicketAsync() => DeserializeTicketAsync(AccessToken);
+        public Task<AuthenticationTicket> DeserializeTicketAsync() => DeserializeTicketAsync(IdentityToken);
 
         /// <summary>
         /// Deserialize and verify the authentication ticket.
+        /// Note: the <see cref="AuthenticationTicket"/> property
+        /// is automatically set when this method completes.
         /// </summary>
         /// <param name="ticket">The serialized ticket.</param>
         /// <returns>The authentication ticket.</returns>

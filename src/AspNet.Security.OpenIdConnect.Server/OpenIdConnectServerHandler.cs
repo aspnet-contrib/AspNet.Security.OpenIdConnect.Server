@@ -89,7 +89,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     return null;
                 }
 
-                var ticket = await ReceiveIdentityTokenAsync(request.IdTokenHint, request);
+                var ticket = await DeserializeIdentityTokenAsync(request.IdTokenHint, request);
                 if (ticket == null) {
                     Logger.LogVerbose("Invalid id_token_hint");
 
@@ -123,7 +123,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     }
                 }
 
-                var ticket = await ReceiveAccessTokenAsync(token, request);
+                var ticket = await DeserializeAccessTokenAsync(token, request);
                 if (ticket == null) {
                     Logger.LogVerbose("Invalid access_token");
 
@@ -329,7 +329,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             // Determine whether an authorization code should be returned
-            // and invoke CreateAuthorizationCodeAsync if necessary.
+            // and invoke SerializeAuthorizationCodeAsync if necessary.
             if (request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.Code)) {
                 // Make sure to create a copy of the authentication properties
                 // to avoid modifying the properties set on the original ticket.
@@ -340,12 +340,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 // of the authorization code with the lifetime of the other tokens.
                 properties.IssuedUtc = properties.ExpiresUtc = null;
 
-                response.Code = await CreateAuthorizationCodeAsync(context.Principal, properties, request, response);
+                response.Code = await SerializeAuthorizationCodeAsync(context.Principal, properties, request, response);
 
                 // Ensure that an authorization code is issued to avoid returning an invalid response.
                 // See http://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#Combinations
                 if (string.IsNullOrEmpty(response.Code)) {
-                    Logger.LogError("CreateAuthorizationCodeAsync returned no authorization code");
+                    Logger.LogError("SerializeAuthorizationCodeAsync returned no authorization code");
 
                     await SendNativeErrorPageAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.ServerError,
@@ -357,7 +357,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             // Determine whether an access token should be returned
-            // and invoke CreateAccessTokenAsync if necessary.
+            // and invoke SerializeAccessTokenAsync if necessary.
             if (request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.Token)) {
                 // Make sure to create a copy of the authentication properties
                 // to avoid modifying the properties set on the original ticket.
@@ -378,12 +378,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 }
 
                 response.TokenType = OpenIdConnectConstants.TokenTypes.Bearer;
-                response.AccessToken = await CreateAccessTokenAsync(context.Principal, properties, request, response);
+                response.AccessToken = await SerializeAccessTokenAsync(context.Principal, properties, request, response);
 
                 // Ensure that an access token is issued to avoid returning an invalid response.
                 // See http://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#Combinations
                 if (string.IsNullOrEmpty(response.AccessToken)) {
-                    Logger.LogError("CreateAccessTokenAsync returned no access token.");
+                    Logger.LogError("SerializeAccessTokenAsync returned no access token.");
 
                     await SendNativeErrorPageAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.ServerError,
@@ -393,8 +393,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     return;
                 }
 
-                // properties.ExpiresUtc is automatically set by CreateAccessTokenAsync but the end user
-                // is free to set a null value directly in the CreateAccessToken event.
+                // properties.ExpiresUtc is automatically set by SerializeAccessTokenAsync but the end user
+                // is free to set a null value directly in the SerializeAccessToken event.
                 if (properties.ExpiresUtc.HasValue && properties.ExpiresUtc > Options.SystemClock.UtcNow) {
                     var lifetime = properties.ExpiresUtc.Value - Options.SystemClock.UtcNow;
                     var expiration = (long) (lifetime.TotalSeconds + .5);
@@ -404,7 +404,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             // Determine whether an identity token should be returned
-            // and invoke CreateIdentityTokenAsync if necessary.
+            // and invoke SerializeIdentityTokenAsync if necessary.
             // Note: the identity token MUST be created after the authorization code
             // and the access token to create appropriate at_hash and c_hash claims.
             if (request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.IdToken)) {
@@ -412,12 +412,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 // to avoid modifying the properties set on the original ticket.
                 var properties = new AuthenticationProperties(context.Properties).Copy();
 
-                response.IdToken = await CreateIdentityTokenAsync(context.Principal, properties, request, response);
+                response.IdToken = await SerializeIdentityTokenAsync(context.Principal, properties, request, response);
 
                 // Ensure that an identity token is issued to avoid returning an invalid response.
                 // See http://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#Combinations
                 if (string.IsNullOrEmpty(response.IdToken)) {
-                    Logger.LogError("CreateIdentityTokenAsync returned no identity token.");
+                    Logger.LogError("SerializeIdentityTokenAsync returned no identity token.");
 
                     await SendNativeErrorPageAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.ServerError,

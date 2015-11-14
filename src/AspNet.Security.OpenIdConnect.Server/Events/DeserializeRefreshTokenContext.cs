@@ -15,15 +15,15 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used when receiving a refresh token.
     /// </summary>
-    public sealed class ReceiveRefreshTokenContext : BaseControlContext {
+    public sealed class DeserializeRefreshTokenContext : BaseControlContext {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ReceiveRefreshTokenContext"/> class
+        /// Initializes a new instance of the <see cref="DeserializeRefreshTokenContext"/> class
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="request"></param>
         /// <param name="token"></param>
-        internal ReceiveRefreshTokenContext(
+        internal DeserializeRefreshTokenContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request,

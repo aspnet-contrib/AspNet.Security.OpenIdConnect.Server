@@ -13,18 +13,18 @@ using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
-    /// Provides context information used when issuing an authorization code.
+    /// Provides context information used when issuing a refresh token.
     /// </summary>
-    public sealed class CreateAuthorizationCodeContext : BaseControlContext {
+    public sealed class SerializeRefreshTokenContext : BaseControlContext {
         /// <summary>
-        /// Initializes a new instance of the <see cref="CreateAuthorizationCodeContext"/> class
+        /// Initializes a new instance of the <see cref="SerializeRefreshTokenContext"/> class
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="request"></param>
         /// <param name="response"></param>
         /// <param name="ticket"></param>
-        internal CreateAuthorizationCodeContext(
+        internal SerializeRefreshTokenContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request,
@@ -43,12 +43,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public OpenIdConnectServerOptions Options { get; }
 
         /// <summary>
-        /// Gets the authorization request.
+        /// Gets the authorization or token request.
         /// </summary>
         public new OpenIdConnectMessage Request { get; }
 
         /// <summary>
-        /// Gets the authorization response.
+        /// Gets the authorization or token response.
         /// </summary>
         public new OpenIdConnectMessage Response { get; }
 
@@ -64,27 +64,27 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public ISecureDataFormat<AuthenticationTicket> DataFormat { get; set; }
 
         /// <summary>
-        /// Gets or sets the authorization code returned to the client application.
+        /// Gets or sets the refresh token returned to the client application.
         /// </summary>
-        public string AuthorizationCode { get; set; }
+        public string RefreshToken { get; set; }
 
         /// <summary>
-        /// Serialize and sign the authentication ticket using <see cref="DataFormat"/>.
-        /// Note: the <see cref="AuthorizationCode"/> property
+        /// Serialize and sign the authentication ticket.
+        /// Note: the <see cref="RefreshToken"/> property
         /// is automatically set when this method completes.
         /// </summary>
         /// <returns>The serialized and signed ticket.</returns>
         public Task<string> SerializeTicketAsync() => SerializeTicketAsync(AuthenticationTicket);
 
         /// <summary>
-        /// Serialize and sign the authentication ticket using <see cref="DataFormat"/>.
-        /// Note: the <see cref="AuthorizationCode"/> property
+        /// Serialize and sign the authentication ticket.
+        /// Note: the <see cref="RefreshToken"/> property
         /// is automatically set when this method completes.
         /// </summary>
         /// <param name="ticket">The authentication ticket to serialize.</param>
         /// <returns>The serialized and signed ticket.</returns>
         public async Task<string> SerializeTicketAsync(AuthenticationTicket ticket) {
-            return AuthorizationCode = await Serializer(ticket);
+            return RefreshToken = await Serializer(ticket);
         }
     }
 }
