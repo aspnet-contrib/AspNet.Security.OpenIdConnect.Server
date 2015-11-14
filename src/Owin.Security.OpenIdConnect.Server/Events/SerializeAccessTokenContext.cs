@@ -87,6 +87,14 @@ namespace Owin.Security.OpenIdConnect.Server {
         public SignatureProvider SignatureProvider { get; set; }
 
         /// <summary>
+        /// Gets or sets the encrypting credentials used to protect the access token.
+        /// Both asymmetric and symmetric keys can be used, but choosing a per-client
+        /// asymmetric key is strongly recommended. When an asymmetric algorithm is used,
+        /// a new symmetric key is dynamically generated and encrypted using the asymmetric key.
+        /// </summary>
+        public EncryptingCredentials EncryptingCredentials { get; set; }
+
+        /// <summary>
         /// Gets or sets the signing credentials used to sign the access token.
         /// </summary>
         public SigningCredentials SigningCredentials { get; set; }

@@ -22,7 +22,8 @@
         "net45": {
             "frameworkAssemblies": {
                 "System.IdentityModel": "4.0.0.0",
-                "System.Runtime.Caching": "4.0.0.0"
+                "System.Runtime.Caching": "4.0.0.0",
+                "System.Xml": "4.0.0.0"
             }
         }
     }

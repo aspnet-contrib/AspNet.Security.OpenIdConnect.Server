@@ -7,11 +7,13 @@
 using System;
 using System.IdentityModel.Protocols.WSTrust;
 using System.IdentityModel.Tokens;
+using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security;
@@ -234,17 +236,41 @@ namespace Owin.Security.OpenIdConnect.Server {
                     }
 
                     else {
-                        var token = notification.SecurityTokenHandler.CreateToken(new SecurityTokenDescriptor {
+                        var descriptor = new SecurityTokenDescriptor {
                             Subject = payload.Identity,
                             AppliesToAddress = notification.Audiences.ElementAtOrDefault(0),
                             TokenIssuerName = notification.Issuer,
+                            EncryptingCredentials = notification.EncryptingCredentials,
                             SigningCredentials = notification.SigningCredentials,
                             Lifetime = new Lifetime(
-                                notification.AuthenticationTicket.Properties.IssuedUtc.Value.UtcDateTime,
-                                notification.AuthenticationTicket.Properties.ExpiresUtc.Value.UtcDateTime)
-                        });
+                              notification.AuthenticationTicket.Properties.IssuedUtc.Value.UtcDateTime,
+                              notification.AuthenticationTicket.Properties.ExpiresUtc.Value.UtcDateTime)
+                        };
 
-                        return Task.FromResult(notification.SecurityTokenHandler.WriteToken(token));
+                        // When the encrypting credentials use an asymmetric key, replace them by a
+                        // EncryptedKeyEncryptingCredentials instance to generate a symmetric key.
+                        if (descriptor.EncryptingCredentials != null &&
+                            descriptor.EncryptingCredentials.SecurityKey is AsymmetricSecurityKey) {
+                            // Note: EncryptedKeyEncryptingCredentials automatically generates an in-memory key
+                            // that will be encrypted using the original credentials and added to the resulting token
+                            // if the security token handler fully supports token encryption (e.g SAML or SAML2).
+                            descriptor.EncryptingCredentials = new EncryptedKeyEncryptingCredentials(
+                                wrappingCredentials: notification.EncryptingCredentials, keySizeInBits: 256,
+                                encryptionAlgorithm: SecurityAlgorithms.Aes256Encryption);
+                        }
+
+                        var token = notification.SecurityTokenHandler.CreateToken(descriptor);
+
+                        // Note: the security token is manually serialized to prevent
+                        // an exception from being thrown if the handler doesn't implement
+                        // the SecurityTokenHandler.WriteToken overload returning a string.
+                        var builder = new StringBuilder();
+                        using (var writer = XmlWriter.Create(builder, new XmlWriterSettings {
+                            Encoding = new UTF8Encoding(false), OmitXmlDeclaration = true })) {
+                            notification.SecurityTokenHandler.WriteToken(writer, token);
+                        }
+
+                        return Task.FromResult(builder.ToString());
                     }
                 };
 
