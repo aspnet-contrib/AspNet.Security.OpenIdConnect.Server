@@ -5,6 +5,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens;
 using System.IO;
 using System.Linq;
@@ -84,7 +85,32 @@ namespace Owin {
                 throw new InvalidOperationException("The certificate doesn't contain the required private key.");
             }
 
-            return builder.UseKey(new X509SecurityKey(certificate));
+            builder.Options.SigningCredentials.AddCertificate(certificate);
+
+            return builder;
+        }
+
+        /// <summary>
+        /// Adds a specific <see cref="X509Certificate2"/> to sign tokens issued by the OpenID Connect server.
+        /// </summary>
+        /// <param name="credentials">The options used to configure the OpenID Connect server.</param>
+        /// <param name="certificate">The certificate used to sign security tokens issued by the server.</param>
+        /// <returns>The options used to configure the OpenID Connect server.</returns>
+        public static IList<SigningCredentials> AddCertificate(
+            this IList<SigningCredentials> credentials, X509Certificate2 certificate) {
+            if (credentials == null) {
+                throw new ArgumentNullException(nameof(credentials));
+            }
+
+            if (certificate == null) {
+                throw new ArgumentNullException(nameof(certificate));
+            }
+
+            if (certificate.PrivateKey == null) {
+                throw new InvalidOperationException("The certificate doesn't contain the required private key.");
+            }
+
+            return credentials.AddKey(new X509SecurityKey(certificate));
         }
 
         /// <summary>
@@ -115,12 +141,45 @@ namespace Owin {
                 throw new ArgumentNullException("password");
             }
 
+            builder.Options.SigningCredentials.AddCertificate(assembly, resource, password);
+
+            return builder;
+        }
+
+        /// <summary>
+        /// Adds a specific <see cref="X509Certificate2"/> retrieved from an
+        /// embedded resource to sign tokens issued by the OpenID Connect server.
+        /// </summary>
+        /// <param name="credentials">The options used to configure the OpenID Connect server.</param>
+        /// <param name="assembly">The assembly containing the certificate.</param>
+        /// <param name="resource">The name of the embedded resource.</param>
+        /// <param name="password">The password used to open the certificate.</param>
+        /// <returns>The options used to configure the OpenID Connect server.</returns>
+        public static IList<SigningCredentials> AddCertificate(
+            this IList<SigningCredentials> credentials,
+            Assembly assembly, string resource, string password) {
+            if (credentials == null) {
+                throw new ArgumentNullException(nameof(credentials));
+            }
+
+            if (assembly == null) {
+                throw new ArgumentNullException(nameof(assembly));
+            }
+
+            if (string.IsNullOrEmpty(resource)) {
+                throw new ArgumentNullException(nameof(resource));
+            }
+
+            if (string.IsNullOrEmpty(password)) {
+                throw new ArgumentNullException(nameof(password));
+            }
+
             using (var stream = assembly.GetManifestResourceStream(resource)) {
                 if (stream == null) {
                     throw new InvalidOperationException("The certificate was not found in the given assembly.");
                 }
 
-                return builder.UseCertificate(stream, password);
+                return credentials.AddCertificate(stream, password);
             }
         }
 
@@ -134,7 +193,22 @@ namespace Owin {
         /// <returns>The options used to configure the OpenID Connect server.</returns>
         public static OpenIdConnectServerBuilder UseCertificate(
             this OpenIdConnectServerBuilder builder, Stream stream, string password) {
-            return builder.UseCertificate(stream, password, X509KeyStorageFlags.Exportable |
+            builder.Options.SigningCredentials.AddCertificate(stream, password);
+
+            return builder;
+        }
+
+        /// <summary>
+        /// Adds a specific <see cref="X509Certificate2"/> contained in
+        /// a stream to sign tokens issued by the OpenID Connect server.
+        /// </summary>
+        /// <param name="credentials">The options used to configure the OpenID Connect server.</param>
+        /// <param name="stream">The stream containing the certificate.</param>
+        /// <param name="password">The password used to open the certificate.</param>
+        /// <returns>The options used to configure the OpenID Connect server.</returns>
+        public static IList<SigningCredentials> AddCertificate(
+            this IList<SigningCredentials> credentials, Stream stream, string password) {
+            return credentials.AddCertificate(stream, password, X509KeyStorageFlags.Exportable |
                                                                   X509KeyStorageFlags.MachineKeySet);
         }
 
@@ -161,11 +235,40 @@ namespace Owin {
             if (string.IsNullOrEmpty(password)) {
                 throw new ArgumentNullException("password");
             }
+
+            builder.Options.SigningCredentials.AddCertificate(stream, password, flags);
+
+            return builder;
+        }
+
+        /// <summary>
+        /// Adds a specific <see cref="X509Certificate2"/> contained in
+        /// a stream to sign tokens issued by the OpenID Connect server.
+        /// </summary>
+        /// <param name="credentials">The options used to configure the OpenID Connect server.</param>
+        /// <param name="stream">The stream containing the certificate.</param>
+        /// <param name="password">The password used to open the certificate.</param>
+        /// <param name="flags">An enumeration of flags indicating how and where to store the private key of the certificate.</param>
+        /// <returns>The options used to configure the OpenID Connect server.</returns>
+        public static IList<SigningCredentials> AddCertificate(
+            this IList<SigningCredentials> credentials, Stream stream,
+            string password, X509KeyStorageFlags flags) {
+            if (credentials == null) {
+                throw new ArgumentNullException(nameof(credentials));
+            }
+
+            if (stream == null) {
+                throw new ArgumentNullException(nameof(stream));
+            }
+
+            if (string.IsNullOrEmpty(password)) {
+                throw new ArgumentNullException(nameof(password));
+            }
             
             using (var buffer = new MemoryStream()) {
                 stream.CopyTo(buffer);
 
-                return builder.UseCertificate(new X509Certificate2(buffer.ToArray(), password, flags));
+                return credentials.AddCertificate(new X509Certificate2(buffer.ToArray(), password, flags));
             }
         }
 
@@ -179,6 +282,18 @@ namespace Owin {
         public static OpenIdConnectServerBuilder UseCertificate(
             this OpenIdConnectServerBuilder builder, string thumbprint) {
             return builder.UseCertificate(thumbprint, StoreName.My, StoreLocation.LocalMachine);
+        }
+
+        /// <summary>
+        /// Adds a specific <see cref="X509Certificate2"/> retrieved from the
+        /// X509 machine store to sign tokens issued by the OpenID Connect server.
+        /// </summary>
+        /// <param name="credentials">The options used to configure the OpenID Connect server.</param>
+        /// <param name="thumbprint">The thumbprint of the certificate used to identify it in the X509 store.</param>
+        /// <returns>The options used to configure the OpenID Connect server.</returns>
+        public static IList<SigningCredentials> AddCertificate(
+            this IList<SigningCredentials> credentials, string thumbprint) {
+            return credentials.AddCertificate(thumbprint, StoreName.My, StoreLocation.LocalMachine);
         }
 
         /// <summary>
@@ -201,6 +316,31 @@ namespace Owin {
                 throw new ArgumentNullException("thumbprint");
             }
 
+            builder.Options.SigningCredentials.AddCertificate(thumbprint, name, location);
+
+            return builder;
+        }
+
+        /// <summary>
+        /// Adds a specific <see cref="X509Certificate2"/> retrieved from the
+        /// given X509 store to sign tokens issued by the OpenID Connect server.
+        /// </summary>
+        /// <param name="credentials">The options used to configure the OpenID Connect server.</param>
+        /// <param name="thumbprint">The thumbprint of the certificate used to identify it in the X509 store.</param>
+        /// <param name="name">The name of the X509 store.</param>
+        /// <param name="location">The location of the X509 store.</param>
+        /// <returns>The options used to configure the OpenID Connect server.</returns>
+        public static IList<SigningCredentials> AddCertificate(
+            this IList<SigningCredentials> credentials,
+            string thumbprint, StoreName name, StoreLocation location) {
+            if (credentials == null) {
+                throw new ArgumentNullException(nameof(credentials));
+            }
+
+            if (string.IsNullOrEmpty(thumbprint)) {
+                throw new ArgumentNullException(nameof(thumbprint));
+            }
+
             var store = new X509Store(name, location);
 
             try {
@@ -213,7 +353,7 @@ namespace Owin {
                     throw new InvalidOperationException("The certificate corresponding to the given thumbprint was not found.");
                 }
 
-                return builder.UseCertificate(certificate);
+                return credentials.AddCertificate(certificate);
             }
 
             finally {
@@ -236,11 +376,31 @@ namespace Owin {
                 throw new ArgumentNullException("key");
             }
 
-            builder.Options.SigningCredentials.Add(new SigningCredentials(key,
+            builder.Options.SigningCredentials.AddKey(key);
+
+            return builder;
+        }
+
+        /// <summary>
+        /// Adds a specific <see cref="SecurityKey"/> to sign tokens issued by the OpenID Connect server.
+        /// </summary>
+        /// <param name="credentials">The options used to configure the OpenID Connect server.</param>
+        /// <param name="key">The key used to sign security tokens issued by the server.</param>
+        /// <returns>The options used to configure the OpenID Connect server.</returns>
+        public static IList<SigningCredentials> AddKey(this IList<SigningCredentials> credentials, SecurityKey key) {
+            if (credentials == null) {
+                throw new ArgumentNullException(nameof(credentials));
+            }
+
+            if (key == null) {
+                throw new ArgumentNullException(nameof(key));
+            }
+
+            credentials.Add(new SigningCredentials(key,
                 SecurityAlgorithms.RsaSha256Signature,
                 SecurityAlgorithms.Sha256Digest));
 
-            return builder;
+            return credentials;
         }
 
         /// <summary>
@@ -285,6 +445,35 @@ namespace Owin {
                 throw new ArgumentNullException("protector");
             }
 
+            builder.Options.SigningCredentials.AddKeys(directory, protector);
+
+            return builder;
+        }
+
+        /// <summary>
+        /// Adds the <see cref="RsaSecurityKey"/>s stored in the given directory.
+        /// Note: this extension will automatically ignore incompatible keys and
+        /// create a new RSA key if none has been previously added.
+        /// </summary>
+        /// <param name="credentials">The options used to configure the OpenID Connect server.</param>
+        /// <param name="directory">The directory containing the encrypted keys.</param>
+        /// <param name="protector">The data protector used to decrypt the key.</param>
+        /// <returns>The options used to configure the OpenID Connect server.</returns>
+        public static IList<SigningCredentials> AddKeys(
+            this IList<SigningCredentials> credentials,
+            DirectoryInfo directory, IDataProtector protector) {
+            if (credentials == null) {
+                throw new ArgumentNullException(nameof(credentials));
+            }
+
+            if (directory == null) {
+                throw new ArgumentNullException(nameof(directory));
+            }
+
+            if (protector == null) {
+                throw new ArgumentNullException(nameof(protector));
+            }
+
             if (!directory.Exists) {
                 throw new InvalidOperationException("The directory does not exist");
             }
@@ -305,12 +494,12 @@ namespace Owin {
                     var provider = new RSACryptoServiceProvider();
                     provider.ImportParameters(parameters.Value);
 
-                    builder.UseKey(new RsaSecurityKey(provider));
+                    credentials.AddKey(new RsaSecurityKey(provider));
                 }
             }
 
             // If no signing key has been found, generate and persist a new RSA key.
-            if (builder.Options.SigningCredentials.Count == 0) {
+            if (credentials.Count == 0) {
                 // Generate a new 2048 bit RSA key and export its public/private parameters.
                 var provider = new RSACryptoServiceProvider(2048);
                 var parameters = provider.ExportParameters(includePrivateParameters: true);
@@ -326,10 +515,10 @@ namespace Owin {
                     stream.Write(bytes, 0, bytes.Length);
                 }
 
-                builder.UseKey(new RsaSecurityKey(provider));
+                credentials.AddKey(new RsaSecurityKey(provider));
             }
 
-            return builder;
+            return credentials;
         }
 
         /// <summary>
