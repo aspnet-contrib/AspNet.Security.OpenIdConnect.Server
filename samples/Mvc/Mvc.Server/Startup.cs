@@ -95,17 +95,17 @@ namespace Mvc.Server {
             });
 #endif
 
-            app.UseOpenIdConnectServer(configuration => {
-                configuration.Provider = new AuthorizationProvider();
+            app.UseOpenIdConnectServer(options => {
+                options.Provider = new AuthorizationProvider();
 
                 // Note: see AuthorizationController.cs for more
                 // information concerning ApplicationCanDisplayErrors.
-                configuration.Options.ApplicationCanDisplayErrors = true;
-                configuration.Options.AllowInsecureHttp = true;
+                options.ApplicationCanDisplayErrors = true;
+                options.AllowInsecureHttp = true;
 
                 // Note: by default, tokens are signed using dynamically-generated
                 // RSA keys but you can also use your own certificate:
-                // configuration.UseCertificate(certificate);
+                // options.SigningCredentials.AddCertificate(certificate);
             });
 
             app.UseStaticFiles();
