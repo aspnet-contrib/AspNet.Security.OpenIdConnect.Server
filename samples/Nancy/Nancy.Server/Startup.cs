@@ -91,15 +91,15 @@ namespace Nancy.Server {
                 }
             });
 
-            app.UseOpenIdConnectServer(configuration => {
-                configuration.Provider = new AuthorizationProvider();
+            app.UseOpenIdConnectServer(options => {
+                options.Provider = new AuthorizationProvider();
 
-                configuration.UseCertificate(certificate);
+                options.SigningCredentials.AddCertificate(certificate);
 
                 // Note: see AuthorizationModule.cs for more
                 // information concerning ApplicationCanDisplayErrors.
-                configuration.Options.ApplicationCanDisplayErrors = true;
-                configuration.Options.AllowInsecureHttp = true;
+                options.ApplicationCanDisplayErrors = true;
+                options.AllowInsecureHttp = true;
             });
 
             app.Use((context, next) => {
