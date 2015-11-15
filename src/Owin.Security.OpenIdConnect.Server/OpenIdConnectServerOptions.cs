@@ -16,8 +16,6 @@ using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Notifications;
 
 namespace Owin.Security.OpenIdConnect.Server {
-    using Microsoft.IdentityModel.Tokens;
-
     /// <summary>
     /// Options class provides information needed to control Authorization Server middleware behavior
     /// </summary>
@@ -35,6 +33,16 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// Unless AllowInsecureHttp has been set to true, an HTTPS address must be provided.
         /// </summary>
         public Uri Issuer { get; set; }
+
+        /// <summary>
+        /// Gets the list of the credentials used to encrypt and decrypt the authorization requests.
+        /// You can provide any symmetric (e.g <see cref="InMemorySymmetricSecurityKey"/>) or asymmetric
+        /// (e.g <see cref="RsaSecurityKey"/>, <see cref="X509AsymmetricSecurityKey"/> or <see cref="X509SecurityKey"/>)
+        /// security key, but you're strongly encouraged to use a 2048 or 4096-bits RSA asymmetric key in production.
+        /// Note that only keys supporting the <see cref="SecurityAlgorithms.RsaOaepKeyWrap"/> algorithm can be exposed
+        /// on the configuration metadata endpoint. A <see cref="X509EncryptingCredentials"/> instance may also be provided.
+        /// </summary>
+        public IList<EncryptingCredentials> EncryptingCredentials { get; } = new List<EncryptingCredentials>();
 
         /// <summary>
         /// Gets the list of the credentials used to sign tokens. You can provide any symmetric (e.g <see cref="InMemorySymmetricSecurityKey"/>)

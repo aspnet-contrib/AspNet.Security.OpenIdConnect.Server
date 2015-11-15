@@ -539,23 +539,127 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return;
             }
 
+            foreach (var credentials in Options.EncryptingCredentials) {
+                // Skip processing the metadata request if the key is not supported.
+                var asymmetricSecurityKey = credentials.SecurityKey as AsymmetricSecurityKey;
+                if (asymmetricSecurityKey == null) {
+                    Options.Logger.WriteInformation(string.Format(CultureInfo.InvariantCulture,
+                        "Cryptography endpoint: unsupported encryption key ignored. " +
+                        "Only asymmetric security keys derived from '{0}' are supported.",
+                        typeof(AsymmetricSecurityKey).FullName));
+
+                    continue;
+                }
+
+                if (!asymmetricSecurityKey.IsSupportedAlgorithm(SecurityAlgorithms.RsaOaepKeyWrap)) {
+                    Options.Logger.WriteInformation(string.Format(CultureInfo.InvariantCulture,
+                        "Cryptography endpoint: unsupported encryption key ignored. " +
+                        "Only '{0}' instances exposing an asymmetric security key " +
+                        "supporting the '{1}' algorithm can exposed through the JWKS endpoint.",
+                        typeof(EncryptingCredentials).Name, SecurityAlgorithms.RsaOaepKeyWrap));
+
+                    continue;
+                }
+
+                X509Certificate2 x509Certificate = null;
+
+                // Determine whether the encrypting credentials are directly based on a X.509 certificate.
+                var x509EncryptingCredentials = credentials as X509EncryptingCredentials;
+                if (x509EncryptingCredentials != null) {
+                    x509Certificate = x509EncryptingCredentials.Certificate;
+                }
+
+                // Skip looking for a X509SecurityKey in EncryptingCredentials.SecurityKey
+                // if a certificate has been found in the EncryptingCredentials instance.
+                if (x509Certificate == null) {
+                    // Determine whether the security key is an asymmetric key embedded in a X.509 certificate.
+                    var x509SecurityKey = asymmetricSecurityKey as X509SecurityKey;
+                    if (x509SecurityKey != null) {
+                        x509Certificate = x509SecurityKey.Certificate;
+                    }
+                }
+
+                // Skip looking for a X509AsymmetricSecurityKey in EncryptingCredentials.SecurityKey
+                // if a certificate has been found in EncryptingCredentials or EncryptingCredentials.SecurityKey.
+                if (x509Certificate == null) {
+                    // Determine whether the security key is an asymmetric key embedded in a X.509 certificate.
+                    var x509AsymmetricSecurityKey = asymmetricSecurityKey as X509AsymmetricSecurityKey;
+                    if (x509AsymmetricSecurityKey != null) {
+                        // The X.509 certificate is not directly accessible when using X509AsymmetricSecurityKey.
+                        // Reflection is the only way to get the certificate used to create the security key.
+                        var field = typeof(X509AsymmetricSecurityKey).GetField(
+                            name: "certificate",
+                            bindingAttr: BindingFlags.Instance | BindingFlags.NonPublic);
+
+                        x509Certificate = (X509Certificate2) field.GetValue(x509AsymmetricSecurityKey);
+                    }
+                }
+
+                if (x509Certificate != null) {
+                    // Create a new JSON Web Key exposing the
+                    // certificate instead of its public RSA key.
+                    notification.Keys.Add(new JsonWebKey {
+                        Kty = JsonWebAlgorithmsKeyTypes.RSA,
+                        Use = JsonWebKeyUseNames.Enc,
+
+                        // By default, use the hexadecimal representation of the
+                        // certificate's SHA-1 hash as the unique key identifier.
+                        Kid = x509Certificate.Thumbprint,
+
+                        // x5t must be base64url-encoded.
+                        // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#section-4.8
+                        X5t = Base64UrlEncoder.Encode(x509Certificate.GetCertHash()),
+
+                        // Unlike E or N, the certificates contained in x5c
+                        // must be base64-encoded and not base64url-encoded.
+                        // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#section-4.7
+                        X5c = { Convert.ToBase64String(x509Certificate.RawData) }
+                    });
+                }
+
+                else {
+                    // Create a new JSON Web Key exposing the exponent and the modulus of the RSA public key.
+                    var asymmetricAlgorithm = (RSA) asymmetricSecurityKey.GetAsymmetricAlgorithm(
+                        algorithm: SecurityAlgorithms.RsaSha256Signature, privateKey: false);
+
+                    // Export the RSA public key.
+                    var parameters = asymmetricAlgorithm.ExportParameters(includePrivateParameters: false);
+
+                    notification.Keys.Add(new JsonWebKey {
+                        Kty = JsonWebAlgorithmsKeyTypes.RSA,
+                        Use = JsonWebKeyUseNames.Enc,
+
+                        // Create a unique identifier using the base64url-encoded representation of the modulus.
+                        // Note: use the first 40 chars to avoid using a too long identifier.
+                        Kid = Base64UrlEncoder.Encode(parameters.Modulus)
+                                              .Substring(0, 40)
+                                              .ToUpperInvariant(),
+
+                        // Both E and N must be base64url-encoded.
+                        // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#appendix-A.1
+                        E = Base64UrlEncoder.Encode(parameters.Exponent),
+                        N = Base64UrlEncoder.Encode(parameters.Modulus)
+                    });
+                }
+            }
+
             foreach (var credentials in Options.SigningCredentials) {
                 // Skip processing the metadata request if the key is not supported.
                 var asymmetricSecurityKey = credentials.SigningKey as AsymmetricSecurityKey;
                 if (asymmetricSecurityKey == null) {
-                    Options.Logger.WriteWarning(string.Format(CultureInfo.InvariantCulture,
-                        "Cryptography endpoint: invalid signing key registered. " +
-                        "Make sure to provide an asymmetric security key deriving from '{0}'.",
+                    Options.Logger.WriteInformation(string.Format(CultureInfo.InvariantCulture,
+                        "Cryptography endpoint: unsupported signing key ignored. " +
+                        "Only asymmetric security keys derived from '{0}' are supported.",
                         typeof(AsymmetricSecurityKey).FullName));
 
                     continue;
                 }
 
                 if (!asymmetricSecurityKey.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature)) {
-                    Options.Logger.WriteWarning(string.Format(CultureInfo.InvariantCulture,
-                        "Cryptography endpoint: invalid signing key registered. " +
-                        "Make sure to provide a '{0}' instance exposing " +
-                        "an asymmetric security key supporting the '{1}' algorithm.",
+                    Options.Logger.WriteInformation(string.Format(CultureInfo.InvariantCulture,
+                        "Cryptography endpoint: unsupported signing key ignored. " +
+                        "Only '{0}' instances exposing an asymmetric security key " +
+                        "supporting the '{1}' algorithm can exposed through the JWKS endpoint.",
                         typeof(SigningCredentials).Name, SecurityAlgorithms.RsaSha256Signature));
 
                     continue;
