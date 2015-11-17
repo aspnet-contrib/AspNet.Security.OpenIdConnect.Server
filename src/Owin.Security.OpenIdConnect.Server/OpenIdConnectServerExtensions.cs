@@ -30,7 +30,10 @@ namespace Owin {
         /// Adds a new OpenID Connect server instance in the OWIN pipeline.
         /// </summary>
         /// <param name="app">The web application builder.</param>
-        /// <param name="configuration">A delegate allowing to change the OpenID Connect server's settings.</param>
+        /// <param name="configuration">
+        /// A delegate allowing to modify the options
+        /// controlling the behavior of the OpenID Connect server.
+        /// </param>
         /// <returns>The application builder.</returns>
         public static IAppBuilder UseOpenIdConnectServer(
             this IAppBuilder app, Action<OpenIdConnectServerOptions> configuration) {
@@ -44,6 +47,24 @@ namespace Owin {
 
             var options = new OpenIdConnectServerOptions();
             configuration(options);
+
+            return app.UseOpenIdConnectServer(options);
+        }
+
+        /// <summary>
+        /// Adds a new OpenID Connect server instance in the OWIN pipeline.
+        /// </summary>
+        /// <param name="app">The web application builder.</param>
+        /// <param name="options">The options controlling the behavior of the OpenID Connect server.</param>
+        /// <returns>The application builder.</returns>
+        public static IAppBuilder UseOpenIdConnectServer(this IAppBuilder app, OpenIdConnectServerOptions options) {
+            if (app == null) {
+                throw new ArgumentNullException(nameof(app));
+            }
+
+            if (options == null) {
+                throw new ArgumentNullException(nameof(options));
+            }
 
             // If no key has been explicitly added, use the fallback mode.
             if (options.EncryptingCredentials.Count == 0 ||
