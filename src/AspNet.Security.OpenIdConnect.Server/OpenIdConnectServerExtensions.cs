@@ -33,11 +33,22 @@ namespace Microsoft.AspNet.Builder {
         /// Adds a new OpenID Connect server instance in the ASP.NET pipeline.
         /// </summary>
         /// <param name="app">The web application builder.</param>
-        /// <param name="configuration">A delegate allowing to modify the options controlling the behavior of the OpenID Connect server.</param>
+        /// <param name="configuration">
+        /// A delegate allowing to modify the options
+        /// controlling the behavior of the OpenID Connect server.
+        /// </param>
         /// <returns>The application builder.</returns>
         public static IApplicationBuilder UseOpenIdConnectServer(
             [NotNull] this IApplicationBuilder app,
             [NotNull] Action<OpenIdConnectServerOptions> configuration) {
+            if (app == null) {
+                throw new ArgumentNullException(nameof(app));
+            }
+
+            if (configuration == null) {
+                throw new ArgumentNullException(nameof(configuration));
+            }
+
             var options = new OpenIdConnectServerOptions();
 
             // By default, enable AllowInsecureHttp in development/testing environments.
@@ -45,6 +56,27 @@ namespace Microsoft.AspNet.Builder {
             options.AllowInsecureHttp = environment.IsDevelopment() || environment.IsEnvironment("Testing");
 
             configuration(options);
+
+            return app.UseOpenIdConnectServer(options);
+        }
+
+
+        /// <summary>
+        /// Adds a new OpenID Connect server instance in the ASP.NET pipeline.
+        /// </summary>
+        /// <param name="app">The web application builder.</param>
+        /// <param name="options">The options controlling the behavior of the OpenID Connect server.</param>
+        /// <returns>The application builder.</returns>
+        public static IApplicationBuilder UseOpenIdConnectServer(
+            [NotNull] this IApplicationBuilder app,
+            [NotNull] OpenIdConnectServerOptions options) {
+            if (app == null) {
+                throw new ArgumentNullException(nameof(app));
+            }
+
+            if (options == null) {
+                throw new ArgumentNullException(nameof(options));
+            }
 
             // If no key has been explicitly added, use the fallback mode.
             if (options.SigningCredentials.Count == 0) {
