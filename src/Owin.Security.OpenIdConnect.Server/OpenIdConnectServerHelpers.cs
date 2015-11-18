@@ -188,6 +188,29 @@ namespace Owin.Security.OpenIdConnect.Server {
             return address + path;
         }
 
+        internal static string GetJwtAlgorithm(string algorithm) {
+            if (string.IsNullOrEmpty(algorithm)) {
+                throw new ArgumentNullException(nameof(algorithm));
+            }
+
+            switch (algorithm) {
+                case SecurityAlgorithms.HmacSha256Signature:
+                    return JwtAlgorithms.HMAC_SHA256;
+
+                case SecurityAlgorithms.RsaSha256Signature:
+                    return JwtAlgorithms.RSA_SHA256;
+
+                case SecurityAlgorithms.RsaOaepKeyWrap:
+                    return "RSA-OAEP";
+
+                case SecurityAlgorithms.RsaV15KeyWrap:
+                    return "RSA1_5";
+
+                default:
+                    throw new InvalidOperationException($"The '{algorithm}' has no corresponding JWA identifier.");
+            }
+        }
+
         internal static bool ContainsSet(this IEnumerable<string> source, IEnumerable<string> set) {
             if (source == null || set == null) {
                 return false;

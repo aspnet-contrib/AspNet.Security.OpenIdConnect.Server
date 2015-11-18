@@ -169,6 +169,15 @@ namespace Owin.Security.OpenIdConnect.Server {
                             }
                         }
 
+                        // Remove the ClaimTypes.NameIdentifier claims to avoid getting duplicate claims.
+                        // Note: the "sub" claim is automatically mapped by JwtSecurityTokenHandler
+                        // to ClaimTypes.NameIdentifier when validating a JWT token.
+                        // Note: make sure to call ToArray() to avoid an InvalidOperationException
+                        // on old versions of Mono, where FindAll() is implemented using an iterator.
+                        foreach (var claim in payload.Identity.FindAll(ClaimTypes.NameIdentifier).ToArray()) {
+                            payload.Identity.RemoveClaim(claim);
+                        }
+
                         // Store the audiences as claims.
                         foreach (var audience in notification.Audiences) {
                             payload.Identity.AddClaim(JwtRegisteredClaimNames.Aud, audience);
@@ -398,8 +407,17 @@ namespace Owin.Security.OpenIdConnect.Server {
                             "in the returned ClaimsIdentity before calling SignIn.");
                     }
 
+                    // Remove the ClaimTypes.NameIdentifier claims to avoid getting duplicate claims.
+                    // Note: the "sub" claim is automatically mapped by JwtSecurityTokenHandler
+                    // to ClaimTypes.NameIdentifier when validating a JWT token.
+                    // Note: make sure to call ToArray() to avoid an InvalidOperationException
+                    // on old versions of Mono, where FindAll() is implemented using an iterator.
+                    foreach (var claim in payload.Identity.FindAll(ClaimTypes.NameIdentifier).ToArray()) {
+                        payload.Identity.RemoveClaim(claim);
+                    }
+
                     // Store the unique subject identifier as a claim.
-                    identity.AddClaim(JwtRegisteredClaimNames.Sub, notification.Subject);
+                    payload.Identity.AddClaim(JwtRegisteredClaimNames.Sub, notification.Subject);
 
                     // Store the "usage" property as a claim.
                     payload.Identity.AddClaim(OpenIdConnectConstants.Extra.Usage, payload.Properties.GetUsage());

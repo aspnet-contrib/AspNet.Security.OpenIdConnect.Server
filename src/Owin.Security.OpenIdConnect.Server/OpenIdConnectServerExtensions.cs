@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IdentityModel.Tokens;
 using System.IO;
 using System.Reflection;
@@ -346,28 +347,32 @@ namespace Owin {
                 throw new ArgumentNullException(nameof(key));
             }
 
-            var asymmetricSecurityKey = key as AsymmetricSecurityKey;
-            if (asymmetricSecurityKey != null) {
-                var x509SecurityKey = asymmetricSecurityKey as X509SecurityKey;
+            if (key.IsSupportedAlgorithm(SecurityAlgorithms.RsaOaepKeyWrap)) {
+                var x509SecurityKey = key as X509SecurityKey;
                 if (x509SecurityKey != null) {
                     return credentials.AddCertificate(x509SecurityKey.Certificate);
                 }
 
-                var x509AsymmetricSecurityKey = asymmetricSecurityKey as X509AsymmetricSecurityKey;
+                var x509AsymmetricSecurityKey = key as X509AsymmetricSecurityKey;
                 if (x509AsymmetricSecurityKey != null) {
                     // The X.509 certificate is not directly accessible when using X509AsymmetricSecurityKey.
                     // Reflection is the only way to get the certificate used to create the security key.
                     var field = typeof(X509AsymmetricSecurityKey).GetField(
                         name: "certificate",
                         bindingAttr: BindingFlags.Instance | BindingFlags.NonPublic);
+                    Debug.Assert(field != null);
 
                     return credentials.AddCertificate((X509Certificate2) field.GetValue(x509AsymmetricSecurityKey));
                 }
 
-                var rsaSecurityKey = asymmetricSecurityKey as RsaSecurityKey;
+                var rsaSecurityKey = key as RsaSecurityKey;
                 if (rsaSecurityKey != null) {
                     // When using a RSA key, the public part is used to uniquely identify the key.
-                    var algorithm = (RSA) rsaSecurityKey.GetAsymmetricAlgorithm(SecurityAlgorithms.RsaOaepKeyWrap, false);
+                    var algorithm = (RSA) rsaSecurityKey.GetAsymmetricAlgorithm(
+                        algorithm: SecurityAlgorithms.RsaOaepKeyWrap,
+                        requiresPrivateKey: false);
+                    Debug.Assert(algorithm != null);
+
                     var identifier = new SecurityKeyIdentifier(new RsaKeyIdentifierClause(algorithm));
 
                     credentials.Add(new EncryptingCredentials(key, identifier, SecurityAlgorithms.RsaOaepKeyWrap));
@@ -376,8 +381,7 @@ namespace Owin {
                 }
             }
 
-            var symmetricSecurityKey = key as SymmetricSecurityKey;
-            if (symmetricSecurityKey != null) {
+            else if (key.IsSupportedAlgorithm(SecurityAlgorithms.Aes256Encryption)) {
                 // When using an in-memory symmetric key, no identifier clause can be inferred from the key itself.
                 // To prevent the built-in security token handlers from throwing an exception, a default identifier is added.
                 var identifier = new SecurityKeyIdentifier(new LocalIdKeyIdentifierClause("Default"));
@@ -552,11 +556,21 @@ namespace Owin {
                 throw new ArgumentNullException(nameof(key));
             }
 
-            credentials.Add(new SigningCredentials(key,
-                SecurityAlgorithms.RsaSha256Signature,
-                SecurityAlgorithms.Sha256Digest));
+            if (key.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature)) {
+                credentials.Add(new SigningCredentials(key, SecurityAlgorithms.RsaSha256Signature,
+                                                            SecurityAlgorithms.Sha256Digest));
 
-            return credentials;
+                return credentials;
+            }
+
+            else if (key.IsSupportedAlgorithm(SecurityAlgorithms.HmacSha256Signature)) {
+                credentials.Add(new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature,
+                                                            SecurityAlgorithms.Sha256Digest));
+
+                return credentials;
+            }
+
+            throw new InvalidOperationException("The signing key type is not supported.");
         }
 
         /// <summary>

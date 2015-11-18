@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IdentityModel.Tokens;
 using System.IO;
@@ -364,8 +365,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             // Metadata requests must be made via GET.
             // See http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationRequest
             if (!string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
-                Options.Logger.WriteError(string.Format(CultureInfo.InvariantCulture,
-                    "Configuration endpoint: invalid method '{0}' used", Request.Method));
+                Options.Logger.WriteError("Configuration endpoint: invalid method used.");
+
                 return;
             }
 
@@ -534,29 +535,18 @@ namespace Owin.Security.OpenIdConnect.Server {
             // Metadata requests must be made via GET.
             // See http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationRequest
             if (!string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
-                Options.Logger.WriteError(string.Format(CultureInfo.InvariantCulture,
-                    "Cryptography endpoint: invalid method '{0}' used", Request.Method));
+                Options.Logger.WriteError("Cryptography endpoint: invalid method used.");
+
                 return;
             }
 
             foreach (var credentials in Options.EncryptingCredentials) {
-                // Skip processing the metadata request if the key is not supported.
-                var asymmetricSecurityKey = credentials.SecurityKey as AsymmetricSecurityKey;
-                if (asymmetricSecurityKey == null) {
-                    Options.Logger.WriteInformation(string.Format(CultureInfo.InvariantCulture,
-                        "Cryptography endpoint: unsupported encryption key ignored. " +
-                        "Only asymmetric security keys derived from '{0}' are supported.",
-                        typeof(AsymmetricSecurityKey).FullName));
-
-                    continue;
-                }
-
-                if (!asymmetricSecurityKey.IsSupportedAlgorithm(SecurityAlgorithms.RsaOaepKeyWrap)) {
-                    Options.Logger.WriteInformation(string.Format(CultureInfo.InvariantCulture,
-                        "Cryptography endpoint: unsupported encryption key ignored. " +
-                        "Only '{0}' instances exposing an asymmetric security key " +
-                        "supporting the '{1}' algorithm can exposed through the JWKS endpoint.",
-                        typeof(EncryptingCredentials).Name, SecurityAlgorithms.RsaOaepKeyWrap));
+                // Ignore the key if it's not supported.
+                if (!credentials.SecurityKey.IsSupportedAlgorithm(SecurityAlgorithms.RsaOaepKeyWrap) &&
+                    !credentials.SecurityKey.IsSupportedAlgorithm(SecurityAlgorithms.RsaV15KeyWrap)) {
+                    Options.Logger.WriteVerbose("Cryptography endpoint: unsupported encryption key ignored. " +
+                                                "Only asymmetric security keys supporting RSA1_5 or RSA-OAEP " +
+                                                "can be exposed via the JWKS endpoint.");
 
                     continue;
                 }
@@ -573,7 +563,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 // if a certificate has been found in the EncryptingCredentials instance.
                 if (x509Certificate == null) {
                     // Determine whether the security key is an asymmetric key embedded in a X.509 certificate.
-                    var x509SecurityKey = asymmetricSecurityKey as X509SecurityKey;
+                    var x509SecurityKey = credentials.SecurityKey as X509SecurityKey;
                     if (x509SecurityKey != null) {
                         x509Certificate = x509SecurityKey.Certificate;
                     }
@@ -583,13 +573,14 @@ namespace Owin.Security.OpenIdConnect.Server {
                 // if a certificate has been found in EncryptingCredentials or EncryptingCredentials.SecurityKey.
                 if (x509Certificate == null) {
                     // Determine whether the security key is an asymmetric key embedded in a X.509 certificate.
-                    var x509AsymmetricSecurityKey = asymmetricSecurityKey as X509AsymmetricSecurityKey;
+                    var x509AsymmetricSecurityKey = credentials.SecurityKey as X509AsymmetricSecurityKey;
                     if (x509AsymmetricSecurityKey != null) {
                         // The X.509 certificate is not directly accessible when using X509AsymmetricSecurityKey.
                         // Reflection is the only way to get the certificate used to create the security key.
                         var field = typeof(X509AsymmetricSecurityKey).GetField(
                             name: "certificate",
                             bindingAttr: BindingFlags.Instance | BindingFlags.NonPublic);
+                        Debug.Assert(field != null);
 
                         x509Certificate = (X509Certificate2) field.GetValue(x509AsymmetricSecurityKey);
                     }
@@ -599,8 +590,11 @@ namespace Owin.Security.OpenIdConnect.Server {
                     // Create a new JSON Web Key exposing the
                     // certificate instead of its public RSA key.
                     notification.Keys.Add(new JsonWebKey {
-                        Kty = JsonWebAlgorithmsKeyTypes.RSA,
                         Use = JsonWebKeyUseNames.Enc,
+                        Kty = JsonWebAlgorithmsKeyTypes.RSA,
+
+                        // Resolve the JWA identifier from the algorithm specified in the credentials.
+                        Alg = OpenIdConnectServerHelpers.GetJwtAlgorithm(credentials.Algorithm),
 
                         // By default, use the hexadecimal representation of the
                         // certificate's SHA-1 hash as the unique key identifier.
@@ -618,16 +612,24 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
 
                 else {
-                    // Create a new JSON Web Key exposing the exponent and the modulus of the RSA public key.
-                    var asymmetricAlgorithm = (RSA) asymmetricSecurityKey.GetAsymmetricAlgorithm(
-                        algorithm: SecurityAlgorithms.RsaSha256Signature, privateKey: false);
+                    var key = (AsymmetricSecurityKey) credentials.SecurityKey;
 
-                    // Export the RSA public key.
-                    var parameters = asymmetricAlgorithm.ExportParameters(includePrivateParameters: false);
+                    // Resolve the underlying algorithm from the security key.
+                    var algorithm = (RSA) key.GetAsymmetricAlgorithm(
+                        algorithm: SecurityAlgorithms.RsaOaepKeyWrap,
+                        privateKey: false);
+                    Debug.Assert(algorithm != null);
+
+                    // Export the RSA public key to create a new JSON Web Key
+                    // exposing the exponent and the modulus parameters.
+                    var parameters = algorithm.ExportParameters(includePrivateParameters: false);
 
                     notification.Keys.Add(new JsonWebKey {
-                        Kty = JsonWebAlgorithmsKeyTypes.RSA,
                         Use = JsonWebKeyUseNames.Enc,
+                        Kty = JsonWebAlgorithmsKeyTypes.RSA,
+
+                        // Resolve the JWA identifier from the algorithm specified in the credentials.
+                        Alg = OpenIdConnectServerHelpers.GetJwtAlgorithm(credentials.Algorithm),
 
                         // Create a unique identifier using the base64url-encoded representation of the modulus.
                         // Note: use the first 40 chars to avoid using a too long identifier.
@@ -644,23 +646,11 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             foreach (var credentials in Options.SigningCredentials) {
-                // Skip processing the metadata request if the key is not supported.
-                var asymmetricSecurityKey = credentials.SigningKey as AsymmetricSecurityKey;
-                if (asymmetricSecurityKey == null) {
-                    Options.Logger.WriteInformation(string.Format(CultureInfo.InvariantCulture,
-                        "Cryptography endpoint: unsupported signing key ignored. " +
-                        "Only asymmetric security keys derived from '{0}' are supported.",
-                        typeof(AsymmetricSecurityKey).FullName));
-
-                    continue;
-                }
-
-                if (!asymmetricSecurityKey.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature)) {
-                    Options.Logger.WriteInformation(string.Format(CultureInfo.InvariantCulture,
-                        "Cryptography endpoint: unsupported signing key ignored. " +
-                        "Only '{0}' instances exposing an asymmetric security key " +
-                        "supporting the '{1}' algorithm can exposed through the JWKS endpoint.",
-                        typeof(SigningCredentials).Name, SecurityAlgorithms.RsaSha256Signature));
+                // Ignore the key if it's not supported.
+                if (!credentials.SigningKey.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature)) {
+                    Options.Logger.WriteVerbose("Cryptography endpoint: unsupported signing key ignored. " +
+                                                "Only asymmetric security keys supporting RS256, RS384 " +
+                                                "or RS512 can be exposed via the JWKS endpoint.");
 
                     continue;
                 }
@@ -677,7 +667,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 // if a certificate has been found in the SigningCredentials instance.
                 if (x509Certificate == null) {
                     // Determine whether the security key is an asymmetric key embedded in a X.509 certificate.
-                    var x509SecurityKey = asymmetricSecurityKey as X509SecurityKey;
+                    var x509SecurityKey = credentials.SigningKey as X509SecurityKey;
                     if (x509SecurityKey != null) {
                         x509Certificate = x509SecurityKey.Certificate;
                     }
@@ -687,13 +677,14 @@ namespace Owin.Security.OpenIdConnect.Server {
                 // if a certificate has been found in SigningCredentials or SigningCredentials.SigningKey.
                 if (x509Certificate == null) {
                     // Determine whether the security key is an asymmetric key embedded in a X.509 certificate.
-                    var x509AsymmetricSecurityKey = asymmetricSecurityKey as X509AsymmetricSecurityKey;
+                    var x509AsymmetricSecurityKey = credentials.SigningKey as X509AsymmetricSecurityKey;
                     if (x509AsymmetricSecurityKey != null) {
                         // The X.509 certificate is not directly accessible when using X509AsymmetricSecurityKey.
                         // Reflection is the only way to get the certificate used to create the security key.
                         var field = typeof(X509AsymmetricSecurityKey).GetField(
                             name: "certificate",
                             bindingAttr: BindingFlags.Instance | BindingFlags.NonPublic);
+                        Debug.Assert(field != null);
 
                         x509Certificate = (X509Certificate2) field.GetValue(x509AsymmetricSecurityKey);
                     }
@@ -703,9 +694,11 @@ namespace Owin.Security.OpenIdConnect.Server {
                     // Create a new JSON Web Key exposing the
                     // certificate instead of its public RSA key.
                     notification.Keys.Add(new JsonWebKey {
-                        Kty = JsonWebAlgorithmsKeyTypes.RSA,
-                        Alg = JwtAlgorithms.RSA_SHA256,
                         Use = JsonWebKeyUseNames.Sig,
+                        Kty = JsonWebAlgorithmsKeyTypes.RSA,
+
+                        // Resolve the JWA identifier from the algorithm specified in the credentials.
+                        Alg = OpenIdConnectServerHelpers.GetJwtAlgorithm(credentials.SignatureAlgorithm),
 
                         // By default, use the hexadecimal representation of the
                         // certificate's SHA-1 hash as the unique key identifier.
@@ -723,17 +716,24 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
 
                 else {
-                    // Create a new JSON Web Key exposing the exponent and the modulus of the RSA public key.
-                    var asymmetricAlgorithm = (RSA) asymmetricSecurityKey.GetAsymmetricAlgorithm(
-                        algorithm: SecurityAlgorithms.RsaSha256Signature, privateKey: false);
+                    var key = (AsymmetricSecurityKey) credentials.SigningKey;
 
-                    // Export the RSA public key.
-                    var parameters = asymmetricAlgorithm.ExportParameters(includePrivateParameters: false);
+                    // Resolve the underlying algorithm from the security key.
+                    var algorithm = (RSA) key.GetAsymmetricAlgorithm(
+                        algorithm: SecurityAlgorithms.RsaOaepKeyWrap,
+                        privateKey: false);
+                    Debug.Assert(algorithm != null);
+
+                    // Export the RSA public key to create a new JSON Web Key
+                    // exposing the exponent and the modulus parameters.
+                    var parameters = algorithm.ExportParameters(includePrivateParameters: false);
 
                     notification.Keys.Add(new JsonWebKey {
-                        Kty = JsonWebAlgorithmsKeyTypes.RSA,
-                        Alg = JwtAlgorithms.RSA_SHA256,
                         Use = JsonWebKeyUseNames.Sig,
+                        Kty = JsonWebAlgorithmsKeyTypes.RSA,
+
+                        // Resolve the JWA identifier from the algorithm specified in the credentials.
+                        Alg = OpenIdConnectServerHelpers.GetJwtAlgorithm(credentials.SignatureAlgorithm),
 
                         // Create a unique identifier using the base64url-encoded representation of the modulus.
                         // Note: use the first 40 chars to avoid using a too long identifier.
