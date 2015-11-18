@@ -367,8 +367,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // Metadata requests must be made via GET.
             // See http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationRequest
             if (!string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
-                Logger.LogError(string.Format(CultureInfo.InvariantCulture,
-                    "Configuration endpoint: invalid method '{0}' used", Request.Method));
+                Logger.LogError("Configuration endpoint: invalid method used.");
+
                 return;
             }
 
@@ -537,18 +537,19 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // Metadata requests must be made via GET.
             // See http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationRequest
             if (!string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
-                Logger.LogError(string.Format(CultureInfo.InvariantCulture,
-                    "Cryptography endpoint: invalid method '{0}' used", Request.Method));
+                Logger.LogError("Cryptography endpoint: invalid method used.");
+
                 return;
             }
 
             foreach (var credentials in Options.SigningCredentials) {
-                if (!credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature)) {
-                    Logger.LogWarning(string.Format(CultureInfo.InvariantCulture,
-                        "Cryptography endpoint: invalid signing key registered. " +
-                        "Make sure to provide a '{0}' instance exposing " +
-                        "an asymmetric security key supporting the '{1}' algorithm.",
-                        typeof(SigningCredentials).Name, SecurityAlgorithms.RsaSha256Signature));
+                // Ignore the key if it's not supported.
+                if (!credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature) &&
+                    !credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha384Signature) &&
+                    !credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha512Signature)) {
+                    Logger.LogVerbose("Cryptography endpoint: unsupported signing key ignored. " +
+                                      "Only asymmetric security keys supporting RS256, RS384 " +
+                                      "or RS512 can be exposed via the JWKS endpoint.");
 
                     continue;
                 }
@@ -559,9 +560,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     // Create a new JSON Web Key exposing the
                     // certificate instead of its public RSA key.
                     notification.Keys.Add(new JsonWebKey {
-                        Kty = JsonWebAlgorithmsKeyTypes.RSA,
-                        Alg = JwtAlgorithms.RSA_SHA256,
                         Use = JsonWebKeyUseNames.Sig,
+                        Kty = JsonWebAlgorithmsKeyTypes.RSA,
+
+                        // Resolve the JWA identifier from the algorithm specified in the credentials.
+                        Alg = OpenIdConnectServerHelpers.GetJwtAlgorithm(credentials.Algorithm),
 
                         // By default, use the key identifier specified in the signing credentials. If none is specified,
                         // use the hexadecimal representation of the certificate's SHA-1 hash as the unique key identifier.
@@ -582,9 +585,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 if (rsaSecurityKey != null) {
                     // Export the RSA public key.
                     notification.Keys.Add(new JsonWebKey {
-                        Kty = JsonWebAlgorithmsKeyTypes.RSA,
-                        Alg = JwtAlgorithms.RSA_SHA256,
                         Use = JsonWebKeyUseNames.Sig,
+                        Kty = JsonWebAlgorithmsKeyTypes.RSA,
+
+                        // Resolve the JWA identifier from the algorithm specified in the credentials.
+                        Alg = OpenIdConnectServerHelpers.GetJwtAlgorithm(credentials.Algorithm),
 
                         // By default, use the key identifier specified in the signing credentials.
                         // If none is specified, try to extract it from the security key itself or

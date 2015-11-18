@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -240,33 +241,138 @@ namespace AspNet.Security.OpenIdConnect.Server {
             return cache.SetAsync(key, buffer, options);
         }
 
-        internal static bool IsSupportedAlgorithm([NotNull] this SecurityKey securityKey, [NotNull] string algorithm) {
+        internal static bool IsSupportedAlgorithm([NotNull] this SecurityKey key, [NotNull] string algorithm) {
             // Note: SecurityKey currently doesn't support IsSupportedAlgorithm.
-            // To work around this limitation, this static extensions tries to
-            // determine whether the security key supports RSA w/ SHA2 or not.
-            if (!string.Equals(algorithm, SecurityAlgorithms.RsaSha256Signature, StringComparison.OrdinalIgnoreCase) &&
-                !string.Equals(algorithm, SecurityAlgorithms.RsaSha384Signature, StringComparison.OrdinalIgnoreCase) &&
-                !string.Equals(algorithm, SecurityAlgorithms.RsaSha512Signature, StringComparison.OrdinalIgnoreCase)) {
-                return false;
+            // To work around this limitation, this static extension tries to
+            // determine whether the given security key supports the specified
+            // algorithm via CryptoConfig when available or using a pre-defined table.
+            var symmetricSecurityKey = key as SymmetricSecurityKey;
+            if (symmetricSecurityKey != null) {
+#if DNX451
+                if (CryptoConfig.CreateFromName(algorithm) is SymmetricAlgorithm) {
+                    return true;
+                }
+#endif
+                switch (algorithm) {
+                    case SecurityAlgorithms.HmacSha256Signature:
+                    case SecurityAlgorithms.HMAC_SHA256:
+                    case SecurityAlgorithms.HMAC_SHA384:
+                    case SecurityAlgorithms.HMAC_SHA512:
+                        return true;
+
+                    case SecurityAlgorithms.Aes128Encryption:
+                    case SecurityAlgorithms.Aes128KeyWrap:
+                        return symmetricSecurityKey.KeySize >= 128 &&
+                               symmetricSecurityKey.KeySize <= 256;
+
+                    case SecurityAlgorithms.Aes192Encryption:
+                    case SecurityAlgorithms.Aes192KeyWrap:
+                        return symmetricSecurityKey.KeySize >= 192 &&
+                               symmetricSecurityKey.KeySize <= 256;
+
+                    case SecurityAlgorithms.Aes256Encryption:
+                    case SecurityAlgorithms.Aes256KeyWrap:
+                        return symmetricSecurityKey.KeySize == 256;
+
+                    default:
+                        return false;
+                }
             }
 
-            var rsaSecurityKey = securityKey as RsaSecurityKey;
-            if (rsaSecurityKey != null) {
-                return rsaSecurityKey.HasPublicKey &&
-                       rsaSecurityKey.HasPrivateKey;
+            else if (key is AsymmetricSecurityKey) {
+#if DNX451
+                if (CryptoConfig.CreateFromName(algorithm) is AsymmetricAlgorithm) {
+                    return true;
+                }
+#endif
+
+                switch (algorithm) {
+                    case SecurityAlgorithms.RsaSha256Signature:
+                    case SecurityAlgorithms.RsaSha384Signature:
+                    case SecurityAlgorithms.RsaSha512Signature:
+                    case SecurityAlgorithms.RSA_SHA256:
+                    case SecurityAlgorithms.RSA_SHA384:
+                    case SecurityAlgorithms.RSA_SHA512:
+                    case SecurityAlgorithms.RsaOaepKeyWrap:
+                    case SecurityAlgorithms.RsaV15KeyWrap: {
+                        if (key is RsaSecurityKey) {
+                            return true;
+                        }
+
+                        var x509SecurityKey = key as X509SecurityKey;
+                        if (x509SecurityKey != null) {
+#if DNX451
+                            return x509SecurityKey.Certificate.PublicKey.Key is RSA;
+#else
+                            return x509SecurityKey.Certificate.GetRSAPublicKey() != null;
+#endif
+                        }
+
+                        return false;
+                    }
+
+                    case SecurityAlgorithms.ECDSA_SHA256:
+                    case SecurityAlgorithms.ECDSA_SHA384:
+                    case SecurityAlgorithms.ECDSA_SHA512: {
+                        if (key is ECDsaSecurityKey) {
+                            return true;
+                        }
+
+                        var x509SecurityKey = key as X509SecurityKey;
+                        if (x509SecurityKey != null) {
+#if DNX451
+                            return x509SecurityKey.Certificate.PublicKey.Key is ECDsa;
+#else
+                            return x509SecurityKey.Certificate.GetECDsaPublicKey() != null;
+#endif
+                        }
+
+                        return false;
+                    }
+
+                    default:
+                        return false;
+                }
             }
 
-            var x509SecurityKey = securityKey as X509SecurityKey;
-            if (x509SecurityKey == null || !x509SecurityKey.HasPublicKey) {
-                return false;
+            // If the security key doesn't inherit from SymmetricSecurityKey
+            // or AsymmetricSecurityKey, it must be treated as an invalid key
+            // and false must be returned to indicate that it cannot be used
+            // with the specified algorithm.
+            return false;
+        }
+
+        internal static string GetJwtAlgorithm(string algorithm) {
+            if (string.IsNullOrEmpty(algorithm)) {
+                throw new ArgumentNullException(nameof(algorithm));
             }
 
-            var rsaPrivateKey = x509SecurityKey.PrivateKey as RSA;
-            if (rsaPrivateKey == null) {
-                return false;
-            }
+            switch (algorithm) {
+                case SecurityAlgorithms.HmacSha256Signature:
+                case SecurityAlgorithms.HMAC_SHA256:
+                    return JwtAlgorithms.HMAC_SHA256;
 
-            return true;
+                case SecurityAlgorithms.RsaSha256Signature:
+                case SecurityAlgorithms.RSA_SHA256:
+                    return JwtAlgorithms.RSA_SHA256;
+
+                case SecurityAlgorithms.RsaSha384Signature:
+                case SecurityAlgorithms.RSA_SHA384:
+                    return JwtAlgorithms.RSA_SHA384;
+
+                case SecurityAlgorithms.RsaSha512Signature:
+                case SecurityAlgorithms.RSA_SHA512:
+                    return JwtAlgorithms.RSA_SHA512;
+
+                case SecurityAlgorithms.RsaOaepKeyWrap:
+                    return "RSA-OAEP";
+
+                case SecurityAlgorithms.RsaV15KeyWrap:
+                    return "RSA1_5";
+
+                default:
+                    throw new InvalidOperationException($"The '{algorithm}' has no corresponding JWA identifier.");
+            }
         }
 
         internal static bool ContainsSet(this IEnumerable<string> source, IEnumerable<string> set) {

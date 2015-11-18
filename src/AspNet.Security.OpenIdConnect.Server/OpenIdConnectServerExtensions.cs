@@ -323,9 +323,21 @@ namespace Microsoft.AspNet.Builder {
                 throw new ArgumentNullException(nameof(key));
             }
 
-            credentials.Add(new SigningCredentials(key, SecurityAlgorithms.RsaSha256Signature));
+            if (key.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature)) {
+                // See https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet/issues/316
+                credentials.Add(new SigningCredentials(key, SecurityAlgorithms.RSA_SHA256));
 
-            return credentials;
+                return credentials;
+            }
+
+            else if (key.IsSupportedAlgorithm(SecurityAlgorithms.HmacSha256Signature)) {
+                // See https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet/issues/316
+                credentials.Add(new SigningCredentials(key, SecurityAlgorithms.HMAC_SHA256));
+
+                return credentials;
+            }
+
+            throw new InvalidOperationException("The signing key type is not supported.");
         }
 
         /// <summary>

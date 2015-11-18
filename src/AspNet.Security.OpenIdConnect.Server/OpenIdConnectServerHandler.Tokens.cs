@@ -179,6 +179,15 @@ namespace AspNet.Security.OpenIdConnect.Server {
                         }
                     }
 
+                    // Remove the ClaimTypes.NameIdentifier claims to avoid getting duplicate claims.
+                    // Note: the "sub" claim is automatically mapped by JwtSecurityTokenHandler
+                    // to ClaimTypes.NameIdentifier when validating a JWT token.
+                    // Note: make sure to call ToArray() to avoid an InvalidOperationException
+                    // on old versions of Mono, where FindAll() is implemented using an iterator.
+                    foreach (var claim in identity.FindAll(ClaimTypes.NameIdentifier).ToArray()) {
+                        identity.RemoveClaim(claim);
+                    }
+
                     // Store the audiences as claims.
                     foreach (var audience in notification.Audiences) {
                         identity.AddClaim(JwtRegisteredClaimNames.Aud, audience);
@@ -394,6 +403,15 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                     // Store the unique subject identifier as a claim.
                     identity.AddClaim(JwtRegisteredClaimNames.Sub, notification.Subject);
+
+                    // Remove the ClaimTypes.NameIdentifier claims to avoid getting duplicate claims.
+                    // Note: the "sub" claim is automatically mapped by JwtSecurityTokenHandler
+                    // to ClaimTypes.NameIdentifier when validating a JWT token.
+                    // Note: make sure to call ToArray() to avoid an InvalidOperationException
+                    // on old versions of Mono, where FindAll() is implemented using an iterator.
+                    foreach (var claim in identity.FindAll(ClaimTypes.NameIdentifier).ToArray()) {
+                        identity.RemoveClaim(claim);
+                    }
 
                     // Store the "usage" property as a claim.
                     identity.AddClaim(OpenIdConnectConstants.Extra.Usage, payload.Properties.GetUsage());
