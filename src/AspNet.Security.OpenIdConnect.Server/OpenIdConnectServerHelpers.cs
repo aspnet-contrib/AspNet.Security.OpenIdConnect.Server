@@ -249,9 +249,15 @@ namespace AspNet.Security.OpenIdConnect.Server {
             var symmetricSecurityKey = key as SymmetricSecurityKey;
             if (symmetricSecurityKey != null) {
 #if DNX451
-                if (CryptoConfig.CreateFromName(algorithm) is SymmetricAlgorithm) {
-                    return true;
+                try {
+                    var instance = CryptoConfig.CreateFromName(algorithm);
+                    if (instance is SymmetricAlgorithm || instance is KeyedHashAlgorithm) {
+                        return true;
+                    }
                 }
+
+                // Ignore the InvalidOperationException thrown by CryptoConfig.
+                catch (InvalidOperationException) { }
 #endif
                 switch (algorithm) {
                     case SecurityAlgorithms.HmacSha256Signature:
@@ -281,9 +287,15 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             else if (key is AsymmetricSecurityKey) {
 #if DNX451
-                if (CryptoConfig.CreateFromName(algorithm) is AsymmetricAlgorithm) {
-                    return true;
+                try {
+                    var instance = CryptoConfig.CreateFromName(algorithm);
+                    if (instance is AsymmetricAlgorithm || instance is SignatureDescription) {
+                        return true;
+                    }
                 }
+
+                // Ignore the InvalidOperationException thrown by CryptoConfig.
+                catch (InvalidOperationException) { }
 #endif
 
                 switch (algorithm) {
