@@ -311,6 +311,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
                         return false;
                     }
 
+#if DNXCORE50
+                    // Note: the ECDsa type exists on .NET 4.5.1 but not on Mono 4.3.
+                    // To prevent this code path from throwing an exception
+                    // on Mono, the following algorithms are ignored on DNX451.
                     case SecurityAlgorithms.ECDSA_SHA256:
                     case SecurityAlgorithms.ECDSA_SHA384:
                     case SecurityAlgorithms.ECDSA_SHA512: {
@@ -320,15 +324,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                         var x509SecurityKey = key as X509SecurityKey;
                         if (x509SecurityKey != null) {
-#if DNX451
-                            return x509SecurityKey.Certificate.PublicKey.Key is ECDsa;
-#else
                             return x509SecurityKey.Certificate.GetECDsaPublicKey() != null;
-#endif
                         }
 
                         return false;
                     }
+#endif
 
                     default:
                         return false;
