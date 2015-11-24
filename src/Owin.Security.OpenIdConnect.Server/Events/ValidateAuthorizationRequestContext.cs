@@ -24,7 +24,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             OpenIdConnectMessage request)
             : base(context, options) {
             Request = request;
-            Validated();
+            Validate();
         }
 
         /// <summary>

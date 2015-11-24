@@ -27,7 +27,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             AuthenticationTicket ticket)
             : base(context, options, ticket) {
             Request = request;
-            Validated();
+            Validate();
         }
 
         /// <summary>

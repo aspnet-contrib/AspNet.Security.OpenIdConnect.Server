@@ -39,13 +39,13 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// IsValidated becomes true and HasError becomes false as a result of calling.
         /// </summary>
         /// <returns></returns>
-        public override bool Validated() {
+        public override bool Validate() {
             if (string.IsNullOrEmpty(PostLogoutRedirectUri)) {
                 // Don't allow default validation when redirect_uri not provided with request
                 return false;
             }
 
-            return base.Validated();
+            return base.Validate();
         }
 
         /// <summary>
@@ -66,29 +66,29 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             PostLogoutRedirectUri = redirectUri;
 
-            return Validated();
+            return Validate();
         }
 
         /// <summary>
         /// Resets post_logout_redirect_uri and marks
         /// the context as skipped by the application.
         /// </summary>
-        public override bool Skipped() {
+        public override bool Skip() {
             // Reset post_logout_redirect_uri if validation was skipped.
             PostLogoutRedirectUri = null;
 
-            return base.Skipped();
+            return base.Skip();
         }
 
         /// <summary>
         /// Resets post_logout_redirect_uri and marks
         /// the context as rejected by the application.
         /// </summary>
-        public override bool Rejected() {
+        public override bool Reject() {
             // Reset post_logout_redirect_uri if validation failed.
             PostLogoutRedirectUri = null;
 
-            return base.Rejected();
+            return base.Reject();
         }
     }
 }

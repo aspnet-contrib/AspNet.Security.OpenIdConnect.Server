@@ -37,9 +37,9 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="ticket">Assigned to the Ticket property</param>
         /// <returns>True if the validation has taken effect.</returns>
-        public bool Validated(AuthenticationTicket ticket) {
+        public bool Validate(AuthenticationTicket ticket) {
             AuthenticationTicket = ticket;
-            return Validated();
+            return Validate();
         }
 
         /// <summary>
@@ -48,12 +48,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="identity">Assigned to the Ticket.Identity property</param>
         /// <returns>True if the validation has taken effect.</returns>
-        public bool Validated(ClaimsIdentity identity) {
-            var properties = AuthenticationTicket != null ?
-                             AuthenticationTicket.Properties :
-                             new AuthenticationProperties();
+        public bool Validate(ClaimsIdentity identity) {
+            var properties = AuthenticationTicket?.Properties ?? new AuthenticationProperties();
 
-            return Validated(new AuthenticationTicket(identity, properties));
+            return Validate(new AuthenticationTicket(identity, properties));
         }
     }
 }
