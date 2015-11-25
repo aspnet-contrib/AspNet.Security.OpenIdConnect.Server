@@ -811,12 +811,24 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             // Reject grant_type=client_credentials requests if client authentication was skipped.
-            if (clientNotification.IsSkipped && request.IsClientCredentialsGrantType()) {
+            else if (clientNotification.IsSkipped && request.IsClientCredentialsGrantType()) {
                 Logger.LogError("client authentication is required for client_credentials grant type.");
 
                 await SendErrorPayloadAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidGrant,
                     ErrorDescription = "client authentication is required when using client_credentials"
+                });
+
+                return;
+            }
+
+            // Ensure that the client_id has been set from the ValidateClientAuthentication event.
+            else if (clientNotification.IsValidated && string.IsNullOrEmpty(request.ClientId)) {
+                Logger.LogError("Client authentication was validated but the client_id was not set.");
+
+                await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                    Error = OpenIdConnectConstants.Errors.ServerError,
+                    ErrorDescription = "An internal server error occurred."
                 });
 
                 return;
@@ -1711,6 +1723,18 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 await SendPayloadAsync(new JObject {
                     [OpenIdConnectConstants.Claims.Active] = false
+                });
+
+                return;
+            }
+
+            // Ensure that the client_id has been set from the ValidateClientAuthentication event.
+            else if (clientNotification.IsValidated && string.IsNullOrEmpty(request.ClientId)) {
+                Logger.LogError("Client authentication was validated but the client_id was not set.");
+
+                await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                    Error = OpenIdConnectConstants.Errors.ServerError,
+                    ErrorDescription = "An internal server error occurred."
                 });
 
                 return;
