@@ -4,20 +4,17 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
-using System;
-using System.ComponentModel;
 using System.IdentityModel.Tokens;
-using System.Threading.Tasks;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
-using Microsoft.Owin.Security.Notifications;
+using Microsoft.Owin.Security.Provider;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used when receiving an access token.
     /// </summary>
-    public sealed class DeserializeAccessTokenContext : BaseNotification<OpenIdConnectServerOptions> {
+    public sealed class DeserializeAccessTokenContext : BaseContext<OpenIdConnectServerOptions> {
         /// <summary>
         /// Initializes a new instance of the <see cref="DeserializeAccessTokenContext"/> class
         /// </summary>
@@ -57,16 +54,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         public SignatureProvider SignatureProvider { get; set; }
 
         /// <summary>
-        /// Gets or sets the signing key used to
+        /// Gets or sets the signing credentials used to
         /// verify the authenticity of the access token.
         /// </summary>
-        public SecurityKey SigningKey { get; set; }
-
-        /// <summary>
-        /// Gets or sets the deserializer used to resolve the authentication ticket.
-        /// </summary>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public Func<string, Task<AuthenticationTicket>> Deserializer { get; set; }
+        public SigningCredentials SigningCredentials { get; set; }
 
         /// <summary>
         /// Gets or sets the data format used to deserialize the authentication ticket.
@@ -84,26 +75,5 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// Gets the access token used by the client application.
         /// </summary>
         public string AccessToken { get; }
-
-        /// <summary>
-        /// Deserialize and unprotect the authentication ticket.
-        /// Note: the <see cref="AuthenticationTicket"/> property
-        /// is automatically set when this method completes.
-        /// </summary>
-        /// <returns>The authentication ticket.</returns>
-        public Task<AuthenticationTicket> DeserializeTicketAsync() {
-            return DeserializeTicketAsync(AccessToken);
-        }
-
-        /// <summary>
-        /// Deserialize and verify the authentication ticket.
-        /// Note: the <see cref="AuthenticationTicket"/> property
-        /// is automatically set when this method completes.
-        /// </summary>
-        /// <param name="ticket">The serialized ticket.</param>
-        /// <returns>The authentication ticket.</returns>
-        public async Task<AuthenticationTicket> DeserializeTicketAsync(string ticket) {
-            return AuthenticationTicket = await Deserializer(ticket);
-        }
     }
 }

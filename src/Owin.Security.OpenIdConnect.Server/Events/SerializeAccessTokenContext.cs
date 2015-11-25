@@ -4,21 +4,18 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
-using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IdentityModel.Tokens;
-using System.Threading.Tasks;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
-using Microsoft.Owin.Security.Notifications;
+using Microsoft.Owin.Security.Provider;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used when issuing an access token.
     /// </summary>
-    public sealed class SerializeAccessTokenContext : BaseNotification<OpenIdConnectServerOptions> {
+    public sealed class SerializeAccessTokenContext : BaseContext<OpenIdConnectServerOptions> {
         /// <summary>
         /// Initializes a new instance of the <see cref="SerializeAccessTokenContext"/> class
         /// </summary>
@@ -100,12 +97,6 @@ namespace Owin.Security.OpenIdConnect.Server {
         public SigningCredentials SigningCredentials { get; set; }
 
         /// <summary>
-        /// Gets or sets the serializer used to forge the access token.
-        /// </summary>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public Func<AuthenticationTicket, Task<string>> Serializer { get; set; }
-
-        /// <summary>
         /// Gets or sets the data format used to serialize the authentication ticket.
         /// Note: this property is only used when <see cref="SecurityTokenHandler"/> is <c>null</c>.
         /// </summary>
@@ -120,26 +111,5 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// Gets or sets the access token returned to the client application.
         /// </summary>
         public string AccessToken { get; set; }
-
-        /// <summary>
-        /// Serialize and sign the authentication ticket.
-        /// Note: the <see cref="AccessToken"/> property
-        /// is automatically set when this method completes.
-        /// </summary>
-        /// <returns>The serialized and signed ticket.</returns>
-        public async Task<string> SerializeTicketAsync() {
-            return AccessToken = await Serializer(AuthenticationTicket);
-        }
-
-        /// <summary>
-        /// Serialize and sign the authentication ticket.
-        /// Note: the <see cref="AccessToken"/> property
-        /// is automatically set when this method completes.
-        /// </summary>
-        /// <param name="ticket">The authentication ticket to serialize.</param>
-        /// <returns>The serialized and signed ticket.</returns>
-        public async Task<string> SerializeTicketAsync(AuthenticationTicket ticket) {
-            return AccessToken = await Serializer(ticket);
-        }
     }
 }
