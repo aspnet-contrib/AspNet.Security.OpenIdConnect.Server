@@ -24,7 +24,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             OpenIdConnectMessage request)
             : base(context, options) {
             Request = request;
-            Validated();
+            Validate();
         }
 
         /// <summary>

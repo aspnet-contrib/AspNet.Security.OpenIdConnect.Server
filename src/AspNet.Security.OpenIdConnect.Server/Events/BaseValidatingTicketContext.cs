@@ -31,9 +31,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="ticket">Assigned to the Ticket property</param>
         /// <returns>True if the validation has taken effect.</returns>
-        public bool Validated(AuthenticationTicket ticket) {
+        public bool Validate(AuthenticationTicket ticket) {
             AuthenticationTicket = ticket;
-            return Validated();
+            return Validate();
         }
 
         /// <summary>
@@ -42,9 +42,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="principal">Assigned to the Ticket.Principal property</param>
         /// <returns>True if the validation has taken effect.</returns>
-        public bool Validated(ClaimsPrincipal principal) {
+        public bool Validate(ClaimsPrincipal principal) {
             var properties = AuthenticationTicket?.Properties ?? new AuthenticationProperties();
-            return Validated(new AuthenticationTicket(principal, properties, Options.AuthenticationScheme));
+            return Validate(new AuthenticationTicket(principal, properties, Options.AuthenticationScheme));
         }
     }
 }

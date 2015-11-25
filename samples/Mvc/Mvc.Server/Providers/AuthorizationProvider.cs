@@ -17,7 +17,7 @@ namespace Mvc.Server.Providers {
             // with JavaScript or desktop applications, where client credentials cannot be safely stored.
             // In this case, call context.Skipped() to inform the server middleware the client is not trusted.
             if (string.IsNullOrEmpty(context.ClientId) || string.IsNullOrEmpty(context.ClientSecret)) {
-                context.Rejected(
+                context.Reject(
                     error: "invalid_request",
                     description: "Missing credentials: ensure that your credentials were correctly " +
                                  "flowed in the request body or in the authorization header");
@@ -33,7 +33,7 @@ namespace Mvc.Server.Providers {
                                      select entity).SingleOrDefaultAsync(context.HttpContext.RequestAborted);
 
             if (application == null) {
-                context.Rejected(
+                context.Reject(
                     error: "invalid_client",
                     description: "Application not found in the database: ensure that your client_id is correct");
 
@@ -41,14 +41,14 @@ namespace Mvc.Server.Providers {
             }
 
             if (!string.Equals(context.ClientSecret, application.Secret, StringComparison.Ordinal)) {
-                context.Rejected(
+                context.Reject(
                     error: "invalid_client",
                     description: "Invalid credentials: ensure that you specified a correct client_secret");
 
                 return;
             }
 
-            context.Validated();
+            context.Validate();
         }
 
         public override async Task ValidateClientRedirectUri(ValidateClientRedirectUriContext context) {
@@ -60,7 +60,7 @@ namespace Mvc.Server.Providers {
                                      select entity).SingleOrDefaultAsync(context.HttpContext.RequestAborted);
 
             if (application == null) {
-                context.Rejected(
+                context.Reject(
                     error: "invalid_client",
                     description: "Application not found in the database: ensure that your client_id is correct");
 
@@ -69,7 +69,7 @@ namespace Mvc.Server.Providers {
 
             if (!string.IsNullOrEmpty(context.RedirectUri)) {
                 if (!string.Equals(context.RedirectUri, application.RedirectUri, StringComparison.Ordinal)) {
-                    context.Rejected(error: "invalid_client", description: "Invalid redirect_uri");
+                    context.Reject(error: "invalid_client", description: "Invalid redirect_uri");
 
                     return;
                 }
@@ -84,12 +84,12 @@ namespace Mvc.Server.Providers {
             // Note: ValidateClientLogoutRedirectUri is not invoked when post_logout_redirect_uri is null.
             // When provided, post_logout_redirect_uri must exactly match the address registered by the client application.
             if (!await database.Applications.AnyAsync(application => application.LogoutRedirectUri == context.PostLogoutRedirectUri)) {
-                context.Rejected(error: "invalid_client", description: "Invalid post_logout_redirect_uri");
+                context.Reject(error: "invalid_client", description: "Invalid post_logout_redirect_uri");
 
                 return;
             }
 
-            context.Validated();
+            context.Validate();
         }
 
         public override Task MatchEndpoint(MatchEndpointContext context) {
@@ -119,7 +119,7 @@ namespace Mvc.Server.Providers {
             // and resource owner password credentials grant types but this authorization server uses a safer policy
             // rejecting the last two ones. You may consider relaxing it to support the ROPC or client credentials grant types.
             if (!context.Request.IsAuthorizationCodeGrantType() && !context.Request.IsRefreshTokenGrantType()) {
-                context.Rejected(
+                context.Reject(
                     error: "unsupported_grant_type",
                     description: "Only authorization code and refresh token grant types " +
                                  "are accepted by this authorization server");

@@ -39,13 +39,13 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// IsValidated becomes true and HasError becomes false as a result of calling.
         /// </summary>
         /// <returns></returns>
-        public override bool Validated() {
+        public override bool Validate() {
             if (string.IsNullOrEmpty(RedirectUri)) {
                 // Don't allow default validation when redirect_uri not provided with request
                 return false;
             }
 
-            return base.Validated();
+            return base.Validate();
         }
 
         /// <summary>
@@ -66,29 +66,29 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             RedirectUri = redirectUri;
 
-            return Validated();
+            return Validate();
         }
 
         /// <summary>
         /// Resets redirect_uri and marks the context
         /// as skipped by the application.
         /// </summary>
-        public override bool Skipped() {
+        public override bool Skip() {
             // Reset redirect_uri if validation was skipped.
             RedirectUri = null;
 
-            return base.Skipped();
+            return base.Skip();
         }
 
         /// <summary>
         /// Resets redirect_uri and marks the context
         /// as rejected by the application.
         /// </summary>
-        public override bool Rejected() {
+        public override bool Reject() {
             // Reset redirect_uri if validation failed.
             RedirectUri = null;
 
-            return base.Rejected();
+            return base.Reject();
         }
     }
 }

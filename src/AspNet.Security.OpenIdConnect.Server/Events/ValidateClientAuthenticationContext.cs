@@ -34,7 +34,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public bool Validated(string clientId) {
             ClientId = clientId;
 
-            return Validated();
+            return Validate();
         }
 
         /// <summary>
@@ -48,18 +48,18 @@ namespace AspNet.Security.OpenIdConnect.Server {
             ClientId = clientId;
             ClientSecret = clientSecret;
 
-            return Validated();
+            return Validate();
         }
 
         /// <summary>
         /// Resets client_id and client_secret and marks
         /// the context as rejected by the application.
         /// </summary>
-        public override bool Rejected() {
+        public override bool Reject() {
             ClientId = null;
             ClientSecret = null;
 
-            return base.Rejected();
+            return base.Reject();
         }
     }
 }
