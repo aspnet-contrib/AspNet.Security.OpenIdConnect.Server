@@ -53,7 +53,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="redirectUri"></param>
         /// <returns></returns>
-        public bool Validated(string redirectUri) {
+        public bool Validate(string redirectUri) {
             if (redirectUri == null) {
                 throw new ArgumentNullException("redirectUri");
             }
