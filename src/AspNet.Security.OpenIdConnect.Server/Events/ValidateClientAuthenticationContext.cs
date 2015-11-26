@@ -31,7 +31,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="clientId"></param>
         /// <returns></returns>
-        public bool Validated(string clientId) {
+        public bool Validate(string clientId) {
             ClientId = clientId;
 
             return Validate();
@@ -44,7 +44,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <param name="clientId"></param>
         /// <param name="clientSecret"></param>
         /// <returns></returns>
-        public bool Validated(string clientId, string clientSecret) {
+        public bool Validate(string clientId, string clientSecret) {
             ClientId = clientId;
             ClientSecret = clientSecret;
 

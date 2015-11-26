@@ -15,7 +15,7 @@ namespace Mvc.Server.Providers {
             // that makes client authentication mandatory and returns an error if client_id or client_secret is missing.
             // You may consider relaxing it to support the resource owner password credentials grant type
             // with JavaScript or desktop applications, where client credentials cannot be safely stored.
-            // In this case, call context.Skipped() to inform the server middleware the client is not trusted.
+            // In this case, call context.Skip() to inform the server middleware the client is not trusted.
             if (string.IsNullOrEmpty(context.ClientId) || string.IsNullOrEmpty(context.ClientSecret)) {
                 context.Reject(
                     error: "invalid_request",
@@ -75,7 +75,7 @@ namespace Mvc.Server.Providers {
                 }
             }
 
-            context.Validated(application.RedirectUri);
+            context.Validate(application.RedirectUri);
         }
 
         public override async Task ValidateClientLogoutRedirectUri(ValidateClientLogoutRedirectUriContext context) {
