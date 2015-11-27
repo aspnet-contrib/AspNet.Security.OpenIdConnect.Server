@@ -1713,6 +1713,28 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return;
             }
 
+            // When client_id and client_secret are both null, try to extract them from the Authorization header.
+            // See http://tools.ietf.org/html/rfc6749#section-2.3.1 and
+            // http://openid.net/specs/openid-connect-core-1_0.html#ClientAuthentication
+            if (string.IsNullOrEmpty(request.ClientId) && string.IsNullOrEmpty(request.ClientSecret)) {
+                string header = Request.Headers[HeaderNames.Authorization];
+                if (!string.IsNullOrEmpty(header) && header.StartsWith("Basic ", StringComparison.OrdinalIgnoreCase)) {
+                    try {
+                        var value = header.Substring("Basic ".Length).Trim();
+                        var data = Encoding.UTF8.GetString(Convert.FromBase64String(value));
+
+                        var index = data.IndexOf(':');
+                        if (index >= 0) {
+                            request.ClientId = data.Substring(0, index);
+                            request.ClientSecret = data.Substring(index + 1);
+                        }
+                    }
+
+                    catch (FormatException) { }
+                    catch (ArgumentException) { }
+                }
+            }
+
             var clientNotification = new ValidateClientAuthenticationContext(Context, Options, request);
             await Options.Provider.ValidateClientAuthentication(clientNotification);
 
