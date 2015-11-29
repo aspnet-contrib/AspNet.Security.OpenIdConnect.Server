@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
@@ -341,14 +342,12 @@ namespace Microsoft.AspNet.Builder {
         }
 
         /// <summary>
-        /// Configures the OpenID Connect server to issue opaque access tokens produced by the data protection block.
-        /// Opaque tokens cannot be read by client applications or resource servers if they don't share identical keys.
-        /// Note: you can use the validation endpoint to validate opaque tokens directly on the authorization server.
+        /// Configures the OpenID Connect server to issue JWT access tokens.
         /// </summary>
         /// <param name="options">The options used to configure the OpenID Connect server.</param>
         /// <returns>The options used to configure the OpenID Connect server.</returns>
-        public static OpenIdConnectServerOptions UseOpaqueTokens([NotNull] this OpenIdConnectServerOptions options) {
-            options.AccessTokenHandler = null;
+        public static OpenIdConnectServerOptions UseJwtTokens([NotNull] this OpenIdConnectServerOptions options) {
+            options.AccessTokenHandler = new JwtSecurityTokenHandler();
 
             return options;
         }

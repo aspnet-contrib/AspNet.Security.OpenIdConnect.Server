@@ -140,6 +140,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
             ticket = notification.AuthenticationTicket;
             ticket.Properties.CopyTo(properties);
 
+            // Add the intented audiences in the authentication ticket.
+            if (notification.Audiences.Count != 0) {
+                ticket.SetAudiences(notification.Audiences);
+            }
+
             if (notification.SecurityTokenHandler == null) {
                 return notification.DataFormat?.Protect(ticket);
             }

@@ -11,7 +11,6 @@
         "Microsoft.AspNet.Mvc": "6.0.0-*",
         "Microsoft.AspNet.Authentication.Cookies": "1.0.0-*",
         "Microsoft.AspNet.Authentication.Google": "1.0.0-*",
-        "Microsoft.AspNet.Authentication.JwtBearer": "1.0.0-*",
         "Microsoft.AspNet.Authentication.Twitter": "1.0.0-*",
         "Microsoft.AspNet.Server.Kestrel": "1.0.0-*",
         "Microsoft.AspNet.Server.WebListener": "1.0.0-*",
@@ -20,6 +19,8 @@
         "Microsoft.Extensions.Logging.Console": "1.0.0-*",
         "Microsoft.Extensions.Logging.Debug": "1.0.0-*",
 
+        "AspNet.Security.OAuth.Introspection": "1.0.0-*",
+        "AspNet.Security.OAuth.Validation": "1.0.0-*",
         "AspNet.Security.OpenIdConnect.Server": "1.0.0-*"
     },
 

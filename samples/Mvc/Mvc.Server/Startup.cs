@@ -39,14 +39,23 @@ namespace Mvc.Server {
 
             // Create a new branch where the registered middleware will be executed only for API calls.
             app.UseWhen(context => context.Request.Path.StartsWithSegments(new PathString("/api")), branch => {
-                branch.UseJwtBearerAuthentication(options => {
+                branch.UseOAuthValidation(options => {
                     options.AutomaticAuthenticate = true;
                     options.AutomaticChallenge = true;
-                    options.RequireHttpsMetadata = false;
-
-                    options.Audience = "http://localhost:54540/";
-                    options.Authority = "http://localhost:54540/";
                 });
+
+                // Alternatively, you can also use the introspection middleware.
+                // Using it is recommended if your resource server is in a
+                // different application/separated from the authorization server.
+                // 
+                // branch.UseOAuthIntrospection(options => {
+                //     options.AutomaticAuthenticate = true;
+                //     options.AutomaticChallenge = true;
+                //     options.Authority = "http://localhost:54540/";
+                //     options.Audience = "resource_server";
+                //     options.ClientId = "resource_server";
+                //     options.ClientSecret = "875sqd4s5d748z78z7ds1ff8zz8814ff88ed8ea4z4zzd";
+                // });
             });
 
             // Create a new branch where the registered middleware will be executed only for non API calls.
@@ -106,6 +115,7 @@ namespace Mvc.Server {
 
                 // Note: by default, tokens are signed using dynamically-generated
                 // RSA keys but you can also use your own certificate:
+                // 
                 // options.SigningCredentials.AddCertificate(certificate);
             });
 
@@ -116,6 +126,15 @@ namespace Mvc.Server {
             app.UseWelcomePage();
 
             using (var database = app.ApplicationServices.GetService<ApplicationContext>()) {
+                // Note: when using the introspection middleware, your resource server
+                // MUST be registered as an OAuth2 client and have valid credentials.
+                // 
+                // database.Applications.Add(new Application {
+                //     ApplicationID = "resource_server",
+                //     DisplayName = "Main resource server",
+                //     Secret = "875sqd4s5d748z78z7ds1ff8zz8814ff88ed8ea4z4zzd"
+                // });
+
                 database.Applications.Add(new Application {
                     ApplicationID = "myClient",
                     DisplayName = "My client application",
