@@ -3,44 +3,36 @@ AspNet.Security.OpenIdConnect.Server
 
 **AspNet.Security.OpenIdConnect.Server** is an **OpenID Connect server middleware** that you can use in **any ASP.NET 5 application** and that works with the official **OpenID Connect client middleware** developed by Microsoft or with any **standards-compliant OAuth2/OpenID Connect client**.
 
-**The latest nightly builds can be found here**: **[https://www.myget.org/F/aspnet-contrib/](https://www.myget.org/F/aspnet-contrib/)**
+**The latest official release can be found on [NuGet](https://www.nuget.org/packages/AspNet.Security.OpenIdConnect.Server) and the nightly builds on [MyGet](https://www.myget.org/gallery/aspnet-contrib)**.
 
 [![Build status](https://ci.appveyor.com/api/projects/status/tyenw4ffs00j4sav/branch/vNext?svg=true)](https://ci.appveyor.com/project/aspnet-contrib/aspnet-security-openidconnect-server/branch/vNext)
 [![Build status](https://travis-ci.org/aspnet-contrib/AspNet.Security.OpenIdConnect.Server.svg?branch=vNext)](https://travis-ci.org/aspnet-contrib/AspNet.Security.OpenIdConnect.Server)
-
-## Dependencies
-
-The current version relies on the latest version of **ASP.NET 5** and the **OpenID Connect extensions** that can be found on **MyGet.org**:
-
-* **[https://www.myget.org/gallery/aspnetvnext](https://www.myget.org/gallery/aspnetvnext)**
-
-* **[https://www.myget.org/gallery/azureadwebstacknightly](https://www.myget.org/gallery/azureadwebstacknightly)**
 
 ## Get started
 
 Based on `OAuthAuthorizationServerMiddleware` from **Katana 3**, **AspNet.Security.OpenIdConnect.Server** exposes similar primitives and can be directly registered in **Startup.cs** using the `UseOpenIdConnectServer` extension method:
 
 ```csharp
-app.UseOpenIdConnectServer(configuration => {
-    configuration.Provider = new OpenIdConnectServerProvider {
+app.UseOpenIdConnectServer(options => {
+    options.Provider = new OpenIdConnectServerProvider {
         // Implement OnValidateClientRedirectUri to support interactive flows like code/implicit/hybrid.
         OnValidateClientRedirectUri = context => {
             if (string.Equals(context.ClientId, "client_id", StringComparison.Ordinal) &&
                 string.Equals(context.RedirectUri, "redirect_uri", StringComparison.Ordinal)) {
-                context.Validated();
+                context.Validate();
             }
 
-            return Task.FromResult<object>(null);
+            return Task.FromResult(0);
         }
 
         // Implement OnValidateClientAuthentication to support flows using the token endpoint.
         OnValidateClientAuthentication = context => {
             if (string.Equals(context.ClientId, "client_id", StringComparison.Ordinal) &&
                 string.Equals(context.ClientSecret, "client_secret", StringComparison.Ordinal)) {
-                context.Validated();
+                context.Validate();
             }
 
-            return Task.FromResult<object>(null);
+            return Task.FromResult(0);
         }
     };
 });
