@@ -68,8 +68,8 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             if (Options.AccessTokenFormat == null) {
                 Options.AccessTokenFormat = app.CreateTicketFormat(
-                    "Microsoft.Owin.Security.OAuth",
-                    "Access_Token", "v1");
+                    typeof(OpenIdConnectServerMiddleware).FullName,
+                    Options.AuthenticationType, "Access_Token", "v1");
             }
 
             if (Options.RefreshTokenFormat == null) {
