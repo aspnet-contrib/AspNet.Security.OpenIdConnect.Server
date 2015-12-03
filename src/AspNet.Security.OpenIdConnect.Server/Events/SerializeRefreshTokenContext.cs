@@ -4,6 +4,7 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
+using System.Collections.Generic;
 using Microsoft.AspNet.Authentication;
 using Microsoft.AspNet.Http;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
@@ -53,6 +54,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// Gets the authorization or token response.
         /// </summary>
         public new OpenIdConnectMessage Response { get; }
+
+        /// <summary>
+        /// Gets the list of presenters.
+        /// </summary>
+        public IList<string> Presenters { get; } = new List<string>();
 
         /// <summary>
         /// Gets or sets the data format used to serialize the authentication ticket.

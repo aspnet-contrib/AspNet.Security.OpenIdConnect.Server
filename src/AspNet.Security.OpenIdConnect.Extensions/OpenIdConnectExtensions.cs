@@ -624,7 +624,38 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(properties));
             }
 
-            return properties.GetProperty(OpenIdConnectConstants.Extra.Audience)
+            return properties.GetProperty(OpenIdConnectConstants.Properties.Audiences)
+                            ?.Split(' ')
+                            ?.Distinct(StringComparer.Ordinal)
+                   ?? Enumerable.Empty<string>();
+        }
+
+        /// <summary>
+        /// Gets the presenters list stored in the authentication ticket.
+        /// Note: this method automatically excludes duplicate presenters.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <returns>The presenters list or <c>Enumerable.Empty</c> is the property cannot be found.</returns>
+        public static IEnumerable<string> GetPresenters(this AuthenticationTicket ticket) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            return ticket.Properties.GetPresenters();
+        }
+
+        /// <summary>
+        /// Gets the presenters list stored in the authentication properties.
+        /// Note: this method automatically excludes duplicate presenters.
+        /// </summary>
+        /// <param name="properties">The authentication properties.</param>
+        /// <returns>The presenters list or <c>Enumerable.Empty</c> is the property cannot be found.</returns>
+        public static IEnumerable<string> GetPresenters(this AuthenticationProperties properties) {
+            if (properties == null) {
+                throw new ArgumentNullException(nameof(properties));
+            }
+
+            return properties.GetProperty(OpenIdConnectConstants.Properties.Presenters)
                             ?.Split(' ')
                             ?.Distinct(StringComparer.Ordinal)
                    ?? Enumerable.Empty<string>();
@@ -654,7 +685,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(properties));
             }
 
-            return properties.GetProperty(OpenIdConnectConstants.Extra.Nonce);
+            return properties.GetProperty(OpenIdConnectConstants.Properties.Nonce);
         }
 
         /// <summary>
@@ -681,7 +712,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(properties));
             }
 
-            return properties.GetProperty(OpenIdConnectConstants.Extra.Resource)
+            return properties.GetProperty(OpenIdConnectConstants.Properties.Resources)
                             ?.Split(' ')
                             ?.Distinct(StringComparer.Ordinal)
                    ?? Enumerable.Empty<string>();
@@ -712,7 +743,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(properties));
             }
 
-            return properties.GetProperty(OpenIdConnectConstants.Extra.Scope)
+            return properties.GetProperty(OpenIdConnectConstants.Properties.Scopes)
                             ?.Split(' ')
                             ?.Distinct(StringComparer.Ordinal)
                    ?? Enumerable.Empty<string>();
@@ -742,7 +773,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(properties));
             }
 
-            return properties.GetProperty(OpenIdConnectConstants.Extra.Usage);
+            return properties.GetProperty(OpenIdConnectConstants.Properties.Usage);
         }
 
         /// <summary>
@@ -769,7 +800,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(properties));
             }
 
-            var value = properties.GetProperty(OpenIdConnectConstants.Extra.Confidential);
+            var value = properties.GetProperty(OpenIdConnectConstants.Properties.Confidential);
             if (string.IsNullOrEmpty(value)) {
                 return false;
             }
@@ -802,7 +833,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(properties));
             }
 
-            var value = properties.GetProperty(OpenIdConnectConstants.Extra.Usage);
+            var value = properties.GetProperty(OpenIdConnectConstants.Properties.Usage);
             if (string.IsNullOrEmpty(value)) {
                 return false;
             }
@@ -835,7 +866,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(properties));
             }
 
-            var value = properties.GetProperty(OpenIdConnectConstants.Extra.Usage);
+            var value = properties.GetProperty(OpenIdConnectConstants.Properties.Usage);
             if (string.IsNullOrEmpty(value)) {
                 return false;
             }
@@ -868,7 +899,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(properties));
             }
 
-            var value = properties.GetProperty(OpenIdConnectConstants.Extra.Usage);
+            var value = properties.GetProperty(OpenIdConnectConstants.Properties.Usage);
             if (string.IsNullOrEmpty(value)) {
                 return false;
             }
@@ -901,7 +932,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(properties));
             }
 
-            var value = properties.GetProperty(OpenIdConnectConstants.Extra.Usage);
+            var value = properties.GetProperty(OpenIdConnectConstants.Properties.Usage);
             if (string.IsNullOrEmpty(value)) {
                 return false;
             }
@@ -938,7 +969,11 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(audiences));
             }
 
-            properties.Items[OpenIdConnectConstants.Extra.Audience] =
+            if (audiences.Any(audience => audience.Contains(" "))) {
+                throw new ArgumentException("The audiences cannot contain spaces.", nameof(audiences));
+            }
+
+            properties.Items[OpenIdConnectConstants.Properties.Audiences] =
                 string.Join(" ", audiences.Distinct(StringComparer.Ordinal));
         }
 
@@ -957,6 +992,43 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
         }
 
         /// <summary>
+        /// Sets the presenters list in the authentication properties.
+        /// Note: this method automatically excludes duplicate presenters.
+        /// </summary>
+        /// <param name="properties">The authentication properties where the list should be stored.</param>
+        /// <param name="presenters">The presenters to store.</param>
+        public static void SetPresenters(this AuthenticationProperties properties, IEnumerable<string> presenters) {
+            if (properties == null) {
+                throw new ArgumentNullException(nameof(properties));
+            }
+
+            if (presenters == null) {
+                throw new ArgumentNullException(nameof(presenters));
+            }
+
+            if (presenters.Any(presenter => presenter.Contains(" "))) {
+                throw new ArgumentException("The presenters cannot contain spaces.", nameof(presenters));
+            }
+
+            properties.Items[OpenIdConnectConstants.Properties.Presenters] =
+                string.Join(" ", presenters.Distinct(StringComparer.Ordinal));
+        }
+
+        /// <summary>
+        /// Sets the presenters list in the authentication ticket.
+        /// Note: this method automatically excludes duplicate presenters.
+        /// </summary>
+        /// <param name="ticket">The authentication properties where the list should be stored.</param>
+        /// <param name="presenters">The presenters to store.</param>
+        public static void SetPresenters(this AuthenticationTicket ticket, IEnumerable<string> presenters) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            ticket.Properties.SetPresenters(presenters);
+        }
+
+        /// <summary>
         /// Sets the resources list in the authentication properties.
         /// </summary>
         /// <param name="properties">The authentication properties.</param>
@@ -966,7 +1038,15 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(properties));
             }
 
-            properties.Items[OpenIdConnectConstants.Extra.Resource] =
+            if (resources == null) {
+                throw new ArgumentNullException(nameof(resources));
+            }
+
+            if (resources.Any(resource => resource.Contains(" "))) {
+                throw new ArgumentException("The resources cannot contain spaces.", nameof(resources));
+            }
+
+            properties.Items[OpenIdConnectConstants.Properties.Resources] =
                 string.Join(" ", resources.Distinct(StringComparer.Ordinal));
         }
 
@@ -993,7 +1073,15 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(properties));
             }
 
-            properties.Items[OpenIdConnectConstants.Extra.Scope] =
+            if (scopes == null) {
+                throw new ArgumentNullException(nameof(scopes));
+            }
+
+            if (scopes.Any(scope => scope.Contains(" "))) {
+                throw new ArgumentException("The scopes cannot contain spaces.", nameof(scopes));
+            }
+
+            properties.Items[OpenIdConnectConstants.Properties.Scopes] =
                 string.Join(" ", scopes.Distinct(StringComparer.Ordinal));
         }
 
@@ -1020,7 +1108,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(properties));
             }
 
-            properties.Items[OpenIdConnectConstants.Extra.Usage] = usage;
+            properties.Items[OpenIdConnectConstants.Properties.Usage] = usage;
         }
 
         /// <summary>

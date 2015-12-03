@@ -62,9 +62,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public IList<string> Audiences { get; } = new List<string>();
 
         /// <summary>
-        /// Gets or sets the client identifier.
+        /// Gets the list of presenters.
         /// </summary>
-        public string Client { get; set; }
+        public IList<string> Presenters { get; } = new List<string>();
 
         /// <summary>
         /// Gets or sets a boolean indicating whether the token is considered as confidential.

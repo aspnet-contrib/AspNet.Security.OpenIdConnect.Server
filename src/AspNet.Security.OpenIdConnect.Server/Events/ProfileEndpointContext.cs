@@ -53,9 +53,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public JObject Address { get; set; }
 
         /// <summary>
-        /// Gets or sets the value used for the "aud" claim.
+        /// Gets or sets the values used for the "aud" claim.
         /// </summary>
-        public string Audience { get; set; }
+        public IList<string> Audiences { get; } = new List<string>();
 
         /// <summary>
         /// Gets or sets the value used for the "birthdate" claim.
