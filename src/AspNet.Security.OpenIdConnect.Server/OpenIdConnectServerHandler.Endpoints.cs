@@ -1962,56 +1962,60 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             payload.Add(OpenIdConnectConstants.Claims.Active, notification.Active);
 
-            if (!string.IsNullOrEmpty(notification.Issuer)) {
-                payload.Add(JwtRegisteredClaimNames.Iss, notification.Issuer);
-            }
-
-            if (!string.IsNullOrEmpty(notification.Username)) {
-                payload.Add(OpenIdConnectConstants.Claims.Username, notification.Username);
-            }
-
-            if (!string.IsNullOrEmpty(notification.Subject)) {
-                payload.Add(JwtRegisteredClaimNames.Sub, notification.Subject);
-            }
-
-            if (!string.IsNullOrEmpty(notification.Scope)) {
-                payload.Add(OpenIdConnectConstants.Claims.Scope, notification.Scope);
-            }
-
-            if (notification.IssuedAt.HasValue) {
-                payload.Add(JwtRegisteredClaimNames.Iat, EpochTime.GetIntDate(notification.IssuedAt.Value.UtcDateTime));
-                payload.Add(JwtRegisteredClaimNames.Nbf, EpochTime.GetIntDate(notification.IssuedAt.Value.UtcDateTime));
-            }
-
-            if (notification.ExpiresAt.HasValue) {
-                payload.Add(JwtRegisteredClaimNames.Exp, EpochTime.GetIntDate(notification.ExpiresAt.Value.UtcDateTime));
-            }
-
-            if (!string.IsNullOrEmpty(notification.TokenType)) {
-                payload.Add(OpenIdConnectConstants.Claims.TokenType, notification.TokenType);
-            }
-
-            switch (notification.Audiences.Count) {
-                case 0: break;
-
-                case 1:
-                    payload.Add(JwtRegisteredClaimNames.Aud, notification.Audiences[0]);
-                    break;
-
-                default:
-                    payload.Add(JwtRegisteredClaimNames.Aud, JArray.FromObject(notification.Audiences));
-                    break;
-            }
-
-            foreach (var claim in notification.Claims) {
-                // Ignore claims whose value is null.
-                if (claim.Value == null) {
-                    continue;
+            // Only add the other properties if
+            // the token is considered as active.
+            if (notification.Active) {
+                if (!string.IsNullOrEmpty(notification.Issuer)) {
+                    payload.Add(JwtRegisteredClaimNames.Iss, notification.Issuer);
                 }
 
-                // Note: make sure to use the indexer
-                // syntax to avoid duplicate properties.
-                payload[claim.Key] = claim.Value;
+                if (!string.IsNullOrEmpty(notification.Username)) {
+                    payload.Add(OpenIdConnectConstants.Claims.Username, notification.Username);
+                }
+
+                if (!string.IsNullOrEmpty(notification.Subject)) {
+                    payload.Add(JwtRegisteredClaimNames.Sub, notification.Subject);
+                }
+
+                if (!string.IsNullOrEmpty(notification.Scope)) {
+                    payload.Add(OpenIdConnectConstants.Claims.Scope, notification.Scope);
+                }
+
+                if (notification.IssuedAt.HasValue) {
+                    payload.Add(JwtRegisteredClaimNames.Iat, EpochTime.GetIntDate(notification.IssuedAt.Value.UtcDateTime));
+                    payload.Add(JwtRegisteredClaimNames.Nbf, EpochTime.GetIntDate(notification.IssuedAt.Value.UtcDateTime));
+                }
+
+                if (notification.ExpiresAt.HasValue) {
+                    payload.Add(JwtRegisteredClaimNames.Exp, EpochTime.GetIntDate(notification.ExpiresAt.Value.UtcDateTime));
+                }
+
+                if (!string.IsNullOrEmpty(notification.TokenType)) {
+                    payload.Add(OpenIdConnectConstants.Claims.TokenType, notification.TokenType);
+                }
+
+                switch (notification.Audiences.Count) {
+                    case 0: break;
+
+                    case 1:
+                        payload.Add(JwtRegisteredClaimNames.Aud, notification.Audiences[0]);
+                        break;
+
+                    default:
+                        payload.Add(JwtRegisteredClaimNames.Aud, JArray.FromObject(notification.Audiences));
+                        break;
+                }
+
+                foreach (var claim in notification.Claims) {
+                    // Ignore claims whose value is null.
+                    if (claim.Value == null) {
+                        continue;
+                    }
+
+                    // Note: make sure to use the indexer
+                    // syntax to avoid duplicate properties.
+                    payload[claim.Key] = claim.Value;
+                }
             }
 
             var context = new ValidationEndpointResponseContext(Context, Options, payload);
