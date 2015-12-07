@@ -188,12 +188,12 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return false;
             }
 
-            // Reject non-HTTPS requests handled by the OpenID Connect server middleware if AllowInsecureHttp is not set to true.
+            // Reject non-HTTPS requests handled by ASOS if AllowInsecureHttp is not set to true.
             if (!Options.AllowInsecureHttp && string.Equals(Request.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase)) {
-                Options.Logger.WriteWarning("The HTTP request was rejected because AllowInsecureHttp was false.");
-
+                // Return the native error page for endpoints involving the user participation.
                 if (notification.IsAuthorizationEndpoint || notification.IsLogoutEndpoint) {
-                    // Return the native error page for endpoints involving the user participation.
+                    Options.Logger.WriteWarning("The HTTP request was rejected because AllowInsecureHttp was false.");
+
                     await SendNativeErrorPageAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
                         ErrorDescription = "This server only accepts HTTPS requests."
@@ -202,10 +202,12 @@ namespace Owin.Security.OpenIdConnect.Server {
                     return true;
                 }
 
+                // Return a JSON error for endpoints that don't involve the user participation.
                 else if (notification.IsTokenEndpoint || notification.IsProfileEndpoint ||
                          notification.IsValidationEndpoint || notification.IsConfigurationEndpoint ||
                          notification.IsCryptographyEndpoint) {
-                    // Return a JSON error for endpoints that don't involve the user participation.
+                    Options.Logger.WriteWarning("The HTTP request was rejected because AllowInsecureHttp was false.");
+
                     await SendErrorPayloadAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
                         ErrorDescription = "This server only accepts HTTPS requests."
