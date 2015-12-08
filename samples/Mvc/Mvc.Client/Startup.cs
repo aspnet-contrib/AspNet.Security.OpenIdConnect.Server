@@ -39,6 +39,7 @@ namespace Mvc.Client {
             app.UseOpenIdConnectAuthentication(options => {
                 options.AuthenticationScheme = OpenIdConnectDefaults.AuthenticationScheme;
                 options.RequireHttpsMetadata = false;
+                options.SaveTokensAsClaims = true;
 
                 // Note: these settings must match the application details
                 // inserted in the database at the server level.
