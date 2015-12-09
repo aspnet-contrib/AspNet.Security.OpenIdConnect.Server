@@ -1302,8 +1302,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // Note: by default, an identity token is always returned when the "openid" scope has been requested,
             // but the client application can use the "response_type" parameter to only include specific types of tokens.
             // When this parameter is missing, an identity token is always generated.
-            if (request.ContainsScope(OpenIdConnectConstants.Scopes.OpenId) && (string.IsNullOrEmpty(request.ResponseType) ||
-                                                                                request.ContainsResponseType("id_token"))) {
+            if (ticket.ContainsScope(OpenIdConnectConstants.Scopes.OpenId) && (string.IsNullOrEmpty(request.ResponseType) ||
+                                                                               request.ContainsResponseType("id_token"))) {
                 // Make sure to create a copy of the authentication properties
                 // to avoid modifying the properties set on the original ticket.
                 var properties = ticket.Properties.Copy();
@@ -1337,8 +1337,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // Note: by default, a refresh token is always returned when the "offline_access" scope has been requested,
             // but the client application can use the "response_type" parameter to only include specific types of tokens.
             // When this parameter is missing, a refresh token is always generated.
-            if (request.ContainsScope(OpenIdConnectConstants.Scopes.OfflineAccess) && (string.IsNullOrEmpty(request.ResponseType) ||
-                                                                                       request.ContainsResponseType("refresh_token"))) {
+            if (ticket.ContainsScope(OpenIdConnectConstants.Scopes.OfflineAccess) && (string.IsNullOrEmpty(request.ResponseType) ||
+                                                                                      request.ContainsResponseType("refresh_token"))) {
                 // Make sure to create a copy of the authentication properties
                 // to avoid modifying the properties set on the original ticket.
                 var properties = ticket.Properties.Copy();
