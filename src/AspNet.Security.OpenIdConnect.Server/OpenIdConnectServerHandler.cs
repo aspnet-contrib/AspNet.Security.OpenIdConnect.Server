@@ -360,9 +360,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 // to avoid modifying the properties set on the original ticket.
                 var properties = new AuthenticationProperties(context.Properties).Copy();
 
+                var resources = properties.GetProperty(OpenIdConnectConstants.Properties.Resources);
+                if (string.IsNullOrEmpty(resources)) {
+                    Logger.LogInformation("No explicit resource has been associated with the authentication ticket: " +
+                                          "the access token will thus be issued without any audience attached.");
+                }
+
                 // Note: when the "resource" parameter added to the OpenID Connect response
                 // is identical to the request parameter, setting it is not necessary.
-                var resources = properties.GetProperty(OpenIdConnectConstants.Properties.Resources);
                 if (!string.Equals(request.Resource, resources, StringComparison.Ordinal)) {
                     response.Resource = resources;
                 }
