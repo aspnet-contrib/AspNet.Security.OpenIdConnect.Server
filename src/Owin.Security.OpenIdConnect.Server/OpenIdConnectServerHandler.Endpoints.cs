@@ -1382,9 +1382,14 @@ namespace Owin.Security.OpenIdConnect.Server {
                 // to avoid modifying the properties set on the original ticket.
                 var properties = ticket.Properties.Copy();
 
+                var resources = properties.GetProperty(OpenIdConnectConstants.Properties.Resources);
+                if (string.IsNullOrEmpty(resources)) {
+                    Options.Logger.WriteInformation("No explicit resource has been associated with the authentication ticket: " +
+                                                    "the access token will thus be issued without any audience attached.");
+                }
+
                 // Note: when the "resource" parameter added to the OpenID Connect response
                 // is identical to the request parameter, keeping it is not necessary.
-                var resources = properties.GetProperty(OpenIdConnectConstants.Properties.Resources);
                 if (request.IsAuthorizationCodeGrantType() || !string.Equals(request.Resource, resources, StringComparison.Ordinal)) {
                     response.Resource = resources;
                 }
