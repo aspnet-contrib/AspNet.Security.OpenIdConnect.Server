@@ -6,7 +6,6 @@
     <h1>Authorization</h1>
 
     <p class="lead text-left">Do you wanna grant <strong>@Model.Application.DisplayName</strong> an access to your resources? (scopes requested: @Model.Request.Scope)</p>
-    <p class="lead text-left"><strong>@Model.Application.DisplayName</strong> will be able to access the following endpoints: @string.Join(" ; ", Model.Resources)</p>
 
     <form enctype="application/x-www-form-urlencoded" method="post">
         @Html.AntiForgeryToken()

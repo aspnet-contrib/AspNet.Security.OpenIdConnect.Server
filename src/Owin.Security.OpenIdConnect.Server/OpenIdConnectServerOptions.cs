@@ -140,12 +140,10 @@ namespace Owin.Security.OpenIdConnect.Server {
 
         /// <summary>
         /// The <see cref="SecurityTokenHandler"/> instance used to forge access tokens.
-        /// The default instance (<see cref="JwtSecurityTokenHandler"/>) creates JWT security tokens.
-        /// You can set it to null to produce opaque tokens serialized by the data protector subsytem.
-        /// This property is only used when <see cref="IOpenIdConnectServerProvider.SerializeAccessToken"/> doesn't call
+        /// Note: this property is only used when <see cref="IOpenIdConnectServerProvider.SerializeAccessToken"/>
         /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
-        public SecurityTokenHandler AccessTokenHandler { get; set; } = new JwtSecurityTokenHandler();
+        public SecurityTokenHandler AccessTokenHandler { get; set; }
 
         /// <summary>
         /// The <see cref="JwtSecurityTokenHandler"/> instance used to forge identity tokens.

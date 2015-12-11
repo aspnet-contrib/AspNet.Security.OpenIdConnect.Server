@@ -42,10 +42,6 @@ namespace Nancy.Client {
                 // the different endpoints URIs or the token validation parameters explicitly.
                 Authority = "http://localhost:54541/",
 
-                // Note: the resource property represents the different endpoints the
-                // access token should be issued for (values must be space-delimited).
-                Resource = "http://localhost:54541/",
-
                 // Note: by default, the OIDC client throws an OpenIdConnectProtocolException
                 // when an error occurred during the authentication/authorization process.
                 // To prevent a YSOD from being displayed, the response is declared as handled.

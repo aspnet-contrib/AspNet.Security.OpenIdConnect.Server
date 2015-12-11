@@ -129,19 +129,15 @@ namespace Nancy.Server.Modules {
 
                 var properties = new AuthenticationProperties();
 
-                // Note: you can change the list of scopes granted
-                // to the client application using SetScopes:
+                // Set the list of scopes granted to the client application.
                 properties.SetScopes(new[] {
                     /* openid: */ OpenIdConnectConstants.Scopes.OpenId,
                     /* email: */ OpenIdConnectConstants.Scopes.Email,
                     /* profile: */ OpenIdConnectConstants.Scopes.Profile
                 });
 
-                // You can also limit the resources endpoints
-                // the access token should be issued for:
-                properties.SetResources(new[] {
-                    "http://localhost:54541/"
-                });
+                // Set the resources servers the access token should be issued for.
+                properties.SetResources(new[] { "resource_server" });
 
                 // This call will instruct Owin.Security.OpenIdConnect.Server to serialize
                 // the specified identity to build appropriate tokens (id_token and token).

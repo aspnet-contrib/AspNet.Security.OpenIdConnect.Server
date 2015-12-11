@@ -574,18 +574,16 @@ namespace Owin {
         }
 
         /// <summary>
-        /// Configures the OpenID Connect server to issue opaque access tokens produced by the data protection block.
-        /// Opaque tokens cannot be read by client applications or resource servers if they don't share identical keys.
-        /// Note: you can use the validation endpoint to validate opaque tokens directly on the authorization server.
+        /// Configures the OpenID Connect server to issue JWT access tokens.
         /// </summary>
         /// <param name="options">The options used to configure the OpenID Connect server.</param>
         /// <returns>The options used to configure the OpenID Connect server.</returns>
-        public static OpenIdConnectServerOptions UseOpaqueTokens(this OpenIdConnectServerOptions options) {
+        public static OpenIdConnectServerOptions UseJwtTokens(this OpenIdConnectServerOptions options) {
             if (options == null) {
                 throw new ArgumentNullException(nameof(options));
             }
 
-            options.AccessTokenHandler = null;
+            options.AccessTokenHandler = new JwtSecurityTokenHandler();
 
             return options;
         }

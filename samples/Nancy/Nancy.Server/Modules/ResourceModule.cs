@@ -1,5 +1,4 @@
-﻿using System.Globalization;
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using Nancy.Security;
 
 namespace Nancy.Server.Modules {
@@ -18,13 +17,7 @@ namespace Nancy.Server.Modules {
                     return HttpStatusCode.InternalServerError;
                 }
 
-                // Note: identity is the ClaimsIdentity representing the resource owner
-                // and identity.Actor is the identity corresponding to the client
-                // application the access token has been issued to (delegation).
-                return string.Format(
-                    CultureInfo.InvariantCulture,
-                    "{0} has been successfully authenticated via {1}",
-                    identity.Name, identity.Actor.Name);
+                return $"{identity.Name} has been successfully authenticated.";
             };
         }
     }

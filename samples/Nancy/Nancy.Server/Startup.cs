@@ -1,30 +1,35 @@
 using System;
-using System.IdentityModel.Tokens;
 using System.IO;
-using System.Security.Cryptography.X509Certificates;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
-using Microsoft.Owin.Security.Jwt;
 using Nancy.Server.Extensions;
 using Nancy.Server.Providers;
 using NWebsec.Owin;
 using Owin;
+using Owin.Security.OAuth.Validation;
 
 namespace Nancy.Server {
     public class Startup {
         public void Configuration(IAppBuilder app) {
-            var certificate = GetCertificate();
-            var credentials = new X509SigningCredentials(certificate);
-
             app.SetDefaultSignInAsAuthenticationType("ServerCookie");
 
             app.UseWhen(context => context.Request.Path.StartsWithSegments(new PathString("/api")), map => {
-                map.UseJwtBearerAuthentication(new JwtBearerAuthenticationOptions {
-                    AuthenticationMode = AuthenticationMode.Active,
-                    AllowedAudiences = new[] { "http://localhost:54541/" },
-                    IssuerSecurityTokenProviders = new[] { new X509CertificateSecurityTokenProvider("http://localhost:54541/", certificate) }
+                map.UseOAuthValidation(new OAuthValidationOptions {
+                    AuthenticationMode = AuthenticationMode.Active
                 });
+
+                // Alternatively, you can also use the introspection middleware.
+                // Using it is recommended if your resource server is in a
+                // different application/separated from the authorization server.
+                // 
+                // map.UseOAuthIntrospection(options => {
+                //     options.AuthenticationMode = AuthenticationMode.Active;
+                //     options.Authority = "http://localhost:54540/";
+                //     options.Audience = "resource_server";
+                //     options.ClientId = "resource_server";
+                //     options.ClientSecret = "875sqd4s5d748z78z7ds1ff8zz8814ff88ed8ea4z4zzd";
+                // });
             });
 
             // Insert a new cookies middleware in the pipeline to store
@@ -94,7 +99,10 @@ namespace Nancy.Server {
             app.UseOpenIdConnectServer(options => {
                 options.Provider = new AuthorizationProvider();
 
-                options.SigningCredentials.AddCertificate(certificate);
+                options.SigningCredentials.AddCertificate(
+                    assembly: typeof(Startup).Assembly,
+                    resource: "Nancy.Server.Certificate.pfx",
+                    password: "Owin.Security.OpenIdConnect.Server");
 
                 // Note: see AuthorizationModule.cs for more
                 // information concerning ApplicationCanDisplayErrors.
@@ -111,21 +119,6 @@ namespace Nancy.Server {
             });
 
             app.UseNancy(options => options.Bootstrapper = new NancyBootstrapper());
-        }
-
-        private static X509Certificate2 GetCertificate() {
-            // Note: in a real world app, you'd probably prefer storing the X.509 certificate
-            // in the user or machine store. To keep this sample easy to use, the certificate
-            // is extracted from the Certificate.pfx file embedded in this assembly.
-            using (var stream = typeof(Startup).Assembly.GetManifestResourceStream("Nancy.Server.Certificate.pfx"))
-            using (var buffer = new MemoryStream()) {
-                stream.CopyTo(buffer);
-                buffer.Flush();
-
-                return new X509Certificate2(
-                    rawData: buffer.GetBuffer(),
-                    password: "Owin.Security.OpenIdConnect.Server");
-            }
         }
     }
 }
