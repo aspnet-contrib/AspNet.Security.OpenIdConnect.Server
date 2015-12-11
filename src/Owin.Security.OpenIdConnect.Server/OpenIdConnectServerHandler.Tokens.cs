@@ -45,6 +45,12 @@ namespace Owin.Security.OpenIdConnect.Server {
                 DataFormat = Options.AuthorizationCodeFormat
             };
 
+            // By default, add the client_id to the list of the
+            // presenters allowed to use the authorization code.
+            if (!string.IsNullOrEmpty(request.ClientId)) {
+                notification.Presenters.Add(request.ClientId);
+            }
+
             await Options.Provider.SerializeAuthorizationCode(notification);
 
             if (!string.IsNullOrEmpty(notification.AuthorizationCode)) {
@@ -55,6 +61,11 @@ namespace Owin.Security.OpenIdConnect.Server {
             // ticket from the SerializeAuthorizationCode event.
             ticket = notification.AuthenticationTicket;
             ticket.Properties.CopyTo(properties);
+
+            // Add the intented presenters in the authentication ticket.
+            if (notification.Presenters.Count != 0) {
+                ticket.SetPresenters(notification.Presenters);
+            }
 
             if (notification.DataFormat == null) {
                 return null;
@@ -87,9 +98,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             // Create a new identity containing only the filtered claims.
             // Actors identities are also filtered (delegation scenarios).
             identity = identity.Clone(claim => {
-                // ClaimTypes.NameIdentifier and JwtRegisteredClaimNames.Sub are never excluded.
-                if (string.Equals(claim.Type, ClaimTypes.NameIdentifier, StringComparison.Ordinal) ||
-                    string.Equals(claim.Type, JwtRegisteredClaimNames.Sub, StringComparison.Ordinal)) {
+                // Never exclude ClaimTypes.NameIdentifier.
+                if (string.Equals(claim.Type, ClaimTypes.NameIdentifier, StringComparison.OrdinalIgnoreCase)) {
                     return true;
                 }
 
@@ -102,7 +112,6 @@ namespace Owin.Security.OpenIdConnect.Server {
             var ticket = new AuthenticationTicket(identity, properties);
 
             var notification = new SerializeAccessTokenContext(Context, Options, request, response, ticket) {
-                Client = request.ClientId,
                 Confidential = ticket.IsConfidential(),
                 DataFormat = Options.AccessTokenFormat,
                 Issuer = Context.GetIssuer(Options),
@@ -110,6 +119,12 @@ namespace Owin.Security.OpenIdConnect.Server {
                 SignatureProvider = Options.SignatureProvider,
                 SigningCredentials = Options.SigningCredentials.FirstOrDefault()
             };
+
+            // By default, add the client_id to the list of the
+            // presenters allowed to use the access token.
+            if (!string.IsNullOrEmpty(request.ClientId)) {
+                notification.Presenters.Add(request.ClientId);
+            }
 
             foreach (var audience in ticket.GetResources()) {
                 notification.Audiences.Add(audience);
@@ -135,17 +150,27 @@ namespace Owin.Security.OpenIdConnect.Server {
                 ticket.SetAudiences(notification.Audiences);
             }
 
+            // Add the intented presenters in the authentication ticket.
+            if (notification.Presenters.Count != 0) {
+                ticket.SetPresenters(notification.Presenters);
+            }
+
+            // Add the intented scopes in the authentication ticket.
+            if (notification.Scopes.Count != 0) {
+                ticket.SetScopes(notification.Scopes);
+            }
+
             if (notification.SecurityTokenHandler == null) {
                 return notification.DataFormat?.Protect(ticket);
             }
 
             // Store the "usage" property as a claim.
-            ticket.Identity.AddClaim(OpenIdConnectConstants.Extra.Usage, ticket.Properties.GetUsage());
+            ticket.Identity.AddClaim(OpenIdConnectConstants.Properties.Usage, ticket.Properties.GetUsage());
 
             // If the ticket is marked as confidential, add a new
             // "confidential" claim in the security token.
             if (notification.Confidential) {
-                ticket.Identity.AddClaim(new Claim(OpenIdConnectConstants.Extra.Confidential, "true", ClaimValueTypes.Boolean));
+                ticket.Identity.AddClaim(new Claim(OpenIdConnectConstants.Properties.Confidential, "true", ClaimValueTypes.Boolean));
             }
 
             // Create a new claim per scope item, that will result
@@ -156,17 +181,6 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             var handler = notification.SecurityTokenHandler as JwtSecurityTokenHandler;
             if (handler != null) {
-                // Note: when used as an access token, a JWT token doesn't have to expose a "sub" claim
-                // but the name identifier claim is used as a substitute when it has been explicitly added.
-                // See https://tools.ietf.org/html/rfc7519#section-4.1.2
-                var subject = ticket.Identity.FindFirst(JwtRegisteredClaimNames.Sub);
-                if (subject == null) {
-                    var identifier = ticket.Identity.FindFirst(ClaimTypes.NameIdentifier);
-                    if (identifier != null) {
-                        ticket.Identity.AddClaim(JwtRegisteredClaimNames.Sub, identifier.Value);
-                    }
-                }
-
                 // Remove the ClaimTypes.NameIdentifier claims to avoid getting duplicate claims.
                 // Note: the "sub" claim is automatically mapped by JwtSecurityTokenHandler
                 // to ClaimTypes.NameIdentifier when validating a JWT token.
@@ -176,14 +190,36 @@ namespace Owin.Security.OpenIdConnect.Server {
                     ticket.Identity.RemoveClaim(claim);
                 }
 
+                // Note: when used as an access token, a JWT token doesn't have to expose a "sub" claim
+                // but the name identifier claim is used as a substitute when it has been explicitly added.
+                // See https://tools.ietf.org/html/rfc7519#section-4.1.2
+                var subject = identity.FindFirst(JwtRegisteredClaimNames.Sub);
+                if (subject == null) {
+                    var identifier = identity.FindFirst(ClaimTypes.NameIdentifier);
+                    if (identifier != null) {
+                        identity.AddClaim(JwtRegisteredClaimNames.Sub, identifier.Value);
+                    }
+                }
+
                 // Store the audiences as claims.
                 foreach (var audience in notification.Audiences) {
                     ticket.Identity.AddClaim(JwtRegisteredClaimNames.Aud, audience);
                 }
 
-                // List the client application as an authorized party.
-                if (!string.IsNullOrEmpty(notification.Client)) {
-                    ticket.Identity.AddClaim(JwtRegisteredClaimNames.Azp, notification.Client);
+                switch (notification.Presenters.Count) {
+                    case 0: break;
+
+                    case 1:
+                        identity.AddClaim(JwtRegisteredClaimNames.Azp, notification.Presenters[0]);
+                        break;
+
+                    default:
+                        Options.Logger.WriteWarning("Multiple presenters have been associated with the access token " +
+                                                    "but the JWT format only accepts single values.");
+
+                        // Only add the first authorized party.
+                        identity.AddClaim(JwtRegisteredClaimNames.Azp, notification.Presenters[0]);
+                        break;
                 }
 
                 var token = handler.CreateToken(
@@ -299,9 +335,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             // Replace the identity by a new one containing only the filtered claims.
             // Actors identities are also filtered (delegation scenarios).
             identity = identity.Clone(claim => {
-                // ClaimTypes.NameIdentifier and JwtRegisteredClaimNames.Sub are never excluded.
-                if (string.Equals(claim.Type, ClaimTypes.NameIdentifier, StringComparison.Ordinal) ||
-                    string.Equals(claim.Type, JwtRegisteredClaimNames.Sub, StringComparison.Ordinal)) {
+                // Never exclude ClaimTypes.NameIdentifier.
+                if (string.Equals(claim.Type, ClaimTypes.NameIdentifier, StringComparison.OrdinalIgnoreCase)) {
                     return true;
                 }
 
@@ -319,7 +354,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                 Nonce = request.Nonce,
                 SecurityTokenHandler = Options.IdentityTokenHandler,
                 SignatureProvider = Options.SignatureProvider,
-                SigningCredentials = Options.SigningCredentials.FirstOrDefault()
+                SigningCredentials = Options.SigningCredentials.FirstOrDefault(),
+                Subject = identity.GetClaim(ClaimTypes.NameIdentifier)
             };
 
             // If a nonce was present in the authorization request, it MUST
@@ -331,16 +367,11 @@ namespace Owin.Security.OpenIdConnect.Server {
                 notification.Nonce = ticket.GetNonce();
             }
 
-            // While the 'sub' claim is declared mandatory by the OIDC specs,
-            // it is not always issued as-is by the authorization servers.
-            // When missing, the name identifier claim is used as a substitute.
-            // See http://openid.net/specs/openid-connect-core-1_0.html#IDToken
-            notification.Subject = identity.GetClaim(JwtRegisteredClaimNames.Sub) ??
-                                   identity.GetClaim(ClaimTypes.NameIdentifier);
-
-            // Only add client_id in the audiences list if it is non-null.
+            // By default, add the client_id to the list of the
+            // presenters allowed to use the identity token.
             if (!string.IsNullOrEmpty(request.ClientId)) {
                 notification.Audiences.Add(request.ClientId);
+                notification.Presenters.Add(request.ClientId);
             }
 
             if (!string.IsNullOrEmpty(response.Code)) {
@@ -401,7 +432,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             ticket.Identity.AddClaim(JwtRegisteredClaimNames.Sub, notification.Subject);
 
             // Store the "usage" property as a claim.
-            ticket.Identity.AddClaim(OpenIdConnectConstants.Extra.Usage, ticket.Properties.GetUsage());
+            ticket.Identity.AddClaim(OpenIdConnectConstants.Properties.Usage, ticket.Properties.GetUsage());
 
             // Store the audiences as claims.
             foreach (var audience in notification.Audiences) {
@@ -423,7 +454,23 @@ namespace Owin.Security.OpenIdConnect.Server {
             // If the ticket is marked as confidential, add a new
             // "confidential" claim in the security token.
             if (notification.Confidential) {
-                ticket.Identity.AddClaim(new Claim(OpenIdConnectConstants.Extra.Confidential, "true", ClaimValueTypes.Boolean));
+                ticket.Identity.AddClaim(new Claim(OpenIdConnectConstants.Properties.Confidential, "true", ClaimValueTypes.Boolean));
+            }
+
+            switch (notification.Presenters.Count) {
+                case 0: break;
+
+                case 1:
+                    identity.AddClaim(JwtRegisteredClaimNames.Azp, notification.Presenters[0]);
+                    break;
+
+                default:
+                    Options.Logger.WriteWarning("Multiple presenters have been associated with the identity token " +
+                                                "but the JWT format only accepts single values.");
+
+                    // Only add the first authorized party.
+                    identity.AddClaim(JwtRegisteredClaimNames.Azp, notification.Presenters[0]);
+                    break;
             }
 
             var token = notification.SecurityTokenHandler.CreateToken(
@@ -506,6 +553,12 @@ namespace Owin.Security.OpenIdConnect.Server {
                 DataFormat = Options.RefreshTokenFormat
             };
 
+            // By default, add the client_id to the list of the
+            // presenters allowed to use the refresh token.
+            if (!string.IsNullOrEmpty(request.ClientId)) {
+                notification.Presenters.Add(request.ClientId);
+            }
+
             await Options.Provider.SerializeRefreshToken(notification);
 
             if (!string.IsNullOrEmpty(notification.RefreshToken)) {
@@ -516,6 +569,11 @@ namespace Owin.Security.OpenIdConnect.Server {
             // ticket from the SerializeRefreshTokenAsync event.
             ticket = notification.AuthenticationTicket;
             ticket.Properties.CopyTo(properties);
+
+            // Add the intented presenters in the authentication ticket.
+            if (notification.Presenters.Count != 0) {
+                ticket.SetPresenters(notification.Presenters);
+            }
 
             return notification.DataFormat?.Protect(ticket);
         }
@@ -616,13 +674,24 @@ namespace Owin.Security.OpenIdConnect.Server {
                 properties.SetAudiences(audiences.Select(claim => claim.Value));
             }
 
-            var usage = principal.FindFirst(OpenIdConnectConstants.Extra.Usage);
+            var presenters = principal.FindAll(JwtRegisteredClaimNames.Azp);
+            if (presenters.Any()) {
+                properties.SetPresenters(presenters.Select(claim => claim.Value));
+            }
+
+            var scopes = principal.FindAll(OpenIdConnectConstants.Claims.Scope);
+            if (scopes.Any()) {
+                properties.SetScopes(scopes.Select(claim => claim.Value));
+            }
+
+            var usage = principal.FindFirst(OpenIdConnectConstants.Properties.Usage);
             if (usage != null) {
                 properties.SetUsage(usage.Value);
             }
 
-            if (principal.Claims.Any(claim => claim.Type == OpenIdConnectConstants.Extra.Confidential)) {
-                properties.Dictionary[OpenIdConnectConstants.Extra.Confidential] = "true";
+            var confidential = principal.FindFirst(OpenIdConnectConstants.Properties.Confidential);
+            if (confidential != null && string.Equals(confidential.Value, "true", StringComparison.OrdinalIgnoreCase)) {
+                properties.Dictionary[OpenIdConnectConstants.Properties.Confidential] = "true";
             }
 
             // Ensure the received ticket is an access token.
@@ -693,13 +762,19 @@ namespace Owin.Security.OpenIdConnect.Server {
                 properties.SetAudiences(audiences.Select(claim => claim.Value));
             }
 
-            var usage = principal.FindFirst(OpenIdConnectConstants.Extra.Usage);
+            var presenters = principal.FindAll(JwtRegisteredClaimNames.Azp);
+            if (presenters.Any()) {
+                properties.SetPresenters(presenters.Select(claim => claim.Value));
+            }
+
+            var usage = principal.FindFirst(OpenIdConnectConstants.Properties.Usage);
             if (usage != null) {
                 properties.SetUsage(usage.Value);
             }
 
-            if (principal.Claims.Any(claim => claim.Type == OpenIdConnectConstants.Extra.Confidential)) {
-                properties.Dictionary[OpenIdConnectConstants.Extra.Confidential] = "true";
+            var confidential = principal.FindFirst(OpenIdConnectConstants.Properties.Confidential);
+            if (confidential != null && string.Equals(confidential.Value, "true", StringComparison.OrdinalIgnoreCase)) {
+                properties.Dictionary[OpenIdConnectConstants.Properties.Confidential] = "true";
             }
 
             // Ensure the received ticket is an identity token.

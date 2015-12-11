@@ -63,6 +63,11 @@ namespace Owin.Security.OpenIdConnect.Server {
         public IList<string> Audiences { get; } = new List<string>();
 
         /// <summary>
+        /// Gets the list of presenters.
+        /// </summary>
+        public IList<string> Presenters { get; } = new List<string>();
+
+        /// <summary>
         /// Gets or sets the authorization code hash.
         /// </summary>
         public string CHash { get; set; }

@@ -1036,10 +1036,10 @@ namespace Owin.Security.OpenIdConnect.Server {
                     return;
                 }
 
-                // Note: identifier may be null during a grant_type=refresh_token request if the refresh token
+                // Note: presenters may be empty during a grant_type=refresh_token request if the refresh token
                 // was issued to a public client but cannot be null for an authorization code grant request.
-                var identifier = ticket.Properties.GetProperty(OpenIdConnectConstants.Extra.ClientId);
-                if (request.IsAuthorizationCodeGrantType() && string.IsNullOrEmpty(identifier)) {
+                var presenters = ticket.Properties.GetPresenters();
+                if (request.IsAuthorizationCodeGrantType() && !presenters.Any()) {
                     Options.Logger.WriteError("The client the authorization code was issued to cannot be resolved.");
 
                     await SendErrorPayloadAsync(new OpenIdConnectMessage {
@@ -1070,8 +1070,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                 // As a consequence, this check doesn't depend on the actual status of client authentication.
                 // See https://tools.ietf.org/html/rfc6749#section-6
                 // and http://openid.net/specs/openid-connect-core-1_0.html#RefreshingAccessToken
-                if (!string.IsNullOrEmpty(identifier) && !string.IsNullOrEmpty(request.ClientId) &&
-                    !string.Equals(identifier, request.ClientId, StringComparison.Ordinal)) {
+                if (!string.IsNullOrEmpty(request.ClientId) && presenters.Any() &&
+                    !presenters.Contains(request.ClientId, StringComparer.Ordinal)) {
                     Options.Logger.WriteError("ticket does not contain matching client_id");
 
                     await SendErrorPayloadAsync(new OpenIdConnectMessage {
@@ -1091,8 +1091,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                 // and http://openid.net/specs/openid-connect-core-1_0.html#TokenRequestValidation
                 string address;
                 if (request.IsAuthorizationCodeGrantType() &&
-                    ticket.Properties.Dictionary.TryGetValue(OpenIdConnectConstants.Extra.RedirectUri, out address)) {
-                    ticket.Properties.Dictionary.Remove(OpenIdConnectConstants.Extra.RedirectUri);
+                    ticket.Properties.Dictionary.TryGetValue(OpenIdConnectConstants.Properties.RedirectUri, out address)) {
+                    ticket.Properties.Dictionary.Remove(OpenIdConnectConstants.Properties.RedirectUri);
 
                     if (string.IsNullOrEmpty(request.RedirectUri)) {
                         Options.Logger.WriteError("redirect_uri was missing from the grant_type=authorization_code request.");
@@ -1150,13 +1150,13 @@ namespace Owin.Security.OpenIdConnect.Server {
                     // Remove the "resource" property from the authentication ticket corresponding
                     // to the authorization code/refresh token to force the token endpoint
                     // to use the "resource" parameter flowed in the token request.
-                    ticket.Properties.Dictionary.Remove(OpenIdConnectConstants.Extra.Resource);
+                    ticket.Properties.Dictionary.Remove(OpenIdConnectConstants.Properties.Resources);
                 }
 
                 else {
                     // When no explicit "resource" parameter has been received, the "resource" parameter sent
                     // during the authorization request or the previous token request is used instead.
-                    request.Resource = ticket.GetProperty(OpenIdConnectConstants.Extra.Resource);
+                    request.Resource = ticket.GetProperty(OpenIdConnectConstants.Properties.Resources);
                 }
 
                 if (!string.IsNullOrEmpty(request.Scope)) {
@@ -1194,13 +1194,13 @@ namespace Owin.Security.OpenIdConnect.Server {
                     // Remove the "scope" property from the authentication ticket corresponding
                     // to the authorization code/refresh token to force the token endpoint
                     // to use the "scope" parameter flowed in the token request.
-                    ticket.Properties.Dictionary.Remove(OpenIdConnectConstants.Extra.Scope);
+                    ticket.Properties.Dictionary.Remove(OpenIdConnectConstants.Properties.Scopes);
                 }
 
                 else {
                     // When no explicit "scope" parameter has been received, the "scope" parameter sent
                     // during the authorization request or the previous token request is used instead.
-                    request.Scope = ticket.GetProperty(OpenIdConnectConstants.Extra.Scope);
+                    request.Scope = ticket.GetProperty(OpenIdConnectConstants.Properties.Scopes);
                 }
 
                 // Expose the authentication ticket extracted from the authorization
@@ -1352,30 +1352,25 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return;
             }
 
-            if (!string.IsNullOrEmpty(request.ClientId)) {
-                // Keep the original client_id parameter for later comparison.
-                ticket.Properties.Dictionary[OpenIdConnectConstants.Extra.ClientId] = request.ClientId;
+            if (clientNotification.IsValidated) {
+                // Store a boolean indicating whether the ticket should be marked as confidential.
+                ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.Confidential] = "true";
             }
 
             // Note: the application is allowed to specify a different "resource": in this case,
             // don't replace the "resource" property stored in the authentication ticket.
             if (!string.IsNullOrEmpty(request.Resource) &&
-                !ticket.Properties.Dictionary.ContainsKey(OpenIdConnectConstants.Extra.Resource)) {
+                !ticket.Properties.Dictionary.ContainsKey(OpenIdConnectConstants.Properties.Resources)) {
                 // Keep the original resource parameter for later comparison.
-                ticket.Properties.Dictionary[OpenIdConnectConstants.Extra.Resource] = request.Resource;
+                ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.Resources] = request.Resource;
             }
 
             // Note: the application is allowed to specify a different "scope": in this case,
             // don't replace the "scope" property stored in the authentication ticket.
             if (!string.IsNullOrEmpty(request.Scope) &&
-                !ticket.Properties.Dictionary.ContainsKey(OpenIdConnectConstants.Extra.Scope)) {
+                !ticket.Properties.Dictionary.ContainsKey(OpenIdConnectConstants.Properties.Scopes)) {
                 // Keep the original scope parameter for later comparison.
-                ticket.Properties.Dictionary[OpenIdConnectConstants.Extra.Scope] = request.Scope;
-            }
-
-            if (clientNotification.IsValidated) {
-                // Store a boolean indicating whether the ticket should be marked as confidential.
-                ticket.Properties.Dictionary[OpenIdConnectConstants.Extra.Confidential] = "true";
+                ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.Scopes] = request.Scope;
             }
 
             var response = new OpenIdConnectMessage();
@@ -1389,16 +1384,16 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                 // Note: when the "resource" parameter added to the OpenID Connect response
                 // is identical to the request parameter, keeping it is not necessary.
-                var resource = properties.GetProperty(OpenIdConnectConstants.Extra.Resource);
-                if (request.IsAuthorizationCodeGrantType() || !string.Equals(request.Resource, resource, StringComparison.Ordinal)) {
-                    response.Resource = resource;
+                var resources = properties.GetProperty(OpenIdConnectConstants.Properties.Resources);
+                if (request.IsAuthorizationCodeGrantType() || !string.Equals(request.Resource, resources, StringComparison.Ordinal)) {
+                    response.Resource = resources;
                 }
 
                 // Note: when the "scope" parameter added to the OpenID Connect response
                 // is identical to the request parameter, keeping it is not necessary.
-                var scope = properties.GetProperty(OpenIdConnectConstants.Extra.Scope);
-                if (request.IsAuthorizationCodeGrantType() || !string.Equals(request.Scope, scope, StringComparison.Ordinal)) {
-                    response.Scope = scope;
+                var scopes = properties.GetProperty(OpenIdConnectConstants.Properties.Scopes);
+                if (request.IsAuthorizationCodeGrantType() || !string.Equals(request.Scope, scopes, StringComparison.Ordinal)) {
+                    response.Scope = scopes;
                 }
 
                 // When sliding expiration is disabled, the access token added to the response
@@ -1642,15 +1637,15 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             var notification = new ProfileEndpointContext(Context, Options, request, ticket);
 
-            // 'sub' is a mandatory claim but is not necessarily present as-is: when missing,
-            // the name identifier extracted from the authentication ticket is used instead.
-            // See http://openid.net/specs/openid-connect-core-1_0.html#UserInfoResponse
-            notification.Subject = ticket.Identity.GetClaim(JwtRegisteredClaimNames.Sub) ??
-                                   ticket.Identity.GetClaim(ClaimTypes.NameIdentifier);
-
-            notification.Audience = ticket.Identity.GetClaim(JwtRegisteredClaimNames.Azp);
-
+            notification.Subject = ticket.Identity.GetClaim(ClaimTypes.NameIdentifier);
             notification.Issuer = Context.GetIssuer(Options);
+
+            // Note: when receiving an access token, its audiences list cannot be used for the "aud" claim
+            // as the client application is not the intented audience but only an authorized presenter.
+            // See http://openid.net/specs/openid-connect-core-1_0.html#UserInfoResponse
+            foreach (var presenter in ticket.GetPresenters()) {
+                notification.Audiences.Add(presenter);
+            }
 
             // The following claims are all optional and should be excluded when
             // no corresponding value has been found in the authentication ticket.
@@ -1702,10 +1697,6 @@ namespace Owin.Security.OpenIdConnect.Server {
                 payload[OpenIdConnectConstants.Claims.Address] = notification.Address;
             }
 
-            if (!string.IsNullOrEmpty(notification.Audience)) {
-                payload[JwtRegisteredClaimNames.Aud] = notification.Audience;
-            }
-
             if (!string.IsNullOrEmpty(notification.BirthDate)) {
                 payload[JwtRegisteredClaimNames.Birthdate] = notification.BirthDate;
             }
@@ -1748,6 +1739,18 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             if (!string.IsNullOrEmpty(notification.Website)) {
                 payload[OpenIdConnectConstants.Claims.Website] = notification.Website;
+            }
+
+            switch (notification.Audiences.Count) {
+                case 0: break;
+
+                case 1:
+                    payload.Add(JwtRegisteredClaimNames.Aud, notification.Audiences[0]);
+                    break;
+
+                default:
+                    payload.Add(JwtRegisteredClaimNames.Aud, JArray.FromObject(notification.Audiences));
+                    break;
             }
 
             foreach (var claim in notification.Claims) {
@@ -1961,10 +1964,11 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             if (ticket.IsAccessToken()) {
                 // When the caller is authenticated, ensure it is
-                // listed as a valid audience or authorized party.
+                // listed as a valid audience or authorized presenter.
                 var audiences = ticket.GetAudiences();
+                var presenters = ticket.GetPresenters();
                 if (clientNotification.IsValidated && !audiences.Contains(clientNotification.ClientId, StringComparer.Ordinal) &&
-                                                      !ticket.Identity.HasClaim(JwtRegisteredClaimNames.Azp, clientNotification.ClientId)) {
+                                                      !presenters.Contains(clientNotification.ClientId, StringComparer.Ordinal)) {
                     Options.Logger.WriteWarning("The validation request was rejected because the access token " +
                                                 "was issued to a different client or for another resource server.");
 
@@ -1995,8 +1999,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             else if (ticket.IsRefreshToken()) {
                 // When the caller is authenticated, reject the validation request if the caller
                 // doesn't correspond to the client application the token was issued to.
-                var identifier = ticket.GetProperty(OpenIdConnectConstants.Extra.ClientId);
-                if (clientNotification.IsValidated && !string.Equals(identifier, clientNotification.ClientId, StringComparison.Ordinal)) {
+                var presenters = ticket.GetPresenters();
+                if (clientNotification.IsValidated && !presenters.Contains(clientNotification.ClientId, StringComparer.Ordinal)) {
                     Options.Logger.WriteWarning("The validation request was rejected because the " +
                                                 "refresh token was issued to a different client.");
 
@@ -2018,14 +2022,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             // See https://tools.ietf.org/html/rfc7662#section-2.2 and https://tools.ietf.org/html/rfc6749#section-5.1
             notification.TokenType = ticket.Identity.GetClaim(OpenIdConnectConstants.Claims.TokenType);
 
-            // Try to resolve the issuer from the "iss" claim extracted from the token.
-            // If none can be found, a generic value is determined from the value
-            // registered in the options or from the current URL.
-            notification.Issuer = ticket.Identity.GetClaim(JwtRegisteredClaimNames.Iss) ??
-                                  Context.GetIssuer(Options);
-
-            notification.Subject = ticket.Identity.GetClaim(JwtRegisteredClaimNames.Sub) ??
-                                   ticket.Identity.GetClaim(ClaimTypes.NameIdentifier);
+            notification.Issuer = Context.GetIssuer(Options);
+            notification.Subject = ticket.Identity.GetClaim(ClaimTypes.NameIdentifier);
 
             notification.IssuedAt = ticket.Properties.IssuedUtc;
             notification.ExpiresAt = ticket.Properties.ExpiresUtc;
@@ -2038,7 +2036,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             // Note: non-metadata claims are only added if the caller is authenticated AND is in the specified audiences.
             if (clientNotification.IsValidated && notification.Audiences.Contains(clientNotification.ClientId)) {
                 notification.Username = ticket.Identity.Name;
-                notification.Scope = ticket.GetProperty(OpenIdConnectConstants.Extra.Scope);
+                notification.Scope = ticket.GetProperty(OpenIdConnectConstants.Properties.Scopes);
 
                 // Potentially sensitive claims are only exposed to trusted callers
                 // if the ticket corresponds to an access or identity token.

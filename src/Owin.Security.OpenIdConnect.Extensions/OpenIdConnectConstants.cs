@@ -99,15 +99,15 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             public const string UnsupportedResponseType = "unsupported_response_type";
         }
 
-        public static class Extra {
-            public const string Audience = "audience";
-            public const string ClientId = "client_id";
+        public static class Properties {
+            public const string Audiences = "audience";
             public const string Confidential = "confidential";
             public const string Destination = "destination";
             public const string Nonce = "nonce";
+            public const string Presenters = "presenters";
             public const string RedirectUri = "redirect_uri";
-            public const string Resource = "resource";
-            public const string Scope = "scope";
+            public const string Resources = "resources";
+            public const string Scopes = "scopes";
             public const string Usage = "usage";
         }
 

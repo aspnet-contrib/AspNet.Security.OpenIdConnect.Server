@@ -354,13 +354,12 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return true;
             }
 
-            if (!context.Principal.HasClaim(claim => claim.Type == ClaimTypes.NameIdentifier) &&
-                !context.Principal.HasClaim(claim => claim.Type == JwtRegisteredClaimNames.Sub)) {
+            if (!context.Principal.HasClaim(claim => claim.Type == ClaimTypes.NameIdentifier)) {
                 Options.Logger.WriteError("The returned identity doesn't contain the mandatory ClaimTypes.NameIdentifier claim.");
 
                 await SendNativeErrorPageAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.ServerError,
-                    ErrorDescription = "no ClaimTypes.NameIdentifier or sub claim found"
+                    ErrorDescription = "The mandatory ClaimTypes.NameIdentifier claim was not found."
                 });
 
                 return true;
@@ -373,35 +372,32 @@ namespace Owin.Security.OpenIdConnect.Server {
                 State = request.State
             };
 
-            // Associate client_id with all subsequent tickets.
-            context.Properties.Dictionary[OpenIdConnectConstants.Extra.ClientId] = request.ClientId;
-
             if (!string.IsNullOrEmpty(request.Nonce)) {
                 // Keep the original nonce parameter for later comparison.
-                context.Properties.Dictionary[OpenIdConnectConstants.Extra.Nonce] = request.Nonce;
+                context.Properties.Dictionary[OpenIdConnectConstants.Properties.Nonce] = request.Nonce;
             }
 
             if (!string.IsNullOrEmpty(request.RedirectUri)) {
                 // Keep original the original redirect_uri for later comparison.
-                context.Properties.Dictionary[OpenIdConnectConstants.Extra.RedirectUri] = request.RedirectUri;
+                context.Properties.Dictionary[OpenIdConnectConstants.Properties.RedirectUri] = request.RedirectUri;
             }
 
             // Note: the application is allowed to specify a different "resource"
             // parameter when calling AuthenticationManager.SignIn: in this case,
             // don't replace the "resource" property stored in the authentication ticket.
             if (!string.IsNullOrEmpty(request.Resource) &&
-                !context.Properties.Dictionary.ContainsKey(OpenIdConnectConstants.Extra.Resource)) {
+                !context.Properties.Dictionary.ContainsKey(OpenIdConnectConstants.Properties.Resources)) {
                 // Keep the original resource parameter for later comparison.
-                context.Properties.Dictionary[OpenIdConnectConstants.Extra.Resource] = request.Resource;
+                context.Properties.Dictionary[OpenIdConnectConstants.Properties.Resources] = request.Resource;
             }
 
             // Note: the application is allowed to specify a different "scope"
             // parameter when calling AuthenticationManager.SignIn: in this case,
             // don't replace the "scope" property stored in the authentication ticket.
             if (!string.IsNullOrEmpty(request.Scope) &&
-                !context.Properties.Dictionary.ContainsKey(OpenIdConnectConstants.Extra.Scope)) {
+                !context.Properties.Dictionary.ContainsKey(OpenIdConnectConstants.Properties.Scopes)) {
                 // Keep the original scope parameter for later comparison.
-                context.Properties.Dictionary[OpenIdConnectConstants.Extra.Scope] = request.Scope;
+                context.Properties.Dictionary[OpenIdConnectConstants.Properties.Scopes] = request.Scope;
             }
 
             // Determine whether an authorization code should be returned
@@ -440,17 +436,17 @@ namespace Owin.Security.OpenIdConnect.Server {
                 var properties = context.Properties.Copy();
 
                 // Note: when the "resource" parameter added to the OpenID Connect response
-                // is identical to the request parameter, keeping it is not necessary.
-                var resource = properties.GetProperty(OpenIdConnectConstants.Extra.Resource);
-                if (!string.Equals(request.Resource, resource, StringComparison.Ordinal)) {
-                    response.Resource = resource;
+                // is identical to the request parameter, setting it is not necessary.
+                var resources = properties.GetProperty(OpenIdConnectConstants.Properties.Resources);
+                if (!string.Equals(request.Resource, resources, StringComparison.Ordinal)) {
+                    response.Resource = resources;
                 }
 
                 // Note: when the "scope" parameter added to the OpenID Connect response
-                // is identical to the request parameter, keeping it is not necessary.
-                var scope = properties.GetProperty(OpenIdConnectConstants.Extra.Scope);
-                if (!string.Equals(request.Scope, scope, StringComparison.Ordinal)) {
-                    response.Scope = scope;
+                // is identical to the request parameter, setting it is not necessary.
+                var scopes = properties.GetProperty(OpenIdConnectConstants.Properties.Scopes);
+                if (!string.Equals(request.Scope, scopes, StringComparison.Ordinal)) {
+                    response.Scope = scopes;
                 }
 
                 response.TokenType = OpenIdConnectConstants.TokenTypes.Bearer;

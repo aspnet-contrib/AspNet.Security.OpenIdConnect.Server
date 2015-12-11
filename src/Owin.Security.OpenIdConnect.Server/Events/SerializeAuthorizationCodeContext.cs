@@ -4,6 +4,7 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
+using System.Collections.Generic;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
@@ -48,6 +49,11 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// Gets the authentication ticket.
         /// </summary>
         public AuthenticationTicket AuthenticationTicket { get; }
+
+        /// <summary>
+        /// Gets the list of presenters.
+        /// </summary>
+        public IList<string> Presenters { get; } = new List<string>();
 
         /// <summary>
         /// Gets or sets the data format used to serialize the authentication ticket.
