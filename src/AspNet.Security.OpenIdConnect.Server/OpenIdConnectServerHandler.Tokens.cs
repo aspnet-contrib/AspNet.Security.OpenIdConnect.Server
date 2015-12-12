@@ -597,7 +597,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 // Ensure the received ticket is an authorization code.
                 if (!ticket.IsAuthorizationCode()) {
-                    Logger.LogVerbose("The received token was not an authorization code: {Code}.", code);
+                    Logger.LogDebug("The received token was not an authorization code: {Code}.", code);
 
                     return null;
                 }
@@ -647,7 +647,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             catch (Exception exception) {
-                Logger.LogVerbose("An exception occured when deserializing an identity token: {Message}.", exception.Message);
+                Logger.LogDebug("An exception occured when deserializing an identity token: {Message}.", exception.Message);
 
                 return null;
             }
@@ -688,7 +688,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // Ensure the received ticket is an access token.
             var ticket = new AuthenticationTicket(principal, properties, Options.AuthenticationScheme);
             if (!ticket.IsAccessToken()) {
-                Logger.LogVerbose("The received token was not an access token: {Token}.", token);
+                Logger.LogDebug("The received token was not an access token: {Token}.", token);
 
                 return null;
             }
@@ -735,7 +735,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             catch (Exception exception) {
-                Logger.LogVerbose("An exception occured when deserializing an identity token: {Message}.", exception.Message);
+                Logger.LogDebug("An exception occured when deserializing an identity token: {Message}.", exception.Message);
 
                 return null;
             }
@@ -771,7 +771,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // Ensure the received ticket is an identity token.
             var ticket = new AuthenticationTicket(principal, properties, Options.AuthenticationScheme);
             if (!ticket.IsIdentityToken()) {
-                Logger.LogVerbose("The received token was not an identity token: {Token}.", token);
+                Logger.LogDebug("The received token was not an identity token: {Token}.", token);
 
                 return null;
             }
@@ -799,7 +799,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             // Ensure the received ticket is a refresh token.
             if (!ticket.IsRefreshToken()) {
-                Logger.LogVerbose("The received token was not a refresh token: {Token}.", token);
+                Logger.LogDebug("The received token was not a refresh token: {Token}.", token);
 
                 return null;
             }

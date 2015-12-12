@@ -187,7 +187,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             // Reject the authorization request if the redirect_uri was not validated.
             if (!clientNotification.IsValidated) {
-                Logger.LogVerbose("Unable to validate client information");
+                Logger.LogDebug("Unable to validate client information");
 
                 return await SendErrorPageAsync(new OpenIdConnectMessage {
                     Error = clientNotification.Error ?? OpenIdConnectConstants.Errors.InvalidClient,
@@ -197,7 +197,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             if (!string.IsNullOrEmpty(request.GetParameter(OpenIdConnectConstants.Parameters.Request))) {
-                Logger.LogVerbose("The authorization request contained the unsupported request parameter.");
+                Logger.LogDebug("The authorization request contained the unsupported request parameter.");
 
                 return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.RequestNotSupported,
@@ -208,7 +208,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             else if (!string.IsNullOrEmpty(request.RequestUri)) {
-                Logger.LogVerbose("The authorization request contained the unsupported request_uri parameter.");
+                Logger.LogDebug("The authorization request contained the unsupported request_uri parameter.");
 
                 return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.RequestUriNotSupported,
@@ -219,7 +219,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             else if (string.IsNullOrEmpty(request.ResponseType)) {
-                Logger.LogVerbose("Authorization request missing required response_type parameter");
+                Logger.LogDebug("Authorization request missing required response_type parameter");
 
                 return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
@@ -232,7 +232,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // Reject requests whose flow is unsupported.
             else if (!request.IsNoneFlow() && !request.IsAuthorizationCodeFlow() &&
                      !request.IsImplicitFlow() && !request.IsHybridFlow()) {
-                Logger.LogVerbose("Authorization request contains unsupported response_type parameter");
+                Logger.LogDebug("Authorization request contains unsupported response_type parameter");
 
                 return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.UnsupportedResponseType,
@@ -244,7 +244,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             // Reject requests whose response_mode is unsupported.
             else if (!request.IsFormPostResponseMode() && !request.IsFragmentResponseMode() && !request.IsQueryResponseMode()) {
-                Logger.LogVerbose("Authorization request contains unsupported response_mode parameter");
+                Logger.LogDebug("Authorization request contains unsupported response_mode parameter");
 
                 return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
@@ -259,7 +259,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // See http://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#Security
             else if (request.IsQueryResponseMode() && (request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.IdToken) ||
                                                        request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.Token))) {
-                Logger.LogVerbose("Authorization request contains unsafe response_type/response_mode combination");
+                Logger.LogDebug("Authorization request contains unsafe response_type/response_mode combination");
 
                 return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
@@ -275,7 +275,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // and http://openid.net/specs/openid-connect-core-1_0.html#HybridIDToken.
             else if (string.IsNullOrEmpty(request.Nonce) && request.ContainsScope(OpenIdConnectConstants.Scopes.OpenId) &&
                                                            (request.IsImplicitFlow() || request.IsHybridFlow())) {
-                Logger.LogVerbose("The 'nonce' parameter was missing");
+                Logger.LogDebug("The 'nonce' parameter was missing");
 
                 return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
@@ -288,7 +288,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // Reject requests containing the id_token response_mode if no openid scope has been received.
             else if (request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.IdToken) &&
                     !request.ContainsScope(OpenIdConnectConstants.Scopes.OpenId)) {
-                Logger.LogVerbose("The 'openid' scope part was missing");
+                Logger.LogDebug("The 'openid' scope part was missing");
 
                 return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
@@ -301,7 +301,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // Reject requests containing the code response_mode if the token endpoint has been disabled.
             else if (request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.Code) &&
                     !Options.TokenEndpointPath.HasValue) {
-                Logger.LogVerbose("Authorization request contains the disabled code response_type");
+                Logger.LogDebug("Authorization request contains the disabled code response_type");
 
                 return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.UnsupportedResponseType,
@@ -547,7 +547,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 if (!credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature) &&
                     !credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha384Signature) &&
                     !credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha512Signature)) {
-                    Logger.LogVerbose("Cryptography endpoint: unsupported signing key ignored. " +
+                    Logger.LogDebug("Cryptography endpoint: unsupported signing key ignored. " +
                                       "Only asymmetric security keys supporting RS256, RS384 " +
                                       "or RS512 can be exposed via the JWKS endpoint.");
 
@@ -1825,7 +1825,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // If the ticket is already expired, directly return active=false.
             if (ticket.Properties.ExpiresUtc.HasValue &&
                 ticket.Properties.ExpiresUtc < Options.SystemClock.UtcNow) {
-                Logger.LogVerbose("expired token");
+                Logger.LogDebug("expired token");
 
                 await SendPayloadAsync(new JObject {
                     [OpenIdConnectConstants.Claims.Active] = false
@@ -2103,7 +2103,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 await Options.Provider.ValidateClientLogoutRedirectUri(clientNotification);
 
                 if (clientNotification.IsRejected) {
-                    Logger.LogVerbose("Unable to validate client information");
+                    Logger.LogDebug("Unable to validate client information");
 
                     return await SendErrorPageAsync(new OpenIdConnectMessage {
                         Error = clientNotification.Error,

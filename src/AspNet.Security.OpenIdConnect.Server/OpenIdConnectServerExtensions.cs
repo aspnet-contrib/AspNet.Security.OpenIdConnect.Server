@@ -117,7 +117,7 @@ namespace Microsoft.AspNet.Builder {
                         string usage;
                         var parameters = OpenIdConnectServerHelpers.DecryptKey(protector, buffer.ToArray(), out usage);
                         if (parameters == null) {
-                            logger.LogVerbose("An invalid/incompatible key was ignored: {Key}.", file.FullName);
+                            logger.LogDebug("An invalid/incompatible key was ignored: {Key}.", file.FullName);
 
                             continue;
                         }

@@ -91,7 +91,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 var ticket = await DeserializeIdentityTokenAsync(request.IdTokenHint, request);
                 if (ticket == null) {
-                    Logger.LogVerbose("Invalid id_token_hint");
+                    Logger.LogDebug("Invalid id_token_hint");
 
                     return null;
                 }
@@ -125,14 +125,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 var ticket = await DeserializeAccessTokenAsync(token, request);
                 if (ticket == null) {
-                    Logger.LogVerbose("Invalid access_token");
+                    Logger.LogDebug("Invalid access_token");
 
                     return null;
                 }
 
                 if (!ticket.Properties.ExpiresUtc.HasValue ||
                      ticket.Properties.ExpiresUtc < Options.SystemClock.UtcNow) {
-                    Logger.LogVerbose("Expired access_token");
+                    Logger.LogDebug("Expired access_token");
 
                     return null;
                 }
