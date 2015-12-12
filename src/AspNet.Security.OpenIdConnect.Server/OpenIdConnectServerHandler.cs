@@ -49,7 +49,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             if (!notification.IsAuthorizationEndpoint &&
                 !notification.IsLogoutEndpoint &&
                 !notification.IsProfileEndpoint) {
-                return null;
+                return AuthenticateResult.Skip();
             }
 
             // Try to retrieve the current OpenID Connect request from the ASP.NET context.
@@ -65,11 +65,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 else if (string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase)) {
                     if (string.IsNullOrEmpty(Request.ContentType)) {
-                        return null;
+                        return AuthenticateResult.Skip();
                     }
 
                     else if (!Request.ContentType.StartsWith("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase)) {
-                        return null;
+                        return AuthenticateResult.Skip();
                     }
 
                     var form = await Request.ReadFormAsync(Context.RequestAborted);
@@ -79,21 +79,21 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             // Missing or invalid requests are ignored in HandleAuthenticateAsync:
-            // in this case, null is always returned to indicate authentication failed.
+            // in this case, Skip is used to indicate authentication failed.
             if (request == null) {
-                return null;
+                return AuthenticateResult.Skip();
             }
 
             if (notification.IsAuthorizationEndpoint || notification.IsLogoutEndpoint) {
                 if (string.IsNullOrEmpty(request.IdTokenHint)) {
-                    return null;
+                    return AuthenticateResult.Skip();
                 }
 
                 var ticket = await DeserializeIdentityTokenAsync(request.IdTokenHint, request);
                 if (ticket == null) {
                     Logger.LogDebug("Invalid id_token_hint");
 
-                    return null;
+                    return AuthenticateResult.Skip();
                 }
 
                 // Tickets are returned even if they
@@ -110,16 +110,16 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 else {
                     string header = Request.Headers[HeaderNames.Authorization];
                     if (string.IsNullOrEmpty(header)) {
-                        return null;
+                        return AuthenticateResult.Skip();
                     }
 
                     if (!header.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)) {
-                        return null;
+                        return AuthenticateResult.Skip();
                     }
 
                     token = header.Substring("Bearer ".Length);
                     if (string.IsNullOrWhiteSpace(token)) {
-                        return null;
+                        return AuthenticateResult.Skip();
                     }
                 }
 
@@ -127,20 +127,20 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 if (ticket == null) {
                     Logger.LogDebug("Invalid access_token");
 
-                    return null;
+                    return AuthenticateResult.Skip();
                 }
 
                 if (!ticket.Properties.ExpiresUtc.HasValue ||
                      ticket.Properties.ExpiresUtc < Options.SystemClock.UtcNow) {
                     Logger.LogDebug("Expired access_token");
 
-                    return null;
+                    return AuthenticateResult.Skip();
                 }
 
                 return AuthenticateResult.Success(ticket);
             }
 
-            return null;
+            return AuthenticateResult.Skip();
         }
 
         public override async Task<bool> HandleRequestAsync() {
