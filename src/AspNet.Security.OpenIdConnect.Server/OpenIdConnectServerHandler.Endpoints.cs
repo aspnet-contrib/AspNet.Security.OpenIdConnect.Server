@@ -999,7 +999,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     // When an explicit resource parameter has been included in the token request,
                     // the authorization server MUST ensure that it doesn't contain resources
                     // that were not allowed during the authorization request.
-                    else if (!resources.ContainsSet(request.GetResources())) {
+                    else if (!new HashSet<string>(resources).IsSupersetOf(request.GetResources())) {
                         Logger.LogError("token request does not contain matching resource");
 
                         await SendErrorPayloadAsync(new OpenIdConnectMessage {
@@ -1010,16 +1010,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
                         return;
                     }
 
-                    // Remove the "resource" property from the authentication ticket corresponding
-                    // to the authorization code/refresh token to force the token endpoint
-                    // to use the "resource" parameter flowed in the token request.
-                    ticket.Properties.Items.Remove(OpenIdConnectConstants.Properties.Resources);
-                }
-
-                else {
-                    // When no explicit "resource" parameter has been received, the "resource" parameter sent
-                    // during the authorization request or the previous token request is used instead.
-                    request.Resource = ticket.GetProperty(OpenIdConnectConstants.Properties.Resources);
+                    // Replace the resources initially granted by the resources
+                    // listed by the client application in the token request.
+                    ticket.SetResources(request.GetResources());
                 }
 
                 if (!string.IsNullOrEmpty(request.Scope)) {
@@ -1043,8 +1036,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     // the authorization server MUST ensure that it doesn't contain scopes
                     // that were not allowed during the authorization request.
                     // See https://tools.ietf.org/html/rfc6749#section-6
-                    else if (!scopes.ContainsSet(request.GetScopes())) {
-                        Logger.LogError("authorization code does not contain matching scope");
+                    else if (!new HashSet<string>(scopes).IsSupersetOf(request.GetScopes())) {
+                        Logger.LogError("token request does not contain matching scope");
 
                         await SendErrorPayloadAsync(new OpenIdConnectMessage {
                             Error = OpenIdConnectConstants.Errors.InvalidGrant,
@@ -1054,16 +1047,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
                         return;
                     }
 
-                    // Remove the "scope" property from the authentication ticket corresponding
-                    // to the authorization code/refresh token to force the token endpoint
-                    // to use the "scope" parameter flowed in the token request.
-                    ticket.Properties.Items.Remove(OpenIdConnectConstants.Properties.Scopes);
-                }
-
-                else {
-                    // When no explicit "scope" parameter has been received, the "scope" parameter sent
-                    // during the authorization request or the previous token request is used instead.
-                    request.Scope = ticket.GetProperty(OpenIdConnectConstants.Properties.Scopes);
+                    // Replace the scopes initially granted by the scopes
+                    // listed by the client application in the token request.
+                    ticket.SetScopes(request.GetScopes());
                 }
 
                 // Expose the authentication ticket extracted from the authorization
@@ -1220,20 +1206,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 ticket.Properties.Items[OpenIdConnectConstants.Properties.Confidential] = "true";
             }
 
-            // Note: the application is allowed to specify a different "resource": in this case,
-            // don't replace the "resource" property stored in the authentication ticket.
-            if (!string.IsNullOrEmpty(request.Resource) &&
-                !ticket.Properties.Items.ContainsKey(OpenIdConnectConstants.Properties.Resources)) {
-                // Keep the original resource parameter for later comparison.
-                ticket.Properties.Items[OpenIdConnectConstants.Properties.Resources] = request.Resource;
-            }
-
             // Note: the application is allowed to specify a different "scope": in this case,
             // don't replace the "scope" property stored in the authentication ticket.
-            if (!string.IsNullOrEmpty(request.Scope) &&
-                !ticket.Properties.Items.ContainsKey(OpenIdConnectConstants.Properties.Scopes)) {
-                // Keep the original scope parameter for later comparison.
-                ticket.Properties.Items[OpenIdConnectConstants.Properties.Scopes] = request.Scope;
+            if (!ticket.Properties.Items.ContainsKey(OpenIdConnectConstants.Properties.Scopes) &&
+                 request.ContainsScope(OpenIdConnectConstants.Scopes.OpenId)) {
+                // Always include the "openid" scope when the developer didn't explicitly call SetScopes.
+                ticket.Properties.Items[OpenIdConnectConstants.Properties.Scopes] = OpenIdConnectConstants.Scopes.OpenId;
             }
 
             var response = new OpenIdConnectMessage();
@@ -1253,14 +1231,16 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 // Note: when the "resource" parameter added to the OpenID Connect response
                 // is identical to the request parameter, keeping it is not necessary.
-                if (request.IsAuthorizationCodeGrantType() || !string.Equals(request.Resource, resources, StringComparison.Ordinal)) {
+                if (request.IsAuthorizationCodeGrantType() || (!string.IsNullOrEmpty(request.Resource) &&
+                                                               !string.Equals(request.Resource, resources, StringComparison.Ordinal))) {
                     response.Resource = resources;
                 }
 
                 // Note: when the "scope" parameter added to the OpenID Connect response
                 // is identical to the request parameter, keeping it is not necessary.
                 var scopes = properties.GetProperty(OpenIdConnectConstants.Properties.Scopes);
-                if (request.IsAuthorizationCodeGrantType() || !string.Equals(request.Scope, scopes, StringComparison.Ordinal)) {
+                if (request.IsAuthorizationCodeGrantType() || (!string.IsNullOrEmpty(request.Scope) && 
+                                                               !string.Equals(request.Scope, scopes, StringComparison.Ordinal))) {
                     response.Scope = scopes;
                 }
 

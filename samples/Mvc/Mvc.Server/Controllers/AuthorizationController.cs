@@ -130,11 +130,14 @@ namespace Mvc.Server.Controllers {
             var properties = new AuthenticationProperties();
 
             // Set the list of scopes granted to the client application.
+            // Note: this sample always grants the "openid", "email" and "profile" scopes
+            // when they are requested by the client application: a real world application
+            // would probably display a form allowing to select the scopes to grant.
             properties.SetScopes(new[] {
                 /* openid: */ OpenIdConnectConstants.Scopes.OpenId,
                 /* email: */ OpenIdConnectConstants.Scopes.Email,
                 /* profile: */ OpenIdConnectConstants.Scopes.Profile
-            });
+            }.Intersect(request.GetScopes()));
 
             // Set the resources servers the access token should be issued for.
             properties.SetResources(new[] { "resource_server" });

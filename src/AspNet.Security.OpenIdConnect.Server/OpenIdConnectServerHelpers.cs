@@ -387,13 +387,5 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     throw new InvalidOperationException($"The '{algorithm}' has no corresponding JWA identifier.");
             }
         }
-
-        internal static bool ContainsSet(this IEnumerable<string> source, IEnumerable<string> set) {
-            if (source == null || set == null) {
-                return false;
-            }
-
-            return new HashSet<string>(source).IsSupersetOf(set);
-        }
     }
 }
