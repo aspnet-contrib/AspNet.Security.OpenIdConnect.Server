@@ -382,22 +382,13 @@ namespace Owin.Security.OpenIdConnect.Server {
                 context.Properties.Dictionary[OpenIdConnectConstants.Properties.RedirectUri] = request.RedirectUri;
             }
 
-            // Note: the application is allowed to specify a different "resource"
-            // parameter when calling AuthenticationManager.SignIn: in this case,
-            // don't replace the "resource" property stored in the authentication ticket.
-            if (!string.IsNullOrEmpty(request.Resource) &&
-                !context.Properties.Dictionary.ContainsKey(OpenIdConnectConstants.Properties.Resources)) {
-                // Keep the original resource parameter for later comparison.
-                context.Properties.Dictionary[OpenIdConnectConstants.Properties.Resources] = request.Resource;
-            }
-
             // Note: the application is allowed to specify a different "scope"
             // parameter when calling AuthenticationManager.SignIn: in this case,
             // don't replace the "scope" property stored in the authentication ticket.
-            if (!string.IsNullOrEmpty(request.Scope) &&
-                !context.Properties.Dictionary.ContainsKey(OpenIdConnectConstants.Properties.Scopes)) {
-                // Keep the original scope parameter for later comparison.
-                context.Properties.Dictionary[OpenIdConnectConstants.Properties.Scopes] = request.Scope;
+            if (!context.Properties.Dictionary.ContainsKey(OpenIdConnectConstants.Properties.Scopes) &&
+                 request.ContainsScope(OpenIdConnectConstants.Scopes.OpenId)) {
+                // Always include the "openid" scope when the developer didn't explicitly call SetScopes.
+                context.Properties.Dictionary[OpenIdConnectConstants.Properties.Scopes] = OpenIdConnectConstants.Scopes.OpenId;
             }
 
             // Determine whether an authorization code should be returned
@@ -443,14 +434,16 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                 // Note: when the "resource" parameter added to the OpenID Connect response
                 // is identical to the request parameter, setting it is not necessary.
-                if (!string.Equals(request.Resource, resources, StringComparison.Ordinal)) {
+                if (!string.IsNullOrEmpty(request.Resource) &&
+                    !string.Equals(request.Resource, resources, StringComparison.Ordinal)) {
                     response.Resource = resources;
                 }
 
                 // Note: when the "scope" parameter added to the OpenID Connect response
                 // is identical to the request parameter, setting it is not necessary.
                 var scopes = properties.GetProperty(OpenIdConnectConstants.Properties.Scopes);
-                if (!string.Equals(request.Scope, scopes, StringComparison.Ordinal)) {
+                if (!string.IsNullOrEmpty(request.Scope) &&
+                    !string.Equals(request.Scope, scopes, StringComparison.Ordinal)) {
                     response.Scope = scopes;
                 }
 

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens;
 using System.IO;
 using System.Linq;
@@ -209,14 +208,6 @@ namespace Owin.Security.OpenIdConnect.Server {
                 default:
                     throw new InvalidOperationException($"The '{algorithm}' has no corresponding JWA identifier.");
             }
-        }
-
-        internal static bool ContainsSet(this IEnumerable<string> source, IEnumerable<string> set) {
-            if (source == null || set == null) {
-                return false;
-            }
-
-            return new HashSet<string>(source).IsSupersetOf(set);
         }
 
         internal sealed class EnhancedTicketDataFormat : SecureDataFormat<AuthenticationTicket> {
