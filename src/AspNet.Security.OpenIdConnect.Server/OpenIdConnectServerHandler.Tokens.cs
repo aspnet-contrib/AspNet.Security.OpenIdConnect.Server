@@ -611,7 +611,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 DataFormat = Options.AccessTokenFormat,
                 Issuer = Context.GetIssuer(Options),
                 SecurityTokenHandler = Options.AccessTokenHandler,
-                SignatureProvider = Options.SignatureProvider,
                 SigningCredentials = Options.SigningCredentials.FirstOrDefault()
             };
 
@@ -700,7 +699,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
             var notification = new DeserializeIdentityTokenContext(Context, Options, request, token) {
                 Issuer = Context.GetIssuer(Options),
                 SecurityTokenHandler = Options.IdentityTokenHandler,
-                SignatureProvider = Options.SignatureProvider,
                 SigningCredentials = Options.SigningCredentials.FirstOrDefault()
             };
 
