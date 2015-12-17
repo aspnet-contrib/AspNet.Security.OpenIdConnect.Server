@@ -79,11 +79,6 @@ namespace Owin.Security.OpenIdConnect.Server {
         public IList<string> Scopes { get; } = new List<string>();
 
         /// <summary>
-        /// Gets or sets the signature provider used to sign the access token.
-        /// </summary>
-        public SignatureProvider SignatureProvider { get; set; }
-
-        /// <summary>
         /// Gets or sets the encrypting credentials used to protect the access token.
         /// Both asymmetric and symmetric keys can be used, but choosing a per-client
         /// asymmetric key is strongly recommended. When an asymmetric algorithm is used,

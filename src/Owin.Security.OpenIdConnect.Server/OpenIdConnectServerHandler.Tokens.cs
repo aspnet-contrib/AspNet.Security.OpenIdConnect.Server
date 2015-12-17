@@ -116,7 +116,6 @@ namespace Owin.Security.OpenIdConnect.Server {
                 DataFormat = Options.AccessTokenFormat,
                 Issuer = Context.GetIssuer(Options),
                 SecurityTokenHandler = Options.AccessTokenHandler,
-                SignatureProvider = Options.SignatureProvider,
                 SigningCredentials = Options.SigningCredentials.FirstOrDefault()
             };
 
@@ -225,7 +224,6 @@ namespace Owin.Security.OpenIdConnect.Server {
                 var token = handler.CreateToken(
                     subject: ticket.Identity,
                     issuer: notification.Issuer,
-                    signatureProvider: notification.SignatureProvider,
                     signingCredentials: notification.SigningCredentials,
                     notBefore: ticket.Properties.IssuedUtc.Value.UtcDateTime,
                     expires: ticket.Properties.ExpiresUtc.Value.UtcDateTime);
@@ -353,7 +351,6 @@ namespace Owin.Security.OpenIdConnect.Server {
                 Issuer = Context.GetIssuer(Options),
                 Nonce = request.Nonce,
                 SecurityTokenHandler = Options.IdentityTokenHandler,
-                SignatureProvider = Options.SignatureProvider,
                 SigningCredentials = Options.SigningCredentials.FirstOrDefault(),
                 Subject = identity.GetClaim(ClaimTypes.NameIdentifier)
             };
@@ -476,7 +473,6 @@ namespace Owin.Security.OpenIdConnect.Server {
             var token = notification.SecurityTokenHandler.CreateToken(
                 subject: ticket.Identity,
                 issuer: notification.Issuer,
-                signatureProvider: notification.SignatureProvider,
                 signingCredentials: notification.SigningCredentials,
                 notBefore: notification.AuthenticationTicket.Properties.IssuedUtc.Value.UtcDateTime,
                 expires: notification.AuthenticationTicket.Properties.ExpiresUtc.Value.UtcDateTime);
@@ -620,7 +616,6 @@ namespace Owin.Security.OpenIdConnect.Server {
                 DataFormat = Options.AccessTokenFormat,
                 Issuer = Context.GetIssuer(Options),
                 SecurityTokenHandler = Options.AccessTokenHandler,
-                SignatureProvider = Options.SignatureProvider,
                 SigningCredentials = Options.SigningCredentials.FirstOrDefault()
             };
 
@@ -709,7 +704,6 @@ namespace Owin.Security.OpenIdConnect.Server {
             var notification = new DeserializeIdentityTokenContext(Context, Options, request, token) {
                 Issuer = Context.GetIssuer(Options),
                 SecurityTokenHandler = Options.IdentityTokenHandler,
-                SignatureProvider = Options.SignatureProvider,
                 SigningCredentials = Options.SigningCredentials.FirstOrDefault()
             };
 
