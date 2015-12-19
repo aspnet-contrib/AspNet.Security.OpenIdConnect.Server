@@ -477,7 +477,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 payload.Add(OpenIdConnectConstants.Metadata.UserinfoEndpoint, notification.ProfileEndpoint);
             }
 
-            if (!string.IsNullOrWhiteSpace(notification.ProfileEndpoint)) {
+            if (!string.IsNullOrEmpty(notification.ValidationEndpoint)) {
                 payload.Add(OpenIdConnectConstants.Metadata.IntrospectionEndpoint, notification.ValidationEndpoint);
             }
 
