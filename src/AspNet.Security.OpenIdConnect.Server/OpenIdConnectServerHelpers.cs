@@ -241,7 +241,46 @@ namespace AspNet.Security.OpenIdConnect.Server {
             return cache.SetAsync(key, buffer, options);
         }
 
-        internal static bool IsSupportedAlgorithm([NotNull] this SecurityKey key, [NotNull] string algorithm) {
+        internal static HashAlgorithm GetHashAlgorithm(string algorithm) {
+            if (string.IsNullOrEmpty(algorithm)) {
+                throw new ArgumentNullException(nameof(algorithm));
+            }
+
+            switch (algorithm) {
+                case SecurityAlgorithms.RsaSha256Signature:
+                case SecurityAlgorithms.HmacSha256Signature:
+                case SecurityAlgorithms.RSA_SHA256:
+                case SecurityAlgorithms.HMAC_SHA256:
+                case SecurityAlgorithms.ECDSA_SHA256:
+                    return SHA256.Create();
+                
+                case SecurityAlgorithms.RsaSha384Signature:
+                case SecurityAlgorithms.HmacSha384Signature:
+                case SecurityAlgorithms.RSA_SHA384:
+                case SecurityAlgorithms.HMAC_SHA384:
+                case SecurityAlgorithms.ECDSA_SHA384:
+                    return SHA384.Create();
+                
+                case SecurityAlgorithms.RsaSha512Signature:
+                case SecurityAlgorithms.HmacSha512Signature:
+                case SecurityAlgorithms.RSA_SHA512:
+                case SecurityAlgorithms.HMAC_SHA512:
+                case SecurityAlgorithms.ECDSA_SHA512:
+                    return SHA512.Create();
+            }
+
+            throw new NotSupportedException($"The hash algorithm cannot be inferred from the '{algorithm}' signature algorithm.");
+        }
+
+        internal static bool IsSupportedAlgorithm(this SecurityKey key, string algorithm) {
+            if (key == null) {
+                throw new ArgumentNullException(nameof(key));
+            }
+
+            if (string.IsNullOrEmpty(algorithm)) {
+                throw new ArgumentNullException(nameof(algorithm));
+            }
+
             // Note: SecurityKey currently doesn't support IsSupportedAlgorithm.
             // To work around this limitation, this static extension tries to
             // determine whether the given security key supports the specified
@@ -384,11 +423,15 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     return "RSA1_5";
 
                 default:
-                    throw new InvalidOperationException($"The '{algorithm}' has no corresponding JWA identifier.");
+                    throw new InvalidOperationException($"The '{algorithm}' algorithm has no corresponding JWA identifier.");
             }
         }
 
         internal static string GenerateKey(this RandomNumberGenerator generator, int length) {
+            if (generator == null) {
+                throw new ArgumentNullException(nameof(generator));
+            }
+
             var bytes = new byte[length];
             generator.GetBytes(bytes);
 

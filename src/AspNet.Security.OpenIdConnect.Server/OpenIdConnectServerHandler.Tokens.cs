@@ -367,7 +367,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             if (!string.IsNullOrEmpty(response.Code)) {
-                using (var algorithm = SHA256.Create()) {
+                using (var algorithm = OpenIdConnectServerHelpers.GetHashAlgorithm(notification.SigningCredentials.Algorithm)) {
                     // Create the c_hash using the authorization code returned by SerializeAuthorizationCodeAsync.
                     var hash = algorithm.ComputeHash(Encoding.ASCII.GetBytes(response.Code));
 
@@ -378,7 +378,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             if (!string.IsNullOrEmpty(response.AccessToken)) {
-                using (var algorithm = SHA256.Create()) {
+                using (var algorithm = OpenIdConnectServerHelpers.GetHashAlgorithm(notification.SigningCredentials.Algorithm)) {
                     // Create the at_hash using the access token returned by SerializeAccessTokenAsync.
                     var hash = algorithm.ComputeHash(Encoding.ASCII.GetBytes(response.AccessToken));
 
