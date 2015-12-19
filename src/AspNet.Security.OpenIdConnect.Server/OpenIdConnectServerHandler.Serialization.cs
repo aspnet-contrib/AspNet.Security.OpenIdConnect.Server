@@ -9,7 +9,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Linq;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
@@ -272,8 +271,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                             if (rsaSecurityKey != null) {
                                 // Only use the 40 first chars to match the identifier used by the JWKS endpoint.
                                 identifier = Base64UrlEncoder.Encode(rsaSecurityKey.Parameters.Modulus)
-                                                                .Substring(0, 40)
-                                                                .ToUpperInvariant();
+                                                             .Substring(0, 40).ToUpperInvariant();
                             }
                         }
 
@@ -505,8 +503,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                         if (rsaSecurityKey != null) {
                             // Only use the 40 first chars to match the identifier used by the JWKS endpoint.
                             identifier = Base64UrlEncoder.Encode(rsaSecurityKey.Parameters.Modulus)
-                                                            .Substring(0, 40)
-                                                            .ToUpperInvariant();
+                                                         .Substring(0, 40).ToUpperInvariant();
                         }
                     }
 
