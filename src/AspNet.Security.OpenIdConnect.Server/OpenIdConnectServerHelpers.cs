@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Linq;
@@ -13,6 +12,7 @@ using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.PlatformAbstractions;
 using Microsoft.Extensions.Primitives;
+using Microsoft.IdentityModel.Tokens;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     internal static class OpenIdConnectServerHelpers {
@@ -386,6 +386,13 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 default:
                     throw new InvalidOperationException($"The '{algorithm}' has no corresponding JWA identifier.");
             }
+        }
+
+        internal static string GenerateKey(this RandomNumberGenerator generator, int length) {
+            var bytes = new byte[length];
+            generator.GetBytes(bytes);
+
+            return Base64UrlEncoder.Encode(bytes);
         }
     }
 }

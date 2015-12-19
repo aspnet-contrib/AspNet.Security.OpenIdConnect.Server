@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Reflection;
@@ -22,6 +21,7 @@ using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.PlatformAbstractions;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Microsoft.AspNet.Builder {
     /// <summary>

@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Linq;
@@ -20,6 +19,7 @@ using Microsoft.AspNet.Builder;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -328,7 +328,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             identifier = request.GetUniqueIdentifier();
             if (string.IsNullOrEmpty(identifier)) {
                 // Generate a new 256-bits identifier and associate it with the authorization request.
-                identifier = GenerateKey(length: 256 / 8);
+                identifier = Options.RandomNumberGenerator.GenerateKey(length: 256 / 8);
                 request.SetUniqueIdentifier(identifier);
 
                 using (var stream = new MemoryStream())

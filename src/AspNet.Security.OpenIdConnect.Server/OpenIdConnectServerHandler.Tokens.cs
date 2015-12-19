@@ -5,7 +5,6 @@
  */
 
 using System;
-using System.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Linq;
@@ -19,6 +18,7 @@ using Microsoft.AspNet.Authentication;
 using Microsoft.AspNet.Http.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Microsoft.IdentityModel.Tokens;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     internal partial class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions> {
@@ -72,7 +72,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return null;
             }
 
-            var key = GenerateKey(256 / 8);
+            var key = Options.RandomNumberGenerator.GenerateKey(length: 256 / 8);
 
             using (var stream = new MemoryStream())
             using (var writter = new StreamWriter(stream)) {

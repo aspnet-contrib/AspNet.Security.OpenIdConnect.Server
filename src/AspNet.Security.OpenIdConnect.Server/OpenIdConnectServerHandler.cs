@@ -20,6 +20,7 @@ using Microsoft.AspNet.Http.Features.Authentication;
 using Microsoft.AspNet.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -735,12 +736,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 buffer.Seek(offset: 0, loc: SeekOrigin.Begin);
                 await buffer.CopyToAsync(Response.Body, 4096, Context.RequestAborted);
             }
-        }
-
-        private string GenerateKey(int length) {
-            var bytes = new byte[length];
-            Options.RandomNumberGenerator.GetBytes(bytes);
-            return Base64UrlEncoder.Encode(bytes);
         }
 
         private class Appender {

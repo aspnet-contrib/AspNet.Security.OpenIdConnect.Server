@@ -6,13 +6,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Cryptography;
 using System.Text.Encodings.Web;
 using Microsoft.AspNet.Authentication;
 using Microsoft.AspNet.Http;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.IdentityModel.Tokens;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>

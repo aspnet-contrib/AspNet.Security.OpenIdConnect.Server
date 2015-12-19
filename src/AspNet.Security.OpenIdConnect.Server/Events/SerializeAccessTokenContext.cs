@@ -5,10 +5,10 @@
  */
 
 using System.Collections.Generic;
-using System.IdentityModel.Tokens;
 using Microsoft.AspNet.Authentication;
 using Microsoft.AspNet.Http;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Microsoft.IdentityModel.Tokens;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
