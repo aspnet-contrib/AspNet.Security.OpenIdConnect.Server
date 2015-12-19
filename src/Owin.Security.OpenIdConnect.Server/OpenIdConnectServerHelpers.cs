@@ -210,6 +210,17 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
         }
 
+        internal static string GenerateKey(this RandomNumberGenerator generator, int length) {
+            if (generator == null) {
+                throw new ArgumentNullException(nameof(generator));
+            }
+
+            var bytes = new byte[length];
+            generator.GetBytes(bytes);
+
+            return Base64UrlEncoder.Encode(bytes);
+        }
+
         internal sealed class EnhancedTicketDataFormat : SecureDataFormat<AuthenticationTicket> {
             private static readonly EnhancedTicketSerializer Serializer = new EnhancedTicketSerializer();
 

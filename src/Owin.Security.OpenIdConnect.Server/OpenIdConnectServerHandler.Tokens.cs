@@ -71,7 +71,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return null;
             }
 
-            var key = GenerateKey(256 / 8);
+            var key = Options.RandomNumberGenerator.GenerateKey(256 / 8);
 
             Options.Cache.Set(key,
                 value: notification.DataFormat.Protect(ticket),
@@ -372,7 +372,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             if (!string.IsNullOrEmpty(response.Code)) {
-                using (var algorithm = HashAlgorithm.Create(SecurityAlgorithms.Sha256Digest)) {
+                using (var algorithm = HashAlgorithm.Create(notification.SigningCredentials.DigestAlgorithm)) {
                     // Create the c_hash using the authorization code returned by SerializeAuthorizationCodeAsync.
                     var hash = algorithm.ComputeHash(Encoding.ASCII.GetBytes(response.Code));
 
@@ -383,7 +383,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             if (!string.IsNullOrEmpty(response.AccessToken)) {
-                using (var algorithm = HashAlgorithm.Create(SecurityAlgorithms.Sha256Digest)) {
+                using (var algorithm = HashAlgorithm.Create(notification.SigningCredentials.DigestAlgorithm)) {
                     // Create the at_hash using the access token returned by SerializeAccessTokenAsync.
                     var hash = algorithm.ComputeHash(Encoding.ASCII.GetBytes(response.AccessToken));
 

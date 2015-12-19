@@ -765,12 +765,6 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
         }
 
-        private string GenerateKey(int length) {
-            var bytes = new byte[length];
-            Options.RandomNumberGenerator.GetBytes(bytes);
-            return Base64UrlEncoder.Encode(bytes);
-        }
-
         private class Appender {
             private readonly char _delimiter;
             private readonly StringBuilder _sb;

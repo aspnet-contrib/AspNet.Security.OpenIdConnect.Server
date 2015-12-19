@@ -328,7 +328,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             identifier = request.GetUniqueIdentifier();
             if (string.IsNullOrEmpty(identifier)) {
                 // Generate a new 256-bits identifier and associate it with the authorization request.
-                identifier = GenerateKey(length: 256 / 8);
+                identifier = Options.RandomNumberGenerator.GenerateKey(length: 256 / 8);
                 request.SetUniqueIdentifier(identifier);
 
                 using (var stream = new MemoryStream())
