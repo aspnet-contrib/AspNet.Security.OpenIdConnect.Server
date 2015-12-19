@@ -475,7 +475,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 payload.Add(OpenIdConnectConstants.Metadata.UserinfoEndpoint, notification.ProfileEndpoint);
             }
 
-            if (!string.IsNullOrWhiteSpace(notification.ValidationEndpoint)) {
+            if (!string.IsNullOrEmpty(notification.ValidationEndpoint)) {
                 payload.Add(OpenIdConnectConstants.Metadata.IntrospectionEndpoint, notification.ValidationEndpoint);
             }
 
