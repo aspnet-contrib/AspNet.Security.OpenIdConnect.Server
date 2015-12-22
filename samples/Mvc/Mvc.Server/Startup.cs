@@ -2,6 +2,7 @@ using System;
 using Microsoft.AspNet.Authentication;
 using Microsoft.AspNet.Authentication.Cookies;
 using Microsoft.AspNet.Builder;
+using Microsoft.AspNet.Hosting;
 using Microsoft.AspNet.Http;
 using Microsoft.Data.Entity;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +17,15 @@ using NWebsec.Owin;
 
 namespace Mvc.Server {
     public class Startup {
+        public static void Main(string[] args) {
+            var application = new WebApplicationBuilder()
+                .UseConfiguration(WebApplicationConfiguration.GetDefault(args))
+                .UseStartup<Startup>()
+                .Build();
+
+            application.Run();
+        }
+
         public void ConfigureServices(IServiceCollection services) {
             services.AddEntityFramework()
                 .AddInMemoryDatabase()
@@ -87,7 +97,7 @@ namespace Mvc.Server {
                 // Insert a new middleware responsible of setting the Content-Security-Policy header.
                 // See https://nwebsec.codeplex.com/wikipage?title=Configuring%20Content%20Security%20Policy&referringTitle=NWebsec
                 owin.UseCsp(options => options.DefaultSources(configuration => configuration.Self())
-                                              .ImageSources(configuration => configuration.Self().CustomSources("*"))
+                                              .ImageSources(configuration => configuration.Self().CustomSources("data:"))
                                               .ScriptSources(configuration => configuration.UnsafeInline())
                                               .StyleSources(configuration => configuration.Self().UnsafeInline()));
 

@@ -1,7 +1,4 @@
 {
-    "webroot": "wwwroot",
-    "exclude": "wwwroot/**/*.*",
-
     "version": "1.0.0-*",
 
     "dependencies": {
@@ -12,8 +9,8 @@
         "Microsoft.AspNet.Authentication.Cookies": "1.0.0-*",
         "Microsoft.AspNet.Authentication.Google": "1.0.0-*",
         "Microsoft.AspNet.Authentication.Twitter": "1.0.0-*",
+        "Microsoft.AspNet.Hosting": "1.0.0-*",
         "Microsoft.AspNet.Server.Kestrel": "1.0.0-*",
-        "Microsoft.AspNet.Server.WebListener": "1.0.0-*",
         "Microsoft.AspNet.StaticFiles": "1.0.0-*",
 
         "Microsoft.Extensions.Logging.Console": "1.0.0-*",
@@ -24,20 +21,46 @@
         "AspNet.Security.OpenIdConnect.Server": "1.0.0-*"
     },
 
+    "compilationOptions": {
+        "emitEntryPoint": true
+    },
+
     "commands": {
-        "kestrel": "Microsoft.AspNet.Hosting --server=Microsoft.AspNet.Server.Kestrel --server.urls=http://localhost:54540",
-        "web": "Microsoft.AspNet.Hosting server=Microsoft.AspNet.Server.WebListener server.urls=http://localhost:54540"
+        "web": "Mvc.Server"
     },
 
     "frameworks": {
         "dnx451": {
             "dependencies": {
                 "Microsoft.AspNet.Owin": "1.0.0-*",
-                "Microsoft.Owin": "3.0.0",
+                "Microsoft.Owin.Security": "3.0.0",
                 "NWebsec.Owin": "1.0.0"
             }
         },
 
         "dnxcore50": { }
+    },
+
+    "exclude": [
+        "wwwroot",
+        "node_modules",
+        "bower_components"
+    ],
+
+    "publishExclude": [
+        "node_modules",
+        "bower_components",
+        "**.xproj",
+        "**.user",
+        "**.vspscc"
+    ],
+
+    "scripts": {
+        "prepublish": [
+            "npm install",
+            "bower install",
+            "gulp clean",
+            "gulp min"
+        ]
     }
 }
