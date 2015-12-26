@@ -1,7 +1,7 @@
 Owin.Security.OpenIdConnect.Server
 ==================================
 
-**Owin.Security.OpenIdConnect.Server** is an **OpenID Connect server middleware** that you can use in **any OWIN-powered application** and that works with the official **OpenID Connect client middleware** developed by Microsoft or with any **standards-compliant OAuth2/OpenID Connect client**.
+**Owin.Security.OpenIdConnect.Server** is an **advanced OAuth2/OpenID Connect server framework** for OWIN/Katana, designed to offer a low-level, protocol-first approach.
 
 **The latest official release can be found on [NuGet](https://www.nuget.org/packages/Owin.Security.OpenIdConnect.Server) and the nightly builds on [MyGet](https://www.myget.org/gallery/aspnet-contrib)**.
 
@@ -38,11 +38,9 @@ app.UseOpenIdConnectServer(options => {
 });
 ```
 
-See [https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server/tree/dev/samples/Mvc](https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server/tree/dev/samples/Mvc) for a sample **using MVC 6 and showing how to configure a new OpenID Connect server using a custom `OpenIdConnectServerProvider` implementation to validate client applications**.
-
 ## Support
 
-**Need help or wanna share your thoughts? Don't hesitate to join our dedicated chat rooms:**
+**Need help or wanna share your thoughts?** Don't hesitate to join our dedicated chat rooms:
 
 - **JabbR: [https://jabbr.net/#/rooms/aspnet-contrib](https://jabbr.net/#/rooms/aspnet-contrib)**
 - **Gitter: [https://gitter.im/aspnet-contrib/AspNet.Security.OpenIdConnect.Server](https://gitter.im/aspnet-contrib/AspNet.Security.OpenIdConnect.Server)**
