@@ -1,7 +1,7 @@
 AspNet.Security.OpenIdConnect.Server
 ==================================
 
-**AspNet.Security.OpenIdConnect.Server** is an **OpenID Connect server middleware** that you can use in **any ASP.NET 5 application** and that works with the official **OpenID Connect client middleware** developed by Microsoft or with any **standards-compliant OAuth2/OpenID Connect client**.
+**AspNet.Security.OpenIdConnect.Server** is an **advanced OAuth2/OpenID Connect server framework** for ASP.NET 5, designed to offer a low-level, protocol-first approach.
 
 **The latest official release can be found on [NuGet](https://www.nuget.org/packages/AspNet.Security.OpenIdConnect.Server) and the nightly builds on [MyGet](https://www.myget.org/gallery/aspnet-contrib)**.
 
@@ -38,11 +38,15 @@ app.UseOpenIdConnectServer(options => {
 });
 ```
 
-See [https://github.com/aspnet-security/AspNet.Security.OpenIdConnect.Server/tree/vNext/samples/Mvc](https://github.com/aspnet-security/AspNet.Security.OpenIdConnect.Server/tree/vNext/samples/Mvc) for a sample **using MVC 6 and showing how to configure a new OpenID Connect server using a custom `OpenIdConnectServerProvider` implementation to validate client applications**.
+## Samples
+
+**Official samples targetting ASP.NET 5 RC1** can be found on [aspnet-contrib/AspNet.Security.OpenIdConnect.Samples](https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Samples).
+
+**Looking for something simpler?** Don't miss **[OpenIddict](https://github.com/openiddict/core)**, the **simple and easy-to-use OpenID Connect server for ASP.NET 5** based on AspNet.Security.OpenIdConnect.Server and ASP.NET Identity 3.
 
 ## Support
 
-**Need help or wanna share your thoughts? Don't hesitate to join our dedicated chat rooms:**
+**Need help or wanna share your thoughts?** Don't hesitate to join our dedicated chat rooms:
 
 - **JabbR: [https://jabbr.net/#/rooms/aspnet-contrib](https://jabbr.net/#/rooms/aspnet-contrib)**
 - **Gitter: [https://gitter.im/aspnet-contrib/AspNet.Security.OpenIdConnect.Server](https://gitter.im/aspnet-contrib/AspNet.Security.OpenIdConnect.Server)**
