@@ -263,8 +263,8 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                             // Only use the 40 first chars to match the identifier used by the JWKS endpoint.
                             identifier = Base64UrlEncoder.Encode(parameters.Modulus)
-                                                            .Substring(0, 40)
-                                                            .ToUpperInvariant();
+                                                         .Substring(0, 40)
+                                                         .ToUpperInvariant();
                         }
 
                         if (identifier != null) {
@@ -512,8 +512,8 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                         // Only use the 40 first chars to match the identifier used by the JWKS endpoint.
                         identifier = Base64UrlEncoder.Encode(parameters.Modulus)
-                                                        .Substring(0, 40)
-                                                        .ToUpperInvariant();
+                                                     .Substring(0, 40)
+                                                     .ToUpperInvariant();
                     }
 
                     if (identifier != null) {
