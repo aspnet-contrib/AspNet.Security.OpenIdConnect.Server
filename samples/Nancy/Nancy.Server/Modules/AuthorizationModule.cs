@@ -127,27 +127,28 @@ namespace Nancy.Server.Modules {
                 identity.Actor.AddClaim(ClaimTypes.NameIdentifier, application.ApplicationID);
                 identity.Actor.AddClaim(ClaimTypes.Name, application.DisplayName, destination: "id_token token");
 
-                var properties = new AuthenticationProperties();
+                // Create a new authentication ticket holding the user identity.
+                var ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
 
                 // Set the list of scopes granted to the client application.
                 // Note: this sample always grants the "openid", "email" and "profile" scopes
                 // when they are requested by the client application: a real world application
                 // would probably display a form allowing to select the scopes to grant.
-                properties.SetScopes(new[] {
+                ticket.SetScopes(new[] {
                     /* openid: */ OpenIdConnectConstants.Scopes.OpenId,
                     /* email: */ OpenIdConnectConstants.Scopes.Email,
                     /* profile: */ OpenIdConnectConstants.Scopes.Profile
                 }.Intersect(request.GetScopes()));
 
                 // Set the resources servers the access token should be issued for.
-                properties.SetResources(new[] { "resource_server" });
+                ticket.SetResources(new[] { "resource_server" });
 
                 // This call will instruct Owin.Security.OpenIdConnect.Server to serialize
                 // the specified identity to build appropriate tokens (id_token and token).
                 // Note: you should always make sure the identities you return contain either
                 // a 'sub' or a 'ClaimTypes.NameIdentifier' claim. In this case, the returned
                 // identities always contain the name identifier returned by the external provider.
-                OwinContext.Authentication.SignIn(properties, identity);
+                OwinContext.Authentication.SignIn(ticket.Properties, ticket.Identity);
 
                 return HttpStatusCode.OK;
             };

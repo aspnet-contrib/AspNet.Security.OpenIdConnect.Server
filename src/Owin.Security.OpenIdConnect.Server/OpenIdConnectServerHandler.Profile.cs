@@ -150,17 +150,17 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             // The following claims are all optional and should be excluded when
             // no corresponding value has been found in the authentication ticket.
-            if (ticket.ContainsScope(OpenIdConnectConstants.Scopes.Profile)) {
+            if (ticket.HasScope(OpenIdConnectConstants.Scopes.Profile)) {
                 notification.FamilyName = ticket.Identity.GetClaim(ClaimTypes.Surname);
                 notification.GivenName = ticket.Identity.GetClaim(ClaimTypes.GivenName);
                 notification.BirthDate = ticket.Identity.GetClaim(ClaimTypes.DateOfBirth);
             }
 
-            if (ticket.ContainsScope(OpenIdConnectConstants.Scopes.Email)) {
+            if (ticket.HasScope(OpenIdConnectConstants.Scopes.Email)) {
                 notification.Email = ticket.Identity.GetClaim(ClaimTypes.Email);
             };
 
-            if (ticket.ContainsScope(OpenIdConnectConstants.Scopes.Phone)) {
+            if (ticket.HasScope(OpenIdConnectConstants.Scopes.Phone)) {
                 notification.PhoneNumber = ticket.Identity.GetClaim(ClaimTypes.HomePhone) ??
                                            ticket.Identity.GetClaim(ClaimTypes.MobilePhone) ??
                                            ticket.Identity.GetClaim(ClaimTypes.OtherPhone);

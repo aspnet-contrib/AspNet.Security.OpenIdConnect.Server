@@ -18,6 +18,106 @@ namespace Owin.Security.OpenIdConnect.Extensions {
     /// </summary>
     public static class OpenIdConnectExtensions {
         /// <summary>
+        /// Extracts the refresh token from an <see cref="OpenIdConnectMessage"/>.
+        /// </summary>
+        /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
+        public static string GetRefreshToken(this OpenIdConnectMessage message) {
+            if (message == null) {
+                throw new ArgumentNullException(nameof(message));
+            }
+
+            return message.GetParameter(OpenIdConnectConstants.Parameters.RefreshToken);
+        }
+
+        /// <summary>
+        /// Extracts the resources from an <see cref="OpenIdConnectMessage"/>.
+        /// </summary>
+        /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
+        public static IEnumerable<string> GetResources(this OpenIdConnectMessage message) {
+            if (message == null) {
+                throw new ArgumentNullException(nameof(message));
+            }
+
+            return message.Resource?.Split(' ') ?? Enumerable.Empty<string>();
+        }
+
+        /// <summary>
+        /// Extracts the scopes from an <see cref="OpenIdConnectMessage"/>.
+        /// </summary>
+        /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
+        public static IEnumerable<string> GetScopes(this OpenIdConnectMessage message) {
+            if (message == null) {
+                throw new ArgumentNullException(nameof(message));
+            }
+
+            return message.Scope?.Split(' ') ?? Enumerable.Empty<string>();
+        }
+
+        /// <summary>
+        /// Gets the token parameter from an <see cref="OpenIdConnectMessage"/>.
+        /// </summary>
+        /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
+        public static string GetToken(this OpenIdConnectMessage message) {
+            if (message == null) {
+                throw new ArgumentNullException(nameof(message));
+            }
+
+            return message.GetParameter(OpenIdConnectConstants.Parameters.Token);
+        }
+
+        /// <summary>
+        /// Gets the token type hint from an <see cref="OpenIdConnectMessage"/>.
+        /// </summary>
+        /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
+        public static string GetTokenTypeHint(this OpenIdConnectMessage message) {
+            if (message == null) {
+                throw new ArgumentNullException(nameof(message));
+            }
+
+            return message.GetParameter(OpenIdConnectConstants.Parameters.TokenTypeHint);
+        }
+
+        /// <summary>
+        /// Extracts the unique identifier associated with an <see cref="OpenIdConnectMessage"/>.
+        /// </summary>
+        /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
+        public static string GetUniqueIdentifier(this OpenIdConnectMessage message) {
+            if (message == null) {
+                throw new ArgumentNullException(nameof(message));
+            }
+
+            return message.GetParameter(OpenIdConnectConstants.Parameters.UniqueId);
+        }
+
+        /// <summary>
+        /// Determines whether the response_type exposed by the
+        /// <paramref name="message"/> contains the given <paramref name="component"/> or not.
+        /// </summary>
+        /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
+        /// <param name="component">The component to look for in the parameter.</param>
+        public static bool HasResponseType(this OpenIdConnectMessage message, string component) {
+            if (message == null) {
+                throw new ArgumentNullException(nameof(message));
+            }
+
+            return HasValue(message.ResponseType, component);
+        }
+
+        /// <summary>
+        /// Determines whether the scope exposed by the <paramref name="message"/>
+        /// contains the given <paramref name="component"/> or not.
+        /// </summary>
+        /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
+        /// <param name="component">The component to look for in the parameter.</param>
+        public static bool HasScope(this OpenIdConnectMessage message, string component) {
+            if (message == null) {
+                throw new ArgumentNullException(nameof(message));
+            }
+
+            return HasValue(message.Scope, component);
+        }
+
+        /// <summary>
         /// True if the "response_type" parameter corresponds to the "none" response type.
         /// See http://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#none
         /// </summary>
@@ -195,123 +295,34 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         }
 
         /// <summary>
-        /// Determines whether the response_type exposed by the
-        /// <paramref name="message"/> contains the given <paramref name="component"/> or not.
+        /// Adds a refresh token to a given <see cref="OpenIdConnectMessage"/>.
         /// </summary>
         /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
-        /// <param name="component">The component to look for in the parameter.</param>
-        public static bool ContainsResponseType(this OpenIdConnectMessage message, string component) {
+        /// <param name="token">The refresh token.</param>
+        public static OpenIdConnectMessage SetRefreshToken(this OpenIdConnectMessage message, string token) {
             if (message == null) {
                 throw new ArgumentNullException(nameof(message));
             }
 
-            return HasValue(message.ResponseType, component);
+            message.SetParameter(OpenIdConnectConstants.Parameters.RefreshToken, token);
+            return message;
         }
 
         /// <summary>
-        /// Determines whether the scope exposed by the <paramref name="message"/>
-        /// contains the given <paramref name="component"/> or not.
+        /// Sets the token type hint for a message.
         /// </summary>
         /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
-        /// <param name="component">The component to look for in the parameter.</param>
-        public static bool ContainsScope(this OpenIdConnectMessage message, string component) {
+        /// <param name="hint">The hint given for the token type hint.</param>
+        public static void SetTokenTypeHint(this OpenIdConnectMessage message, string hint) {
             if (message == null) {
                 throw new ArgumentNullException(nameof(message));
             }
 
-            return HasValue(message.Scope, component);
-        }
-
-        /// <summary>
-        /// Determines whether the <paramref name="parameter"/> exposed by the
-        /// <paramref name="message"/> contains the given <paramref name="component"/> or not.
-        /// </summary>
-        /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
-        /// <param name="parameter">The parameter to search in.</param>
-        /// <param name="component">The component to look for in the parameter.</param>
-        public static bool HasComponent(this OpenIdConnectMessage message,
-            Func<OpenIdConnectMessage, string> parameter, string component) {
-            if (message == null) {
-                throw new ArgumentNullException(nameof(message));
+            if (string.IsNullOrWhiteSpace(hint)) {
+                throw new ArgumentNullException(nameof(hint));
             }
 
-            if (parameter == null) {
-                throw new ArgumentNullException(nameof(parameter));
-            }
-
-            return HasValue(source: parameter(message), value: component);
-        }
-
-        /// <summary>
-        /// Extracts the unique identifier associated with an <see cref="OpenIdConnectMessage"/>.
-        /// </summary>
-        /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
-        public static string GetUniqueIdentifier(this OpenIdConnectMessage message) {
-            if (message == null) {
-                throw new ArgumentNullException(nameof(message));
-            }
-
-            return message.GetParameter("unique_id");
-        }
-
-        /// <summary>
-        /// Extracts the refresh token from an <see cref="OpenIdConnectMessage"/>.
-        /// </summary>
-        /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
-        public static string GetRefreshToken(this OpenIdConnectMessage message) {
-            if (message == null) {
-                throw new ArgumentNullException(nameof(message));
-            }
-
-            return message.GetParameter("refresh_token");
-        }
-
-        /// <summary>
-        /// Gets the token type hint from an <see cref="OpenIdConnectMessage"/>.
-        /// </summary>
-        /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
-        public static string GetTokenTypeHint(this OpenIdConnectMessage message) {
-            if (message == null) {
-                throw new ArgumentNullException(nameof(message));
-            }
-
-            return message.GetParameter(OpenIdConnectConstants.Parameters.TokenTypeHint);
-        }
-
-        /// <summary>
-        /// Extracts the audiences from an <see cref="OpenIdConnectMessage"/>.
-        /// </summary>
-        /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
-        public static IEnumerable<string> GetAudiences(this OpenIdConnectMessage message) {
-            if (message == null) {
-                throw new ArgumentNullException(nameof(message));
-            }
-
-            return message.GetParameter("audience")?.Split(' ') ?? Enumerable.Empty<string>();
-        }
-
-        /// <summary>
-        /// Extracts the resources from an <see cref="OpenIdConnectMessage"/>.
-        /// </summary>
-        /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
-        public static IEnumerable<string> GetResources(this OpenIdConnectMessage message) {
-            if (message == null) {
-                throw new ArgumentNullException(nameof(message));
-            }
-
-            return message.Resource?.Split(' ') ?? Enumerable.Empty<string>();
-        }
-
-        /// <summary>
-        /// Extracts the scopes from an <see cref="OpenIdConnectMessage"/>.
-        /// </summary>
-        /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
-        public static IEnumerable<string> GetScopes(this OpenIdConnectMessage message) {
-            if (message == null) {
-                throw new ArgumentNullException(nameof(message));
-            }
-
-            return message.Scope?.Split(' ') ?? Enumerable.Empty<string>();
+            message.SetParameter(OpenIdConnectConstants.Parameters.TokenTypeHint, hint);
         }
 
         /// <summary>
@@ -324,35 +335,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(message));
             }
 
-            message.SetParameter("unique_id", identifier);
-            return message;
-        }
-
-        /// <summary>
-        /// Adds a refresh token to a given <see cref="OpenIdConnectMessage"/>.
-        /// </summary>
-        /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
-        /// <param name="token">The refresh token.</param>
-        public static OpenIdConnectMessage SetRefreshToken(this OpenIdConnectMessage message, string token) {
-            if (message == null) {
-                throw new ArgumentNullException(nameof(message));
-            }
-
-            message.SetParameter("refresh_token", token);
-            return message;
-        }
-
-        /// <summary>
-        /// Sets the token type hint for a message.
-        /// </summary>
-        /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
-        /// <param name="hint">The hint given for the token type hint.</param>
-        public static OpenIdConnectMessage SetTokenTypeHint(this OpenIdConnectMessage message, string hint) {
-            if (message == null) {
-                throw new ArgumentNullException(nameof(message));
-            }
-
-            message.SetParameter(OpenIdConnectConstants.Parameters.TokenTypeHint, hint);
+            message.SetParameter(OpenIdConnectConstants.Parameters.UniqueId, identifier);
             return message;
         }
 
@@ -361,7 +344,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="claim">The <see cref="Claim"/> instance.</param>
         public static bool HasDestination(this Claim claim) {
-            return claim.Properties.ContainsKey("destination");
+            return claim.Properties.ContainsKey(OpenIdConnectConstants.Properties.Destination);
         }
 
         /// <summary>
@@ -372,7 +355,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="value">The required destination.</param>
         public static bool HasDestination(this Claim claim, string value) {
             string destination;
-            if (!claim.Properties.TryGetValue("destination", out destination)) {
+            if (!claim.Properties.TryGetValue(OpenIdConnectConstants.Properties.Destination, out destination)) {
                 return false;
             }
 
@@ -394,12 +377,12 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             }
 
             string destination;
-            if (claim.Properties.TryGetValue("destination", out destination)) {
-                claim.Properties["destination"] = string.Concat(destination, ' ', value);
+            if (claim.Properties.TryGetValue(OpenIdConnectConstants.Properties.Destination, out destination)) {
+                claim.Properties[OpenIdConnectConstants.Properties.Destination] = string.Concat(destination, ' ', value);
                 return claim;
             }
 
-            claim.Properties.Add("destination", value);
+            claim.Properties.Add(OpenIdConnectConstants.Properties.Destination, value);
             return claim;
         }
 
@@ -574,25 +557,6 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         }
 
         /// <summary>
-        /// Gets a given property from the authentication properties.
-        /// </summary>
-        /// <param name="properties">The authentication properties.</param>
-        /// <param name="property">The specific property to look for.</param>
-        /// <returns>The value corresponding to the property, or <c>null</c> if the property cannot be found.</returns>
-        public static string GetProperty(this AuthenticationProperties properties, string property) {
-            if (properties == null) {
-                throw new ArgumentNullException(nameof(properties));
-            }
-
-            string value;
-            if (!properties.Dictionary.TryGetValue(property, out value)) {
-                return null;
-            }
-
-            return value;
-        }
-
-        /// <summary>
         /// Gets a given property from the authentication ticket.
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
@@ -603,24 +567,12 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            return ticket.Properties.GetProperty(property);
-        }
-
-        /// <summary>
-        /// Gets the audiences list stored in the authentication properties.
-        /// Note: this method automatically excludes duplicate audiences.
-        /// </summary>
-        /// <param name="properties">The authentication properties.</param>
-        /// <returns>The audiences list or <c>Enumerable.Empty</c> is the property cannot be found.</returns>
-        public static IEnumerable<string> GetAudiences(this AuthenticationProperties properties) {
-            if (properties == null) {
-                throw new ArgumentNullException(nameof(properties));
+            string value;
+            if (!ticket.Properties.Dictionary.TryGetValue(property, out value)) {
+                return null;
             }
 
-            return properties.GetProperty(OpenIdConnectConstants.Properties.Audiences)
-                            ?.Split(' ')
-                            ?.Distinct(StringComparer.Ordinal)
-                   ?? Enumerable.Empty<string>();
+            return value;
         }
 
         /// <summary>
@@ -634,7 +586,10 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            return ticket.Properties.GetAudiences();
+            return ticket.GetProperty(OpenIdConnectConstants.Properties.Audiences)
+                        ?.Split(' ')
+                        ?.Distinct(StringComparer.Ordinal)
+                   ?? Enumerable.Empty<string>();
         }
 
         /// <summary>
@@ -648,37 +603,10 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            return ticket.Properties.GetPresenters();
-        }
-
-        /// <summary>
-        /// Gets the presenters list stored in the authentication properties.
-        /// Note: this method automatically excludes duplicate presenters.
-        /// </summary>
-        /// <param name="properties">The authentication properties.</param>
-        /// <returns>The presenters list or <c>Enumerable.Empty</c> is the property cannot be found.</returns>
-        public static IEnumerable<string> GetPresenters(this AuthenticationProperties properties) {
-            if (properties == null) {
-                throw new ArgumentNullException(nameof(properties));
-            }
-
-            return properties.GetProperty(OpenIdConnectConstants.Properties.Presenters)
-                            ?.Split(' ')
-                            ?.Distinct(StringComparer.Ordinal)
+            return ticket.GetProperty(OpenIdConnectConstants.Properties.Presenters)
+                        ?.Split(' ')
+                        ?.Distinct(StringComparer.Ordinal)
                    ?? Enumerable.Empty<string>();
-        }
-
-        /// <summary>
-        /// Gets the nonce stored in the authentication properties.
-        /// </summary>
-        /// <param name="properties">The authentication properties.</param>
-        /// <returns>The nonce or <c>null</c> is the property cannot be found.</returns>
-        public static string GetNonce(this AuthenticationProperties properties) {
-            if (properties == null) {
-                throw new ArgumentNullException(nameof(properties));
-            }
-
-            return properties.GetProperty(OpenIdConnectConstants.Properties.Nonce);
         }
 
         /// <summary>
@@ -691,24 +619,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            return ticket.Properties.GetNonce();
-        }
-
-        /// <summary>
-        /// Gets the resources list stored in the authentication properties.
-        /// Note: this method automatically excludes duplicate resources.
-        /// </summary>
-        /// <param name="properties">The authentication properties.</param>
-        /// <returns>The resources list or <c>Enumerable.Empty</c> is the property cannot be found.</returns>
-        public static IEnumerable<string> GetResources(this AuthenticationProperties properties) {
-            if (properties == null) {
-                throw new ArgumentNullException(nameof(properties));
-            }
-
-            return properties.GetProperty(OpenIdConnectConstants.Properties.Resources)
-                            ?.Split(' ')
-                            ?.Distinct(StringComparer.Ordinal)
-                   ?? Enumerable.Empty<string>();
+            return ticket.GetProperty(OpenIdConnectConstants.Properties.Nonce);
         }
 
         /// <summary>
@@ -722,23 +633,9 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            return ticket.Properties.GetResources();
-        }
-
-        /// <summary>
-        /// Gets the scopes list stored in the authentication properties.
-        /// Note: this method automatically excludes duplicate scopes.
-        /// </summary>
-        /// <param name="properties">The authentication properties.</param>
-        /// <returns>The scopes list or <c>Enumerable.Empty</c> is the property cannot be found.</returns>
-        public static IEnumerable<string> GetScopes(this AuthenticationProperties properties) {
-            if (properties == null) {
-                throw new ArgumentNullException(nameof(properties));
-            }
-
-            return properties.GetProperty(OpenIdConnectConstants.Properties.Scopes)
-                            ?.Split(' ')
-                            ?.Distinct(StringComparer.Ordinal)
+            return ticket.GetProperty(OpenIdConnectConstants.Properties.Resources)
+                        ?.Split(' ')
+                        ?.Distinct(StringComparer.Ordinal)
                    ?? Enumerable.Empty<string>();
         }
 
@@ -753,20 +650,10 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            return ticket.Properties.GetScopes();
-        }
-
-        /// <summary>
-        /// Gets the usage of the token stored in the authentication properties.
-        /// </summary>
-        /// <param name="properties">The authentication properties.</param>
-        /// <returns>The usage of the token or <c>null</c> is the property cannot be found.</returns>
-        public static string GetUsage(this AuthenticationProperties properties) {
-            if (properties == null) {
-                throw new ArgumentNullException(nameof(properties));
-            }
-
-            return properties.GetProperty(OpenIdConnectConstants.Properties.Usage);
+            return ticket.GetProperty(OpenIdConnectConstants.Properties.Scopes)
+                        ?.Split(' ')
+                        ?.Distinct(StringComparer.Ordinal)
+                   ?? Enumerable.Empty<string>();
         }
 
         /// <summary>
@@ -779,26 +666,83 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            return ticket.Properties.GetUsage();
+            return ticket.GetProperty(OpenIdConnectConstants.Properties.Usage);
         }
 
         /// <summary>
-        /// Gets a boolean value indicating whether
-        /// the ticket is marked as confidential.
+        /// Determines whether the authentication ticket contains the given audience.
         /// </summary>
-        /// <param name="properties">The authentication properties.</param>
-        /// <returns><c>true</c> if the ticket is confidential, or <c>false</c> if it's not.</returns>
-        public static bool IsConfidential(this AuthenticationProperties properties) {
-            if (properties == null) {
-                throw new ArgumentNullException(nameof(properties));
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <param name="audience">The audience.</param>
+        /// <returns><c>true</c> if the ticket contains the given audience.</returns>
+        public static bool HasAudience(this AuthenticationTicket ticket, string audience) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
             }
 
-            var value = properties.GetProperty(OpenIdConnectConstants.Properties.Confidential);
-            if (string.IsNullOrEmpty(value)) {
+            var audiences = ticket.GetProperty(OpenIdConnectConstants.Properties.Audiences)?.Split(' ');
+            if (audiences == null) {
                 return false;
             }
 
-            return string.Equals(value, "true", StringComparison.OrdinalIgnoreCase);
+            return audiences.Contains(audience, StringComparer.Ordinal);
+        }
+
+        /// <summary>
+        /// Determines whether the authentication ticket contains the given presenter.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <param name="presenter">The presenter.</param>
+        /// <returns><c>true</c> if the ticket contains the given presenter.</returns>
+        public static bool HasPresenter(this AuthenticationTicket ticket, string presenter) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            var presenters = ticket.GetProperty(OpenIdConnectConstants.Properties.Presenters)?.Split(' ');
+            if (presenters == null) {
+                return false;
+            }
+
+            return presenters.Contains(presenter, StringComparer.Ordinal);
+        }
+
+        /// <summary>
+        /// Determines whether the authentication ticket contains the given resource.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <param name="resource">The resource.</param>
+        /// <returns><c>true</c> if the ticket contains the given resource.</returns>
+        public static bool HasResource(this AuthenticationTicket ticket, string resource) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            var resources = ticket.GetProperty(OpenIdConnectConstants.Properties.Resources)?.Split(' ');
+            if (resources == null) {
+                return false;
+            }
+
+            return resources.Contains(resource, StringComparer.Ordinal);
+        }
+
+        /// <summary>
+        /// Determines whether the authentication ticket contains the given scope.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <param name="scope">The scope.</param>
+        /// <returns><c>true</c> if the ticket contains the given scope.</returns>
+        public static bool HasScope(this AuthenticationTicket ticket, string scope) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            var scopes = ticket.GetProperty(OpenIdConnectConstants.Properties.Scopes)?.Split(' ');
+            if (scopes == null) {
+                return false;
+            }
+
+            return scopes.Contains(scope, StringComparer.Ordinal);
         }
 
         /// <summary>
@@ -812,26 +756,12 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            return ticket.Properties.IsConfidential();
-        }
-
-        /// <summary>
-        /// Gets a boolean value indicating whether
-        /// the properties corresponds to an authorization code.
-        /// </summary>
-        /// <param name="properties">The authentication properties.</param>
-        /// <returns><c>true</c> if the properties corresponds to an authorization code.</returns>
-        public static bool IsAuthorizationCode(this AuthenticationProperties properties) {
-            if (properties == null) {
-                throw new ArgumentNullException(nameof(properties));
-            }
-
-            var value = properties.GetProperty(OpenIdConnectConstants.Properties.Usage);
+            var value = ticket.GetProperty(OpenIdConnectConstants.Properties.Confidential);
             if (string.IsNullOrEmpty(value)) {
                 return false;
             }
 
-            return string.Equals(value, OpenIdConnectConstants.Usages.Code, StringComparison.OrdinalIgnoreCase);
+            return string.Equals(value, "true", StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -845,26 +775,12 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            return ticket.Properties.IsAuthorizationCode();
-        }
-
-        /// <summary>
-        /// Gets a boolean value indicating whether
-        /// the properties corresponds to an access token.
-        /// </summary>
-        /// <param name="properties">The authentication properties.</param>
-        /// <returns><c>true</c> if the properties corresponds to an access token.</returns>
-        public static bool IsAccessToken(this AuthenticationProperties properties) {
-            if (properties == null) {
-                throw new ArgumentNullException(nameof(properties));
-            }
-
-            var value = properties.GetProperty(OpenIdConnectConstants.Properties.Usage);
+            var value = ticket.GetProperty(OpenIdConnectConstants.Properties.Usage);
             if (string.IsNullOrEmpty(value)) {
                 return false;
             }
 
-            return string.Equals(value, OpenIdConnectConstants.Usages.AccessToken, StringComparison.OrdinalIgnoreCase);
+            return string.Equals(value, OpenIdConnectConstants.Usages.Code, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -878,26 +794,12 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            return ticket.Properties.IsAccessToken();
-        }
-
-        /// <summary>
-        /// Gets a boolean value indicating whether
-        /// the properties corresponds to an identity token.
-        /// </summary>
-        /// <param name="properties">The authentication properties.</param>
-        /// <returns><c>true</c> if the properties corresponds to an identity token.</returns>
-        public static bool IsIdentityToken(this AuthenticationProperties properties) {
-            if (properties == null) {
-                throw new ArgumentNullException(nameof(properties));
-            }
-
-            var value = properties.GetProperty(OpenIdConnectConstants.Properties.Usage);
+            var value = ticket.GetProperty(OpenIdConnectConstants.Properties.Usage);
             if (string.IsNullOrEmpty(value)) {
                 return false;
             }
 
-            return string.Equals(value, OpenIdConnectConstants.Usages.IdToken, StringComparison.OrdinalIgnoreCase);
+            return string.Equals(value, OpenIdConnectConstants.Usages.AccessToken, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -911,26 +813,12 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            return ticket.Properties.IsIdentityToken();
-        }
-
-        /// <summary>
-        /// Gets a boolean value indicating whether
-        /// the properties corresponds to a refresh token.
-        /// </summary>
-        /// <param name="properties">The authentication properties.</param>
-        /// <returns><c>true</c> if the properties corresponds to a refresh token.</returns>
-        public static bool IsRefreshToken(this AuthenticationProperties properties) {
-            if (properties == null) {
-                throw new ArgumentNullException(nameof(properties));
-            }
-
-            var value = properties.GetProperty(OpenIdConnectConstants.Properties.Usage);
+            var value = ticket.GetProperty(OpenIdConnectConstants.Properties.Usage);
             if (string.IsNullOrEmpty(value)) {
                 return false;
             }
 
-            return string.Equals(value, OpenIdConnectConstants.Usages.RefreshToken, StringComparison.OrdinalIgnoreCase);
+            return string.Equals(value, OpenIdConnectConstants.Usages.IdToken, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -944,30 +832,12 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            return ticket.Properties.IsRefreshToken();
-        }
-
-        /// <summary>
-        /// Sets the audiences list in the authentication properties.
-        /// Note: this method automatically excludes duplicate audiences.
-        /// </summary>
-        /// <param name="properties">The authentication properties where the list should be stored.</param>
-        /// <param name="audiences">The audiences to store.</param>
-        public static void SetAudiences(this AuthenticationProperties properties, IEnumerable<string> audiences) {
-            if (properties == null) {
-                throw new ArgumentNullException(nameof(properties));
+            var value = ticket.GetProperty(OpenIdConnectConstants.Properties.Usage);
+            if (string.IsNullOrEmpty(value)) {
+                return false;
             }
 
-            if (audiences == null) {
-                throw new ArgumentNullException(nameof(audiences));
-            }
-
-            if (audiences.Any(audience => audience.Contains(" "))) {
-                throw new ArgumentException("The audiences cannot contain spaces.", nameof(audiences));
-            }
-
-            properties.Dictionary[OpenIdConnectConstants.Properties.Audiences] =
-                string.Join(" ", audiences.Distinct(StringComparer.Ordinal));
+            return string.Equals(value, OpenIdConnectConstants.Usages.RefreshToken, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -981,30 +851,16 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            ticket.Properties.SetAudiences(audiences);
-        }
-
-        /// <summary>
-        /// Sets the presenters list in the authentication properties.
-        /// Note: this method automatically excludes duplicate presenters.
-        /// </summary>
-        /// <param name="properties">The authentication properties where the list should be stored.</param>
-        /// <param name="presenters">The presenters to store.</param>
-        public static void SetPresenters(this AuthenticationProperties properties, IEnumerable<string> presenters) {
-            if (properties == null) {
-                throw new ArgumentNullException(nameof(properties));
+            if (audiences == null) {
+                throw new ArgumentNullException(nameof(audiences));
             }
 
-            if (presenters == null) {
-                throw new ArgumentNullException(nameof(presenters));
+            if (audiences.Any(audience => audience.Contains(" "))) {
+                throw new ArgumentException("The audiences cannot contain spaces.", nameof(audiences));
             }
 
-            if (presenters.Any(presenter => presenter.Contains(" "))) {
-                throw new ArgumentException("The presenters cannot contain spaces.", nameof(presenters));
-            }
-
-            properties.Dictionary[OpenIdConnectConstants.Properties.Presenters] =
-                string.Join(" ", presenters.Distinct(StringComparer.Ordinal));
+            ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.Audiences] =
+                string.Join(" ", audiences.Distinct(StringComparer.Ordinal));
         }
 
         /// <summary>
@@ -1018,29 +874,16 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            ticket.Properties.SetPresenters(presenters);
-        }
-
-        /// <summary>
-        /// Sets the resources list in the authentication properties.
-        /// </summary>
-        /// <param name="properties">The authentication properties.</param>
-        /// <param name="resources">The resources to store.</param>
-        public static void SetResources(this AuthenticationProperties properties, IEnumerable<string> resources) {
-            if (properties == null) {
-                throw new ArgumentNullException(nameof(properties));
+            if (presenters == null) {
+                throw new ArgumentNullException(nameof(presenters));
             }
 
-            if (resources == null) {
-                throw new ArgumentNullException(nameof(resources));
+            if (presenters.Any(presenter => presenter.Contains(" "))) {
+                throw new ArgumentException("The presenters cannot contain spaces.", nameof(presenters));
             }
 
-            if (resources.Any(resource => resource.Contains(" "))) {
-                throw new ArgumentException("The resources cannot contain spaces.", nameof(resources));
-            }
-
-            properties.Dictionary[OpenIdConnectConstants.Properties.Resources] =
-                string.Join(" ", resources.Distinct(StringComparer.Ordinal));
+            ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.Presenters] =
+                string.Join(" ", presenters.Distinct(StringComparer.Ordinal));
         }
 
         /// <summary>
@@ -1053,29 +896,16 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            ticket.Properties.SetResources(resources);
-        }
-
-        /// <summary>
-        /// Sets the scopes list in the authentication properties.
-        /// </summary>
-        /// <param name="properties">The authentication properties.</param>
-        /// <param name="scopes">The scopes to store.</param>
-        public static void SetScopes(this AuthenticationProperties properties, IEnumerable<string> scopes) {
-            if (properties == null) {
-                throw new ArgumentNullException(nameof(properties));
+            if (resources == null) {
+                throw new ArgumentNullException(nameof(resources));
             }
 
-            if (scopes == null) {
-                throw new ArgumentNullException(nameof(scopes));
+            if (resources.Any(resource => resource.Contains(" "))) {
+                throw new ArgumentException("The resources cannot contain spaces.", nameof(resources));
             }
 
-            if (scopes.Any(scope => scope.Contains(" "))) {
-                throw new ArgumentException("The scopes cannot contain spaces.", nameof(scopes));
-            }
-
-            properties.Dictionary[OpenIdConnectConstants.Properties.Scopes] =
-                string.Join(" ", scopes.Distinct(StringComparer.Ordinal));
+            ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.Resources] =
+                string.Join(" ", resources.Distinct(StringComparer.Ordinal));
         }
 
         /// <summary>
@@ -1088,20 +918,16 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            ticket.Properties.SetScopes(scopes);
-        }
-
-        /// <summary>
-        /// Sets the usage of the token in the authentication properties.
-        /// </summary>
-        /// <param name="properties">The authentication properties where the usage should be stored.</param>
-        /// <param name="usage">The usage of the token.</param>
-        public static void SetUsage(this AuthenticationProperties properties, string usage) {
-            if (properties == null) {
-                throw new ArgumentNullException(nameof(properties));
+            if (scopes == null) {
+                throw new ArgumentNullException(nameof(scopes));
             }
 
-            properties.Dictionary[OpenIdConnectConstants.Properties.Usage] = usage;
+            if (scopes.Any(scope => scope.Contains(" "))) {
+                throw new ArgumentException("The scopes cannot contain spaces.", nameof(scopes));
+            }
+
+            ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.Scopes] =
+                string.Join(" ", scopes.Distinct(StringComparer.Ordinal));
         }
 
         /// <summary>
@@ -1114,63 +940,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            ticket.Properties.SetUsage(usage);
-        }
-
-        /// <summary>
-        /// Determines whether the authentication properties contains the given property.
-        /// </summary>
-        /// <param name="properties">The authentication properties the property should be extracted from.</param>
-        /// <param name="property">The property to look for.</param>
-        /// <returns><c>true</c> if the property exists or <c>false</c> if the property cannot be found.</returns>
-        public static bool ContainsProperty(this AuthenticationProperties properties, string property) {
-            if (properties == null) {
-                throw new ArgumentNullException(nameof(properties));
-            }
-
-            return properties.Dictionary.ContainsKey(property);
-        }
-
-        /// <summary>
-        /// Determines whether the authentication ticket contains the given property.
-        /// </summary>
-        /// <param name="ticket">The authentication ticket the property should be extracted from.</param>
-        /// <param name="property">The property to look for.</param>
-        /// <returns><c>true</c> if the property exists or <c>false</c> if the property cannot be found.</returns>
-        public static bool ContainsProperty(this AuthenticationTicket ticket, string property) {
-            if (ticket == null) {
-                throw new ArgumentNullException(nameof(ticket));
-            }
-
-            return ticket.Properties.ContainsProperty(property);
-        }
-
-        /// <summary>
-        /// Determines whether the authentication properties contains the given scope.
-        /// </summary>
-        /// <param name="ticket">The authentication properties the scope should be extracted from.</param>
-        /// <param name="scope">The scope to look for.</param>
-        /// <returns><c>true</c> if the scope exists or <c>false</c> if the scope cannot be found.</returns>
-        public static bool ContainsScope(this AuthenticationProperties properties, string scope) {
-            if (properties == null) {
-                throw new ArgumentNullException(nameof(properties));
-            }
-
-            return properties.GetScopes().Contains(scope, StringComparer.Ordinal);
-        }
-
-        /// <summary>
-        /// Determines whether the authentication ticket contains the given scope.
-        /// </summary>
-        /// <param name="ticket">The authentication ticket the scope should be extracted from.</param>
-        /// <param name="scope">The scope to look for.</param>
-        /// <returns><c>true</c> if the scope exists or <c>false</c> if the scope cannot be found.</returns>
-        public static bool ContainsScope(this AuthenticationTicket ticket, string scope) {
-            if (ticket == null) {
-                throw new ArgumentNullException(nameof(ticket));
-            }
-
-            return ticket.Properties.ContainsScope(scope);
+            ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.Usage] = usage;
         }
 
         private static bool HasValue(string source, string value) {

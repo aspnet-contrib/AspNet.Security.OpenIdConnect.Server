@@ -240,7 +240,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                 // Note: presenters may be empty during a grant_type=refresh_token request if the refresh token
                 // was issued to a public client but cannot be null for an authorization code grant request.
-                var presenters = ticket.Properties.GetPresenters();
+                var presenters = ticket.GetPresenters();
                 if (request.IsAuthorizationCodeGrantType() && !presenters.Any()) {
                     Options.Logger.WriteError("The client the authorization code was issued to cannot be resolved.");
 
@@ -322,7 +322,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 if (!string.IsNullOrEmpty(request.Resource)) {
                     // When an explicit resource parameter has been included in the token request
                     // but was missing from the authorization request, the request MUST be rejected.
-                    var resources = ticket.Properties.GetResources();
+                    var resources = ticket.GetResources();
                     if (!resources.Any()) {
                         Options.Logger.WriteError("token request cannot contain a resource");
 
@@ -358,7 +358,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     // When an explicit scope parameter has been included in the token request
                     // but was missing from the authorization request, the request MUST be rejected.
                     // See http://tools.ietf.org/html/rfc6749#section-6
-                    var scopes = ticket.Properties.GetScopes();
+                    var scopes = ticket.GetScopes();
                     if (!scopes.Any()) {
                         Options.Logger.WriteError("token request cannot contain a scope");
 
@@ -548,7 +548,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             // Note: the application is allowed to specify a different "scope": in this case,
             // don't replace the "scope" property stored in the authentication ticket.
             if (!ticket.Properties.Dictionary.ContainsKey(OpenIdConnectConstants.Properties.Scopes) &&
-                 request.ContainsScope(OpenIdConnectConstants.Scopes.OpenId)) {
+                 request.HasScope(OpenIdConnectConstants.Scopes.OpenId)) {
                 // Always include the "openid" scope when the developer didn't explicitly call SetScopes.
                 ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.Scopes] = OpenIdConnectConstants.Scopes.OpenId;
             }
@@ -557,13 +557,13 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             // Note: by default, an access token is always returned, but the client application can use the "response_type" parameter
             // to only include specific types of tokens. When this parameter is missing, an access token is always generated.
-            if (string.IsNullOrEmpty(request.ResponseType) || request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.Token)) {
+            if (string.IsNullOrEmpty(request.ResponseType) || request.HasResponseType(OpenIdConnectConstants.ResponseTypes.Token)) {
                 // Make sure to create a copy of the authentication properties
                 // to avoid modifying the properties set on the original ticket.
                 var properties = ticket.Properties.Copy();
 
-                var resources = properties.GetProperty(OpenIdConnectConstants.Properties.Resources);
-                if (string.IsNullOrEmpty(resources)) {
+                string resources;
+                if (!properties.Dictionary.TryGetValue(OpenIdConnectConstants.Properties.Resources, out resources)) {
                     Options.Logger.WriteInformation("No explicit resource has been associated with the authentication ticket: " +
                                                     "the access token will thus be issued without any audience attached.");
                 }
@@ -577,7 +577,8 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                 // Note: when the "scope" parameter added to the OpenID Connect response
                 // is identical to the request parameter, keeping it is not necessary.
-                var scopes = properties.GetProperty(OpenIdConnectConstants.Properties.Scopes);
+                string scopes;
+                properties.Dictionary.TryGetValue(OpenIdConnectConstants.Properties.Scopes, out scopes);
                 if (request.IsAuthorizationCodeGrantType() || (!string.IsNullOrEmpty(request.Scope) &&
                                                                !string.Equals(request.Scope, scopes, StringComparison.Ordinal))) {
                     response.Scope = scopes;
@@ -621,8 +622,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             // Note: by default, an identity token is always returned when the "openid" scope has been requested,
             // but the client application can use the "response_type" parameter to only include specific types of tokens.
             // When this parameter is missing, an identity token is always generated.
-            if (ticket.ContainsScope(OpenIdConnectConstants.Scopes.OpenId) && (string.IsNullOrEmpty(request.ResponseType) ||
-                                                                               request.ContainsResponseType("id_token"))) {
+            if (ticket.HasScope(OpenIdConnectConstants.Scopes.OpenId) &&
+               (string.IsNullOrEmpty(request.ResponseType) || request.HasResponseType(OpenIdConnectConstants.ResponseTypes.IdToken))) {
                 // Make sure to create a copy of the authentication properties
                 // to avoid modifying the properties set on the original ticket.
                 var properties = ticket.Properties.Copy();
@@ -656,8 +657,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             // Note: by default, a refresh token is always returned when the "offline_access" scope has been requested,
             // but the client application can use the "response_type" parameter to only include specific types of tokens.
             // When this parameter is missing, a refresh token is always generated.
-            if (ticket.ContainsScope(OpenIdConnectConstants.Scopes.OfflineAccess) && (string.IsNullOrEmpty(request.ResponseType) ||
-                                                                                      request.ContainsResponseType("refresh_token"))) {
+            if (ticket.HasScope(OpenIdConnectConstants.Scopes.OfflineAccess) &&
+               (string.IsNullOrEmpty(request.ResponseType) || request.HasResponseType(OpenIdConnectConstants.Parameters.RefreshToken))) {
                 // Make sure to create a copy of the authentication properties
                 // to avoid modifying the properties set on the original ticket.
                 var properties = ticket.Properties.Copy();
