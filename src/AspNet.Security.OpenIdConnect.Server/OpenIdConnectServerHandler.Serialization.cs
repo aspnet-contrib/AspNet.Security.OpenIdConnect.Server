@@ -34,12 +34,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 properties.ExpiresUtc = properties.IssuedUtc + Options.AuthorizationCodeLifetime;
             }
 
-            properties.SetUsage(OpenIdConnectConstants.Usages.Code);
-
             // Claims in authorization codes are never filtered as they are supposed to be opaque:
             // SerializeAccessTokenAsync and SerializeIdentityTokenAsync are responsible of ensuring
             // that subsequent access and identity tokens are correctly filtered.
             var ticket = new AuthenticationTicket(principal, properties, Options.AuthenticationScheme);
+
+            ticket.SetUsage(OpenIdConnectConstants.Usages.Code);
 
             var notification = new SerializeAuthorizationCodeContext(Context, Options, request, response, ticket) {
                 DataFormat = Options.AuthorizationCodeFormat
@@ -101,8 +101,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 properties.ExpiresUtc = properties.IssuedUtc + Options.AccessTokenLifetime;
             }
 
-            properties.SetUsage(OpenIdConnectConstants.Usages.AccessToken);
-
             // Create a new principal containing only the filtered claims.
             // Actors identities are also filtered (delegation scenarios).
             principal = principal.Clone(claim => {
@@ -121,6 +119,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // Create a new ticket containing the updated properties and the filtered principal.
             var ticket = new AuthenticationTicket(principal, properties, Options.AuthenticationScheme);
 
+            ticket.SetUsage(OpenIdConnectConstants.Usages.AccessToken);
+
             var notification = new SerializeAccessTokenContext(Context, Options, request, response, ticket) {
                 Confidential = ticket.IsConfidential(),
                 DataFormat = Options.AccessTokenFormat,
@@ -135,11 +135,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 notification.Presenters.Add(request.ClientId);
             }
 
-            foreach (var audience in properties.GetResources()) {
+            foreach (var audience in ticket.GetResources()) {
                 notification.Audiences.Add(audience);
             }
 
-            foreach (var scope in properties.GetScopes()) {
+            foreach (var scope in ticket.GetScopes()) {
                 notification.Scopes.Add(scope);
             }
 
@@ -177,7 +177,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             identity = (ClaimsIdentity) ticket.Principal.Identity;
 
             // Store the "usage" property as a claim.
-            identity.AddClaim(OpenIdConnectConstants.Properties.Usage, ticket.Properties.GetUsage());
+            identity.AddClaim(OpenIdConnectConstants.Properties.Usage, ticket.GetUsage());
 
             // If the ticket is marked as confidential, add a new
             // "confidential" claim in the security token.
@@ -319,8 +319,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 properties.ExpiresUtc = properties.IssuedUtc + Options.IdentityTokenLifetime;
             }
 
-            properties.SetUsage(OpenIdConnectConstants.Usages.IdToken);
-
             // Replace the principal by a new one containing only the filtered claims.
             // Actors identities are also filtered (delegation scenarios).
             principal = principal.Clone(claim => {
@@ -338,6 +336,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             // Create a new ticket containing the updated properties and the filtered principal.
             var ticket = new AuthenticationTicket(principal, properties, Options.AuthenticationScheme);
+
+            ticket.SetUsage(OpenIdConnectConstants.Usages.IdToken);
 
             var notification = new SerializeIdentityTokenContext(Context, Options, request, response, ticket) {
                 Confidential = ticket.IsConfidential(),
@@ -425,7 +425,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             identity.AddClaim(JwtRegisteredClaimNames.Sub, notification.Subject);
 
             // Store the "usage" property as a claim.
-            identity.AddClaim(OpenIdConnectConstants.Properties.Usage, ticket.Properties.GetUsage());
+            identity.AddClaim(OpenIdConnectConstants.Properties.Usage, ticket.GetUsage());
 
             // Store the audiences as claims.
             foreach (var audience in notification.Audiences) {
@@ -527,12 +527,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 properties.ExpiresUtc = properties.IssuedUtc + Options.RefreshTokenLifetime;
             }
 
-            properties.SetUsage(OpenIdConnectConstants.Usages.RefreshToken);
-
             // Claims in refresh tokens are never filtered as they are supposed to be opaque:
             // SerializeAccessTokenAsync and SerializeIdentityTokenAsync are responsible of ensuring
             // that subsequent access and identity tokens are correctly filtered.
             var ticket = new AuthenticationTicket(principal, properties, Options.AuthenticationScheme);
+
+            ticket.SetUsage(OpenIdConnectConstants.Usages.RefreshToken);
 
             var notification = new SerializeRefreshTokenContext(Context, Options, request, response, ticket) {
                 DataFormat = Options.RefreshTokenFormat
@@ -656,33 +656,34 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 IssuedUtc = securityToken.ValidFrom
             };
 
+            var ticket = new AuthenticationTicket(principal, properties, Options.AuthenticationScheme);
+
             var audiences = principal.FindAll(JwtRegisteredClaimNames.Aud);
             if (audiences.Any()) {
-                properties.SetAudiences(audiences.Select(claim => claim.Value));
+                ticket.SetAudiences(audiences.Select(claim => claim.Value));
             }
 
             var presenters = principal.FindAll(JwtRegisteredClaimNames.Azp);
             if (presenters.Any()) {
-                properties.SetPresenters(presenters.Select(claim => claim.Value));
+                ticket.SetPresenters(presenters.Select(claim => claim.Value));
             }
 
             var scopes = principal.FindAll(OpenIdConnectConstants.Claims.Scope);
             if (scopes.Any()) {
-                properties.SetScopes(scopes.Select(claim => claim.Value));
+                ticket.SetScopes(scopes.Select(claim => claim.Value));
             }
 
             var usage = principal.FindFirst(OpenIdConnectConstants.Properties.Usage);
             if (usage != null) {
-                properties.SetUsage(usage.Value);
+                ticket.SetUsage(usage.Value);
             }
 
             var confidential = principal.FindFirst(OpenIdConnectConstants.Properties.Confidential);
             if (confidential != null && string.Equals(confidential.Value, "true", StringComparison.OrdinalIgnoreCase)) {
-                properties.Items[OpenIdConnectConstants.Properties.Confidential] = "true";
+                ticket.Properties.Items[OpenIdConnectConstants.Properties.Confidential] = "true";
             }
 
-            // Ensure the received ticket is an access token.
-            var ticket = new AuthenticationTicket(principal, properties, Options.AuthenticationScheme);
+            // Ensure that e received ticket is an access token.
             if (!ticket.IsAccessToken()) {
                 Logger.LogDebug("The received token was not an access token: {Token}.", token);
 
@@ -743,28 +744,29 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 IssuedUtc = securityToken.ValidFrom
             };
 
+            var ticket = new AuthenticationTicket(principal, properties, Options.AuthenticationScheme);
+
             var audiences = principal.FindAll(JwtRegisteredClaimNames.Aud);
             if (audiences.Any()) {
-                properties.SetAudiences(audiences.Select(claim => claim.Value));
+                ticket.SetAudiences(audiences.Select(claim => claim.Value));
             }
 
             var presenters = principal.FindAll(JwtRegisteredClaimNames.Azp);
             if (presenters.Any()) {
-                properties.SetPresenters(presenters.Select(claim => claim.Value));
+                ticket.SetPresenters(presenters.Select(claim => claim.Value));
             }
 
             var usage = principal.FindFirst(OpenIdConnectConstants.Properties.Usage);
             if (usage != null) {
-                properties.SetUsage(usage.Value);
+                ticket.SetUsage(usage.Value);
             }
 
             var confidential = principal.FindFirst(OpenIdConnectConstants.Properties.Confidential);
             if (confidential != null && string.Equals(confidential.Value, "true", StringComparison.OrdinalIgnoreCase)) {
-                properties.Items[OpenIdConnectConstants.Properties.Confidential] = "true";
+                ticket.Properties.Items[OpenIdConnectConstants.Properties.Confidential] = "true";
             }
 
             // Ensure the received ticket is an identity token.
-            var ticket = new AuthenticationTicket(principal, properties, Options.AuthenticationScheme);
             if (!ticket.IsIdentityToken()) {
                 Logger.LogDebug("The received token was not an identity token: {Token}.", token);
 

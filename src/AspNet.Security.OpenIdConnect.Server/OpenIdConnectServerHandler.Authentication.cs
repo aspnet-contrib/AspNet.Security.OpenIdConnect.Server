@@ -136,7 +136,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // See http://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
             // To keep AspNet.Security.OpenIdConnect.Server compatible with pure OAuth2 clients,
             // an error is only returned if the request was made by an OpenID Connect client.
-            if (string.IsNullOrEmpty(request.RedirectUri) && request.ContainsScope(OpenIdConnectConstants.Scopes.OpenId)) {
+            if (string.IsNullOrEmpty(request.RedirectUri) && request.HasScope(OpenIdConnectConstants.Scopes.OpenId)) {
                 return await SendErrorPageAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "redirect_uri must be included when making an OpenID Connect request"
@@ -254,8 +254,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // response_mode=query (explicit or not) and a response_type containing id_token
             // or token are not considered as a safe combination and MUST be rejected.
             // See http://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#Security
-            else if (request.IsQueryResponseMode() && (request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.IdToken) ||
-                                                       request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.Token))) {
+            else if (request.IsQueryResponseMode() && (request.HasResponseType(OpenIdConnectConstants.ResponseTypes.IdToken) ||
+                                                       request.HasResponseType(OpenIdConnectConstants.ResponseTypes.Token))) {
                 Logger.LogDebug("Authorization request contains unsafe response_type/response_mode combination");
 
                 return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
@@ -270,7 +270,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // See http://openid.net/specs/openid-connect-core-1_0.html#AuthRequest,
             // http://openid.net/specs/openid-connect-implicit-1_0.html#RequestParameters
             // and http://openid.net/specs/openid-connect-core-1_0.html#HybridIDToken.
-            else if (string.IsNullOrEmpty(request.Nonce) && request.ContainsScope(OpenIdConnectConstants.Scopes.OpenId) &&
+            else if (string.IsNullOrEmpty(request.Nonce) && request.HasScope(OpenIdConnectConstants.Scopes.OpenId) &&
                                                            (request.IsImplicitFlow() || request.IsHybridFlow())) {
                 Logger.LogDebug("The 'nonce' parameter was missing");
 
@@ -283,8 +283,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             // Reject requests containing the id_token response_mode if no openid scope has been received.
-            else if (request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.IdToken) &&
-                    !request.ContainsScope(OpenIdConnectConstants.Scopes.OpenId)) {
+            else if (request.HasResponseType(OpenIdConnectConstants.ResponseTypes.IdToken) &&
+                    !request.HasScope(OpenIdConnectConstants.Scopes.OpenId)) {
                 Logger.LogDebug("The 'openid' scope part was missing");
 
                 return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
@@ -296,7 +296,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             // Reject requests containing the code response_mode if the token endpoint has been disabled.
-            else if (request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.Code) &&
+            else if (request.HasResponseType(OpenIdConnectConstants.ResponseTypes.Code) &&
                     !Options.TokenEndpointPath.HasValue) {
                 Logger.LogDebug("Authorization request contains the disabled code response_type");
 
@@ -413,14 +413,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // parameter when calling AuthenticationManager.SignInAsync: in this case,
             // don't replace the "scope" property stored in the authentication ticket.
             if (!context.Properties.ContainsKey(OpenIdConnectConstants.Properties.Scopes) &&
-                 request.ContainsScope(OpenIdConnectConstants.Scopes.OpenId)) {
+                 request.HasScope(OpenIdConnectConstants.Scopes.OpenId)) {
                 // Always include the "openid" scope when the developer didn't explicitly call SetScopes.
                 context.Properties[OpenIdConnectConstants.Properties.Scopes] = OpenIdConnectConstants.Scopes.OpenId;
             }
 
             // Determine whether an authorization code should be returned
             // and invoke SerializeAuthorizationCodeAsync if necessary.
-            if (request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.Code)) {
+            if (request.HasResponseType(OpenIdConnectConstants.ResponseTypes.Code)) {
                 // Make sure to create a copy of the authentication properties
                 // to avoid modifying the properties set on the original ticket.
                 var properties = new AuthenticationProperties(context.Properties).Copy();
@@ -448,13 +448,13 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             // Determine whether an access token should be returned
             // and invoke SerializeAccessTokenAsync if necessary.
-            if (request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.Token)) {
+            if (request.HasResponseType(OpenIdConnectConstants.ResponseTypes.Token)) {
                 // Make sure to create a copy of the authentication properties
                 // to avoid modifying the properties set on the original ticket.
                 var properties = new AuthenticationProperties(context.Properties).Copy();
 
-                var resources = properties.GetProperty(OpenIdConnectConstants.Properties.Resources);
-                if (string.IsNullOrEmpty(resources)) {
+                string resources;
+                if (!properties.Items.TryGetValue(OpenIdConnectConstants.Properties.Resources, out resources)) {
                     Logger.LogInformation("No explicit resource has been associated with the authentication ticket: " +
                                           "the access token will thus be issued without any audience attached.");
                 }
@@ -468,7 +468,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 // Note: when the "scope" parameter added to the OpenID Connect response
                 // is identical to the request parameter, setting it is not necessary.
-                var scopes = properties.GetProperty(OpenIdConnectConstants.Properties.Scopes);
+                string scopes;
+                properties.Items.TryGetValue(OpenIdConnectConstants.Properties.Scopes, out scopes);
                 if (!string.IsNullOrEmpty(request.Scope) &&
                     !string.Equals(request.Scope, scopes, StringComparison.Ordinal)) {
                     response.Scope = scopes;
@@ -504,7 +505,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // and invoke SerializeIdentityTokenAsync if necessary.
             // Note: the identity token MUST be created after the authorization code
             // and the access token to create appropriate at_hash and c_hash claims.
-            if (request.ContainsResponseType(OpenIdConnectConstants.ResponseTypes.IdToken)) {
+            if (request.HasResponseType(OpenIdConnectConstants.ResponseTypes.IdToken)) {
                 // Make sure to create a copy of the authentication properties
                 // to avoid modifying the properties set on the original ticket.
                 var properties = new AuthenticationProperties(context.Properties).Copy();

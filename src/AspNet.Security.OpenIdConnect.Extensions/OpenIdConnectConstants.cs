@@ -45,6 +45,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
             public const string Token = "token";
             public const string TokenType = "token_type";
             public const string TokenTypeHint = "token_type_hint";
+            public const string UniqueId = "unique_id";
             public const string Username = "username";
         }
 

@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Server;
+using Microsoft.AspNet.Authentication;
 using Microsoft.AspNet.Authorization;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Http.Authentication;
@@ -127,20 +128,24 @@ namespace Mvc.Server.Controllers {
             identity.Actor.AddClaim(ClaimTypes.NameIdentifier, application.ApplicationID);
             identity.Actor.AddClaim(ClaimTypes.Name, application.DisplayName, destination: "id_token token");
 
-            var properties = new AuthenticationProperties();
+            // Create a new authentication ticket holding the user identity.
+            var ticket = new AuthenticationTicket(
+                new ClaimsPrincipal(identity),
+                new AuthenticationProperties(),
+                OpenIdConnectServerDefaults.AuthenticationScheme);
 
             // Set the list of scopes granted to the client application.
             // Note: this sample always grants the "openid", "email" and "profile" scopes
             // when they are requested by the client application: a real world application
             // would probably display a form allowing to select the scopes to grant.
-            properties.SetScopes(new[] {
+            ticket.SetScopes(new[] {
                 /* openid: */ OpenIdConnectConstants.Scopes.OpenId,
                 /* email: */ OpenIdConnectConstants.Scopes.Email,
                 /* profile: */ OpenIdConnectConstants.Scopes.Profile
             }.Intersect(request.GetScopes()));
 
             // Set the resources servers the access token should be issued for.
-            properties.SetResources(new[] { "resource_server" });
+            ticket.SetResources(new[] { "resource_server" });
 
             // This call will instruct AspNet.Security.OpenIdConnect.Server to serialize
             // the specified identity to build appropriate tokens (id_token and token).
@@ -148,9 +153,7 @@ namespace Mvc.Server.Controllers {
             // a 'sub' or a 'ClaimTypes.NameIdentifier' claim. In this case, the returned
             // identities always contain the name identifier returned by the external provider.
             // Note: the authenticationScheme parameter must match the value configured in Startup.cs.
-            await HttpContext.Authentication.SignInAsync(
-                OpenIdConnectServerDefaults.AuthenticationScheme,
-                new ClaimsPrincipal(identity), properties);
+            await HttpContext.Authentication.SignInAsync(ticket.AuthenticationScheme, ticket.Principal, ticket.Properties);
 
             return new EmptyResult();
         }

@@ -154,17 +154,17 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             // The following claims are all optional and should be excluded when
             // no corresponding value has been found in the authentication ticket.
-            if (ticket.ContainsScope(OpenIdConnectConstants.Scopes.Profile)) {
+            if (ticket.HasScope(OpenIdConnectConstants.Scopes.Profile)) {
                 notification.FamilyName = ticket.Principal.GetClaim(ClaimTypes.Surname);
                 notification.GivenName = ticket.Principal.GetClaim(ClaimTypes.GivenName);
                 notification.BirthDate = ticket.Principal.GetClaim(ClaimTypes.DateOfBirth);
             }
 
-            if (ticket.ContainsScope(OpenIdConnectConstants.Scopes.Email)) {
+            if (ticket.HasScope(OpenIdConnectConstants.Scopes.Email)) {
                 notification.Email = ticket.Principal.GetClaim(ClaimTypes.Email);
             };
 
-            if (ticket.ContainsScope(OpenIdConnectConstants.Scopes.Phone)) {
+            if (ticket.HasScope(OpenIdConnectConstants.Scopes.Phone)) {
                 notification.PhoneNumber = ticket.Principal.GetClaim(ClaimTypes.HomePhone) ??
                                            ticket.Principal.GetClaim(ClaimTypes.MobilePhone) ??
                                            ticket.Principal.GetClaim(ClaimTypes.OtherPhone);
