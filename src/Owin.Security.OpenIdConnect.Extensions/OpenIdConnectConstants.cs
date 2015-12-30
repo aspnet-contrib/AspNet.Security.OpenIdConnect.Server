@@ -11,6 +11,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         public static class Claims {
             public const string Active = "active";
             public const string Address = "address";
+            public const string AtHash = "at_hash";
             public const string ClientId = "client_id";
             public const string EmailVerified = "email_verified";
             public const string PhoneNumber = "phone_number";
@@ -101,7 +102,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         }
 
         public static class Properties {
-            public const string Audiences = "audience";
+            public const string Audiences = "audiences";
             public const string Confidential = "confidential";
             public const string Destination = "destination";
             public const string Nonce = "nonce";

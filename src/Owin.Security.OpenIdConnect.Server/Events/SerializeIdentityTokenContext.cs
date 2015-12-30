@@ -10,6 +10,7 @@ using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Provider;
+using Owin.Security.OpenIdConnect.Extensions;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
@@ -34,7 +35,6 @@ namespace Owin.Security.OpenIdConnect.Server {
             Request = request;
             Response = response;
             AuthenticationTicket = ticket;
-            Audiences = new List<string>();
         }
 
         /// <summary>
@@ -48,36 +48,9 @@ namespace Owin.Security.OpenIdConnect.Server {
         public new OpenIdConnectMessage Response { get; }
 
         /// <summary>
-        /// Gets or sets the access token hash.
-        /// </summary>
-        public string AtHash { get; set; }
-
-        /// <summary>
         /// Gets the authentication ticket.
         /// </summary>
         public AuthenticationTicket AuthenticationTicket { get; }
-
-        /// <summary>
-        /// Gets the list of audiences.
-        /// </summary>
-        public IList<string> Audiences { get; } = new List<string>();
-
-        /// <summary>
-        /// Gets the list of presenters.
-        /// </summary>
-        public IList<string> Presenters { get; } = new List<string>();
-
-        /// <summary>
-        /// Gets or sets the authorization code hash.
-        /// </summary>
-        public string CHash { get; set; }
-
-        /// <summary>
-        /// Gets or sets a boolean indicating whether the token is considered as confidential.
-        /// Confidentials tokens can only be validated using the introspection endpoint by fully
-        /// authenticated client applications. Updating this property is generally not recommended.
-        /// </summary>
-        public bool Confidential { get; set; }
 
         /// <summary>
         /// Gets or sets the issuer address.
@@ -85,14 +58,20 @@ namespace Owin.Security.OpenIdConnect.Server {
         public string Issuer { get; set; }
 
         /// <summary>
-        /// Gets or sets the nonce claim.
+        /// Gets or sets the audiences associated with the authentication ticket.
         /// </summary>
-        public string Nonce { get; set; }
+        public IEnumerable<string> Audiences {
+            get { return AuthenticationTicket.GetAudiences(); }
+            set { AuthenticationTicket.SetAudiences(value); }
+        }
 
         /// <summary>
-        /// Gets or sets the unique identifier used as the subject claim.
+        /// Gets or sets the presenters associated with the authentication ticket.
         /// </summary>
-        public string Subject { get; set; }
+        public IEnumerable<string> Presenters {
+            get { return AuthenticationTicket.GetPresenters(); }
+            set { AuthenticationTicket.SetPresenters(value); }
+        }
 
         /// <summary>
         /// Gets or sets the signing credentials used to sign the identity token.

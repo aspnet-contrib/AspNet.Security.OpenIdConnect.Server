@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Provider;
+using Owin.Security.OpenIdConnect.Extensions;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
@@ -51,9 +52,12 @@ namespace Owin.Security.OpenIdConnect.Server {
         public AuthenticationTicket AuthenticationTicket { get; }
 
         /// <summary>
-        /// Gets the list of presenters.
+        /// Gets or sets the presenters associated with the authentication ticket.
         /// </summary>
-        public IList<string> Presenters { get; } = new List<string>();
+        public IEnumerable<string> Presenters {
+            get { return AuthenticationTicket.GetPresenters(); }
+            set { AuthenticationTicket.SetPresenters(value); }
+        }
 
         /// <summary>
         /// Gets or sets the data format used to serialize the authentication ticket.
