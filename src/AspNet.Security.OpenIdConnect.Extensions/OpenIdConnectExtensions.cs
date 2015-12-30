@@ -836,9 +836,10 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
         /// Sets the audiences list in the authentication ticket.
         /// Note: this method automatically excludes duplicate audiences.
         /// </summary>
-        /// <param name="ticket">The authentication properties where the list should be stored.</param>
+        /// <param name="ticket">The authentication ticket.</param>
         /// <param name="audiences">The audiences to store.</param>
-        public static void SetAudiences(this AuthenticationTicket ticket, IEnumerable<string> audiences) {
+        /// <returns>The authentication ticket.</returns>
+        public static AuthenticationTicket SetAudiences(this AuthenticationTicket ticket, IEnumerable<string> audiences) {
             if (ticket == null) {
                 throw new ArgumentNullException(nameof(ticket));
             }
@@ -853,15 +854,31 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
 
             ticket.Properties.Items[OpenIdConnectConstants.Properties.Audiences] =
                 string.Join(" ", audiences.Distinct(StringComparer.Ordinal));
+
+            return ticket;
+        }
+
+        /// <summary>
+        /// Sets the audiences list in the authentication ticket.
+        /// Note: this method automatically excludes duplicate audiences.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <param name="audiences">The audiences to store.</param>
+        /// <returns>The authentication ticket.</returns>
+        public static AuthenticationTicket SetAudiences(this AuthenticationTicket ticket, params string[] audiences) {
+            // Note: guarding the audiences parameter against null values
+            // is not necessary as AsEnumerable() doesn't throw on null values.
+            return ticket.SetAudiences(audiences.AsEnumerable());
         }
 
         /// <summary>
         /// Sets the presenters list in the authentication ticket.
         /// Note: this method automatically excludes duplicate presenters.
         /// </summary>
-        /// <param name="ticket">The authentication properties where the list should be stored.</param>
+        /// <param name="ticket">The authentication ticket.</param>
         /// <param name="presenters">The presenters to store.</param>
-        public static void SetPresenters(this AuthenticationTicket ticket, IEnumerable<string> presenters) {
+        /// <returns>The authentication ticket.</returns>
+        public static AuthenticationTicket SetPresenters(this AuthenticationTicket ticket, IEnumerable<string> presenters) {
             if (ticket == null) {
                 throw new ArgumentNullException(nameof(ticket));
             }
@@ -876,14 +893,31 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
 
             ticket.Properties.Items[OpenIdConnectConstants.Properties.Presenters] =
                 string.Join(" ", presenters.Distinct(StringComparer.Ordinal));
+
+            return ticket;
+        }
+
+        /// <summary>
+        /// Sets the presenters list in the authentication ticket.
+        /// Note: this method automatically excludes duplicate presenters.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <param name="presenters">The presenters to store.</param>
+        /// <returns>The authentication ticket.</returns>
+        public static AuthenticationTicket SetPresenters(this AuthenticationTicket ticket, params string[] presenters) {
+            // Note: guarding the presenters parameter against null values
+            // is not necessary as AsEnumerable() doesn't throw on null values.
+            return ticket.SetPresenters(presenters.AsEnumerable());
         }
 
         /// <summary>
         /// Sets the resources list in the authentication ticket.
+        /// Note: this method automatically excludes duplicate resources.
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
         /// <param name="resources">The resources to store.</param>
-        public static void SetResources(this AuthenticationTicket ticket, IEnumerable<string> resources) {
+        /// <returns>The authentication ticket.</returns>
+        public static AuthenticationTicket SetResources(this AuthenticationTicket ticket, IEnumerable<string> resources) {
             if (ticket == null) {
                 throw new ArgumentNullException(nameof(ticket));
             }
@@ -898,14 +932,31 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
 
             ticket.Properties.Items[OpenIdConnectConstants.Properties.Resources] =
                 string.Join(" ", resources.Distinct(StringComparer.Ordinal));
+
+            return ticket;
         }
 
         /// <summary>
         /// Sets the resources list in the authentication ticket.
+        /// Note: this method automatically excludes duplicate resources.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <param name="resources">The resources to store.</param>
+        /// <returns>The authentication ticket.</returns>
+        public static AuthenticationTicket SetResources(this AuthenticationTicket ticket, params string[] resources) {
+            // Note: guarding the resources parameter against null values
+            // is not necessary as AsEnumerable() doesn't throw on null values.
+            return ticket.SetResources(resources.AsEnumerable());
+        }
+
+        /// <summary>
+        /// Sets the scopes list in the authentication ticket.
+        /// Note: this method automatically excludes duplicate scopes.
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
         /// <param name="scopes">The scopes to store.</param>
-        public static void SetScopes(this AuthenticationTicket ticket, IEnumerable<string> scopes) {
+        /// <returns>The authentication ticket.</returns>
+        public static AuthenticationTicket SetScopes(this AuthenticationTicket ticket, IEnumerable<string> scopes) {
             if (ticket == null) {
                 throw new ArgumentNullException(nameof(ticket));
             }
@@ -920,19 +971,37 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
 
             ticket.Properties.Items[OpenIdConnectConstants.Properties.Scopes] =
                 string.Join(" ", scopes.Distinct(StringComparer.Ordinal));
+
+            return ticket;
+        }
+
+        /// <summary>
+        /// Sets the scopes list in the authentication ticket.
+        /// Note: this method automatically excludes duplicate scopes.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <param name="scopes">The scopes to store.</param>
+        /// <returns>The authentication ticket.</returns>
+        public static AuthenticationTicket SetScopes(this AuthenticationTicket ticket, params string[] scopes) {
+            // Note: guarding the scopes parameter against null values
+            // is not necessary as AsEnumerable() doesn't throw on null values.
+            return ticket.SetScopes(scopes.AsEnumerable());
         }
 
         /// <summary>
         /// Sets the usage of the token in the authentication ticket.
         /// </summary>
-        /// <param name="ticket">The authentication ticket where the usage should be stored.</param>
+        /// <param name="ticket">The authentication ticket.</param>
         /// <param name="usage">The usage of the token.</param>
-        public static void SetUsage(this AuthenticationTicket ticket, string usage) {
+        /// <returns>The authentication ticket.</returns>
+        public static AuthenticationTicket SetUsage(this AuthenticationTicket ticket, string usage) {
             if (ticket == null) {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
             ticket.Properties.Items[OpenIdConnectConstants.Properties.Usage] = usage;
+
+            return ticket;
         }
 
         private static bool HasValue(string source, string value) {
