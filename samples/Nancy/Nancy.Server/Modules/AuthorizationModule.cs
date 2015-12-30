@@ -141,7 +141,7 @@ namespace Nancy.Server.Modules {
                 }.Intersect(request.GetScopes()));
 
                 // Set the resources servers the access token should be issued for.
-                ticket.SetResources(new[] { "resource_server" });
+                ticket.SetResources("resource_server");
 
                 // This call will instruct Owin.Security.OpenIdConnect.Server to serialize
                 // the specified identity to build appropriate tokens (id_token and token).
