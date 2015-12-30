@@ -5,6 +5,7 @@
  */
 
 using System.Collections.Generic;
+using AspNet.Security.OpenIdConnect.Extensions;
 using Microsoft.AspNet.Authentication;
 using Microsoft.AspNet.Http;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
@@ -56,9 +57,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public new OpenIdConnectMessage Response { get; }
 
         /// <summary>
-        /// Gets the list of presenters.
+        /// Gets or sets the presenters associated with the authentication ticket.
         /// </summary>
-        public IList<string> Presenters { get; } = new List<string>();
+        public IEnumerable<string> Presenters {
+            get { return AuthenticationTicket.GetPresenters(); }
+            set { AuthenticationTicket.SetPresenters(value); }
+        }
 
         /// <summary>
         /// Gets or sets the data format used to serialize the authentication ticket.

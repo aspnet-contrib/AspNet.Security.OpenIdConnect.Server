@@ -5,6 +5,7 @@
  */
 
 using System.Collections.Generic;
+using AspNet.Security.OpenIdConnect.Extensions;
 using Microsoft.AspNet.Authentication;
 using Microsoft.AspNet.Http;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
@@ -57,31 +58,33 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public new OpenIdConnectMessage Response { get; }
 
         /// <summary>
-        /// Gets the list of audiences.
-        /// </summary>
-        public IList<string> Audiences { get; } = new List<string>();
-
-        /// <summary>
-        /// Gets the list of presenters.
-        /// </summary>
-        public IList<string> Presenters { get; } = new List<string>();
-
-        /// <summary>
-        /// Gets or sets a boolean indicating whether the token is considered as confidential.
-        /// Confidentials tokens can only be validated using the introspection endpoint by fully
-        /// authenticated client applications. Updating this property is generally not recommended.
-        /// </summary>
-        public bool Confidential { get; set; }
-
-        /// <summary>
         /// Gets or sets the issuer address.
         /// </summary>
         public string Issuer { get; set; }
 
         /// <summary>
-        /// Gets the list of scopes.
+        /// Gets or sets the audiences associated with the authentication ticket.
         /// </summary>
-        public IList<string> Scopes { get; } = new List<string>();
+        public IEnumerable<string> Audiences {
+            get { return AuthenticationTicket.GetAudiences(); }
+            set { AuthenticationTicket.SetAudiences(value); }
+        }
+
+        /// <summary>
+        /// Gets or sets the presenters associated with the authentication ticket.
+        /// </summary>
+        public IEnumerable<string> Presenters {
+            get { return AuthenticationTicket.GetPresenters(); }
+            set { AuthenticationTicket.SetPresenters(value); }
+        }
+
+        /// <summary>
+        /// Gets or sets the scopes associated with the authentication ticket.
+        /// </summary>
+        public IEnumerable<string> Scopes {
+            get { return AuthenticationTicket.GetScopes(); }
+            set { AuthenticationTicket.SetScopes(value); }
+        }
 
         /// <summary>
         /// Gets or sets the signing credentials used to sign the access token.
