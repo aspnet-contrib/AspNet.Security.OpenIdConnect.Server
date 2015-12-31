@@ -373,7 +373,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return await SendErrorPageAsync(response);
             }
 
-            // Stop processing the request.
+            // Return true to stop processing the request.
             return true;
         }
 
@@ -386,13 +386,18 @@ namespace AspNet.Security.OpenIdConnect.Server {
             if (Options.ApplicationCanDisplayErrors) {
                 Context.SetOpenIdConnectResponse(response);
 
-                // Request is not handled - pass through to application for rendering.
+                // Apply a 400 status code by default.
+                Response.StatusCode = 400;
+
+                // Return false to allow the rest of
+                // the pipeline to handle the request.
                 return false;
             }
 
+            // Render the default error page.
             await SendNativeErrorPageAsync(response);
 
-            // Request is always handled when rendering the default error page.
+            // Return true to stop processing the request.
             return true;
         }
 
