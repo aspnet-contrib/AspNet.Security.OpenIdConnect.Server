@@ -7,7 +7,7 @@
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace AspNet.Security.OpenIdConnect.Server {
-    public class OpenIdConnectServerFeature : IOpenIdConnectServerFeature {
+    public class OpenIdConnectServerFeature {
         public OpenIdConnectMessage Request { get; set; }
         public OpenIdConnectMessage Response { get; set; }
     }

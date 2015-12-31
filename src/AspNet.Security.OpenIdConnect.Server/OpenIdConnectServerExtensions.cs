@@ -359,7 +359,7 @@ namespace Microsoft.AspNet.Builder {
         /// <param name="context">The ASP.NET context.</param>
         /// <returns>The <see cref="OpenIdConnectMessage"/> associated with the current request.</returns>
         public static OpenIdConnectMessage GetOpenIdConnectRequest([NotNull] this HttpContext context) {
-            var feature = context.Features.Get<IOpenIdConnectServerFeature>();
+            var feature = context.Features.Get<OpenIdConnectServerFeature>();
             if (feature == null) {
                 feature = new OpenIdConnectServerFeature();
 
@@ -375,7 +375,7 @@ namespace Microsoft.AspNet.Builder {
         /// <param name="context">The ASP.NET context.</param>
         /// <param name="request">The ambient <see cref="OpenIdConnectMessage"/>.</param>
         public static void SetOpenIdConnectRequest([NotNull] this HttpContext context, OpenIdConnectMessage request) {
-            var feature = context.Features.Get<IOpenIdConnectServerFeature>();
+            var feature = context.Features.Get<OpenIdConnectServerFeature>();
             if (feature == null) {
                 feature = new OpenIdConnectServerFeature();
 
@@ -392,7 +392,7 @@ namespace Microsoft.AspNet.Builder {
         /// <param name="context">The ASP.NET context.</param>
         /// <returns>The <see cref="OpenIdConnectMessage"/> associated with the current response.</returns>
         public static OpenIdConnectMessage GetOpenIdConnectResponse([NotNull] this HttpContext context) {
-            var feature = context.Features.Get<IOpenIdConnectServerFeature>();
+            var feature = context.Features.Get<OpenIdConnectServerFeature>();
             if (feature == null) {
                 feature = new OpenIdConnectServerFeature();
 
@@ -408,7 +408,7 @@ namespace Microsoft.AspNet.Builder {
         /// <param name="context">The ASP.NET context.</param>
         /// <param name="response">The ambient <see cref="OpenIdConnectMessage"/>.</param>
         public static void SetOpenIdConnectResponse([NotNull] this HttpContext context, OpenIdConnectMessage response) {
-            var feature = context.Features.Get<IOpenIdConnectServerFeature>();
+            var feature = context.Features.Get<OpenIdConnectServerFeature>();
             if (feature == null) {
                 feature = new OpenIdConnectServerFeature();
 
