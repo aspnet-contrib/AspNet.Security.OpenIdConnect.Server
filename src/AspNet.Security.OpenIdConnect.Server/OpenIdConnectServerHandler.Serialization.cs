@@ -162,15 +162,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             var handler = notification.SecurityTokenHandler as JwtSecurityTokenHandler;
             if (handler != null) {
-                // Remove the ClaimTypes.NameIdentifier claims to avoid getting duplicate claims.
-                // Note: the "sub" claim is automatically mapped by JwtSecurityTokenHandler
-                // to ClaimTypes.NameIdentifier when validating a JWT token.
-                // Note: make sure to call ToArray() to avoid an InvalidOperationException
-                // on old versions of Mono, where FindAll() is implemented using an iterator.
-                foreach (var claim in identity.FindAll(ClaimTypes.NameIdentifier).ToArray()) {
-                    identity.RemoveClaim(claim);
-                }
-
                 // Note: when used as an access token, a JWT token doesn't have to expose a "sub" claim
                 // but the name identifier claim is used as a substitute when it has been explicitly added.
                 // See https://tools.ietf.org/html/rfc7519#section-4.1.2
@@ -180,6 +171,15 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     if (identifier != null) {
                         identity.AddClaim(JwtRegisteredClaimNames.Sub, identifier.Value);
                     }
+                }
+
+                // Remove the ClaimTypes.NameIdentifier claims to avoid getting duplicate claims.
+                // Note: the "sub" claim is automatically mapped by JwtSecurityTokenHandler
+                // to ClaimTypes.NameIdentifier when validating a JWT token.
+                // Note: make sure to call ToArray() to avoid an InvalidOperationException
+                // on old versions of Mono, where FindAll() is implemented using an iterator.
+                foreach (var claim in identity.FindAll(ClaimTypes.NameIdentifier).ToArray()) {
+                    identity.RemoveClaim(claim);
                 }
 
                 // Store the audiences as claims.
