@@ -113,6 +113,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // Create a new ticket containing the updated properties and the filtered principal.
             var ticket = new AuthenticationTicket(principal, properties, Options.AuthenticationScheme);
             ticket.SetUsage(OpenIdConnectConstants.Usages.AccessToken);
+            ticket.SetAudiences(ticket.GetResources());
 
             // By default, add the client_id to the list of the
             // presenters allowed to use the access token.
