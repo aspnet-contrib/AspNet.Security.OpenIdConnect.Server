@@ -103,6 +103,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             // Create a new ticket containing the updated properties and the filtered identity.
             var ticket = new AuthenticationTicket(identity, properties);
             ticket.SetUsage(OpenIdConnectConstants.Usages.AccessToken);
+            ticket.SetAudiences(ticket.GetResources());
 
             // By default, add the client_id to the list of the
             // presenters allowed to use the access token.
