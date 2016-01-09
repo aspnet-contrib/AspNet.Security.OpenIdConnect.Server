@@ -51,6 +51,27 @@ namespace Mvc.Server.Providers {
             context.Validate();
         }
 
+        public override async Task ValidateClientAudiences(ValidateClientAudiencesContext context)
+        {
+            var database = context.HttpContext.RequestServices.GetRequiredService<ApplicationContext>();
+
+            // Retrieve the application details corresponding to the requested client_id.
+            var application = await(from entity in database.Applications
+                                    where entity.ApplicationID == context.ClientId
+                                    select entity).SingleOrDefaultAsync(context.HttpContext.RequestAborted);
+
+            if (!context.Audiences.Intersect(application.IntendedAudiences).Any())
+            {
+                context.Reject(
+                    error: "invalid_client",
+                    description: "Invalid audiences: ensure that the client is inteded to be used with the audiences");
+
+                return;
+            }
+
+            context.Validate();
+        }
+
         public override async Task ValidateClientRedirectUri(ValidateClientRedirectUriContext context) {
             var database = context.HttpContext.RequestServices.GetRequiredService<ApplicationContext>();
 
