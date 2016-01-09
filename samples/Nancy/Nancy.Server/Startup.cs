@@ -26,7 +26,7 @@ namespace Nancy.Server {
                 // map.UseOAuthIntrospection(options => {
                 //     options.AuthenticationMode = AuthenticationMode.Active;
                 //     options.Authority = "http://localhost:54540/";
-                //     options.Audience = "resource_server";
+                //     options.Audiences.Add("resource_server");
                 //     options.ClientId = "resource_server";
                 //     options.ClientSecret = "875sqd4s5d748z78z7ds1ff8zz8814ff88ed8ea4z4zzd";
                 // });
