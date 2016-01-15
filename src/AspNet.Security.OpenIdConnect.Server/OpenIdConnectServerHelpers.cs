@@ -161,7 +161,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WEBSITE_INSTANCE_ID"))) {
                 path = Environment.GetEnvironmentVariable("HOME");
                 if (!string.IsNullOrEmpty(path)) {
-                    return GetKeyStorageDirectoryFromBaseAppDataPath(path);
+                    return GetKeyStorageDirectoryFromBasePath(path);
                 }
             }
 
@@ -170,26 +170,22 @@ namespace AspNet.Security.OpenIdConnect.Server {
             path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 
             if (!string.IsNullOrEmpty(path)) {
-                return GetKeyStorageDirectoryFromBaseAppDataPath(path);
+                return GetKeyStorageDirectoryFromBasePath(path);
             }
-
-            // Returning the current directory is safe as keys are always encrypted using the
-            // data protection system, making the keys unreadable outside this environment.
-            return new DirectoryInfo(Directory.GetCurrentDirectory());
 #else
 
             // Try to resolve the AppData/Local folder
             // using the LOCALAPPDATA environment variable.
             path = Environment.GetEnvironmentVariable("LOCALAPPDATA");
             if (!string.IsNullOrEmpty(path)) {
-                return GetKeyStorageDirectoryFromBaseAppDataPath(path);
+                return GetKeyStorageDirectoryFromBasePath(path);
             }
 
             // If the LOCALAPPDATA environment variable was not found,
             // try to determine the actual AppData/Local path from USERPROFILE.
             path = Environment.GetEnvironmentVariable("USERPROFILE");
             if (!string.IsNullOrEmpty(path)) {
-                return GetKeyStorageDirectoryFromBaseAppDataPath(Path.Combine(path, "AppData", "Local"));
+                return GetKeyStorageDirectoryFromBasePath(Path.Combine(path, "AppData", "Local"));
             }
 
             // On Linux environments, use the HOME variable.
@@ -197,14 +193,25 @@ namespace AspNet.Security.OpenIdConnect.Server {
             if (!string.IsNullOrEmpty(path)) {
                 return new DirectoryInfo(Path.Combine(path, ".aspnet", "aspnet-contrib", "aspnet-oidc-server"));
             }
-            
-            // Returning the current directory is safe as keys are always encrypted using the
-            // data protection system, making the keys unreadable outside this environment.
-            return new DirectoryInfo(Directory.GetCurrentDirectory());
 #endif
+
+            // Use the ASPNET_TEMP environment variable when specified.
+            path = Environment.GetEnvironmentVariable("ASPNET_TEMP");
+            if (!string.IsNullOrEmpty(path)) {
+                return GetKeyStorageDirectoryFromBasePath(path);
+            }
+
+            // Note: returning the TEMP directory is safe as keys are always encrypted using the
+            // data protection system, making the keys unreadable outside this environment.
+            path = Path.GetTempPath();
+            if (!string.IsNullOrEmpty(path)) {
+                return GetKeyStorageDirectoryFromBasePath(path);
+            }
+
+            throw new InvalidOperationException("No directory can be found to store the RSA keys.");
         }
 
-        private static DirectoryInfo GetKeyStorageDirectoryFromBaseAppDataPath(string path) {
+        private static DirectoryInfo GetKeyStorageDirectoryFromBasePath(string path) {
             return new DirectoryInfo(Path.Combine(path, "ASP.NET", "aspnet-contrib", "aspnet-oidc-server"));
         }
 
