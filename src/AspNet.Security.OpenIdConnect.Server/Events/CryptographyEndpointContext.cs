@@ -5,9 +5,9 @@
  */
 
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNet.Authentication;
 using Microsoft.AspNet.Http;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
