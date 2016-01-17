@@ -201,12 +201,29 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return;
             }
 
-            switch (ticket.GetUsage()) {
-                case OpenIdConnectConstants.Usages.AccessToken: {
-                    // When the caller is authenticated, ensure it is
-                    // listed as a valid audience or authorized presenter.
-                    if (clientNotification.IsValidated && !ticket.HasAudience(clientNotification.ClientId) &&
-                                                          !ticket.HasPresenter(clientNotification.ClientId)) {
+            if (clientNotification.IsValidated) {
+                switch (ticket.GetUsage()) {
+                    case OpenIdConnectConstants.Usages.AccessToken: {
+                        // When the caller is authenticated, ensure it is
+                        // listed as a valid audience or authorized presenter.
+                        var audienceValidation = new ValidateClientAudiencesContext(Context, Options, request, ticket);
+                        await Options.Provider.ValidateClientAudiences(audienceValidation);
+
+                        if (audienceValidation.IsValidated ||
+                            (audienceValidation.Skipped && ticket.HasAudience(clientNotification.ClientId))) {
+                            break;
+                        }
+
+                        if (!audienceValidation.Reject()) {
+                            var presenterValidation = new ValidateClientPresentersContext(Context, Options, request, ticket);
+                            await Options.Provider.ValidateClientPresenters(presenterValidation);
+
+                            if (presenterValidation.IsValidated ||
+                                (presenterValidation.IsSkipped && ticket.HasPresenter(clientNotification.ClientId))) {
+                                break;
+                            }
+                        }
+
                         Logger.LogWarning("The validation request was rejected because the access token " +
                                           "was issued to a different client or for another resource server.");
 
@@ -217,13 +234,16 @@ namespace AspNet.Security.OpenIdConnect.Server {
                         return;
                     }
 
-                    break;
-                }
+                    case OpenIdConnectConstants.Usages.IdToken: {
+                        // When the caller is authenticated, reject the validation
+                        // request if the caller is not listed as a valid audience.
+                        var audienceValidation = new ValidateClientAudiencesContext(Context, Options, request, ticket);
+                        await Options.Provider.ValidateClientAudiences(audienceValidation);
+                        if (audienceValidation.IsValidated ||
+                            (audienceValidation.Skipped && ticket.HasAudience(clientNotification.ClientId))) {
+                            break;
+                        }
 
-                case OpenIdConnectConstants.Usages.IdToken: {
-                    // When the caller is authenticated, reject the validation
-                    // request if the caller is not listed as a valid audience.
-                    if (clientNotification.IsValidated && !ticket.HasAudience(clientNotification.ClientId)) {
                         Logger.LogWarning("The validation request was rejected because the " +
                                           "identity token was issued to a different client.");
 
@@ -234,13 +254,16 @@ namespace AspNet.Security.OpenIdConnect.Server {
                         return;
                     }
 
-                    break;
-                }
+                    case OpenIdConnectConstants.Usages.RefreshToken: {
+                        // When the caller is authenticated, reject the validation request if the caller
+                        // doesn't correspond to the client application the token was issued to.
+                        var presenterValidation = new ValidateClientPresentersContext(Context, Options, request, ticket);
+                        await Options.Provider.ValidateClientPresenters(presenterValidation);
+                        if (presenterValidation.IsValidated ||
+                            (presenterValidation.Skipped && ticket.HasPresenter(clientNotification.ClientId))) {
+                            break;
+                        }
 
-                case OpenIdConnectConstants.Usages.RefreshToken: {
-                    // When the caller is authenticated, reject the validation request if the caller
-                    // doesn't correspond to the client application the token was issued to.
-                    if (clientNotification.IsValidated && !ticket.HasPresenter(clientNotification.ClientId)) {
                         Logger.LogWarning("The validation request was rejected because the " +
                                           "refresh token was issued to a different client.");
 
@@ -250,8 +273,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                         return;
                     }
-
-                    break;
                 }
             }
 
@@ -294,7 +315,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                             string.Equals(claim.Type, ClaimTypes.NameIdentifier, StringComparison.Ordinal)) {
                             continue;
                         }
-                        
+
                         if (string.Equals(claim.Type, JwtRegisteredClaimNames.Aud, StringComparison.Ordinal) ||
                             string.Equals(claim.Type, JwtRegisteredClaimNames.Exp, StringComparison.Ordinal) ||
                             string.Equals(claim.Type, JwtRegisteredClaimNames.Iat, StringComparison.Ordinal) ||

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.AspNet.Authentication;
 using Microsoft.AspNet.Authentication.Cookies;
 using Microsoft.AspNet.Builder;
@@ -57,7 +58,7 @@ namespace Mvc.Server {
                 // Alternatively, you can also use the introspection middleware.
                 // Using it is recommended if your resource server is in a
                 // different application/separated from the authorization server.
-                // 
+                //
                 // branch.UseOAuthIntrospection(options => {
                 //     options.AutomaticAuthenticate = true;
                 //     options.AutomaticChallenge = true;
@@ -125,7 +126,7 @@ namespace Mvc.Server {
 
                 // Note: by default, tokens are signed using dynamically-generated
                 // RSA keys but you can also use your own certificate:
-                // 
+                //
                 // options.SigningCredentials.AddCertificate(certificate);
             });
 
@@ -138,7 +139,7 @@ namespace Mvc.Server {
             using (var database = app.ApplicationServices.GetService<ApplicationContext>()) {
                 // Note: when using the introspection middleware, your resource server
                 // MUST be registered as an OAuth2 client and have valid credentials.
-                // 
+                //
                 // database.Applications.Add(new Application {
                 //     ApplicationID = "resource_server",
                 //     DisplayName = "Main resource server",
@@ -150,7 +151,8 @@ namespace Mvc.Server {
                     DisplayName = "My client application",
                     RedirectUri = "http://localhost:53507/signin-oidc",
                     LogoutRedirectUri = "http://localhost:53507/",
-                    Secret = "secret_secret_secret"
+                    Secret = "secret_secret_secret",
+                    IntendedAudiences = new string[0]
                 });
 
                 database.SaveChanges();
