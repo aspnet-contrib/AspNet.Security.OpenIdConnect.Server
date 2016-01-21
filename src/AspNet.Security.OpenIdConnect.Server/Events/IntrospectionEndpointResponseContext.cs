@@ -13,11 +13,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// An event raised before the authorization server starts
     /// writing the token status/metadata to the response stream.
     /// </summary>
-    public sealed class ValidationEndpointResponseContext : BaseControlContext {
+    public sealed class IntrospectionEndpointResponseContext : BaseControlContext {
         /// <summary>
         /// Creates an instance of this context.
         /// </summary>
-        internal ValidationEndpointResponseContext(
+        internal IntrospectionEndpointResponseContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
             JObject payload)

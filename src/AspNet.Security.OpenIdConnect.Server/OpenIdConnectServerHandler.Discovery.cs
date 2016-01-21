@@ -43,8 +43,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 notification.ProfileEndpoint = notification.Issuer.AddPath(Options.ProfileEndpointPath);
             }
 
-            if (Options.ValidationEndpointPath.HasValue) {
-                notification.ValidationEndpoint = notification.Issuer.AddPath(Options.ValidationEndpointPath);
+            if (Options.IntrospectionEndpointPath.HasValue) {
+                notification.IntrospectionEndpoint = notification.Issuer.AddPath(Options.IntrospectionEndpointPath);
             }
 
             if (Options.TokenEndpointPath.HasValue) {
@@ -136,8 +136,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 payload.Add(OpenIdConnectConstants.Metadata.UserinfoEndpoint, notification.ProfileEndpoint);
             }
 
-            if (!string.IsNullOrEmpty(notification.ValidationEndpoint)) {
-                payload.Add(OpenIdConnectConstants.Metadata.IntrospectionEndpoint, notification.ValidationEndpoint);
+            if (!string.IsNullOrEmpty(notification.IntrospectionEndpoint)) {
+                payload.Add(OpenIdConnectConstants.Metadata.IntrospectionEndpoint, notification.IntrospectionEndpoint);
             }
 
             if (!string.IsNullOrEmpty(notification.TokenEndpoint)) {

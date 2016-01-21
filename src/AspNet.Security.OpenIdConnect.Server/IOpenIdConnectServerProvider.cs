@@ -25,52 +25,28 @@ namespace AspNet.Security.OpenIdConnect.Server {
         Task MatchEndpoint(MatchEndpointContext context);
 
         /// <summary>
-        /// Called to validate that the context.ClientId is a registered "client_id", and that the context.RedirectUri a "redirect_uri" 
-        /// registered for that client. This only occurs when processing the authorization endpoint. The application MUST implement this
-        /// call, and it MUST validate both of those factors before calling context.Validated. If the context.Validated method is called
-        /// with a given redirectUri parameter, then IsValidated will only become true if the incoming redirect URI matches the given redirect URI. 
-        /// If context.Validated is not called the request will not proceed further. 
-        /// </summary>
-        /// <param name="context">The context of the event carries information in and results out.</param>
-        /// <returns>Task to enable asynchronous execution</returns>
-        Task ValidateClientRedirectUri(ValidateClientRedirectUriContext context);
-
-        /// <summary>
-        /// Called to validate that context.PostLogoutRedirectUri a valid and registered URL.
-        /// This only occurs when processing the logout endpoint. The application MUST implement this call, and it MUST validate
-        /// both of those factors before calling context.Validated. If the context.Validated method is called with a given redirectUri parameter,
-        /// then IsValidated will only become true if the incoming redirect URI matches the given redirect URI. 
-        /// If context.Validated is not called the request will not proceed further. 
-        /// </summary>
-        /// <param name="context">The context of the event carries information in and results out.</param>
-        /// <returns>Task to enable asynchronous execution</returns>
-        Task ValidateClientLogoutRedirectUri(ValidateClientLogoutRedirectUriContext context);
-
-        /// <summary>
-        /// Called to validate that the origin of the request is a registered "client_id", and that the correct credentials for that client are
-        /// present on the request. If the web application accepts Basic authentication credentials, 
-        /// context.TryGetBasicCredentials(out clientId, out clientSecret) may be called to acquire those values if present in the request header. If the web 
-        /// application accepts "client_id" and "client_secret" as form encoded POST parameters, 
-        /// context.TryGetFormCredentials(out clientId, out clientSecret) may be called to acquire those values if present in the request body.
-        /// If context.Validated is not called the request will not proceed further. 
-        /// </summary>
-        /// <param name="context">The context of the event carries information in and results out.</param>
-        /// <returns>Task to enable asynchronous execution</returns>
-        Task ValidateClientAuthentication(ValidateClientAuthenticationContext context);
-
-        /// <summary>
-        /// Called for each request to the authorization endpoint to determine if the request is valid and should continue. 
-        /// The default behavior when using the OpenIdConnectServerProvider is to assume well-formed requests, with 
-        /// validated client redirect URI, should continue processing. An application may add any additional constraints.
+        /// Called for each request to the authorization endpoint to determine if the request is valid and should continue.
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
         Task ValidateAuthorizationRequest(ValidateAuthorizationRequestContext context);
 
         /// <summary>
-        /// Called for each request to the Token endpoint to determine if the request is valid and should continue. 
-        /// The default behavior when using the OpenIdConnectServerProvider is to assume well-formed requests, with 
-        /// validated client credentials, should continue processing. An application may add any additional constraints.
+        /// Called for each request to the introspection endpoint to determine if the request is valid and should continue.
+        /// </summary>
+        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        Task ValidateIntrospectionRequest(ValidateIntrospectionRequestContext context);
+
+        /// <summary>
+        /// Called for each request to the logout endpoint to determine if the request is valid and should continue.
+        /// </summary>
+        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        Task ValidateLogoutRequest(ValidateLogoutRequestContext context);
+
+        /// <summary>
+        /// Called for each request to the Token endpoint to determine if the request is valid and should continue.
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
@@ -266,7 +242,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        Task ValidationEndpoint(ValidationEndpointContext context);
+        Task IntrospectionEndpoint(IntrospectionEndpointContext context);
 
         /// <summary>
         /// Called before the authorization server starts emitting the status and metadata associated with the token received.
@@ -276,7 +252,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        Task ValidationEndpointResponse(ValidationEndpointResponseContext context);
+        Task IntrospectionEndpointResponse(IntrospectionEndpointResponseContext context);
 
         /// <summary>
         /// Called to create a new authorization code. An application may use this context

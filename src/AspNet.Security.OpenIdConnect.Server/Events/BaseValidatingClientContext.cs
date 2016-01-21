@@ -47,5 +47,42 @@ namespace AspNet.Security.OpenIdConnect.Server {
             get { return Request.ClientSecret; }
             set { Request.ClientSecret = value; }
         }
+
+        /// <summary>
+        /// Sets client_id and marks the context
+        /// as validated by the application.
+        /// </summary>
+        /// <param name="clientId"></param>
+        /// <returns></returns>
+        public bool Validate(string clientId) {
+            ClientId = clientId;
+
+            return Validate();
+        }
+
+        /// <summary>
+        /// Sets client_id and client_secret and marks
+        /// the context as validated by the application.
+        /// </summary>
+        /// <param name="clientId"></param>
+        /// <param name="clientSecret"></param>
+        /// <returns></returns>
+        public bool Validate(string clientId, string clientSecret) {
+            ClientId = clientId;
+            ClientSecret = clientSecret;
+
+            return Validate();
+        }
+
+        /// <summary>
+        /// Resets client_id and client_secret and marks
+        /// the context as rejected by the application.
+        /// </summary>
+        public override bool Reject() {
+            ClientId = null;
+            ClientSecret = null;
+
+            return base.Reject();
+        }
     }
 }

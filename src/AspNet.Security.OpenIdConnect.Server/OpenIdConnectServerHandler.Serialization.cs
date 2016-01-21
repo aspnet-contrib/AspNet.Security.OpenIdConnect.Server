@@ -588,7 +588,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // Create new validation parameters to validate the security token.
             // ValidateAudience and ValidateLifetime are always set to false:
             // if necessary, the audience and the expiration can be validated
-            // in InvokeValidationEndpointAsync or InvokeTokenEndpointAsync.
+            // in InvokeIntrospectionEndpointAsync or InvokeTokenEndpointAsync.
             var parameters = new TokenValidationParameters {
                 IssuerSigningKey = notification.SigningCredentials.Key,
                 ValidIssuer = notification.Issuer,
@@ -676,7 +676,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // Create new validation parameters to validate the security token.
             // ValidateAudience and ValidateLifetime are always set to false:
             // if necessary, the audience and the expiration can be validated
-            // in InvokeValidationEndpointAsync or InvokeTokenEndpointAsync.
+            // in InvokeIntrospectionEndpointAsync or InvokeTokenEndpointAsync.
             var parameters = new TokenValidationParameters {
                 IssuerSigningKey = notification.SigningCredentials.Key,
                 ValidIssuer = notification.Issuer,

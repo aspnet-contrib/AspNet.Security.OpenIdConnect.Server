@@ -15,13 +15,13 @@ using Newtonsoft.Json.Linq;
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
     /// An event raised before the authorization server handles
-    /// the request made to the token validation endpoint.
+    /// the request made to the token introspection endpoint.
     /// </summary>
-    public sealed class ValidationEndpointContext : BaseControlContext {
+    public sealed class IntrospectionEndpointContext : BaseControlContext {
         /// <summary>
         /// Creates an instance of this context.
         /// </summary>
-        internal ValidationEndpointContext(
+        internal IntrospectionEndpointContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request,
@@ -38,7 +38,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public OpenIdConnectServerOptions Options { get; }
 
         /// <summary>
-        /// Gets the validation request.
+        /// Gets the introspection request.
         /// </summary>
         public new OpenIdConnectMessage Request { get; }
 

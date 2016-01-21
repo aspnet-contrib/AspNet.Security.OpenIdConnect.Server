@@ -11,7 +11,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used when handling OpenIdConnect extension grant types.
     /// </summary>
-    public sealed class GrantCustomExtensionContext : BaseValidatingTicketContext<OpenIdConnectServerOptions> {
+    public sealed class GrantCustomExtensionContext : BaseValidatingTicketContext {
         /// <summary>
         /// Initializes a new instance of the <see cref="GrantCustomExtensionContext"/> class
         /// </summary>

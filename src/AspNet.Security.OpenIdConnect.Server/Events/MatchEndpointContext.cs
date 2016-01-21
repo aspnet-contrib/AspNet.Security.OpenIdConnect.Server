@@ -59,9 +59,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public bool IsProfileEndpoint { get; private set; }
 
         /// <summary>
-        /// Gets whether or not the endpoint is a validation endpoint.
+        /// Gets whether or not the endpoint is an introspection endpoint.
         /// </summary>
-        public bool IsValidationEndpoint { get; private set; }
+        public bool IsIntrospectionEndpoint { get; private set; }
 
         /// <summary>
         /// Gets whether or not the endpoint is a logout endpoint.
@@ -77,7 +77,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             IsCryptographyEndpoint = false;
             IsTokenEndpoint = false;
             IsProfileEndpoint = false;
-            IsValidationEndpoint = false;
+            IsIntrospectionEndpoint = false;
             IsLogoutEndpoint = false;
         }
 
@@ -90,7 +90,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             IsCryptographyEndpoint = false;
             IsTokenEndpoint = false;
             IsProfileEndpoint = false;
-            IsValidationEndpoint = false;
+            IsIntrospectionEndpoint = false;
             IsLogoutEndpoint = false;
         }
 
@@ -103,7 +103,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             IsCryptographyEndpoint = true;
             IsTokenEndpoint = false;
             IsProfileEndpoint = false;
-            IsValidationEndpoint = false;
+            IsIntrospectionEndpoint = false;
             IsLogoutEndpoint = false;
         }
 
@@ -116,7 +116,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             IsCryptographyEndpoint = false;
             IsTokenEndpoint = true;
             IsProfileEndpoint = false;
-            IsValidationEndpoint = false;
+            IsIntrospectionEndpoint = false;
             IsLogoutEndpoint = false;
         }
 
@@ -129,20 +129,20 @@ namespace AspNet.Security.OpenIdConnect.Server {
             IsCryptographyEndpoint = false;
             IsTokenEndpoint = false;
             IsProfileEndpoint = true;
-            IsValidationEndpoint = false;
+            IsIntrospectionEndpoint = false;
             IsLogoutEndpoint = false;
         }
 
         /// <summary>
-        /// Sets the endpoint type to validation endpoint.
+        /// Sets the endpoint type to introspection endpoint.
         /// </summary>
-        public void MatchesValidationEndpoint() {
+        public void MatchesIntrospectionEndpoint() {
             IsAuthorizationEndpoint = false;
             IsConfigurationEndpoint = false;
             IsCryptographyEndpoint = false;
             IsTokenEndpoint = false;
             IsProfileEndpoint = false;
-            IsValidationEndpoint = true;
+            IsIntrospectionEndpoint = true;
             IsLogoutEndpoint = false;
         }
 
@@ -155,7 +155,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             IsCryptographyEndpoint = false;
             IsTokenEndpoint = false;
             IsProfileEndpoint = false;
-            IsValidationEndpoint = false;
+            IsIntrospectionEndpoint = false;
             IsLogoutEndpoint = true;
         }
 
@@ -168,7 +168,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             IsCryptographyEndpoint = false;
             IsTokenEndpoint = false;
             IsProfileEndpoint = false;
-            IsValidationEndpoint = false;
+            IsIntrospectionEndpoint = false;
             IsLogoutEndpoint = false;
         }
     }

@@ -80,9 +80,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// The request path client applications communicate with to validate an access, identity or refresh token.
         /// Must begin with a leading slash, like "/connect/introspect".
-        /// You can set it to <see cref="PathString.Empty"/> to disable the validation endpoint.
+        /// You can set it to <see cref="PathString.Empty"/> to disable the introspection endpoint.
         /// </summary>
-        public PathString ValidationEndpointPath { get; set; } = new PathString(OpenIdConnectServerDefaults.ValidationEndpointPath);
+        public PathString IntrospectionEndpointPath { get; set; } = new PathString(OpenIdConnectServerDefaults.IntrospectionEndpointPath);
 
         /// <summary>
         /// The request path client applications communicate with to log out. 
@@ -168,11 +168,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public TimeSpan RefreshTokenLifetime { get; set; } = TimeSpan.FromDays(14);
 
         /// <summary>
-        /// Determines whether refresh tokens issued during a grant_type=refresh_token request should be generated
-        /// with a new expiration date or should re-use the same expiration date as the original refresh token.
-        /// Set this property to <c>true</c> to assign a new expiration date each time a refresh token is issued,
-        /// <c>false</c> to use the expiration date of the original refresh token. When set to <c>false</c>,
-        /// access and identity tokens' lifetime cannot exceed the expiration date of the refresh token.
+        /// Determines whether new refresh tokens should be issued during a grant_type=refresh_token request.
+        /// Set this property to <c>true</c> to issue a new refresh token, <c>false</c> to prevent the OpenID Connect
+        /// server middleware from issuing new refresh tokens when receiving a grant_type=refresh_token request.
         /// </summary>
         public bool UseSlidingExpiration { get; set; } = true;
 

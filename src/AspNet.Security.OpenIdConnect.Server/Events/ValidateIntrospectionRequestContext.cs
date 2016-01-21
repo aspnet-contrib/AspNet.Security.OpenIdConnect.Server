@@ -9,16 +9,16 @@ using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
-    /// Provides context information used when validating a token request.
+    /// Provides context information used when validating an introspection request.
     /// </summary>
-    public sealed class ValidateTokenRequestContext : BaseValidatingClientContext {
+    public sealed class ValidateIntrospectionRequestContext : BaseValidatingClientContext {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ValidateTokenRequestContext"/> class.
+        /// Initializes a new instance of the <see cref="ValidateIntrospectionRequestContext"/> class.
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="request"></param>
-        internal ValidateTokenRequestContext(
+        internal ValidateIntrospectionRequestContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request)

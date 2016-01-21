@@ -13,7 +13,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
     /// Base class used for certain event contexts
     /// </summary>
-    public abstract class BaseValidatingTicketContext<TOptions> : BaseValidatingContext {
+    public abstract class BaseValidatingTicketContext : BaseValidatingContext {
         /// <summary>
         /// Initializes base class used for certain event contexts
         /// </summary>
@@ -24,6 +24,13 @@ namespace AspNet.Security.OpenIdConnect.Server {
             : base(context, options) {
             AuthenticationTicket = ticket;
         }
+
+        /// <summary>
+        /// Contains the identity and properties for the application to authenticate. If the Validated method
+        /// is invoked with an AuthenticationTicket or ClaimsIdentity argument, that new value is assigned to 
+        /// this property in addition to changing IsValidated to true.
+        /// </summary>
+        public AuthenticationTicket AuthenticationTicket { get; private set; }
 
         /// <summary>
         /// Replaces the ticket information on this context and marks it as as validated by the application. 

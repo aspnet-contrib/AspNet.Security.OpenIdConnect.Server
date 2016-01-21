@@ -42,9 +42,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public const string ProfileEndpointPath = "/connect/userinfo";
 
         /// <summary>
-        /// Default value for <see cref="OpenIdConnectServerOptions.ValidationEndpointPath"/>.
+        /// Default value for <see cref="OpenIdConnectServerOptions.IntrospectionEndpointPath"/>.
         /// </summary>
-        public const string ValidationEndpointPath = "/connect/introspect";
+        public const string IntrospectionEndpointPath = "/connect/introspect";
 
         /// <summary>
         /// Default value for <see cref="OpenIdConnectServerOptions.LogoutEndpointPath"/>.

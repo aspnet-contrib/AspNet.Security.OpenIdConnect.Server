@@ -13,7 +13,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used in handling an OpenIdConnect client credentials grant.
     /// </summary>
-    public sealed class GrantClientCredentialsContext : BaseValidatingTicketContext<OpenIdConnectServerOptions> {
+    public sealed class GrantClientCredentialsContext : BaseValidatingTicketContext {
         /// <summary>
         /// Initializes a new instance of the <see cref="GrantClientCredentialsContext"/> class
         /// </summary>
