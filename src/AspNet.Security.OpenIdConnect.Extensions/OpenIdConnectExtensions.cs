@@ -844,8 +844,10 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            if (audiences == null) {
-                throw new ArgumentNullException(nameof(audiences));
+            if (audiences == null || !audiences.Any()) {
+                ticket.Properties.Items.Remove(OpenIdConnectConstants.Properties.Audiences);
+
+                return ticket;
             }
 
             if (audiences.Any(audience => audience.Contains(" "))) {
@@ -883,8 +885,10 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            if (presenters == null) {
-                throw new ArgumentNullException(nameof(presenters));
+            if (presenters == null || !presenters.Any()) {
+                ticket.Properties.Items.Remove(OpenIdConnectConstants.Properties.Presenters);
+
+                return ticket;
             }
 
             if (presenters.Any(presenter => presenter.Contains(" "))) {
@@ -922,8 +926,10 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            if (resources == null) {
-                throw new ArgumentNullException(nameof(resources));
+            if (resources == null || !resources.Any()) {
+                ticket.Properties.Items.Remove(OpenIdConnectConstants.Properties.Resources);
+
+                return ticket;
             }
 
             if (resources.Any(resource => resource.Contains(" "))) {
@@ -961,8 +967,10 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            if (scopes == null) {
-                throw new ArgumentNullException(nameof(scopes));
+            if (scopes == null || !scopes.Any()) {
+                ticket.Properties.Items.Remove(OpenIdConnectConstants.Properties.Scopes);
+
+                return ticket;
             }
 
             if (scopes.Any(scope => scope.Contains(" "))) {
@@ -997,6 +1005,12 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
         public static AuthenticationTicket SetUsage(this AuthenticationTicket ticket, string usage) {
             if (ticket == null) {
                 throw new ArgumentNullException(nameof(ticket));
+            }
+
+            if (string.IsNullOrEmpty(usage)) {
+                ticket.Properties.Items.Remove(OpenIdConnectConstants.Properties.Usage);
+
+                return ticket;
             }
 
             ticket.Properties.Items[OpenIdConnectConstants.Properties.Usage] = usage;
