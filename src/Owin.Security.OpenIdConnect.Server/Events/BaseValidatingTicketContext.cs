@@ -12,13 +12,13 @@ namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Base class used for certain event contexts
     /// </summary>
-    public abstract class BaseValidatingTicketContext<TOptions> : BaseValidatingContext<TOptions> {
+    public abstract class BaseValidatingTicketContext : BaseValidatingContext {
         /// <summary>
         /// Initializes base class used for certain event contexts
         /// </summary>
         protected BaseValidatingTicketContext(
             IOwinContext context,
-            TOptions options,
+            OpenIdConnectServerOptions options,
             AuthenticationTicket ticket)
             : base(context, options) {
             AuthenticationTicket = ticket;

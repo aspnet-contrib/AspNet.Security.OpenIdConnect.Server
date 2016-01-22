@@ -10,21 +10,34 @@ using Microsoft.Owin;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
-    /// Contains data about the OpenIdConnect client logout redirect URI
+    /// Provides context information used when validating a logout request.
     /// </summary>
-    public sealed class ValidateClientLogoutRedirectUriContext : BaseValidatingClientContext {
+    public sealed class ValidateLogoutRequestContext : BaseValidatingContext {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ValidateClientLogoutRedirectUriContext"/> class
+        /// Initializes a new instance of the <see cref="ValidateLogoutRequestContext"/> class.
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="request"></param>
-        internal ValidateClientLogoutRedirectUriContext(
+        internal ValidateLogoutRequestContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request)
-            : base(context, options, request) {
+            : base(context, options) {
+            Request = request;
+
+            // Note: if the optional post_logout_redirect_uri parameter
+            // is missing, mark the validation context as skipped.
+            // See http://openid.net/specs/openid-connect-session-1_0.html#RPLogout
+            if (string.IsNullOrEmpty(request.PostLogoutRedirectUri)) {
+                Skip();
+            }
         }
+
+        /// <summary>
+        /// Gets the authorization request.
+        /// </summary>
+        public new OpenIdConnectMessage Request { get; }
 
         /// <summary>
         /// Gets the post logout redirect URI.
@@ -41,7 +54,8 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <returns></returns>
         public override bool Validate() {
             if (string.IsNullOrEmpty(PostLogoutRedirectUri)) {
-                // Don't allow default validation when redirect_uri not provided with request
+                // Don't allow default validation when
+                // redirect_uri not provided with request.
                 return false;
             }
 

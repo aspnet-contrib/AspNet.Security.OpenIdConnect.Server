@@ -5,19 +5,19 @@
  */
 
 using Microsoft.Owin;
-using Microsoft.Owin.Security.Notifications;
+using Microsoft.Owin.Security.Provider;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Base class used for certain event contexts.
     /// </summary>
-    public abstract class BaseValidatingContext<TOptions> : BaseNotification<TOptions> {
+    public abstract class BaseValidatingContext : BaseContext<OpenIdConnectServerOptions> {
         /// <summary>
         /// Initializes base class used for certain event contexts.
         /// </summary>
         protected BaseValidatingContext(
             IOwinContext context,
-            TOptions options)
+            OpenIdConnectServerOptions options)
             : base(context, options) {
             IsRejected = true;
         }

@@ -4,16 +4,17 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
+using System;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
-    /// Provides context information used in validating an OpenIdConnect authorization request.
+    /// Provides context information used when validating an authorization request.
     /// </summary>
-    public sealed class ValidateAuthorizationRequestContext : BaseValidatingContext<OpenIdConnectServerOptions> {
+    public sealed class ValidateAuthorizationRequestContext : BaseValidatingContext {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ValidateAuthorizationRequestContext"/> class
+        /// Initializes a new instance of the <see cref="ValidateAuthorizationRequestContext"/> class.
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
@@ -24,7 +25,6 @@ namespace Owin.Security.OpenIdConnect.Server {
             OpenIdConnectMessage request)
             : base(context, options) {
             Request = request;
-            Validate();
         }
 
         /// <summary>
@@ -36,5 +36,71 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// Gets the client identifier.
         /// </summary>
         public string ClientId => Request.ClientId;
+
+        /// <summary>
+        /// Gets the client redirect URI
+        /// </summary>
+        public string RedirectUri {
+            get { return Request.RedirectUri; }
+            set { Request.RedirectUri = value; }
+        }
+
+        /// <summary>
+        /// Marks this context as validated by the application.
+        /// IsValidated becomes true and HasError becomes false as a result of calling.
+        /// </summary>
+        /// <returns></returns>
+        public override bool Validate() {
+            if (string.IsNullOrEmpty(RedirectUri)) {
+                // Don't allow default validation when
+                // redirect_uri not provided with request.
+                return false;
+            }
+
+            return base.Validate();
+        }
+
+        /// <summary>
+        /// Checks the redirect URI to determine whether it equals <see cref="RedirectUri"/>.
+        /// </summary>
+        /// <param name="redirectUri"></param>
+        /// <returns></returns>
+        public bool Validate(string redirectUri) {
+            if (redirectUri == null) {
+                throw new ArgumentNullException("redirectUri");
+            }
+
+            if (!string.IsNullOrEmpty(RedirectUri) &&
+                !string.Equals(RedirectUri, redirectUri, StringComparison.Ordinal)) {
+                // Don't allow validation to alter redirect_uri provided with request.
+                return false;
+            }
+
+            RedirectUri = redirectUri;
+
+            return Validate();
+        }
+
+        /// <summary>
+        /// Resets redirect_uri and marks the context
+        /// as skipped by the application.
+        /// </summary>
+        public override bool Skip() {
+            // Reset redirect_uri if validation was skipped.
+            RedirectUri = null;
+
+            return base.Skip();
+        }
+
+        /// <summary>
+        /// Resets redirect_uri and marks the context
+        /// as rejected by the application.
+        /// </summary>
+        public override bool Reject() {
+            // Reset redirect_uri if validation failed.
+            RedirectUri = null;
+
+            return base.Reject();
+        }
     }
 }

@@ -11,7 +11,7 @@ namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Base class used for certain event contexts
     /// </summary>
-    public abstract class BaseValidatingClientContext : BaseValidatingContext<OpenIdConnectServerOptions> {
+    public abstract class BaseValidatingClientContext : BaseValidatingContext {
         /// <summary>
         /// Initializes base class used for certain event contexts
         /// </summary>
@@ -46,6 +46,43 @@ namespace Owin.Security.OpenIdConnect.Server {
         public string ClientSecret {
             get { return Request.ClientSecret; }
             set { Request.ClientSecret = value; }
+        }
+
+        /// <summary>
+        /// Sets client_id and marks the context
+        /// as validated by the application.
+        /// </summary>
+        /// <param name="clientId"></param>
+        /// <returns></returns>
+        public bool Validate(string clientId) {
+            ClientId = clientId;
+
+            return Validate();
+        }
+
+        /// <summary>
+        /// Sets client_id and client_secret and marks
+        /// the context as validated by the application.
+        /// </summary>
+        /// <param name="clientId"></param>
+        /// <param name="clientSecret"></param>
+        /// <returns></returns>
+        public bool Validate(string clientId, string clientSecret) {
+            ClientId = clientId;
+            ClientSecret = clientSecret;
+
+            return Validate();
+        }
+
+        /// <summary>
+        /// Resets client_id and client_secret and marks
+        /// the context as rejected by the application.
+        /// </summary>
+        public override bool Reject() {
+            ClientId = null;
+            ClientSecret = null;
+
+            return base.Reject();
         }
     }
 }

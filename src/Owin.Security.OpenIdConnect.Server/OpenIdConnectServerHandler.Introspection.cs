@@ -5,10 +5,8 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens;
 using System.IO;
-using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,7 +20,7 @@ using Owin.Security.OpenIdConnect.Extensions;
 
 namespace Owin.Security.OpenIdConnect.Server {
     internal partial class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions> {
-        private async Task InvokeValidationEndpointAsync() {
+        private async Task InvokeIntrospectionEndpointAsync() {
             OpenIdConnectMessage request;
 
             // See https://tools.ietf.org/html/rfc7662#section-2.1
@@ -38,7 +36,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 if (string.IsNullOrEmpty(Request.ContentType)) {
                     await SendErrorPayloadAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                        ErrorDescription = "A malformed validation request has been received: " +
+                        ErrorDescription = "A malformed introspection request has been received: " +
                             "the mandatory 'Content-Type' header was missing from the POST request."
                     });
 
@@ -49,7 +47,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 if (!Request.ContentType.StartsWith("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase)) {
                     await SendErrorPayloadAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                        ErrorDescription = "A malformed validation request has been received: " +
+                        ErrorDescription = "A malformed introspection request has been received: " +
                             "the 'Content-Type' header contained an unexcepted value. " +
                             "Make sure to use 'application/x-www-form-urlencoded'."
                     });
@@ -63,11 +61,11 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             else {
-                Options.Logger.WriteInformation("A malformed request has been received by the validation endpoint.");
+                Options.Logger.WriteInformation("A malformed request has been received by the introspection endpoint.");
 
                 await SendErrorPageAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                    ErrorDescription = "A malformed validation request has been received: " +
+                    ErrorDescription = "A malformed introspection request has been received: " +
                                        "make sure to use either GET or POST."
                 });
 
@@ -77,7 +75,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             if (string.IsNullOrWhiteSpace(request.Token)) {
                 await SendErrorPayloadAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                    ErrorDescription = "A malformed validation request has been received: " +
+                    ErrorDescription = "A malformed introspection request has been received: " +
                         "a 'token' parameter with an access, refresh, or identity token is required."
                 });
 
@@ -106,24 +104,24 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
             }
 
-            var clientNotification = new ValidateClientAuthenticationContext(Context, Options, request);
-            await Options.Provider.ValidateClientAuthentication(clientNotification);
+            var validatingContext = new ValidateIntrospectionRequestContext(Context, Options, request);
+            await Options.Provider.ValidateIntrospectionRequest(validatingContext);
 
-            // Reject the request if client authentication was rejected.
-            if (clientNotification.IsRejected) {
-                Options.Logger.WriteError("The validation request was rejected " +
-                                          "because client authentication was invalid.");
+            if (validatingContext.IsRejected) {
+                Options.Logger.WriteError("The introspection request was rejected.");
 
-                await SendPayloadAsync(new JObject {
-                    [OpenIdConnectConstants.Claims.Active] = false
+                await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                    Error = validatingContext.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = validatingContext.ErrorDescription,
+                    ErrorUri = validatingContext.ErrorUri
                 });
 
                 return;
             }
 
-            // Ensure that the client_id has been set from the ValidateClientAuthentication event.
-            else if (clientNotification.IsValidated && string.IsNullOrEmpty(request.ClientId)) {
-                Options.Logger.WriteError("Client authentication was validated but the client_id was not set.");
+            // Ensure that the client_id has been set from the ValidateIntrospectionRequest event.
+            else if (validatingContext.IsValidated && string.IsNullOrEmpty(request.ClientId)) {
+                Options.Logger.WriteError("The introspection request was validated but the client_id was not set.");
 
                 await SendErrorPayloadAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.ServerError,
@@ -162,7 +160,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             if (ticket == null) {
-                Options.Logger.WriteInformation("The validation request was rejected because the token was invalid.");
+                Options.Logger.WriteInformation("The introspection request was rejected because the token was invalid.");
 
                 await SendPayloadAsync(new JObject {
                     [OpenIdConnectConstants.Claims.Active] = false
@@ -174,8 +172,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             // Note: unlike refresh or identity tokens that can only be validated by client applications,
             // access tokens can be validated by either resource servers or client applications:
             // in both cases, the caller must be authenticated if the ticket is marked as confidential.
-            if (clientNotification.IsSkipped && ticket.IsConfidential()) {
-                Options.Logger.WriteWarning("The validation request was rejected " +
+            if (validatingContext.IsSkipped && ticket.IsConfidential()) {
+                Options.Logger.WriteWarning("The introspection request was rejected " +
                                             "because the caller was not authenticated.");
 
                 await SendPayloadAsync(new JObject {
@@ -201,9 +199,9 @@ namespace Owin.Security.OpenIdConnect.Server {
                 case OpenIdConnectConstants.Usages.AccessToken: {
                     // When the caller is authenticated, ensure it is
                     // listed as a valid audience or authorized presenter.
-                    if (clientNotification.IsValidated && !ticket.HasAudience(clientNotification.ClientId) &&
-                                                          !ticket.HasPresenter(clientNotification.ClientId)) {
-                        Options.Logger.WriteWarning("The validation request was rejected because the access token " +
+                    if (validatingContext.IsValidated && !ticket.HasAudience(request.ClientId) &&
+                                                         !ticket.HasPresenter(request.ClientId)) {
+                        Options.Logger.WriteWarning("The introspection request was rejected because the access token " +
                                                     "was issued to a different client or for another resource server.");
 
                         await SendPayloadAsync(new JObject {
@@ -217,10 +215,10 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
 
                 case OpenIdConnectConstants.Usages.IdToken: {
-                    // When the caller is authenticated, reject the validation
+                    // When the caller is authenticated, reject the introspection
                     // request if the caller is not listed as a valid audience.
-                    if (clientNotification.IsValidated && !ticket.HasAudience(clientNotification.ClientId)) {
-                        Options.Logger.WriteWarning("The validation request was rejected because the " +
+                    if (validatingContext.IsValidated && !ticket.HasAudience(request.ClientId)) {
+                        Options.Logger.WriteWarning("The introspection request was rejected because the " +
                                                     "identity token was issued to a different client.");
 
                         await SendPayloadAsync(new JObject {
@@ -234,10 +232,10 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
 
                 case OpenIdConnectConstants.Usages.RefreshToken: {
-                    // When the caller is authenticated, reject the validation request if the caller
+                    // When the caller is authenticated, reject the introspection request if the caller
                     // doesn't correspond to the client application the token was issued to.
-                    if (clientNotification.IsValidated && !ticket.HasPresenter(clientNotification.ClientId)) {
-                        Options.Logger.WriteWarning("The validation request was rejected because the " +
+                    if (validatingContext.IsValidated && !ticket.HasPresenter(request.ClientId)) {
+                        Options.Logger.WriteWarning("The introspection request was rejected because the " +
                                                     "refresh token was issued to a different client.");
 
                         await SendPayloadAsync(new JObject {
@@ -251,10 +249,10 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
             }
 
-            // Insert the validation request in the ASP.NET context.
+            // Insert the introspection request in the ASP.NET context.
             Context.SetOpenIdConnectRequest(request);
 
-            var notification = new ValidationEndpointContext(Context, Options, request, ticket);
+            var notification = new IntrospectionEndpointContext(Context, Options, request, ticket);
             notification.Active = true;
 
             // Note: "token_type" may be null when the received token is not an access token.
@@ -273,7 +271,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             // Note: non-metadata claims are only added if the caller is authenticated AND is in the specified audiences.
-            if (clientNotification.IsValidated && notification.Audiences.Contains(clientNotification.ClientId)) {
+            if (validatingContext.IsValidated && notification.Audiences.Contains(request.ClientId)) {
                 notification.Username = ticket.Identity.Name;
                 notification.Scope = ticket.GetProperty(OpenIdConnectConstants.Properties.Scopes);
 
@@ -316,7 +314,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
             }
 
-            await Options.Provider.ValidationEndpoint(notification);
+            await Options.Provider.IntrospectionEndpoint(notification);
 
             // Flow the changes made to the authentication ticket.
             ticket = notification.AuthenticationTicket;
@@ -385,8 +383,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
             }
 
-            var context = new ValidationEndpointResponseContext(Context, Options, payload);
-            await Options.Provider.ValidationEndpointResponse(context);
+            var context = new IntrospectionEndpointResponseContext(Context, Options, payload);
+            await Options.Provider.IntrospectionEndpointResponse(context);
 
             if (context.HandledResponse) {
                 return;

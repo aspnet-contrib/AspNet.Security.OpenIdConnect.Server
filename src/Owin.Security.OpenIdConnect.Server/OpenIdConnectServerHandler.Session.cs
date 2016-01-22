@@ -64,21 +64,17 @@ namespace Owin.Security.OpenIdConnect.Server {
             // Store the logout request in the OWIN context.
             Context.SetOpenIdConnectRequest(request);
 
-            // Note: post_logout_redirect_uri is not a mandatory parameter.
-            // See http://openid.net/specs/openid-connect-session-1_0.html#RPLogout
-            if (!string.IsNullOrEmpty(request.PostLogoutRedirectUri)) {
-                var clientNotification = new ValidateClientLogoutRedirectUriContext(Context, Options, request);
-                await Options.Provider.ValidateClientLogoutRedirectUri(clientNotification);
+            var validatingContext = new ValidateLogoutRequestContext(Context, Options, request);
+            await Options.Provider.ValidateLogoutRequest(validatingContext);
 
-                if (clientNotification.IsRejected) {
-                    Options.Logger.WriteVerbose("Unable to validate client information");
+            if (validatingContext.IsRejected) {
+                Options.Logger.WriteError("The logout request was rejected.");
 
-                    return await SendErrorPageAsync(new OpenIdConnectMessage {
-                        Error = clientNotification.Error,
-                        ErrorDescription = clientNotification.ErrorDescription,
-                        ErrorUri = clientNotification.ErrorUri
-                    });
-                }
+                return await SendErrorPageAsync(new OpenIdConnectMessage {
+                    Error = validatingContext.Error,
+                    ErrorDescription = validatingContext.ErrorDescription,
+                    ErrorUri = validatingContext.ErrorUri
+                });
             }
 
             var notification = new LogoutEndpointContext(Context, Options, request);

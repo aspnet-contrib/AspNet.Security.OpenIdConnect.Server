@@ -133,37 +133,36 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
             }
 
-            var clientNotification = new ValidateClientAuthenticationContext(Context, Options, request);
-            await Options.Provider.ValidateClientAuthentication(clientNotification);
+            var validatingContext = new ValidateTokenRequestContext(Context, Options, request);
+            await Options.Provider.ValidateTokenRequest(validatingContext);
 
-            // Reject the request if client authentication was rejected.
-            if (clientNotification.IsRejected) {
-                Options.Logger.WriteError("invalid client authentication.");
+            if (validatingContext.IsRejected) {
+                Options.Logger.WriteError("The token request was rejected.");
 
                 await SendErrorPayloadAsync(new OpenIdConnectMessage {
-                    Error = clientNotification.Error ?? OpenIdConnectConstants.Errors.InvalidClient,
-                    ErrorDescription = clientNotification.ErrorDescription,
-                    ErrorUri = clientNotification.ErrorUri
+                    Error = validatingContext.Error ?? OpenIdConnectConstants.Errors.InvalidClient,
+                    ErrorDescription = validatingContext.ErrorDescription,
+                    ErrorUri = validatingContext.ErrorUri
                 });
 
                 return;
             }
 
-            // Reject grant_type=client_credentials requests if client authentication was skipped.
-            else if (clientNotification.IsSkipped && request.IsClientCredentialsGrantType()) {
-                Options.Logger.WriteError("client authentication is required for client_credentials grant type.");
+            // Reject grant_type=client_credentials requests if validation was skipped.
+            else if (validatingContext.IsSkipped && request.IsClientCredentialsGrantType()) {
+                Options.Logger.WriteError("The token request must be fully validated to use the client_credentials grant type.");
 
                 await SendErrorPayloadAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidGrant,
-                    ErrorDescription = "client authentication is required when using client_credentials"
+                    ErrorDescription = "Client authentication is required when using client_credentials."
                 });
 
                 return;
             }
 
-            // Ensure that the client_id has been set from the ValidateClientAuthentication event.
-            else if (clientNotification.IsValidated && string.IsNullOrEmpty(request.ClientId)) {
-                Options.Logger.WriteError("Client authentication was validated but the client_id was not set.");
+            // Ensure that the client_id has been set from the ValidateTokenRequest event.
+            else if (validatingContext.IsValidated && string.IsNullOrEmpty(request.ClientId)) {
+                Options.Logger.WriteError("The token request was validated but the client_id was not set.");
 
                 await SendErrorPayloadAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.ServerError,
@@ -171,25 +170,6 @@ namespace Owin.Security.OpenIdConnect.Server {
                 });
 
                 return;
-            }
-
-            var validatingContext = new ValidateTokenRequestContext(Context, Options, request);
-
-            // Validate the token request immediately if the grant type used by
-            // the client application doesn't rely on a previously-issued token/code.
-            if (!request.IsAuthorizationCodeGrantType() && !request.IsRefreshTokenGrantType()) {
-                await Options.Provider.ValidateTokenRequest(validatingContext);
-
-                if (!validatingContext.IsValidated) {
-                    // Note: use invalid_request as the default error if none has been explicitly provided.
-                    await SendErrorPayloadAsync(new OpenIdConnectMessage {
-                        Error = validatingContext.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
-                        ErrorDescription = validatingContext.ErrorDescription,
-                        ErrorUri = validatingContext.ErrorUri
-                    });
-
-                    return;
-                }
             }
 
             AuthenticationTicket ticket = null;
@@ -227,7 +207,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                 // If the client was fully authenticated when retrieving its refresh token,
                 // the current request must be rejected if client authentication was not enforced.
-                if (request.IsRefreshTokenGrantType() && !clientNotification.IsValidated && ticket.IsConfidential()) {
+                if (request.IsRefreshTokenGrantType() && !validatingContext.IsValidated && ticket.IsConfidential()) {
                     Options.Logger.WriteError("client authentication is required to use this ticket");
 
                     await SendErrorPayloadAsync(new OpenIdConnectMessage {
@@ -291,9 +271,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                 // if the authorization request didn't contain an explicit redirect_uri.
                 // See https://tools.ietf.org/html/rfc6749#section-4.1.3
                 // and http://openid.net/specs/openid-connect-core-1_0.html#TokenRequestValidation
-                string address;
-                if (request.IsAuthorizationCodeGrantType() &&
-                    ticket.Properties.Dictionary.TryGetValue(OpenIdConnectConstants.Properties.RedirectUri, out address)) {
+                var address = ticket.GetProperty(OpenIdConnectConstants.Properties.RedirectUri);
+                if (request.IsAuthorizationCodeGrantType() && !string.IsNullOrEmpty(address)) {
                     ticket.Properties.Dictionary.Remove(OpenIdConnectConstants.Properties.RedirectUri);
 
                     if (string.IsNullOrEmpty(request.RedirectUri)) {
@@ -391,23 +370,6 @@ namespace Owin.Security.OpenIdConnect.Server {
                     ticket.SetScopes(request.GetScopes());
                 }
 
-                // Expose the authentication ticket extracted from the authorization
-                // code or the refresh token before invoking ValidateTokenRequest.
-                validatingContext.AuthenticationTicket = ticket;
-
-                await Options.Provider.ValidateTokenRequest(validatingContext);
-
-                if (!validatingContext.IsValidated) {
-                    // Note: use invalid_request as the default error if none has been explicitly provided.
-                    await SendErrorPayloadAsync(new OpenIdConnectMessage {
-                        Error = validatingContext.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
-                        ErrorDescription = validatingContext.ErrorDescription,
-                        ErrorUri = validatingContext.ErrorUri
-                    });
-
-                    return;
-                }
-
                 if (request.IsAuthorizationCodeGrantType()) {
                     // Note: the authentication ticket is copied to avoid modifying the properties of the authorization code.
                     var context = new GrantAuthorizationCodeContext(Context, Options, request, ticket.Copy());
@@ -422,6 +384,17 @@ namespace Owin.Security.OpenIdConnect.Server {
                         });
 
                         return;
+                    }
+
+                    // By default, when using the authorization code grant, the authentication ticket extracted from the
+                    // authorization code is used as-is. To avoid aligning the expiration date of the generated tokens
+                    // with the lifetime of the authorization code, the ticket properties are automatically reset to null.
+                    if (context.AuthenticationTicket.Properties.IssuedUtc == ticket.Properties.IssuedUtc) {
+                        context.AuthenticationTicket.Properties.IssuedUtc = null;
+                    }
+
+                    if (context.AuthenticationTicket.Properties.ExpiresUtc == ticket.Properties.ExpiresUtc) {
+                        context.AuthenticationTicket.Properties.ExpiresUtc = null;
                     }
 
                     ticket = context.AuthenticationTicket;
@@ -443,19 +416,18 @@ namespace Owin.Security.OpenIdConnect.Server {
                         return;
                     }
 
+                    // By default, when using the refresh token grant, the authentication ticket extracted from the
+                    // refresh token is used as-is. To avoid aligning the expiration date of the generated tokens
+                    // with the lifetime of the refresh token, the ticket properties are automatically reset to null.
+                    if (context.AuthenticationTicket.Properties.IssuedUtc == ticket.Properties.IssuedUtc) {
+                        context.AuthenticationTicket.Properties.IssuedUtc = null;
+                    }
+
+                    if (context.AuthenticationTicket.Properties.ExpiresUtc == ticket.Properties.ExpiresUtc) {
+                        context.AuthenticationTicket.Properties.ExpiresUtc = null;
+                    }
+
                     ticket = context.AuthenticationTicket;
-                }
-
-                // By default, when using the authorization code or the refresh token grants, the authentication ticket
-                // extracted from the code/token is used as-is. If the developer didn't provide his own ticket
-                // or didn't set an explicit expiration date, the ticket properties are reset to avoid aligning the
-                // expiration date of the generated tokens with the lifetime of the authorization code/refresh token.
-                if (ticket.Properties.IssuedUtc == validatingContext.AuthenticationTicket.Properties.IssuedUtc) {
-                    ticket.Properties.IssuedUtc = null;
-                }
-
-                if (ticket.Properties.ExpiresUtc == validatingContext.AuthenticationTicket.Properties.ExpiresUtc) {
-                    ticket.Properties.ExpiresUtc = null;
                 }
             }
 
@@ -540,7 +512,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return;
             }
 
-            if (clientNotification.IsValidated) {
+            if (validatingContext.IsValidated) {
                 // Store a boolean indicating whether the ticket should be marked as confidential.
                 ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.Confidential] = "true";
             }
@@ -584,15 +556,6 @@ namespace Owin.Security.OpenIdConnect.Server {
                     response.Scope = scopes;
                 }
 
-                // When sliding expiration is disabled, the access token added to the response
-                // cannot live longer than the refresh token that was used in the token request.
-                if (request.IsRefreshTokenGrantType() && !Options.UseSlidingExpiration &&
-                    validatingContext.AuthenticationTicket.Properties.ExpiresUtc.HasValue &&
-                    validatingContext.AuthenticationTicket.Properties.ExpiresUtc.Value <
-                        (Options.SystemClock.UtcNow + Options.AccessTokenLifetime)) {
-                    properties.ExpiresUtc = validatingContext.AuthenticationTicket.Properties.ExpiresUtc;
-                }
-
                 response.TokenType = OpenIdConnectConstants.TokenTypes.Bearer;
                 response.AccessToken = await SerializeAccessTokenAsync(ticket.Identity, properties, request, response);
 
@@ -628,15 +591,6 @@ namespace Owin.Security.OpenIdConnect.Server {
                 // to avoid modifying the properties set on the original ticket.
                 var properties = ticket.Properties.Copy();
 
-                // When sliding expiration is disabled, the identity token added to the response
-                // cannot live longer than the refresh token that was used in the token request.
-                if (request.IsRefreshTokenGrantType() && !Options.UseSlidingExpiration &&
-                    validatingContext.AuthenticationTicket.Properties.ExpiresUtc.HasValue &&
-                    validatingContext.AuthenticationTicket.Properties.ExpiresUtc.Value <
-                        (Options.SystemClock.UtcNow + Options.IdentityTokenLifetime)) {
-                    properties.ExpiresUtc = validatingContext.AuthenticationTicket.Properties.ExpiresUtc;
-                }
-
                 response.IdToken = await SerializeIdentityTokenAsync(ticket.Identity, properties, request, response);
 
                 // Ensure that an identity token is issued to avoid returning an invalid response.
@@ -658,19 +612,11 @@ namespace Owin.Security.OpenIdConnect.Server {
             // but the client application can use the "response_type" parameter to only include specific types of tokens.
             // When this parameter is missing, a refresh token is always generated.
             if (ticket.HasScope(OpenIdConnectConstants.Scopes.OfflineAccess) &&
+               (!request.IsRefreshTokenGrantType() || Options.UseSlidingExpiration) &&
                (string.IsNullOrEmpty(request.ResponseType) || request.HasResponseType(OpenIdConnectConstants.Parameters.RefreshToken))) {
                 // Make sure to create a copy of the authentication properties
                 // to avoid modifying the properties set on the original ticket.
                 var properties = ticket.Properties.Copy();
-
-                // When sliding expiration is disabled, the refresh token added to the response
-                // cannot live longer than the refresh token that was used in the token request.
-                if (request.IsRefreshTokenGrantType() && !Options.UseSlidingExpiration &&
-                    validatingContext.AuthenticationTicket.Properties.ExpiresUtc.HasValue &&
-                    validatingContext.AuthenticationTicket.Properties.ExpiresUtc.Value <
-                        (Options.SystemClock.UtcNow + Options.RefreshTokenLifetime)) {
-                    properties.ExpiresUtc = validatingContext.AuthenticationTicket.Properties.ExpiresUtc;
-                }
 
                 response.SetRefreshToken(await SerializeRefreshTokenAsync(ticket.Identity, properties, request, response));
             }

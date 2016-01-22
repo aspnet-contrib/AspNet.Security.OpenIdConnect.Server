@@ -39,9 +39,9 @@ namespace Owin.Security.OpenIdConnect.Server {
         public string ProfileEndpoint { get; set; }
 
         /// <summary>
-        /// Gets or sets the validation endpoint address.
+        /// Gets or sets the introspection endpoint address.
         /// </summary>
-        public string ValidationEndpoint { get; set; }
+        public string IntrospectionEndpoint { get; set; }
 
         /// <summary>
         /// Gets or sets the token endpoint address.

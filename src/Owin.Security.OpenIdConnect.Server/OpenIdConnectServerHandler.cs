@@ -150,9 +150,9 @@ namespace Owin.Security.OpenIdConnect.Server {
                 notification.MatchesTokenEndpoint();
             }
 
-            else if (Options.ValidationEndpointPath.HasValue &&
-                     Options.ValidationEndpointPath == Request.Path) {
-                notification.MatchesValidationEndpoint();
+            else if (Options.IntrospectionEndpointPath.HasValue &&
+                     Options.IntrospectionEndpointPath == Request.Path) {
+                notification.MatchesIntrospectionEndpoint();
             }
 
             else if (Options.ProfileEndpointPath.HasValue &&
@@ -201,7 +201,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                 // Return a JSON error for endpoints that don't involve the user participation.
                 else if (notification.IsTokenEndpoint || notification.IsProfileEndpoint ||
-                         notification.IsValidationEndpoint || notification.IsConfigurationEndpoint ||
+                         notification.IsIntrospectionEndpoint || notification.IsConfigurationEndpoint ||
                          notification.IsCryptographyEndpoint) {
                     Options.Logger.WriteWarning("The HTTP request was rejected because AllowInsecureHttp was false.");
 
@@ -227,8 +227,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return true;
             }
 
-            else if (notification.IsValidationEndpoint) {
-                await InvokeValidationEndpointAsync();
+            else if (notification.IsIntrospectionEndpoint) {
+                await InvokeIntrospectionEndpointAsync();
                 return true;
             }
 

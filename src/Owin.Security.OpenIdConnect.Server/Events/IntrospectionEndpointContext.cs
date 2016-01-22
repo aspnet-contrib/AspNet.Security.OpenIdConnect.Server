@@ -16,13 +16,13 @@ using Newtonsoft.Json.Linq;
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// An event raised before the authorization server handles
-    /// the request made to the token validation endpoint.
+    /// the request made to the token introspection endpoint.
     /// </summary>
-    public sealed class ValidationEndpointContext : BaseNotification<OpenIdConnectServerOptions> {
+    public sealed class IntrospectionEndpointContext : BaseNotification<OpenIdConnectServerOptions> {
         /// <summary>
         /// Creates an instance of this context.
         /// </summary>
-        internal ValidationEndpointContext(
+        internal IntrospectionEndpointContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request,
@@ -38,7 +38,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         public AuthenticationTicket AuthenticationTicket { get; set; }
 
         /// <summary>
-        /// Gets the validation request.
+        /// Gets the introspection request.
         /// </summary>
         public new OpenIdConnectMessage Request { get; }
 

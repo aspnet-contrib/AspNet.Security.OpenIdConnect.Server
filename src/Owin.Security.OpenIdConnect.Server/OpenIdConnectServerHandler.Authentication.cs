@@ -172,29 +172,13 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
             }
 
-            var clientNotification = new ValidateClientRedirectUriContext(Context, Options, request);
-            await Options.Provider.ValidateClientRedirectUri(clientNotification);
-
-            // Reject the authorization request if the redirect_uri was not validated.
-            if (!clientNotification.IsValidated) {
-                Options.Logger.WriteVerbose("Unable to validate client information");
-
-                return await SendErrorPageAsync(new OpenIdConnectMessage {
-                    Error = clientNotification.Error ?? OpenIdConnectConstants.Errors.InvalidClient,
-                    ErrorDescription = clientNotification.ErrorDescription,
-                    ErrorUri = clientNotification.ErrorUri
-                });
-            }
-
             // Reject requests using the unsupported request parameter.
             if (!string.IsNullOrEmpty(request.GetParameter(OpenIdConnectConstants.Parameters.Request))) {
                 Options.Logger.WriteVerbose("The authorization request contained the unsupported request parameter.");
 
-                return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
+                return await SendErrorPageAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.RequestNotSupported,
-                    ErrorDescription = "The request parameter is not supported.",
-                    RedirectUri = request.RedirectUri,
-                    State = request.State
+                    ErrorDescription = "The request parameter is not supported."
                 });
             }
 
@@ -202,11 +186,9 @@ namespace Owin.Security.OpenIdConnect.Server {
             else if (!string.IsNullOrEmpty(request.RequestUri)) {
                 Options.Logger.WriteVerbose("The authorization request contained the unsupported request_uri parameter.");
 
-                return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
+                return await SendErrorPageAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.RequestUriNotSupported,
-                    ErrorDescription = "The request_uri parameter is not supported.",
-                    RedirectUri = request.RedirectUri,
-                    State = request.State
+                    ErrorDescription = "The request_uri parameter is not supported."
                 });
             }
 
@@ -214,11 +196,9 @@ namespace Owin.Security.OpenIdConnect.Server {
             else if (string.IsNullOrEmpty(request.ResponseType)) {
                 Options.Logger.WriteVerbose("Authorization request missing required response_type parameter");
 
-                return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
+                return await SendErrorPageAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                    ErrorDescription = "response_type parameter missing",
-                    RedirectUri = request.RedirectUri,
-                    State = request.State
+                    ErrorDescription = "response_type parameter missing"
                 });
             }
 
@@ -227,11 +207,9 @@ namespace Owin.Security.OpenIdConnect.Server {
                      !request.IsImplicitFlow() && !request.IsHybridFlow()) {
                 Options.Logger.WriteVerbose("Authorization request contains unsupported response_type parameter");
 
-                return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
+                return await SendErrorPageAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.UnsupportedResponseType,
-                    ErrorDescription = "response_type unsupported",
-                    RedirectUri = request.RedirectUri,
-                    State = request.State
+                    ErrorDescription = "response_type unsupported"
                 });
             }
 
@@ -239,11 +217,9 @@ namespace Owin.Security.OpenIdConnect.Server {
             else if (!request.IsFormPostResponseMode() && !request.IsFragmentResponseMode() && !request.IsQueryResponseMode()) {
                 Options.Logger.WriteVerbose("Authorization request contains unsupported response_mode parameter");
 
-                return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
+                return await SendErrorPageAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                    ErrorDescription = "response_mode unsupported",
-                    RedirectUri = request.RedirectUri,
-                    State = request.State
+                    ErrorDescription = "response_mode unsupported"
                 });
             }
 
@@ -254,11 +230,9 @@ namespace Owin.Security.OpenIdConnect.Server {
                                                        request.HasResponseType(OpenIdConnectConstants.ResponseTypes.Token))) {
                 Options.Logger.WriteVerbose("Authorization request contains unsafe response_type/response_mode combination");
 
-                return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
+                return await SendErrorPageAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                    ErrorDescription = "response_type/response_mode combination unsupported",
-                    RedirectUri = request.RedirectUri,
-                    State = request.State
+                    ErrorDescription = "response_type/response_mode combination unsupported"
                 });
             }
 
@@ -270,11 +244,9 @@ namespace Owin.Security.OpenIdConnect.Server {
                                                            (request.IsImplicitFlow() || request.IsHybridFlow())) {
                 Options.Logger.WriteVerbose("The 'nonce' parameter was missing");
 
-                return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
+                return await SendErrorPageAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                    ErrorDescription = "nonce parameter missing",
-                    RedirectUri = request.RedirectUri,
-                    State = request.State
+                    ErrorDescription = "nonce parameter missing"
                 });
             }
 
@@ -283,11 +255,9 @@ namespace Owin.Security.OpenIdConnect.Server {
                     !request.HasScope(OpenIdConnectConstants.Scopes.OpenId)) {
                 Options.Logger.WriteVerbose("The 'openid' scope part was missing");
 
-                return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
+                return await SendErrorPageAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                    ErrorDescription = "openid scope missing",
-                    RedirectUri = request.RedirectUri,
-                    State = request.State
+                    ErrorDescription = "openid scope missing"
                 });
             }
 
@@ -295,25 +265,23 @@ namespace Owin.Security.OpenIdConnect.Server {
             else if (request.HasResponseType(OpenIdConnectConstants.ResponseTypes.Code) && !Options.TokenEndpointPath.HasValue) {
                 Options.Logger.WriteVerbose("Authorization request contains the disabled code response_type");
 
-                return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
+                return await SendErrorPageAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.UnsupportedResponseType,
-                    ErrorDescription = "response_type=code is not supported by this server",
-                    RedirectUri = request.RedirectUri,
-                    State = request.State
+                    ErrorDescription = "response_type=code is not supported by this server"
                 });
             }
 
-            var validationNotification = new ValidateAuthorizationRequestContext(Context, Options, request);
-            await Options.Provider.ValidateAuthorizationRequest(validationNotification);
+            var validatingContext = new ValidateAuthorizationRequestContext(Context, Options, request);
+            await Options.Provider.ValidateAuthorizationRequest(validatingContext);
 
             // Stop processing the request if Validated was not called.
-            if (!validationNotification.IsValidated) {
-                return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
-                    Error = validationNotification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
-                    ErrorDescription = validationNotification.ErrorDescription,
-                    ErrorUri = validationNotification.ErrorUri,
-                    RedirectUri = request.RedirectUri,
-                    State = request.State
+            if (!validatingContext.IsValidated) {
+                Options.Logger.WriteError("The authorization request was rejected.");
+
+                return await SendErrorPageAsync(new OpenIdConnectMessage {
+                    Error = validatingContext.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = validatingContext.ErrorDescription,
+                    ErrorUri = validatingContext.ErrorUri
                 });
             }
 
