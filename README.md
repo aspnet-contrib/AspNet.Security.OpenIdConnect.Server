@@ -1,9 +1,11 @@
 AspNet.Security.OpenIdConnect.Server
 ==================================
 
-**AspNet.Security.OpenIdConnect.Server** is an **advanced OAuth2/OpenID Connect server framework** for ASP.NET 5, designed to offer a low-level, protocol-first approach.
+**AspNet.Security.OpenIdConnect.Server** is an **advanced OAuth2/OpenID Connect server framework** for ASP.NET Core 1.0 (previously known as ASP.NET 5), designed to offer a low-level, protocol-first approach.
 
 **The latest official release can be found on [NuGet](https://www.nuget.org/packages/AspNet.Security.OpenIdConnect.Server) and the nightly builds on [MyGet](https://www.myget.org/gallery/aspnet-contrib)**.
+
+**Looking for the OWIN/Katana version? Switch to the [dev branch](https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server/tree/dev).**
 
 [![Build status](https://ci.appveyor.com/api/projects/status/tyenw4ffs00j4sav/branch/vNext?svg=true)](https://ci.appveyor.com/project/aspnet-contrib/aspnet-security-openidconnect-server/branch/vNext)
 [![Build status](https://travis-ci.org/aspnet-contrib/AspNet.Security.OpenIdConnect.Server.svg?branch=vNext)](https://travis-ci.org/aspnet-contrib/AspNet.Security.OpenIdConnect.Server)
@@ -15,23 +17,40 @@ Based on `OAuthAuthorizationServerMiddleware` from **Katana 3**, **AspNet.Securi
 ```csharp
 app.UseOpenIdConnectServer(options => {
     options.Provider = new OpenIdConnectServerProvider {
-        // Implement OnValidateClientRedirectUri to support interactive flows like code/implicit/hybrid.
-        OnValidateClientRedirectUri = context => {
+        // Implement OnValidateAuthorizationRequest to support interactive flows (code/implicit/hybrid).
+        OnValidateAuthorizationRequest = context => {
+            // Note: you MUST NOT validate the request if client_id is invalid or if redirect_uri
+            // doesn't correspond to a trusted URL associated with the client application.
+            // You SHOULD also strongly consider validating the type of the client application
+            // (public or confidential) to prevent code flow -> implicit flow downgrade attacks.
             if (string.Equals(context.ClientId, "client_id", StringComparison.Ordinal) &&
                 string.Equals(context.RedirectUri, "redirect_uri", StringComparison.Ordinal)) {
                 context.Validate();
             }
 
+            // Note: if Validate() is not explicitly called,
+            // the request is automatically rejected.
             return Task.FromResult(0);
         }
 
-        // Implement OnValidateClientAuthentication to support flows using the token endpoint.
-        OnValidateClientAuthentication = context => {
+        // Implement OnValidateTokenRequest to support flows using the token endpoint.
+        OnValidateTokenRequest = context => {
+            // Note: you can skip the request validation when the client_id
+            // parameter is missing to support unauthenticated token requests.
+            // if (string.IsNullOrEmpty(context.ClientId)) {
+            //     context.Skip();
+            // }
+
+            // Note: to mitigate brute force attacks, you SHOULD strongly consider applying
+            // a key derivation function like PBKDF2 to slow down the secret validation process.
+            // You SHOULD also consider using a time-constant comparer to prevent timing attacks.
             if (string.Equals(context.ClientId, "client_id", StringComparison.Ordinal) &&
                 string.Equals(context.ClientSecret, "client_secret", StringComparison.Ordinal)) {
                 context.Validate();
             }
 
+            // Note: if Validate() is not explicitly called,
+            // the request is automatically rejected.
             return Task.FromResult(0);
         }
     };
@@ -40,9 +59,9 @@ app.UseOpenIdConnectServer(options => {
 
 ## Samples
 
-**Official samples targetting ASP.NET 5 RC1** can be found on [aspnet-contrib/AspNet.Security.OpenIdConnect.Samples](https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Samples).
+**Official samples targetting ASP.NET Core 1.0 RC1** can be found on [aspnet-contrib/AspNet.Security.OpenIdConnect.Samples](https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Samples).
 
-**Looking for something simpler?** Don't miss **[OpenIddict](https://github.com/openiddict/core)**, the **simple and easy-to-use OpenID Connect server for ASP.NET 5** based on AspNet.Security.OpenIdConnect.Server and ASP.NET Identity 3.
+**Looking for something simpler?** Don't miss **[OpenIddict](https://github.com/openiddict/core)**, the **simple and easy-to-use OpenID Connect server for ASP.NET Core 1.0** based on AspNet.Security.OpenIdConnect.Server and ASP.NET Identity.
 
 ## Support
 
