@@ -5,6 +5,8 @@ Owin.Security.OpenIdConnect.Server
 
 **The latest official release can be found on [NuGet](https://www.nuget.org/packages/Owin.Security.OpenIdConnect.Server) and the nightly builds on [MyGet](https://www.myget.org/gallery/aspnet-contrib)**.
 
+**Looking for the ASP.NET Core 1.0 version? Switch to the [vNext branch](https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server/tree/vNext).**
+
 [![Build status](https://ci.appveyor.com/api/projects/status/tyenw4ffs00j4sav/branch/dev?svg=true)](https://ci.appveyor.com/project/aspnet-contrib/aspnet-security-openidconnect-server/branch/dev)
 [![Build status](https://travis-ci.org/aspnet-contrib/AspNet.Security.OpenIdConnect.Server.svg?branch=dev)](https://travis-ci.org/aspnet-contrib/AspNet.Security.OpenIdConnect.Server)
 
@@ -15,23 +17,40 @@ Based on **Microsoft.Owin.Security.OAuth**, **Owin.Security.OpenIdConnect.Server
 ```csharp
 app.UseOpenIdConnectServer(options => {
     options.Provider = new OpenIdConnectServerProvider {
-        // Implement OnValidateClientRedirectUri to support interactive flows like code/implicit/hybrid.
-        OnValidateClientRedirectUri = context => {
+        // Implement OnValidateAuthorizationRequest to support interactive flows (code/implicit/hybrid).
+        OnValidateAuthorizationRequest = context => {
+            // Note: you MUST NOT validate the request if client_id is invalid or if redirect_uri
+            // doesn't correspond to a trusted URL associated with the client application.
+            // You SHOULD also strongly consider validating the type of the client application
+            // (public or confidential) to prevent code flow -> implicit flow downgrade attacks.
             if (string.Equals(context.ClientId, "client_id", StringComparison.Ordinal) &&
                 string.Equals(context.RedirectUri, "redirect_uri", StringComparison.Ordinal)) {
                 context.Validate();
             }
 
+            // Note: if Validate() is not explicitly called,
+            // the request is automatically rejected.
             return Task.FromResult(0);
         }
 
-        // Implement OnValidateClientAuthentication to support flows using the token endpoint.
-        OnValidateClientAuthentication = context => {
+        // Implement OnValidateTokenRequest to support flows using the token endpoint.
+        OnValidateTokenRequest = context => {
+            // Note: you can skip the request validation when the client_id
+            // parameter is missing to support unauthenticated token requests.
+            // if (string.IsNullOrEmpty(context.ClientId)) {
+            //     context.Skip();
+            // }
+
+            // Note: to mitigate brute force attacks, you SHOULD strongly consider applying
+            // a key derivation function like PBKDF2 to slow down the secret validation process.
+            // You SHOULD also consider using a time-constant comparer to prevent timing attacks.
             if (string.Equals(context.ClientId, "client_id", StringComparison.Ordinal) &&
                 string.Equals(context.ClientSecret, "client_secret", StringComparison.Ordinal)) {
                 context.Validate();
             }
 
+            // Note: if Validate() is not explicitly called,
+            // the request is automatically rejected.
             return Task.FromResult(0);
         }
     };
