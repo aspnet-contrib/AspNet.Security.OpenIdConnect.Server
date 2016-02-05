@@ -24,6 +24,11 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             public const string Website = "website";
         }
 
+        public static class Destinations {
+            public const string AccessToken = "access_token";
+            public const string IdentityToken = "id_token";
+        }
+
         public static class Parameters {
             public const string AccessToken = "access_token";
             public const string ClientId = "client_id";
@@ -104,7 +109,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         public static class Properties {
             public const string Audiences = "audiences";
             public const string Confidential = "confidential";
-            public const string Destination = "destination";
+            public const string Destinations = "destinations";
             public const string Nonce = "nonce";
             public const string Presenters = "presenters";
             public const string RedirectUri = "redirect_uri";

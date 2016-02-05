@@ -95,9 +95,9 @@ namespace Owin.Security.OpenIdConnect.Server {
                     return true;
                 }
 
-                // Claims whose destination is not explicitly referenced or
-                // doesn't contain "token" are not included in the access token.
-                return claim.HasDestination(OpenIdConnectConstants.ResponseTypes.Token);
+                // Claims whose destination is not explicitly referenced or doesn't
+                // contain "access_token" are not included in the access token.
+                return claim.HasDestination(OpenIdConnectConstants.Destinations.AccessToken);
             });
 
             // Create a new ticket containing the updated properties and the filtered identity.
@@ -309,9 +309,9 @@ namespace Owin.Security.OpenIdConnect.Server {
                     return true;
                 }
 
-                // Claims whose destination is not explicitly referenced or
-                // doesn't contain "id_token" are not included in the identity token.
-                return claim.HasDestination(OpenIdConnectConstants.ResponseTypes.IdToken);
+                // Claims whose destination is not explicitly referenced or doesn't
+                // contain "id_token" are not included in the identity token.
+                return claim.HasDestination(OpenIdConnectConstants.Destinations.IdentityToken);
             });
 
             // Create a new ticket containing the updated properties and the filtered identity.
