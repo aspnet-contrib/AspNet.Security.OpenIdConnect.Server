@@ -103,9 +103,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     return true;
                 }
 
-                // Claims whose destination is not explicitly referenced or
-                // doesn't contain "token" are not included in the access token.
-                return claim.HasDestination(OpenIdConnectConstants.ResponseTypes.Token);
+                // Claims whose destination is not explicitly referenced or doesn't
+                // contain "access_token" are not included in the access token.
+                return claim.HasDestination(OpenIdConnectConstants.Destinations.AccessToken);
             });
 
             var identity = (ClaimsIdentity) principal.Identity;
@@ -300,9 +300,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     return true;
                 }
 
-                // Claims whose destination is not explicitly referenced or
-                // doesn't contain "id_token" are not included in the identity token.
-                return claim.HasDestination(OpenIdConnectConstants.ResponseTypes.IdToken);
+                // Claims whose destination is not explicitly referenced or doesn't
+                // contain "id_token" are not included in the identity token.
+                return claim.HasDestination(OpenIdConnectConstants.Destinations.IdentityToken);
             });
 
             var identity = (ClaimsIdentity) principal.Identity;

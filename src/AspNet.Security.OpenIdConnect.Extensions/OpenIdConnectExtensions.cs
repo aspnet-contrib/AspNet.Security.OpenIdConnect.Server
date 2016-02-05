@@ -332,11 +332,21 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
         }
 
         /// <summary>
-        /// Determines whether the given claim contains a destination.
+        /// Gets the destinations associated with a claim.
         /// </summary>
         /// <param name="claim">The <see cref="Claim"/> instance.</param>
-        public static bool HasDestination(this Claim claim) {
-            return claim.Properties.ContainsKey(OpenIdConnectConstants.Properties.Destination);
+        /// <returns>The destinations associated with the claim.</returns>
+        public static IEnumerable<string> GetDestinations(this Claim claim) {
+            if (claim == null) {
+                throw new ArgumentNullException(nameof(claim));
+            }
+
+            string destinations;
+            claim.Properties.TryGetValue(OpenIdConnectConstants.Properties.Destinations, out destinations);
+
+            return destinations?.Split(' ')
+                               ?.Distinct(StringComparer.Ordinal)
+                   ?? Enumerable.Empty<string>();
         }
 
         /// <summary>
@@ -344,38 +354,51 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
         /// contains the required destination.
         /// </summary>
         /// <param name="claim">The <see cref="Claim"/> instance.</param>
-        /// <param name="value">The required destination.</param>
-        public static bool HasDestination(this Claim claim, string value) {
-            string destination;
-            if (!claim.Properties.TryGetValue(OpenIdConnectConstants.Properties.Destination, out destination)) {
+        /// <param name="destination">The required destination.</param>
+        public static bool HasDestination(this Claim claim, string destination) {
+            string destinations;
+            if (!claim.Properties.TryGetValue(OpenIdConnectConstants.Properties.Destinations, out destinations)) {
                 return false;
             }
 
-            return HasValue(destination, value);
+            return HasValue(destinations, destination);
         }
 
         /// <summary>
-        /// Adds a specific destination to a claim.
+        /// Adds specific destinations to a claim.
         /// </summary>
         /// <param name="claim">The <see cref="Claim"/> instance.</param>
-        /// <param name="value">The destination.</param>
-        public static Claim WithDestination(this Claim claim, string value) {
+        /// <param name="destinations">The destinations.</param>
+        public static Claim SetDestinations(this Claim claim, IEnumerable<string> destinations) {
             if (claim == null) {
                 throw new ArgumentNullException(nameof(claim));
             }
 
-            if (string.IsNullOrEmpty(value)) {
-                throw new ArgumentNullException(nameof(value));
-            }
+            if (destinations == null || !destinations.Any()) {
+                claim.Properties.Remove(OpenIdConnectConstants.Properties.Destinations);
 
-            string destination;
-            if (claim.Properties.TryGetValue(OpenIdConnectConstants.Properties.Destination, out destination)) {
-                claim.Properties[OpenIdConnectConstants.Properties.Destination] = string.Concat(destination, ' ', value);
                 return claim;
             }
 
-            claim.Properties.Add(OpenIdConnectConstants.Properties.Destination, value);
+            if (destinations.Any(destination => destination.Contains(" "))) {
+                throw new ArgumentException("Destinations cannot contain spaces.", nameof(destinations));
+            }
+
+            claim.Properties[OpenIdConnectConstants.Properties.Destinations] =
+                string.Join(" ", destinations.Distinct(StringComparer.Ordinal));
+
             return claim;
+        }
+
+        /// <summary>
+        /// Adds specific destinations to a claim.
+        /// </summary>
+        /// <param name="claim">The <see cref="Claim"/> instance.</param>
+        /// <param name="destinations">The destinations.</param>
+        public static Claim SetDestinations(this Claim claim, params string[] destinations) {
+            // Note: guarding the destinations parameter against null values
+            // is not necessary as AsEnumerable() doesn't throw on null values.
+            return claim.SetDestinations(destinations.AsEnumerable());
         }
 
         /// <summary>
@@ -454,19 +477,38 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
         }
 
         /// <summary>
-        /// Adds a claim to a given identity.
+        /// Adds a claim to a given identity and specify one or more destinations.
         /// </summary>
         /// <param name="identity">The identity.</param>
         /// <param name="type">The type associated with the claim.</param>
         /// <param name="value">The value associated with the claim.</param>
-        /// <param name="destination">The destination associated with the claim.</param>
-        public static ClaimsIdentity AddClaim(this ClaimsIdentity identity, string type, string value, string destination) {
+        /// <param name="destinations">The destinations associated with the claim.</param>
+        public static ClaimsIdentity AddClaim(this ClaimsIdentity identity,
+            string type, string value, IEnumerable<string> destinations) {
             if (identity == null) {
                 throw new ArgumentNullException(nameof(identity));
             }
 
-            identity.AddClaim(new Claim(type, value).WithDestination(destination));
+            if (destinations == null) {
+                throw new ArgumentNullException(nameof(destinations));
+            }
+
+            identity.AddClaim(new Claim(type, value).SetDestinations(destinations));
             return identity;
+        }
+
+        /// <summary>
+        /// Adds a claim to a given identity and specify one or more destinations.
+        /// </summary>
+        /// <param name="identity">The identity.</param>
+        /// <param name="type">The type associated with the claim.</param>
+        /// <param name="value">The value associated with the claim.</param>
+        /// <param name="destinations">The destinations associated with the claim.</param>
+        public static ClaimsIdentity AddClaim(this ClaimsIdentity identity,
+            string type, string value, params string[] destinations) {
+            // Note: guarding the destinations parameter against null values
+            // is not necessary as AsEnumerable() doesn't throw on null values.
+            return identity.AddClaim(type, value, destinations.AsEnumerable());
         }
 
         /// <summary>

@@ -100,8 +100,8 @@ namespace Mvc.Server.Controllers {
                 // destination is not defined or doesn't include "id_token".
                 // The other claims won't be visible for the client application.
                 if (claim.Type == ClaimTypes.Name) {
-                    claim.WithDestination("id_token")
-                         .WithDestination("token");
+                    claim.SetDestinations(OpenIdConnectConstants.Destinations.AccessToken,
+                                          OpenIdConnectConstants.Destinations.IdentityToken);
                 }
 
                 identity.AddClaim(claim);
@@ -126,7 +126,10 @@ namespace Mvc.Server.Controllers {
             // the whole delegation chain from the resource server (see ResourceController.cs).
             identity.Actor = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
             identity.Actor.AddClaim(ClaimTypes.NameIdentifier, application.ApplicationID);
-            identity.Actor.AddClaim(ClaimTypes.Name, application.DisplayName, destination: "id_token token");
+
+            identity.Actor.AddClaim(ClaimTypes.Name, application.DisplayName,
+                OpenIdConnectConstants.Destinations.AccessToken,
+                OpenIdConnectConstants.Destinations.IdentityToken);
 
             // Create a new authentication ticket holding the user identity.
             var ticket = new AuthenticationTicket(
