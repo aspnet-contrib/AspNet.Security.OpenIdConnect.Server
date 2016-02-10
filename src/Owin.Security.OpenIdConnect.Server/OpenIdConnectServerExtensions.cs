@@ -102,20 +102,20 @@ namespace Owin {
                             continue;
                         }
 
-                        var provider = new RSACryptoServiceProvider();
-                        provider.ImportParameters(parameters.Value);
-
                         if (string.Equals(usage, "Encryption", StringComparison.OrdinalIgnoreCase)) {
                             // Only add the encryption key if none has been explictly added.
                             if (options.EncryptingCredentials.Count != 0) {
                                 continue;
                             }
 
-                            logger.WriteInformation("An existing key was automatically added to the " +
-                                                   $"encryption credentials list: {file.FullName}.");
+                            var algorithm = RSA.Create();
+                            algorithm.ImportParameters(parameters.Value);
 
                             // Add the key to the encryption credentials list.
-                            options.EncryptingCredentials.AddKey(new RsaSecurityKey(provider));
+                            options.EncryptingCredentials.AddKey(new RsaSecurityKey(algorithm));
+
+                            logger.WriteInformation("An existing key was automatically added to the " +
+                                                   $"encryption credentials list: {file.FullName}.");
                         }
 
                         else if (string.Equals(usage, "Signing", StringComparison.OrdinalIgnoreCase)) {
@@ -124,20 +124,23 @@ namespace Owin {
                                 continue;
                             }
 
-                            logger.WriteInformation("An existing key was automatically added to the " +
-                                                   $"signing credentials list: {file.FullName}.");
+                            var algorithm = RSA.Create();
+                            algorithm.ImportParameters(parameters.Value);
 
                             // Add the key to the signing credentials list.
-                            options.SigningCredentials.AddKey(new RsaSecurityKey(provider));
+                            options.SigningCredentials.AddKey(new RsaSecurityKey(algorithm));
+
+                            logger.WriteInformation("An existing key was automatically added to the " +
+                                                   $"signing credentials list: {file.FullName}.");
                         }
                     }
                 }
 
                 // If no encryption key has been found, generate and persist a new RSA key.
                 if (options.EncryptingCredentials.Count == 0) {
-                    // Generate a new 2048 bit RSA key and export its public/private parameters.
-                    var provider = new RSACryptoServiceProvider(2048);
-                    var parameters = provider.ExportParameters(/* includePrivateParameters */ true);
+                    // Generate a new RSA key and export its public/private parameters.
+                    var algorithm = RSA.Create();
+                    var parameters = algorithm.ExportParameters(/* includePrivateParameters */ true);
 
                     // Generate a new file name for the key and determine its absolute path.
                     var path = Path.Combine(directory.FullName, Guid.NewGuid().ToString() + ".key");
@@ -150,17 +153,17 @@ namespace Owin {
                         stream.Write(bytes, 0, bytes.Length);
                     }
 
+                    options.EncryptingCredentials.AddKey(new RsaSecurityKey(algorithm));
+
                     logger.WriteInformation("A new RSA key was automatically generated, added to the " +
                                            $"encryption credentials list and persisted on the disk: {path}.");
-
-                    options.EncryptingCredentials.AddKey(new RsaSecurityKey(provider));
                 }
 
                 // If no signing key has been found, generate and persist a new RSA key.
                 if (options.SigningCredentials.Count == 0) {
-                    // Generate a new 2048 bit RSA key and export its public/private parameters.
-                    var provider = new RSACryptoServiceProvider(2048);
-                    var parameters = provider.ExportParameters(/* includePrivateParameters */ true);
+                    // Generate a new RSA key and export its public/private parameters.
+                    var algorithm = RSA.Create();
+                    var parameters = algorithm.ExportParameters(/* includePrivateParameters */ true);
 
                     // Generate a new file name for the key and determine its absolute path.
                     var path = Path.Combine(directory.FullName, Guid.NewGuid().ToString() + ".key");
@@ -173,10 +176,10 @@ namespace Owin {
                         stream.Write(bytes, 0, bytes.Length);
                     }
 
+                    options.SigningCredentials.AddKey(new RsaSecurityKey(algorithm));
+
                     logger.WriteInformation("A new RSA key was automatically generated, added to the " +
                                            $"signing credentials list and persisted on the disk: {path}.");
-
-                    options.SigningCredentials.AddKey(new RsaSecurityKey(provider));
                 }
             }
 
