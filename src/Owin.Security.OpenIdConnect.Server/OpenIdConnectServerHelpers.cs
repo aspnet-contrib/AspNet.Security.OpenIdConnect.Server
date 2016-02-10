@@ -277,7 +277,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
 
                 private static void WriteIdentity(BinaryWriter writer, ClaimsIdentity identity) {
-                    writer.Write(identity.AuthenticationType);
+                    writer.Write(identity.AuthenticationType ?? string.Empty);
                     WriteWithDefault(writer, identity.NameClaimType, DefaultValues.NameClaimType);
                     WriteWithDefault(writer, identity.RoleClaimType, DefaultValues.RoleClaimType);
                     writer.Write(identity.Claims.Count());
