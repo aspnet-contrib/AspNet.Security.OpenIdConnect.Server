@@ -1,0 +1,19 @@
+﻿section {
+    font-family: sans-serif;
+    border: thin solid gray;
+    border-radius: 5px;
+    padding:10px;
+    margin: 10px;
+}
+
+#identity-result,
+#resource-result {
+    background: black;
+    color: yellow;
+    font-size: 0.75em;
+    overflow:auto;
+}
+
+textarea {
+    display: block;
+}

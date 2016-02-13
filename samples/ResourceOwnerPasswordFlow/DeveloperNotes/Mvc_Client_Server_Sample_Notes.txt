@@ -1,0 +1,172 @@
+﻿Note: 
+
+* Some requests go under the Fiddler radar.
+* These are ones that don't use the browser.
+
+
+1. Client prepares an Authentication Request with desired request parameters.
+2. Client sends the request to the Authorization Server.
+
+
+		The GET to the `signin` action...
+
+		===
+		GET localhost:53507/signin
+		===
+		302
+		===
+
+		...does a 302 redirect to the authorization server.
+
+		===
+		GET localhost:54540/connect/authorize
+		[query string]
+		client_id			myClient
+		redirect_uri		http://localhost:53507/oidc
+		resource			http://localhost:54540/
+		response_mode		form_post
+		response_type		code id_token
+		scope				openid profile
+		state				OpenIdConnect.AuthenticationProperties=CfDJ8FNfFcvZnUZCl--dx0lsB1czWkD...pY-U5ZnL8kLHhU3BPubXhZY9ymg
+		nonce				635718135463868207.MDMyMWEzZmItMjFiMy00NWJmLTg5NzUtOTE0NzQ0...Tg2MTAtYzI3MjllMzMyZWEz
+		===
+		302
+		===
+
+		And the authorization server does a 302 to its /signin page...
+
+
+3. Authorization Server Authenticates the End-User.
+
+
+		The Authorization server signin page offers the end-user two authentication choices.
+
+		===
+		GET localhost:54540/signin
+		[query string]
+		ReturnUrl			/connect/authorize?unique_id=N2UzWUJkN3FWSDFrUEtkN0lYUjBPdSthTm9OVnNQTy9oTjhzN3ozTDRvYz0
+		===
+		200
+		===
+
+		The end user chooses Twitter.
+
+		===
+		POST localhost:54540/sigin
+		[body]
+		Provider			Twitter
+		ReturnUrl			/connect/authorize?unique_id=N2UzWUJkN3FWSDFrUEtkN0lYUjBPdSthTm9OVnNQTy9oTjhzN3ozTDRvYz0
+		===
+		302
+		===
+
+		So, the Authorization server does a 302 redirect to Twitter.
+		(I image this redirect contains /signin-twitter as the ReturnUrl.)
+		Twitter does username/password authentication...
+
+		===
+		Tunnel to api.twitter.com
+		Tunnel to twitter.com
+		===
+
+		...After which, Twitter redirects back to the Authorization server.
+
+		===
+		GET localhost:54540/sigin-twitter
+		[query string]
+		oauth_token			YnqCDQAAAAAAQkkEAAABTmU0rfM
+		oauth_verifier		XcwTIU00k5rQbdC8Htk6BLpR4lJkVtAZ
+		===
+		302
+		===
+
+        And /signin-twitter 302 redirects to the connect/authorize page.
+
+
+4. Authorization Server obtains End-User Consent/Authorization.
+
+
+		The authorize page asks the end-user whether it's okay to grant access to resources.
+
+		===
+		GET localhost:54540/connect/authorize
+		[query string]
+		unique_id			N2UzWUJkN3FWSDFrUEtkN0lYUjBPdSthTm9OVnNQTy9oTjhzN3ozTDRvYz0
+		===
+		200
+		===
+
+		In this case, the end-user said Yes.
+		The __RequestVerificationToken is to prevent form POST forgery.
+
+		===
+		POST localhost:54540/connect/authorize/accept
+		[body]
+		__RequestVerificationToken		CfDJ8FNfFcvZnUZCl--dx0lsB1cNs04zD0AP7c1cmq-JMCeCCLxMKU...b6i6ORis1YsON3-iOBamZSrFQ
+		unique_id						elNxVjZKN29xdFU0S291Vmp0MFJXakpHajZsZG5LR0pnMWo4S3dQRGNpZz0
+		Authorize						Yeah, sure
+		===
+		200
+		===
+
+		Something odd happens here, because there's a 200 response,
+		that doesn't show up in the web browser,
+		and that seems to immediately redirect to the next page.
+		Edit: Aha. The served document contains the inline script
+		<script>document.form.submit();</script>
+		
+
+
+5. Authorization Server sends the End-User back to the Client with an Authorization Code 
+and, depending on the Response Type, one or more additional parameters.
+
+
+		The /oidc URI was the initial redirect_uri from step (2) above.
+		`code` is the authorization code. 
+		`id_token` is the additional parameter that provides OpenID info. 
+
+		===
+		POST localhost:53507/oidc
+		[body]
+		nonce			635718135463868207.MDMyMWEzZmItMjFiMy00NWJmLTg5NzUtOTE0NzQ0Yjk2OTgzMWRjZmIyZTYtYWE1Yi00MTYyLTg2MTAtYzI3MjllMzMyZWEz
+		state			OpenIdConnect.AuthenticationProperties=CfDJ8FNfFcvZnUZCl--dx0lsB1czfMouWnWjCmeeF...3BPubXhZY9ymg
+		code			dbavCrAnMcIXYpJeQrKrV1yqYLhQ0iab2P7Ev/Gztu4=
+		id_token		eyJ0eXAiOiJKV1QiLCJh...PBHv-2grBkjHDLZ8zuITX0UcG6xaQ
+		===
+		302
+		===
+
+		This 302 redirects the user to the token endpoint.
+
+
+6. Client requests a response using the Authorization Code at the Token Endpoint.		
+7. Client receives a response with an ID Token and Access Token in the body.
+8. Client validates the ID Token and retrieves the End-User's Subject Identifier.
+
+
+		===
+		POST localhost:54540/connect/token
+		[body]
+		client_id			myClient
+		client_secret		secret_secret_secret
+		code				P1CnBtAMxJoa1Ky1zIWqmxynsrhidjWLi00bI7Syg34=
+		grant_type			authorization_code
+		redirect_uri		http://localhost:53507/oidc
+		===
+		200
+		{
+			"token_type":"bearer",
+			"access_token":"eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1N...t1Hmyo1gfybcAoA",
+			"id_token":"eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIm...WIXaCmPyfWkLRZ__drjiog",
+			"refresh_token":"CfDJ8FNfFcvZnUZCl--dx0lsB1eea0HJkeN...mxxMB__E0",
+			"expires_in":"3599"
+		}
+		===
+
+
+		And then responds this the original redirect_uri. We're done.
+
+
+		===
+		GET 53507/
+		===

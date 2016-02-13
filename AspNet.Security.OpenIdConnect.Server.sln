@@ -15,6 +15,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{FF60
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "AspNet.Security.OpenIdConnect.Extensions", "src\AspNet.Security.OpenIdConnect.Extensions\AspNet.Security.OpenIdConnect.Extensions.xproj", "{BA895C47-20DA-4A21-924D-5E5768055359}"
 EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "ResourceOwnerPasswordFlow", "samples\ResourceOwnerPasswordFlow\ResourceOwnerPasswordFlow.xproj", "{FF3F43E7-3966-4F44-B9F3-D195334CA267}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "ROPC", "samples\ROPC\ROPC.xproj", "{ED9167E6-1BA3-42DB-B874-92F6944EBF94}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -37,6 +41,14 @@ Global
 		{BA895C47-20DA-4A21-924D-5E5768055359}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BA895C47-20DA-4A21-924D-5E5768055359}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BA895C47-20DA-4A21-924D-5E5768055359}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FF3F43E7-3966-4F44-B9F3-D195334CA267}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FF3F43E7-3966-4F44-B9F3-D195334CA267}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FF3F43E7-3966-4F44-B9F3-D195334CA267}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FF3F43E7-3966-4F44-B9F3-D195334CA267}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED9167E6-1BA3-42DB-B874-92F6944EBF94}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED9167E6-1BA3-42DB-B874-92F6944EBF94}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED9167E6-1BA3-42DB-B874-92F6944EBF94}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED9167E6-1BA3-42DB-B874-92F6944EBF94}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -46,5 +58,7 @@ Global
 		{68631868-902A-46FB-9A44-BACF1812FBDE} = {FF6097D2-F92B-4AA8-A547-AE90C25DC7AC}
 		{440B6A0C-05F3-4483-B4AA-FB0BC4B239FF} = {FF6097D2-F92B-4AA8-A547-AE90C25DC7AC}
 		{BA895C47-20DA-4A21-924D-5E5768055359} = {630C29B2-7346-47B1-A3AD-B2D8C0464A9A}
+		{FF3F43E7-3966-4F44-B9F3-D195334CA267} = {FF6097D2-F92B-4AA8-A547-AE90C25DC7AC}
+		{ED9167E6-1BA3-42DB-B874-92F6944EBF94} = {FF6097D2-F92B-4AA8-A547-AE90C25DC7AC}
 	EndGlobalSection
 EndGlobal
