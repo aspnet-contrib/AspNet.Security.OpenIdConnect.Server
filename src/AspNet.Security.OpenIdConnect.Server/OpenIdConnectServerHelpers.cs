@@ -6,10 +6,9 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
-using Microsoft.AspNet.DataProtection;
-using Microsoft.AspNet.Http;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.PlatformAbstractions;
 using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Tokens;
@@ -18,7 +17,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
     internal static class OpenIdConnectServerHelpers {
         internal static RSA GenerateKey(IRuntimeEnvironment environment) {
             if (environment.OperatingSystemPlatform == Platform.Windows) {
-#if DNXCORE50
+#if DOTNET5_4
                 // On CoreCLR, use RSACng.
                 return new RSACng(2048);
 #else
@@ -32,7 +31,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return new RSACryptoServiceProvider(2048);
             }
 
-#if DNXCORE50
+#if DOTNET5_4
             // On Linux and Darwin, use RSAOpenSsl when running on CoreCLR.
             if (environment.OperatingSystemPlatform == Platform.Linux ||
                 environment.OperatingSystemPlatform == Platform.Darwin) {
@@ -147,7 +146,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             finally {
-#if DNXCORE50
+#if DOTNET5_4
                 store.Dispose();
 #else
                 store.Close();
@@ -165,7 +164,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 }
             }
 
-#if !DNXCORE50
+#if !DOTNET5_4
             // Note: Environment.GetFolderPath may return null if the user profile is not loaded.
             path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 
@@ -215,7 +214,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             return new DirectoryInfo(Path.Combine(path, "ASP.NET", "aspnet-contrib", "aspnet-oidc-server"));
         }
 
-        internal static string GetIssuer([NotNull] this HttpContext context, [NotNull] OpenIdConnectServerOptions options) {
+        internal static string GetIssuer(this HttpContext context, OpenIdConnectServerOptions options) {
             var issuer = options.Issuer;
             if (issuer == null) {
                 if (!Uri.TryCreate(context.Request.Scheme + "://" + context.Request.Host +
@@ -227,7 +226,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             return issuer.AbsoluteUri;
         }
 
-        internal static string AddPath([NotNull] this string address, PathString path) {
+        internal static string AddPath(this string address, PathString path) {
             if (address.EndsWith("/")) {
                 address = address.Substring(0, address.Length - 1);
             }
@@ -240,8 +239,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
         }
 
         internal static Task SetAsync(
-            [NotNull] this IDistributedCache cache, [NotNull] string key,
-            [NotNull] Func<DistributedCacheEntryOptions, byte[]> factory) {
+            this IDistributedCache cache, string key,
+            Func<DistributedCacheEntryOptions, byte[]> factory) {
             var options = new DistributedCacheEntryOptions();
             var buffer = factory(options);
 
@@ -294,7 +293,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // algorithm via CryptoConfig when available or using a pre-defined table.
             var symmetricSecurityKey = key as SymmetricSecurityKey;
             if (symmetricSecurityKey != null) {
-#if DNX451
+#if NET451
                 try {
                     var instance = CryptoConfig.CreateFromName(algorithm);
                     if (instance is SymmetricAlgorithm || instance is KeyedHashAlgorithm) {
@@ -332,7 +331,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             else if (key is AsymmetricSecurityKey) {
-#if DNX451
+#if NET451
                 try {
                     var instance = CryptoConfig.CreateFromName(algorithm);
                     if (instance is AsymmetricAlgorithm || instance is SignatureDescription) {
@@ -359,7 +358,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                         var x509SecurityKey = key as X509SecurityKey;
                         if (x509SecurityKey != null) {
-#if DNX451
+#if NET451
                             return x509SecurityKey.Certificate.PublicKey.Key is RSA;
 #else
                             return x509SecurityKey.Certificate.GetRSAPublicKey() != null;
@@ -369,10 +368,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
                         return false;
                     }
 
-#if DNXCORE50
+#if DOTNET5_4
                     // Note: the ECDsa type exists on .NET 4.5.1 but not on Mono 4.3.
                     // To prevent this code path from throwing an exception
-                    // on Mono, the following algorithms are ignored on DNX451.
+                    // on Mono, the following algorithms are ignored on NET451.
                     case SecurityAlgorithms.ECDSA_SHA256:
                     case SecurityAlgorithms.ECDSA_SHA384:
                     case SecurityAlgorithms.ECDSA_SHA512: {

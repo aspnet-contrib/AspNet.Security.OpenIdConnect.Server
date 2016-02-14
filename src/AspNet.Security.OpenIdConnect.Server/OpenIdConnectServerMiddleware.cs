@@ -6,12 +6,13 @@
 
 using System;
 using System.Text.Encodings.Web;
-using Microsoft.AspNet.Authentication;
-using Microsoft.AspNet.DataProtection;
-using Microsoft.AspNet.Http;
+using JetBrains.Annotations;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
@@ -27,7 +28,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         public OpenIdConnectServerMiddleware(
             [NotNull] RequestDelegate next,
-            [NotNull] OpenIdConnectServerOptions options,
+            [NotNull] IOptions<OpenIdConnectServerOptions> options,
             [NotNull] ILoggerFactory loggerFactory,
             [NotNull] IDistributedCache cache,
             [NotNull] HtmlEncoder htmlEncoder,

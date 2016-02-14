@@ -6,7 +6,7 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Authentication;
+using Microsoft.AspNetCore.Authentication;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>

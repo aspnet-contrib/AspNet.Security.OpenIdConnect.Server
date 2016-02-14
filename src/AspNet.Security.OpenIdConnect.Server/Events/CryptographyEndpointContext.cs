@@ -6,8 +6,8 @@
 
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using Microsoft.AspNet.Authentication;
-using Microsoft.AspNet.Http;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>

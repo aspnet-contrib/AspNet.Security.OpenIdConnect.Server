@@ -7,8 +7,8 @@
 using System;
 using System.Collections.Generic;
 using System.Security.Claims;
-using Microsoft.AspNet.Authentication;
-using Microsoft.AspNet.Http;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Newtonsoft.Json.Linq;
 
@@ -29,7 +29,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             : base(context) {
             Options = options;
             Request = request;
-            AuthenticationTicket = ticket;
+            Ticket = ticket;
         }
 
         /// <summary>

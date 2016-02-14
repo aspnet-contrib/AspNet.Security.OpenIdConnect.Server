@@ -6,8 +6,8 @@
 
 using System.Collections.Generic;
 using AspNet.Security.OpenIdConnect.Extensions;
-using Microsoft.AspNet.Authentication;
-using Microsoft.AspNet.Http;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 
@@ -34,13 +34,13 @@ namespace AspNet.Security.OpenIdConnect.Server {
             Options = options;
             Request = request;
             Response = response;
-            AuthenticationTicket = ticket;
+            Ticket = ticket;
         }
 
         /// <summary>
         /// Gets the authentication ticket to serialize.
         /// </summary>
-        public AuthenticationTicket AuthenticationTicket { get; }
+        public AuthenticationTicket Ticket { get; }
 
         /// <summary>
         /// Gets the options used by the OpenID Connect server.
@@ -66,24 +66,24 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// Gets or sets the audiences associated with the authentication ticket.
         /// </summary>
         public IEnumerable<string> Audiences {
-            get { return AuthenticationTicket.GetAudiences(); }
-            set { AuthenticationTicket.SetAudiences(value); }
+            get { return Ticket.GetAudiences(); }
+            set { Ticket.SetAudiences(value); }
         }
 
         /// <summary>
         /// Gets or sets the presenters associated with the authentication ticket.
         /// </summary>
         public IEnumerable<string> Presenters {
-            get { return AuthenticationTicket.GetPresenters(); }
-            set { AuthenticationTicket.SetPresenters(value); }
+            get { return Ticket.GetPresenters(); }
+            set { Ticket.SetPresenters(value); }
         }
 
         /// <summary>
         /// Gets or sets the scopes associated with the authentication ticket.
         /// </summary>
         public IEnumerable<string> Scopes {
-            get { return AuthenticationTicket.GetScopes(); }
-            set { AuthenticationTicket.SetScopes(value); }
+            get { return Ticket.GetScopes(); }
+            set { Ticket.SetScopes(value); }
         }
 
         /// <summary>

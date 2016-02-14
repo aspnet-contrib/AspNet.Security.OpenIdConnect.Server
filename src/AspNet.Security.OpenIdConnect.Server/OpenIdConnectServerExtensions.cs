@@ -11,19 +11,18 @@ using System.IO;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using AspNet.Security.OpenIdConnect.Server;
-using Microsoft.AspNet.DataProtection;
-using Microsoft.AspNet.Hosting;
-using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Http.Features;
-using Microsoft.Extensions.Caching.Distributed;
+using JetBrains.Annotations;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.PlatformAbstractions;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Microsoft.AspNet.Builder {
+namespace Microsoft.AspNetCore.Builder {
     /// <summary>
     /// Provides extension methods allowing to easily register an
     /// ASP.NET-powered OpenID Connect server and to retrieve various
@@ -159,7 +158,7 @@ namespace Microsoft.AspNet.Builder {
                 }
             }
 
-            return app.UseMiddleware<OpenIdConnectServerMiddleware>(options);
+            return app.UseMiddleware<OpenIdConnectServerMiddleware>(Options.Create(options));
         }
 
         /// <summary>

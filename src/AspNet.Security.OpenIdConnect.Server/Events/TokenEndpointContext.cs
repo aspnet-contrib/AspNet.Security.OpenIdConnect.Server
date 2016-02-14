@@ -4,8 +4,8 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
-using Microsoft.AspNet.Authentication;
-using Microsoft.AspNet.Http;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace AspNet.Security.OpenIdConnect.Server {
@@ -35,11 +35,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// Gets the options used by the OpenID Connect server.
         /// </summary>
         public OpenIdConnectServerOptions Options { get; }
-
-        /// <summary>
-        /// Gets or sets the authentication ticket.
-        /// </summary>
-        public AuthenticationTicket Ticket { get; set; }
 
         /// <summary>
         /// Gets information about the token endpoint request. 

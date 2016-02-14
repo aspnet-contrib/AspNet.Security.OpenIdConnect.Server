@@ -1,10 +1,10 @@
 using System;
-using Microsoft.AspNet.Authentication;
-using Microsoft.AspNet.Authentication.Cookies;
-using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.Hosting;
-using Microsoft.AspNet.Http;
-using Microsoft.Data.Entity;
+using AspNet.Security.OAuth.Validation;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Mvc.Server.Extensions;
@@ -18,8 +18,10 @@ using NWebsec.Owin;
 namespace Mvc.Server {
     public class Startup {
         public static void Main(string[] args) {
-            var application = new WebApplicationBuilder()
-                .UseConfiguration(WebApplicationConfiguration.GetDefault(args))
+            var application = new WebHostBuilder()
+                .UseDefaultConfiguration(args)
+                .UseIISPlatformHandlerUrl()
+                .UseServer("Microsoft.AspNetCore.Server.Kestrel")
                 .UseStartup<Startup>()
                 .Build();
 
@@ -33,11 +35,10 @@ namespace Mvc.Server {
                     options.UseInMemoryDatabase();
                 });
 
-            services.Configure<SharedAuthenticationOptions>(options => {
+            services.AddAuthentication(options => {
                 options.SignInScheme = "ServerCookie";
             });
 
-            services.AddAuthentication();
             services.AddCaching();
             services.AddMvc();
         }
@@ -49,22 +50,22 @@ namespace Mvc.Server {
 
             // Create a new branch where the registered middleware will be executed only for API calls.
             app.UseWhen(context => context.Request.Path.StartsWithSegments(new PathString("/api")), branch => {
-                branch.UseOAuthValidation(options => {
-                    options.AutomaticAuthenticate = true;
-                    options.AutomaticChallenge = true;
+                branch.UseOAuthValidation(new OAuthValidationOptions {
+                    AutomaticAuthenticate = true,
+                    AutomaticChallenge = true
                 });
 
                 // Alternatively, you can also use the introspection middleware.
                 // Using it is recommended if your resource server is in a
                 // different application/separated from the authorization server.
                 // 
-                // branch.UseOAuthIntrospection(options => {
-                //     options.AutomaticAuthenticate = true;
-                //     options.AutomaticChallenge = true;
-                //     options.Authority = "http://localhost:54540/";
-                //     options.Audiences.Add("resource_server");
-                //     options.ClientId = "resource_server";
-                //     options.ClientSecret = "875sqd4s5d748z78z7ds1ff8zz8814ff88ed8ea4z4zzd";
+                // branch.UseOAuthIntrospection(new OAuthIntrospectionOptions {
+                //     AutomaticAuthenticate = true,
+                //     AutomaticChallenge = true,
+                //     Authority = "http://localhost:54540/",
+                //     Audiences = { "resource_server" },
+                //     ClientId = "resource_server",
+                //     ClientSecret = "875sqd4s5d748z78z7ds1ff8zz8814ff88ed8ea4z4zzd"
                 // });
             });
 
@@ -72,23 +73,23 @@ namespace Mvc.Server {
             app.UseWhen(context => !context.Request.Path.StartsWithSegments(new PathString("/api")), branch => {
                 // Insert a new cookies middleware in the pipeline to store
                 // the user identity returned by the external identity provider.
-                branch.UseCookieAuthentication(options => {
-                    options.AutomaticAuthenticate = true;
-                    options.AutomaticChallenge = true;
-                    options.AuthenticationScheme = "ServerCookie";
-                    options.CookieName = CookieAuthenticationDefaults.CookiePrefix + "ServerCookie";
-                    options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
-                    options.LoginPath = new PathString("/signin");
+                branch.UseCookieAuthentication(new CookieAuthenticationOptions {
+                    AutomaticAuthenticate = true,
+                    AutomaticChallenge = true,
+                    AuthenticationScheme = "ServerCookie",
+                    CookieName = CookieAuthenticationDefaults.CookiePrefix + "ServerCookie",
+                    ExpireTimeSpan = TimeSpan.FromMinutes(5),
+                    LoginPath = new PathString("/signin")
                 });
 
-                branch.UseGoogleAuthentication(options => {
-                    options.ClientId = "560027070069-37ldt4kfuohhu3m495hk2j4pjp92d382.apps.googleusercontent.com";
-                    options.ClientSecret = "n2Q-GEw9RQjzcRbU3qhfTj8f";
+                branch.UseGoogleAuthentication(new GoogleOptions {
+                    ClientId = "560027070069-37ldt4kfuohhu3m495hk2j4pjp92d382.apps.googleusercontent.com",
+                    ClientSecret = "n2Q-GEw9RQjzcRbU3qhfTj8f"
                 });
 
-                branch.UseTwitterAuthentication(options => {
-                    options.ConsumerKey = "6XaCTaLbMqfj6ww3zvZ5g";
-                    options.ConsumerSecret = "Il2eFzGIrYhz6BWjYhVXBPQSfZuS4xoHpSSyD9PI";
+                branch.UseTwitterAuthentication(new TwitterOptions {
+                    ConsumerKey = "6XaCTaLbMqfj6ww3zvZ5g",
+                    ConsumerSecret = "Il2eFzGIrYhz6BWjYhVXBPQSfZuS4xoHpSSyD9PI"
                 });
             });
 

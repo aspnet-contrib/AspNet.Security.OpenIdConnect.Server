@@ -13,8 +13,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using AspNet.Security.OpenIdConnect.Extensions;
-using Microsoft.AspNet.Authentication;
-using Microsoft.AspNet.Http.Authentication;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
@@ -58,7 +58,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             // Allow the application to change the authentication
             // ticket from the SerializeAuthorizationCode event.
-            ticket = notification.AuthenticationTicket;
+            ticket = notification.Ticket;
             ticket.Properties.CopyTo(properties);
 
             if (notification.DataFormat == null) {
@@ -136,7 +136,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             // Allow the application to change the authentication
             // ticket from the SerializeAccessTokenAsync event.
-            ticket = notification.AuthenticationTicket;
+            ticket = notification.Ticket;
             ticket.Properties.CopyTo(properties);
 
             if (notification.SecurityTokenHandler == null) {
@@ -261,9 +261,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     Issuer = notification.Issuer,
                     Audience = notification.Audiences.ElementAtOrDefault(0),
                     SigningCredentials = notification.SigningCredentials,
-                    IssuedAt = notification.AuthenticationTicket.Properties.IssuedUtc.Value.UtcDateTime,
-                    NotBefore = notification.AuthenticationTicket.Properties.IssuedUtc.Value.UtcDateTime,
-                    Expires = notification.AuthenticationTicket.Properties.ExpiresUtc.Value.UtcDateTime
+                    IssuedAt = notification.Ticket.Properties.IssuedUtc.Value.UtcDateTime,
+                    NotBefore = notification.Ticket.Properties.IssuedUtc.Value.UtcDateTime,
+                    Expires = notification.Ticket.Properties.ExpiresUtc.Value.UtcDateTime
                 });
 
                 // Note: the security token is manually serialized to prevent
@@ -332,7 +332,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             // Allow the application to change the authentication
             // ticket from the SerializeIdentityTokenAsync event.
-            ticket = notification.AuthenticationTicket;
+            ticket = notification.Ticket;
             ticket.Properties.CopyTo(properties);
 
             if (notification.SecurityTokenHandler == null) {
@@ -518,7 +518,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             // Allow the application to change the authentication
             // ticket from the SerializeRefreshTokenAsync event.
-            ticket = notification.AuthenticationTicket;
+            ticket = notification.Ticket;
             ticket.Properties.CopyTo(properties);
 
             return notification.DataFormat?.Protect(ticket);

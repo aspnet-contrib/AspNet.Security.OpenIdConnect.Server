@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
-using Microsoft.AspNet.Authorization;
-using Microsoft.AspNet.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Mvc.Server.Controllers {
     [Route("api")]

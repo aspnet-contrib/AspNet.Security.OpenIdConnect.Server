@@ -5,9 +5,9 @@
  */
 
 using System.Security.Claims;
-using Microsoft.AspNet.Authentication;
-using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Http.Authentication;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Authentication;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
@@ -22,7 +22,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             OpenIdConnectServerOptions options,
             AuthenticationTicket ticket)
             : base(context, options) {
-            AuthenticationTicket = ticket;
+            Ticket = ticket;
         }
 
         /// <summary>
@@ -30,7 +30,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// is invoked with an AuthenticationTicket or ClaimsIdentity argument, that new value is assigned to 
         /// this property in addition to changing IsValidated to true.
         /// </summary>
-        public AuthenticationTicket AuthenticationTicket { get; private set; }
+        public AuthenticationTicket Ticket { get; private set; }
 
         /// <summary>
         /// Replaces the ticket information on this context and marks it as as validated by the application. 
@@ -39,7 +39,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <param name="ticket">Assigned to the Ticket property</param>
         /// <returns>True if the validation has taken effect.</returns>
         public bool Validate(AuthenticationTicket ticket) {
-            AuthenticationTicket = ticket;
+            Ticket = ticket;
             return Validate();
         }
 
@@ -50,7 +50,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <param name="principal">Assigned to the Ticket.Principal property</param>
         /// <returns>True if the validation has taken effect.</returns>
         public bool Validate(ClaimsPrincipal principal) {
-            var properties = AuthenticationTicket?.Properties ?? new AuthenticationProperties();
+            var properties = Ticket?.Properties ?? new AuthenticationProperties();
             return Validate(new AuthenticationTicket(principal, properties, Options.AuthenticationScheme));
         }
     }

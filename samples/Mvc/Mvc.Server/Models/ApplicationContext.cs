@@ -1,4 +1,4 @@
-﻿using Microsoft.Data.Entity;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace Mvc.Server.Models {
     public class ApplicationContext : DbContext {

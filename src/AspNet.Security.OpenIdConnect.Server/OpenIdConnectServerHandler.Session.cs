@@ -7,10 +7,10 @@
 using System;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
-using Microsoft.AspNet.Authentication;
-using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.Http.Features.Authentication;
-using Microsoft.AspNet.WebUtilities;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http.Features.Authentication;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.Net.Http.Headers;

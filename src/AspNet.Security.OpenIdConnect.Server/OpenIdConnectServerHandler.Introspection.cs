@@ -11,8 +11,8 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
-using Microsoft.AspNet.Authentication;
-using Microsoft.AspNet.Builder;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
@@ -324,7 +324,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             await Options.Provider.IntrospectionEndpoint(notification);
 
             // Flow the changes made to the authentication ticket.
-            ticket = notification.AuthenticationTicket;
+            ticket = notification.Ticket;
 
             if (notification.HandledResponse) {
                 return;
