@@ -68,6 +68,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
         }
 
         public static class Scopes {
+            public const string Address = "address";
             public const string Email = "email";
             public const string OfflineAccess = "offline_access";
             public const string OpenId = "openid";
