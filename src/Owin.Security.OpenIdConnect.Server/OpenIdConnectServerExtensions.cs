@@ -139,8 +139,8 @@ namespace Owin {
                 // If no encryption key has been found, generate and persist a new RSA key.
                 if (options.EncryptingCredentials.Count == 0) {
                     // Generate a new RSA key and export its public/private parameters.
-                    var algorithm = RSA.Create();
-                    var parameters = algorithm.ExportParameters(/* includePrivateParameters */ true);
+                    var algorithm = new RSACryptoServiceProvider(2048);
+                    var parameters = algorithm.ExportParameters(/* includePrivateParameters: */ true);
 
                     // Generate a new file name for the key and determine its absolute path.
                     var path = Path.Combine(directory.FullName, Guid.NewGuid().ToString() + ".key");
@@ -162,8 +162,8 @@ namespace Owin {
                 // If no signing key has been found, generate and persist a new RSA key.
                 if (options.SigningCredentials.Count == 0) {
                     // Generate a new RSA key and export its public/private parameters.
-                    var algorithm = RSA.Create();
-                    var parameters = algorithm.ExportParameters(/* includePrivateParameters */ true);
+                    var algorithm = new RSACryptoServiceProvider(2048);
+                    var parameters = algorithm.ExportParameters(/* includePrivateParameters: */ true);
 
                     // Generate a new file name for the key and determine its absolute path.
                     var path = Path.Combine(directory.FullName, Guid.NewGuid().ToString() + ".key");
