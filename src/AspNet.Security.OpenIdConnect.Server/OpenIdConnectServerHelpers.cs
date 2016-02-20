@@ -253,25 +253,28 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             switch (algorithm) {
+                case SecurityAlgorithms.RsaSha256:
+                case SecurityAlgorithms.HmacSha256:
+                case SecurityAlgorithms.EcdsaSha256:
                 case SecurityAlgorithms.RsaSha256Signature:
                 case SecurityAlgorithms.HmacSha256Signature:
-                case SecurityAlgorithms.RSA_SHA256:
-                case SecurityAlgorithms.HMAC_SHA256:
-                case SecurityAlgorithms.ECDSA_SHA256:
+                case SecurityAlgorithms.EcdsaSha256Signature:
                     return SHA256.Create();
                 
+                case SecurityAlgorithms.RsaSha384:
+                case SecurityAlgorithms.HmacSha384:
+                case SecurityAlgorithms.EcdsaSha384:
                 case SecurityAlgorithms.RsaSha384Signature:
                 case SecurityAlgorithms.HmacSha384Signature:
-                case SecurityAlgorithms.RSA_SHA384:
-                case SecurityAlgorithms.HMAC_SHA384:
-                case SecurityAlgorithms.ECDSA_SHA384:
+                case SecurityAlgorithms.EcdsaSha384Signature:
                     return SHA384.Create();
                 
+                case SecurityAlgorithms.RsaSha512:
+                case SecurityAlgorithms.HmacSha512:
+                case SecurityAlgorithms.EcdsaSha512:
                 case SecurityAlgorithms.RsaSha512Signature:
                 case SecurityAlgorithms.HmacSha512Signature:
-                case SecurityAlgorithms.RSA_SHA512:
-                case SecurityAlgorithms.HMAC_SHA512:
-                case SecurityAlgorithms.ECDSA_SHA512:
+                case SecurityAlgorithms.EcdsaSha512Signature:
                     return SHA512.Create();
             }
 
@@ -305,10 +308,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 catch (InvalidOperationException) { }
 #endif
                 switch (algorithm) {
+                    case SecurityAlgorithms.HmacSha256:
+                    case SecurityAlgorithms.HmacSha384:
+                    case SecurityAlgorithms.HmacSha512:
                     case SecurityAlgorithms.HmacSha256Signature:
-                    case SecurityAlgorithms.HMAC_SHA256:
-                    case SecurityAlgorithms.HMAC_SHA384:
-                    case SecurityAlgorithms.HMAC_SHA512:
+                    case SecurityAlgorithms.HmacSha384Signature:
+                    case SecurityAlgorithms.HmacSha512Signature:
                         return true;
 
                     case SecurityAlgorithms.Aes128Encryption:
@@ -344,12 +349,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
 #endif
 
                 switch (algorithm) {
+                    case SecurityAlgorithms.RsaSha256:
+                    case SecurityAlgorithms.RsaSha384:
+                    case SecurityAlgorithms.RsaSha512:
                     case SecurityAlgorithms.RsaSha256Signature:
                     case SecurityAlgorithms.RsaSha384Signature:
                     case SecurityAlgorithms.RsaSha512Signature:
-                    case SecurityAlgorithms.RSA_SHA256:
-                    case SecurityAlgorithms.RSA_SHA384:
-                    case SecurityAlgorithms.RSA_SHA512:
                     case SecurityAlgorithms.RsaOaepKeyWrap:
                     case SecurityAlgorithms.RsaV15KeyWrap: {
                         if (key is RsaSecurityKey) {
@@ -372,9 +377,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     // Note: the ECDsa type exists on .NET 4.5.1 but not on Mono 4.3.
                     // To prevent this code path from throwing an exception
                     // on Mono, the following algorithms are ignored on NET451.
-                    case SecurityAlgorithms.ECDSA_SHA256:
-                    case SecurityAlgorithms.ECDSA_SHA384:
-                    case SecurityAlgorithms.ECDSA_SHA512: {
+                    case SecurityAlgorithms.EcdsaSha256:
+                    case SecurityAlgorithms.EcdsaSha384:
+                    case SecurityAlgorithms.EcdsaSha512:
+                    case SecurityAlgorithms.EcdsaSha256Signature:
+                    case SecurityAlgorithms.EcdsaSha384Signature:
+                    case SecurityAlgorithms.EcdsaSha512Signature: {
                         if (key is ECDsaSecurityKey) {
                             return true;
                         }
@@ -406,21 +414,29 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             switch (algorithm) {
+                case SecurityAlgorithms.HmacSha256:
                 case SecurityAlgorithms.HmacSha256Signature:
-                case SecurityAlgorithms.HMAC_SHA256:
-                    return JwtAlgorithms.HMAC_SHA256;
+                    return SecurityAlgorithms.HmacSha256;
 
+                case SecurityAlgorithms.HmacSha384:
+                case SecurityAlgorithms.HmacSha384Signature:
+                    return SecurityAlgorithms.HmacSha384;
+
+                case SecurityAlgorithms.HmacSha512:
+                case SecurityAlgorithms.HmacSha512Signature:
+                    return SecurityAlgorithms.HmacSha512;
+                
+                case SecurityAlgorithms.RsaSha256:
                 case SecurityAlgorithms.RsaSha256Signature:
-                case SecurityAlgorithms.RSA_SHA256:
-                    return JwtAlgorithms.RSA_SHA256;
+                    return SecurityAlgorithms.RsaSha256;
 
+                case SecurityAlgorithms.RsaSha384:
                 case SecurityAlgorithms.RsaSha384Signature:
-                case SecurityAlgorithms.RSA_SHA384:
-                    return JwtAlgorithms.RSA_SHA384;
-
+                    return SecurityAlgorithms.RsaSha384;
+                
+                case SecurityAlgorithms.RsaSha512:
                 case SecurityAlgorithms.RsaSha512Signature:
-                case SecurityAlgorithms.RSA_SHA512:
-                    return JwtAlgorithms.RSA_SHA512;
+                    return SecurityAlgorithms.RsaSha512;
 
                 case SecurityAlgorithms.RsaOaepKeyWrap:
                     return "RSA-OAEP";

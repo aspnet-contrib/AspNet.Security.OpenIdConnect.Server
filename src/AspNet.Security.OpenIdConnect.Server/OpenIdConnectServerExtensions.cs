@@ -325,14 +325,14 @@ namespace Microsoft.AspNetCore.Builder {
 
             if (key.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature)) {
                 // See https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet/issues/316
-                credentials.Add(new SigningCredentials(key, SecurityAlgorithms.RSA_SHA256));
+                credentials.Add(new SigningCredentials(key, SecurityAlgorithms.RsaSha256));
 
                 return credentials;
             }
 
             else if (key.IsSupportedAlgorithm(SecurityAlgorithms.HmacSha256Signature)) {
                 // See https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet/issues/316
-                credentials.Add(new SigningCredentials(key, SecurityAlgorithms.HMAC_SHA256));
+                credentials.Add(new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
 
                 return credentials;
             }
