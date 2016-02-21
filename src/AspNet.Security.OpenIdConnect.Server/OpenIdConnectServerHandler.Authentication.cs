@@ -375,13 +375,20 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 context.Properties[OpenIdConnectConstants.Properties.RedirectUri] = request.RedirectUri;
             }
 
-            // Note: the application is allowed to specify a different "scope"
+            // Always include the "openid" scope when the developer doesn't explicitly call SetScopes.
+            // Note: the application is allowed to specify a different "scopes"
             // parameter when calling AuthenticationManager.SignInAsync: in this case,
-            // don't replace the "scope" property stored in the authentication ticket.
+            // don't replace the "scopes" property stored in the authentication ticket.
             if (!context.Properties.ContainsKey(OpenIdConnectConstants.Properties.Scopes) &&
                  request.HasScope(OpenIdConnectConstants.Scopes.OpenId)) {
-                // Always include the "openid" scope when the developer didn't explicitly call SetScopes.
                 context.Properties[OpenIdConnectConstants.Properties.Scopes] = OpenIdConnectConstants.Scopes.OpenId;
+            }
+
+            string audiences;
+            // When a "resources" property cannot be found in the authentication properties, infer it from the "audiences" property.
+            if (!context.Properties.ContainsKey(OpenIdConnectConstants.Properties.Resources) &&
+                 context.Properties.TryGetValue(OpenIdConnectConstants.Properties.Audiences, out audiences)) {
+                context.Properties[OpenIdConnectConstants.Properties.Resources] = audiences;
             }
 
             // Determine whether an authorization code should be returned
