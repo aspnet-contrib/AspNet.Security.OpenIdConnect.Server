@@ -29,13 +29,13 @@ namespace Owin.Security.OpenIdConnect.Server {
             AuthenticationTicket ticket)
             : base(context, options) {
             Request = request;
-            AuthenticationTicket = ticket;
+            Ticket = ticket;
         }
 
         /// <summary>
         /// Gets or sets the authentication ticket.
         /// </summary>
-        public AuthenticationTicket AuthenticationTicket { get; set; }
+        public AuthenticationTicket Ticket { get; set; }
 
         /// <summary>
         /// Gets the introspection request.

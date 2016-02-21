@@ -39,7 +39,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets or sets the authentication ticket.
         /// </summary>
-        public AuthenticationTicket AuthenticationTicket { get; set; }
+        public AuthenticationTicket Ticket { get; set; }
 
         /// <summary>
         /// Gets or sets the data format used to deserialize the authentication ticket.

@@ -29,7 +29,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             OpenIdConnectMessage request,
             OpenIdConnectMessage response)
             : base(context, options) {
-            AuthenticationTicket = ticket;
+            Ticket = ticket;
             Request = request;
             Response = response;
         }
@@ -38,7 +38,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// Gets the authentication ticket containing the
         /// claims representing the authenticated user.
         /// </summary>
-        public AuthenticationTicket AuthenticationTicket { get; }
+        public AuthenticationTicket Ticket { get; }
 
         /// <summary>
         /// Gets the authorization request. 

@@ -40,7 +40,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets or sets the authentication ticket.
         /// </summary>
-        public AuthenticationTicket AuthenticationTicket { get; set; }
+        public AuthenticationTicket Ticket { get; set; }
 
         /// <summary>
         /// Gets or sets the issuer address.

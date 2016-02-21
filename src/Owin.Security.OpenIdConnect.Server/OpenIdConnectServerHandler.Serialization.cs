@@ -58,7 +58,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             // Allow the application to change the authentication
             // ticket from the SerializeAuthorizationCode event.
-            ticket = notification.AuthenticationTicket;
+            ticket = notification.Ticket;
             ticket.Properties.CopyTo(properties);
 
             if (notification.DataFormat == null) {
@@ -126,7 +126,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             // Allow the application to change the authentication
             // ticket from the SerializeAccessTokenAsync event.
-            ticket = notification.AuthenticationTicket;
+            ticket = notification.Ticket;
             ticket.Properties.CopyTo(properties);
 
             if (notification.SecurityTokenHandler == null) {
@@ -257,8 +257,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                     EncryptingCredentials = notification.EncryptingCredentials,
                     SigningCredentials = notification.SigningCredentials,
                     Lifetime = new Lifetime(
-                        notification.AuthenticationTicket.Properties.IssuedUtc.Value.UtcDateTime,
-                        notification.AuthenticationTicket.Properties.ExpiresUtc.Value.UtcDateTime)
+                        notification.Ticket.Properties.IssuedUtc.Value.UtcDateTime,
+                        notification.Ticket.Properties.ExpiresUtc.Value.UtcDateTime)
                 };
 
                 // When the encrypting credentials use an asymmetric key, replace them by a
@@ -339,7 +339,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             // Allow the application to change the authentication
             // ticket from the SerializeIdentityTokenAsync event.
-            ticket = notification.AuthenticationTicket;
+            ticket = notification.Ticket;
             ticket.Properties.CopyTo(properties);
 
             if (notification.SecurityTokenHandler == null) {
@@ -529,7 +529,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             // Allow the application to change the authentication
             // ticket from the SerializeRefreshTokenAsync event.
-            ticket = notification.AuthenticationTicket;
+            ticket = notification.Ticket;
             ticket.Properties.CopyTo(properties);
 
             return notification.DataFormat?.Protect(ticket);
@@ -544,8 +544,8 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             // Directly return the authentication ticket if one
             // has been provided by DeserializeAuthorizationCode.
-            if (notification.AuthenticationTicket != null) {
-                return notification.AuthenticationTicket;
+            if (notification.Ticket != null) {
+                return notification.Ticket;
             }
 
             var value = (string) Options.Cache.Get(code);
@@ -584,8 +584,8 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             // Directly return the authentication ticket if one
             // has been provided by DeserializeAccessToken.
-            if (notification.AuthenticationTicket != null) {
-                return notification.AuthenticationTicket;
+            if (notification.Ticket != null) {
+                return notification.Ticket;
             }
 
             var handler = notification.SecurityTokenHandler as ISecurityTokenValidator;
@@ -673,8 +673,8 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             // Directly return the authentication ticket if one
             // has been provided by DeserializeIdentityToken.
-            if (notification.AuthenticationTicket != null) {
-                return notification.AuthenticationTicket;
+            if (notification.Ticket != null) {
+                return notification.Ticket;
             }
 
             if (notification.SecurityTokenHandler == null) {
@@ -754,8 +754,8 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             // Directly return the authentication ticket if one
             // has been provided by DeserializeRefreshToken.
-            if (notification.AuthenticationTicket != null) {
-                return notification.AuthenticationTicket;
+            if (notification.Ticket != null) {
+                return notification.Ticket;
             }
 
             var ticket = notification.DataFormat?.Unprotect(token);

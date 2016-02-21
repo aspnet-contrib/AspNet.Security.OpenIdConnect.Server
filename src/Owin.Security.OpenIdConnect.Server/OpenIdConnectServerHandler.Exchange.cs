@@ -389,15 +389,15 @@ namespace Owin.Security.OpenIdConnect.Server {
                     // By default, when using the authorization code grant, the authentication ticket extracted from the
                     // authorization code is used as-is. To avoid aligning the expiration date of the generated tokens
                     // with the lifetime of the authorization code, the ticket properties are automatically reset to null.
-                    if (context.AuthenticationTicket.Properties.IssuedUtc == ticket.Properties.IssuedUtc) {
-                        context.AuthenticationTicket.Properties.IssuedUtc = null;
+                    if (context.Ticket.Properties.IssuedUtc == ticket.Properties.IssuedUtc) {
+                        context.Ticket.Properties.IssuedUtc = null;
                     }
 
-                    if (context.AuthenticationTicket.Properties.ExpiresUtc == ticket.Properties.ExpiresUtc) {
-                        context.AuthenticationTicket.Properties.ExpiresUtc = null;
+                    if (context.Ticket.Properties.ExpiresUtc == ticket.Properties.ExpiresUtc) {
+                        context.Ticket.Properties.ExpiresUtc = null;
                     }
 
-                    ticket = context.AuthenticationTicket;
+                    ticket = context.Ticket;
                 }
 
                 else {
@@ -419,15 +419,15 @@ namespace Owin.Security.OpenIdConnect.Server {
                     // By default, when using the refresh token grant, the authentication ticket extracted from the
                     // refresh token is used as-is. To avoid aligning the expiration date of the generated tokens
                     // with the lifetime of the refresh token, the ticket properties are automatically reset to null.
-                    if (context.AuthenticationTicket.Properties.IssuedUtc == ticket.Properties.IssuedUtc) {
-                        context.AuthenticationTicket.Properties.IssuedUtc = null;
+                    if (context.Ticket.Properties.IssuedUtc == ticket.Properties.IssuedUtc) {
+                        context.Ticket.Properties.IssuedUtc = null;
                     }
 
-                    if (context.AuthenticationTicket.Properties.ExpiresUtc == ticket.Properties.ExpiresUtc) {
-                        context.AuthenticationTicket.Properties.ExpiresUtc = null;
+                    if (context.Ticket.Properties.ExpiresUtc == ticket.Properties.ExpiresUtc) {
+                        context.Ticket.Properties.ExpiresUtc = null;
                     }
 
-                    ticket = context.AuthenticationTicket;
+                    ticket = context.Ticket;
                 }
             }
 
@@ -448,7 +448,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     return;
                 }
 
-                ticket = context.AuthenticationTicket;
+                ticket = context.Ticket;
             }
 
             // See http://tools.ietf.org/html/rfc6749#section-4.4
@@ -468,7 +468,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     return;
                 }
 
-                ticket = context.AuthenticationTicket;
+                ticket = context.Ticket;
             }
 
             // See http://tools.ietf.org/html/rfc6749#section-8.3
@@ -487,7 +487,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     return;
                 }
 
-                ticket = context.AuthenticationTicket;
+                ticket = context.Ticket;
             }
 
             var notification = new TokenEndpointContext(Context, Options, request, ticket);

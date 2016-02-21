@@ -317,7 +317,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             await Options.Provider.IntrospectionEndpoint(notification);
 
             // Flow the changes made to the authentication ticket.
-            ticket = notification.AuthenticationTicket;
+            ticket = notification.Ticket;
 
             if (notification.HandledResponse) {
                 return;

@@ -26,7 +26,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             OpenIdConnectMessage request,
             AuthenticationTicket ticket)
             : base(context, options) {
-            AuthenticationTicket = ticket;
+            Ticket = ticket;
             Request = request;
         }
 
@@ -38,7 +38,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the authentication ticket.
         /// </summary>
-        public AuthenticationTicket AuthenticationTicket { get; }
+        public AuthenticationTicket Ticket { get; }
 
         /// <summary>
         /// Gets the list of claims returned to the client application.

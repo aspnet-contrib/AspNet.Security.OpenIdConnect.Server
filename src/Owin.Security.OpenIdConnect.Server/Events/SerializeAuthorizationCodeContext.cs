@@ -33,7 +33,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             : base(context, options) {
             Request = request;
             Response = response;
-            AuthenticationTicket = ticket;
+            Ticket = ticket;
         }
 
         /// <summary>
@@ -49,14 +49,14 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the authentication ticket.
         /// </summary>
-        public AuthenticationTicket AuthenticationTicket { get; }
+        public AuthenticationTicket Ticket { get; }
 
         /// <summary>
         /// Gets or sets the presenters associated with the authentication ticket.
         /// </summary>
         public IEnumerable<string> Presenters {
-            get { return AuthenticationTicket.GetPresenters(); }
-            set { AuthenticationTicket.SetPresenters(value); }
+            get { return Ticket.GetPresenters(); }
+            set { Ticket.SetPresenters(value); }
         }
 
         /// <summary>
