@@ -517,12 +517,19 @@ namespace Owin.Security.OpenIdConnect.Server {
                 ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.Confidential] = "true";
             }
 
-            // Note: the application is allowed to specify a different "scope": in this case,
-            // don't replace the "scope" property stored in the authentication ticket.
+            // Always include the "openid" scope when the developer doesn't explicitly call SetScopes.
+            // Note: the application is allowed to specify a different "scopes": in this case,
+            // don't replace the "scopes" property stored in the authentication ticket.
             if (!ticket.Properties.Dictionary.ContainsKey(OpenIdConnectConstants.Properties.Scopes) &&
                  request.HasScope(OpenIdConnectConstants.Scopes.OpenId)) {
-                // Always include the "openid" scope when the developer didn't explicitly call SetScopes.
                 ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.Scopes] = OpenIdConnectConstants.Scopes.OpenId;
+            }
+
+            string audiences;
+            // When a "resources" property cannot be found in the authentication properties, infer it from the "audiences" property.
+            if (!ticket.Properties.Dictionary.ContainsKey(OpenIdConnectConstants.Properties.Resources) &&
+                 ticket.Properties.Dictionary.TryGetValue(OpenIdConnectConstants.Properties.Audiences, out audiences)) {
+                ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.Resources] = audiences;
             }
 
             var response = new OpenIdConnectMessage();
