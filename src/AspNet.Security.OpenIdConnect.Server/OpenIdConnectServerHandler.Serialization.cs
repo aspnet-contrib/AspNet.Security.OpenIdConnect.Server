@@ -533,8 +533,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             // Directly return the authentication ticket if one
             // has been provided by DeserializeAuthorizationCode.
-            if (notification.AuthenticationTicket != null) {
-                return notification.AuthenticationTicket;
+            if (notification.Ticket != null) {
+                return notification.Ticket;
             }
 
             var buffer = await Options.Cache.GetAsync(code);
@@ -576,8 +576,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             // Directly return the authentication ticket if one
             // has been provided by DeserializeAccessToken.
-            if (notification.AuthenticationTicket != null) {
-                return notification.AuthenticationTicket;
+            if (notification.Ticket != null) {
+                return notification.Ticket;
             }
 
             var handler = notification.SecurityTokenHandler as ISecurityTokenValidator;
@@ -665,8 +665,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             // Directly return the authentication ticket if one
             // has been provided by DeserializeIdentityToken.
-            if (notification.AuthenticationTicket != null) {
-                return notification.AuthenticationTicket;
+            if (notification.Ticket != null) {
+                return notification.Ticket;
             }
 
             if (notification.SecurityTokenHandler == null) {
@@ -746,8 +746,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             // Directly return the authentication ticket if one
             // has been provided by DeserializeRefreshToken.
-            if (notification.AuthenticationTicket != null) {
-                return notification.AuthenticationTicket;
+            if (notification.Ticket != null) {
+                return notification.Ticket;
             }
 
             var ticket = notification.DataFormat?.Unprotect(token);

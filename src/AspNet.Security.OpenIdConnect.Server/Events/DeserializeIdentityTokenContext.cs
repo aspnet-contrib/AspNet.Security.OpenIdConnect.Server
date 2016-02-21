@@ -36,7 +36,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets or sets the deserialized authentication ticket.
         /// </summary>
-        public AuthenticationTicket AuthenticationTicket { get; set; }
+        public AuthenticationTicket Ticket { get; set; }
 
         /// <summary>
         /// Gets the options used by the OpenID Connect server.
