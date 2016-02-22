@@ -249,30 +249,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
             return false;
         }
 
-        protected override async Task FinishResponseAsync() {
-            // Stop processing the request if no OpenID Connect
-            // message has been found in the current context.
-            var request = Context.GetOpenIdConnectRequest();
-            if (request == null) {
-                return;
-            }
-
-            // Don't apply any modification to the response if no OpenID Connect
-            // message has been explicitly created by the inner application.
-            var response = Context.GetOpenIdConnectResponse();
-            if (response == null) {
-                return;
-            }
-
-            // Successful authorization responses are directly applied by
-            // HandleSignInAsync: only error responses should be handled at this stage.
-            if (string.IsNullOrEmpty(response.Error)) {
-                return;
-            }
-
-            await SendErrorRedirectAsync(request, response);
-        }
-
         private async Task<bool> ApplyAuthorizationResponseAsync(OpenIdConnectMessage request, OpenIdConnectMessage response) {
             if (request.IsFormPostResponseMode()) {
                 using (var buffer = new MemoryStream())

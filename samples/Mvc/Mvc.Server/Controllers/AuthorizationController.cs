@@ -22,22 +22,18 @@ namespace Mvc.Server.Controllers {
             this.database = database;
         }
         
-        [HttpGet("~/connect/authorize")]
-        [HttpPost("~/connect/authorize")]
+        [HttpGet("~/connect/authorize"), HttpPost("~/connect/authorize")]
         public async Task<IActionResult> Authorize(CancellationToken cancellationToken) {
             // Note: when a fatal error occurs during the request processing, an OpenID Connect response
             // is prematurely forged and added to the ASP.NET context by OpenIdConnectServerHandler.
-            // In this case, the OpenID Connect request is null and cannot be used.
-            // When the user agent can be safely redirected to the client application,
-            // OpenIdConnectServerHandler automatically handles the error and MVC is not invoked.
-            // You can safely remove this part and let AspNet.Security.OpenIdConnect.Server automatically
-            // handle the unrecoverable errors by switching ApplicationCanDisplayErrors to false in Startup.cs
+            // You can safely remove this part and let ASOS automatically handle the unrecoverable errors
+            // by switching ApplicationCanDisplayErrors to false in Startup.cs.
             var response = HttpContext.GetOpenIdConnectResponse();
             if (response != null) {
                 return View("Error", response);
             }
 
-            // Extract the authorization request from the cache, the query string or the request form.
+            // Extract the authorization request from the ASP.NET environment.
             var request = HttpContext.GetOpenIdConnectRequest();
             if (request == null) {
                 return View("Error", new OpenIdConnectMessage {
@@ -58,13 +54,11 @@ namespace Mvc.Server.Controllers {
                     })
                 });
             }
-            
-            // Note: AspNet.Security.OpenIdConnect.Server automatically ensures an application
-            // corresponds to the client_id specified in the authorization request using
-            // IOpenIdConnectServerProvider.ValidateClientRedirectUri (see AuthorizationProvider.cs).
-            // In theory, this null check is thus not strictly necessary. That said, a race condition
-            // and a null reference exception could appear here if you manually removed the application
-            // details from the database after the initial check made by AspNet.Security.OpenIdConnect.Server.
+
+            // Note: ASOS automatically ensures that an application corresponds to the client_id specified
+            // in the authorization request by calling IOpenIdConnectServerProvider.ValidateAuthorizationRequest.
+            // In theory, this null check shouldn't be needed, but a race condition could occur if you
+            // manually removed the application details from the database after the initial check made by ASOS.
             var application = await GetApplicationAsync(request.ClientId, cancellationToken);
             if (application == null) {
                 return View("Error", new OpenIdConnectMessage {
@@ -79,7 +73,6 @@ namespace Mvc.Server.Controllers {
 
         [Authorize, HttpPost("~/connect/authorize/accept"), ValidateAntiForgeryToken]
         public async Task<IActionResult> Accept(CancellationToken cancellationToken) {
-            // Extract the authorization request from the cache, the query string or the request form.
             var request = HttpContext.GetOpenIdConnectRequest();
             if (request == null) {
                 return View("Error", new OpenIdConnectMessage {
@@ -107,12 +100,6 @@ namespace Mvc.Server.Controllers {
                 identity.AddClaim(claim);
             }
 
-            // Note: AspNet.Security.OpenIdConnect.Server automatically ensures an application
-            // corresponds to the client_id specified in the authorization request using
-            // IOpenIdConnectServerProvider.ValidateClientRedirectUri (see AuthorizationProvider.cs).
-            // In theory, this null check is thus not strictly necessary. That said, a race condition
-            // and a null reference exception could appear here if you manually removed the application
-            // details from the database after the initial check made by AspNet.Security.OpenIdConnect.Server.
             var application = await GetApplicationAsync(request.ClientId, cancellationToken);
             if (application == null) {
                 return View("Error", new OpenIdConnectMessage {
@@ -150,20 +137,21 @@ namespace Mvc.Server.Controllers {
             // Set the resources servers the access token should be issued for.
             ticket.SetResources("resource_server");
 
-            // This call will instruct AspNet.Security.OpenIdConnect.Server to serialize
-            // the specified identity to build appropriate tokens (id_token and token).
-            // Note: you should always make sure the identities you return contain either
-            // a 'sub' or a 'ClaimTypes.NameIdentifier' claim. In this case, the returned
-            // identities always contain the name identifier returned by the external provider.
-            // Note: the authenticationScheme parameter must match the value configured in Startup.cs.
+            // This call will ask ASOS to serialize the specified identity to build appropriate tokens.
+            // Note: you should always make sure the identities you return contain ClaimTypes.NameIdentifier claim.
+            // In this sample, the identity always contains the name identifier returned by the external provider.
             await HttpContext.Authentication.SignInAsync(ticket.AuthenticationScheme, ticket.Principal, ticket.Properties);
 
             return new EmptyResult();
         }
 
         [Authorize, HttpPost("~/connect/authorize/deny"), ValidateAntiForgeryToken]
-        public IActionResult Deny(CancellationToken cancellationToken) {
-            // Extract the authorization request from the cache, the query string or the request form.
+        public async Task<IActionResult> Deny(CancellationToken cancellationToken) {
+            var response = HttpContext.GetOpenIdConnectResponse();
+            if (response != null) {
+                return View("Error", response);
+            }
+
             var request = HttpContext.GetOpenIdConnectRequest();
             if (request == null) {
                 return View("Error", new OpenIdConnectMessage {
@@ -172,28 +160,16 @@ namespace Mvc.Server.Controllers {
                 });
             }
 
-            // Notify AspNet.Security.OpenIdConnect.Server that the authorization grant has been denied.
+            // Notify ASOS that the authorization grant has been denied by the resource owner.
             // Note: OpenIdConnectServerHandler will automatically take care of redirecting
             // the user agent to the client application using the appropriate response_mode.
-            HttpContext.SetOpenIdConnectResponse(new OpenIdConnectMessage {
-                Error = "access_denied",
-                ErrorDescription = "The authorization grant has been denied by the resource owner",
-                RedirectUri = request.RedirectUri,
-                State = request.State
-            });
+            await HttpContext.Authentication.ForbidAsync(OpenIdConnectServerDefaults.AuthenticationScheme);
 
             return new EmptyResult();
         }
 
         [HttpGet("~/connect/logout")]
         public async Task<ActionResult> Logout() {
-            // Note: when a fatal error occurs during the request processing, an OpenID Connect response
-            // is prematurely forged and added to the ASP.NET context by OpenIdConnectServerHandler.
-            // In this case, the OpenID Connect request is null and cannot be used.
-            // When the user agent can be safely redirected to the client application,
-            // OpenIdConnectServerHandler automatically handles the error and MVC is not invoked.
-            // You can safely remove this part and let AspNet.Security.OpenIdConnect.Server automatically
-            // handle the unrecoverable errors by switching ApplicationCanDisplayErrors to false in Startup.cs
             var response = HttpContext.GetOpenIdConnectResponse();
             if (response != null) {
                 return View("Error", response);
@@ -204,7 +180,6 @@ namespace Mvc.Server.Controllers {
             // using AuthenticateAsync or using User when the authorization server is declared as AuthenticationMode.Active.
             var identity = await HttpContext.Authentication.AuthenticateAsync(OpenIdConnectServerDefaults.AuthenticationScheme);
 
-            // Extract the logout request from the ASP.NET environment.
             var request = HttpContext.GetOpenIdConnectRequest();
             if (request == null) {
                 return View("Error", new OpenIdConnectMessage {
@@ -218,16 +193,12 @@ namespace Mvc.Server.Controllers {
 
         [HttpPost("~/connect/logout"), ValidateAntiForgeryToken]
         public async Task Logout(CancellationToken cancellationToken) {
-            // Instruct the cookies middleware to delete the local cookie created
+            // Ask the cookies middleware to delete the local cookie created
             // when the user agent is redirected from the external identity provider
             // after a successful authentication flow (e.g Google or Facebook).
             await HttpContext.Authentication.SignOutAsync("ServerCookie");
 
-            // This call will instruct AspNet.Security.OpenIdConnect.Server to serialize
-            // the specified identity to build appropriate tokens (id_token and token).
-            // Note: you should always make sure the identities you return contain either
-            // a 'sub' or a 'ClaimTypes.NameIdentifier' claim. In this case, the returned
-            // identities always contain the name identifier returned by the external provider.
+            // Redirect the user agent to the post_logout_redirect_uri specified by the client application.
             await HttpContext.Authentication.SignOutAsync(OpenIdConnectServerDefaults.AuthenticationScheme);
         }
         

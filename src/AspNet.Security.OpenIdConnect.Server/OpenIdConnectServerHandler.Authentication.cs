@@ -518,5 +518,21 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             await ApplyAuthorizationResponseAsync(request, response);
         }
+
+        protected override async Task<bool> HandleForbiddenAsync(ChallengeContext context) {
+            // Stop processing the request if no OpenID Connect
+            // message has been found in the current context.
+            var request = Context.GetOpenIdConnectRequest();
+            if (request == null) {
+                return false;
+            }
+
+            return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
+                Error = OpenIdConnectConstants.Errors.AccessDenied,
+                ErrorDescription = "The authorization grant has been denied by the resource owner",
+                RedirectUri = request.RedirectUri,
+                State = request.State
+            });
+        }
     }
 }
