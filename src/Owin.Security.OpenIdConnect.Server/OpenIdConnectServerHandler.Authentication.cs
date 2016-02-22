@@ -511,5 +511,29 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             return await ApplyAuthorizationResponseAsync(request, response);
         }
+
+        private async Task<bool> HandleForbiddenResponseAsync() {
+            // Stop processing the request if no OpenID Connect
+            // message has been found in the current context.
+            var request = Context.GetOpenIdConnectRequest();
+            if (request == null) {
+                return false;
+            }
+
+            // Stop processing the request if there's no challenge that matches
+            // the authentication type associated with this middleware instance
+            // or if the response status code doesn't indicate a challenge operation.
+            var context = Helper.LookupChallenge(Options.AuthenticationType, Options.AuthenticationMode);
+            if (context == null || Response.StatusCode != 403) {
+                return false;
+            }
+
+            return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
+                Error = OpenIdConnectConstants.Errors.AccessDenied,
+                ErrorDescription = "The authorization grant has been denied by the resource owner",
+                RedirectUri = request.RedirectUri,
+                State = request.State
+            });
+        }
     }
 }

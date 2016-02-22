@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IdentityModel.Tokens;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -658,5 +659,84 @@ namespace Owin {
 
             return new OpenIdConnectServerHelpers.EnhancedTicketDataFormat(app.CreateDataProtector(purposes));
         }
+
+        /// <summary>
+        /// Add information into the response environment that will cause the authentication
+        /// middleware to return a forbidden response to the caller. This also changes the status
+        /// code of the response to 403. The nature of that challenge varies greatly, and ranges
+        /// from adding a response header or changing the 403 status code to a 302 redirect.
+        /// </summary>
+        /// <param name="manager">
+        /// The authentication manager used to manage challenges.
+        /// </param>
+        /// <param name="properties">
+        /// Additional arbitrary values which may be used by particular authentication types.
+        /// </param>
+        /// <param name="schemes">
+        /// Identify which middleware should perform their alterations on the response. If
+        /// the authenticationTypes is null or empty, that means the AuthenticationMode.Active
+        /// middleware should perform their alterations on the response.
+        /// </param>
+        public static void Forbid(this IAuthenticationManager manager, AuthenticationProperties properties, params string[] schemes) {
+            // Note: unlike ASP.NET Core's AuthenticationManager, Katana's manager doesn't natively support "forbidden responses".
+            // To work around this limitation, this extension backports ASP.NET Core's ForbidAsync method to OWIN/Katana.
+
+            if (manager == null) {
+                throw new ArgumentNullException(nameof(manager));
+            }
+
+            if (properties == null) {
+                throw new ArgumentNullException(nameof(properties));
+            }
+
+            if (schemes == null) {
+                throw new ArgumentNullException(nameof(schemes));
+            }
+
+            // Note: the OWIN context is not exposed by IAuthenticationManager
+            // but can be extracted from the default implementation using reflection.
+            var context = manager.GetType()
+                                 .GetField("_context", BindingFlags.Instance | BindingFlags.NonPublic)
+                                ?.GetValue(manager) as IOwinContext;
+            if (context == null) {
+                throw new InvalidOperationException("This method can only be used with the default AuthenticationManager implementation.");
+            }
+
+            var challenge = manager.AuthenticationResponseChallenge;
+            if (challenge == null) {
+                manager.AuthenticationResponseChallenge = new AuthenticationResponseChallenge(schemes, properties);
+
+                return;
+            }
+
+            // Concat the authentication schemes used by the prior
+            // challenge with the schemes specified by the caller.
+            var types = challenge.AuthenticationTypes.Concat(schemes).ToArray();
+
+            if (properties != null && !ReferenceEquals(properties.Dictionary, challenge.Properties.Dictionary)) {
+                foreach (var item in properties.Dictionary) {
+                    challenge.Properties.Dictionary[item.Key] = item.Value;
+                }
+            }
+
+            manager.AuthenticationResponseChallenge = new AuthenticationResponseChallenge(types, challenge.Properties);
+        }
+
+        /// <summary>
+        /// Add information into the response environment that will cause the authentication
+        /// middleware to return a forbidden response to the caller. This also changes the status
+        /// code of the response to 403. The nature of that challenge varies greatly, and ranges
+        /// from adding a response header or changing the 403 status code to a 302 redirect.
+        /// </summary>
+        /// <param name="manager">
+        /// The authentication manager used to manage challenges.
+        /// </param>
+        /// <param name="schemes">
+        /// Identify which middleware should perform their alterations on the response. If
+        /// the authenticationTypes is null or empty, that means the AuthenticationMode.Active
+        /// middleware should perform their alterations on the response.
+        /// </param>
+        public static void Forbid(this IAuthenticationManager manager, params string[] schemes)
+            => manager.Forbid(new AuthenticationProperties(), schemes);
     }
 }

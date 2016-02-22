@@ -260,20 +260,19 @@ namespace Owin.Security.OpenIdConnect.Server {
             await base.InitializeCoreAsync();
         }
 
-        /// <remarks>
-        /// Authentication handlers cannot reliabily write to the response stream
-        /// from ApplyResponseGrantAsync or ApplyResponseChallengeAsync because these methods
-        /// are susceptible to be invoked from AuthenticationHandler.OnSendingHeaderCallback
-        /// where calling Write or WriteAsync on the response stream may result in a deadlock
-        /// on hosts using streamed responses. To work around this limitation, OpenIdConnectServerHandler
-        /// doesn't implement ApplyResponseGrantAsync but TeardownCoreAsync,
-        /// which is never called by AuthenticationHandler.OnSendingHeaderCallback.
-        /// In theory, this would prevent OpenIdConnectServerHandler from both applying
-        /// the response grant and allowing the next middleware in the pipeline to alter
-        /// the response stream but in practice, the OpenIdConnectServerHandler is assumed to be
-        /// the only middleware allowed to write to the response stream when a response grant has been applied.
-        /// </remarks>
         protected override async Task TeardownCoreAsync() {
+            // Note: authentication handlers cannot reliabily write to the response stream
+            // from ApplyResponseGrantAsync or ApplyResponseChallengeAsync because these methods
+            // are susceptible to be invoked from AuthenticationHandler.OnSendingHeaderCallback,
+            // where calling Write or WriteAsync on the response stream may result in a deadlock
+            // on hosts using streamed responses. To work around this limitation, this class
+            // doesn't implement ApplyResponseGrantAsync but TeardownCoreAsync, which is never called
+            // by AuthenticationHandler.OnSendingHeaderCallback. In theory, this would prevent
+            // OpenIdConnectServerHandler from both applying the response grant and allowing
+            // the next middleware in the pipeline to alter the response stream but in practice,
+            // OpenIdConnectServerHandler is assumed to be the only middleware allowed to write
+            // to the response stream when a response grant has been applied.
+
             // Stop processing the request if no OpenID Connect
             // message has been found in the current context.
             var request = Context.GetOpenIdConnectRequest();
@@ -289,17 +288,12 @@ namespace Owin.Security.OpenIdConnect.Server {
                     return;
                 }
 
-                await HandleLogoutResponseAsync();
-                return;
-            }
+                if (await HandleLogoutResponseAsync()) {
+                    return;
+                }
 
-            // Successful authorization responses are directly applied by
-            // HandleAuthorizationResponseAsync: only error responses should be handled at this stage.
-            if (string.IsNullOrEmpty(response.Error)) {
-                return;
+                await HandleForbiddenResponseAsync();
             }
-
-            await SendErrorRedirectAsync(request, response);
         }
 
         protected override async Task ApplyResponseChallengeAsync() {

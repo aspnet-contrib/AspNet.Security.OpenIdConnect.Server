@@ -92,6 +92,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         }
 
         public static class Errors {
+            public const string AccessDenied = "access_denied";
             public const string AccountSelectionRequired = "account_selection_required";
             public const string ConsentRequired = "consent_required";
             public const string InteractionRequired = "interaction_required";
