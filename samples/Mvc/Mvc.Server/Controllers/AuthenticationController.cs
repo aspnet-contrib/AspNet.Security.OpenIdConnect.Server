@@ -21,18 +21,18 @@ namespace Mvc.Server.Controllers {
             // Note: the "provider" parameter corresponds to the external
             // authentication provider choosen by the user agent.
             if (string.IsNullOrEmpty(provider)) {
-                return HttpBadRequest();
+                return BadRequest();
             }
 
             if (!HttpContext.IsProviderSupported(provider)) {
-                return HttpBadRequest();
+                return BadRequest();
             }
 
             // Note: the "returnUrl" parameter corresponds to the endpoint the user agent
             // will be redirected to after a successful authentication and not
             // the redirect_uri of the requesting client application.
             if (string.IsNullOrEmpty(returnUrl)) {
-                return HttpBadRequest();
+                return BadRequest();
             }
 
             // Instruct the middleware corresponding to the requested external identity
