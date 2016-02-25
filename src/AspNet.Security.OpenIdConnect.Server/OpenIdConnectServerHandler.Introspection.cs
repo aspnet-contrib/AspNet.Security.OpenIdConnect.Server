@@ -199,57 +199,45 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return;
             }
 
-            switch (ticket.GetUsage()) {
-                case OpenIdConnectConstants.Usages.AccessToken: {
-                    // When the caller is authenticated, ensure it is
-                    // listed as a valid audience or authorized presenter.
-                    if (validatingContext.IsValidated && !ticket.HasAudience(request.ClientId) &&
-                                                         !ticket.HasPresenter(request.ClientId)) {
-                        Logger.LogWarning("The introspection request was rejected because the access token " +
-                                          "was issued to a different client or for another resource server.");
+            // When a client_id can be inferred from the introspection request,
+            // ensure that the client application is a valid audience/presenter.
+            if (!string.IsNullOrEmpty(request.ClientId)) {
+                // Ensure the caller is listed as a valid audience or authorized presenter.
+                if (ticket.IsAccessToken() && ticket.HasAudience() && !ticket.HasAudience(request.ClientId) &&
+                                              ticket.HasPresenter() && !ticket.HasPresenter(request.ClientId)) {
+                    Logger.LogWarning("The introspection request was rejected because the access token " +
+                                      "was issued to a different client or for another resource server.");
 
-                        await SendPayloadAsync(new JObject {
-                            [OpenIdConnectConstants.Claims.Active] = false
-                        });
+                    await SendPayloadAsync(new JObject {
+                        [OpenIdConnectConstants.Claims.Active] = false
+                    });
 
-                        return;
-                    }
-
-                    break;
+                    return;
                 }
 
-                case OpenIdConnectConstants.Usages.IdToken: {
-                    // When the caller is authenticated, reject the introspection
-                    // request if the caller is not listed as a valid audience.
-                    if (validatingContext.IsValidated && !ticket.HasAudience(request.ClientId)) {
-                        Logger.LogWarning("The introspection request was rejected because the " +
-                                          "identity token was issued to a different client.");
+                // Reject the request if the caller is not listed as a valid audience.
+                else if (ticket.IsIdentityToken() && ticket.HasAudience() && !ticket.HasAudience(request.ClientId)) {
+                    Logger.LogWarning("The introspection request was rejected because the " +
+                                      "identity token was issued to a different client.");
 
-                        await SendPayloadAsync(new JObject {
-                            [OpenIdConnectConstants.Claims.Active] = false
-                        });
+                    await SendPayloadAsync(new JObject {
+                        [OpenIdConnectConstants.Claims.Active] = false
+                    });
 
-                        return;
-                    }
-
-                    break;
+                    return;
                 }
 
-                case OpenIdConnectConstants.Usages.RefreshToken: {
-                    // When the caller is authenticated, reject the introspection request if the caller
-                    // doesn't correspond to the client application the token was issued to.
-                    if (validatingContext.IsValidated && !ticket.HasPresenter(request.ClientId)) {
-                        Logger.LogWarning("The introspection request was rejected because the " +
-                                          "refresh token was issued to a different client.");
+                // Reject the introspection request if the caller doesn't
+                // correspond to the client application the token was issued to.
+                else if (ticket.IsRefreshToken() && ticket.HasPresenter() && !ticket.HasPresenter(request.ClientId)) {
+                    Logger.LogWarning("The introspection request was rejected because the " +
+                                      "refresh token was issued to a different client.");
 
-                        await SendPayloadAsync(new JObject {
-                            [OpenIdConnectConstants.Claims.Active] = false
-                        });
+                    await SendPayloadAsync(new JObject {
+                        [OpenIdConnectConstants.Claims.Active] = false
+                    });
 
-                        return;
-                    }
-
-                    break;
+                    return;
                 }
             }
 
@@ -274,8 +262,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 notification.Audiences.Add(audience);
             }
 
-            // Note: non-metadata claims are only added if the caller is authenticated AND is in the specified audiences.
-            if (validatingContext.IsValidated && notification.Audiences.Contains(request.ClientId)) {
+            // Note: non-metadata claims are only added if the caller is authenticated
+            // AND is in the specified audiences, unless there's so explicit audience.
+            if (!ticket.HasAudience() || (!string.IsNullOrEmpty(request.ClientId) && ticket.HasAudience(request.ClientId))) {
                 // Extract the main identity associated with the principal.
                 var identity = (ClaimsIdentity) ticket.Principal.Identity;
 
