@@ -27,12 +27,15 @@ namespace Mvc.Client {
             });
 
             services.AddMvc();
+            services.AddMvcDnx();
         }
 
         public void Configure(IApplicationBuilder app) {
             var factory = app.ApplicationServices.GetRequiredService<ILoggerFactory>();
             factory.AddConsole();
             factory.AddDebug();
+
+            app.UseDeveloperExceptionPage();
 
             // Insert a new cookies middleware in the pipeline to store the user
             // identity after he has been redirected from the identity provider.

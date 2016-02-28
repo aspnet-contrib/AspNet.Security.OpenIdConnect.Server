@@ -41,12 +41,15 @@ namespace Mvc.Server {
 
             services.AddCaching();
             services.AddMvc();
+            services.AddMvcDnx();
         }
 
         public void Configure(IApplicationBuilder app) {
             var factory = app.ApplicationServices.GetRequiredService<ILoggerFactory>();
             factory.AddConsole();
             factory.AddDebug();
+
+            app.UseDeveloperExceptionPage();
 
             // Create a new branch where the registered middleware will be executed only for API calls.
             app.UseWhen(context => context.Request.Path.StartsWithSegments(new PathString("/api")), branch => {
