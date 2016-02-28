@@ -37,7 +37,7 @@ namespace Mvc.Server.Controllers {
             var request = HttpContext.GetOpenIdConnectRequest();
             if (request == null) {
                 return View("Error", new OpenIdConnectMessage {
-                    Error = "invalid_request",
+                    Error = OpenIdConnectConstants.Errors.ServerError,
                     ErrorDescription = "An internal error has occurred"
                 });
             }
@@ -62,7 +62,7 @@ namespace Mvc.Server.Controllers {
             var application = await GetApplicationAsync(request.ClientId, cancellationToken);
             if (application == null) {
                 return View("Error", new OpenIdConnectMessage {
-                    Error = "invalid_client",
+                    Error = OpenIdConnectConstants.Errors.InvalidClient,
                     ErrorDescription = "Details concerning the calling client application cannot be found in the database"
                 });
             }
@@ -73,10 +73,15 @@ namespace Mvc.Server.Controllers {
 
         [Authorize, HttpPost("~/connect/authorize/accept"), ValidateAntiForgeryToken]
         public async Task<IActionResult> Accept(CancellationToken cancellationToken) {
+            var response = HttpContext.GetOpenIdConnectResponse();
+            if (response != null) {
+                return View("Error", response);
+            }
+
             var request = HttpContext.GetOpenIdConnectRequest();
             if (request == null) {
                 return View("Error", new OpenIdConnectMessage {
-                    Error = "invalid_request",
+                    Error = OpenIdConnectConstants.Errors.ServerError,
                     ErrorDescription = "An internal error has occurred"
                 });
             }
@@ -103,7 +108,7 @@ namespace Mvc.Server.Controllers {
             var application = await GetApplicationAsync(request.ClientId, cancellationToken);
             if (application == null) {
                 return View("Error", new OpenIdConnectMessage {
-                    Error = "invalid_client",
+                    Error = OpenIdConnectConstants.Errors.InvalidClient,
                     ErrorDescription = "Details concerning the calling client application cannot be found in the database"
                 });
             }
@@ -146,7 +151,7 @@ namespace Mvc.Server.Controllers {
         }
 
         [Authorize, HttpPost("~/connect/authorize/deny"), ValidateAntiForgeryToken]
-        public async Task<IActionResult> Deny(CancellationToken cancellationToken) {
+        public IActionResult Deny(CancellationToken cancellationToken) {
             var response = HttpContext.GetOpenIdConnectResponse();
             if (response != null) {
                 return View("Error", response);
@@ -155,7 +160,7 @@ namespace Mvc.Server.Controllers {
             var request = HttpContext.GetOpenIdConnectRequest();
             if (request == null) {
                 return View("Error", new OpenIdConnectMessage {
-                    Error = "invalid_request",
+                    Error = OpenIdConnectConstants.Errors.ServerError,
                     ErrorDescription = "An internal error has occurred"
                 });
             }
@@ -163,9 +168,7 @@ namespace Mvc.Server.Controllers {
             // Notify ASOS that the authorization grant has been denied by the resource owner.
             // Note: OpenIdConnectServerHandler will automatically take care of redirecting
             // the user agent to the client application using the appropriate response_mode.
-            await HttpContext.Authentication.ForbidAsync(OpenIdConnectServerDefaults.AuthenticationScheme);
-
-            return new EmptyResult();
+            return Forbid(OpenIdConnectServerDefaults.AuthenticationScheme);
         }
 
         [HttpGet("~/connect/logout")]
@@ -183,7 +186,7 @@ namespace Mvc.Server.Controllers {
             var request = HttpContext.GetOpenIdConnectRequest();
             if (request == null) {
                 return View("Error", new OpenIdConnectMessage {
-                    Error = "invalid_request",
+                    Error = OpenIdConnectConstants.Errors.ServerError,
                     ErrorDescription = "An internal error has occurred"
                 });
             }
