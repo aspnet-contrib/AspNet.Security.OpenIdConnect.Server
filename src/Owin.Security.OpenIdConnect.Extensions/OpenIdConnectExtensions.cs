@@ -712,6 +712,19 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         }
 
         /// <summary>
+        /// Determines whether the authentication ticket contains at least one audience.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <returns><c>true</c> if the ticket contains at least one audience.</returns>
+        public static bool HasAudience(this AuthenticationTicket ticket) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            return !string.IsNullOrEmpty(ticket.GetProperty(OpenIdConnectConstants.Properties.Audiences));
+        }
+
+        /// <summary>
         /// Determines whether the authentication ticket contains the given audience.
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
@@ -728,6 +741,19 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             }
 
             return audiences.Contains(audience, StringComparer.Ordinal);
+        }
+
+        /// <summary>
+        /// Determines whether the authentication ticket contains at least one presenter.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <returns><c>true</c> if the ticket contains at least one presenter.</returns>
+        public static bool HasPresenter(this AuthenticationTicket ticket) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            return !string.IsNullOrEmpty(ticket.GetProperty(OpenIdConnectConstants.Properties.Presenters));
         }
 
         /// <summary>
@@ -750,6 +776,19 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         }
 
         /// <summary>
+        /// Determines whether the authentication ticket contains at least one resource.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <returns><c>true</c> if the ticket contains at least one resource.</returns>
+        public static bool HasResource(this AuthenticationTicket ticket) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            return !string.IsNullOrEmpty(ticket.GetProperty(OpenIdConnectConstants.Properties.Resources));
+        }
+
+        /// <summary>
         /// Determines whether the authentication ticket contains the given resource.
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
@@ -766,6 +805,19 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             }
 
             return resources.Contains(resource, StringComparer.Ordinal);
+        }
+
+        /// <summary>
+        /// Determines whether the authentication ticket contains at least one scope.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <returns><c>true</c> if the ticket contains at least one scope.</returns>
+        public static bool HasScope(this AuthenticationTicket ticket) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            return !string.IsNullOrEmpty(ticket.GetProperty(OpenIdConnectConstants.Properties.Scopes));
         }
 
         /// <summary>
