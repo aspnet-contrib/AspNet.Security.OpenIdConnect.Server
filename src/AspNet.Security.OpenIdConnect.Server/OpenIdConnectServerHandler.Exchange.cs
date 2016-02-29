@@ -300,41 +300,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     }
                 }
 
-                if (!string.IsNullOrEmpty(request.Resource)) {
-                    // When an explicit resource parameter has been included in the token request
-                    // but was missing from the authorization request, the request MUST be rejected.
-                    var resources = ticket.GetResources();
-                    if (!resources.Any()) {
-                        Logger.LogError("token request cannot contain a resource");
-
-                        await SendErrorPayloadAsync(new OpenIdConnectMessage {
-                            Error = OpenIdConnectConstants.Errors.InvalidGrant,
-                            ErrorDescription = "Token request cannot contain a resource parameter" +
-                                               "if the authorization request didn't contain one"
-                        });
-
-                        return;
-                    }
-
-                    // When an explicit resource parameter has been included in the token request,
-                    // the authorization server MUST ensure that it doesn't contain resources
-                    // that were not allowed during the authorization request.
-                    else if (!new HashSet<string>(resources).IsSupersetOf(request.GetResources())) {
-                        Logger.LogError("token request does not contain matching resource");
-
-                        await SendErrorPayloadAsync(new OpenIdConnectMessage {
-                            Error = OpenIdConnectConstants.Errors.InvalidGrant,
-                            ErrorDescription = "Token request doesn't contain a valid resource parameter"
-                        });
-
-                        return;
-                    }
-
-                    // Replace the resources initially granted by the resources
-                    // listed by the client application in the token request.
-                    ticket.SetResources(request.GetResources());
-                }
-
                 if (!string.IsNullOrEmpty(request.Scope)) {
                     // When an explicit scope parameter has been included in the token request
                     // but was missing from the authorization request, the request MUST be rejected.
