@@ -12,7 +12,7 @@ namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information when processing a logout response.
     /// </summary>
-    public sealed class LogoutEndpointResponseContext : BaseNotification<OpenIdConnectServerOptions> {
+    public class LogoutEndpointResponseContext : BaseNotification<OpenIdConnectServerOptions> {
         /// <summary>
         /// Initializes a new instance of the <see cref="LogoutEndpointResponseContext"/> class
         /// </summary>
@@ -20,7 +20,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <param name="options"></param>
         /// <param name="request"></param>
         /// <param name="response"></param>
-        internal LogoutEndpointResponseContext(
+        public LogoutEndpointResponseContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request,

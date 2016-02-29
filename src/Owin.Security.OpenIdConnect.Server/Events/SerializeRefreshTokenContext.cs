@@ -15,7 +15,7 @@ namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used when issuing a refresh token.
     /// </summary>
-    public sealed class SerializeRefreshTokenContext : BaseContext<OpenIdConnectServerOptions> {
+    public class SerializeRefreshTokenContext : BaseContext<OpenIdConnectServerOptions> {
         /// <summary>
         /// Initializes a new instance of the <see cref="SerializeRefreshTokenContext"/> class
         /// </summary>
@@ -24,7 +24,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <param name="request"></param>
         /// <param name="response"></param>
         /// <param name="ticket"></param>
-        internal SerializeRefreshTokenContext(
+        public SerializeRefreshTokenContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request,

@@ -12,7 +12,7 @@ namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used when granting an OpenIdConnect refresh token.
     /// </summary>
-    public sealed class GrantRefreshTokenContext : BaseValidatingTicketContext {
+    public class GrantRefreshTokenContext : BaseValidatingTicketContext {
         /// <summary>
         /// Initializes a new instance of the <see cref="GrantRefreshTokenContext"/> class
         /// </summary>
@@ -20,7 +20,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <param name="options"></param>
         /// <param name="request"></param>
         /// <param name="ticket"></param>
-        internal GrantRefreshTokenContext(
+        public GrantRefreshTokenContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request,

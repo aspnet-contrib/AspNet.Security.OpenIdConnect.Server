@@ -13,11 +13,11 @@ namespace Owin.Security.OpenIdConnect.Server {
     /// An event raised before the authorization server starts
     /// writing the token status/metadata to the response stream.
     /// </summary>
-    public sealed class IntrospectionEndpointResponseContext : BaseNotification<OpenIdConnectServerOptions> {
+    public class IntrospectionEndpointResponseContext : BaseNotification<OpenIdConnectServerOptions> {
         /// <summary>
         /// Creates an instance of this context.
         /// </summary>
-        internal IntrospectionEndpointResponseContext(
+        public IntrospectionEndpointResponseContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
             JObject payload)

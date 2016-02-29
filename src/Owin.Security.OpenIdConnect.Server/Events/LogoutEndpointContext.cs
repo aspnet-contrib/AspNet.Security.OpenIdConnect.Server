@@ -13,11 +13,11 @@ namespace Owin.Security.OpenIdConnect.Server {
     /// An event raised after the Authorization Server has processed the logout request, but before it is passed on to the web application.
     /// Calling RequestCompleted will prevent the request from passing on to the web application.
     /// </summary>
-    public sealed class LogoutEndpointContext : BaseNotification<OpenIdConnectServerOptions> {
+    public class LogoutEndpointContext : BaseNotification<OpenIdConnectServerOptions> {
         /// <summary>
         /// Creates an instance of this context
         /// </summary>
-        internal LogoutEndpointContext(
+        public LogoutEndpointContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request)

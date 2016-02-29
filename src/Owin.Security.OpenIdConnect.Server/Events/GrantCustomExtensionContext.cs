@@ -11,14 +11,14 @@ namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used when handling OpenIdConnect extension grant types.
     /// </summary>
-    public sealed class GrantCustomExtensionContext : BaseValidatingTicketContext {
+    public class GrantCustomExtensionContext : BaseValidatingTicketContext {
         /// <summary>
         /// Initializes a new instance of the <see cref="GrantCustomExtensionContext"/> class
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="request"></param>
-        internal GrantCustomExtensionContext(
+        public GrantCustomExtensionContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request)

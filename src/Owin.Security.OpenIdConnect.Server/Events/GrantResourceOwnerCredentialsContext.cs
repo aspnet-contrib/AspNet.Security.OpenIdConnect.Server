@@ -13,14 +13,14 @@ namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used in handling an OpenIdConnect resource owner grant.
     /// </summary>
-    public sealed class GrantResourceOwnerCredentialsContext : BaseValidatingTicketContext {
+    public class GrantResourceOwnerCredentialsContext : BaseValidatingTicketContext {
         /// <summary>
         /// Initializes a new instance of the <see cref="GrantResourceOwnerCredentialsContext"/> class
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="request"></param>
-        internal GrantResourceOwnerCredentialsContext(
+        public GrantResourceOwnerCredentialsContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request)

@@ -14,7 +14,7 @@ namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used when receiving an access token.
     /// </summary>
-    public sealed class DeserializeAccessTokenContext : BaseContext<OpenIdConnectServerOptions> {
+    public class DeserializeAccessTokenContext : BaseContext<OpenIdConnectServerOptions> {
         /// <summary>
         /// Initializes a new instance of the <see cref="DeserializeAccessTokenContext"/> class
         /// </summary>
@@ -22,7 +22,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <param name="options"></param>
         /// <param name="request"></param>
         /// <param name="token"></param>
-        internal DeserializeAccessTokenContext(
+        public DeserializeAccessTokenContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request,

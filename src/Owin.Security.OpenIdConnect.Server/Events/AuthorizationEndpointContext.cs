@@ -13,11 +13,11 @@ namespace Owin.Security.OpenIdConnect.Server {
     /// An event raised after the Authorization Server has processed the request, but before it is passed on to the web application.
     /// Calling RequestCompleted will prevent the request from passing on to the web application.
     /// </summary>
-    public sealed class AuthorizationEndpointContext : BaseNotification<OpenIdConnectServerOptions> {
+    public class AuthorizationEndpointContext : BaseNotification<OpenIdConnectServerOptions> {
         /// <summary>
         /// Creates an instance of this context
         /// </summary>
-        internal AuthorizationEndpointContext(
+        public AuthorizationEndpointContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request)

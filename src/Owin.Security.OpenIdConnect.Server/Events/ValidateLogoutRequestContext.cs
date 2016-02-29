@@ -12,14 +12,14 @@ namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used when validating a logout request.
     /// </summary>
-    public sealed class ValidateLogoutRequestContext : BaseValidatingContext {
+    public class ValidateLogoutRequestContext : BaseValidatingContext {
         /// <summary>
         /// Initializes a new instance of the <see cref="ValidateLogoutRequestContext"/> class.
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="request"></param>
-        internal ValidateLogoutRequestContext(
+        public ValidateLogoutRequestContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request)

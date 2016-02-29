@@ -13,11 +13,11 @@ namespace Owin.Security.OpenIdConnect.Server {
     /// An event raised before the authorization server starts
     /// writing the JWKS metadata to the response stream.
     /// </summary>
-    public sealed class CryptographyEndpointResponseContext : BaseNotification<OpenIdConnectServerOptions> {
+    public class CryptographyEndpointResponseContext : BaseNotification<OpenIdConnectServerOptions> {
         /// <summary>
         /// Creates an instance of this context.
         /// </summary>
-        internal CryptographyEndpointResponseContext(
+        public CryptographyEndpointResponseContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
             JObject payload)

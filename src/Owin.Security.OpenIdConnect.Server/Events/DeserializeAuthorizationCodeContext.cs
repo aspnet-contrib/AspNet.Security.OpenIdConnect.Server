@@ -13,7 +13,7 @@ namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used when receiving an authorization code.
     /// </summary>
-    public sealed class DeserializeAuthorizationCodeContext : BaseContext<OpenIdConnectServerOptions> {
+    public class DeserializeAuthorizationCodeContext : BaseContext<OpenIdConnectServerOptions> {
         /// <summary>
         /// Initializes a new instance of the <see cref="DeserializeAuthorizationCodeContext"/> class
         /// </summary>
@@ -21,7 +21,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <param name="options"></param>
         /// <param name="request"></param>
         /// <param name="code"></param>
-        internal DeserializeAuthorizationCodeContext(
+        public DeserializeAuthorizationCodeContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request,
