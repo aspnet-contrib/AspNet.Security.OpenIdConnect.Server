@@ -13,7 +13,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used when receiving an access token.
     /// </summary>
-    public sealed class DeserializeAccessTokenContext : BaseContext {
+    public class DeserializeAccessTokenContext : BaseContext {
         /// <summary>
         /// Initializes a new instance of the <see cref="DeserializeAccessTokenContext"/> class
         /// </summary>
@@ -21,7 +21,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <param name="options"></param>
         /// <param name="request"></param>
         /// <param name="token"></param>
-        internal DeserializeAccessTokenContext(
+        public DeserializeAccessTokenContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request,

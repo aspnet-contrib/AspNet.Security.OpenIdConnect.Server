@@ -12,7 +12,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information when handling an OpenIdConnect authorization code grant.
     /// </summary>
-    public sealed class GrantAuthorizationCodeContext : BaseValidatingTicketContext {
+    public class GrantAuthorizationCodeContext : BaseValidatingTicketContext {
         /// <summary>
         /// Initializes a new instance of the <see cref="GrantAuthorizationCodeContext"/> class
         /// </summary>
@@ -20,7 +20,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <param name="options"></param>
         /// <param name="request"></param>
         /// <param name="ticket"></param>
-        internal GrantAuthorizationCodeContext(
+        public GrantAuthorizationCodeContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request,

@@ -12,7 +12,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information when processing an Authorization Response
     /// </summary>
-    public sealed class AuthorizationEndpointResponseContext : BaseControlContext {
+    public class AuthorizationEndpointResponseContext : BaseControlContext {
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AuthorizationEndpointResponseContext"/> class
@@ -22,7 +22,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <param name="ticket"></param>
         /// <param name="request"></param>
         /// <param name="response"></param>
-        internal AuthorizationEndpointResponseContext(
+        public AuthorizationEndpointResponseContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
             AuthenticationTicket ticket,

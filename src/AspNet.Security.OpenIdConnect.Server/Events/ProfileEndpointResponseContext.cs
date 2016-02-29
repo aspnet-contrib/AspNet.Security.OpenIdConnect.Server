@@ -13,7 +13,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used at the end of a userinfo request.
     /// </summary>
-    public sealed class ProfileEndpointResponseContext : BaseControlContext {
+    public class ProfileEndpointResponseContext : BaseControlContext {
         /// <summary>
         /// Initializes a new instance of the <see cref="ProfileEndpointResponseContext"/> class
         /// </summary>
@@ -21,7 +21,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <param name="options"></param>
         /// <param name="request"></param>
         /// <param name="payload"></param>
-        internal ProfileEndpointResponseContext(
+        public ProfileEndpointResponseContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request,

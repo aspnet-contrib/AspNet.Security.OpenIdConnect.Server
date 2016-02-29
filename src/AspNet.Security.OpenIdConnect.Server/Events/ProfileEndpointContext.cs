@@ -15,11 +15,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// An event raised after the Authorization Server has processed the request, but before it is passed on to the web application.
     /// Calling RequestCompleted will prevent the request from passing on to the web application.
     /// </summary>
-    public sealed class ProfileEndpointContext : BaseControlContext {
+    public class ProfileEndpointContext : BaseControlContext {
         /// <summary>
         /// Creates an instance of this context
         /// </summary>
-        internal ProfileEndpointContext(
+        public ProfileEndpointContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request,

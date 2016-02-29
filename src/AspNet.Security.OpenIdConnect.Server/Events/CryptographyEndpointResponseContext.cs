@@ -14,11 +14,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// An event raised before the authorization server starts
     /// writing the JWKS metadata to the response stream.
     /// </summary>
-    public sealed class CryptographyEndpointResponseContext : BaseControlContext {
+    public class CryptographyEndpointResponseContext : BaseControlContext {
         /// <summary>
         /// Creates an instance of this context.
         /// </summary>
-        internal CryptographyEndpointResponseContext(
+        public CryptographyEndpointResponseContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
             JObject payload)

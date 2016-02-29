@@ -14,7 +14,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used when issuing an authorization code.
     /// </summary>
-    public sealed class SerializeAuthorizationCodeContext : BaseContext {
+    public class SerializeAuthorizationCodeContext : BaseContext {
         /// <summary>
         /// Initializes a new instance of the <see cref="SerializeAuthorizationCodeContext"/> class
         /// </summary>
@@ -23,7 +23,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <param name="request"></param>
         /// <param name="response"></param>
         /// <param name="ticket"></param>
-        internal SerializeAuthorizationCodeContext(
+        public SerializeAuthorizationCodeContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request,

@@ -11,14 +11,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used when validating an introspection request.
     /// </summary>
-    public sealed class ValidateIntrospectionRequestContext : BaseValidatingClientContext {
+    public class ValidateIntrospectionRequestContext : BaseValidatingClientContext {
         /// <summary>
         /// Initializes a new instance of the <see cref="ValidateIntrospectionRequestContext"/> class.
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="request"></param>
-        internal ValidateIntrospectionRequestContext(
+        public ValidateIntrospectionRequestContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request)
