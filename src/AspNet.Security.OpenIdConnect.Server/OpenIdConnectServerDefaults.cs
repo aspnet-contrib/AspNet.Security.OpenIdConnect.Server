@@ -14,7 +14,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Default value for <see cref="AuthenticationOptions.AuthenticationScheme"/>.
         /// </summary>
-        public const string AuthenticationScheme = "oidc-server";
+        public const string AuthenticationScheme = "ASOS";
 
         /// <summary>
         /// Default value for <see cref="OpenIdConnectServerOptions.AuthorizationEndpointPath"/>.

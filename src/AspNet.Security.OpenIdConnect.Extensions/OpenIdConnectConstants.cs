@@ -42,6 +42,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
             public const string RedirectUri = "redirect_uri";
             public const string RefreshToken = "refresh_token";
             public const string Request = "request";
+            public const string RequestId = "request_id";
             public const string RequestUri = "request_uri";
             public const string ResponseMode = "response_mode";
             public const string ResponseType = "response_type";
@@ -50,7 +51,6 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
             public const string Token = "token";
             public const string TokenType = "token_type";
             public const string TokenTypeHint = "token_type_hint";
-            public const string UniqueId = "unique_id";
             public const string Username = "username";
         }
 
@@ -106,15 +106,15 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
         }
 
         public static class Properties {
-            public const string Audiences = "audiences";
-            public const string Confidential = "confidential";
-            public const string Destinations = "destinations";
-            public const string Nonce = "nonce";
-            public const string Presenters = "presenters";
-            public const string RedirectUri = "redirect_uri";
-            public const string Resources = "resources";
-            public const string Scopes = "scopes";
-            public const string Usage = "usage";
+            public const string Audiences = ".audiences";
+            public const string Confidential = ".confidential";
+            public const string Destinations = ".destinations";
+            public const string Nonce = ".nonce";
+            public const string Presenters = ".presenters";
+            public const string RedirectUri = ".redirect_uri";
+            public const string Resources = ".resources";
+            public const string Scopes = ".scopes";
+            public const string Usage = ".usage";
         }
 
         public static class Metadata {

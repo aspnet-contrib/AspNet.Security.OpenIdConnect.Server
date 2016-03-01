@@ -76,7 +76,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             // Re-assemble the authorization request using the distributed cache if
             // a 'unique_id' parameter has been extracted from the received message.
-            var identifier = request.GetUniqueIdentifier();
+            var identifier = request.GetRequestIdentifier();
             if (!string.IsNullOrEmpty(identifier)) {
                 var buffer = await Options.Cache.GetAsync(identifier);
                 if (buffer == null) {
@@ -288,7 +288,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 });
             }
 
-            identifier = request.GetUniqueIdentifier();
+            identifier = request.GetRequestIdentifier();
             if (string.IsNullOrEmpty(identifier)) {
                 // Generate a new 256-bits identifier and associate it with the authorization request.
                 identifier = Options.RandomNumberGenerator.GenerateKey(length: 256 / 8);
@@ -305,7 +305,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     }
 
                     // Store the authorization request in the distributed cache.
-                    await Options.Cache.SetAsync(request.GetUniqueIdentifier(), options => {
+                    await Options.Cache.SetAsync(request.GetRequestIdentifier(), options => {
                         options.SetAbsoluteExpiration(TimeSpan.FromHours(1));
 
                         return stream.ToArray();
@@ -500,7 +500,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             // Remove the OpenID Connect request from the distributed cache.
-            var identifier = request.GetUniqueIdentifier();
+            var identifier = request.GetRequestIdentifier();
             if (!string.IsNullOrEmpty(identifier)) {
                 await Options.Cache.RemoveAsync(identifier);
             }
