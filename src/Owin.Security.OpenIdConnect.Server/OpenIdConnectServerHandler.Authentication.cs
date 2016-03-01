@@ -72,7 +72,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             // Re-assemble the authorization request using the cache if
             // a 'unique_id' parameter has been extracted from the received message.
-            var identifier = request.GetUniqueIdentifier();
+            var identifier = request.GetRequestIdentifier();
             if (!string.IsNullOrEmpty(identifier)) {
                 var item = Options.Cache.Get(identifier) as string;
                 if (item == null) {
@@ -285,7 +285,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 });
             }
 
-            identifier = request.GetUniqueIdentifier();
+            identifier = request.GetRequestIdentifier();
             if (string.IsNullOrEmpty(identifier)) {
                 // Generate a new 256-bits identifier and associate it with the authorization request.
                 identifier = Options.RandomNumberGenerator.GenerateKey(length: 256 / 8);
@@ -495,7 +495,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             // Remove the OpenID Connect request from the cache.
-            var identifier = request.GetUniqueIdentifier();
+            var identifier = request.GetRequestIdentifier();
             if (!string.IsNullOrEmpty(identifier)) {
                 Options.Cache.Remove(identifier);
             }

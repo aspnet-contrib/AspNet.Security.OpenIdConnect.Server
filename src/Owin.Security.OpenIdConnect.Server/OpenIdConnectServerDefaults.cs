@@ -14,7 +14,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Default value for <see cref="AuthenticationOptions.AuthenticationType"/>.
         /// </summary>
-        public const string AuthenticationType = "oidc-server";
+        public const string AuthenticationType = "ASOS";
 
         /// <summary>
         /// Default value for <see cref="OpenIdConnectServerOptions.AuthorizationEndpointPath"/>.

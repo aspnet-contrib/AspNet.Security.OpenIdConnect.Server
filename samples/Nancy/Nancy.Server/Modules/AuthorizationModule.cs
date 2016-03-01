@@ -46,8 +46,8 @@ namespace Nancy.Server.Modules {
                 // restored by the OpenID Connect server middleware after the external authentication process has been completed.
                 if (OwinContext.Authentication.User?.Identity == null ||
                    !OwinContext.Authentication.User.Identity.IsAuthenticated) {
-                    return Response.AsRedirect("/signin?returnUrl=" + Uri.EscapeUriString("/connect/authorize?unique_id=" +
-                                                                                          request.GetUniqueIdentifier()));
+                    return Response.AsRedirect("/signin?returnUrl=" + Uri.EscapeUriString("/connect/authorize?request_id=" +
+                                                                                          request.GetRequestIdentifier()));
                 }
 
                 // Note: ASOS automatically ensures that an application corresponds to the client_id specified
@@ -64,12 +64,7 @@ namespace Nancy.Server.Modules {
 
                 // Note: in a real world application, you'd probably
                 // prefer creating a specific view model.
-                return View["Authorize.cshtml", new {
-                    Application = application,
-                    Request = request,
-                    Resources = request.GetResources(),
-                    UniqueId = request.GetUniqueIdentifier()
-                }];
+                return View["Authorize.cshtml", new { Application = application, Request = request }];
             };
             
             Post["/connect/authorize/accept", runAsync: true] = async (parameters, cancellationToken) => {

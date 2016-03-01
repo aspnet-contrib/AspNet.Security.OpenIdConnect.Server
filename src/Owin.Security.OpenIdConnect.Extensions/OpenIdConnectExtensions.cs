@@ -78,15 +78,15 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         }
 
         /// <summary>
-        /// Extracts the unique identifier associated with an <see cref="OpenIdConnectMessage"/>.
+        /// Extracts the request identifier associated with an <see cref="OpenIdConnectMessage"/>.
         /// </summary>
         /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
-        public static string GetUniqueIdentifier(this OpenIdConnectMessage message) {
+        public static string GetRequestIdentifier(this OpenIdConnectMessage message) {
             if (message == null) {
                 throw new ArgumentNullException(nameof(message));
             }
 
-            return message.GetParameter(OpenIdConnectConstants.Parameters.UniqueId);
+            return message.GetParameter(OpenIdConnectConstants.Parameters.RequestId);
         }
 
         /// <summary>
@@ -335,7 +335,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(message));
             }
 
-            message.SetParameter(OpenIdConnectConstants.Parameters.UniqueId, identifier);
+            message.SetParameter(OpenIdConnectConstants.Parameters.RequestId, identifier);
             return message;
         }
 
