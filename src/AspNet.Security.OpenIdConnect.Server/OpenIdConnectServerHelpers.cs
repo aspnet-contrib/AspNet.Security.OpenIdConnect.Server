@@ -17,7 +17,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
     internal static class OpenIdConnectServerHelpers {
         internal static RSA GenerateKey(IRuntimeEnvironment environment) {
             if (environment.OperatingSystemPlatform == Platform.Windows) {
-#if DOTNET5_4
+#if NETSTANDARD1_3
                 // On CoreCLR, use RSACng.
                 return new RSACng(2048);
 #else
@@ -31,7 +31,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return new RSACryptoServiceProvider(2048);
             }
 
-#if DOTNET5_4
+#if NETSTANDARD1_3
             // On Linux and Darwin, use RSAOpenSsl when running on CoreCLR.
             if (environment.OperatingSystemPlatform == Platform.Linux ||
                 environment.OperatingSystemPlatform == Platform.Darwin) {
@@ -146,7 +146,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             finally {
-#if DOTNET5_4
+#if NETSTANDARD1_3
                 store.Dispose();
 #else
                 store.Close();
@@ -164,7 +164,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 }
             }
 
-#if !DOTNET5_4
+#if NET451
             // Note: Environment.GetFolderPath may return null if the user profile is not loaded.
             path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 
@@ -373,7 +373,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                         return false;
                     }
 
-#if DOTNET5_4
+#if NETSTANDARD1_3
                     // Note: the ECDsa type exists on .NET 4.5.1 but not on Mono 4.3.
                     // To prevent this code path from throwing an exception
                     // on Mono, the following algorithms are ignored on NET451.

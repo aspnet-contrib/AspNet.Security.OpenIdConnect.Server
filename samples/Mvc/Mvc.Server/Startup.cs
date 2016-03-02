@@ -11,7 +11,7 @@ using Mvc.Server.Extensions;
 using Mvc.Server.Models;
 using Mvc.Server.Providers;
 
-#if !DNXCORE50
+#if DNX451
 using NWebsec.Owin;
 #endif
 
@@ -96,7 +96,7 @@ namespace Mvc.Server {
                 });
             });
 
-#if !DNXCORE50
+#if DNX451
             app.UseOwinAppBuilder(owin => {
                 // Insert a new middleware responsible of setting the Content-Security-Policy header.
                 // See https://nwebsec.codeplex.com/wikipage?title=Configuring%20Content%20Security%20Policy&referringTitle=NWebsec

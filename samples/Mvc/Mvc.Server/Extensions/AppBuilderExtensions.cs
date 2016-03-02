@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 
-#if !DNXCORE50
+#if DNX451
 using Microsoft.Owin.Builder;
 using Microsoft.Owin.BuilderProperties;
 using Owin;
@@ -46,7 +46,7 @@ namespace Mvc.Server.Extensions {
             });
         }
 
-#if !DNXCORE50
+#if DNX451
         public static IApplicationBuilder UseOwinAppBuilder(this IApplicationBuilder app, Action<IAppBuilder> configuration) {
             if (app == null) {
                 throw new ArgumentNullException(nameof(app));
