@@ -147,12 +147,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
             identity = (ClaimsIdentity) ticket.Principal.Identity;
 
             // Store the "usage" property as a claim.
-            identity.AddClaim(OpenIdConnectConstants.Properties.Usage, ticket.GetUsage());
+            identity.AddClaim(OpenIdConnectConstants.Claims.Usage, ticket.GetUsage());
 
             // If the ticket is marked as confidential, add a new
             // "confidential" claim in the security token.
             if (ticket.IsConfidential()) {
-                identity.AddClaim(new Claim(OpenIdConnectConstants.Properties.Confidential, "true", ClaimValueTypes.Boolean));
+                identity.AddClaim(new Claim(OpenIdConnectConstants.Claims.Confidential, "true", ClaimValueTypes.Boolean));
             }
 
             // Create a new claim per scope item, that will result
@@ -365,12 +365,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             // Store the "usage" property as a claim.
-            identity.AddClaim(OpenIdConnectConstants.Properties.Usage, ticket.GetUsage());
+            identity.AddClaim(OpenIdConnectConstants.Claims.Usage, ticket.GetUsage());
 
             // If the ticket is marked as confidential, add a new
             // "confidential" claim in the security token.
             if (ticket.IsConfidential()) {
-                identity.AddClaim(new Claim(OpenIdConnectConstants.Properties.Confidential, "true", ClaimValueTypes.Boolean));
+                identity.AddClaim(new Claim(OpenIdConnectConstants.Claims.Confidential, "true", ClaimValueTypes.Boolean));
             }
 
             // Store the audiences as claims.
@@ -634,12 +634,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 ticket.SetScopes(scopes.Select(claim => claim.Value));
             }
 
-            var usage = principal.FindFirst(OpenIdConnectConstants.Properties.Usage);
+            var usage = principal.FindFirst(OpenIdConnectConstants.Claims.Usage);
             if (usage != null) {
                 ticket.SetUsage(usage.Value);
             }
 
-            var confidential = principal.FindFirst(OpenIdConnectConstants.Properties.Confidential);
+            var confidential = principal.FindFirst(OpenIdConnectConstants.Claims.Confidential);
             if (confidential != null && string.Equals(confidential.Value, "true", StringComparison.OrdinalIgnoreCase)) {
                 ticket.Properties.Items[OpenIdConnectConstants.Properties.Confidential] = "true";
             }
@@ -717,12 +717,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 ticket.SetPresenters(presenters.Select(claim => claim.Value));
             }
 
-            var usage = principal.FindFirst(OpenIdConnectConstants.Properties.Usage);
+            var usage = principal.FindFirst(OpenIdConnectConstants.Claims.Usage);
             if (usage != null) {
                 ticket.SetUsage(usage.Value);
             }
 
-            var confidential = principal.FindFirst(OpenIdConnectConstants.Properties.Confidential);
+            var confidential = principal.FindFirst(OpenIdConnectConstants.Claims.Confidential);
             if (confidential != null && string.Equals(confidential.Value, "true", StringComparison.OrdinalIgnoreCase)) {
                 ticket.Properties.Items[OpenIdConnectConstants.Properties.Confidential] = "true";
             }
