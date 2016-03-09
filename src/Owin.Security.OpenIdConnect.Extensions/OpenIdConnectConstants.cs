@@ -13,6 +13,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             public const string Address = "address";
             public const string AtHash = "at_hash";
             public const string ClientId = "client_id";
+            public const string Confidential = "confidential";
             public const string EmailVerified = "email_verified";
             public const string PhoneNumber = "phone_number";
             public const string PhoneNumberVerified = "phone_number_verified";
@@ -20,6 +21,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             public const string Profile = "profile";
             public const string Scope = "scope";
             public const string TokenType = "token_type";
+            public const string Usage = "usage";
             public const string Username = "username";
             public const string Website = "website";
         }

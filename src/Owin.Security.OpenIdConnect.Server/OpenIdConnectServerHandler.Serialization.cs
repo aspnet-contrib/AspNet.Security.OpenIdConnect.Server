@@ -134,12 +134,12 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             // Store the "usage" property as a claim.
-            ticket.Identity.AddClaim(OpenIdConnectConstants.Properties.Usage, ticket.GetUsage());
+            ticket.Identity.AddClaim(OpenIdConnectConstants.Claims.Usage, ticket.GetUsage());
 
             // If the ticket is marked as confidential, add a new
             // "confidential" claim in the security token.
             if (ticket.IsConfidential()) {
-                ticket.Identity.AddClaim(new Claim(OpenIdConnectConstants.Properties.Confidential, "true", ClaimValueTypes.Boolean));
+                ticket.Identity.AddClaim(new Claim(OpenIdConnectConstants.Claims.Confidential, "true", ClaimValueTypes.Boolean));
             }
 
             // Create a new claim per scope item, that will result
@@ -369,12 +369,12 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             // Store the "usage" property as a claim.
-            ticket.Identity.AddClaim(OpenIdConnectConstants.Properties.Usage, ticket.GetUsage());
+            ticket.Identity.AddClaim(OpenIdConnectConstants.Claims.Usage, ticket.GetUsage());
 
             // If the ticket is marked as confidential, add a new
             // "confidential" claim in the security token.
             if (ticket.IsConfidential()) {
-                ticket.Identity.AddClaim(new Claim(OpenIdConnectConstants.Properties.Confidential, "true", ClaimValueTypes.Boolean));
+                ticket.Identity.AddClaim(new Claim(OpenIdConnectConstants.Claims.Confidential, "true", ClaimValueTypes.Boolean));
             }
 
             // Store the audiences as claims.
@@ -642,12 +642,12 @@ namespace Owin.Security.OpenIdConnect.Server {
                 ticket.SetScopes(scopes.Select(claim => claim.Value));
             }
 
-            var usage = principal.FindFirst(OpenIdConnectConstants.Properties.Usage);
+            var usage = principal.FindFirst(OpenIdConnectConstants.Claims.Usage);
             if (usage != null) {
                 ticket.SetUsage(usage.Value);
             }
 
-            var confidential = principal.FindFirst(OpenIdConnectConstants.Properties.Confidential);
+            var confidential = principal.FindFirst(OpenIdConnectConstants.Claims.Confidential);
             if (confidential != null && string.Equals(confidential.Value, "true", StringComparison.OrdinalIgnoreCase)) {
                 ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.Confidential] = "true";
             }
@@ -725,12 +725,12 @@ namespace Owin.Security.OpenIdConnect.Server {
                 ticket.SetPresenters(presenters.Select(claim => claim.Value));
             }
 
-            var usage = principal.FindFirst(OpenIdConnectConstants.Properties.Usage);
+            var usage = principal.FindFirst(OpenIdConnectConstants.Claims.Usage);
             if (usage != null) {
                 ticket.SetUsage(usage.Value);
             }
 
-            var confidential = principal.FindFirst(OpenIdConnectConstants.Properties.Confidential);
+            var confidential = principal.FindFirst(OpenIdConnectConstants.Claims.Confidential);
             if (confidential != null && string.Equals(confidential.Value, "true", StringComparison.OrdinalIgnoreCase)) {
                 ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.Confidential] = "true";
             }
