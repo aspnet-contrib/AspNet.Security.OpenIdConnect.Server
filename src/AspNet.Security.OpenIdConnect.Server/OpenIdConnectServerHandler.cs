@@ -33,16 +33,16 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 notification.MatchesLogoutEndpoint();
             }
 
-            else if (Options.ProfileEndpointPath.HasValue &&
-                     Options.ProfileEndpointPath == Request.Path) {
-                notification.MatchesProfileEndpoint();
+            else if (Options.UserinfoEndpointPath.HasValue &&
+                     Options.UserinfoEndpointPath == Request.Path) {
+                notification.MatchesUserinfoEndpoint();
             }
 
             await Options.Provider.MatchEndpoint(notification);
             
             if (!notification.IsAuthorizationEndpoint &&
                 !notification.IsLogoutEndpoint &&
-                !notification.IsProfileEndpoint) {
+                !notification.IsUserinfoEndpoint) {
                 return AuthenticateResult.Skip();
             }
 
@@ -95,7 +95,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return AuthenticateResult.Success(ticket);
             }
 
-            else if (notification.IsProfileEndpoint) {
+            else if (notification.IsUserinfoEndpoint) {
                 string token;
                 if (!string.IsNullOrEmpty(request.AccessToken)) {
                     token = request.AccessToken;
@@ -155,9 +155,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 notification.MatchesIntrospectionEndpoint();
             }
 
-            else if (Options.ProfileEndpointPath.HasValue &&
-                     Options.ProfileEndpointPath == Request.Path) {
-                notification.MatchesProfileEndpoint();
+            else if (Options.UserinfoEndpointPath.HasValue &&
+                     Options.UserinfoEndpointPath == Request.Path) {
+                notification.MatchesUserinfoEndpoint();
             }
 
             else if (Options.LogoutEndpointPath.HasValue &&
@@ -200,7 +200,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 }
 
                 // Return a JSON error for endpoints that don't involve the user participation.
-                else if (notification.IsTokenEndpoint || notification.IsProfileEndpoint ||
+                else if (notification.IsTokenEndpoint || notification.IsUserinfoEndpoint ||
                          notification.IsIntrospectionEndpoint || notification.IsConfigurationEndpoint ||
                          notification.IsCryptographyEndpoint) {
                     Logger.LogWarning("The HTTP request was rejected because AllowInsecureHttp was false.");
@@ -232,8 +232,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return true;
             }
 
-            else if (notification.IsProfileEndpoint) {
-                return await InvokeProfileEndpointAsync();
+            else if (notification.IsUserinfoEndpoint) {
+                return await InvokeUserinfoEndpointAsync();
             }
 
             else if (notification.IsConfigurationEndpoint) {

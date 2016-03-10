@@ -42,7 +42,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets or sets the userinfo endpoint address.
         /// </summary>
-        public string ProfileEndpoint { get; set; }
+        public string UserinfoEndpoint { get; set; }
 
         /// <summary>
         /// Gets or sets the introspection endpoint address.

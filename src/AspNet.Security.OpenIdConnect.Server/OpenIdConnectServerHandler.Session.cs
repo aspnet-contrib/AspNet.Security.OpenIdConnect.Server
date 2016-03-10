@@ -153,16 +153,16 @@ namespace AspNet.Security.OpenIdConnect.Server {
         protected override async Task<bool> HandleUnauthorizedAsync(ChallengeContext context) {
             var notification = new MatchEndpointContext(Context, Options);
 
-            if (Options.ProfileEndpointPath.HasValue &&
-                Options.ProfileEndpointPath == Request.Path) {
-                notification.MatchesProfileEndpoint();
+            if (Options.UserinfoEndpointPath.HasValue &&
+                Options.UserinfoEndpointPath == Request.Path) {
+                notification.MatchesUserinfoEndpoint();
             }
 
             await Options.Provider.MatchEndpoint(notification);
 
             // Return true to indicate to the authentication pipeline that
             // the 401 response shouldn't be handled by the other middleware.
-            if (!notification.IsProfileEndpoint) {
+            if (!notification.IsUserinfoEndpoint) {
                 return true;
             }
 

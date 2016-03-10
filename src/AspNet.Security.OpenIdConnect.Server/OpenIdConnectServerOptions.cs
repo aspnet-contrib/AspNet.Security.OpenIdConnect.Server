@@ -74,9 +74,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// The request path client applications communicate with to retrieve user information. 
         /// Must begin with a leading slash, like "/connect/userinfo".
-        /// You can set it to <see cref="PathString.Empty"/> to disable the profile endpoint.
+        /// You can set it to <see cref="PathString.Empty"/> to disable the userinfo endpoint.
         /// </summary>
-        public PathString ProfileEndpointPath { get; set; } = new PathString(OpenIdConnectServerDefaults.ProfileEndpointPath);
+        public PathString UserinfoEndpointPath { get; set; } = new PathString(OpenIdConnectServerDefaults.UserinfoEndpointPath);
 
         /// <summary>
         /// The request path client applications communicate with to validate an access, identity or refresh token.

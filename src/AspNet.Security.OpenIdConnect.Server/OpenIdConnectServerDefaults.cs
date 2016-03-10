@@ -37,9 +37,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public const string TokenEndpointPath = "/connect/token";
 
         /// <summary>
-        /// Default value for <see cref="OpenIdConnectServerOptions.ProfileEndpointPath"/>.
+        /// Default value for <see cref="OpenIdConnectServerOptions.UserinfoEndpointPath"/>.
         /// </summary>
-        public const string ProfileEndpointPath = "/connect/userinfo";
+        public const string UserinfoEndpointPath = "/connect/userinfo";
 
         /// <summary>
         /// Default value for <see cref="OpenIdConnectServerOptions.IntrospectionEndpointPath"/>.

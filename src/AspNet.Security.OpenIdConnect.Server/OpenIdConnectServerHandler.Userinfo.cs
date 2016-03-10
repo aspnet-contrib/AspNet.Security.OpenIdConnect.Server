@@ -20,7 +20,7 @@ using Newtonsoft.Json.Linq;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     internal partial class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions> {
-        private async Task<bool> InvokeProfileEndpointAsync() {
+        private async Task<bool> InvokeUserinfoEndpointAsync() {
             OpenIdConnectMessage request;
 
             if (!string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase) &&
@@ -140,7 +140,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // Insert the userinfo request in the ASP.NET context.
             Context.SetOpenIdConnectRequest(request);
 
-            var notification = new ProfileEndpointContext(Context, Options, request, ticket);
+            var notification = new UserinfoEndpointContext(Context, Options, request, ticket);
 
             notification.Subject = ticket.Principal.GetClaim(ClaimTypes.NameIdentifier);
             notification.Issuer = Context.GetIssuer(Options);
@@ -170,7 +170,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                                            ticket.Principal.GetClaim(ClaimTypes.OtherPhone);
             };
 
-            await Options.Provider.ProfileEndpoint(notification);
+            await Options.Provider.UserinfoEndpoint(notification);
 
             if (notification.HandledResponse) {
                 return true;
@@ -267,8 +267,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 payload.Add(claim.Key, claim.Value);
             }
 
-            var context = new ProfileEndpointResponseContext(Context, Options, request, payload);
-            await Options.Provider.ProfileEndpointResponse(context);
+            var context = new UserinfoEndpointResponseContext(Context, Options, request, payload);
+            await Options.Provider.UserinfoEndpointResponse(context);
 
             if (context.HandledResponse) {
                 return true;

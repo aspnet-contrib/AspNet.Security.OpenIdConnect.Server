@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Mvc.Server.Controllers {
-    public class ProfileController : Controller {
+    public class UserinfoController : Controller {
         // Note: make sure to always specify ActiveAuthenticationSchemes = "oidc-server"
         // or use AutomaticAuthentication = true in the OpenID Connect server middleware options.
         [Authorize(ActiveAuthenticationSchemes = OpenIdConnectServerDefaults.AuthenticationScheme)]
