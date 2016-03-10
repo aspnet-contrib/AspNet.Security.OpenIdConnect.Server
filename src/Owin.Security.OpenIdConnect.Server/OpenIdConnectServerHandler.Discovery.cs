@@ -43,8 +43,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                 notification.CryptographyEndpoint = notification.Issuer.AddPath(Options.CryptographyEndpointPath);
             }
 
-            if (Options.ProfileEndpointPath.HasValue) {
-                notification.ProfileEndpoint = notification.Issuer.AddPath(Options.ProfileEndpointPath);
+            if (Options.UserinfoEndpointPath.HasValue) {
+                notification.UserinfoEndpoint = notification.Issuer.AddPath(Options.UserinfoEndpointPath);
             }
 
             if (Options.IntrospectionEndpointPath.HasValue) {
@@ -136,8 +136,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                 payload.Add(OpenIdConnectConstants.Metadata.AuthorizationEndpoint, notification.AuthorizationEndpoint);
             }
 
-            if (!string.IsNullOrEmpty(notification.ProfileEndpoint)) {
-                payload.Add(OpenIdConnectConstants.Metadata.UserinfoEndpoint, notification.ProfileEndpoint);
+            if (!string.IsNullOrEmpty(notification.UserinfoEndpoint)) {
+                payload.Add(OpenIdConnectConstants.Metadata.UserinfoEndpoint, notification.UserinfoEndpoint);
             }
 
             if (!string.IsNullOrEmpty(notification.IntrospectionEndpoint)) {

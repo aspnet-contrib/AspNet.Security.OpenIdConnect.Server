@@ -141,18 +141,18 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Called at the final stage of an incoming userinfo endpoint request before the execution continues on to the web application component 
         /// responsible for producing the JSON response. Anything present in the OWIN pipeline following the Authorization Server may produce the
-        /// response for the userinfo response. If the web application wishes to produce the response directly in the ProfileEndpoint call it
+        /// response for the userinfo response. If the web application wishes to produce the response directly in the UserinfoEndpoint call it
         /// may write to the context.Response directly and should call context.HandleResponse to stop other handlers from executing.
         /// </summary>
-        public Func<ProfileEndpointContext, Task> OnProfileEndpoint { get; set; } = context => Task.FromResult<object>(null);
+        public Func<UserinfoEndpointContext, Task> OnUserinfoEndpoint { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
-        /// Called before the ProfileEndpoint endpoint starts writing to the response stream.
-        /// If the web application wishes to produce the userinfo response directly in the ProfileEndpoint call it may write to the 
+        /// Called before the UserinfoEndpoint endpoint starts writing to the response stream.
+        /// If the web application wishes to produce the userinfo response directly in the UserinfoEndpoint call it may write to the 
         /// context.Response directly and should call context.RequestCompleted to stop other handlers from executing.
         /// This call may also be used to add additional response parameters to the authorization response.
         /// </summary>
-        public Func<ProfileEndpointResponseContext, Task> OnProfileEndpointResponse { get; set; } = context => Task.FromResult<object>(null);
+        public Func<UserinfoEndpointResponseContext, Task> OnUserinfoEndpointResponse { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
         /// Called by the client applications to retrieve the OpenID Connect configuration associated with this instance.
@@ -417,22 +417,22 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Called at the final stage of an incoming userinfo endpoint request before the execution continues on to the web application component 
         /// responsible for producing the JSON response. Anything present in the OWIN pipeline following the Authorization Server may produce the
-        /// response for the userinfo response. If the web application wishes to produce the response directly in the ProfileEndpoint call it
+        /// response for the userinfo response. If the web application wishes to produce the response directly in the UserinfoEndpoint call it
         /// may write to the context.Response directly and should call context.HandleResponse to stop other handlers from executing.
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task ProfileEndpoint(ProfileEndpointContext context) => OnProfileEndpoint(context);
+        public virtual Task UserinfoEndpoint(UserinfoEndpointContext context) => OnUserinfoEndpoint(context);
 
         /// <summary>
-        /// Called before the ProfileEndpoint endpoint starts writing to the response stream.
-        /// If the web application wishes to produce the userinfo response directly in the ProfileEndpoint call it may write to the 
+        /// Called before the UserinfoEndpoint endpoint starts writing to the response stream.
+        /// If the web application wishes to produce the userinfo response directly in the UserinfoEndpoint call it may write to the 
         /// context.Response directly and should call context.RequestCompleted to stop other handlers from executing.
         /// This call may also be used to add additional response parameters to the authorization response.
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task ProfileEndpointResponse(ProfileEndpointResponseContext context) => OnProfileEndpointResponse(context);
+        public virtual Task UserinfoEndpointResponse(UserinfoEndpointResponseContext context) => OnUserinfoEndpointResponse(context);
 
         /// <summary>
         /// Called by the client applications to retrieve the OpenID Connect configuration associated with this instance.

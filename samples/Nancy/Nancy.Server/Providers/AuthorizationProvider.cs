@@ -126,7 +126,7 @@ namespace Nancy.Server.Providers {
             }
         }
 
-        public override Task ProfileEndpoint(ProfileEndpointContext context) {
+        public override Task UserinfoEndpoint(UserinfoEndpointContext context) {
             // Note: by default, OpenIdConnectServerHandler automatically handles userinfo requests and directly
             // writes the JSON response to the response stream. This sample uses a custom ProfileController that
             // handles userinfo requests: context.SkipToNextMiddleware() is called to bypass the default

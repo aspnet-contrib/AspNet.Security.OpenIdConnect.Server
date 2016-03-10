@@ -3,8 +3,8 @@ using Nancy.Security;
 using Owin.Security.OpenIdConnect.Server;
 
 namespace Nancy.Server.Modules {
-    public class ProfileModule : NancyModule {
-        public ProfileModule() {
+    public class UserinfoModule : NancyModule {
+        public UserinfoModule() {
             Get["/connect/userinfo", runAsync: true] = async (parameters, cancellationToken) => {
                 var manager = Context.GetAuthenticationManager();
                 if (manager == null) {

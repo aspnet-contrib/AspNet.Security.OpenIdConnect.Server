@@ -166,22 +166,22 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Called at the final stage of an incoming userinfo endpoint request before the execution continues on to the web application component 
         /// responsible for producing the JSON response. Anything present in the OWIN pipeline following the Authorization Server may produce the
-        /// response for the userinfo response. If the web application wishes to produce the response directly in the ProfileEndpoint call it
+        /// response for the userinfo response. If the web application wishes to produce the response directly in the UserinfoEndpoint call it
         /// may write to the context.Response directly and should call context.HandleResponse to stop other handlers from executing.
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        Task ProfileEndpoint(ProfileEndpointContext context);
+        Task UserinfoEndpoint(UserinfoEndpointContext context);
 
         /// <summary>
-        /// Called before the ProfileEndpoint endpoint starts writing to the response stream.
-        /// If the web application wishes to produce the userinfo response directly in the ProfileEndpoint call it may write to the 
+        /// Called before the UserinfoEndpoint endpoint starts writing to the response stream.
+        /// If the web application wishes to produce the userinfo response directly in the UserinfoEndpoint call it may write to the 
         /// context.Response directly and should call context.RequestCompleted to stop other handlers from executing.
         /// This call may also be used to add additional response parameters to the authorization response.
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        Task ProfileEndpointResponse(ProfileEndpointResponseContext context);
+        Task UserinfoEndpointResponse(UserinfoEndpointResponseContext context);
 
         /// <summary>
         /// Called by the client applications to retrieve the OpenID Connect configuration associated with this instance.
