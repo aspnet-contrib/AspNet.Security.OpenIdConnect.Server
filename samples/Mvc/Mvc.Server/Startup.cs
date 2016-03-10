@@ -39,7 +39,7 @@ namespace Mvc.Server {
                 options.SignInScheme = "ServerCookie";
             });
 
-            services.AddCaching();
+            services.AddDistributedMemoryCache();
             services.AddMvc();
             services.AddMvcDnx();
         }
