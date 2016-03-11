@@ -11,13 +11,13 @@ using Newtonsoft.Json.Linq;
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// An event raised before the authorization server starts
-    /// writing the configuration metadata to the response stream.
+    /// writing the token status/metadata to the response stream.
     /// </summary>
-    public class ConfigurationEndpointResponseContext : BaseNotification<OpenIdConnectServerOptions> {
+    public class ApplyIntrospectionResponseContext : BaseNotification<OpenIdConnectServerOptions> {
         /// <summary>
         /// Creates an instance of this context.
         /// </summary>
-        public ConfigurationEndpointResponseContext(
+        public ApplyIntrospectionResponseContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
             JObject payload)
@@ -26,7 +26,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         }
 
         /// <summary>
-        /// Gets the JSON payload returned to the client application.
+        /// Gets the JSON payload returned to the caller.
         /// </summary>
         public JObject Payload { get; }
     }

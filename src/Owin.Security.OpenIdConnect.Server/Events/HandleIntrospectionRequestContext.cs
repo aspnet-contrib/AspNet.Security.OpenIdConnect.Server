@@ -18,11 +18,11 @@ namespace Owin.Security.OpenIdConnect.Server {
     /// An event raised before the authorization server handles
     /// the request made to the token introspection endpoint.
     /// </summary>
-    public class IntrospectionEndpointContext : BaseNotification<OpenIdConnectServerOptions> {
+    public class HandleIntrospectionRequestContext : BaseNotification<OpenIdConnectServerOptions> {
         /// <summary>
         /// Creates an instance of this context.
         /// </summary>
-        public IntrospectionEndpointContext(
+        public HandleIntrospectionRequestContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request,

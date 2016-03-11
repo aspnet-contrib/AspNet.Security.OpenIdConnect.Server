@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Licensed under the Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  * See https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server
  * for more information concerning the license and the contributors participating to this project.
@@ -6,38 +6,31 @@
 
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
-using Microsoft.Owin.Security.Notifications;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
-    /// Provides context information when processing a logout response.
+    /// Provides context information used when validating a userinfo request.
     /// </summary>
-    public class LogoutEndpointResponseContext : BaseNotification<OpenIdConnectServerOptions> {
+    public class ValidateUserinfoRequestContext : BaseValidatingContext {
         /// <summary>
-        /// Initializes a new instance of the <see cref="LogoutEndpointResponseContext"/> class
+        /// Initializes a new instance of the <see cref="ValidateUserinfoRequestContext"/> class.
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="request"></param>
-        /// <param name="response"></param>
-        public LogoutEndpointResponseContext(
+        public ValidateUserinfoRequestContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
-            OpenIdConnectMessage request,
-            OpenIdConnectMessage response)
+            OpenIdConnectMessage request)
             : base(context, options) {
             Request = request;
-            Response = response;
+
+            Validate();
         }
 
         /// <summary>
-        /// Gets the logout request. 
+        /// Gets the userinfo request.
         /// </summary>
         public new OpenIdConnectMessage Request { get; }
-
-        /// <summary>
-        /// Gets the logout response. 
-        /// </summary>
-        public new OpenIdConnectMessage Response { get; }
     }
 }

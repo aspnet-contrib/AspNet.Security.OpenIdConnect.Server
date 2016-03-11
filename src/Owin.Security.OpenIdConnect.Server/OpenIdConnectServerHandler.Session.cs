@@ -77,8 +77,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                 });
             }
 
-            var notification = new LogoutEndpointContext(Context, Options, request);
-            await Options.Provider.LogoutEndpoint(notification);
+            var notification = new HandleLogoutRequestContext(Context, Options, request);
+            await Options.Provider.HandleLogoutRequest(notification);
 
             if (notification.HandledResponse) {
                 return true;
@@ -119,8 +119,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                 State = request.State
             };
 
-            var notification = new LogoutEndpointResponseContext(Context, Options, request, response);
-            await Options.Provider.LogoutEndpointResponse(notification);
+            var notification = new ApplyLogoutResponseContext(Context, Options, request, response);
+            await Options.Provider.ApplyLogoutResponse(notification);
 
             if (notification.HandledResponse) {
                 return true;

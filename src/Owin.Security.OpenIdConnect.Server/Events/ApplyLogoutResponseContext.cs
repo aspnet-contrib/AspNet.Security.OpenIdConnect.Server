@@ -6,50 +6,38 @@
 
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
-using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Notifications;
-using Newtonsoft.Json.Linq;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
-    /// Provides context information used at the end of a token-endpoint-request.
+    /// Provides context information when processing a logout response.
     /// </summary>
-    public class TokenEndpointResponseContext : BaseNotification<OpenIdConnectServerOptions> {
+    public class ApplyLogoutResponseContext : BaseNotification<OpenIdConnectServerOptions> {
         /// <summary>
-        /// Initializes a new instance of the <see cref="TokenEndpointResponseContext"/> class
+        /// Initializes a new instance of the <see cref="ApplyLogoutResponseContext"/> class
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
-        /// <param name="ticket"></param>
         /// <param name="request"></param>
-        /// <param name="payload"></param>
-        public TokenEndpointResponseContext(
+        /// <param name="response"></param>
+        public ApplyLogoutResponseContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
-            AuthenticationTicket ticket,
             OpenIdConnectMessage request,
-            JObject payload)
+            OpenIdConnectMessage response)
             : base(context, options) {
-            Ticket = ticket;
             Request = request;
-            Payload = payload;
+            Response = response;
         }
 
         /// <summary>
-        /// Gets the authentication ticket containing the
-        /// claims representing the authenticated user.
-        /// </summary>
-        public AuthenticationTicket Ticket { get; }
-
-        /// <summary>
-        /// Gets the token request. 
+        /// Gets the logout request. 
         /// </summary>
         public new OpenIdConnectMessage Request { get; }
 
         /// <summary>
-        /// Gets the JSON payload returned to the client
-        /// application as part of the token response.
+        /// Gets the logout response. 
         /// </summary>
-        public JObject Payload { get; }
+        public new OpenIdConnectMessage Response { get; }
     }
 }

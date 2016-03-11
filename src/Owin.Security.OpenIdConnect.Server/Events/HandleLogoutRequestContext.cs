@@ -4,29 +4,30 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
-using System.Collections.Generic;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Microsoft.Owin.Security.Notifications;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
-    /// An event raised before the authorization server handles
-    /// the request made to the JWKS metadata endpoint.
+    /// An event raised after the Authorization Server has processed the logout request, but before it is passed on to the web application.
+    /// Calling RequestCompleted will prevent the request from passing on to the web application.
     /// </summary>
-    public class CryptographyEndpointContext : BaseNotification<OpenIdConnectServerOptions> {
+    public class HandleLogoutRequestContext : BaseNotification<OpenIdConnectServerOptions> {
         /// <summary>
-        /// Creates an instance of this context.
+        /// Creates an instance of this context
         /// </summary>
-        public CryptographyEndpointContext(
+        public HandleLogoutRequestContext(
             IOwinContext context,
-            OpenIdConnectServerOptions options)
+            OpenIdConnectServerOptions options,
+            OpenIdConnectMessage request)
             : base(context, options) {
+            Request = request;
         }
 
         /// <summary>
-        /// Gets a list of the JSON Web Keys found by the authorization server.
+        /// Gets the logout request.
         /// </summary>
-        public IList<JsonWebKey> Keys { get; } = new List<JsonWebKey>();
+        public new OpenIdConnectMessage Request { get; }
     }
 }

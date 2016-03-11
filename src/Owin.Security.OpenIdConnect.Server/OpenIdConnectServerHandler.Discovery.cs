@@ -24,9 +24,6 @@ using Owin.Security.OpenIdConnect.Extensions;
 namespace Owin.Security.OpenIdConnect.Server {
     internal partial class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions> {
         private async Task InvokeConfigurationEndpointAsync() {
-            var notification = new ConfigurationEndpointContext(Context, Options);
-            notification.Issuer = Context.GetIssuer(Options);
-
             // Metadata requests must be made via GET.
             // See http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationRequest
             if (!string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
@@ -34,6 +31,25 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                 return;
             }
+
+            var validatingContext = new ValidateConfigurationRequestContext(Context, Options);
+            await Options.Provider.ValidateConfigurationRequest(validatingContext);
+
+            // Stop processing the request if Validated was not called.
+            if (!validatingContext.IsValidated) {
+                Options.Logger.WriteError("The configuration request was rejected.");
+
+                await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                    Error = validatingContext.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = validatingContext.ErrorDescription,
+                    ErrorUri = validatingContext.ErrorUri
+                });
+
+                return;
+            }
+
+            var notification = new HandleConfigurationRequestContext(Context, Options);
+            notification.Issuer = Context.GetIssuer(Options);
 
             if (Options.AuthorizationEndpointPath.HasValue) {
                 notification.AuthorizationEndpoint = notification.Issuer.AddPath(Options.AuthorizationEndpointPath);
@@ -122,7 +138,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             notification.SigningAlgorithms.Add(OpenIdConnectConstants.Algorithms.RS256);
 
-            await Options.Provider.ConfigurationEndpoint(notification);
+            await Options.Provider.HandleConfigurationRequest(notification);
 
             if (notification.HandledResponse) {
                 return;
@@ -174,8 +190,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             payload.Add(OpenIdConnectConstants.Metadata.IdTokenSigningAlgValuesSupported,
                 JArray.FromObject(notification.SigningAlgorithms.Distinct()));
 
-            var context = new ConfigurationEndpointResponseContext(Context, Options, payload);
-            await Options.Provider.ConfigurationEndpointResponse(context);
+            var context = new ApplyConfigurationResponseContext(Context, Options, payload);
+            await Options.Provider.ApplyConfigurationResponse(context);
 
             if (context.HandledResponse) {
                 return;
@@ -195,7 +211,31 @@ namespace Owin.Security.OpenIdConnect.Server {
         }
 
         private async Task InvokeCryptographyEndpointAsync() {
-            var notification = new CryptographyEndpointContext(Context, Options);
+            // Metadata requests must be made via GET.
+            // See http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationRequest
+            if (!string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
+                Options.Logger.WriteError("Cryptography endpoint: invalid method used.");
+
+                return;
+            }
+
+            var validatingContext = new ValidateCryptographyRequestContext(Context, Options);
+            await Options.Provider.ValidateCryptographyRequest(validatingContext);
+
+            // Stop processing the request if Validated was not called.
+            if (!validatingContext.IsValidated) {
+                Options.Logger.WriteError("The cryptography request was rejected.");
+
+                await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                    Error = validatingContext.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = validatingContext.ErrorDescription,
+                    ErrorUri = validatingContext.ErrorUri
+                });
+
+                return;
+            }
+
+            var notification = new HandleCryptographyRequestContext(Context, Options);
 
             // Metadata requests must be made via GET.
             // See http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationRequest
@@ -414,7 +454,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
             }
 
-            await Options.Provider.CryptographyEndpoint(notification);
+            await Options.Provider.HandleCryptographyRequest(notification);
 
             if (notification.HandledResponse) {
                 return;
@@ -464,8 +504,8 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             payload.Add(JsonWebKeyParameterNames.Keys, keys);
 
-            var context = new CryptographyEndpointResponseContext(Context, Options, payload);
-            await Options.Provider.CryptographyEndpointResponse(context);
+            var context = new ApplyCryptographyResponseContext(Context, Options, payload);
+            await Options.Provider.ApplyCryptographyResponse(context);
 
             if (context.HandledResponse) {
                 return;

@@ -13,15 +13,15 @@ namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used at the end of a userinfo request.
     /// </summary>
-    public class UserinfoEndpointResponseContext : BaseNotification<OpenIdConnectServerOptions> {
+    public class ApplyUserinfoResponseContext : BaseNotification<OpenIdConnectServerOptions> {
         /// <summary>
-        /// Initializes a new instance of the <see cref="UserinfoEndpointResponseContext"/> class
+        /// Initializes a new instance of the <see cref="ApplyUserinfoResponseContext"/> class
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="request"></param>
         /// <param name="payload"></param>
-        public UserinfoEndpointResponseContext(
+        public ApplyUserinfoResponseContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request,

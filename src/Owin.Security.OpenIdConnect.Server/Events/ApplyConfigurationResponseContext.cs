@@ -4,30 +4,30 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
-using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Microsoft.Owin.Security.Notifications;
+using Newtonsoft.Json.Linq;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
-    /// An event raised after the Authorization Server has processed the logout request, but before it is passed on to the web application.
-    /// Calling RequestCompleted will prevent the request from passing on to the web application.
+    /// An event raised before the authorization server starts
+    /// writing the configuration metadata to the response stream.
     /// </summary>
-    public class LogoutEndpointContext : BaseNotification<OpenIdConnectServerOptions> {
+    public class ApplyConfigurationResponseContext : BaseNotification<OpenIdConnectServerOptions> {
         /// <summary>
-        /// Creates an instance of this context
+        /// Creates an instance of this context.
         /// </summary>
-        public LogoutEndpointContext(
+        public ApplyConfigurationResponseContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
-            OpenIdConnectMessage request)
+            JObject payload)
             : base(context, options) {
-            Request = request;
+            Payload = payload;
         }
 
         /// <summary>
-        /// Gets the logout request.
+        /// Gets the JSON payload returned to the client application.
         /// </summary>
-        public new OpenIdConnectMessage Request { get; }
+        public JObject Payload { get; }
     }
 }
