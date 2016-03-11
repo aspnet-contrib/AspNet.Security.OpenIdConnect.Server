@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Licensed under the Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  * See https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server
  * for more information concerning the license and the contributors participating to this project.
@@ -7,29 +7,28 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
-using Newtonsoft.Json.Linq;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
-    /// Provides context information used at the end of a userinfo request.
+    /// Provides context information used when processing an OpenIdConnect token request.
     /// </summary>
-    public class UserinfoEndpointResponseContext : BaseControlContext {
+    public class HandleTokenRequestContext : BaseControlContext {
         /// <summary>
-        /// Initializes a new instance of the <see cref="UserinfoEndpointResponseContext"/> class
+        /// Initializes a new instance of the <see cref="HandleTokenRequestContext"/> class
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="request"></param>
-        /// <param name="payload"></param>
-        public UserinfoEndpointResponseContext(
+        /// <param name="ticket"></param>
+        public HandleTokenRequestContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request,
-            JObject payload)
+            AuthenticationTicket ticket)
             : base(context) {
             Options = options;
             Request = request;
-            Payload = payload;
+            Ticket = ticket;
         }
 
         /// <summary>
@@ -38,13 +37,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public OpenIdConnectServerOptions Options { get; }
 
         /// <summary>
-        /// Gets the token request. 
+        /// Gets information about the token endpoint request. 
         /// </summary>
         public new OpenIdConnectMessage Request { get; }
-
-        /// <summary>
-        /// Gets the JSON payload returned to the client application.
-        /// </summary>
-        public JObject Payload { get; }
     }
 }

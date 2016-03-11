@@ -244,7 +244,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // Insert the introspection request in the ASP.NET context.
             Context.SetOpenIdConnectRequest(request);
 
-            var notification = new IntrospectionEndpointContext(Context, Options, request, ticket);
+            var notification = new HandleIntrospectionRequestContext(Context, Options, request, ticket);
             notification.Active = true;
 
             // Note: "token_type" may be null when the received token is not an access token.
@@ -310,7 +310,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 }
             }
 
-            await Options.Provider.IntrospectionEndpoint(notification);
+            await Options.Provider.HandleIntrospectionRequest(notification);
 
             // Flow the changes made to the authentication ticket.
             ticket = notification.Ticket;
@@ -379,8 +379,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 }
             }
 
-            var context = new IntrospectionEndpointResponseContext(Context, Options, payload);
-            await Options.Provider.IntrospectionEndpointResponse(context);
+            var context = new ApplyIntrospectionResponseContext(Context, Options, payload);
+            await Options.Provider.ApplyIntrospectionResponse(context);
 
             if (context.HandledResponse) {
                 return;

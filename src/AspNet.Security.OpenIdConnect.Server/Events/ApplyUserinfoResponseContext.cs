@@ -7,28 +7,29 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Newtonsoft.Json.Linq;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
-    /// Provides context information when processing a logout response.
+    /// Provides context information used at the end of a userinfo request.
     /// </summary>
-    public class LogoutEndpointResponseContext : BaseControlContext {
+    public class ApplyUserinfoResponseContext : BaseControlContext {
         /// <summary>
-        /// Initializes a new instance of the <see cref="LogoutEndpointResponseContext"/> class
+        /// Initializes a new instance of the <see cref="ApplyUserinfoResponseContext"/> class
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="request"></param>
-        /// <param name="response"></param>
-        public LogoutEndpointResponseContext(
+        /// <param name="payload"></param>
+        public ApplyUserinfoResponseContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request,
-            OpenIdConnectMessage response)
+            JObject payload)
             : base(context) {
             Options = options;
             Request = request;
-            Response = response;
+            Payload = payload;
         }
 
         /// <summary>
@@ -37,13 +38,13 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public OpenIdConnectServerOptions Options { get; }
 
         /// <summary>
-        /// Gets the logout request. 
+        /// Gets the token request. 
         /// </summary>
         public new OpenIdConnectMessage Request { get; }
 
         /// <summary>
-        /// Gets the logout response. 
+        /// Gets the JSON payload returned to the client application.
         /// </summary>
-        public new OpenIdConnectMessage Response { get; }
+        public JObject Payload { get; }
     }
 }

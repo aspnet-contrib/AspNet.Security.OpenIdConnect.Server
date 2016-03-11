@@ -17,11 +17,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// An event raised before the authorization server handles
     /// the request made to the token introspection endpoint.
     /// </summary>
-    public class IntrospectionEndpointContext : BaseControlContext {
+    public class HandleIntrospectionRequestContext : BaseControlContext {
         /// <summary>
         /// Creates an instance of this context.
         /// </summary>
-        public IntrospectionEndpointContext(
+        public HandleIntrospectionRequestContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request,

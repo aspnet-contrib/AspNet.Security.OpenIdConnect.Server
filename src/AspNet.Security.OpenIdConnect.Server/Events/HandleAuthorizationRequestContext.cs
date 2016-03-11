@@ -4,25 +4,26 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
-using Microsoft.IdentityModel.Tokens;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
-    /// An event raised before the authorization server handles
-    /// the request made to the JWKS metadata endpoint.
+    /// An event raised after the Authorization Server has processed the request, but before it is passed on to the web application.
+    /// Calling RequestCompleted will prevent the request from passing on to the web application.
     /// </summary>
-    public class CryptographyEndpointContext : BaseControlContext {
+    public class HandleAuthorizationRequestContext : BaseControlContext {
         /// <summary>
-        /// Creates an instance of this context.
+        /// Creates an instance of this context
         /// </summary>
-        public CryptographyEndpointContext(
+        public HandleAuthorizationRequestContext(
             HttpContext context,
-            OpenIdConnectServerOptions options)
+            OpenIdConnectServerOptions options,
+            OpenIdConnectMessage request)
             : base(context) {
             Options = options;
+            Request = request;
         }
 
         /// <summary>
@@ -31,8 +32,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public OpenIdConnectServerOptions Options { get; }
 
         /// <summary>
-        /// Gets a list of the JSON Web Keys found by the authorization server.
+        /// Gets the authorization request.
         /// </summary>
-        public IList<JsonWebKey> Keys { get; } = new List<JsonWebKey>();
+        public new OpenIdConnectMessage Request { get; }
     }
 }

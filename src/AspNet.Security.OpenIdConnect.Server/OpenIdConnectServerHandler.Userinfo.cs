@@ -140,7 +140,22 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // Insert the userinfo request in the ASP.NET context.
             Context.SetOpenIdConnectRequest(request);
 
-            var notification = new UserinfoEndpointContext(Context, Options, request, ticket);
+            var validatingContext = new ValidateUserinfoRequestContext(Context, Options, request);
+            await Options.Provider.ValidateUserinfoRequest(validatingContext);
+
+            if (!validatingContext.IsValidated) {
+                Logger.LogError("The userinfo request was rejected.");
+
+                await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                    Error = validatingContext.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = validatingContext.ErrorDescription,
+                    ErrorUri = validatingContext.ErrorUri
+                });
+
+                return true;
+            }
+
+            var notification = new HandleUserinfoRequestContext(Context, Options, request, ticket);
 
             notification.Subject = ticket.Principal.GetClaim(ClaimTypes.NameIdentifier);
             notification.Issuer = Context.GetIssuer(Options);
@@ -170,7 +185,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                                            ticket.Principal.GetClaim(ClaimTypes.OtherPhone);
             };
 
-            await Options.Provider.UserinfoEndpoint(notification);
+            await Options.Provider.HandleUserinfoRequest(notification);
 
             if (notification.HandledResponse) {
                 return true;
@@ -267,8 +282,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 payload.Add(claim.Key, claim.Value);
             }
 
-            var context = new UserinfoEndpointResponseContext(Context, Options, request, payload);
-            await Options.Provider.UserinfoEndpointResponse(context);
+            var context = new ApplyUserinfoResponseContext(Context, Options, request, payload);
+            await Options.Provider.ApplyUserinfoResponse(context);
 
             if (context.HandledResponse) {
                 return true;

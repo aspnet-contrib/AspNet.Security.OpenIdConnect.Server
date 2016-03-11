@@ -4,6 +4,7 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
+using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
@@ -12,13 +13,13 @@ using Newtonsoft.Json.Linq;
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
     /// An event raised before the authorization server starts
-    /// writing the JWKS metadata to the response stream.
+    /// writing the configuration metadata to the response stream.
     /// </summary>
-    public class CryptographyEndpointResponseContext : BaseControlContext {
+    public class ApplyConfigurationResponseContext : BaseControlContext {
         /// <summary>
         /// Creates an instance of this context.
         /// </summary>
-        public CryptographyEndpointResponseContext(
+        public ApplyConfigurationResponseContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
             JObject payload)

@@ -4,8 +4,6 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
-using System;
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json.Linq;
@@ -13,13 +11,13 @@ using Newtonsoft.Json.Linq;
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
     /// An event raised before the authorization server starts
-    /// writing the configuration metadata to the response stream.
+    /// writing the token status/metadata to the response stream.
     /// </summary>
-    public class ConfigurationEndpointResponseContext : BaseControlContext {
+    public class ApplyIntrospectionResponseContext : BaseControlContext {
         /// <summary>
         /// Creates an instance of this context.
         /// </summary>
-        public ConfigurationEndpointResponseContext(
+        public ApplyIntrospectionResponseContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
             JObject payload)
@@ -34,8 +32,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public OpenIdConnectServerOptions Options { get; }
 
         /// <summary>
-        /// Gets the JSON payload returned to the client application.
+        /// Gets the JSON payload returned to the caller.
         /// </summary>
-        public JObject Payload { get; }
+        public JObject Payload { get; private set; }
     }
 }

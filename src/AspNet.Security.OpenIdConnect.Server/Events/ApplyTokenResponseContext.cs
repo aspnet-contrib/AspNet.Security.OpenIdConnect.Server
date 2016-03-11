@@ -13,16 +13,16 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used at the end of a token-endpoint-request.
     /// </summary>
-    public class TokenEndpointResponseContext : BaseControlContext {
+    public class ApplyTokenResponseContext : BaseControlContext {
         /// <summary>
-        /// Initializes a new instance of the <see cref="TokenEndpointResponseContext"/> class
+        /// Initializes a new instance of the <see cref="ApplyTokenResponseContext"/> class
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="ticket"></param>
         /// <param name="request"></param>
         /// <param name="payload"></param>
-        public TokenEndpointResponseContext(
+        public ApplyTokenResponseContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
             AuthenticationTicket ticket,

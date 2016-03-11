@@ -4,31 +4,27 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Newtonsoft.Json.Linq;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
-    /// Provides context information used when processing an OpenIdConnect token request.
+    /// An event raised before the authorization server starts
+    /// writing the JWKS metadata to the response stream.
     /// </summary>
-    public class TokenEndpointContext : BaseControlContext {
+    public class ApplyCryptographyResponseContext : BaseControlContext {
         /// <summary>
-        /// Initializes a new instance of the <see cref="TokenEndpointContext"/> class
+        /// Creates an instance of this context.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="options"></param>
-        /// <param name="request"></param>
-        /// <param name="ticket"></param>
-        public TokenEndpointContext(
+        public ApplyCryptographyResponseContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
-            OpenIdConnectMessage request,
-            AuthenticationTicket ticket)
+            JObject payload)
             : base(context) {
             Options = options;
-            Request = request;
-            Ticket = ticket;
+            Payload = payload;
         }
 
         /// <summary>
@@ -37,8 +33,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public OpenIdConnectServerOptions Options { get; }
 
         /// <summary>
-        /// Gets information about the token endpoint request. 
+        /// Gets the JSON payload returned to the client application.
         /// </summary>
-        public new OpenIdConnectMessage Request { get; }
+        public JObject Payload { get; }
     }
 }

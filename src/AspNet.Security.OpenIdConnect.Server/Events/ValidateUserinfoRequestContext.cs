@@ -4,35 +4,31 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
-    /// An event raised after the Authorization Server has processed the logout request, but before it is passed on to the web application.
-    /// Calling RequestCompleted will prevent the request from passing on to the web application.
+    /// Provides context information used when validating a userinfo request.
     /// </summary>
-    public class LogoutEndpointContext : BaseControlContext {
+    public class ValidateUserinfoRequestContext : BaseValidatingContext {
         /// <summary>
-        /// Creates an instance of this context
+        /// Initializes a new instance of the <see cref="ValidateUserinfoRequestContext"/> class.
         /// </summary>
-        public LogoutEndpointContext(
+        /// <param name="context"></param>
+        /// <param name="options"></param>
+        public ValidateUserinfoRequestContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request)
-            : base(context) {
-            Options = options;
+            : base(context, options) {
             Request = request;
+
+            Validate();
         }
 
         /// <summary>
-        /// Gets the options used by the OpenID Connect server.
-        /// </summary>
-        public OpenIdConnectServerOptions Options { get; }
-
-        /// <summary>
-        /// Gets the logout request.
+        /// Gets the userinfo request.
         /// </summary>
         public new OpenIdConnectMessage Request { get; }
     }

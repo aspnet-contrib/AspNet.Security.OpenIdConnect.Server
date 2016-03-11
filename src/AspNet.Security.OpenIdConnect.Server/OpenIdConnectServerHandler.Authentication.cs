@@ -313,8 +313,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 }
             }
 
-            var notification = new AuthorizationEndpointContext(Context, Options, request);
-            await Options.Provider.AuthorizationEndpoint(notification);
+            var notification = new HandleAuthorizationRequestContext(Context, Options, request);
+            await Options.Provider.HandleAuthorizationRequest(notification);
 
             if (notification.HandledResponse) {
                 return true;
@@ -509,8 +509,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 new AuthenticationProperties(context.Properties),
                 context.AuthenticationScheme);
 
-            var notification = new AuthorizationEndpointResponseContext(Context, Options, ticket, request, response);
-            await Options.Provider.AuthorizationEndpointResponse(notification);
+            var notification = new ApplyAuthorizationResponseContext(Context, Options, ticket, request, response);
+            await Options.Provider.ApplyAuthorizationResponse(notification);
 
             if (notification.HandledResponse) {
                 return;

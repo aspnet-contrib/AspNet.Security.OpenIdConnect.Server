@@ -4,26 +4,25 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
-using Newtonsoft.Json.Linq;
+using Microsoft.IdentityModel.Tokens;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
-    /// An event raised before the authorization server starts
-    /// writing the token status/metadata to the response stream.
+    /// An event raised before the authorization server handles
+    /// the request made to the JWKS metadata endpoint.
     /// </summary>
-    public class IntrospectionEndpointResponseContext : BaseControlContext {
+    public class HandleCryptographyRequestContext : BaseControlContext {
         /// <summary>
         /// Creates an instance of this context.
         /// </summary>
-        public IntrospectionEndpointResponseContext(
+        public HandleCryptographyRequestContext(
             HttpContext context,
-            OpenIdConnectServerOptions options,
-            JObject payload)
+            OpenIdConnectServerOptions options)
             : base(context) {
             Options = options;
-            Payload = payload;
         }
 
         /// <summary>
@@ -32,8 +31,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public OpenIdConnectServerOptions Options { get; }
 
         /// <summary>
-        /// Gets the JSON payload returned to the caller.
+        /// Gets a list of the JSON Web Keys found by the authorization server.
         /// </summary>
-        public JObject Payload { get; private set; }
+        public IList<JsonWebKey> Keys { get; } = new List<JsonWebKey>();
     }
 }

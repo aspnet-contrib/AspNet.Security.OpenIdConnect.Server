@@ -457,8 +457,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 ticket = context.Ticket;
             }
 
-            var notification = new TokenEndpointContext(Context, Options, request, ticket);
-            await Options.Provider.TokenEndpoint(notification);
+            var notification = new HandleTokenRequestContext(Context, Options, request, ticket);
+            await Options.Provider.HandleTokenRequest(notification);
 
             if (notification.HandledResponse) {
                 return;
@@ -601,8 +601,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 payload.Add(parameter.Key, parameter.Value);
             }
 
-            var responseNotification = new TokenEndpointResponseContext(Context, Options, ticket, request, payload);
-            await Options.Provider.TokenEndpointResponse(responseNotification);
+            var responseNotification = new ApplyTokenResponseContext(Context, Options, ticket, request, payload);
+            await Options.Provider.ApplyTokenResponse(responseNotification);
 
             if (responseNotification.HandledResponse) {
                 return;
