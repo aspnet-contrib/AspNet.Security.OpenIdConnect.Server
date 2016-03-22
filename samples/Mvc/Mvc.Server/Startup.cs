@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Mvc.Server.Extensions;
@@ -30,7 +31,7 @@ namespace Mvc.Server {
 
         public void ConfigureServices(IServiceCollection services) {
             services.AddEntityFramework()
-                .AddInMemoryDatabase()
+                .AddEntityFrameworkInMemoryDatabase()
                 .AddDbContext<ApplicationContext>(options => {
                     options.UseInMemoryDatabase();
                 });
@@ -44,8 +45,7 @@ namespace Mvc.Server {
             services.AddMvcDnx();
         }
 
-        public void Configure(IApplicationBuilder app) {
-            var factory = app.ApplicationServices.GetRequiredService<ILoggerFactory>();
+        public void Configure(IApplicationBuilder app, ILoggerFactory factory) {
             factory.AddConsole();
             factory.AddDebug();
 
