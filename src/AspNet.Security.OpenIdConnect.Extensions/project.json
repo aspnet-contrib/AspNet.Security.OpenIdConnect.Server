@@ -1,29 +1,29 @@
 {
-    "version": "1.0.0-*",
-    "description": "OpenID Connect extensions for AspNet.Security.OpenIdConnect.Server.",
-    "authors": [ "Kévin Chalet" ],
-    "owners": [ "Kévin Chalet" ],
+  "version": "1.0.0-*",
+  "description": "OpenID Connect extensions for AspNet.Security.OpenIdConnect.Server.",
+  "authors": [ "Kévin Chalet" ],
+  "owners": [ "Kévin Chalet" ],
 
-    "projectUrl": "https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server",
-    "licenseUrl": "http://www.apache.org/licenses/LICENSE-2.0.html",
+  "projectUrl": "https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server",
+  "licenseUrl": "http://www.apache.org/licenses/LICENSE-2.0.html",
 
-    "dependencies": {
-        "Microsoft.AspNetCore.Authentication": "1.0.0-*",
-        "Microsoft.IdentityModel.Protocols.OpenIdConnect": "2.0.0-*"
-    },
+  "dependencies": {
+    "Microsoft.AspNetCore.Authentication": "1.0.0-*",
+    "Microsoft.IdentityModel.Protocols.OpenIdConnect": "2.0.0-*"
+  },
 
-    "frameworks": {
-        "net451": { },
+  "frameworks": {
+    "net451": { },
 
-        "netstandard1.3": {
-            "dependencies": {
-                "System.Linq": "4.0.1-*"
-            },
+    "netstandard1.3": {
+      "dependencies": {
+        "System.Linq": "4.0.1-*"
+      },
 
-            "imports": [
-                "dotnet5.4",
-                "portable-net451+win8"
-            ]
-        }
+      "imports": [
+        "dotnet5.4",
+        "portable-net451+win8"
+      ]
     }
+  }
 }

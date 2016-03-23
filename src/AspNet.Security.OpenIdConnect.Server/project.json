@@ -1,51 +1,40 @@
 {
-    "version": "1.0.0-*",
-    "description": "OpenID Connect server for ASP.NET 5.",
-    "authors": [ "Kévin Chalet" ],
-    "owners": [ "Kévin Chalet" ],
+  "version": "1.0.0-*",
+  "description": "OpenID Connect server for ASP.NET 5.",
+  "authors": [ "Kévin Chalet" ],
+  "owners": [ "Kévin Chalet" ],
 
-    "projectUrl": "https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server",
-    "licenseUrl": "http://www.apache.org/licenses/LICENSE-2.0.html",
+  "projectUrl": "https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server",
+  "licenseUrl": "http://www.apache.org/licenses/LICENSE-2.0.html",
 
-    "dependencies": {
-        "AspNet.Security.OpenIdConnect.Extensions": "1.0.0-*",
-        "JetBrains.Annotations": "10.1.2-eap",
-        "Microsoft.AspNetCore.Authentication": "1.0.0-*",
-        "Microsoft.AspNetCore.Hosting.Abstractions": "1.0.0-*",
-        "Microsoft.Extensions.Caching.Abstractions": "1.0.0-*",
-        "Microsoft.Extensions.Logging.Abstractions": "1.0.0-*",
-        "Newtonsoft.Json": "8.0.2"
+  "dependencies": {
+    "AspNet.Security.OpenIdConnect.Extensions": "1.0.0-*",
+    "JetBrains.Annotations": "10.1.2-eap",
+    "Microsoft.AspNetCore.Authentication": "1.0.0-*",
+    "Microsoft.AspNetCore.Hosting.Abstractions": "1.0.0-*",
+    "Microsoft.Extensions.Caching.Abstractions": "1.0.0-*",
+    "Microsoft.Extensions.Logging.Abstractions": "1.0.0-*",
+    "Newtonsoft.Json": "8.0.2"
+  },
+
+  "frameworks": {
+    "net451": {
+      "frameworkAssemblies": {
+        "System.ComponentModel": { "type": "build", "version": "4.0.0.0" },
+        "System.Runtime": { "type": "build", "version": "4.0.10.0" },
+        "System.Threading.Tasks": { "type": "build", "version": "4.0.0.0" }
+      }
     },
 
-    "frameworks": {
-        "net451": {
-            "frameworkAssemblies": {
-                "System.ComponentModel": {
-                    "type": "build",
-                    "version": "4.0.0.0"
-                },
+    "netstandard1.3": {
+      "dependencies": {
+        "System.Security.Cryptography.OpenSsl": "4.0.0-*"
+      },
 
-                "System.Runtime": {
-                    "type": "build",
-                    "version": "4.0.10.0"
-                },
-
-                "System.Threading.Tasks": {
-                    "type": "build",
-                    "version": "4.0.0.0"
-                }
-            }
-        },
-
-        "netstandard1.3": {
-            "dependencies": {
-                "System.Security.Cryptography.OpenSsl": "4.0.0-*"
-            },
-
-            "imports": [
-                "dotnet5.4",
-                "portable-net451+win8"
-            ]
-        }
+      "imports": [
+        "dotnet5.4",
+        "portable-net451+win8"
+      ]
     }
+  }
 }
