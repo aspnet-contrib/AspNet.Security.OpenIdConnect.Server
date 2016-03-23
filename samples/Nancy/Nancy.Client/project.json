@@ -1,28 +1,22 @@
 ﻿{
-    "version": "1.0.0-*",
+  "dependencies": {
+    "Microsoft.AspNet.Razor": "3.2.3",
+    "Microsoft.Owin.Security.OpenIdConnect": "3.0.1",
+    "Microsoft.Owin.Security.OAuth": "3.0.1",
+    "Microsoft.Owin.Security.Cookies": "3.0.1",
+    "Microsoft.Owin.SelfHost": "3.0.1",
+    "Nancy.MSOwinSecurity": "1.0.1",
+    "Nancy.Owin": "1.3.0",
+    "Nancy.Viewengines.Razor": "1.3.0",
+    "Newtonsoft.Json": "7.0.1",
+    "Owin.Security.OpenIdConnect.Extensions": "1.0.0-*"
+  },
 
-    "dependencies": {
-        "Microsoft.AspNet.Razor": "3.2.3",
+  "commands": {
+    "run": "Nancy.Client"
+  },
 
-        "Microsoft.Owin.Security.OpenIdConnect": "3.0.1",
-        "Microsoft.Owin.Security.OAuth": "3.0.1",
-        "Microsoft.Owin.Security.Cookies": "3.0.1",
-        "Microsoft.Owin.SelfHost": "3.0.1",
-
-        "Nancy.MSOwinSecurity": "1.0.1",
-        "Nancy.Owin": "1.3.0",
-        "Nancy.Viewengines.Razor": "1.3.0",
-
-        "Newtonsoft.Json": "7.0.1",
-
-        "Owin.Security.OpenIdConnect.Extensions": "1.0.0-*"
-    },
-
-    "commands": {
-        "run": "Nancy.Client"
-    },
-
-    "frameworks": {
-        "dnx451": { }
-    }
+  "frameworks": {
+    "dnx451": { }
+  }
 }

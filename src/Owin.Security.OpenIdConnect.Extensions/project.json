@@ -1,20 +1,38 @@
 ﻿{
-    "version": "1.0.0-*",
-    "description": "OpenID Connect extensions for Owin.Security.OpenIdConnect.Server.",
+  "version": "1.0.0-beta5-*",
 
-    "authors": [ "Kévin Chalet" ],
-    "owners": [ "Kévin Chalet" ],
+  "description": "OpenID Connect extensions for Owin.Security.OpenIdConnect.Server.",
+  "authors": [ "Kévin Chalet" ],
+  "owners": [ "Kévin Chalet" ],
 
-    "projectUrl": "https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server",
-    "licenseUrl": "http://www.apache.org/licenses/LICENSE-2.0.html",
+  "projectUrl": "https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server",
+  "licenseUrl": "http://www.apache.org/licenses/LICENSE-2.0.html",
 
-    "dependencies": {
-        "Microsoft.IdentityModel.Protocol.Extensions": "1.0.2.202250711",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server"
+  },
 
-        "Microsoft.Owin.Security": "3.0.1"
-    },
+  "tags": [
+    "authentication",
+    "katana",
+    "jwt",
+    "openidconnect",
+    "owin",
+    "security"
+  ],
 
-    "frameworks": {
-        "net45": { }
-    }
+  "compilationOptions": {
+    "nowarn": [ "CS1591" ],
+    "xmlDoc": true
+  },
+
+  "dependencies": {
+    "Microsoft.IdentityModel.Protocol.Extensions": "1.0.2.202250711",
+    "Microsoft.Owin.Security": "3.0.1"
+  },
+
+  "frameworks": {
+    "net45": { }
+  }
 }
