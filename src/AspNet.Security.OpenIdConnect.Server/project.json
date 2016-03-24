@@ -47,7 +47,8 @@
 
     "netstandard1.4": {
       "dependencies": {
-        "System.Security.Cryptography.OpenSsl": "4.0.0-*"
+        "System.Security.Cryptography.OpenSsl": "4.0.0-*",
+        "System.Text.Encoding.Extensions": "4.0.11-*"
       },
 
       "imports": [
