@@ -1,18 +1,16 @@
-Owin.Security.OpenIdConnect.Server
+AspNet.Security.OpenIdConnect.Server
 ==================================
 
-**Owin.Security.OpenIdConnect.Server** is an **advanced OAuth2/OpenID Connect server framework** for OWIN/Katana, designed to offer a low-level, protocol-first approach.
+**AspNet.Security.OpenIdConnect.Server** is an **advanced OAuth2/OpenID Connect server framework** for both ASP.NET Core 1.0 (previously known as ASP.NET 5) and OWIN/Katana, designed to offer a low-level, protocol-first approach.
 
-**The latest official release can be found on [NuGet](https://www.nuget.org/packages/Owin.Security.OpenIdConnect.Server) and the nightly builds on [MyGet](https://www.myget.org/gallery/aspnet-contrib)**.
-
-**Looking for the ASP.NET Core 1.0 version? Switch to the [vNext branch](https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server/tree/vNext).**
+**The latest official release can be found on [NuGet](https://www.nuget.org/packages/AspNet.Security.OpenIdConnect.Server) and the nightly builds on [MyGet](https://www.myget.org/gallery/aspnet-contrib)**.
 
 [![Build status](https://ci.appveyor.com/api/projects/status/tyenw4ffs00j4sav/branch/dev?svg=true)](https://ci.appveyor.com/project/aspnet-contrib/aspnet-security-openidconnect-server/branch/dev)
 [![Build status](https://travis-ci.org/aspnet-contrib/AspNet.Security.OpenIdConnect.Server.svg?branch=dev)](https://travis-ci.org/aspnet-contrib/AspNet.Security.OpenIdConnect.Server)
 
 ## Get started
 
-Based on **Microsoft.Owin.Security.OAuth**, **Owin.Security.OpenIdConnect.Server** exposes similar primitives and can be directly registered in **Startup.cs** using the `UseOpenIdConnectServer` extension method:
+Based on `OAuthAuthorizationServerMiddleware` from **Katana 3**, **AspNet.Security.OpenIdConnect.Server** exposes similar primitives and can be directly registered in **Startup.cs** using the `UseOpenIdConnectServer` extension method:
 
 ```csharp
 app.UseOpenIdConnectServer(options => {
@@ -57,6 +55,12 @@ app.UseOpenIdConnectServer(options => {
 });
 ```
 
+## Samples
+
+**Official samples targetting ASP.NET Core 1.0 RC1** can be found on [aspnet-contrib/AspNet.Security.OpenIdConnect.Samples](https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Samples).
+
+**Looking for something simpler?** Don't miss **[OpenIddict](https://github.com/openiddict/core)**, the **simple and easy-to-use OpenID Connect server for ASP.NET Core 1.0** based on AspNet.Security.OpenIdConnect.Server and ASP.NET Identity.
+
 ## Support
 
 **Need help or wanna share your thoughts?** Don't hesitate to join our dedicated chat rooms:
@@ -66,7 +70,7 @@ app.UseOpenIdConnectServer(options => {
 
 ## Contributors
 
-**Owin.Security.OpenIdConnect.Server** is actively maintained by **[Kévin Chalet](https://github.com/PinpointTownes)**. Contributions are welcome and can be submitted using pull requests.
+**AspNet.Security.OpenIdConnect.Server** is actively maintained by **[Kévin Chalet](https://github.com/PinpointTownes)**. Contributions are welcome and can be submitted using pull requests.
 
 ## License
 
