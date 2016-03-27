@@ -2,25 +2,12 @@ using System;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace Mvc.Client {
     public class Startup {
-        public static void Main(string[] args) {
-            var application = new WebHostBuilder()
-                .UseDefaultConfiguration(args)
-                .UseIISPlatformHandlerUrl()
-                .UseServer("Microsoft.AspNetCore.Server.Kestrel")
-                .UseStartup<Startup>()
-                .Build();
-
-            application.Run();
-        }
-
         public void ConfigureServices(IServiceCollection services) {
             services.AddAuthentication(options => {
                 options.SignInScheme = "ClientCookie";
@@ -30,10 +17,7 @@ namespace Mvc.Client {
             services.AddMvcDnx();
         }
 
-        public void Configure(IApplicationBuilder app, ILoggerFactory factory) {
-            factory.AddConsole();
-            factory.AddDebug();
-
+        public void Configure(IApplicationBuilder app) {
             app.UseDeveloperExceptionPage();
 
             // Insert a new cookies middleware in the pipeline to store the user

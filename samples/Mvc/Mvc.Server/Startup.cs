@@ -2,12 +2,10 @@ using System;
 using AspNet.Security.OAuth.Validation;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Mvc.Server.Extensions;
 using Mvc.Server.Models;
 using Mvc.Server.Providers;
@@ -18,17 +16,6 @@ using NWebsec.Owin;
 
 namespace Mvc.Server {
     public class Startup {
-        public static void Main(string[] args) {
-            var application = new WebHostBuilder()
-                .UseDefaultConfiguration(args)
-                .UseIISPlatformHandlerUrl()
-                .UseServer("Microsoft.AspNetCore.Server.Kestrel")
-                .UseStartup<Startup>()
-                .Build();
-
-            application.Run();
-        }
-
         public void ConfigureServices(IServiceCollection services) {
             services.AddEntityFramework()
                 .AddEntityFrameworkInMemoryDatabase()
@@ -45,10 +32,7 @@ namespace Mvc.Server {
             services.AddMvcDnx();
         }
 
-        public void Configure(IApplicationBuilder app, ILoggerFactory factory) {
-            factory.AddConsole();
-            factory.AddDebug();
-
+        public void Configure(IApplicationBuilder app) {
             app.UseDeveloperExceptionPage();
 
             // Create a new branch where the registered middleware will be executed only for API calls.
