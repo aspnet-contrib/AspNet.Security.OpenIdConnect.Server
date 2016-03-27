@@ -1,0 +1,84 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.24720.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "AspNet.Security.OpenIdConnect.Server", "src\AspNet.Security.OpenIdConnect.Server\AspNet.Security.OpenIdConnect.Server.xproj", "{0512E28E-343F-412A-8ADC-0256E07D78DD}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Mvc.Client", "samples\Mvc\Mvc.Client\Mvc.Client.xproj", "{68631868-902A-46FB-9A44-BACF1812FBDE}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Mvc.Server", "samples\Mvc\Mvc.Server\Mvc.Server.xproj", "{440B6A0C-05F3-4483-B4AA-FB0BC4B239FF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{630C29B2-7346-47B1-A3AD-B2D8C0464A9A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{FF6097D2-F92B-4AA8-A547-AE90C25DC7AC}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "AspNet.Security.OpenIdConnect.Extensions", "src\AspNet.Security.OpenIdConnect.Extensions\AspNet.Security.OpenIdConnect.Extensions.xproj", "{BA895C47-20DA-4A21-924D-5E5768055359}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Owin.Security.OpenIdConnect.Extensions", "src\Owin.Security.OpenIdConnect.Extensions\Owin.Security.OpenIdConnect.Extensions.xproj", "{169AF883-34C4-4A39-85F7-13C94AD9D678}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Owin.Security.OpenIdConnect.Server", "src\Owin.Security.OpenIdConnect.Server\Owin.Security.OpenIdConnect.Server.xproj", "{84A2AA3D-F33A-4908-AEBE-6653CDA75844}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Nancy", "Nancy", "{EA16048E-A9C0-4213-8892-491D3049449C}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Nancy.Client", "samples\Nancy\Nancy.Client\Nancy.Client.xproj", "{922B11BE-16FF-4CD8-9C42-DD59613C1389}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Nancy.Server", "samples\Nancy\Nancy.Server\Nancy.Server.xproj", "{E970D74E-B32C-4323-8A22-92862AEA5344}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Mvc", "Mvc", "{1502EA4B-8F4B-4F0D-B337-33AF09FF660F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0512E28E-343F-412A-8ADC-0256E07D78DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0512E28E-343F-412A-8ADC-0256E07D78DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0512E28E-343F-412A-8ADC-0256E07D78DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0512E28E-343F-412A-8ADC-0256E07D78DD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{68631868-902A-46FB-9A44-BACF1812FBDE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{68631868-902A-46FB-9A44-BACF1812FBDE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{68631868-902A-46FB-9A44-BACF1812FBDE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{68631868-902A-46FB-9A44-BACF1812FBDE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{440B6A0C-05F3-4483-B4AA-FB0BC4B239FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{440B6A0C-05F3-4483-B4AA-FB0BC4B239FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{440B6A0C-05F3-4483-B4AA-FB0BC4B239FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{440B6A0C-05F3-4483-B4AA-FB0BC4B239FF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA895C47-20DA-4A21-924D-5E5768055359}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA895C47-20DA-4A21-924D-5E5768055359}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA895C47-20DA-4A21-924D-5E5768055359}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA895C47-20DA-4A21-924D-5E5768055359}.Release|Any CPU.Build.0 = Release|Any CPU
+		{169AF883-34C4-4A39-85F7-13C94AD9D678}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{169AF883-34C4-4A39-85F7-13C94AD9D678}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{169AF883-34C4-4A39-85F7-13C94AD9D678}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{169AF883-34C4-4A39-85F7-13C94AD9D678}.Release|Any CPU.Build.0 = Release|Any CPU
+		{84A2AA3D-F33A-4908-AEBE-6653CDA75844}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{84A2AA3D-F33A-4908-AEBE-6653CDA75844}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{84A2AA3D-F33A-4908-AEBE-6653CDA75844}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{84A2AA3D-F33A-4908-AEBE-6653CDA75844}.Release|Any CPU.Build.0 = Release|Any CPU
+		{922B11BE-16FF-4CD8-9C42-DD59613C1389}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{922B11BE-16FF-4CD8-9C42-DD59613C1389}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{922B11BE-16FF-4CD8-9C42-DD59613C1389}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{922B11BE-16FF-4CD8-9C42-DD59613C1389}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E970D74E-B32C-4323-8A22-92862AEA5344}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E970D74E-B32C-4323-8A22-92862AEA5344}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E970D74E-B32C-4323-8A22-92862AEA5344}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E970D74E-B32C-4323-8A22-92862AEA5344}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{0512E28E-343F-412A-8ADC-0256E07D78DD} = {630C29B2-7346-47B1-A3AD-B2D8C0464A9A}
+		{68631868-902A-46FB-9A44-BACF1812FBDE} = {1502EA4B-8F4B-4F0D-B337-33AF09FF660F}
+		{440B6A0C-05F3-4483-B4AA-FB0BC4B239FF} = {1502EA4B-8F4B-4F0D-B337-33AF09FF660F}
+		{BA895C47-20DA-4A21-924D-5E5768055359} = {630C29B2-7346-47B1-A3AD-B2D8C0464A9A}
+		{169AF883-34C4-4A39-85F7-13C94AD9D678} = {630C29B2-7346-47B1-A3AD-B2D8C0464A9A}
+		{84A2AA3D-F33A-4908-AEBE-6653CDA75844} = {630C29B2-7346-47B1-A3AD-B2D8C0464A9A}
+		{EA16048E-A9C0-4213-8892-491D3049449C} = {FF6097D2-F92B-4AA8-A547-AE90C25DC7AC}
+		{922B11BE-16FF-4CD8-9C42-DD59613C1389} = {EA16048E-A9C0-4213-8892-491D3049449C}
+		{E970D74E-B32C-4323-8A22-92862AEA5344} = {EA16048E-A9C0-4213-8892-491D3049449C}
+		{1502EA4B-8F4B-4F0D-B337-33AF09FF660F} = {FF6097D2-F92B-4AA8-A547-AE90C25DC7AC}
+	EndGlobalSection
+EndGlobal

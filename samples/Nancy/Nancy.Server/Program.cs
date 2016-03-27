@@ -2,8 +2,8 @@
 using Microsoft.Owin.Hosting;
 
 namespace Nancy.Server {
-    public class Program {
-        public void Main(string[] args) {
+    public static class Program {
+        public static void Main(string[] args) {
             const string address = "http://localhost:54541/";
 
             // Start OWIN host 

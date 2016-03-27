@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0-beta5-*",
+
+  "description": "OpenID Connect extensions for AspNet.Security.OpenIdConnect.Server.",
+  "authors": [ "Kévin Chalet" ],
+  "owners": [ "Kévin Chalet" ],
+
+  "projectUrl": "https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server",
+  "licenseUrl": "http://www.apache.org/licenses/LICENSE-2.0.html",
+
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server"
+  },
+
+  "tags": [
+    "aspnetcore",
+    "authentication",
+    "jwt",
+    "openidconnect",
+    "security"
+  ],
+
+  "compilationOptions": {
+    "nowarn": [ "CS1591" ],
+    "xmlDoc": true
+  },
+
+  "dependencies": {
+    "Microsoft.AspNetCore.Authentication": "1.0.0-*",
+    "Microsoft.IdentityModel.Protocols.OpenIdConnect": "2.0.0-*"
+  },
+
+  "frameworks": {
+    "net451": { },
+
+    "netstandard1.4": {
+      "dependencies": {
+        "System.Linq": "4.0.1-*"
+      },
+
+      "imports": [
+        "dotnet5.5",
+        "portable-net451+win8"
+      ]
+    }
+  }
+}

@@ -15,12 +15,12 @@
     "Owin.Security.OpenIdConnect.Server": "1.0.0-*"
   },
 
-  "commands": {
-    "run": "Nancy.Server"
+  "frameworks": {
+    "net451": { }
   },
 
-  "frameworks": {
-    "dnx451": { }
+  "commands": {
+    "run": "Nancy.Server"
   },
 
   "resource": "Certificate.pfx"

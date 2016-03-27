@@ -1,0 +1,60 @@
+{
+  "version": "1.0.0-beta5-*",
+
+  "description": "OpenID Connect server middleware for ASP.NET Core.",
+  "authors": [ "Kévin Chalet" ],
+  "owners": [ "Kévin Chalet" ],
+
+  "projectUrl": "https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server",
+  "licenseUrl": "http://www.apache.org/licenses/LICENSE-2.0.html",
+
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server"
+  },
+  
+  "tags": [
+    "aspnetcore",
+    "authentication",
+    "jwt",
+    "openidconnect",
+    "security"
+  ],
+
+  "compilationOptions": {
+    "nowarn": [ "CS1591" ],
+    "xmlDoc": true
+  },
+
+  "dependencies": {
+    "AspNet.Security.OpenIdConnect.Extensions": "1.0.0-*",
+    "JetBrains.Annotations": { "type": "build", "version": "10.1.2-eap" },
+    "Microsoft.AspNetCore.Authentication": "1.0.0-*",
+    "Microsoft.AspNetCore.Hosting.Abstractions": "1.0.0-*",
+    "Microsoft.Extensions.Caching.Abstractions": "1.0.0-*",
+    "Microsoft.Extensions.Logging.Abstractions": "1.0.0-*",
+    "Newtonsoft.Json": "8.0.2"
+  },
+
+  "frameworks": {
+    "net451": {
+      "frameworkAssemblies": {
+        "System.ComponentModel": { "type": "build", "version": "4.0.0.0" },
+        "System.Runtime": { "type": "build", "version": "4.0.10.0" },
+        "System.Threading.Tasks": { "type": "build", "version": "4.0.0.0" }
+      }
+    },
+
+    "netstandard1.4": {
+      "dependencies": {
+        "System.Security.Cryptography.OpenSsl": "4.0.0-*",
+        "System.Text.Encoding.Extensions": "4.0.11-*"
+      },
+
+      "imports": [
+        "dotnet5.5",
+        "portable-net451+win8"
+      ]
+    }
+  }
+}

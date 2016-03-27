@@ -12,11 +12,11 @@
     "Owin.Security.OpenIdConnect.Extensions": "1.0.0-*"
   },
 
-  "commands": {
-    "run": "Nancy.Client"
+  "frameworks": {
+    "net451": { }
   },
 
-  "frameworks": {
-    "dnx451": { }
+  "commands": {
+    "run": "Nancy.Client"
   }
 }
