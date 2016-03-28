@@ -50,7 +50,7 @@ namespace Mvc.Server.Controllers {
             if (!User.Identities.Any(identity => identity.IsAuthenticated)) {
                 return Challenge(new AuthenticationProperties {
                     RedirectUri = Url.Action(nameof(Authorize), new {
-                        request_id = request.GetRequestIdentifier()
+                        request_id = request.GetRequestId()
                     })
                 });
             }

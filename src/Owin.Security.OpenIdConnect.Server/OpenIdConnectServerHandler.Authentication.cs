@@ -7,9 +7,9 @@
 using System;
 using System.Globalization;
 using System.IO;
-using System.Runtime.Caching;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security;
@@ -70,12 +70,12 @@ namespace Owin.Security.OpenIdConnect.Server {
                 });
             }
 
-            // Re-assemble the authorization request using the cache if
+            // Re-assemble the authorization request using the distributed cache if
             // a 'unique_id' parameter has been extracted from the received message.
-            var identifier = request.GetRequestIdentifier();
+            var identifier = request.GetRequestId();
             if (!string.IsNullOrEmpty(identifier)) {
-                var item = Options.Cache.Get(identifier) as string;
-                if (item == null) {
+                var buffer = await Options.Cache.GetAsync($"asos-request:{identifier}");
+                if (buffer == null) {
                     Options.Logger.WriteInformation("A unique_id has been provided but no corresponding " +
                                                     "OpenID Connect request has been found in the cache.");
 
@@ -85,13 +85,13 @@ namespace Owin.Security.OpenIdConnect.Server {
                     });
                 }
 
-                using (var stream = new MemoryStream(Convert.FromBase64String(item)))
+                using (var stream = new MemoryStream(buffer))
                 using (var reader = new BinaryReader(stream)) {
                     // Make sure the stored authorization request
                     // has been serialized using the same method.
                     var version = reader.ReadInt32();
                     if (version != 1) {
-                        Options.Cache.Remove(identifier);
+                        await Options.Cache.RemoveAsync($"asos-request:{identifier}");
 
                         Options.Logger.WriteError("An invalid OpenID Connect request has been found in the cache.");
 
@@ -285,11 +285,11 @@ namespace Owin.Security.OpenIdConnect.Server {
                 });
             }
 
-            identifier = request.GetRequestIdentifier();
+            identifier = request.GetRequestId();
             if (string.IsNullOrEmpty(identifier)) {
                 // Generate a new 256-bits identifier and associate it with the authorization request.
                 identifier = Options.RandomNumberGenerator.GenerateKey(length: 256 / 8);
-                request.SetUniqueIdentifier(identifier);
+                request.SetRequestId(identifier);
 
                 using (var stream = new MemoryStream())
                 using (var writer = new BinaryWriter(stream)) {
@@ -301,9 +301,12 @@ namespace Owin.Security.OpenIdConnect.Server {
                         writer.Write(parameter.Value);
                     }
 
-                    // Store the authorization request in the cache.
-                    Options.Cache.Add(identifier, Convert.ToBase64String(stream.ToArray()), new CacheItemPolicy {
-                        SlidingExpiration = TimeSpan.FromHours(1)
+                    // Serialize the authorization request.
+                    var bytes = stream.ToArray();
+
+                    // Store the authorization request in the distributed cache.
+                    await Options.Cache.SetAsync($"asos-request:{identifier}", bytes, new DistributedCacheEntryOptions {
+                        AbsoluteExpiration = Options.SystemClock.UtcNow + TimeSpan.FromHours(1)
                     });
                 }
             }
@@ -495,7 +498,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             // Remove the OpenID Connect request from the cache.
-            var identifier = request.GetRequestIdentifier();
+            var identifier = request.GetRequestId();
             if (!string.IsNullOrEmpty(identifier)) {
                 Options.Cache.Remove(identifier);
             }

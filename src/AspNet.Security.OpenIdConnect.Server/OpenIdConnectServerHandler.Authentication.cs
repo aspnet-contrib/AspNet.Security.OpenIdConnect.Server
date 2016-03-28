@@ -76,12 +76,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             // Re-assemble the authorization request using the distributed cache if
             // a 'unique_id' parameter has been extracted from the received message.
-            var identifier = request.GetRequestIdentifier();
+            var identifier = request.GetRequestId();
             if (!string.IsNullOrEmpty(identifier)) {
-                var buffer = await Options.Cache.GetAsync(identifier);
+                var buffer = await Options.Cache.GetAsync($"asos-request:{identifier}");
                 if (buffer == null) {
                     Logger.LogInformation("A unique_id has been provided but no corresponding " +
-                                          "OpenID Connect request has been found in the distributed cache.");
+                                          "OpenID Connect request has been found in the cache.");
 
                     return await SendErrorPageAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
@@ -95,9 +95,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     // has been serialized using the same method.
                     var version = reader.ReadInt32();
                     if (version != 1) {
-                        await Options.Cache.RemoveAsync(identifier);
+                        await Options.Cache.RemoveAsync($"asos-request:{identifier}");
 
-                        Logger.LogError("An invalid OpenID Connect request has been found in the distributed cache.");
+                        Logger.LogError("An invalid OpenID Connect request has been found in the cache.");
 
                         return await SendErrorPageAsync(new OpenIdConnectMessage {
                             Error = OpenIdConnectConstants.Errors.InvalidRequest,
@@ -288,11 +288,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 });
             }
 
-            identifier = request.GetRequestIdentifier();
+            identifier = request.GetRequestId();
             if (string.IsNullOrEmpty(identifier)) {
                 // Generate a new 256-bits identifier and associate it with the authorization request.
                 identifier = Options.RandomNumberGenerator.GenerateKey(length: 256 / 8);
-                request.SetUniqueIdentifier(identifier);
+                request.SetRequestId(identifier);
 
                 using (var stream = new MemoryStream())
                 using (var writer = new BinaryWriter(stream)) {
@@ -304,11 +304,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
                         writer.Write(parameter.Value);
                     }
 
-                    // Store the authorization request in the distributed cache.
-                    await Options.Cache.SetAsync(request.GetRequestIdentifier(), options => {
-                        options.SetAbsoluteExpiration(TimeSpan.FromHours(1));
+                    // Serialize the authorization request.
+                    var bytes = stream.ToArray();
 
-                        return stream.ToArray();
+                    // Store the authorization request in the distributed cache.
+                    await Options.Cache.SetAsync($"asos-request:{identifier}", bytes, new DistributedCacheEntryOptions {
+                        AbsoluteExpiration = Options.SystemClock.UtcNow + TimeSpan.FromHours(1)
                     });
                 }
             }
@@ -500,7 +501,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             // Remove the OpenID Connect request from the distributed cache.
-            var identifier = request.GetRequestIdentifier();
+            var identifier = request.GetRequestId();
             if (!string.IsNullOrEmpty(identifier)) {
                 await Options.Cache.RemoveAsync(identifier);
             }

@@ -47,7 +47,7 @@ namespace Nancy.Server.Modules {
                 if (OwinContext.Authentication.User?.Identity == null ||
                    !OwinContext.Authentication.User.Identity.IsAuthenticated) {
                     return Response.AsRedirect("/signin?returnUrl=" + Uri.EscapeUriString("/connect/authorize?request_id=" +
-                                                                                          request.GetRequestIdentifier()));
+                                                                                          request.GetRequestId()));
                 }
 
                 // Note: ASOS automatically ensures that an application corresponds to the client_id specified

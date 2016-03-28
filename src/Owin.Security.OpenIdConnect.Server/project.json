@@ -28,17 +28,19 @@
   },
 
   "dependencies": {
-    "Owin": "1.0.0",
-    "Owin.Security.OpenIdConnect.Extensions": "1.0.0-*",
+    "Microsoft.Extensions.Caching.Memory": "1.0.0-*",
     "Microsoft.Owin.Security": "3.0.1",
-    "Newtonsoft.Json": "8.0.2"
+    "Newtonsoft.Json": "8.0.2",
+    "Owin": "1.0.0",
+    "Owin.Security.OpenIdConnect.Extensions": "1.0.0-*"
   },
 
   "frameworks": {
-    "net45": {
+    "net451": {
       "frameworkAssemblies": {
         "System.IdentityModel": "4.0.0.0",
-        "System.Runtime.Caching": "4.0.0.0",
+        "System.Runtime": { "type": "build", "version": "4.0.10.0" },
+        "System.Threading.Tasks": { "type": "build", "version": "4.0.0.0" },
         "System.Xml": "4.0.0.0"
       }
     }

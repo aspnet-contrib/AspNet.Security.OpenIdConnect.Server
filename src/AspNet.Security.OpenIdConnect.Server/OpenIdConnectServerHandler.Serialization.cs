@@ -15,6 +15,7 @@ using System.Xml;
 using AspNet.Security.OpenIdConnect.Extensions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http.Authentication;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
@@ -72,10 +73,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 writter.Write(notification.DataFormat.Protect(ticket));
                 writter.Flush();
 
-                await Options.Cache.SetAsync(key, options => {
-                    options.AbsoluteExpiration = ticket.Properties.ExpiresUtc;
+                // Serialize the authorization code.
+                var bytes = stream.ToArray();
 
-                    return stream.ToArray();
+                // Store the authorization code in the distributed cache.
+                await Options.Cache.SetAsync($"asos-authorization-code:{key}", bytes, new DistributedCacheEntryOptions {
+                    AbsoluteExpiration = ticket.Properties.ExpiresUtc
                 });
             }
 
@@ -537,7 +540,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return notification.Ticket;
             }
 
-            var buffer = await Options.Cache.GetAsync(code);
+            var buffer = await Options.Cache.GetAsync($"asos-authorization-code:{code}");
             if (buffer == null) {
                 return null;
             }
@@ -546,7 +549,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             using (var reader = new StreamReader(stream)) {
                 // Because authorization codes are guaranteed to be unique, make sure
                 // to remove the current code from the global store before using it.
-                await Options.Cache.RemoveAsync(code);
+                await Options.Cache.RemoveAsync($"asos-authorization-code:{code}");
 
                 var ticket = notification.DataFormat?.Unprotect(await reader.ReadToEndAsync());
                 if (ticket == null) {

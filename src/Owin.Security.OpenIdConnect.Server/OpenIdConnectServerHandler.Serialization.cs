@@ -7,12 +7,14 @@
 using System;
 using System.IdentityModel.Protocols.WSTrust;
 using System.IdentityModel.Tokens;
+using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security;
@@ -67,9 +69,19 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             var key = Options.RandomNumberGenerator.GenerateKey(256 / 8);
 
-            Options.Cache.Set(key,
-                value: notification.DataFormat.Protect(ticket),
-                absoluteExpiration: ticket.Properties.ExpiresUtc.Value);
+            using (var stream = new MemoryStream())
+            using (var writter = new StreamWriter(stream)) {
+                writter.Write(notification.DataFormat.Protect(ticket));
+                writter.Flush();
+
+                // Serialize the authorization code.
+                var bytes = stream.ToArray();
+
+                // Store the authorization code in the distributed cache.
+                await Options.Cache.SetAsync($"asos-authorization-code:{key}", bytes, new DistributedCacheEntryOptions {
+                    AbsoluteExpiration = ticket.Properties.ExpiresUtc
+                });
+            }
 
             return key;
         }
@@ -548,28 +560,31 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return notification.Ticket;
             }
 
-            var value = (string) Options.Cache.Get(code);
-            if (string.IsNullOrEmpty(value)) {
+            var buffer = await Options.Cache.GetAsync($"asos-authorization-code:{code}");
+            if (buffer == null) {
                 return null;
             }
 
-            // Because authorization codes are guaranteed to be unique, make sure
-            // to remove the current code from the global store before using it.
-            Options.Cache.Remove(code);
+            using (var stream = new MemoryStream(buffer))
+            using (var reader = new StreamReader(stream)) {
+                // Because authorization codes are guaranteed to be unique, make sure
+                // to remove the current code from the global store before using it.
+                await Options.Cache.RemoveAsync($"asos-authorization-code:{code}");
 
-            var ticket = notification.DataFormat?.Unprotect(value);
-            if (ticket == null) {
-                return null;
+                var ticket = notification.DataFormat?.Unprotect(await reader.ReadToEndAsync());
+                if (ticket == null) {
+                    return null;
+                }
+
+                // Ensure the received ticket is an authorization code.
+                if (!ticket.IsAuthorizationCode()) {
+                    Options.Logger.WriteVerbose($"The received token was not an authorization code: {code}.");
+
+                    return null;
+                }
+
+                return ticket;
             }
-
-            // Ensure the received ticket is an authorization code.
-            if (!ticket.IsAuthorizationCode()) {
-                Options.Logger.WriteVerbose($"The received token was not an authorization code: {code}.");
-
-                return null;
-            }
-
-            return ticket;
         }
 
         private async Task<AuthenticationTicket> DeserializeAccessTokenAsync(string token, OpenIdConnectMessage request) {

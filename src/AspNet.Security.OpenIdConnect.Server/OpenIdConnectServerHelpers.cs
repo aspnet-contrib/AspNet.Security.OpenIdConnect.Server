@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.PlatformAbstractions;
 using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Tokens;
@@ -236,15 +233,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
         internal static IEnumerable<KeyValuePair<string, string[]>> ToDictionary(this IEnumerable<KeyValuePair<string, StringValues>> collection) {
             return collection.Select(item => new KeyValuePair<string, string[]>(item.Key, item.Value.ToArray()));
-        }
-
-        internal static Task SetAsync(
-            this IDistributedCache cache, string key,
-            Func<DistributedCacheEntryOptions, byte[]> factory) {
-            var options = new DistributedCacheEntryOptions();
-            var buffer = factory(options);
-
-            return cache.SetAsync(key, buffer, options);
         }
 
         internal static HashAlgorithm GetHashAlgorithm(string algorithm) {
