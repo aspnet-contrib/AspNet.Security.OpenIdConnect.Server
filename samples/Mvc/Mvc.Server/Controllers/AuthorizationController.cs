@@ -48,7 +48,7 @@ namespace Mvc.Server.Controllers {
             // To work around this limitation, the OpenID Connect request is automatically saved in the cache and will be
             // restored by the OpenID Connect server middleware after the external authentication process has been completed.
             if (!User.Identities.Any(identity => identity.IsAuthenticated)) {
-                return new ChallengeResult(new AuthenticationProperties {
+                return Challenge(new AuthenticationProperties {
                     RedirectUri = Url.Action(nameof(Authorize), new {
                         request_id = request.GetRequestIdentifier()
                     })
@@ -142,12 +142,10 @@ namespace Mvc.Server.Controllers {
             // Set the resources servers the access token should be issued for.
             ticket.SetResources("resource_server");
 
-            // This call will ask ASOS to serialize the specified identity to build appropriate tokens.
+            // Returning a SignInResult will ask ASOS to serialize the specified identity to build appropriate tokens.
             // Note: you should always make sure the identities you return contain ClaimTypes.NameIdentifier claim.
             // In this sample, the identity always contains the name identifier returned by the external provider.
-            await HttpContext.Authentication.SignInAsync(ticket.AuthenticationScheme, ticket.Principal, ticket.Properties);
-
-            return new EmptyResult();
+            return SignIn(ticket.Principal, ticket.Properties, ticket.AuthenticationScheme);
         }
 
         [Authorize, HttpPost("~/connect/authorize/deny"), ValidateAntiForgeryToken]
@@ -172,7 +170,7 @@ namespace Mvc.Server.Controllers {
         }
 
         [HttpGet("~/connect/logout")]
-        public async Task<ActionResult> Logout() {
+        public async Task<ActionResult> Logout(CancellationToken cancellationToken) {
             var response = HttpContext.GetOpenIdConnectResponse();
             if (response != null) {
                 return View("Error", response);
@@ -194,15 +192,13 @@ namespace Mvc.Server.Controllers {
             return View("Logout", Tuple.Create(request, identity));
         }
 
-        [HttpPost("~/connect/logout"), ValidateAntiForgeryToken]
-        public async Task Logout(CancellationToken cancellationToken) {
-            // Ask the cookies middleware to delete the local cookie created
-            // when the user agent is redirected from the external identity provider
-            // after a successful authentication flow (e.g Google or Facebook).
-            await HttpContext.Authentication.SignOutAsync("ServerCookie");
-
-            // Redirect the user agent to the post_logout_redirect_uri specified by the client application.
-            await HttpContext.Authentication.SignOutAsync(OpenIdConnectServerDefaults.AuthenticationScheme);
+        [HttpPost("~/connect/logout")]
+        [ValidateAntiForgeryToken]
+        public ActionResult Logout() {
+            // Returning a SignOutResult will ask the cookies middleware to delete the local cookie created when
+            // the user agent is redirected from the external identity provider after a successful authentication flow
+            // and will redirect the user agent to the post_logout_redirect_uri specified by the client application.
+            return SignOut("ServerCookie", OpenIdConnectServerDefaults.AuthenticationScheme);
         }
         
         protected virtual Task<Application> GetApplicationAsync(string identifier, CancellationToken cancellationToken) {
