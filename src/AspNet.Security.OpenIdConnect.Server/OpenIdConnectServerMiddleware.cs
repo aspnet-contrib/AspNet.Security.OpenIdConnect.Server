@@ -72,25 +72,32 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 }
             }
 
-            if (Options.AuthorizationCodeFormat == null) {
-                Options.AuthorizationCodeFormat = new TicketDataFormat(
-                    dataProtectionProvider.CreateProtector(
-                        typeof(OpenIdConnectServerMiddleware).FullName,
-                        Options.AuthenticationScheme, "Authentication_Code", "v1"));
+            if (Options.DataProtectionProvider == null) {
+                Options.DataProtectionProvider = dataProtectionProvider;
             }
 
             if (Options.AccessTokenFormat == null) {
-                Options.AccessTokenFormat = new TicketDataFormat(
-                    dataProtectionProvider.CreateProtector(
-                        typeof(OpenIdConnectServerMiddleware).FullName,
-                        Options.AuthenticationScheme, "Access_Token", "v1"));
+                var protector = Options.DataProtectionProvider.CreateProtector(
+                    nameof(OpenIdConnectServerMiddleware),
+                    Options.AuthenticationScheme, "Access_Token", "v1");
+
+                Options.AccessTokenFormat = new TicketDataFormat(protector);
+            }
+
+            if (Options.AuthorizationCodeFormat == null) {
+                var protector = Options.DataProtectionProvider.CreateProtector(
+                    nameof(OpenIdConnectServerMiddleware),
+                    Options.AuthenticationScheme, "Authentication_Code", "v1");
+
+                Options.AuthorizationCodeFormat = new TicketDataFormat(protector);
             }
 
             if (Options.RefreshTokenFormat == null) {
-                Options.RefreshTokenFormat = new TicketDataFormat(
-                    dataProtectionProvider.CreateProtector(
-                        typeof(OpenIdConnectServerMiddleware).Namespace,
-                        Options.AuthenticationScheme, "Refresh_Token", "v1"));
+                var protector = Options.DataProtectionProvider.CreateProtector(
+                    nameof(OpenIdConnectServerMiddleware),
+                    Options.AuthenticationScheme, "Refresh_Token", "v1");
+
+                Options.RefreshTokenFormat = new TicketDataFormat(protector);
             }
 
             if (Options.Cache == null) {

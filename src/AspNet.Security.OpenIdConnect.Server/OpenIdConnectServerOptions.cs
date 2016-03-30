@@ -11,6 +11,7 @@ using System.Security.Cryptography;
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.IdentityModel.Tokens;
@@ -213,5 +214,13 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// Replacing the default instance is usually not necessary.
         /// </summary>
         public RandomNumberGenerator RandomNumberGenerator { get; set; } = RandomNumberGenerator.Create();
+
+        /// <summary>
+        /// Gets or sets the data protection provider used to create the default
+        /// data protectors used by <see cref="OpenIdConnectServerMiddleware"/>.
+        /// When this property is set to <c>null</c>, the data protection provider
+        /// is directly retrieved from the dependency injection container.
+        /// </summary>
+        public IDataProtectionProvider DataProtectionProvider { get; set; }
     }
 }

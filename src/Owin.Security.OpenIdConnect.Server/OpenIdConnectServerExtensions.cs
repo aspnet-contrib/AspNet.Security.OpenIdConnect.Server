@@ -647,20 +647,6 @@ namespace Owin {
         }
 
         /// <summary>
-        /// Creates a new enhanced ticket format that supports serializing
-        /// <see cref="ClaimsIdentity.Actor"/> and <see cref="Claim.Properties"/>.
-        /// </summary>
-        /// <param name="app">The web application builder</param>
-        /// <param name="purposes">The unique values used to initialize the data protector.</param>
-        public static ISecureDataFormat<AuthenticationTicket> CreateTicketFormat(this IAppBuilder app, params string[] purposes) {
-            if (app == null) {
-                throw new ArgumentNullException(nameof(app));
-            }
-
-            return new OpenIdConnectServerHelpers.EnhancedTicketDataFormat(app.CreateDataProtector(purposes));
-        }
-
-        /// <summary>
         /// Add information into the response environment that will cause the authentication
         /// middleware to return a forbidden response to the caller. This also changes the status
         /// code of the response to 403. The nature of that challenge varies greatly, and ranges

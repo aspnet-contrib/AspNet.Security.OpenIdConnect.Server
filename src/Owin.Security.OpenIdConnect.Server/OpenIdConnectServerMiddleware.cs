@@ -5,9 +5,13 @@
  */
 
 using System;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Owin;
+using Microsoft.Owin.BuilderProperties;
 using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security.Infrastructure;
+using Microsoft.Owin.Security.Interop;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
@@ -59,23 +63,54 @@ namespace Owin.Security.OpenIdConnect.Server {
             if (Options.Logger == null) {
                 Options.Logger = app.CreateLogger<OpenIdConnectServerMiddleware>();
             }
-            
-            if (Options.AuthorizationCodeFormat == null) {
-                Options.AuthorizationCodeFormat = app.CreateTicketFormat(
-                    typeof(OpenIdConnectServerMiddleware).FullName,
-                    Options.AuthenticationType, "Authentication_Code", "v1");
+
+            if (Options.DataProtectionProvider == null) {
+                // Create a new DI container and register
+                // the data protection services.
+                var services = new ServiceCollection();
+
+                services.AddDataProtection(configuration => {
+                    // Try to use the application name provided by
+                    // the OWIN host as the application discriminator.
+                    var discriminator = new AppProperties(app.Properties).AppName;
+
+                    // When an application discriminator cannot be resolved from
+                    // the OWIN host properties, generate a temporary identifier.
+                    if (string.IsNullOrEmpty(discriminator)) {
+                        discriminator = Guid.NewGuid().ToString();
+                    }
+
+                    configuration.ApplicationDiscriminator = discriminator;
+                });
+
+                var container = services.BuildServiceProvider();
+
+                // Resolve a data protection provider from the services container.
+                Options.DataProtectionProvider = container.GetRequiredService<IDataProtectionProvider>();
             }
 
             if (Options.AccessTokenFormat == null) {
-                Options.AccessTokenFormat = app.CreateTicketFormat(
-                    typeof(OpenIdConnectServerMiddleware).FullName,
+                var protector = Options.DataProtectionProvider.CreateProtector(
+                    nameof(OpenIdConnectServerMiddleware),
                     Options.AuthenticationType, "Access_Token", "v1");
+
+                Options.AccessTokenFormat = new AspNetTicketDataFormat(new DataProtectorShim(protector));
+            }
+
+            if (Options.AuthorizationCodeFormat == null) {
+                var protector = Options.DataProtectionProvider.CreateProtector(
+                    nameof(OpenIdConnectServerMiddleware),
+                    Options.AuthenticationType, "Authorization_Code", "v1");
+
+                Options.AuthorizationCodeFormat = new AspNetTicketDataFormat(new DataProtectorShim(protector));
             }
 
             if (Options.RefreshTokenFormat == null) {
-                Options.RefreshTokenFormat = app.CreateTicketFormat(
-                    typeof(OpenIdConnectServerMiddleware).Namespace,
+                var protector = Options.DataProtectionProvider.CreateProtector(
+                    nameof(OpenIdConnectServerMiddleware),
                     Options.AuthenticationType, "Refresh_Token", "v1");
+
+                Options.RefreshTokenFormat = new AspNetTicketDataFormat(new DataProtectorShim(protector));
             }
         }
 

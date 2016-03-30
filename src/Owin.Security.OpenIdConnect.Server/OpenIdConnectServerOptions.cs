@@ -10,6 +10,7 @@ using System.IdentityModel.Tokens;
 using System.Security.Cryptography;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Owin;
 using Microsoft.Owin.Infrastructure;
 using Microsoft.Owin.Logging;
@@ -223,5 +224,11 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// Replacing the default instance is usually not necessary.
         /// </summary>
         public RandomNumberGenerator RandomNumberGenerator { get; set; } = RandomNumberGenerator.Create();
+
+        /// <summary>
+        /// Gets or sets the data protection provider used to create the default
+        /// data protectors used by <see cref="OpenIdConnectServerMiddleware"/>.
+        /// </summary>
+        public IDataProtectionProvider DataProtectionProvider { get; set; }
     }
 }
