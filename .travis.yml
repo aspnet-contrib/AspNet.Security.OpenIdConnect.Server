@@ -18,4 +18,4 @@ os:
   - osx
 osx_image: xcode7.1
 script:
-  - ./build.sh verify
+  - ./build.sh --quiet verify
