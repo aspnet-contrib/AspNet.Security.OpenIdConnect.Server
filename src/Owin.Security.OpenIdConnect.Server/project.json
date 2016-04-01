@@ -30,7 +30,7 @@
   "dependencies": {
     "Microsoft.Extensions.Caching.Memory": "1.0.0-*",
     "Microsoft.Owin.Security": "3.0.1",
-    "Newtonsoft.Json": "8.0.2",
+    "Newtonsoft.Json": "8.0.3",
     "Owin": "1.0.0",
     "Owin.Security.OpenIdConnect.Extensions": "1.0.0-*"
   },
