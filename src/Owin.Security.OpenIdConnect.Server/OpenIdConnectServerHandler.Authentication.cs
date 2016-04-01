@@ -160,16 +160,6 @@ namespace Owin.Security.OpenIdConnect.Server {
                         ErrorDescription = "redirect_uri must not include a fragment"
                     });
                 }
-
-                // Note: when specified, redirect_uri SHOULD require the use of TLS
-                // http://tools.ietf.org/html/rfc6749#section-3.1.2.1
-                // and http://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
-                else if (!Options.AllowInsecureHttp && string.Equals(uri.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase)) {
-                    return await SendErrorPageAsync(new OpenIdConnectMessage {
-                        Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                        ErrorDescription = "redirect_uri does not meet the security requirements"
-                    });
-                }
             }
 
             // Reject requests using the unsupported request parameter.

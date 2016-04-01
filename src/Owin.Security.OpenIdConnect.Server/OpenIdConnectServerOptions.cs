@@ -206,8 +206,8 @@ namespace Owin.Security.OpenIdConnect.Server {
         public ILogger Logger { get; set; }
 
         /// <summary>
-        /// True to allow incoming requests to arrive on HTTP and to allow redirect_uri parameters to have HTTP URI addresses.
-        /// Setting this option to false in production is strongly encouraged to mitigate man-in-the-middle attacks.
+        /// Gets or sets the boolean indicating whether incoming requests arriving on non-HTTPS endpoints should be rejected.
+        /// Setting this option to <c>false</c> in production is strongly encouraged to mitigate man-in-the-middle attacks.
         /// </summary>
         public bool AllowInsecureHttp { get; set; }
 

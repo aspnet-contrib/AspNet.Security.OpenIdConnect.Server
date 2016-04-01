@@ -189,8 +189,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public ISystemClock SystemClock { get; set; } = new SystemClock();
 
         /// <summary>
-        /// True to allow incoming requests to arrive on HTTP and to allow redirect_uri parameters to have HTTP URI addresses.
-        /// Setting this option to false in production is strongly encouraged to mitigate man-in-the-middle attacks.
+        /// Gets or sets the boolean indicating whether incoming requests arriving on non-HTTPS endpoints should be rejected.
+        /// By default, this property is set to <c>false</c> but is automatically enabled when running in a development environment.
+        /// Setting this option to <c>false</c> in production is strongly encouraged to mitigate man-in-the-middle attacks.
         /// </summary>
         public bool AllowInsecureHttp { get; set; }
 
