@@ -39,8 +39,8 @@
     "net451": {
       "frameworkAssemblies": {
         "System.IdentityModel": "4.0.0.0",
-        "System.Runtime": { "type": "build", "version": "4.0.10.0" },
-        "System.Threading.Tasks": { "type": "build", "version": "4.0.0.0" },
+        "System.Runtime": { "type": "build" },
+        "System.Threading.Tasks": { "type": "build" },
         "System.Xml": "4.0.0.0"
       }
     }
