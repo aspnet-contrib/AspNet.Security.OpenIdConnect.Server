@@ -61,3 +61,15 @@ default BUILD_DIR_LOCAL='${Path.Combine(TARGET_DIR_LOCAL, "build")}'
         File.Copy(nupkg, Path.Combine(BUILD_DIR_LOCAL, Path.GetFileName(nupkg)), true);
     }
   }
+
+#build-samples target='compile' if='Directory.Exists("samples") && !BuildSrcOnly'
+  @{
+    var projectFiles = Files.Include("samples/*/*/project.json").ToList();
+    if (IsLinux)
+    {
+        projectFiles.Remove("samples/Nancy/Nancy.Client/project.json");
+        projectFiles.Remove("samples/Nancy/Nancy.Server/project.json");
+    }
+
+    projectFiles.ForEach(projectFile => DotnetBuild(projectFile, Configuration_Local, E("KOREBUILD_BUILD_FRAMEWORK")));
+  }
