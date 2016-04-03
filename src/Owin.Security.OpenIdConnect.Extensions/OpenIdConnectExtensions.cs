@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using JetBrains.Annotations;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin.Security;
 
@@ -21,7 +22,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// Extracts the refresh token from an <see cref="OpenIdConnectMessage"/>.
         /// </summary>
         /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
-        public static string GetRefreshToken(this OpenIdConnectMessage message) {
+        public static string GetRefreshToken([NotNull] this OpenIdConnectMessage message) {
             if (message == null) {
                 throw new ArgumentNullException(nameof(message));
             }
@@ -33,7 +34,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// Extracts the resources from an <see cref="OpenIdConnectMessage"/>.
         /// </summary>
         /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
-        public static IEnumerable<string> GetResources(this OpenIdConnectMessage message) {
+        public static IEnumerable<string> GetResources([NotNull] this OpenIdConnectMessage message) {
             if (message == null) {
                 throw new ArgumentNullException(nameof(message));
             }
@@ -45,7 +46,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// Extracts the scopes from an <see cref="OpenIdConnectMessage"/>.
         /// </summary>
         /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
-        public static IEnumerable<string> GetScopes(this OpenIdConnectMessage message) {
+        public static IEnumerable<string> GetScopes([NotNull] this OpenIdConnectMessage message) {
             if (message == null) {
                 throw new ArgumentNullException(nameof(message));
             }
@@ -57,7 +58,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// Gets the token parameter from an <see cref="OpenIdConnectMessage"/>.
         /// </summary>
         /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
-        public static string GetToken(this OpenIdConnectMessage message) {
+        public static string GetToken([NotNull] this OpenIdConnectMessage message) {
             if (message == null) {
                 throw new ArgumentNullException(nameof(message));
             }
@@ -69,7 +70,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// Gets the token type hint from an <see cref="OpenIdConnectMessage"/>.
         /// </summary>
         /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
-        public static string GetTokenTypeHint(this OpenIdConnectMessage message) {
+        public static string GetTokenTypeHint([NotNull] this OpenIdConnectMessage message) {
             if (message == null) {
                 throw new ArgumentNullException(nameof(message));
             }
@@ -81,7 +82,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// Extracts the request identifier associated with an <see cref="OpenIdConnectMessage"/>.
         /// </summary>
         /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
-        public static string GetRequestId(this OpenIdConnectMessage message) {
+        public static string GetRequestId([NotNull] this OpenIdConnectMessage message) {
             if (message == null) {
                 throw new ArgumentNullException(nameof(message));
             }
@@ -95,7 +96,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
         /// <param name="component">The component to look for in the parameter.</param>
-        public static bool HasResponseType(this OpenIdConnectMessage message, string component) {
+        public static bool HasResponseType([NotNull] this OpenIdConnectMessage message, string component) {
             if (message == null) {
                 throw new ArgumentNullException(nameof(message));
             }
@@ -109,7 +110,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
         /// <param name="component">The component to look for in the parameter.</param>
-        public static bool HasScope(this OpenIdConnectMessage message, string component) {
+        public static bool HasScope([NotNull] this OpenIdConnectMessage message, string component) {
             if (message == null) {
                 throw new ArgumentNullException(nameof(message));
             }
@@ -121,7 +122,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// True if the "response_type" parameter corresponds to the "none" response type.
         /// See http://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#none
         /// </summary>
-        public static bool IsNoneFlow(this OpenIdConnectMessage message) {
+        public static bool IsNoneFlow([NotNull] this OpenIdConnectMessage message) {
             if (message == null) {
                 throw new ArgumentNullException(nameof(message));
             }
@@ -134,7 +135,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// corresponds to the authorization code flow.
         /// See http://tools.ietf.org/html/rfc6749#section-4.1.1
         /// </summary>
-        public static bool IsAuthorizationCodeFlow(this OpenIdConnectMessage message) {
+        public static bool IsAuthorizationCodeFlow([NotNull] this OpenIdConnectMessage message) {
             if (message == null) {
                 throw new ArgumentNullException(nameof(message));
             }
@@ -148,7 +149,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// See http://tools.ietf.org/html/rfc6749#section-4.2.1 and
         /// http://openid.net/specs/openid-connect-core-1_0.html
         /// </summary>
-        public static bool IsImplicitFlow(this OpenIdConnectMessage message) {
+        public static bool IsImplicitFlow([NotNull] this OpenIdConnectMessage message) {
             if (message == null) {
                 throw new ArgumentNullException(nameof(message));
             }
@@ -169,7 +170,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// See http://tools.ietf.org/html/rfc6749#section-4.2.1 and
         /// http://openid.net/specs/openid-connect-core-1_0.html
         /// </summary>
-        public static bool IsHybridFlow(this OpenIdConnectMessage message) {
+        public static bool IsHybridFlow([NotNull] this OpenIdConnectMessage message) {
             if (message == null) {
                 throw new ArgumentNullException(nameof(message));
             }
@@ -190,7 +191,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// fragment is the default mode for the response_type received.
         /// See http://openid.net/specs/oauth-v2-multiple-response-types-1_0.html
         /// </summary>
-        public static bool IsFragmentResponseMode(this OpenIdConnectMessage message) {
+        public static bool IsFragmentResponseMode([NotNull] this OpenIdConnectMessage message) {
             if (message == null) {
                 throw new ArgumentNullException(nameof(message));
             }
@@ -215,7 +216,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// query is the default mode for the response_type received.
         /// See http://openid.net/specs/oauth-v2-multiple-response-types-1_0.html
         /// </summary>
-        public static bool IsQueryResponseMode(this OpenIdConnectMessage message) {
+        public static bool IsQueryResponseMode([NotNull] this OpenIdConnectMessage message) {
             if (message == null) {
                 throw new ArgumentNullException(nameof(message));
             }
@@ -238,7 +239,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// True if the "response_mode" parameter is "form_post".
         /// See http://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html
         /// </summary>
-        public static bool IsFormPostResponseMode(this OpenIdConnectMessage message) {
+        public static bool IsFormPostResponseMode([NotNull] this OpenIdConnectMessage message) {
             if (message == null) {
                 throw new ArgumentNullException(nameof(message));
             }
@@ -250,7 +251,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// True when the "grant_type" is "authorization_code".
         /// See also http://tools.ietf.org/html/rfc6749#section-4.1.3
         /// </summary>    
-        public static bool IsAuthorizationCodeGrantType(this OpenIdConnectMessage message) {
+        public static bool IsAuthorizationCodeGrantType([NotNull] this OpenIdConnectMessage message) {
             if (message == null) {
                 throw new ArgumentNullException(nameof(message));
             }
@@ -262,7 +263,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// True when the "grant_type" is "client_credentials".
         /// See also http://tools.ietf.org/html/rfc6749#section-4.4.2
         /// </summary>  
-        public static bool IsClientCredentialsGrantType(this OpenIdConnectMessage message) {
+        public static bool IsClientCredentialsGrantType([NotNull] this OpenIdConnectMessage message) {
             if (message == null) {
                 throw new ArgumentNullException(nameof(message));
             }
@@ -274,7 +275,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// True when the "grant_type" is "refresh_token".
         /// See also http://tools.ietf.org/html/rfc6749#section-6
         /// </summary>    
-        public static bool IsRefreshTokenGrantType(this OpenIdConnectMessage message) {
+        public static bool IsRefreshTokenGrantType([NotNull] this OpenIdConnectMessage message) {
             if (message == null) {
                 throw new ArgumentNullException(nameof(message));
             }
@@ -286,7 +287,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// True when the "grant_type" is "password".
         /// See also http://tools.ietf.org/html/rfc6749#section-4.3.2
         /// </summary>    
-        public static bool IsPasswordGrantType(this OpenIdConnectMessage message) {
+        public static bool IsPasswordGrantType([NotNull] this OpenIdConnectMessage message) {
             if (message == null) {
                 throw new ArgumentNullException(nameof(message));
             }
@@ -299,7 +300,8 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
         /// <param name="token">The refresh token.</param>
-        public static OpenIdConnectMessage SetRefreshToken(this OpenIdConnectMessage message, string token) {
+        /// <returns>The <see cref="OpenIdConnectMessage"/> instance.</returns>
+        public static OpenIdConnectMessage SetRefreshToken([NotNull] this OpenIdConnectMessage message, string token) {
             if (message == null) {
                 throw new ArgumentNullException(nameof(message));
             }
@@ -313,16 +315,14 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
         /// <param name="hint">The hint given for the token type hint.</param>
-        public static void SetTokenTypeHint(this OpenIdConnectMessage message, string hint) {
+        /// <returns>The <see cref="OpenIdConnectMessage"/> instance.</returns>
+        public static OpenIdConnectMessage SetTokenTypeHint([NotNull] this OpenIdConnectMessage message, string hint) {
             if (message == null) {
                 throw new ArgumentNullException(nameof(message));
             }
 
-            if (string.IsNullOrWhiteSpace(hint)) {
-                throw new ArgumentNullException(nameof(hint));
-            }
-
             message.SetParameter(OpenIdConnectConstants.Parameters.TokenTypeHint, hint);
+            return message;
         }
 
         /// <summary>
@@ -330,7 +330,8 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
         /// <param name="identifier">The unique identifier.</param>
-        public static OpenIdConnectMessage SetRequestId(this OpenIdConnectMessage message, string identifier) {
+        /// <returns>The <see cref="OpenIdConnectMessage"/> instance.</returns>
+        public static OpenIdConnectMessage SetRequestId([NotNull] this OpenIdConnectMessage message, string identifier) {
             if (message == null) {
                 throw new ArgumentNullException(nameof(message));
             }
@@ -344,7 +345,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="claim">The <see cref="Claim"/> instance.</param>
         /// <returns>The destinations associated with the claim.</returns>
-        public static IEnumerable<string> GetDestinations(this Claim claim) {
+        public static IEnumerable<string> GetDestinations([NotNull] this Claim claim) {
             if (claim == null) {
                 throw new ArgumentNullException(nameof(claim));
             }
@@ -363,7 +364,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="claim">The <see cref="Claim"/> instance.</param>
         /// <param name="destination">The required destination.</param>
-        public static bool HasDestination(this Claim claim, string destination) {
+        public static bool HasDestination([NotNull] this Claim claim, string destination) {
             string destinations;
             if (!claim.Properties.TryGetValue(OpenIdConnectConstants.Properties.Destinations, out destinations)) {
                 return false;
@@ -377,7 +378,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="claim">The <see cref="Claim"/> instance.</param>
         /// <param name="destinations">The destinations.</param>
-        public static Claim SetDestinations(this Claim claim, IEnumerable<string> destinations) {
+        public static Claim SetDestinations([NotNull] this Claim claim, IEnumerable<string> destinations) {
             if (claim == null) {
                 throw new ArgumentNullException(nameof(claim));
             }
@@ -403,7 +404,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="claim">The <see cref="Claim"/> instance.</param>
         /// <param name="destinations">The destinations.</param>
-        public static Claim SetDestinations(this Claim claim, params string[] destinations) {
+        public static Claim SetDestinations([NotNull] this Claim claim, params string[] destinations) {
             // Note: guarding the destinations parameter against null values
             // is not necessary as AsEnumerable() doesn't throw on null values.
             return claim.SetDestinations(destinations.AsEnumerable());
@@ -417,7 +418,9 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// The delegate filtering the claims: return <c>true</c>
         /// to accept the claim, <c>false</c> to remove it.
         /// </param>
-        public static ClaimsIdentity Clone(this ClaimsIdentity identity, Func<Claim, bool> filter) {
+        public static ClaimsIdentity Clone(
+            [NotNull] this ClaimsIdentity identity,
+            [NotNull] Func<Claim, bool> filter) {
             if (identity == null) {
                 throw new ArgumentNullException(nameof(identity));
             }
@@ -451,7 +454,9 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// The delegate filtering the claims: return <c>true</c>
         /// to accept the claim, <c>false</c> to remove it.
         /// </param>
-        public static ClaimsPrincipal Clone(this ClaimsPrincipal principal, Func<Claim, bool> filter) {
+        public static ClaimsPrincipal Clone(
+            [NotNull] this ClaimsPrincipal principal,
+            [NotNull] Func<Claim, bool> filter) {
             if (principal == null) {
                 throw new ArgumentNullException(nameof(principal));
             }
@@ -475,9 +480,19 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="identity">The identity.</param>
         /// <param name="type">The type associated with the claim.</param>
         /// <param name="value">The value associated with the claim.</param>
-        public static ClaimsIdentity AddClaim(this ClaimsIdentity identity, string type, string value) {
+        public static ClaimsIdentity AddClaim(
+            [NotNull] this ClaimsIdentity identity,
+            [NotNull] string type, [NotNull] string value) {
             if (identity == null) {
                 throw new ArgumentNullException(nameof(identity));
+            }
+
+            if (string.IsNullOrEmpty(type)) {
+                throw new ArgumentException($"{nameof(type)} cannot be null or empty.", nameof(type));
+            }
+
+            if (string.IsNullOrEmpty(value)) {
+                throw new ArgumentException($"{nameof(value)} cannot be null or empty.", nameof(value));
             }
 
             identity.AddClaim(new Claim(type, value));
@@ -491,10 +506,20 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="type">The type associated with the claim.</param>
         /// <param name="value">The value associated with the claim.</param>
         /// <param name="destinations">The destinations associated with the claim.</param>
-        public static ClaimsIdentity AddClaim(this ClaimsIdentity identity,
-            string type, string value, IEnumerable<string> destinations) {
+        public static ClaimsIdentity AddClaim(
+            [NotNull] this ClaimsIdentity identity,
+            [NotNull] string type, [NotNull] string value,
+            [NotNull] IEnumerable<string> destinations) {
             if (identity == null) {
                 throw new ArgumentNullException(nameof(identity));
+            }
+
+            if (string.IsNullOrEmpty(type)) {
+                throw new ArgumentException($"{nameof(type)} cannot be null or empty.", nameof(type));
+            }
+
+            if (string.IsNullOrEmpty(value)) {
+                throw new ArgumentException($"{nameof(value)} cannot be null or empty.", nameof(value));
             }
 
             if (destinations == null) {
@@ -512,8 +537,10 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="type">The type associated with the claim.</param>
         /// <param name="value">The value associated with the claim.</param>
         /// <param name="destinations">The destinations associated with the claim.</param>
-        public static ClaimsIdentity AddClaim(this ClaimsIdentity identity,
-            string type, string value, params string[] destinations) {
+        public static ClaimsIdentity AddClaim(
+            [NotNull] this ClaimsIdentity identity,
+            [NotNull] string type, [NotNull] string value,
+            [NotNull] params string[] destinations) {
             // Note: guarding the destinations parameter against null values
             // is not necessary as AsEnumerable() doesn't throw on null values.
             return identity.AddClaim(type, value, destinations.AsEnumerable());
@@ -525,9 +552,13 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="identity">The identity.</param>
         /// <param name="type">The type associated with the claim.</param>
         /// <returns>The claim value.</returns>
-        public static string GetClaim(this ClaimsIdentity identity, string type) {
+        public static string GetClaim([NotNull] this ClaimsIdentity identity, [NotNull] string type) {
             if (identity == null) {
                 throw new ArgumentNullException(nameof(identity));
+            }
+
+            if (string.IsNullOrEmpty(type)) {
+                throw new ArgumentException($"{nameof(type)} cannot be null or empty.", nameof(type));
             }
 
             return identity.FindFirst(type)?.Value;
@@ -539,9 +570,13 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="principal">The principal.</param>
         /// <param name="type">The type associated with the claim.</param>
         /// <returns>The claim value.</returns>
-        public static string GetClaim(this ClaimsPrincipal principal, string type) {
+        public static string GetClaim([NotNull] this ClaimsPrincipal principal, [NotNull] string type) {
             if (principal == null) {
                 throw new ArgumentNullException(nameof(principal));
+            }
+
+            if (string.IsNullOrEmpty(type)) {
+                throw new ArgumentException($"{nameof(type)} cannot be null or empty.", nameof(type));
             }
 
             return principal.FindFirst(type)?.Value;
@@ -552,7 +587,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="properties">The authentication properties to copy.</param>
         /// <returns>A new instance containing the copied properties.</returns>
-        public static AuthenticationProperties Copy(this AuthenticationProperties properties) {
+        public static AuthenticationProperties Copy([NotNull] this AuthenticationProperties properties) {
             if (properties == null) {
                 throw new ArgumentNullException(nameof(properties));
             }
@@ -565,7 +600,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="ticket">The authentication ticket to copy.</param>
         /// <returns>A new instance containing the copied ticket</returns>
-        public static AuthenticationTicket Copy(this AuthenticationTicket ticket) {
+        public static AuthenticationTicket Copy([NotNull] this AuthenticationTicket ticket) {
             if (ticket == null) {
                 throw new ArgumentNullException(nameof(ticket));
             }
@@ -578,7 +613,9 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="source">The source instance.</param>
         /// <param name="destination">The destination instance.</param>
-        public static void CopyTo(this AuthenticationProperties source, AuthenticationProperties destination) {
+        public static void CopyTo(
+            [NotNull] this AuthenticationProperties source,
+            [NotNull] AuthenticationProperties destination) {
             if (source == null) {
                 throw new ArgumentNullException(nameof(source));
             }
@@ -604,7 +641,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="ticket">The authentication ticket.</param>
         /// <param name="property">The specific property to look for.</param>
         /// <returns>The value corresponding to the property, or <c>null</c> if the property cannot be found.</returns>
-        public static string GetProperty(this AuthenticationTicket ticket, string property) {
+        public static string GetProperty([NotNull] this AuthenticationTicket ticket, string property) {
             if (ticket == null) {
                 throw new ArgumentNullException(nameof(ticket));
             }
@@ -623,7 +660,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
         /// <returns>The audiences list or <c>Enumerable.Empty</c> is the property cannot be found.</returns>
-        public static IEnumerable<string> GetAudiences(this AuthenticationTicket ticket) {
+        public static IEnumerable<string> GetAudiences([NotNull] this AuthenticationTicket ticket) {
             if (ticket == null) {
                 throw new ArgumentNullException(nameof(ticket));
             }
@@ -640,7 +677,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
         /// <returns>The presenters list or <c>Enumerable.Empty</c> is the property cannot be found.</returns>
-        public static IEnumerable<string> GetPresenters(this AuthenticationTicket ticket) {
+        public static IEnumerable<string> GetPresenters([NotNull] this AuthenticationTicket ticket) {
             if (ticket == null) {
                 throw new ArgumentNullException(nameof(ticket));
             }
@@ -656,7 +693,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
         /// <returns>The nonce or <c>null</c> is the property cannot be found.</returns>
-        public static string GetNonce(this AuthenticationTicket ticket) {
+        public static string GetNonce([NotNull] this AuthenticationTicket ticket) {
             if (ticket == null) {
                 throw new ArgumentNullException(nameof(ticket));
             }
@@ -670,7 +707,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
         /// <returns>The resources list or <c>Enumerable.Empty</c> is the property cannot be found.</returns>
-        public static IEnumerable<string> GetResources(this AuthenticationTicket ticket) {
+        public static IEnumerable<string> GetResources([NotNull] this AuthenticationTicket ticket) {
             if (ticket == null) {
                 throw new ArgumentNullException(nameof(ticket));
             }
@@ -687,7 +724,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
         /// <returns>The scopes list or <c>Enumerable.Empty</c> is the property cannot be found.</returns>
-        public static IEnumerable<string> GetScopes(this AuthenticationTicket ticket) {
+        public static IEnumerable<string> GetScopes([NotNull] this AuthenticationTicket ticket) {
             if (ticket == null) {
                 throw new ArgumentNullException(nameof(ticket));
             }
@@ -703,7 +740,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
         /// <returns>The usage of the token or <c>null</c> is the property cannot be found.</returns>
-        public static string GetUsage(this AuthenticationTicket ticket) {
+        public static string GetUsage([NotNull] this AuthenticationTicket ticket) {
             if (ticket == null) {
                 throw new ArgumentNullException(nameof(ticket));
             }
@@ -716,7 +753,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
         /// <returns><c>true</c> if the ticket contains at least one audience.</returns>
-        public static bool HasAudience(this AuthenticationTicket ticket) {
+        public static bool HasAudience([NotNull] this AuthenticationTicket ticket) {
             if (ticket == null) {
                 throw new ArgumentNullException(nameof(ticket));
             }
@@ -730,7 +767,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="ticket">The authentication ticket.</param>
         /// <param name="audience">The audience.</param>
         /// <returns><c>true</c> if the ticket contains the given audience.</returns>
-        public static bool HasAudience(this AuthenticationTicket ticket, string audience) {
+        public static bool HasAudience([NotNull] this AuthenticationTicket ticket, string audience) {
             if (ticket == null) {
                 throw new ArgumentNullException(nameof(ticket));
             }
@@ -748,7 +785,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
         /// <returns><c>true</c> if the ticket contains at least one presenter.</returns>
-        public static bool HasPresenter(this AuthenticationTicket ticket) {
+        public static bool HasPresenter([NotNull] this AuthenticationTicket ticket) {
             if (ticket == null) {
                 throw new ArgumentNullException(nameof(ticket));
             }
@@ -762,7 +799,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="ticket">The authentication ticket.</param>
         /// <param name="presenter">The presenter.</param>
         /// <returns><c>true</c> if the ticket contains the given presenter.</returns>
-        public static bool HasPresenter(this AuthenticationTicket ticket, string presenter) {
+        public static bool HasPresenter([NotNull] this AuthenticationTicket ticket, string presenter) {
             if (ticket == null) {
                 throw new ArgumentNullException(nameof(ticket));
             }
@@ -780,7 +817,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
         /// <returns><c>true</c> if the ticket contains at least one resource.</returns>
-        public static bool HasResource(this AuthenticationTicket ticket) {
+        public static bool HasResource([NotNull] this AuthenticationTicket ticket) {
             if (ticket == null) {
                 throw new ArgumentNullException(nameof(ticket));
             }
@@ -794,7 +831,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="ticket">The authentication ticket.</param>
         /// <param name="resource">The resource.</param>
         /// <returns><c>true</c> if the ticket contains the given resource.</returns>
-        public static bool HasResource(this AuthenticationTicket ticket, string resource) {
+        public static bool HasResource([NotNull] this AuthenticationTicket ticket, string resource) {
             if (ticket == null) {
                 throw new ArgumentNullException(nameof(ticket));
             }
@@ -812,7 +849,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
         /// <returns><c>true</c> if the ticket contains at least one scope.</returns>
-        public static bool HasScope(this AuthenticationTicket ticket) {
+        public static bool HasScope([NotNull] this AuthenticationTicket ticket) {
             if (ticket == null) {
                 throw new ArgumentNullException(nameof(ticket));
             }
@@ -826,7 +863,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="ticket">The authentication ticket.</param>
         /// <param name="scope">The scope.</param>
         /// <returns><c>true</c> if the ticket contains the given scope.</returns>
-        public static bool HasScope(this AuthenticationTicket ticket, string scope) {
+        public static bool HasScope([NotNull] this AuthenticationTicket ticket, string scope) {
             if (ticket == null) {
                 throw new ArgumentNullException(nameof(ticket));
             }
@@ -845,7 +882,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
         /// <returns><c>true</c> if the ticket is confidential, or <c>false</c> if it's not.</returns>
-        public static bool IsConfidential(this AuthenticationTicket ticket) {
+        public static bool IsConfidential([NotNull] this AuthenticationTicket ticket) {
             if (ticket == null) {
                 throw new ArgumentNullException(nameof(ticket));
             }
@@ -864,7 +901,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
         /// <returns><c>true</c> if the ticket corresponds to an authorization code.</returns>
-        public static bool IsAuthorizationCode(this AuthenticationTicket ticket) {
+        public static bool IsAuthorizationCode([NotNull] this AuthenticationTicket ticket) {
             if (ticket == null) {
                 throw new ArgumentNullException(nameof(ticket));
             }
@@ -883,7 +920,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
         /// <returns><c>true</c> if the ticket corresponds to an access token.</returns>
-        public static bool IsAccessToken(this AuthenticationTicket ticket) {
+        public static bool IsAccessToken([NotNull] this AuthenticationTicket ticket) {
             if (ticket == null) {
                 throw new ArgumentNullException(nameof(ticket));
             }
@@ -902,7 +939,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
         /// <returns><c>true</c> if the ticket corresponds to an identity token.</returns>
-        public static bool IsIdentityToken(this AuthenticationTicket ticket) {
+        public static bool IsIdentityToken([NotNull] this AuthenticationTicket ticket) {
             if (ticket == null) {
                 throw new ArgumentNullException(nameof(ticket));
             }
@@ -921,7 +958,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
         /// <returns><c>true</c> if the ticket corresponds to a refresh token.</returns>
-        public static bool IsRefreshToken(this AuthenticationTicket ticket) {
+        public static bool IsRefreshToken([NotNull] this AuthenticationTicket ticket) {
             if (ticket == null) {
                 throw new ArgumentNullException(nameof(ticket));
             }
@@ -941,7 +978,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="ticket">The authentication ticket.</param>
         /// <param name="audiences">The audiences to store.</param>
         /// <returns>The authentication ticket.</returns>
-        public static AuthenticationTicket SetAudiences(this AuthenticationTicket ticket, IEnumerable<string> audiences) {
+        public static AuthenticationTicket SetAudiences([NotNull] this AuthenticationTicket ticket, IEnumerable<string> audiences) {
             if (ticket == null) {
                 throw new ArgumentNullException(nameof(ticket));
             }
@@ -969,7 +1006,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="ticket">The authentication ticket.</param>
         /// <param name="audiences">The audiences to store.</param>
         /// <returns>The authentication ticket.</returns>
-        public static AuthenticationTicket SetAudiences(this AuthenticationTicket ticket, params string[] audiences) {
+        public static AuthenticationTicket SetAudiences([NotNull] this AuthenticationTicket ticket, params string[] audiences) {
             // Note: guarding the audiences parameter against null values
             // is not necessary as AsEnumerable() doesn't throw on null values.
             return ticket.SetAudiences(audiences.AsEnumerable());
@@ -982,7 +1019,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="ticket">The authentication ticket.</param>
         /// <param name="presenters">The presenters to store.</param>
         /// <returns>The authentication ticket.</returns>
-        public static AuthenticationTicket SetPresenters(this AuthenticationTicket ticket, IEnumerable<string> presenters) {
+        public static AuthenticationTicket SetPresenters([NotNull] this AuthenticationTicket ticket, IEnumerable<string> presenters) {
             if (ticket == null) {
                 throw new ArgumentNullException(nameof(ticket));
             }
@@ -1010,7 +1047,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="ticket">The authentication ticket.</param>
         /// <param name="presenters">The presenters to store.</param>
         /// <returns>The authentication ticket.</returns>
-        public static AuthenticationTicket SetPresenters(this AuthenticationTicket ticket, params string[] presenters) {
+        public static AuthenticationTicket SetPresenters([NotNull] this AuthenticationTicket ticket, params string[] presenters) {
             // Note: guarding the presenters parameter against null values
             // is not necessary as AsEnumerable() doesn't throw on null values.
             return ticket.SetPresenters(presenters.AsEnumerable());
@@ -1023,7 +1060,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="ticket">The authentication ticket.</param>
         /// <param name="resources">The resources to store.</param>
         /// <returns>The authentication ticket.</returns>
-        public static AuthenticationTicket SetResources(this AuthenticationTicket ticket, IEnumerable<string> resources) {
+        public static AuthenticationTicket SetResources([NotNull] this AuthenticationTicket ticket, IEnumerable<string> resources) {
             if (ticket == null) {
                 throw new ArgumentNullException(nameof(ticket));
             }
@@ -1051,7 +1088,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="ticket">The authentication ticket.</param>
         /// <param name="resources">The resources to store.</param>
         /// <returns>The authentication ticket.</returns>
-        public static AuthenticationTicket SetResources(this AuthenticationTicket ticket, params string[] resources) {
+        public static AuthenticationTicket SetResources([NotNull] this AuthenticationTicket ticket, params string[] resources) {
             // Note: guarding the resources parameter against null values
             // is not necessary as AsEnumerable() doesn't throw on null values.
             return ticket.SetResources(resources.AsEnumerable());
@@ -1064,7 +1101,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="ticket">The authentication ticket.</param>
         /// <param name="scopes">The scopes to store.</param>
         /// <returns>The authentication ticket.</returns>
-        public static AuthenticationTicket SetScopes(this AuthenticationTicket ticket, IEnumerable<string> scopes) {
+        public static AuthenticationTicket SetScopes([NotNull] this AuthenticationTicket ticket, IEnumerable<string> scopes) {
             if (ticket == null) {
                 throw new ArgumentNullException(nameof(ticket));
             }
@@ -1092,7 +1129,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="ticket">The authentication ticket.</param>
         /// <param name="scopes">The scopes to store.</param>
         /// <returns>The authentication ticket.</returns>
-        public static AuthenticationTicket SetScopes(this AuthenticationTicket ticket, params string[] scopes) {
+        public static AuthenticationTicket SetScopes([NotNull] this AuthenticationTicket ticket, params string[] scopes) {
             // Note: guarding the scopes parameter against null values
             // is not necessary as AsEnumerable() doesn't throw on null values.
             return ticket.SetScopes(scopes.AsEnumerable());
@@ -1104,7 +1141,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="ticket">The authentication ticket.</param>
         /// <param name="usage">The usage of the token.</param>
         /// <returns>The authentication ticket.</returns>
-        public static AuthenticationTicket SetUsage(this AuthenticationTicket ticket, string usage) {
+        public static AuthenticationTicket SetUsage([NotNull] this AuthenticationTicket ticket, string usage) {
             if (ticket == null) {
                 throw new ArgumentNullException(nameof(ticket));
             }
