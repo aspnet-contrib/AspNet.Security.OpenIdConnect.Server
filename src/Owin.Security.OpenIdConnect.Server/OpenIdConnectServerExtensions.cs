@@ -213,7 +213,13 @@ namespace Owin {
                 throw new InvalidOperationException("The certificate doesn't contain the required private key.");
             }
 
-            credentials.Add(new X509EncryptingCredentials(certificate));
+            var identifier = new SecurityKeyIdentifier(
+                new LocalIdKeyIdentifierClause(certificate.Thumbprint.ToUpperInvariant()),
+                new X509SecurityToken(certificate).CreateKeyIdentifierClause<X509IssuerSerialKeyIdentifierClause>(),
+                new X509SecurityToken(certificate).CreateKeyIdentifierClause<X509RawDataKeyIdentifierClause>(),
+                new X509SecurityToken(certificate).CreateKeyIdentifierClause<X509ThumbprintKeyIdentifierClause>());
+
+            credentials.Add(new X509EncryptingCredentials(certificate, identifier));
 
             return credentials;
         }
@@ -375,6 +381,9 @@ namespace Owin {
                     return credentials.AddCertificate((X509Certificate2) field.GetValue(x509AsymmetricSecurityKey));
                 }
 
+                // Create an empty security key identifier.
+                var identifier = new SecurityKeyIdentifier();
+
                 var rsaSecurityKey = key as RsaSecurityKey;
                 if (rsaSecurityKey != null) {
                     // When using a RSA key, the public part is used to uniquely identify the key.
@@ -383,12 +392,20 @@ namespace Owin {
                         requiresPrivateKey: false);
                     Debug.Assert(algorithm != null);
 
-                    var identifier = new SecurityKeyIdentifier(new RsaKeyIdentifierClause(algorithm));
+                    // Export the RSA public key to extract a key identifier based on the modulus component.
+                    var parameters = algorithm.ExportParameters(includePrivateParameters: false);
 
-                    credentials.Add(new EncryptingCredentials(key, identifier, SecurityAlgorithms.RsaOaepKeyWrap));
+                    // Only use the 40 first chars of the base64url-encoded modulus.
+                    var kid = Base64UrlEncoder.Encode(parameters.Modulus);
+                    kid = kid.Substring(0, Math.Min(kid.Length, 40)).ToUpperInvariant();
 
-                    return credentials;
+                    identifier.Add(new LocalIdKeyIdentifierClause(kid));
+                    identifier.Add(new RsaKeyIdentifierClause(algorithm));
                 }
+
+                credentials.Add(new EncryptingCredentials(key, identifier, SecurityAlgorithms.RsaOaepKeyWrap));
+
+                return credentials;
             }
 
             else if (key.IsSupportedAlgorithm(SecurityAlgorithms.Aes256Encryption)) {
@@ -425,7 +442,13 @@ namespace Owin {
                 throw new InvalidOperationException("The certificate doesn't contain the required private key.");
             }
 
-            credentials.Add(new X509SigningCredentials(certificate));
+            var identifier = new SecurityKeyIdentifier(
+                new LocalIdKeyIdentifierClause(certificate.Thumbprint.ToUpperInvariant()),
+                new X509SecurityToken(certificate).CreateKeyIdentifierClause<X509IssuerSerialKeyIdentifierClause>(),
+                new X509SecurityToken(certificate).CreateKeyIdentifierClause<X509RawDataKeyIdentifierClause>(),
+                new X509SecurityToken(certificate).CreateKeyIdentifierClause<X509ThumbprintKeyIdentifierClause>());
+
+            credentials.Add(new X509SigningCredentials(certificate, identifier));
 
             return credentials;
         }
@@ -569,15 +592,57 @@ namespace Owin {
             }
 
             if (key.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature)) {
+                var x509SecurityKey = key as X509SecurityKey;
+                if (x509SecurityKey != null) {
+                    return credentials.AddCertificate(x509SecurityKey.Certificate);
+                }
+
+                var x509AsymmetricSecurityKey = key as X509AsymmetricSecurityKey;
+                if (x509AsymmetricSecurityKey != null) {
+                    // The X.509 certificate is not directly accessible when using X509AsymmetricSecurityKey.
+                    // Reflection is the only way to get the certificate used to create the security key.
+                    var field = typeof(X509AsymmetricSecurityKey).GetField(
+                        name: "certificate",
+                        bindingAttr: BindingFlags.Instance | BindingFlags.NonPublic);
+                    Debug.Assert(field != null);
+
+                    return credentials.AddCertificate((X509Certificate2) field.GetValue(x509AsymmetricSecurityKey));
+                }
+
+                // Create an empty security key identifier.
+                var identifier = new SecurityKeyIdentifier();
+
+                var rsaSecurityKey = key as RsaSecurityKey;
+                if (rsaSecurityKey != null) {
+                    // Resolve the underlying algorithm from the security key.
+                    var algorithm = (RSA) rsaSecurityKey.GetAsymmetricAlgorithm(
+                        algorithm: SecurityAlgorithms.RsaSha256Signature,
+                        requiresPrivateKey: false);
+                    Debug.Assert(algorithm != null);
+
+                    // Export the RSA public key to extract a key identifier based on the modulus component.
+                    var parameters = algorithm.ExportParameters(includePrivateParameters: false);
+
+                    // Only use the 40 first chars of the base64url-encoded modulus.
+                    var kid = Base64UrlEncoder.Encode(parameters.Modulus);
+                    kid = kid.Substring(0, Math.Min(kid.Length, 40)).ToUpperInvariant();
+
+                    identifier.Add(new LocalIdKeyIdentifierClause(kid));
+                }
+
                 credentials.Add(new SigningCredentials(key, SecurityAlgorithms.RsaSha256Signature,
-                                                            SecurityAlgorithms.Sha256Digest));
+                                                            SecurityAlgorithms.Sha256Digest, identifier));
 
                 return credentials;
             }
 
             else if (key.IsSupportedAlgorithm(SecurityAlgorithms.HmacSha256Signature)) {
+                // When using an in-memory symmetric key, no identifier clause can be inferred from the key itself.
+                // To prevent the built-in security token handlers from throwing an exception, a default identifier is added.
+                var identifier = new SecurityKeyIdentifier(new LocalIdKeyIdentifierClause("Default"));
+
                 credentials.Add(new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature,
-                                                            SecurityAlgorithms.Sha256Digest));
+                                                            SecurityAlgorithms.Sha256Digest, identifier));
 
                 return credentials;
             }

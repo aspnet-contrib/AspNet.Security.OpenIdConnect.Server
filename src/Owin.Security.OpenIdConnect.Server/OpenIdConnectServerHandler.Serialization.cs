@@ -205,47 +205,12 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                 token.Payload[JwtRegisteredClaimNames.Iat] = EpochTime.GetIntDate(ticket.Properties.IssuedUtc.Value.UtcDateTime);
 
-                if (notification.SigningCredentials != null) {
-                    var x509SecurityKey = notification.SigningCredentials.SigningKey as X509SecurityKey;
-                    if (x509SecurityKey != null) {
-                        // Note: "x5t" is only added by JwtHeader's constructor if SigningCredentials is a X509SigningCredentials instance.
-                        // To work around this limitation, "x5t" is manually added if a certificate can be extracted from a X509SecurityKey
-                        token.Header[JwtHeaderParameterNames.X5t] = Base64UrlEncoder.Encode(x509SecurityKey.Certificate.GetCertHash());
-                    }
-
-                    object identifier;
-                    if (!token.Header.TryGetValue(JwtHeaderParameterNames.Kid, out identifier) || identifier == null) {
-                        // When no key identifier has been explicitly added, a "kid" is automatically
-                        // inferred from the hexadecimal representation of the certificate thumbprint.
-                        if (x509SecurityKey != null) {
-                            identifier = x509SecurityKey.Certificate.Thumbprint;
-                        }
-
-                        var x509SigningCredentials = notification.SigningCredentials as X509SigningCredentials;
-                        if (x509SigningCredentials != null) {
-                            identifier = x509SigningCredentials.Certificate.Thumbprint;
-                        }
-
-                        // When no key identifier has been explicitly added by the developer, a "kid"
-                        // is automatically inferred from the modulus if the signing key is a RSA key.
-                        var rsaSecurityKey = notification.SigningCredentials.SigningKey as RsaSecurityKey;
-                        if (rsaSecurityKey != null) {
-                            var algorithm = (RSA) rsaSecurityKey.GetAsymmetricAlgorithm(
-                                SecurityAlgorithms.RsaSha256Signature, false);
-
-                            // Export the RSA public key.
-                            var parameters = algorithm.ExportParameters(includePrivateParameters: false);
-
-                            // Only use the 40 first chars to match the identifier used by the JWKS endpoint.
-                            identifier = Base64UrlEncoder.Encode(parameters.Modulus)
-                                                         .Substring(0, 40)
-                                                         .ToUpperInvariant();
-                        }
-
-                        if (identifier != null) {
-                            token.Header[JwtHeaderParameterNames.Kid] = identifier;
-                        }
-                    }
+                // Try to extract a key identifier from the signing credentials
+                // and add the "kid" property to the JWT header if applicable.
+                LocalIdKeyIdentifierClause clause = null;
+                if (notification.SigningCredentials?.SigningKeyIdentifier != null &&
+                    notification.SigningCredentials.SigningKeyIdentifier.TryFind(out clause)) {
+                    token.Header[JwtHeaderParameterNames.Kid] = clause.LocalId;
                 }
 
                 return handler.WriteToken(token);
@@ -443,47 +408,12 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             token.Payload[JwtRegisteredClaimNames.Iat] = EpochTime.GetIntDate(ticket.Properties.IssuedUtc.Value.UtcDateTime);
 
-            if (notification.SigningCredentials != null) {
-                var x509SecurityKey = notification.SigningCredentials.SigningKey as X509SecurityKey;
-                if (x509SecurityKey != null) {
-                    // Note: "x5t" is only added by JwtHeader's constructor if SigningCredentials is a X509SigningCredentials instance.
-                    // To work around this limitation, "x5t" is manually added if a certificate can be extracted from a X509SecurityKey
-                    token.Header[JwtHeaderParameterNames.X5t] = Base64UrlEncoder.Encode(x509SecurityKey.Certificate.GetCertHash());
-                }
-
-                object identifier;
-                if (!token.Header.TryGetValue(JwtHeaderParameterNames.Kid, out identifier) || identifier == null) {
-                    // When no key identifier has been explicitly added, a "kid" is automatically
-                    // inferred from the hexadecimal representation of the certificate thumbprint.
-                    if (x509SecurityKey != null) {
-                        identifier = x509SecurityKey.Certificate.Thumbprint;
-                    }
-
-                    var x509SigningCredentials = notification.SigningCredentials as X509SigningCredentials;
-                    if (x509SigningCredentials != null) {
-                        identifier = x509SigningCredentials.Certificate.Thumbprint;
-                    }
-
-                    // When no key identifier has been explicitly added by the developer, a "kid"
-                    // is automatically inferred from the modulus if the signing key is a RSA key.
-                    var rsaSecurityKey = notification.SigningCredentials.SigningKey as RsaSecurityKey;
-                    if (rsaSecurityKey != null) {
-                        var algorithm = (RSA) rsaSecurityKey.GetAsymmetricAlgorithm(
-                            SecurityAlgorithms.RsaSha256Signature, false);
-
-                        // Export the RSA public key.
-                        var parameters = algorithm.ExportParameters(includePrivateParameters: false);
-
-                        // Only use the 40 first chars to match the identifier used by the JWKS endpoint.
-                        identifier = Base64UrlEncoder.Encode(parameters.Modulus)
-                                                     .Substring(0, 40)
-                                                     .ToUpperInvariant();
-                    }
-
-                    if (identifier != null) {
-                        token.Header[JwtHeaderParameterNames.Kid] = identifier;
-                    }
-                }
+            // Try to extract a key identifier from the signing credentials
+            // and add the "kid" property to the JWT header if applicable.
+            LocalIdKeyIdentifierClause clause = null;
+            if (notification.SigningCredentials?.SigningKeyIdentifier != null &&
+                notification.SigningCredentials.SigningKeyIdentifier.TryFind(out clause)) {
+                token.Header[JwtHeaderParameterNames.Kid] = clause.LocalId;
             }
 
             return notification.SecurityTokenHandler.WriteToken(token);

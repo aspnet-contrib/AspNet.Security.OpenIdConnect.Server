@@ -263,6 +263,10 @@ namespace Owin.Security.OpenIdConnect.Server {
                     continue;
                 }
 
+                // Try to extract a key identifier from the credentials.
+                LocalIdKeyIdentifierClause identifier = null;
+                credentials.SecurityKeyIdentifier?.TryFind(out identifier);
+
                 X509Certificate2 x509Certificate = null;
 
                 // Determine whether the encrypting credentials are directly based on a X.509 certificate.
@@ -308,9 +312,9 @@ namespace Owin.Security.OpenIdConnect.Server {
                         // Resolve the JWA identifier from the algorithm specified in the credentials.
                         Alg = OpenIdConnectServerHelpers.GetJwtAlgorithm(credentials.Algorithm),
 
-                        // By default, use the hexadecimal representation of the
-                        // certificate's SHA-1 hash as the unique key identifier.
-                        Kid = x509Certificate.Thumbprint,
+                        // Use the key identifier specified
+                        // in the signing credentials.
+                        Kid = identifier.LocalId,
 
                         // x5t must be base64url-encoded.
                         // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#section-4.8
@@ -343,11 +347,9 @@ namespace Owin.Security.OpenIdConnect.Server {
                         // Resolve the JWA identifier from the algorithm specified in the credentials.
                         Alg = OpenIdConnectServerHelpers.GetJwtAlgorithm(credentials.Algorithm),
 
-                        // Create a unique identifier using the base64url-encoded representation of the modulus.
-                        // Note: use the first 40 chars to avoid using a too long identifier.
-                        Kid = Base64UrlEncoder.Encode(parameters.Modulus)
-                                              .Substring(0, 40)
-                                              .ToUpperInvariant(),
+                        // Use the key identifier specified
+                        // in the signing credentials.
+                        Kid = identifier.LocalId,
 
                         // Both E and N must be base64url-encoded.
                         // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#appendix-A.1
@@ -367,6 +369,10 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                     continue;
                 }
+
+                // Try to extract a key identifier from the credentials.
+                LocalIdKeyIdentifierClause identifier = null;
+                credentials.SigningKeyIdentifier?.TryFind(out identifier);
 
                 X509Certificate2 x509Certificate = null;
 
@@ -413,9 +419,9 @@ namespace Owin.Security.OpenIdConnect.Server {
                         // Resolve the JWA identifier from the algorithm specified in the credentials.
                         Alg = OpenIdConnectServerHelpers.GetJwtAlgorithm(credentials.SignatureAlgorithm),
 
-                        // By default, use the hexadecimal representation of the
-                        // certificate's SHA-1 hash as the unique key identifier.
-                        Kid = x509Certificate.Thumbprint,
+                        // Use the key identifier specified
+                        // in the signing credentials.
+                        Kid = identifier?.LocalId,
 
                         // x5t must be base64url-encoded.
                         // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#section-4.8
@@ -448,11 +454,9 @@ namespace Owin.Security.OpenIdConnect.Server {
                         // Resolve the JWA identifier from the algorithm specified in the credentials.
                         Alg = OpenIdConnectServerHelpers.GetJwtAlgorithm(credentials.SignatureAlgorithm),
 
-                        // Create a unique identifier using the base64url-encoded representation of the modulus.
-                        // Note: use the first 40 chars to avoid using a too long identifier.
-                        Kid = Base64UrlEncoder.Encode(parameters.Modulus)
-                                              .Substring(0, 40)
-                                              .ToUpperInvariant(),
+                        // Use the key identifier specified
+                        // in the signing credentials.
+                        Kid = identifier?.LocalId,
 
                         // Both E and N must be base64url-encoded.
                         // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#appendix-A.1

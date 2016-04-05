@@ -270,9 +270,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
                         // Resolve the JWA identifier from the algorithm specified in the credentials.
                         Alg = OpenIdConnectServerHelpers.GetJwtAlgorithm(credentials.Algorithm),
 
-                        // By default, use the key identifier specified in the signing credentials. If none is specified,
-                        // use the hexadecimal representation of the certificate's SHA-1 hash as the unique key identifier.
-                        Kid = credentials.Kid ?? x509SecurityKey.KeyId ?? x509SecurityKey.Certificate.Thumbprint,
+                        // Use the key identifier specified
+                        // in the signing credentials.
+                        Kid = credentials.Kid,
 
                         // x5t must be base64url-encoded.
                         // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#section-4.8
@@ -295,13 +295,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
                         // Resolve the JWA identifier from the algorithm specified in the credentials.
                         Alg = OpenIdConnectServerHelpers.GetJwtAlgorithm(credentials.Algorithm),
 
-                        // By default, use the key identifier specified in the signing credentials.
-                        // If none is specified, try to extract it from the security key itself or
-                        // create one using the base64url-encoded representation of the modulus.
-                        Kid = credentials.Kid ?? rsaSecurityKey.KeyId ??
-                            // Note: use the first 40 chars to avoid using a too long identifier.
-                            Base64UrlEncoder.Encode(rsaSecurityKey.Parameters.Modulus)
-                                            .Substring(0, 40).ToUpperInvariant(),
+                        // Use the key identifier specified
+                        // in the signing credentials.
+                        Kid = credentials.Kid,
 
                         // Both E and N must be base64url-encoded.
                         // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#appendix-A.1

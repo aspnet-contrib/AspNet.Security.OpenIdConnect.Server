@@ -324,14 +324,29 @@ namespace Microsoft.AspNetCore.Builder {
             }
 
             if (key.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature)) {
-                // See https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet/issues/316
+                // When no key identifier can be retrieved from the security key, a value is automatically
+                // inferred from the hexadecimal representation of the certificate thumbprint (SHA-1)
+                // when the key is bound to a X509 certificate or from the public part of the RSA key.
+                if (string.IsNullOrEmpty(key.KeyId)) {
+                    var x509SecurityKey = key as X509SecurityKey;
+                    if (x509SecurityKey != null) {
+                        key.KeyId = x509SecurityKey.Certificate.Thumbprint;
+                    }
+
+                    var rsaSecurityKey = key as RsaSecurityKey;
+                    if (rsaSecurityKey != null) {
+                        // Only use the 40 first chars of the base64url-encoded modulus.
+                        key.KeyId = Base64UrlEncoder.Encode(rsaSecurityKey.Parameters.Modulus);
+                        key.KeyId = key.KeyId.Substring(0, Math.Min(key.KeyId.Length, 40)).ToUpperInvariant();
+                    }
+                }
+
                 credentials.Add(new SigningCredentials(key, SecurityAlgorithms.RsaSha256));
 
                 return credentials;
             }
 
             else if (key.IsSupportedAlgorithm(SecurityAlgorithms.HmacSha256Signature)) {
-                // See https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet/issues/316
                 credentials.Add(new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
 
                 return credentials;
