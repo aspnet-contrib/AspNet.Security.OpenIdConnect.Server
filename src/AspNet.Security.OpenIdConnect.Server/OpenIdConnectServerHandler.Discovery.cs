@@ -23,7 +23,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // Metadata requests must be made via GET.
             // See http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationRequest
             if (!string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
-                Logger.LogError("Configuration endpoint: invalid method used.");
+                Logger.LogError("The discovery request was rejected because an invalid " +
+                                "HTTP method was used: {Method}.", Request.Method);
 
                 return await SendErrorPayloadAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
@@ -35,7 +36,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             await Options.Provider.ValidateConfigurationRequest(validatingContext);
 
             if (!validatingContext.IsValidated) {
-                Logger.LogError("The configuration request was rejected.");
+                Logger.LogInformation("The discovery request was rejected by application code.");
 
                 return await SendErrorPayloadAsync(new OpenIdConnectMessage {
                     Error = validatingContext.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
@@ -220,7 +221,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // Metadata requests must be made via GET.
             // See http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationRequest
             if (!string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
-                Logger.LogError("Cryptography endpoint: invalid method used.");
+                Logger.LogError("The discovery request was rejected because an invalid " +
+                                "HTTP method was used: {Method}.", Request.Method);
 
                 return await SendErrorPayloadAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
@@ -232,7 +234,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             await Options.Provider.ValidateCryptographyRequest(validatingContext);
 
             if (!validatingContext.IsValidated) {
-                Logger.LogError("The cryptography request was rejected.");
+                Logger.LogInformation("The discovery request was rejected by application code.");
 
                 return await SendErrorPayloadAsync(new OpenIdConnectMessage {
                     Error = validatingContext.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
@@ -248,9 +250,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 if (!credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature) &&
                     !credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha384Signature) &&
                     !credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha512Signature)) {
-                    Logger.LogDebug("Cryptography endpoint: unsupported signing key ignored. " +
-                                    "Only asymmetric security keys supporting RS256, RS384 " +
-                                    "or RS512 can be exposed via the JWKS endpoint.");
+                    Logger.LogInformation("An unsupported signing key was ignored and excluded " +
+                                          "from the key set: {Type}. Only asymmetric security keys " +
+                                          "supporting RS256, RS384 or RS512 can be exposed " +
+                                          "via the JWKS endpoint.", credentials.Key.GetType().Name);
 
                     continue;
                 }
@@ -327,8 +330,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 // Ensure a key type has been provided.
                 // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#section-4.1
                 if (string.IsNullOrEmpty(key.Kty)) {
-                    Logger.LogWarning("Cryptography endpoint: a JSON Web Key didn't " +
-                        "contain the mandatory 'Kty' parameter and has been ignored.");
+                    Logger.LogError("A JSON Web Key was excluded from the key set because " +
+                                    "it didn't contain the mandatory 'kid' parameter.");
 
                     continue;
                 }

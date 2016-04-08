@@ -32,6 +32,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
             else if (string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase)) {
                 // See http://openid.net/specs/openid-connect-core-1_0.html#FormSerialization
                 if (string.IsNullOrEmpty(Request.ContentType)) {
+                    Logger.LogError("The logout request was rejected because " +
+                                    "the mandatory 'Content-Type' header was missing.");
+
                     return await SendErrorPageAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
                         ErrorDescription = "A malformed logout request has been received: " +
@@ -41,6 +44,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 // May have media/type; charset=utf-8, allow partial match.
                 if (!Request.ContentType.StartsWith("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase)) {
+                    Logger.LogError("The logout request was rejected because an invalid 'Content-Type' " +
+                                    "header was received: {ContentType}.", Request.ContentType);
+
                     return await SendErrorPageAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
                         ErrorDescription = "A malformed logout request has been received: " +
@@ -57,7 +63,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             else {
-                Logger.LogInformation("A malformed request has been received by the logout endpoint.");
+                Logger.LogError("The logout request was rejected because an invalid " +
+                                "HTTP method was received: {Method}.", Request.Method);
 
                 return await SendErrorPageAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
@@ -73,7 +80,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             await Options.Provider.ValidateLogoutRequest(validatingContext);
 
             if (validatingContext.IsRejected) {
-                Logger.LogError("The logout request was rejected.");
+                Logger.LogInformation("The logout request was rejected by application code.");
 
                 return await SendErrorPageAsync(new OpenIdConnectMessage {
                     Error = validatingContext.Error,
@@ -108,15 +115,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // the authentication type associated with this middleware instance
             // or if the response status code doesn't indicate a successful response.
             if (context == null || Response.StatusCode != 200) {
-                return;
-            }
-
-            if (Response.HasStarted) {
-                Logger.LogCritical(
-                    "OpenIdConnectServerHandler.TeardownCoreAsync cannot be called when " +
-                    "the response headers have already been sent back to the user agent. " +
-                    "Make sure the response body has not been altered and that no middleware " +
-                    "has attempted to write to the response stream during this request.");
                 return;
             }
 

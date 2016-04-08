@@ -6,9 +6,9 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin.Infrastructure;
-using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security.Infrastructure;
 using Owin.Security.OpenIdConnect.Extensions;
 
@@ -29,6 +29,9 @@ namespace Owin.Security.OpenIdConnect.Server {
             else if (string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase)) {
                 // See http://openid.net/specs/openid-connect-core-1_0.html#FormSerialization
                 if (string.IsNullOrEmpty(Request.ContentType)) {
+                    Options.Logger.LogError("The logout request was rejected because " +
+                                            "the mandatory 'Content-Type' header was missing.");
+
                     return await SendErrorPageAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
                         ErrorDescription = "A malformed logout request has been received: " +
@@ -38,6 +41,9 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                 // May have media/type; charset=utf-8, allow partial match.
                 if (!Request.ContentType.StartsWith("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase)) {
+                    Options.Logger.LogError("The logout request was rejected because an invalid 'Content-Type' " +
+                                            "header was received: {ContentType}.", Request.ContentType);
+
                     return await SendErrorPageAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
                         ErrorDescription = "A malformed logout request has been received: " +
@@ -52,7 +58,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             else {
-                Options.Logger.WriteInformation("A malformed request has been received by the logout endpoint.");
+                Options.Logger.LogError("The logout request was rejected because an invalid " +
+                                        "HTTP method was received: {Method}.", Request.Method);
 
                 return await SendErrorPageAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
@@ -68,7 +75,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             await Options.Provider.ValidateLogoutRequest(validatingContext);
 
             if (validatingContext.IsRejected) {
-                Options.Logger.WriteError("The logout request was rejected.");
+                Options.Logger.LogInformation("The logout request was rejected by application code.");
 
                 return await SendErrorPageAsync(new OpenIdConnectMessage {
                     Error = validatingContext.Error,
@@ -104,15 +111,6 @@ namespace Owin.Security.OpenIdConnect.Server {
             // or if the response status code doesn't indicate a successful response.
             var context = Helper.LookupSignOut(Options.AuthenticationType, Options.AuthenticationMode);
             if (context == null || Response.StatusCode != 200) {
-                return false;
-            }
-
-            if (Context.Environment.ContainsKey("app.HeadersSent")) {
-                Options.Logger.WriteCritical(
-                    "OpenIdConnectServerHandler.TeardownCoreAsync cannot be called when " +
-                    "the response headers have already been sent back to the user agent. " +
-                    "Make sure the response body has not been altered and that no middleware " +
-                    "has attempted to write to the response stream during this request.");
                 return false;
             }
 

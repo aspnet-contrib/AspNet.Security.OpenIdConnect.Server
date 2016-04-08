@@ -9,9 +9,9 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin.Infrastructure;
-using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Infrastructure;
 using Newtonsoft.Json;
@@ -85,7 +85,8 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                 var ticket = await DeserializeIdentityTokenAsync(request.IdTokenHint, request);
                 if (ticket == null) {
-                    Options.Logger.WriteVerbose("Invalid id_token_hint");
+                    Options.Logger.LogWarning("The identity token extracted from the id_token_hint " +
+                                              "parameter was invalid and has been ignored.");
 
                     return null;
                 }
@@ -119,14 +120,16 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                 var ticket = await DeserializeAccessTokenAsync(token, request);
                 if (ticket == null) {
-                    Options.Logger.WriteVerbose("Invalid access_token");
+                    Options.Logger.LogWarning("The access token extracted from the userinfo " + 
+                                              "request was invalid and has been ignored.");
 
                     return null;
                 }
 
                 if (!ticket.Properties.ExpiresUtc.HasValue ||
                      ticket.Properties.ExpiresUtc < Options.SystemClock.UtcNow) {
-                    Options.Logger.WriteVerbose("Expired access_token");
+                    Options.Logger.LogWarning("The access token extracted from the userinfo " +
+                                              "request was expired and has been ignored.");
 
                     return null;
                 }
@@ -189,7 +192,9 @@ namespace Owin.Security.OpenIdConnect.Server {
             if (!Options.AllowInsecureHttp && string.Equals(Request.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase)) {
                 // Return the native error page for endpoints involving the user participation.
                 if (notification.IsAuthorizationEndpoint || notification.IsLogoutEndpoint) {
-                    Options.Logger.WriteWarning("The HTTP request was rejected because AllowInsecureHttp was false.");
+                    Options.Logger.LogWarning("The current request was rejected because the OpenID Connect server middleware " +
+                                              "has been configured to reject HTTP requests. To permanently disable the transport " +
+                                              "security requirement, set 'OpenIdConnectServerOptions.AllowInsecureHttp' to 'true'.");
 
                     return await SendNativeErrorPageAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
@@ -201,7 +206,9 @@ namespace Owin.Security.OpenIdConnect.Server {
                 else if (notification.IsTokenEndpoint || notification.IsUserinfoEndpoint ||
                          notification.IsIntrospectionEndpoint || notification.IsConfigurationEndpoint ||
                          notification.IsCryptographyEndpoint) {
-                    Options.Logger.WriteWarning("The HTTP request was rejected because AllowInsecureHttp was false.");
+                    Options.Logger.LogWarning("The current request was rejected because the OpenID Connect server middleware " +
+                                              "has been configured to reject HTTP requests. To permanently disable the transport " +
+                                              "security requirement, set 'OpenIdConnectServerOptions.AllowInsecureHttp' to 'true'.");
 
                     return await SendErrorPayloadAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
@@ -239,17 +246,6 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             return false;
-        }
-
-        protected override async Task InitializeCoreAsync() {
-            Response.OnSendingHeaders(state => {
-                var handler = (OpenIdConnectServerHandler) state;
-
-                // Add a unique key indicating response headers have been sent.
-                handler.Context.Environment["app.HeadersSent"] = true;
-            }, this);
-
-            await base.InitializeCoreAsync();
         }
 
         protected override async Task TeardownCoreAsync() {

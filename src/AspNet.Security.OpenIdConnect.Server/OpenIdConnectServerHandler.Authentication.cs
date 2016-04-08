@@ -34,7 +34,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             else if (string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase)) {
                 // See http://openid.net/specs/openid-connect-core-1_0.html#FormSerialization
                 if (string.IsNullOrEmpty(Request.ContentType)) {
-                    Logger.LogInformation("A malformed request has been received by the authorization endpoint.");
+                    Logger.LogError("The authorization request was rejected because " +
+                                    "the mandatory 'Content-Type' header was missing.");
 
                     return await SendErrorPageAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
@@ -45,7 +46,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 // May have media/type; charset=utf-8, allow partial match.
                 if (!Request.ContentType.StartsWith("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase)) {
-                    Logger.LogInformation("A malformed request has been received by the authorization endpoint.");
+                    Logger.LogError("The authorization request was rejected because an invalid 'Content-Type' " +
+                                    "header was received: {ContentType}.", Request.ContentType);
 
                     return await SendErrorPageAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
@@ -65,7 +67,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             else {
-                Logger.LogInformation("A malformed request has been received by the authorization endpoint.");
+                Logger.LogError("The authorization request was rejected because an invalid " +
+                                "HTTP method was received: {Method}.", Request.Method);
 
                 return await SendErrorPageAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
@@ -80,8 +83,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             if (!string.IsNullOrEmpty(identifier)) {
                 var buffer = await Options.Cache.GetAsync($"asos-request:{identifier}");
                 if (buffer == null) {
-                    Logger.LogInformation("A unique_id has been provided but no corresponding " +
-                                          "OpenID Connect request has been found in the cache.");
+                    Logger.LogError("A request_id was extracted from the authorization request ({RequestId}) " +
+                                    "but no corresponding entry was found in the cache.", identifier);
 
                     return await SendErrorPageAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
@@ -97,7 +100,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     if (version != 1) {
                         await Options.Cache.RemoveAsync($"asos-request:{identifier}");
 
-                        Logger.LogError("An invalid OpenID Connect request has been found in the cache.");
+                        Logger.LogError("The authorization request retrieved from the cache was invalid.");
 
                         return await SendErrorPageAsync(new OpenIdConnectMessage {
                             Error = OpenIdConnectConstants.Errors.InvalidRequest,
@@ -125,6 +128,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // client_id is mandatory parameter and MUST cause an error when missing.
             // See http://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
             if (string.IsNullOrEmpty(request.ClientId)) {
+                Logger.LogError("The authorization request was rejected because " +
+                                "the mandatory 'client_id' parameter was missing.");
+
                 return await SendErrorPageAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "client_id was missing"
@@ -137,6 +143,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // To keep AspNet.Security.OpenIdConnect.Server compatible with pure OAuth2 clients,
             // an error is only returned if the request was made by an OpenID Connect client.
             if (string.IsNullOrEmpty(request.RedirectUri) && request.HasScope(OpenIdConnectConstants.Scopes.OpenId)) {
+                Logger.LogError("The authorization request was rejected because " +
+                                "the mandatory 'redirect_uri' parameter was missing.");
+
                 return await SendErrorPageAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "redirect_uri must be included when making an OpenID Connect request"
@@ -149,6 +158,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 // and http://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
                 Uri uri;
                 if (!Uri.TryCreate(request.RedirectUri, UriKind.Absolute, out uri)) {
+                    Logger.LogError("The authorization request was rejected because the 'redirect_uri' parameter " +
+                                    "didn't correspond to a valid absolute URL: {RedirectUri}.", request.RedirectUri);
+
                     return await SendErrorPageAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
                         ErrorDescription = "redirect_uri must be absolute"
@@ -159,6 +171,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 // See http://tools.ietf.org/html/rfc6749#section-3.1.2
                 // and http://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
                 else if (!string.IsNullOrEmpty(uri.Fragment)) {
+                    Logger.LogError("The authorization request was rejected because the 'redirect_uri' " +
+                                    "contained a URL segment: {RedirectUri}.", request.RedirectUri);
+
                     return await SendErrorPageAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
                         ErrorDescription = "redirect_uri must not include a fragment"
@@ -168,7 +183,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             // Reject requests using the unsupported request parameter.
             if (!string.IsNullOrEmpty(request.GetParameter(OpenIdConnectConstants.Parameters.Request))) {
-                Logger.LogDebug("The authorization request contained the unsupported request parameter.");
+                Logger.LogError("The authorization request was rejected because it contained " +
+                                "an unsupported parameter: {Parameter}.", "request");
 
                 return await SendErrorPageAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.RequestNotSupported,
@@ -178,7 +194,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             // Reject requests using the unsupported request_uri parameter.
             else if (!string.IsNullOrEmpty(request.RequestUri)) {
-                Logger.LogDebug("The authorization request contained the unsupported request_uri parameter.");
+                Logger.LogError("The authorization request was rejected because it contained " +
+                                "an unsupported parameter: {Parameter}.", "request_uri");
 
                 return await SendErrorPageAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.RequestUriNotSupported,
@@ -188,7 +205,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             // Reject requests missing the mandatory response_type parameter.
             else if (string.IsNullOrEmpty(request.ResponseType)) {
-                Logger.LogDebug("Authorization request missing required response_type parameter");
+                Logger.LogError("The authorization request was rejected because " +
+                                "the mandatory 'response_type' parameter was missing.");
 
                 return await SendErrorPageAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
@@ -199,7 +217,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // Reject requests whose response_type parameter is unsupported.
             else if (!request.IsNoneFlow() && !request.IsAuthorizationCodeFlow() &&
                      !request.IsImplicitFlow() && !request.IsHybridFlow()) {
-                Logger.LogDebug("Authorization request contains unsupported response_type parameter");
+                Logger.LogError("The authorization request was rejected because the 'response_type' " +
+                                "parameter was invalid: {ResponseType}.", request.ResponseType);
 
                 return await SendErrorPageAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.UnsupportedResponseType,
@@ -209,7 +228,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             // Reject requests whose response_mode is unsupported.
             else if (!request.IsFormPostResponseMode() && !request.IsFragmentResponseMode() && !request.IsQueryResponseMode()) {
-                Logger.LogDebug("Authorization request contains unsupported response_mode parameter");
+                Logger.LogError("The authorization request was rejected because the 'response_mode' " +
+                                "parameter was invalid: {ResponseMode}.", request.ResponseMode);
 
                 return await SendErrorPageAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
@@ -222,7 +242,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // See http://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#Security
             else if (request.IsQueryResponseMode() && (request.HasResponseType(OpenIdConnectConstants.ResponseTypes.IdToken) ||
                                                        request.HasResponseType(OpenIdConnectConstants.ResponseTypes.Token))) {
-                Logger.LogDebug("Authorization request contains unsafe response_type/response_mode combination");
+                Logger.LogError("The authorization request was rejected because the 'response_type'/'response_mode' combination " +
+                                "was invalid: {ResponseType} ; {ResponseMode}.", request.ResponseType, request.ResponseMode);
 
                 return await SendErrorPageAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
@@ -236,7 +257,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // and http://openid.net/specs/openid-connect-core-1_0.html#HybridIDToken.
             else if (string.IsNullOrEmpty(request.Nonce) && request.HasScope(OpenIdConnectConstants.Scopes.OpenId) &&
                                                            (request.IsImplicitFlow() || request.IsHybridFlow())) {
-                Logger.LogDebug("The 'nonce' parameter was missing");
+                Logger.LogError("The authorization request was rejected because the mandatory 'nonce' parameter was missing.");
 
                 return await SendErrorPageAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
@@ -247,7 +268,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // Reject requests containing the id_token response_mode if no openid scope has been received.
             else if (request.HasResponseType(OpenIdConnectConstants.ResponseTypes.IdToken) &&
                     !request.HasScope(OpenIdConnectConstants.Scopes.OpenId)) {
-                Logger.LogDebug("The 'openid' scope part was missing");
+                Logger.LogError("The authorization request was rejected because the 'openid' scope was missing.");
 
                 return await SendErrorPageAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
@@ -257,7 +278,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             // Reject requests containing the code response_mode if the token endpoint has been disabled.
             else if (request.HasResponseType(OpenIdConnectConstants.ResponseTypes.Code) && !Options.TokenEndpointPath.HasValue) {
-                Logger.LogDebug("Authorization request contains the disabled code response_type");
+                Logger.LogError("The authorization request was rejected because the authorization code flow was disabled.");
 
                 return await SendErrorPageAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.UnsupportedResponseType,
@@ -269,7 +290,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             await Options.Provider.ValidateAuthorizationRequest(validatingContext);
 
             if (!validatingContext.IsValidated) {
-                Logger.LogError("The authorization request was rejected.");
+                Logger.LogInformation("The authorization request was rejected by application code.");
 
                 return await SendErrorPageAsync(new OpenIdConnectMessage {
                     Error = validatingContext.Error ?? OpenIdConnectConstants.Errors.InvalidClient,
@@ -329,17 +350,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return;
             }
 
-            if (Response.HasStarted) {
-                Logger.LogCritical(
-                    "OpenIdConnectServerHandler.TeardownCoreAsync cannot be called when " +
-                    "the response headers have already been sent back to the user agent. " +
-                    "Make sure the response body has not been altered and that no middleware " +
-                    "has attempted to write to the response stream during this request.");
-                return;
-            }
-
             if (!context.Principal.HasClaim(claim => claim.Type == ClaimTypes.NameIdentifier)) {
-                Logger.LogError("The returned identity doesn't contain the mandatory ClaimTypes.NameIdentifier claim.");
+                Logger.LogError("The authentication ticket was rejected because it didn't " +
+                                "contain the mandatory ClaimTypes.NameIdentifier claim.");
 
                 await SendNativeErrorPageAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.ServerError,
@@ -399,7 +412,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 // Ensure that an authorization code is issued to avoid returning an invalid response.
                 // See http://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#Combinations
                 if (string.IsNullOrEmpty(response.Code)) {
-                    Logger.LogError("SerializeAuthorizationCodeAsync returned no authorization code");
+                    Logger.LogError("An error occurred during the serialization of the " +
+                                    "authorization code and a null value was returned.");
 
                     await SendNativeErrorPageAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.ServerError,
@@ -419,8 +433,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 string resources;
                 if (!properties.Items.TryGetValue(OpenIdConnectConstants.Properties.Resources, out resources)) {
-                    Logger.LogInformation("No explicit resource has been associated with the authentication ticket: " +
-                                          "the access token will thus be issued without any audience attached.");
+                    Logger.LogInformation("No explicit resource was associated with the authentication ticket: " +
+                                          "the access token will be issued without any audience attached.");
                 }
 
                 // Note: when the "resource" parameter added to the OpenID Connect response
@@ -445,7 +459,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 // Ensure that an access token is issued to avoid returning an invalid response.
                 // See http://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#Combinations
                 if (string.IsNullOrEmpty(response.AccessToken)) {
-                    Logger.LogError("SerializeAccessTokenAsync returned no access token.");
+                    Logger.LogError("An error occurred during the serialization of the " +
+                                    "access token and a null value was returned.");
 
                     await SendNativeErrorPageAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.ServerError,
@@ -479,7 +494,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 // Ensure that an identity token is issued to avoid returning an invalid response.
                 // See http://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#Combinations
                 if (string.IsNullOrEmpty(response.IdToken)) {
-                    Logger.LogError("SerializeIdentityTokenAsync returned no identity token.");
+                    Logger.LogError("An error occurred during the serialization of the " +
+                                    "identity token and a null value was returned.");
 
                     await SendNativeErrorPageAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.ServerError,

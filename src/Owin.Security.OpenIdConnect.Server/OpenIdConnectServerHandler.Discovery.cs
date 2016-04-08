@@ -14,8 +14,8 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Protocols;
-using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security.Infrastructure;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -27,7 +27,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             // Metadata requests must be made via GET.
             // See http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationRequest
             if (!string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
-                Options.Logger.WriteError("Configuration endpoint: invalid method used.");
+                Options.Logger.LogError("The discovery request was rejected because an invalid " +
+                                        "HTTP method was used: {Method}.", Request.Method);
 
                 return await SendErrorPayloadAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
@@ -40,7 +41,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             // Stop processing the request if Validated was not called.
             if (!validatingContext.IsValidated) {
-                Options.Logger.WriteError("The configuration request was rejected.");
+                Options.Logger.LogError("The configuration request was rejected.");
 
                 return await SendErrorPayloadAsync(new OpenIdConnectMessage {
                     Error = validatingContext.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
@@ -225,7 +226,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             // Metadata requests must be made via GET.
             // See http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationRequest
             if (!string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
-                Options.Logger.WriteError("Cryptography endpoint: invalid method used.");
+                Options.Logger.LogError("The discovery request was rejected because an invalid " +
+                                        "HTTP method was used: {Method}.", Request.Method);
 
                 return await SendErrorPayloadAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
@@ -238,7 +240,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             // Stop processing the request if Validated was not called.
             if (!validatingContext.IsValidated) {
-                Options.Logger.WriteError("The cryptography request was rejected.");
+                Options.Logger.LogInformation("The discovery request was rejected by application code.");
 
                 return await SendErrorPayloadAsync(new OpenIdConnectMessage {
                     Error = validatingContext.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
@@ -253,9 +255,10 @@ namespace Owin.Security.OpenIdConnect.Server {
                 // Ignore the key if it's not supported.
                 if (!credentials.SecurityKey.IsSupportedAlgorithm(SecurityAlgorithms.RsaOaepKeyWrap) &&
                     !credentials.SecurityKey.IsSupportedAlgorithm(SecurityAlgorithms.RsaV15KeyWrap)) {
-                    Options.Logger.WriteVerbose("Cryptography endpoint: unsupported encryption key ignored. " +
-                                                "Only asymmetric security keys supporting RSA1_5 or RSA-OAEP " +
-                                                "can be exposed via the JWKS endpoint.");
+                    Options.Logger.LogInformation("An unsupported encryption key was ignored and excluded " +
+                                                  "from the key set: {Type}. Only asymmetric security keys " +
+                                                  "supporting RSA1_5 or RSA-OAEP can be exposed via the JWKS " +
+                                                  "endpoint.", credentials.SecurityKey.GetType().Name);
 
                     continue;
                 }
@@ -357,9 +360,10 @@ namespace Owin.Security.OpenIdConnect.Server {
             foreach (var credentials in Options.SigningCredentials) {
                 // Ignore the key if it's not supported.
                 if (!credentials.SigningKey.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature)) {
-                    Options.Logger.WriteVerbose("Cryptography endpoint: unsupported signing key ignored. " +
-                                                "Only asymmetric security keys supporting RS256, RS384 " +
-                                                "or RS512 can be exposed via the JWKS endpoint.");
+                    Options.Logger.LogInformation("An unsupported signing key was ignored and excluded " +
+                                                  "from the key set: {Type}. Only asymmetric security keys " +
+                                                  "supporting RS256, RS384 or RS512 can be exposed " +
+                                                  "via the JWKS endpoint.", credentials.SigningKey.GetType().Name);
 
                     continue;
                 }
@@ -477,8 +481,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                 // Ensure a key type has been provided.
                 // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#section-4.1
                 if (string.IsNullOrEmpty(key.Kty)) {
-                    Options.Logger.WriteWarning("Cryptography endpoint: a JSON Web Key didn't " +
-                        "contain the mandatory 'Kty' parameter and has been ignored.");
+                    Options.Logger.LogError("A JSON Web Key was excluded from the key set because " +
+                                            "it didn't contain the mandatory 'kid' parameter.");
 
                     continue;
                 }

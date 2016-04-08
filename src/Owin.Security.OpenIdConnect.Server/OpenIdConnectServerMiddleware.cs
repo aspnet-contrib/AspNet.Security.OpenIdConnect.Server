@@ -7,9 +7,9 @@
 using System;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Owin;
 using Microsoft.Owin.BuilderProperties;
-using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security.Infrastructure;
 using Microsoft.Owin.Security.Interop;
 
@@ -61,7 +61,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             if (Options.Logger == null) {
-                Options.Logger = app.CreateLogger<OpenIdConnectServerMiddleware>();
+                Options.Logger = new LoggerFactory().CreateLogger<OpenIdConnectServerMiddleware>();
             }
 
             if (Options.DataProtectionProvider == null) {

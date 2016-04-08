@@ -152,7 +152,7 @@ namespace Microsoft.AspNetCore.Builder {
                     }
 
                     logger.LogInformation("A new RSA key was automatically generated, added to the " +
-                                          "signing credentials list and persisted on the disk: {Key}.", path);
+                                          "signing credentials list and persisted on the disk: {Path}.", path);
 
                     options.SigningCredentials.AddKey(new RsaSecurityKey(parameters));
                 }

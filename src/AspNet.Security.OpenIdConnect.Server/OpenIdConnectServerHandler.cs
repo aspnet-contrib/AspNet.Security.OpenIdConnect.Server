@@ -85,7 +85,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 var ticket = await DeserializeIdentityTokenAsync(request.IdTokenHint, request);
                 if (ticket == null) {
-                    Logger.LogDebug("Invalid id_token_hint");
+                    Logger.LogWarning("The identity token extracted from the id_token_hint " +
+                                      "parameter was invalid and has been ignored.");
 
                     return AuthenticateResult.Skip();
                 }
@@ -119,14 +120,16 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 var ticket = await DeserializeAccessTokenAsync(token, request);
                 if (ticket == null) {
-                    Logger.LogDebug("Invalid access_token");
+                    Logger.LogWarning("The access token extracted from the userinfo " +
+                                      "request was expired and has been ignored.");
 
                     return AuthenticateResult.Skip();
                 }
 
                 if (!ticket.Properties.ExpiresUtc.HasValue ||
                      ticket.Properties.ExpiresUtc < Options.SystemClock.UtcNow) {
-                    Logger.LogDebug("Expired access_token");
+                    Logger.LogWarning("The access token extracted from the userinfo " +
+                                      "request was expired and has been ignored.");
 
                     return AuthenticateResult.Skip();
                 }
@@ -189,7 +192,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
             if (!Options.AllowInsecureHttp && !Request.IsHttps) {
                 // Return the native error page for endpoints involving the user participation.
                 if (notification.IsAuthorizationEndpoint || notification.IsLogoutEndpoint) {
-                    Logger.LogWarning("The HTTP request was rejected because AllowInsecureHttp was false.");
+                    Logger.LogWarning("The current request was rejected because the OpenID Connect server middleware " +
+                                      "has been configured to reject HTTP requests. To permanently disable the transport " +
+                                      "security requirement, set 'OpenIdConnectServerOptions.AllowInsecureHttp' to 'true'.");
 
                     return await SendNativeErrorPageAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
@@ -201,7 +206,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 else if (notification.IsTokenEndpoint || notification.IsUserinfoEndpoint ||
                          notification.IsIntrospectionEndpoint || notification.IsConfigurationEndpoint ||
                          notification.IsCryptographyEndpoint) {
-                    Logger.LogWarning("The HTTP request was rejected because AllowInsecureHttp was false.");
+                    Logger.LogWarning("The current request was rejected because the OpenID Connect server middleware " +
+                                      "has been configured to reject HTTP requests. To permanently disable the transport " +
+                                      "security requirement, set 'OpenIdConnectServerOptions.AllowInsecureHttp' to 'true'.");
 
                     return await SendErrorPayloadAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,

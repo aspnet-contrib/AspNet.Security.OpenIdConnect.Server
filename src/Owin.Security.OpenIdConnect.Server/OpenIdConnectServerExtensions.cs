@@ -13,9 +13,10 @@ using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using JetBrains.Annotations;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
-using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.DataProtection;
 using Owin.Security.OpenIdConnect.Extensions;
@@ -38,7 +39,8 @@ namespace Owin {
         /// </param>
         /// <returns>The application builder.</returns>
         public static IAppBuilder UseOpenIdConnectServer(
-            this IAppBuilder app, Action<OpenIdConnectServerOptions> configuration) {
+            [NotNull] this IAppBuilder app,
+            [NotNull] Action<OpenIdConnectServerOptions> configuration) {
             if (app == null) {
                 throw new ArgumentNullException(nameof(app));
             }
@@ -59,7 +61,9 @@ namespace Owin {
         /// <param name="app">The web application builder.</param>
         /// <param name="options">The options controlling the behavior of the OpenID Connect server.</param>
         /// <returns>The application builder.</returns>
-        public static IAppBuilder UseOpenIdConnectServer(this IAppBuilder app, OpenIdConnectServerOptions options) {
+        public static IAppBuilder UseOpenIdConnectServer(
+            [NotNull] this IAppBuilder app,
+            [NotNull] OpenIdConnectServerOptions options) {
             if (app == null) {
                 throw new ArgumentNullException(nameof(app));
             }
@@ -71,9 +75,6 @@ namespace Owin {
             // If no key has been explicitly added, use the fallback mode.
             if (options.EncryptingCredentials.Count == 0 ||
                 options.SigningCredentials.Count == 0) {
-                // Resolve a logger instance from the services provider.
-                var logger = app.CreateLogger<OpenIdConnectServerMiddleware>();
-
                 var directory = OpenIdConnectServerHelpers.GetDefaultKeyStorageDirectory();
 
                 // Ensure the directory exists.
@@ -98,7 +99,7 @@ namespace Owin {
                         string usage;
                         var parameters = OpenIdConnectServerHelpers.DecryptKey(protector, buffer.ToArray(), out usage);
                         if (parameters == null) {
-                            logger.WriteVerbose($"An invalid/incompatible key was ignored: {file.FullName}.");
+                            options.Logger.LogDebug("An invalid/incompatible key was ignored: {Key}.", file.FullName);
 
                             continue;
                         }
@@ -115,8 +116,8 @@ namespace Owin {
                             // Add the key to the encryption credentials list.
                             options.EncryptingCredentials.AddKey(new RsaSecurityKey(algorithm));
 
-                            logger.WriteInformation("An existing key was automatically added to the " +
-                                                   $"encryption credentials list: {file.FullName}.");
+                            options.Logger.LogInformation("An existing key was automatically added to the " +
+                                                          "encryption credentials list: {Key}.", file.FullName);
                         }
 
                         else if (string.Equals(usage, "Signing", StringComparison.OrdinalIgnoreCase)) {
@@ -131,8 +132,8 @@ namespace Owin {
                             // Add the key to the signing credentials list.
                             options.SigningCredentials.AddKey(new RsaSecurityKey(algorithm));
 
-                            logger.WriteInformation("An existing key was automatically added to the " +
-                                                   $"signing credentials list: {file.FullName}.");
+                            options.Logger.LogInformation("An existing key was automatically added to the " +
+                                                          "signing credentials list: {Key}.", file.FullName);
                         }
                     }
                 }
@@ -156,8 +157,8 @@ namespace Owin {
 
                     options.EncryptingCredentials.AddKey(new RsaSecurityKey(algorithm));
 
-                    logger.WriteInformation("A new RSA key was automatically generated, added to the " +
-                                           $"encryption credentials list and persisted on the disk: {path}.");
+                    options.Logger.LogInformation("A new RSA key was automatically generated, added to the " +
+                                                  "encryption credentials list and persisted on the disk: {Path}.", path);
                 }
 
                 // If no signing key has been found, generate and persist a new RSA key.
@@ -179,8 +180,8 @@ namespace Owin {
 
                     options.SigningCredentials.AddKey(new RsaSecurityKey(algorithm));
 
-                    logger.WriteInformation("A new RSA key was automatically generated, added to the " +
-                                           $"signing credentials list and persisted on the disk: {path}.");
+                    options.Logger.LogInformation("A new RSA key was automatically generated, added to the " +
+                                                  "signing credentials list and persisted on the disk: {Path}.", path);
                 }
             }
 
@@ -195,7 +196,8 @@ namespace Owin {
         /// <param name="certificate">The certificate used to decrypt authorization requests received by the server.</param>
         /// <returns>The encryption credentials.</returns>
         public static IList<EncryptingCredentials> AddCertificate(
-            this IList<EncryptingCredentials> credentials, X509Certificate2 certificate) {
+            [NotNull] this IList<EncryptingCredentials> credentials,
+            [NotNull] X509Certificate2 certificate) {
             if (credentials == null) {
                 throw new ArgumentNullException(nameof(credentials));
             }
@@ -223,8 +225,8 @@ namespace Owin {
         /// <param name="password">The password used to open the certificate.</param>
         /// <returns>The encryption credentials.</returns>
         public static IList<EncryptingCredentials> AddCertificate(
-            this IList<EncryptingCredentials> credentials,
-            Assembly assembly, string resource, string password) {
+            [NotNull] this IList<EncryptingCredentials> credentials,
+            [NotNull] Assembly assembly, [NotNull] string resource, [NotNull] string password) {
             if (credentials == null) {
                 throw new ArgumentNullException(nameof(credentials));
             }
@@ -259,7 +261,7 @@ namespace Owin {
         /// <param name="password">The password used to open the certificate.</param>
         /// <returns>The encryption credentials.</returns>
         public static IList<EncryptingCredentials> AddCertificate(
-            this IList<EncryptingCredentials> credentials, Stream stream, string password) {
+            [NotNull] this IList<EncryptingCredentials> credentials, [NotNull] Stream stream, [NotNull] string password) {
             return credentials.AddCertificate(stream, password, X509KeyStorageFlags.Exportable |
                                                                 X509KeyStorageFlags.MachineKeySet);
         }
@@ -274,8 +276,8 @@ namespace Owin {
         /// <param name="flags">An enumeration of flags indicating how and where to store the private key of the certificate.</param>
         /// <returns>The encryption credentials.</returns>
         public static IList<EncryptingCredentials> AddCertificate(
-            this IList<EncryptingCredentials> credentials, Stream stream,
-            string password, X509KeyStorageFlags flags) {
+            [NotNull] this IList<EncryptingCredentials> credentials, [NotNull] Stream stream,
+            [NotNull] string password, X509KeyStorageFlags flags) {
             if (credentials == null) {
                 throw new ArgumentNullException(nameof(credentials));
             }
@@ -303,7 +305,7 @@ namespace Owin {
         /// <param name="thumbprint">The thumbprint of the certificate used to identify it in the X509 store.</param>
         /// <returns>The encryption credentials.</returns>
         public static IList<EncryptingCredentials> AddCertificate(
-            this IList<EncryptingCredentials> credentials, string thumbprint) {
+            [NotNull] this IList<EncryptingCredentials> credentials, [NotNull] string thumbprint) {
             return credentials.AddCertificate(thumbprint, StoreName.My, StoreLocation.LocalMachine);
         }
 
@@ -317,8 +319,8 @@ namespace Owin {
         /// <param name="location">The location of the X509 store.</param>
         /// <returns>The encryption credentials.</returns>
         public static IList<EncryptingCredentials> AddCertificate(
-            this IList<EncryptingCredentials> credentials,
-            string thumbprint, StoreName name, StoreLocation location) {
+            [NotNull] this IList<EncryptingCredentials> credentials,
+            [NotNull] string thumbprint, StoreName name, StoreLocation location) {
             if (credentials == null) {
                 throw new ArgumentNullException(nameof(credentials));
             }
@@ -342,7 +344,8 @@ namespace Owin {
         /// <param name="credentials">The options used to configure the OpenID Connect server.</param>
         /// <param name="key">The key used to sign security tokens issued by the server.</param>
         /// <returns>The encryption credentials.</returns>
-        public static IList<EncryptingCredentials> AddKey(this IList<EncryptingCredentials> credentials, SecurityKey key) {
+        public static IList<EncryptingCredentials> AddKey(
+            [NotNull] this IList<EncryptingCredentials> credentials, [NotNull] SecurityKey key) {
             if (credentials == null) {
                 throw new ArgumentNullException(nameof(credentials));
             }
@@ -405,7 +408,8 @@ namespace Owin {
         /// <param name="certificate">The certificate used to sign security tokens issued by the server.</param>
         /// <returns>The signing credentials.</returns>
         public static IList<SigningCredentials> AddCertificate(
-            this IList<SigningCredentials> credentials, X509Certificate2 certificate) {
+            [NotNull] this IList<SigningCredentials> credentials,
+            [NotNull] X509Certificate2 certificate) {
             if (credentials == null) {
                 throw new ArgumentNullException(nameof(credentials));
             }
@@ -433,8 +437,8 @@ namespace Owin {
         /// <param name="password">The password used to open the certificate.</param>
         /// <returns>The signing credentials.</returns>
         public static IList<SigningCredentials> AddCertificate(
-            this IList<SigningCredentials> credentials,
-            Assembly assembly, string resource, string password) {
+            [NotNull] this IList<SigningCredentials> credentials,
+            [NotNull] Assembly assembly, [NotNull] string resource, [NotNull] string password) {
             if (credentials == null) {
                 throw new ArgumentNullException(nameof(credentials));
             }
@@ -469,7 +473,7 @@ namespace Owin {
         /// <param name="password">The password used to open the certificate.</param>
         /// <returns>The signing credentials.</returns>
         public static IList<SigningCredentials> AddCertificate(
-            this IList<SigningCredentials> credentials, Stream stream, string password) {
+            [NotNull] this IList<SigningCredentials> credentials, [NotNull] Stream stream, [NotNull] string password) {
             return credentials.AddCertificate(stream, password, X509KeyStorageFlags.Exportable |
                                                                 X509KeyStorageFlags.MachineKeySet);
         }
@@ -484,8 +488,8 @@ namespace Owin {
         /// <param name="flags">An enumeration of flags indicating how and where to store the private key of the certificate.</param>
         /// <returns>The signing credentials.</returns>
         public static IList<SigningCredentials> AddCertificate(
-            this IList<SigningCredentials> credentials, Stream stream,
-            string password, X509KeyStorageFlags flags) {
+            [NotNull] this IList<SigningCredentials> credentials, [NotNull] Stream stream,
+            [NotNull] string password, X509KeyStorageFlags flags) {
             if (credentials == null) {
                 throw new ArgumentNullException(nameof(credentials));
             }
@@ -513,7 +517,7 @@ namespace Owin {
         /// <param name="thumbprint">The thumbprint of the certificate used to identify it in the X509 store.</param>
         /// <returns>The signing credentials.</returns>
         public static IList<SigningCredentials> AddCertificate(
-            this IList<SigningCredentials> credentials, string thumbprint) {
+            [NotNull] this IList<SigningCredentials> credentials, [NotNull] string thumbprint) {
             return credentials.AddCertificate(thumbprint, StoreName.My, StoreLocation.LocalMachine);
         }
 
@@ -527,8 +531,8 @@ namespace Owin {
         /// <param name="location">The location of the X509 store.</param>
         /// <returns>The signing credentials.</returns>
         public static IList<SigningCredentials> AddCertificate(
-            this IList<SigningCredentials> credentials,
-            string thumbprint, StoreName name, StoreLocation location) {
+            [NotNull] this IList<SigningCredentials> credentials,
+            [NotNull] string thumbprint, StoreName name, StoreLocation location) {
             if (credentials == null) {
                 throw new ArgumentNullException(nameof(credentials));
             }
@@ -551,7 +555,8 @@ namespace Owin {
         /// <param name="credentials">The options used to configure the OpenID Connect server.</param>
         /// <param name="key">The key used to sign security tokens issued by the server.</param>
         /// <returns>The signing credentials.</returns>
-        public static IList<SigningCredentials> AddKey(this IList<SigningCredentials> credentials, SecurityKey key) {
+        public static IList<SigningCredentials> AddKey(
+            [NotNull] this IList<SigningCredentials> credentials, [NotNull] SecurityKey key) {
             if (credentials == null) {
                 throw new ArgumentNullException(nameof(credentials));
             }
@@ -578,11 +583,36 @@ namespace Owin {
         }
 
         /// <summary>
+        /// Configures the OpenID Connect server to enable logging.
+        /// </summary>
+        /// <param name="options">The options used to configure the OpenID Connect server.</param>
+        /// <param name="configuration">The delegate used to configure the logger factory.</param>
+        /// <returns>The options used to configure the OpenID Connect server.</returns>
+        public static OpenIdConnectServerOptions UseLogging(
+            [NotNull] this OpenIdConnectServerOptions options,
+            [NotNull] Action<ILoggerFactory> configuration) {
+            if (options == null) {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            if (configuration == null) {
+                throw new ArgumentNullException(nameof(configuration));
+            }
+
+            var factory = new LoggerFactory();
+            configuration(factory);
+
+            options.Logger = factory.CreateLogger<OpenIdConnectServerMiddleware>();
+
+            return options;
+        }
+
+        /// <summary>
         /// Configures the OpenID Connect server to issue JWT access tokens.
         /// </summary>
         /// <param name="options">The options used to configure the OpenID Connect server.</param>
         /// <returns>The options used to configure the OpenID Connect server.</returns>
-        public static OpenIdConnectServerOptions UseJwtTokens(this OpenIdConnectServerOptions options) {
+        public static OpenIdConnectServerOptions UseJwtTokens([NotNull] this OpenIdConnectServerOptions options) {
             if (options == null) {
                 throw new ArgumentNullException(nameof(options));
             }
@@ -598,7 +628,7 @@ namespace Owin {
         /// </summary>
         /// <param name="context">The OWIN context.</param>
         /// <returns>The <see cref="OpenIdConnectMessage"/> associated with the current request.</returns>
-        public static OpenIdConnectMessage GetOpenIdConnectRequest(this IOwinContext context) {
+        public static OpenIdConnectMessage GetOpenIdConnectRequest([NotNull] this IOwinContext context) {
             if (context == null) {
                 throw new ArgumentNullException(nameof(context));
             }
@@ -611,7 +641,7 @@ namespace Owin {
         /// </summary>
         /// <param name="context">The OWIN context.</param>
         /// <param name="request">The ambient <see cref="OpenIdConnectMessage"/>.</param>
-        public static void SetOpenIdConnectRequest(this IOwinContext context, OpenIdConnectMessage request) {
+        public static void SetOpenIdConnectRequest([NotNull] this IOwinContext context, OpenIdConnectMessage request) {
             if (context == null) {
                 throw new ArgumentNullException(nameof(context));
             }
@@ -625,7 +655,7 @@ namespace Owin {
         /// </summary>
         /// <param name="context">The OWIN context.</param>
         /// <returns>The <see cref="OpenIdConnectMessage"/> associated with the current response.</returns>
-        public static OpenIdConnectMessage GetOpenIdConnectResponse(this IOwinContext context) {
+        public static OpenIdConnectMessage GetOpenIdConnectResponse([NotNull] this IOwinContext context) {
             if (context == null) {
                 throw new ArgumentNullException(nameof(context));
             }
@@ -638,7 +668,7 @@ namespace Owin {
         /// </summary>
         /// <param name="context">The OWIN context.</param>
         /// <param name="response">The ambient <see cref="OpenIdConnectMessage"/>.</param>
-        public static void SetOpenIdConnectResponse(this IOwinContext context, OpenIdConnectMessage response) {
+        public static void SetOpenIdConnectResponse([NotNull] this IOwinContext context, OpenIdConnectMessage response) {
             if (context == null) {
                 throw new ArgumentNullException(nameof(context));
             }
@@ -663,7 +693,9 @@ namespace Owin {
         /// the authenticationTypes is null or empty, that means the AuthenticationMode.Active
         /// middleware should perform their alterations on the response.
         /// </param>
-        public static void Forbid(this IAuthenticationManager manager, AuthenticationProperties properties, params string[] schemes) {
+        public static void Forbid(
+            [NotNull] this IAuthenticationManager manager,
+            [NotNull] AuthenticationProperties properties, [NotNull] params string[] schemes) {
             // Note: unlike ASP.NET Core's AuthenticationManager, Katana's manager doesn't natively support "forbidden responses".
             // To work around this limitation, this extension backports ASP.NET Core's ForbidAsync method to OWIN/Katana.
 
@@ -722,7 +754,7 @@ namespace Owin {
         /// the authenticationTypes is null or empty, that means the AuthenticationMode.Active
         /// middleware should perform their alterations on the response.
         /// </param>
-        public static void Forbid(this IAuthenticationManager manager, params string[] schemes)
+        public static void Forbid([NotNull] this IAuthenticationManager manager, [NotNull] params string[] schemes)
             => manager.Forbid(new AuthenticationProperties(), schemes);
     }
 }

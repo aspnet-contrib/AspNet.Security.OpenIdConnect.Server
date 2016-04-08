@@ -30,6 +30,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
             else if (string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase)) {
                 // See http://openid.net/specs/openid-connect-core-1_0.html#FormSerialization
                 if (string.IsNullOrWhiteSpace(Request.ContentType)) {
+                    Logger.LogError("The userinfo request was rejected because " +
+                                    "the mandatory 'Content-Type' header was missing.");
+
                     return await SendErrorPayloadAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
                         ErrorDescription = "A malformed userinfo request has been received: " +
@@ -39,6 +42,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 // May have media/type; charset=utf-8, allow partial match.
                 if (!Request.ContentType.StartsWith("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase)) {
+                    Logger.LogError("The userinfo request was rejected because an invalid 'Content-Type' " +
+                                    "header was received: {ContentType}.", Request.ContentType);
+
                     return await SendErrorPayloadAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
                         ErrorDescription = "A malformed userinfo request has been received: " +
@@ -53,7 +59,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             else {
-                Logger.LogInformation("A malformed request has been received by the userinfo endpoint.");
+                Logger.LogError("The userinfo request was rejected because an invalid " +
+                                "HTTP method was received: {Method}.", Request.Method);
 
                 return await SendErrorPageAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
@@ -73,6 +80,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
             else {
                 string header = Request.Headers[HeaderNames.Authorization];
                 if (string.IsNullOrEmpty(header)) {
+                    Logger.LogError("The userinfo request was rejected because " +
+                                    "the 'Authorization' header was missing.");
+
                     return await SendErrorPayloadAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
                         ErrorDescription = "A malformed userinfo request has been received."
@@ -80,6 +90,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 }
 
                 if (!header.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)) {
+                    Logger.LogError("The userinfo request was rejected because the " +
+                                    "'Authorization' header was invalid: {Header}.", header);
+
                     return await SendErrorPayloadAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
                         ErrorDescription = "A malformed userinfo request has been received."
@@ -88,6 +101,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 token = header.Substring("Bearer ".Length);
                 if (string.IsNullOrEmpty(token)) {
+                    Logger.LogError("The userinfo request was rejected because the access token was missing.");
+
                     return await SendErrorPayloadAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
                         ErrorDescription = "A malformed userinfo request has been received."
@@ -97,7 +112,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             var ticket = await DeserializeAccessTokenAsync(token, request);
             if (ticket == null) {
-                Logger.LogError("invalid token");
+                Logger.LogError("The userinfo request was rejected because access token was invalid.");
 
                 // Note: an invalid token should result in an unauthorized response
                 // but returning a 401 status would invoke the previously registered
@@ -112,7 +127,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             if (!ticket.Properties.ExpiresUtc.HasValue ||
                  ticket.Properties.ExpiresUtc < Options.SystemClock.UtcNow) {
-                Logger.LogError("expired token");
+                Logger.LogError("The userinfo request was rejected because access token was expired.");
 
                 // Note: an invalid token should result in an unauthorized response
                 // but returning a 401 status would invoke the previously registered
@@ -129,7 +144,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             await Options.Provider.ValidateUserinfoRequest(validatingContext);
 
             if (!validatingContext.IsValidated) {
-                Logger.LogError("The userinfo request was rejected.");
+                Logger.LogInformation("The userinfo request was rejected by application code.");
 
                 return await SendErrorPayloadAsync(new OpenIdConnectMessage {
                     Error = validatingContext.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
