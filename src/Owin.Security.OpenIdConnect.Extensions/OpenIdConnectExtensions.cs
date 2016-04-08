@@ -609,33 +609,6 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         }
 
         /// <summary>
-        /// Copies the authentication properties to another instance.
-        /// </summary>
-        /// <param name="source">The source instance.</param>
-        /// <param name="destination">The destination instance.</param>
-        public static void CopyTo(
-            [NotNull] this AuthenticationProperties source,
-            [NotNull] AuthenticationProperties destination) {
-            if (source == null) {
-                throw new ArgumentNullException(nameof(source));
-            }
-
-            if (destination == null) {
-                throw new ArgumentNullException(nameof(destination));
-            }
-
-            // Don't copy values if the source
-            // and destination instances are identical.
-            if (ReferenceEquals(destination, source)) {
-                return;
-            }
-
-            foreach (var property in source.Dictionary) {
-                destination.Dictionary[property.Key] = property.Value;
-            }
-        }
-
-        /// <summary>
         /// Gets a given property from the authentication ticket.
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>

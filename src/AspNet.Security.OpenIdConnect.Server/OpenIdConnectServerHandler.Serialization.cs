@@ -57,11 +57,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return notification.AuthorizationCode;
             }
 
-            // Allow the application to change the authentication
-            // ticket from the SerializeAuthorizationCode event.
-            ticket = notification.Ticket;
-            ticket.Properties.CopyTo(properties);
-
             if (notification.DataFormat == null) {
                 return null;
             }
@@ -136,11 +131,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
             if (!string.IsNullOrEmpty(notification.AccessToken)) {
                 return notification.AccessToken;
             }
-
-            // Allow the application to change the authentication
-            // ticket from the SerializeAccessTokenAsync event.
-            ticket = notification.Ticket;
-            ticket.Properties.CopyTo(properties);
 
             if (notification.SecurityTokenHandler == null) {
                 return notification.DataFormat?.Protect(ticket);
@@ -333,11 +323,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return notification.IdentityToken;
             }
 
-            // Allow the application to change the authentication
-            // ticket from the SerializeIdentityTokenAsync event.
-            ticket = notification.Ticket;
-            ticket.Properties.CopyTo(properties);
-
             if (notification.SecurityTokenHandler == null) {
                 return null;
             }
@@ -518,11 +503,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
             if (!string.IsNullOrEmpty(notification.RefreshToken)) {
                 return notification.RefreshToken;
             }
-
-            // Allow the application to change the authentication
-            // ticket from the SerializeRefreshTokenAsync event.
-            ticket = notification.Ticket;
-            ticket.Properties.CopyTo(properties);
 
             return notification.DataFormat?.Protect(ticket);
         }
