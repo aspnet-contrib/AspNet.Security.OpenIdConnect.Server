@@ -274,6 +274,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     writer.WriteLine("</html>");
                     writer.Flush();
 
+                    Response.StatusCode = 200;
                     Response.ContentLength = buffer.Length;
                     Response.ContentType = "text/html;charset=UTF-8";
 

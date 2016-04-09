@@ -519,12 +519,29 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return false;
             }
 
-            return await SendErrorRedirectAsync(request, new OpenIdConnectMessage {
+            var response = new OpenIdConnectMessage {
                 Error = OpenIdConnectConstants.Errors.AccessDenied,
                 ErrorDescription = "The authorization grant has been denied by the resource owner",
                 RedirectUri = request.RedirectUri,
                 State = request.State
-            });
+            };
+
+            // Create a new ticket containing an empty identity and
+            // the authentication properties extracted from the challenge.
+            var ticket = new AuthenticationTicket(new ClaimsIdentity(), context.Properties);
+
+            var notification = new ApplyAuthorizationResponseContext(Context, Options, ticket, request, response);
+            await Options.Provider.ApplyAuthorizationResponse(notification);
+
+            if (notification.HandledResponse) {
+                return true;
+            }
+
+            else if (notification.Skipped) {
+                return false;
+            }
+
+            return await SendErrorRedirectAsync(request, response);
         }
     }
 }
