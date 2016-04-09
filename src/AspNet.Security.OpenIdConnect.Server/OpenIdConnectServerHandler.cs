@@ -191,12 +191,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 if (notification.IsAuthorizationEndpoint || notification.IsLogoutEndpoint) {
                     Logger.LogWarning("The HTTP request was rejected because AllowInsecureHttp was false.");
 
-                    await SendNativeErrorPageAsync(new OpenIdConnectMessage {
+                    return await SendNativeErrorPageAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
                         ErrorDescription = "This server only accepts HTTPS requests."
                     });
-
-                    return true;
                 }
 
                 // Return a JSON error for endpoints that don't involve the user participation.
@@ -205,12 +203,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
                          notification.IsCryptographyEndpoint) {
                     Logger.LogWarning("The HTTP request was rejected because AllowInsecureHttp was false.");
 
-                    await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                    return await SendErrorPayloadAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
                         ErrorDescription = "This server only accepts HTTPS requests."
                     });
-
-                    return true;
                 }
             }
 
@@ -223,13 +219,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             else if (notification.IsTokenEndpoint) {
-                await InvokeTokenEndpointAsync();
-                return true;
+                return await InvokeTokenEndpointAsync();
             }
 
             else if (notification.IsIntrospectionEndpoint) {
-                await InvokeIntrospectionEndpointAsync();
-                return true;
+                return await InvokeIntrospectionEndpointAsync();
             }
 
             else if (notification.IsUserinfoEndpoint) {
@@ -237,13 +231,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             else if (notification.IsConfigurationEndpoint) {
-                await InvokeConfigurationEndpointAsync();
-                return true;
+                return await InvokeConfigurationEndpointAsync();
             }
 
             else if (notification.IsCryptographyEndpoint) {
-                await InvokeCryptographyEndpointAsync();
-                return true;
+                return await InvokeCryptographyEndpointAsync();
             }
 
             return false;
@@ -371,13 +363,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             // Render the default error page.
-            await SendNativeErrorPageAsync(response);
-
-            // Return true to stop processing the request.
-            return true;
+            return await SendNativeErrorPageAsync(response);
         }
 
-        private async Task SendNativeErrorPageAsync(OpenIdConnectMessage response) {
+        private async Task<bool> SendNativeErrorPageAsync(OpenIdConnectMessage response) {
             using (var buffer = new MemoryStream())
             using (var writer = new StreamWriter(buffer)) {
                 foreach (var parameter in response.Parameters) {
@@ -396,10 +385,13 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 buffer.Seek(offset: 0, loc: SeekOrigin.Begin);
                 await buffer.CopyToAsync(Response.Body, 4096, Context.RequestAborted);
+
+                // Return true to stop processing the request.
+                return true;
             }
         }
 
-        private async Task SendPayloadAsync(JToken payload) {
+        private async Task<bool> SendPayloadAsync(JToken payload) {
             using (var buffer = new MemoryStream())
             using (var writer = new JsonTextWriter(new StreamWriter(buffer))) {
                 payload.WriteTo(writer);
@@ -410,10 +402,13 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 buffer.Seek(offset: 0, loc: SeekOrigin.Begin);
                 await buffer.CopyToAsync(Response.Body, 4096, Context.RequestAborted);
+
+                // Return true to stop processing the request.
+                return true;
             }
         }
 
-        private async Task SendErrorPayloadAsync(OpenIdConnectMessage response) {
+        private async Task<bool> SendErrorPayloadAsync(OpenIdConnectMessage response) {
             using (var buffer = new MemoryStream())
             using (var writer = new JsonTextWriter(new StreamWriter(buffer))) {
                 var payload = new JObject();
@@ -441,6 +436,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 buffer.Seek(offset: 0, loc: SeekOrigin.Begin);
                 await buffer.CopyToAsync(Response.Body, 4096, Context.RequestAborted);
+
+                // Return true to stop processing the request.
+                return true;
             }
         }
 

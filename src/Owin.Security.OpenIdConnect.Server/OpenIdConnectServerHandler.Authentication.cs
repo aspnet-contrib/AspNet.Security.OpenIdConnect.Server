@@ -400,12 +400,10 @@ namespace Owin.Security.OpenIdConnect.Server {
                 if (string.IsNullOrEmpty(response.Code)) {
                     Options.Logger.WriteError("SerializeAuthorizationCodeAsync returned no authorization code");
 
-                    await SendNativeErrorPageAsync(new OpenIdConnectMessage {
+                    return await SendNativeErrorPageAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.ServerError,
                         ErrorDescription = "no valid authorization code was issued"
                     });
-
-                    return true;
                 }
             }
 
@@ -446,12 +444,10 @@ namespace Owin.Security.OpenIdConnect.Server {
                 if (string.IsNullOrEmpty(response.AccessToken)) {
                     Options.Logger.WriteError("SerializeAccessTokenAsync returned no access token.");
 
-                    await SendNativeErrorPageAsync(new OpenIdConnectMessage {
+                    return await SendNativeErrorPageAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.ServerError,
                         ErrorDescription = "no valid access token was issued"
                     });
-
-                    return true;
                 }
 
                 // properties.ExpiresUtc is automatically set by SerializeAccessTokenAsync but the end user
@@ -478,12 +474,10 @@ namespace Owin.Security.OpenIdConnect.Server {
                 if (string.IsNullOrEmpty(response.IdToken)) {
                     Options.Logger.WriteError("SerializeIdentityTokenAsync returned no identity token.");
 
-                    await SendNativeErrorPageAsync(new OpenIdConnectMessage {
+                    return await SendNativeErrorPageAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.ServerError,
                         ErrorDescription = "no valid identity token was issued"
                     });
-
-                    return true;
                 }
             }
 
@@ -500,6 +494,10 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             if (notification.HandledResponse) {
                 return true;
+            }
+
+            else if (notification.Skipped) {
+                return false;
             }
 
             return await ApplyAuthorizationResponseAsync(request, response);

@@ -23,13 +23,16 @@ using Owin.Security.OpenIdConnect.Extensions;
 
 namespace Owin.Security.OpenIdConnect.Server {
     internal partial class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions> {
-        private async Task InvokeConfigurationEndpointAsync() {
+        private async Task<bool> InvokeConfigurationEndpointAsync() {
             // Metadata requests must be made via GET.
             // See http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationRequest
             if (!string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
                 Options.Logger.WriteError("Configuration endpoint: invalid method used.");
 
-                return;
+                return await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                    Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = "Invalid HTTP method: make sure to use GET."
+                });
             }
 
             var validatingContext = new ValidateConfigurationRequestContext(Context, Options);
@@ -39,13 +42,11 @@ namespace Owin.Security.OpenIdConnect.Server {
             if (!validatingContext.IsValidated) {
                 Options.Logger.WriteError("The configuration request was rejected.");
 
-                await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                return await SendErrorPayloadAsync(new OpenIdConnectMessage {
                     Error = validatingContext.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = validatingContext.ErrorDescription,
                     ErrorUri = validatingContext.ErrorUri
                 });
-
-                return;
             }
 
             var notification = new HandleConfigurationRequestContext(Context, Options);
@@ -141,7 +142,11 @@ namespace Owin.Security.OpenIdConnect.Server {
             await Options.Provider.HandleConfigurationRequest(notification);
 
             if (notification.HandledResponse) {
-                return;
+                return true;
+            }
+
+            else if (notification.Skipped) {
+                return false;
             }
             
             var payload = new JObject();
@@ -194,7 +199,11 @@ namespace Owin.Security.OpenIdConnect.Server {
             await Options.Provider.ApplyConfigurationResponse(context);
 
             if (context.HandledResponse) {
-                return;
+                return true;
+            }
+
+            else if (context.Skipped) {
+                return false;
             }
 
             using (var buffer = new MemoryStream())
@@ -207,16 +216,21 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                 buffer.Seek(offset: 0, loc: SeekOrigin.Begin);
                 await buffer.CopyToAsync(Response.Body, 4096, Request.CallCancelled);
+
+                return true;
             }
         }
 
-        private async Task InvokeCryptographyEndpointAsync() {
+        private async Task<bool> InvokeCryptographyEndpointAsync() {
             // Metadata requests must be made via GET.
             // See http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationRequest
             if (!string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
                 Options.Logger.WriteError("Cryptography endpoint: invalid method used.");
 
-                return;
+                return await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                    Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = "Invalid HTTP method: make sure to use GET."
+                });
             }
 
             var validatingContext = new ValidateCryptographyRequestContext(Context, Options);
@@ -226,24 +240,14 @@ namespace Owin.Security.OpenIdConnect.Server {
             if (!validatingContext.IsValidated) {
                 Options.Logger.WriteError("The cryptography request was rejected.");
 
-                await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                return await SendErrorPayloadAsync(new OpenIdConnectMessage {
                     Error = validatingContext.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = validatingContext.ErrorDescription,
                     ErrorUri = validatingContext.ErrorUri
                 });
-
-                return;
             }
 
             var notification = new HandleCryptographyRequestContext(Context, Options);
-
-            // Metadata requests must be made via GET.
-            // See http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationRequest
-            if (!string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
-                Options.Logger.WriteError("Cryptography endpoint: invalid method used.");
-
-                return;
-            }
 
             foreach (var credentials in Options.EncryptingCredentials) {
                 // Ignore the key if it's not supported.
@@ -457,7 +461,11 @@ namespace Owin.Security.OpenIdConnect.Server {
             await Options.Provider.HandleCryptographyRequest(notification);
 
             if (notification.HandledResponse) {
-                return;
+                return true;
+            }
+
+            else if (notification.Skipped) {
+                return false;
             }
 
             var payload = new JObject();
@@ -508,7 +516,11 @@ namespace Owin.Security.OpenIdConnect.Server {
             await Options.Provider.ApplyCryptographyResponse(context);
 
             if (context.HandledResponse) {
-                return;
+                return true;
+            }
+
+            else if (context.Skipped) {
+                return false;
             }
 
             using (var buffer = new MemoryStream())
@@ -521,6 +533,8 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                 buffer.Seek(offset: 0, loc: SeekOrigin.Begin);
                 await buffer.CopyToAsync(Response.Body, 4096, Request.CallCancelled);
+
+                return true;
             }
         }
     }

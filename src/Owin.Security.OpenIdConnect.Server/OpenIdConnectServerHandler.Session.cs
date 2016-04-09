@@ -84,6 +84,10 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return true;
             }
 
+            else if (notification.Skipped) {
+                return false;
+            }
+
             return false;
         }
 
@@ -124,6 +128,10 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             if (notification.HandledResponse) {
                 return true;
+            }
+
+            else if (notification.Skipped) {
+                return false;
             }
 
             // Stop processing the request if no explicit

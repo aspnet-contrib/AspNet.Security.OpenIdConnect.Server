@@ -89,6 +89,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return true;
             }
 
+            else if (notification.Skipped) {
+                return false;
+            }
+
             return false;
         }
 
@@ -127,6 +131,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
             await Options.Provider.ApplyLogoutResponse(notification);
 
             if (notification.HandledResponse) {
+                return;
+            }
+
+            else if (notification.Skipped) {
                 return;
             }
 

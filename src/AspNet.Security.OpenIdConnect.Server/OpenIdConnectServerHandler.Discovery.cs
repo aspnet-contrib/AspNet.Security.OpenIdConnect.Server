@@ -19,13 +19,16 @@ using Newtonsoft.Json.Linq;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     internal partial class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions> {
-        private async Task InvokeConfigurationEndpointAsync() {
+        private async Task<bool> InvokeConfigurationEndpointAsync() {
             // Metadata requests must be made via GET.
             // See http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationRequest
             if (!string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
                 Logger.LogError("Configuration endpoint: invalid method used.");
 
-                return;
+                return await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                    Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = "Invalid HTTP method: make sure to use GET."
+                });
             }
 
             var validatingContext = new ValidateConfigurationRequestContext(Context, Options);
@@ -34,13 +37,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
             if (!validatingContext.IsValidated) {
                 Logger.LogError("The configuration request was rejected.");
 
-                await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                return await SendErrorPayloadAsync(new OpenIdConnectMessage {
                     Error = validatingContext.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = validatingContext.ErrorDescription,
                     ErrorUri = validatingContext.ErrorUri
                 });
-
-                return;
             }
 
             var notification = new HandleConfigurationRequestContext(Context, Options);
@@ -136,7 +137,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
             await Options.Provider.HandleConfigurationRequest(notification);
 
             if (notification.HandledResponse) {
-                return;
+                return true;
+            }
+
+            else if (notification.Skipped) {
+                return false;
             }
 
             var payload = new JObject();
@@ -189,7 +194,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
             await Options.Provider.ApplyConfigurationResponse(context);
 
             if (context.HandledResponse) {
-                return;
+                return true;
+            }
+
+            else if (context.Skipped) {
+                return false;
             }
 
             using (var buffer = new MemoryStream())
@@ -202,16 +211,21 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 buffer.Seek(offset: 0, loc: SeekOrigin.Begin);
                 await buffer.CopyToAsync(Response.Body, 4096, Context.RequestAborted);
+
+                return true;
             }
         }
 
-        private async Task InvokeCryptographyEndpointAsync() {
+        private async Task<bool> InvokeCryptographyEndpointAsync() {
             // Metadata requests must be made via GET.
             // See http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationRequest
             if (!string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
                 Logger.LogError("Cryptography endpoint: invalid method used.");
 
-                return;
+                return await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                    Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = "Invalid HTTP method: make sure to use GET."
+                });
             }
 
             var validatingContext = new ValidateCryptographyRequestContext(Context, Options);
@@ -220,13 +234,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
             if (!validatingContext.IsValidated) {
                 Logger.LogError("The cryptography request was rejected.");
 
-                await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                return await SendErrorPayloadAsync(new OpenIdConnectMessage {
                     Error = validatingContext.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = validatingContext.ErrorDescription,
                     ErrorUri = validatingContext.ErrorUri
                 });
-
-                return;
             }
 
             var notification = new HandleCryptographyRequestContext(Context, Options);
@@ -299,7 +311,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
             await Options.Provider.HandleCryptographyRequest(notification);
 
             if (notification.HandledResponse) {
-                return;
+                return true;
+            }
+
+            else if (notification.Skipped) {
+                return false;
             }
 
             var payload = new JObject();
@@ -353,7 +369,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
             await Options.Provider.ApplyCryptographyResponse(context);
 
             if (context.HandledResponse) {
-                return;
+                return true;
+            }
+
+            else if (context.Skipped) {
+                return false;
             }
 
             using (var buffer = new MemoryStream())
@@ -366,6 +386,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 buffer.Seek(offset: 0, loc: SeekOrigin.Begin);
                 await buffer.CopyToAsync(Response.Body, 4096, Context.RequestAborted);
+
+                return true;
             }
         }
     }

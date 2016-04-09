@@ -23,49 +23,47 @@ namespace AspNet.Security.OpenIdConnect.Server {
         private async Task<bool> InvokeUserinfoEndpointAsync() {
             OpenIdConnectMessage request;
 
-            if (!string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase) &&
-                !string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase)) {
-                await SendErrorPayloadAsync(new OpenIdConnectMessage {
-                    Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                    ErrorDescription = "A malformed userinfo request has been received: " +
-                        "make sure to use either GET or POST."
-                });
-
-                return true;
-            }
-
             if (string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
                 request = new OpenIdConnectMessage(Request.Query.ToDictionary());
             }
 
-            else {
+            else if (string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase)) {
                 // See http://openid.net/specs/openid-connect-core-1_0.html#FormSerialization
                 if (string.IsNullOrWhiteSpace(Request.ContentType)) {
-                    await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                    return await SendErrorPayloadAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
                         ErrorDescription = "A malformed userinfo request has been received: " +
                             "the mandatory 'Content-Type' header was missing from the POST request."
                     });
-
-                    return true;
                 }
 
                 // May have media/type; charset=utf-8, allow partial match.
                 if (!Request.ContentType.StartsWith("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase)) {
-                    await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                    return await SendErrorPayloadAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
                         ErrorDescription = "A malformed userinfo request has been received: " +
                             "the 'Content-Type' header contained an unexcepted value. " +
                             "Make sure to use 'application/x-www-form-urlencoded'."
                     });
-
-                    return true;
                 }
 
                 var form = await Request.ReadFormAsync(Context.RequestAborted);
 
                 request = new OpenIdConnectMessage(form.ToDictionary());
             }
+
+            else {
+                Logger.LogInformation("A malformed request has been received by the userinfo endpoint.");
+
+                return await SendErrorPageAsync(new OpenIdConnectMessage {
+                    Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = "A malformed userinfo request has been received: " +
+                                       "make sure to use either GET or POST."
+                });
+            }
+
+            // Insert the userinfo request in the ASP.NET context.
+            Context.SetOpenIdConnectRequest(request);
 
             string token;
             if (!string.IsNullOrEmpty(request.AccessToken)) {
@@ -75,31 +73,25 @@ namespace AspNet.Security.OpenIdConnect.Server {
             else {
                 string header = Request.Headers[HeaderNames.Authorization];
                 if (string.IsNullOrEmpty(header)) {
-                    await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                    return await SendErrorPayloadAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
                         ErrorDescription = "A malformed userinfo request has been received."
                     });
-
-                    return true;
                 }
 
                 if (!header.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)) {
-                    await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                    return await SendErrorPayloadAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
                         ErrorDescription = "A malformed userinfo request has been received."
                     });
-
-                    return true;
                 }
 
                 token = header.Substring("Bearer ".Length);
                 if (string.IsNullOrEmpty(token)) {
-                    await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                    return await SendErrorPayloadAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
                         ErrorDescription = "A malformed userinfo request has been received."
                     });
-
-                    return true;
                 }
             }
 
@@ -112,12 +104,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 // authentication middleware and potentially replace it by a 302 response.
                 // To work around this limitation, a 400 error is returned instead.
                 // See http://openid.net/specs/openid-connect-core-1_0.html#UserInfoError
-                await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                return await SendErrorPayloadAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidGrant,
                     ErrorDescription = "Invalid token."
                 });
-
-                return true;
             }
 
             if (!ticket.Properties.ExpiresUtc.HasValue ||
@@ -129,16 +119,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 // authentication middleware and potentially replace it by a 302 response.
                 // To work around this limitation, a 400 error is returned instead.
                 // See http://openid.net/specs/openid-connect-core-1_0.html#UserInfoError
-                await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                return await SendErrorPayloadAsync(new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidGrant,
                     ErrorDescription = "Expired token."
                 });
-
-                return true;
             }
-
-            // Insert the userinfo request in the ASP.NET context.
-            Context.SetOpenIdConnectRequest(request);
 
             var validatingContext = new ValidateUserinfoRequestContext(Context, Options, request);
             await Options.Provider.ValidateUserinfoRequest(validatingContext);
@@ -146,13 +131,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
             if (!validatingContext.IsValidated) {
                 Logger.LogError("The userinfo request was rejected.");
 
-                await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                return await SendErrorPayloadAsync(new OpenIdConnectMessage {
                     Error = validatingContext.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = validatingContext.ErrorDescription,
                     ErrorUri = validatingContext.ErrorUri
                 });
-
-                return true;
             }
 
             var notification = new HandleUserinfoRequestContext(Context, Options, request, ticket);
@@ -287,6 +270,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             if (context.HandledResponse) {
                 return true;
+            }
+
+            else if (context.Skipped) {
+                return false;
             }
 
             using (var buffer = new MemoryStream())

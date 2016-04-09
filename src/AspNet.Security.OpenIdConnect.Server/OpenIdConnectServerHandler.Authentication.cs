@@ -507,6 +507,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return;
             }
 
+            else if (notification.Skipped) {
+                return;
+            }
+
             await ApplyAuthorizationResponseAsync(request, response);
         }
 
