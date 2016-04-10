@@ -493,7 +493,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // Remove the OpenID Connect request from the distributed cache.
             var identifier = request.GetRequestId();
             if (!string.IsNullOrEmpty(identifier)) {
-                await Options.Cache.RemoveAsync(identifier);
+                await Options.Cache.RemoveAsync($"asos-request:{identifier}");
             }
 
             var ticket = new AuthenticationTicket(context.Principal,

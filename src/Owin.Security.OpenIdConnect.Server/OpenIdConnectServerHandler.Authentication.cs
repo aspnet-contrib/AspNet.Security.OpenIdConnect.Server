@@ -484,7 +484,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             // Remove the OpenID Connect request from the cache.
             var identifier = request.GetRequestId();
             if (!string.IsNullOrEmpty(identifier)) {
-                Options.Cache.Remove(identifier);
+                await Options.Cache.RemoveAsync($"asos-request:{identifier}");
             }
 
             var ticket = new AuthenticationTicket(context.Identity, context.Properties);
