@@ -200,7 +200,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                         break;
                 }
 
-                var token = handler.CreateToken(
+                var token = handler.CreateJwtSecurityToken(
                     subject: identity,
                     issuer: notification.Issuer,
                     signingCredentials: notification.SigningCredentials,
@@ -250,7 +250,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             else {
                 var token = notification.SecurityTokenHandler.CreateToken(new SecurityTokenDescriptor {
-                    Claims = ticket.Principal.Claims,
+                    Subject = identity,
                     Issuer = notification.Issuer,
                     Audience = notification.Audiences.ElementAtOrDefault(0),
                     SigningCredentials = notification.SigningCredentials,
@@ -421,7 +421,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     break;
             }
 
-            var token = notification.SecurityTokenHandler.CreateToken(
+            var token = notification.SecurityTokenHandler.CreateJwtSecurityToken(
                 subject: identity,
                 issuer: notification.Issuer,
                 signingCredentials: notification.SigningCredentials,
