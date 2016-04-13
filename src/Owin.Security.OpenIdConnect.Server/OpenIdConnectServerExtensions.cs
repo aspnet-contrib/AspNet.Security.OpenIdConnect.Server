@@ -88,6 +88,9 @@ namespace Owin {
                     typeof(OpenIdConnectServerMiddleware).Namespace,
                     options.AuthenticationType, "Keys", "v1");
 
+                // Initialize a default logger if none has been explicitly registered.
+                var logger = options.Logger ?? new LoggerFactory().CreateLogger<OpenIdConnectServerMiddleware>();
+
                 foreach (var file in directory.EnumerateFiles("*.key")) {
                     using (var buffer = new MemoryStream())
                     using (var stream = file.Open(FileMode.Open, FileAccess.Read, FileShare.Read)) {
@@ -99,7 +102,7 @@ namespace Owin {
                         string usage;
                         var parameters = OpenIdConnectServerHelpers.DecryptKey(protector, buffer.ToArray(), out usage);
                         if (parameters == null) {
-                            options.Logger.LogDebug("An invalid/incompatible key was ignored: {Key}.", file.FullName);
+                            logger.LogDebug("An invalid/incompatible key was ignored: {Key}.", file.FullName);
 
                             continue;
                         }
@@ -116,8 +119,8 @@ namespace Owin {
                             // Add the key to the encryption credentials list.
                             options.EncryptingCredentials.AddKey(new RsaSecurityKey(algorithm));
 
-                            options.Logger.LogInformation("An existing key was automatically added to the " +
-                                                          "encryption credentials list: {Key}.", file.FullName);
+                            logger.LogInformation("An existing key was automatically added to the " +
+                                                  "encryption credentials list: {Key}.", file.FullName);
                         }
 
                         else if (string.Equals(usage, "Signing", StringComparison.OrdinalIgnoreCase)) {
@@ -132,8 +135,8 @@ namespace Owin {
                             // Add the key to the signing credentials list.
                             options.SigningCredentials.AddKey(new RsaSecurityKey(algorithm));
 
-                            options.Logger.LogInformation("An existing key was automatically added to the " +
-                                                          "signing credentials list: {Key}.", file.FullName);
+                            logger.LogInformation("An existing key was automatically added to the " +
+                                                  "signing credentials list: {Key}.", file.FullName);
                         }
                     }
                 }
@@ -157,8 +160,8 @@ namespace Owin {
 
                     options.EncryptingCredentials.AddKey(new RsaSecurityKey(algorithm));
 
-                    options.Logger.LogInformation("A new RSA key was automatically generated, added to the " +
-                                                  "encryption credentials list and persisted on the disk: {Path}.", path);
+                    logger.LogInformation("A new RSA key was automatically generated, added to the " +
+                                          "encryption credentials list and persisted on the disk: {Path}.", path);
                 }
 
                 // If no signing key has been found, generate and persist a new RSA key.
@@ -180,8 +183,8 @@ namespace Owin {
 
                     options.SigningCredentials.AddKey(new RsaSecurityKey(algorithm));
 
-                    options.Logger.LogInformation("A new RSA key was automatically generated, added to the " +
-                                                  "signing credentials list and persisted on the disk: {Path}.", path);
+                    logger.LogInformation("A new RSA key was automatically generated, added to the " +
+                                          "signing credentials list and persisted on the disk: {Path}.", path);
                 }
             }
 
