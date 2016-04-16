@@ -136,8 +136,8 @@ namespace Microsoft.AspNetCore.Builder {
 
                 // If no signing key has been found, generate and persist a new RSA key.
                 if (options.SigningCredentials.Count == 0) {
-                    // Generate a new 2048 bit RSA key and export its public/private parameters.
-                    var provider = OpenIdConnectServerHelpers.GenerateKey(app.ApplicationServices.GetRequiredService<IRuntimeEnvironment>());
+                    // Generate a new RSA key and export its public/private parameters.
+                    var provider = OpenIdConnectServerHelpers.GenerateKey(size: 2048);
                     var parameters = provider.ExportParameters(/* includePrivateParameters */ true);
 
                     // Generate a new file name for the key and determine its absolute path.

@@ -6,38 +6,34 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.PlatformAbstractions;
 using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Tokens;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     internal static class OpenIdConnectServerHelpers {
-        internal static RSA GenerateKey(IRuntimeEnvironment environment) {
-            if (environment.OperatingSystemPlatform == Platform.Windows) {
-#if NETSTANDARD1_4
-                // On CoreCLR, use RSACng.
-                return new RSACng(2048);
-#else
-                // On desktop CLR, use RSACryptoServiceProvider.
-                return new RSACryptoServiceProvider(2048);
-#endif
+        internal static RSA GenerateKey(int size) {
+            // Note: a 1024-bit key might be returned by RSA.Create() on .NET Desktop/Mono,
+            // where RSACryptoServiceProvider is still the default implementation and
+            // where custom implementations can be registered via CryptoConfig.
+            // To ensure the key size is always acceptable, replace it if necessary.
+            var algorithm = RSA.Create();
+
+            if (algorithm.KeySize < size) {
+                algorithm.KeySize = size;
             }
 
-            // On Mono, use RSACryptoServiceProvider independently of the operating system.
-            if (string.Equals(environment.RuntimeType, "Mono", StringComparison.OrdinalIgnoreCase)) {
-                return new RSACryptoServiceProvider(2048);
-            }
-
-#if NETSTANDARD1_4
-            // On Linux and Darwin, use RSAOpenSsl when running on CoreCLR.
-            if (environment.OperatingSystemPlatform == Platform.Linux ||
-                environment.OperatingSystemPlatform == Platform.Darwin) {
-                return new RSAOpenSsl(2048);
+#if NET451
+            // Note: RSACng cannot be used as it's not available on Mono.
+            if (algorithm.KeySize < size) {
+                algorithm = new RSACryptoServiceProvider(size);
             }
 #endif
 
-            // If no appropriate implementation can be found, throw an exception.
-            throw new PlatformNotSupportedException("No RSA implementation compatible with your configuration can be found.");
+            if (algorithm.KeySize < size) {
+                throw new InvalidOperationException("The dynamic RSA key generation failed.");
+            }
+
+            return algorithm;
         }
 
         internal static byte[] EncryptKey(IDataProtector protector, RSAParameters parameters, string usage) {

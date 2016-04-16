@@ -9,6 +9,31 @@ using Microsoft.Owin.Security.DataProtection;
 
 namespace Owin.Security.OpenIdConnect.Server {
     internal static class OpenIdConnectServerHelpers {
+        internal static RSA GenerateKey(int size) {
+            // Note: a 1024-bit key might be returned by RSA.Create() on .NET Desktop/Mono,
+            // where RSACryptoServiceProvider is still the default implementation and
+            // where custom implementations can be registered via CryptoConfig.
+            // To ensure the key size is always acceptable, replace it if necessary.
+            var algorithm = RSA.Create();
+
+            if (algorithm.KeySize < size) {
+                algorithm.KeySize = size;
+            }
+
+#if NET451
+            // Note: RSACng cannot be used as it's not available on Mono.
+            if (algorithm.KeySize < size) {
+                algorithm = new RSACryptoServiceProvider(size);
+            }
+#endif
+
+            if (algorithm.KeySize < size) {
+                throw new InvalidOperationException("The dynamic RSA key generation failed.");
+            }
+
+            return algorithm;
+        }
+
         internal static byte[] EncryptKey(IDataProtector protector, RSAParameters parameters, string usage) {
             if (protector == null) {
                 throw new ArgumentNullException(nameof(protector));

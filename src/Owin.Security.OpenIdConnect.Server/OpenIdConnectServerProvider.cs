@@ -227,56 +227,56 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Called to create a new authorization code. An application may use this context
         /// to replace the authentication ticket before it is serialized or to use its own code store
-        /// and skip the default logic using <see cref="BaseControlContext.HandleResponse"/>.
+        /// and skip the default logic using <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
         public Func<SerializeAuthorizationCodeContext, Task> OnSerializeAuthorizationCode { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
         /// Called to create a new access token. An application may use this context
         /// to replace the authentication ticket before it is serialized or to use its own token format
-        /// and skip the default logic using <see cref="BaseControlContext.HandleResponse"/>.
+        /// and skip the default logic using <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
         public Func<SerializeAccessTokenContext, Task> OnSerializeAccessToken { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
         /// Called to create a new identity token. An application may use this context
         /// to replace the authentication ticket before it is serialized or to use its own token format
-        /// and skip the default logic using <see cref="BaseControlContext.HandleResponse"/>.
+        /// and skip the default logic using <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
         public Func<SerializeIdentityTokenContext, Task> OnSerializeIdentityToken { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
         /// Called to create a new refresh token. An application may use this context
         /// to replace the authentication ticket before it is serialized or to use its own token format
-        /// and skip the default logic using <see cref="BaseControlContext.HandleResponse"/>.
+        /// and skip the default logic using <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
         public Func<SerializeRefreshTokenContext, Task> OnSerializeRefreshToken { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
         /// Called when receiving an authorization code. An application may use this context
         /// to deserialize the code using a custom format and to skip the default logic using
-        /// <see cref="BaseControlContext.HandleResponse"/>.
+        /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
         public Func<DeserializeAuthorizationCodeContext, Task> OnDeserializeAuthorizationCode { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
         /// Called when receiving an access token. An application may use this context
         /// to deserialize the token using a custom format and to skip the default logic using
-        /// <see cref="BaseControlContext.HandleResponse"/>.
+        /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
         public Func<DeserializeAccessTokenContext, Task> OnDeserializeAccessToken { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
         /// Called when receiving an identity token. An application may use this context
         /// to deserialize the token using a custom format and to skip the default logic using
-        /// <see cref="BaseControlContext.HandleResponse"/>.
+        /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
         public Func<DeserializeIdentityTokenContext, Task> OnDeserializeIdentityToken { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
         /// Called when receiving a refresh token. An application may use this context
         /// to deserialize the code using a custom format and to skip the default logic using
-        /// <see cref="BaseControlContext.HandleResponse"/>.
+        /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
         public Func<DeserializeRefreshTokenContext, Task> OnDeserializeRefreshToken { get; set; } = context => Task.FromResult<object>(null);
 

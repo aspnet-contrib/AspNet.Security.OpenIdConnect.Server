@@ -17,6 +17,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
+        /// <param name="request"></param>
         public ValidateUserinfoRequestContext(
             HttpContext context,
             OpenIdConnectServerOptions options,

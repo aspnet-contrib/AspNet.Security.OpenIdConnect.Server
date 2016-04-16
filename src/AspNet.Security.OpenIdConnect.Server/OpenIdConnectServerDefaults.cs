@@ -4,7 +4,7 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
-using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Builder;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>

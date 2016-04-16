@@ -23,37 +23,37 @@ namespace Owin.Security.OpenIdConnect.Server {
         }
 
         /// <summary>
-        /// Gets whether the <see cref="Skip"/>
+        /// Gets whether the <see cref="Skip()"/>
         /// method has been called or not.
         /// </summary>
         public bool IsSkipped { get; private set; }
 
         /// <summary>
-        /// Gets whether the <see cref="Validate"/>
+        /// Gets whether the <see cref="Validate()"/>
         /// method has been called or not.
         /// </summary>
         public bool IsValidated { get; private set; }
 
         /// <summary>
-        /// Gets whether the <see cref="Reject"/>
+        /// Gets whether the <see cref="Reject()"/>
         /// method has been called or not.
         /// </summary>
         public bool IsRejected { get; private set; }
 
         /// <summary>
-        /// The error argument provided when Rejected was called on this context.
+        /// The error argument provided when <see cref="Reject()"/> was called on this context.
         /// This is eventually returned to the client app as the OAuth2 "error" parameter.
         /// </summary>
         public string Error { get; private set; }
 
         /// <summary>
-        /// The optional description argument provided when Rejected was called on this context.
+        /// The optional description argument provided when <see cref="Reject()"/> was called on this context.
         /// This is eventually returned to the client app as the OAuth2 "error_description" parameter.
         /// </summary>
         public string ErrorDescription { get; private set; }
 
         /// <summary>
-        /// The optional uri argument provided when Rejected was called on this context.
+        /// The optional uri argument provided when <see cref="Reject()"/> was called on this context.
         /// This is eventually returned to the client app as the OpenIdConnect "error_uri" parameter.
         /// </summary>
         public string ErrorUri { get; private set; }
