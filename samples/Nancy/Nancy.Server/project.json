@@ -16,12 +16,14 @@
     "Owin.Security.OpenIdConnect.Server": "1.0.0-*"
   },
 
-  "frameworks": {
-    "net451": { }
+  "compilationOptions": {
+    "debugType": "portable",
+    "emitEntryPoint": true,
+    "preserveCompilationContext": true
   },
 
-  "commands": {
-    "run": "Nancy.Server"
+  "frameworks": {
+    "net451": { }
   },
 
   "resource": "Certificate.pfx"

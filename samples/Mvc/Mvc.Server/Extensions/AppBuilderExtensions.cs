@@ -1,16 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-
-#if NET451
-using Microsoft.Owin.Builder;
-using Microsoft.Owin.BuilderProperties;
-using Owin;
-#endif
 
 namespace Mvc.Server.Extensions {
     public static class AppBuilderExtensions {
@@ -45,31 +36,5 @@ namespace Mvc.Server.Extensions {
                 };
             });
         }
-
-#if NET451
-        public static IApplicationBuilder UseOwinAppBuilder(this IApplicationBuilder app, Action<IAppBuilder> configuration) {
-            if (app == null) {
-                throw new ArgumentNullException(nameof(app));
-            }
-
-            if (configuration == null) {
-                throw new ArgumentNullException(nameof(configuration));
-            }
-
-            return app.UseOwin(setup => setup(next => {
-                var builder = new AppBuilder();
-                var lifetime = (IApplicationLifetime) app.ApplicationServices.GetService(typeof(IApplicationLifetime));
-
-                var properties = new AppProperties(builder.Properties);
-                properties.AppName = app.ApplicationServices.GetApplicationUniqueIdentifier();
-                properties.OnAppDisposing = lifetime.ApplicationStopping;
-                properties.DefaultApp = next;
-
-                configuration(builder);
-
-                return builder.Build<Func<IDictionary<string, object>, Task>>();
-            }));
-        }
-#endif
     }
 }

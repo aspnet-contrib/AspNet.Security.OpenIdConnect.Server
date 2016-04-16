@@ -11,11 +11,13 @@
     "Newtonsoft.Json": "8.0.3"
   },
 
-  "frameworks": {
-    "net451": { }
+  "compilationOptions": {
+    "debugType": "portable",
+    "emitEntryPoint": true,
+    "preserveCompilationContext": true
   },
 
-  "commands": {
-    "run": "Nancy.Client"
+  "frameworks": {
+    "net451": { }
   }
 }
