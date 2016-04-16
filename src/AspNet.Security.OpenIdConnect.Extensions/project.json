@@ -6,6 +6,7 @@
   "owners": [ "Kévin Chalet" ],
 
   "projectUrl": "https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server",
+  "iconUrl": "https://avatars3.githubusercontent.com/u/7998081?s=64",
   "licenseUrl": "http://www.apache.org/licenses/LICENSE-2.0.html",
 
   "repository": {
