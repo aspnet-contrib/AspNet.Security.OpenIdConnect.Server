@@ -20,12 +20,11 @@ namespace Owin.Security.OpenIdConnect.Server {
                 algorithm.KeySize = size;
             }
 
-#if NET451
             // Note: RSACng cannot be used as it's not available on Mono.
             if (algorithm.KeySize < size) {
+                algorithm.Dispose();
                 algorithm = new RSACryptoServiceProvider(size);
             }
-#endif
 
             if (algorithm.KeySize < size) {
                 throw new InvalidOperationException("The dynamic RSA key generation failed.");

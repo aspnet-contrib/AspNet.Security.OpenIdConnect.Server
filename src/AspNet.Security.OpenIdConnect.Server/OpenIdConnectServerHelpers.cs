@@ -25,6 +25,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 #if NET451
             // Note: RSACng cannot be used as it's not available on Mono.
             if (algorithm.KeySize < size) {
+                algorithm.Dispose();
                 algorithm = new RSACryptoServiceProvider(size);
             }
 #endif
