@@ -1,5 +1,5 @@
 ﻿{
-  "version": "1.0.0-beta5-*",
+  "version": "1.0.0-beta6-*",
 
   "description": "OpenID Connect extensions for Owin.Security.OpenIdConnect.Server.",
   "authors": [ "Kévin Chalet" ],
