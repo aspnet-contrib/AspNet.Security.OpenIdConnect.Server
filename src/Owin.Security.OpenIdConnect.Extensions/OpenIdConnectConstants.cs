@@ -8,6 +8,21 @@
 
 namespace Owin.Security.OpenIdConnect.Extensions {
     public static class OpenIdConnectConstants {
+        public static class Algorithms {
+            public const string EcdsaSha256 = "ES256";
+            public const string EcdsaSha384 = "ES384";
+            public const string EcdsaSha512 = "ES512";
+            public const string HmacSha256 = "HS256";
+            public const string HmacSha384 = "HS384";
+            public const string HmacSha512 = "HS512";
+            public const string RsaSha256 = "RS256";
+            public const string RsaSha384 = "RS384";
+            public const string RsaSha512 = "RS512";
+            public const string RsaSsaPssSha256 = "PS256";
+            public const string RsaSsaPssSha384 = "PS384";
+            public const string RsaSsaPssSha512 = "PS512";
+        }
+
         public static class Claims {
             public const string Active = "active";
             public const string Address = "address";
@@ -20,6 +35,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             public const string PreferredUsername = "preferred_username";
             public const string Profile = "profile";
             public const string Scope = "scope";
+            public const string TokenId = "token_id";
             public const string TokenType = "token_type";
             public const string Usage = "usage";
             public const string Username = "username";
@@ -29,6 +45,52 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         public static class Destinations {
             public const string AccessToken = "access_token";
             public const string IdentityToken = "id_token";
+        }
+
+        public static class Environment {
+            public const string Request = "OpenIdConnect.Request";
+            public const string Response = "OpenIdConnect.Response";
+        }
+
+        public static class Errors {
+            public const string AccessDenied = "access_denied";
+            public const string AccountSelectionRequired = "account_selection_required";
+            public const string ConsentRequired = "consent_required";
+            public const string InteractionRequired = "interaction_required";
+            public const string InvalidClient = "invalid_client";
+            public const string InvalidGrant = "invalid_grant";
+            public const string InvalidRequest = "invalid_request";
+            public const string LoginRequired = "login_required";
+            public const string RequestNotSupported = "request_not_supported";
+            public const string RequestUriNotSupported = "request_uri_not_supported";
+            public const string ServerError = "server_error";
+            public const string UnauthorizedClient = "unauthorized_client";
+            public const string UnsupportedGrantType = "unsupported_grant_type";
+            public const string UnsupportedResponseType = "unsupported_response_type";
+        }
+
+        public static class GrantTypes {
+            public const string AuthorizationCode = "authorization_code";
+            public const string ClientCredentials = "client_credentials";
+            public const string Implicit = "implicit";
+            public const string Password = "password";
+            public const string RefreshToken = "refresh_token";
+        }
+
+        public static class Metadata {
+            public const string AuthorizationEndpoint = "authorization_endpoint";
+            public const string EndSessionEndpoint = "end_session_endpoint";
+            public const string GrantTypesSupported = "grant_types_supported";
+            public const string IdTokenSigningAlgValuesSupported = "id_token_signing_alg_values_supported";
+            public const string IntrospectionEndpoint = "introspection_endpoint";
+            public const string Issuer = "issuer";
+            public const string JwksUri = "jwks_uri";
+            public const string ResponseModesSupported = "response_modes_supported";
+            public const string ResponseTypesSupported = "response_types_supported";
+            public const string ScopesSupported = "scopes_supported";
+            public const string SubjectTypesSupported = "subject_types_supported";
+            public const string TokenEndpoint = "token_endpoint";
+            public const string UserinfoEndpoint = "userinfo_endpoint";
         }
 
         public static class Parameters {
@@ -59,17 +121,30 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             public const string Username = "username";
         }
 
-        public static class ResponseTypes {
-            public const string Code = "code";
-            public const string IdToken = "id_token";
-            public const string None = "none";
-            public const string Token = "token";
+        public static class Properties {
+            public const string Audiences = ".audiences";
+            public const string Confidential = ".confidential";
+            public const string Destinations = ".destinations";
+            public const string Nonce = ".nonce";
+            public const string Presenters = ".presenters";
+            public const string RedirectUri = ".redirect_uri";
+            public const string Resources = ".resources";
+            public const string Scopes = ".scopes";
+            public const string TicketId = ".ticket_id";
+            public const string Usage = ".usage";
         }
 
         public static class ResponseModes {
             public const string FormPost = "form_post";
             public const string Fragment = "fragment";
             public const string Query = "query";
+        }
+
+        public static class ResponseTypes {
+            public const string Code = "code";
+            public const string IdToken = "id_token";
+            public const string None = "none";
+            public const string Token = "token";
         }
 
         public static class Scopes {
@@ -81,66 +156,13 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             public const string Profile = "profile";
         }
 
-        public static class GrantTypes {
-            public const string AuthorizationCode = "authorization_code";
-            public const string ClientCredentials = "client_credentials";
-            public const string Implicit = "implicit";
-            public const string Password = "password";
-            public const string RefreshToken = "refresh_token";
-        }
-
-        public static class TokenTypes {
-            public const string Bearer = "bearer";
-        }
-
-        public static class Errors {
-            public const string AccessDenied = "access_denied";
-            public const string AccountSelectionRequired = "account_selection_required";
-            public const string ConsentRequired = "consent_required";
-            public const string InteractionRequired = "interaction_required";
-            public const string InvalidClient = "invalid_client";
-            public const string InvalidGrant = "invalid_grant";
-            public const string InvalidRequest = "invalid_request";
-            public const string LoginRequired = "login_required";
-            public const string RequestNotSupported = "request_not_supported";
-            public const string RequestUriNotSupported = "request_uri_not_supported";
-            public const string ServerError = "server_error";
-            public const string UnauthorizedClient = "unauthorized_client";
-            public const string UnsupportedGrantType = "unsupported_grant_type";
-            public const string UnsupportedResponseType = "unsupported_response_type";
-        }
-
-        public static class Properties {
-            public const string Audiences = ".audiences";
-            public const string Confidential = ".confidential";
-            public const string Destinations = ".destinations";
-            public const string Nonce = ".nonce";
-            public const string Presenters = ".presenters";
-            public const string RedirectUri = ".redirect_uri";
-            public const string Resources = ".resources";
-            public const string Scopes = ".scopes";
-            public const string Usage = ".usage";
-        }
-
-        public static class Metadata {
-            public const string AuthorizationEndpoint = "authorization_endpoint";
-            public const string EndSessionEndpoint = "end_session_endpoint";
-            public const string GrantTypesSupported = "grant_types_supported";
-            public const string IdTokenSigningAlgValuesSupported = "id_token_signing_alg_values_supported";
-            public const string IntrospectionEndpoint = "introspection_endpoint";
-            public const string Issuer = "issuer";
-            public const string JwksUri = "jwks_uri";
-            public const string ResponseModesSupported = "response_modes_supported";
-            public const string ResponseTypesSupported = "response_types_supported";
-            public const string ScopesSupported = "scopes_supported";
-            public const string SubjectTypesSupported = "subject_types_supported";
-            public const string TokenEndpoint = "token_endpoint";
-            public const string UserinfoEndpoint = "userinfo_endpoint";
-        }
-
         public static class SubjectTypes {
             public const string Pairwise = "pairwise";
             public const string Public = "public";
+        }
+
+        public static class TokenTypes {
+            public const string Bearer = "Bearer";
         }
 
         public static class Usages {
@@ -148,15 +170,6 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             public const string Code = "code";
             public const string IdToken = "id_token";
             public const string RefreshToken = "refresh_token";
-        }
-
-        public static class Algorithms {
-            public const string RS256 = "RS256";
-        }
-
-        public static class Environment {
-            public const string Request = "OpenIdConnect.Request";
-            public const string Response = "OpenIdConnect.Response";
         }
     }
 }

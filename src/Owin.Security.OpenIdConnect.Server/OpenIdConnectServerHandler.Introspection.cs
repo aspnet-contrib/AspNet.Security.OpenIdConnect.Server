@@ -225,9 +225,15 @@ namespace Owin.Security.OpenIdConnect.Server {
             var notification = new HandleIntrospectionRequestContext(Context, Options, request, ticket);
             notification.Active = true;
 
-            // Note: "token_type" may be null when the received token is not an access token.
-            // See https://tools.ietf.org/html/rfc7662#section-2.2 and https://tools.ietf.org/html/rfc6749#section-5.1
-            notification.TokenType = ticket.Identity.GetClaim(OpenIdConnectConstants.Claims.TokenType);
+            // Use the unique ticket identifier to populate the "jti" claim.
+            notification.TokenId = ticket.GetTicketId();
+
+            // Note: only set "token_type" when the received token is an access token.
+            // See https://tools.ietf.org/html/rfc7662#section-2.2
+            // and https://tools.ietf.org/html/rfc6749#section-5.1
+            if (ticket.IsAccessToken()) {
+                notification.TokenType = OpenIdConnectConstants.TokenTypes.Bearer;
+            }
 
             notification.Issuer = Context.GetIssuer(Options);
             notification.Subject = ticket.Identity.GetClaim(ClaimTypes.NameIdentifier);
@@ -328,6 +334,10 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                 if (notification.ExpiresAt.HasValue) {
                     payload.Add(JwtRegisteredClaimNames.Exp, EpochTime.GetIntDate(notification.ExpiresAt.Value.UtcDateTime));
+                }
+
+                if (!string.IsNullOrEmpty(notification.TokenId)) {
+                    payload.Add(JwtRegisteredClaimNames.Jti, notification.TokenId);
                 }
 
                 if (!string.IsNullOrEmpty(notification.TokenType)) {

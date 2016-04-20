@@ -90,6 +90,12 @@ namespace Owin.Security.OpenIdConnect.Server {
         public string Subject { get; set; }
 
         /// <summary>
+        /// Gets or sets the "jti" claim
+        /// returned to the caller, if applicable.
+        /// </summary>
+        public string TokenId { get; set; }
+
+        /// <summary>
         /// Gets or sets the "token_type" claim
         /// returned to the caller, if applicable.
         /// </summary>
