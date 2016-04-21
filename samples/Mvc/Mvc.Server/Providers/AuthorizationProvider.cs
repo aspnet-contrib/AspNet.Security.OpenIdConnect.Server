@@ -22,6 +22,18 @@ namespace Mvc.Server.Providers {
         }
 
         public override async Task ValidateAuthorizationRequest(ValidateAuthorizationRequestContext context) {
+            // Note: the OpenID Connect server middleware supports the authorization code, implicit and hybrid flows
+            // but this authorization provider only accepts response_type=code authorization/authentication requests.
+            // You may consider relaxing it to support the implicit or hybrid flows. In this case, consider adding
+            // checks rejecting implicit/hybrid authorization requests when the client is a confidential application.
+            if (!context.Request.IsAuthorizationCodeFlow()) {
+                context.Reject(
+                    error: OpenIdConnectConstants.Errors.UnsupportedResponseType,
+                    description: "Only the authorization code flow is supported by this authorization server");
+
+                return;
+            }
+
             var database = context.HttpContext.RequestServices.GetRequiredService<ApplicationContext>();
 
             // Retrieve the application details corresponding to the requested client_id.
@@ -50,8 +62,8 @@ namespace Mvc.Server.Providers {
         }
 
         public override async Task ValidateTokenRequest(ValidateTokenRequestContext context) {
-            // Note: OpenIdConnectServerHandler supports authorization code, refresh token, client credentials
-            // and resource owner password credentials grant types but this authorization server uses a safer policy
+            // Note: the OpenID Connect server middleware supports authorization code, refresh token, client credentials
+            // and resource owner password credentials grant types but this authorization provider uses a safer policy
             // rejecting the last two ones. You may consider relaxing it to support the ROPC or client credentials grant types.
             if (!context.Request.IsAuthorizationCodeGrantType() && !context.Request.IsRefreshTokenGrantType()) {
                 context.Reject(
