@@ -12,13 +12,10 @@ using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using AspNet.Security.OpenIdConnect.Server;
 using JetBrains.Annotations;
-using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.Extensions.PlatformAbstractions;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 
@@ -57,7 +54,7 @@ namespace Microsoft.AspNetCore.Builder {
 
             configuration(options);
 
-            return app.UseOpenIdConnectServer(options);
+            return app.UseMiddleware<OpenIdConnectServerMiddleware>(Options.Create(options));
         }
 
 
@@ -76,86 +73,6 @@ namespace Microsoft.AspNetCore.Builder {
 
             if (options == null) {
                 throw new ArgumentNullException(nameof(options));
-            }
-
-            // If no key has been explicitly added, use the fallback mode.
-            if (options.SigningCredentials.Count == 0) {
-                // Resolve a logger instance from the services provider.
-                var logger = app.ApplicationServices.GetRequiredService<ILoggerFactory>()
-                                                    .CreateLogger<OpenIdConnectServerMiddleware>();
-
-                // Resolve the hosting environment from the services container.
-                var environment = app.ApplicationServices.GetRequiredService<IHostingEnvironment>();
-                if (environment.IsProduction()) {
-                    logger.LogWarning("No explicit signing credentials have been registered. " +
-                                      "Using a X.509 certificate stored in the machine store " +
-                                      "is recommended for production environments.");
-                }
-
-                var directory = OpenIdConnectServerHelpers.GetDefaultKeyStorageDirectory();
-
-                // Ensure the directory exists.
-                if (!directory.Exists) {
-                    directory.Create();
-                    directory.Refresh();
-                }
-
-                // Get a data protector from the services provider.
-                var protector = app.ApplicationServices.GetDataProtector(
-                    typeof(OpenIdConnectServerMiddleware).Namespace,
-                    options.AuthenticationScheme, "Keys", "v1");
-
-                foreach (var file in directory.EnumerateFiles("*.key")) {
-                    using (var buffer = new MemoryStream())
-                    using (var stream = file.Open(FileMode.Open, FileAccess.Read, FileShare.Read)) {
-                        // Copy the key content to the buffer.
-                        stream.CopyTo(buffer);
-
-                        // Extract the key material using the data protector.
-                        // Ignore the key if the decryption process failed.
-                        string usage;
-                        var parameters = OpenIdConnectServerHelpers.DecryptKey(protector, buffer.ToArray(), out usage);
-                        if (parameters == null) {
-                            logger.LogDebug("An invalid/incompatible key was ignored: {Key}.", file.FullName);
-
-                            continue;
-                        }
-
-                        // Only add the key if it corresponds to the intended usage.
-                        if (!string.Equals(usage, "Signing", StringComparison.OrdinalIgnoreCase)) {
-                            continue;
-                        }
-
-                        logger.LogInformation("An existing key was automatically added to the " +
-                                              "signing credentials list: {Key}.", file.FullName);
-
-                        // Add the key to the signing credentials list.
-                        options.SigningCredentials.AddKey(new RsaSecurityKey(parameters.Value));
-                    }
-                }
-
-                // If no signing key has been found, generate and persist a new RSA key.
-                if (options.SigningCredentials.Count == 0) {
-                    // Generate a new RSA key and export its public/private parameters.
-                    var provider = OpenIdConnectServerHelpers.GenerateKey(size: 2048);
-                    var parameters = provider.ExportParameters(/* includePrivateParameters */ true);
-
-                    // Generate a new file name for the key and determine its absolute path.
-                    var path = Path.Combine(directory.FullName, Guid.NewGuid().ToString() + ".key");
-
-                    using (var stream = new FileStream(path, FileMode.CreateNew, FileAccess.Write)) {
-                        // Encrypt the key using the data protector.
-                        var bytes = OpenIdConnectServerHelpers.EncryptKey(protector, parameters, usage: "Signing");
-
-                        // Write the encrypted key to the file stream.
-                        stream.Write(bytes, 0, bytes.Length);
-                    }
-
-                    logger.LogInformation("A new RSA key was automatically generated, added to the " +
-                                          "signing credentials list and persisted on the disk: {Path}.", path);
-
-                    options.SigningCredentials.AddKey(new RsaSecurityKey(parameters));
-                }
             }
 
             return app.UseMiddleware<OpenIdConnectServerMiddleware>(Options.Create(options));

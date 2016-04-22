@@ -19,7 +19,6 @@ using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Microsoft.Owin.BuilderProperties;
 using Microsoft.Owin.Security;
-using Microsoft.Owin.Security.DataProtection;
 using Owin.Security.OpenIdConnect.Extensions;
 using Owin.Security.OpenIdConnect.Server;
 
@@ -58,7 +57,7 @@ namespace Owin {
 
             configuration(options);
 
-            return app.UseOpenIdConnectServer(options);
+            return app.Use(typeof(OpenIdConnectServerMiddleware), app, options);
         }
 
         /// <summary>
@@ -76,122 +75,6 @@ namespace Owin {
 
             if (options == null) {
                 throw new ArgumentNullException(nameof(options));
-            }
-
-            // If no key has been explicitly added, use the fallback mode.
-            if (options.EncryptingCredentials.Count == 0 ||
-                options.SigningCredentials.Count == 0) {
-                var directory = OpenIdConnectServerHelpers.GetDefaultKeyStorageDirectory();
-
-                // Ensure the directory exists.
-                if (!directory.Exists) {
-                    directory.Create();
-                    directory.Refresh();
-                }
-
-                // Get a data protector from the services provider.
-                var protector = app.CreateDataProtector(
-                    typeof(OpenIdConnectServerMiddleware).Namespace,
-                    options.AuthenticationType, "Keys", "v1");
-
-                // Initialize a default logger if none has been explicitly registered.
-                var logger = options.Logger ?? new LoggerFactory().CreateLogger<OpenIdConnectServerMiddleware>();
-
-                foreach (var file in directory.EnumerateFiles("*.key")) {
-                    using (var buffer = new MemoryStream())
-                    using (var stream = file.Open(FileMode.Open, FileAccess.Read, FileShare.Read)) {
-                        // Copy the key content to the buffer.
-                        stream.CopyTo(buffer);
-
-                        // Extract the key material using the data protector.
-                        // Ignore the key if the decryption process failed.
-                        string usage;
-                        var parameters = OpenIdConnectServerHelpers.DecryptKey(protector, buffer.ToArray(), out usage);
-                        if (parameters == null) {
-                            logger.LogDebug("An invalid/incompatible key was ignored: {Key}.", file.FullName);
-
-                            continue;
-                        }
-
-                        if (string.Equals(usage, "Encryption", StringComparison.OrdinalIgnoreCase)) {
-                            // Only add the encryption key if none has been explictly added.
-                            if (options.EncryptingCredentials.Count != 0) {
-                                continue;
-                            }
-
-                            var algorithm = RSA.Create();
-                            algorithm.ImportParameters(parameters.Value);
-
-                            // Add the key to the encryption credentials list.
-                            options.EncryptingCredentials.AddKey(new RsaSecurityKey(algorithm));
-
-                            logger.LogInformation("An existing key was automatically added to the " +
-                                                  "encryption credentials list: {Key}.", file.FullName);
-                        }
-
-                        else if (string.Equals(usage, "Signing", StringComparison.OrdinalIgnoreCase)) {
-                            // Only add the signing key if none has been explictly added.
-                            if (options.SigningCredentials.Count != 0) {
-                                continue;
-                            }
-
-                            var algorithm = RSA.Create();
-                            algorithm.ImportParameters(parameters.Value);
-
-                            // Add the key to the signing credentials list.
-                            options.SigningCredentials.AddKey(new RsaSecurityKey(algorithm));
-
-                            logger.LogInformation("An existing key was automatically added to the " +
-                                                  "signing credentials list: {Key}.", file.FullName);
-                        }
-                    }
-                }
-
-                // If no encryption key has been found, generate and persist a new RSA key.
-                if (options.EncryptingCredentials.Count == 0) {
-                    // Generate a new RSA key and export its public/private parameters.
-                    var algorithm = OpenIdConnectServerHelpers.GenerateKey(size: 2048);
-                    var parameters = algorithm.ExportParameters(/* includePrivateParameters: */ true);
-
-                    // Generate a new file name for the key and determine its absolute path.
-                    var path = Path.Combine(directory.FullName, Guid.NewGuid().ToString() + ".key");
-
-                    using (var stream = new FileStream(path, FileMode.CreateNew, FileAccess.Write)) {
-                        // Encrypt the key using the data protector.
-                        var bytes = OpenIdConnectServerHelpers.EncryptKey(protector, parameters, usage: "Encryption");
-
-                        // Write the encrypted key to the file stream.
-                        stream.Write(bytes, 0, bytes.Length);
-                    }
-
-                    options.EncryptingCredentials.AddKey(new RsaSecurityKey(algorithm));
-
-                    logger.LogInformation("A new RSA key was automatically generated, added to the " +
-                                          "encryption credentials list and persisted on the disk: {Path}.", path);
-                }
-
-                // If no signing key has been found, generate and persist a new RSA key.
-                if (options.SigningCredentials.Count == 0) {
-                    // Generate a new RSA key and export its public/private parameters.
-                    var algorithm = OpenIdConnectServerHelpers.GenerateKey(size: 2048);
-                    var parameters = algorithm.ExportParameters(/* includePrivateParameters: */ true);
-
-                    // Generate a new file name for the key and determine its absolute path.
-                    var path = Path.Combine(directory.FullName, Guid.NewGuid().ToString() + ".key");
-
-                    using (var stream = new FileStream(path, FileMode.CreateNew, FileAccess.Write)) {
-                        // Encrypt the key using the data protector.
-                        var bytes = OpenIdConnectServerHelpers.EncryptKey(protector, parameters, usage: "Signing");
-
-                        // Write the encrypted key to the file stream.
-                        stream.Write(bytes, 0, bytes.Length);
-                    }
-
-                    options.SigningCredentials.AddKey(new RsaSecurityKey(algorithm));
-
-                    logger.LogInformation("A new RSA key was automatically generated, added to the " +
-                                          "signing credentials list and persisted on the disk: {Path}.", path);
-                }
             }
 
             return app.Use(typeof(OpenIdConnectServerMiddleware), app, options);
