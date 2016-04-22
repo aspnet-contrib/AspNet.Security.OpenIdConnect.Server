@@ -698,6 +698,19 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
         }
 
         /// <summary>
+        /// Gets the unique identifier associated with the authentication ticket.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <returns>The unique identifier or <c>null</c> is the property cannot be found.</returns>
+        public static string GetTicketId([NotNull] this AuthenticationTicket ticket) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            return ticket.GetProperty(OpenIdConnectConstants.Properties.TicketId);
+        }
+
+        /// <summary>
         /// Gets the usage of the token stored in the authentication ticket.
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
@@ -1095,6 +1108,28 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
             // Note: guarding the scopes parameter against null values
             // is not necessary as AsEnumerable() doesn't throw on null values.
             return ticket.SetScopes(scopes.AsEnumerable());
+        }
+
+        /// <summary>
+        /// Sets the unique identifier associated with the authentication ticket.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <param name="identifier">The unique identifier to store.</param>
+        /// <returns>The authentication ticket.</returns>
+        public static AuthenticationTicket SetTicketId([NotNull] this AuthenticationTicket ticket, string identifier) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            if (string.IsNullOrEmpty(identifier)) {
+                ticket.Properties.Items.Remove(OpenIdConnectConstants.Properties.TicketId);
+
+                return ticket;
+            }
+
+            ticket.Properties.Items[OpenIdConnectConstants.Properties.TicketId] = identifier;
+
+            return ticket;
         }
 
         /// <summary>

@@ -42,6 +42,9 @@ namespace Owin.Security.OpenIdConnect.Server {
             var ticket = new AuthenticationTicket(identity, properties);
             ticket.SetUsage(OpenIdConnectConstants.Usages.Code);
 
+            // Associate a random identifier with the authorization code.
+            ticket.SetTicketId(Guid.NewGuid().ToString());
+
             // By default, add the client_id to the list of the
             // presenters allowed to use the authorization code.
             if (!string.IsNullOrEmpty(request.ClientId)) {
@@ -62,7 +65,9 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return null;
             }
 
-            var key = Options.RandomNumberGenerator.GenerateKey(256 / 8);
+            // Note: make sure to use a secure generated string having
+            // enough entropy to prevent cryptanalytic attacks.
+            var key = Options.RandomNumberGenerator.GenerateKey(length: 256 / 8);
 
             using (var stream = new MemoryStream())
             using (var writter = new StreamWriter(stream)) {
@@ -112,6 +117,9 @@ namespace Owin.Security.OpenIdConnect.Server {
             ticket.SetUsage(OpenIdConnectConstants.Usages.AccessToken);
             ticket.SetAudiences(ticket.GetResources());
 
+            // Associate a random identifier with the access token.
+            ticket.SetTicketId(Guid.NewGuid().ToString());
+
             // By default, add the client_id to the list of the
             // presenters allowed to use the access token.
             if (!string.IsNullOrEmpty(request.ClientId)) {
@@ -134,6 +142,11 @@ namespace Owin.Security.OpenIdConnect.Server {
             if (notification.SecurityTokenHandler == null) {
                 return notification.DataFormat?.Protect(ticket);
             }
+
+            // Store the "unique_id" property as a claim.
+            ticket.Identity.AddClaim(notification.SecurityTokenHandler is JwtSecurityTokenHandler ?
+                JwtRegisteredClaimNames.Jti :
+                OpenIdConnectConstants.Claims.TokenId, ticket.GetTicketId());
 
             // Store the "usage" property as a claim.
             ticket.Identity.AddClaim(OpenIdConnectConstants.Claims.Usage, ticket.GetUsage());
@@ -285,6 +298,9 @@ namespace Owin.Security.OpenIdConnect.Server {
             var ticket = new AuthenticationTicket(identity, properties);
             ticket.SetUsage(OpenIdConnectConstants.Usages.IdToken);
 
+            // Associate a random identifier with the identity token.
+            ticket.SetTicketId(Guid.NewGuid().ToString());
+
             // By default, add the client_id to the list of the
             // presenters allowed to use the identity token.
             if (!string.IsNullOrEmpty(request.ClientId)) {
@@ -329,6 +345,9 @@ namespace Owin.Security.OpenIdConnect.Server {
             foreach (var claim in identity.FindAll(ClaimTypes.NameIdentifier).ToArray()) {
                 identity.RemoveClaim(claim);
             }
+
+            // Store the "unique_id" property as a claim.
+            ticket.Identity.AddClaim(JwtRegisteredClaimNames.Jti, ticket.GetTicketId());
 
             // Store the "usage" property as a claim.
             ticket.Identity.AddClaim(OpenIdConnectConstants.Claims.Usage, ticket.GetUsage());
@@ -437,6 +456,9 @@ namespace Owin.Security.OpenIdConnect.Server {
             // that subsequent access and identity tokens are correctly filtered.
             var ticket = new AuthenticationTicket(identity, properties);
             ticket.SetUsage(OpenIdConnectConstants.Usages.RefreshToken);
+
+            // Associate a random identifier with the refresh token.
+            ticket.SetTicketId(Guid.NewGuid().ToString());
 
             // By default, add the client_id to the list of the
             // presenters allowed to use the refresh token.
@@ -567,6 +589,14 @@ namespace Owin.Security.OpenIdConnect.Server {
                 ticket.SetScopes(scopes.Select(claim => claim.Value));
             }
 
+            // Note: the token identifier may be stored in either the token_id claim
+            // or in the jti claim, which is the standard name used by JWT tokens.
+            var identifier = principal.FindFirst(JwtRegisteredClaimNames.Jti) ??
+                             principal.FindFirst(OpenIdConnectConstants.Claims.TokenId);
+            if (identifier != null) {
+                ticket.SetTicketId(identifier.Value);
+            }
+
             var usage = principal.FindFirst(OpenIdConnectConstants.Claims.Usage);
             if (usage != null) {
                 ticket.SetUsage(usage.Value);
@@ -648,6 +678,11 @@ namespace Owin.Security.OpenIdConnect.Server {
             var presenters = principal.FindAll(JwtRegisteredClaimNames.Azp);
             if (presenters.Any()) {
                 ticket.SetPresenters(presenters.Select(claim => claim.Value));
+            }
+
+            var identifier = principal.FindFirst(JwtRegisteredClaimNames.Jti);
+            if (identifier != null) {
+                ticket.SetTicketId(identifier.Value);
             }
 
             var usage = principal.FindFirst(OpenIdConnectConstants.Claims.Usage);

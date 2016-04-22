@@ -133,7 +133,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             notification.SubjectTypes.Add(OpenIdConnectConstants.SubjectTypes.Public);
 
-            notification.SigningAlgorithms.Add(OpenIdConnectConstants.Algorithms.RS256);
+            notification.SigningAlgorithms.Add(OpenIdConnectConstants.Algorithms.RsaSha256);
 
             await Options.Provider.HandleConfigurationRequest(notification);
 
