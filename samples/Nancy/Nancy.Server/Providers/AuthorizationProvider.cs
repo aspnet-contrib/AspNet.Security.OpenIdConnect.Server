@@ -22,13 +22,15 @@ namespace Nancy.Server.Providers {
 
         public override async Task ValidateAuthorizationRequest(ValidateAuthorizationRequestContext context) {
             // Note: the OpenID Connect server middleware supports the authorization code, implicit and hybrid flows
-            // but this authorization provider only accepts response_type=code authorization/authentication requests.
-            // You may consider relaxing it to support the implicit or hybrid flows. In this case, consider adding
-            // checks rejecting implicit/hybrid authorization requests when the client is a confidential application.
-            if (!context.Request.IsAuthorizationCodeFlow()) {
+            // but this authorization provider only accepts authorization code or hybrid flow authorization requests
+            // that don't result in an access token being returned directly from the authorization endpoint.
+            // You may consider relaxing it to support the implicit flow. In this case, consider adding checks
+            // rejecting implicit/hybrid authorization requests when the client is a confidential application.
+            if (context.Request.HasResponseType(OpenIdConnectConstants.ResponseTypes.Token)) {
                 context.Reject(
                     error: OpenIdConnectConstants.Errors.UnsupportedResponseType,
-                    description: "Only the authorization code flow is supported by this authorization server");
+                    description: "Only response_type=code and response_type=id_token or " +
+                                 "response_type=code id_token are supported by this authorization server");
 
                 return;
             }
