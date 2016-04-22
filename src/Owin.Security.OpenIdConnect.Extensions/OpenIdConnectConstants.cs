@@ -24,22 +24,62 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         }
 
         public static class Claims {
-            public const string Active = "active";
-            public const string Address = "address";
-            public const string AtHash = "at_hash";
-            public const string ClientId = "client_id";
-            public const string Confidential = "confidential";
-            public const string EmailVerified = "email_verified";
-            public const string PhoneNumber = "phone_number";
-            public const string PhoneNumberVerified = "phone_number_verified";
-            public const string PreferredUsername = "preferred_username";
-            public const string Profile = "profile";
-            public const string Scope = "scope";
-            public const string TokenId = "token_id";
-            public const string TokenType = "token_type";
-            public const string Usage = "usage";
-            public const string Username = "username";
-            public const string Website = "website";
+            public static class Protocol {
+                public const string AtHash = "at_hash";
+                public const string Audience = "aud";
+                public const string AuthorizedParty = "azp";
+                public const string Confidential = "confidential";
+                public const string CryptographicHash = "c_hash";
+                public const string Expires = "exp";
+                public const string IssuedAt = "iat";
+                public const string Issuer = "iss";
+                public const string JwtId = "jti";
+                public const string KeyId = "kid";
+                public const string Nonce = "nonce";
+                public const string NotBefore = "nbf";
+                public const string Scope = "scope";
+                public const string Subject = "sub";
+                public const string TokenId = "token_id";
+                public const string TokenType = "token_type";
+                public const string Usage = "usage";
+            }
+
+            public static class Introspection {
+                public const string Active = "active";
+                public const string ClientId = "client_id";
+                public const string UpdatedAt = "updated_at";
+                public const string Username = "username";
+            }
+
+            public static class UserInfo {
+                public const string Address = "address";
+                public const string Birthdate = "birthdate";
+                public const string Email = "email";
+                public const string EmailVerified = "email_verified";
+                public const string FamilyName = "family_name";
+                public const string Gender = "gender";
+                public const string GivenName = "given_name";
+                public const string Locale = "locale";
+                public const string Name = "name";
+                public const string Nickname = "nickname";
+                public const string MiddleName = "middle_name";
+                public const string PhoneNumber = "phone_number";
+                public const string PhoneNumberVerified = "phone_number_verified";
+                public const string Picture = "picture";
+                public const string PreferredUsername = "preferred_username";
+                public const string Profile = "profile";
+                public const string Subject = "sub";
+                public const string Website = "website";
+                public const string Zoneinfo = "zoneinfo";
+            }
+
+            public static class Address {
+                public const string Formatted = "formatted";
+                public const string Locality = "locality";
+                public const string PostalCode = "postal_code";
+                public const string Region = "region";
+                public const string StreetAddress = "street_address";
+            }
         }
 
         public static class Destinations {

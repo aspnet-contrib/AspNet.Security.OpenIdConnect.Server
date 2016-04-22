@@ -149,22 +149,22 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             // Store the "unique_id" property as a claim.
             identity.AddClaim(notification.SecurityTokenHandler is JwtSecurityTokenHandler ?
-                JwtRegisteredClaimNames.Jti :
-                OpenIdConnectConstants.Claims.TokenId, ticket.GetTicketId());
+                OpenIdConnectConstants.Claims.Protocol.JwtId :
+                OpenIdConnectConstants.Claims.Protocol.TokenId, ticket.GetTicketId());
 
             // Store the "usage" property as a claim.
-            identity.AddClaim(OpenIdConnectConstants.Claims.Usage, ticket.GetUsage());
+            identity.AddClaim(OpenIdConnectConstants.Claims.Protocol.Usage, ticket.GetUsage());
 
             // If the ticket is marked as confidential, add a new
             // "confidential" claim in the security token.
             if (ticket.IsConfidential()) {
-                identity.AddClaim(new Claim(OpenIdConnectConstants.Claims.Confidential, "true", ClaimValueTypes.Boolean));
+                identity.AddClaim(new Claim(OpenIdConnectConstants.Claims.Protocol.Confidential, "true", ClaimValueTypes.Boolean));
             }
 
             // Create a new claim per scope item, that will result
             // in a "scope" array being added in the access token.
             foreach (var scope in ticket.GetScopes()) {
-                identity.AddClaim(OpenIdConnectConstants.Claims.Scope, scope);
+                identity.AddClaim(OpenIdConnectConstants.Claims.Protocol.Scope, scope);
             }
 
             var handler = notification.SecurityTokenHandler as JwtSecurityTokenHandler;
@@ -172,11 +172,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 // Note: when used as an access token, a JWT token doesn't have to expose a "sub" claim
                 // but the name identifier claim is used as a substitute when it has been explicitly added.
                 // See https://tools.ietf.org/html/rfc7519#section-4.1.2
-                var subject = identity.FindFirst(JwtRegisteredClaimNames.Sub);
+                var subject = identity.FindFirst(OpenIdConnectConstants.Claims.Protocol.Subject);
                 if (subject == null) {
                     var identifier = identity.FindFirst(ClaimTypes.NameIdentifier);
                     if (identifier != null) {
-                        identity.AddClaim(JwtRegisteredClaimNames.Sub, identifier.Value);
+                        identity.AddClaim(OpenIdConnectConstants.Claims.Protocol.Subject, identifier.Value);
                     }
                 }
 
@@ -191,7 +191,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 // Store the audiences as claims.
                 foreach (var audience in ticket.GetAudiences()) {
-                    identity.AddClaim(JwtRegisteredClaimNames.Aud, audience);
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Protocol.Audience, audience);
                 }
 
                 // Extract the presenters from the authentication ticket.
@@ -201,7 +201,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     case 0: break;
 
                     case 1:
-                        identity.AddClaim(JwtRegisteredClaimNames.Azp, presenters[0]);
+                        identity.AddClaim(OpenIdConnectConstants.Claims.Protocol.AuthorizedParty, presenters[0]);
                         break;
 
                     default:
@@ -209,7 +209,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                                           "but the JWT format only accepts single values.");
 
                         // Only add the first authorized party.
-                        identity.AddClaim(JwtRegisteredClaimNames.Azp, presenters[0]);
+                        identity.AddClaim(OpenIdConnectConstants.Claims.Protocol.AuthorizedParty, presenters[0]);
                         break;
                 }
 
@@ -315,7 +315,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return null;
             }
 
-            if (!identity.HasClaim(claim => claim.Type == JwtRegisteredClaimNames.Sub) &&
+            if (!identity.HasClaim(claim => claim.Type == OpenIdConnectConstants.Claims.Protocol.Subject) &&
                 !identity.HasClaim(claim => claim.Type == ClaimTypes.NameIdentifier)) {
                 Logger.LogError("A unique identifier cannot be found to generate a 'sub' claim: " +
                                 "make sure to add a 'ClaimTypes.NameIdentifier' claim.");
@@ -327,8 +327,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             identity = (ClaimsIdentity) ticket.Principal.Identity;
 
             // Store the unique subject identifier as a claim.
-            if (!identity.HasClaim(claim => claim.Type == JwtRegisteredClaimNames.Sub)) {
-                identity.AddClaim(JwtRegisteredClaimNames.Sub, identity.GetClaim(ClaimTypes.NameIdentifier));
+            if (!identity.HasClaim(claim => claim.Type == OpenIdConnectConstants.Claims.Protocol.Subject)) {
+                identity.AddClaim(OpenIdConnectConstants.Claims.Protocol.Subject, identity.GetClaim(ClaimTypes.NameIdentifier));
             }
 
             // Remove the ClaimTypes.NameIdentifier claims to avoid getting duplicate claims.
@@ -341,20 +341,20 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             // Store the "unique_id" property as a claim.
-            identity.AddClaim(JwtRegisteredClaimNames.Jti, ticket.GetTicketId());
+            identity.AddClaim(OpenIdConnectConstants.Claims.Protocol.JwtId, ticket.GetTicketId());
 
             // Store the "usage" property as a claim.
-            identity.AddClaim(OpenIdConnectConstants.Claims.Usage, ticket.GetUsage());
+            identity.AddClaim(OpenIdConnectConstants.Claims.Protocol.Usage, ticket.GetUsage());
 
             // If the ticket is marked as confidential, add a new
             // "confidential" claim in the security token.
             if (ticket.IsConfidential()) {
-                identity.AddClaim(new Claim(OpenIdConnectConstants.Claims.Confidential, "true", ClaimValueTypes.Boolean));
+                identity.AddClaim(new Claim(OpenIdConnectConstants.Claims.Protocol.Confidential, "true", ClaimValueTypes.Boolean));
             }
 
             // Store the audiences as claims.
             foreach (var audience in ticket.GetAudiences()) {
-                identity.AddClaim(JwtRegisteredClaimNames.Aud, audience);
+                identity.AddClaim(OpenIdConnectConstants.Claims.Protocol.Audience, audience);
             }
 
             // If a nonce was present in the authorization request, it MUST
@@ -368,7 +368,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             if (!string.IsNullOrEmpty(nonce)) {
-                identity.AddClaim(JwtRegisteredClaimNames.Nonce, nonce);
+                identity.AddClaim(OpenIdConnectConstants.Claims.Protocol.Nonce, nonce);
             }
 
             if (!string.IsNullOrEmpty(response.Code)) {
@@ -378,7 +378,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                     // Note: only the left-most half of the hash of the octets is used.
                     // See http://openid.net/specs/openid-connect-core-1_0.html#HybridIDToken
-                    identity.AddClaim(JwtRegisteredClaimNames.CHash, Base64UrlEncoder.Encode(hash, 0, hash.Length / 2));
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Protocol.CryptographicHash, Base64UrlEncoder.Encode(hash, 0, hash.Length / 2));
                 }
             }
 
@@ -389,7 +389,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                     // Note: only the left-most half of the hash of the octets is used.
                     // See http://openid.net/specs/openid-connect-core-1_0.html#CodeIDToken
-                    identity.AddClaim(JwtRegisteredClaimNames.AtHash, Base64UrlEncoder.Encode(hash, 0, hash.Length / 2));
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Protocol.AtHash, Base64UrlEncoder.Encode(hash, 0, hash.Length / 2));
                 }
             }
 
@@ -400,7 +400,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 case 0: break;
 
                 case 1:
-                    identity.AddClaim(JwtRegisteredClaimNames.Azp, presenters[0]);
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Protocol.AuthorizedParty, presenters[0]);
                     break;
 
                 default:
@@ -408,7 +408,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                                       "but the JWT format only accepts single values.");
 
                     // Only add the first authorized party.
-                    identity.AddClaim(JwtRegisteredClaimNames.Azp, presenters[0]);
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Protocol.AuthorizedParty, presenters[0]);
                     break;
             }
 
@@ -568,35 +568,35 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             var ticket = new AuthenticationTicket(principal, properties, Options.AuthenticationScheme);
 
-            var audiences = principal.FindAll(JwtRegisteredClaimNames.Aud);
+            var audiences = principal.FindAll(OpenIdConnectConstants.Claims.Protocol.Audience);
             if (audiences.Any()) {
                 ticket.SetAudiences(audiences.Select(claim => claim.Value));
             }
 
-            var presenters = principal.FindAll(JwtRegisteredClaimNames.Azp);
+            var presenters = principal.FindAll(OpenIdConnectConstants.Claims.Protocol.AuthorizedParty);
             if (presenters.Any()) {
                 ticket.SetPresenters(presenters.Select(claim => claim.Value));
             }
 
-            var scopes = principal.FindAll(OpenIdConnectConstants.Claims.Scope);
+            var scopes = principal.FindAll(OpenIdConnectConstants.Claims.Protocol.Scope);
             if (scopes.Any()) {
                 ticket.SetScopes(scopes.Select(claim => claim.Value));
             }
 
             // Note: the token identifier may be stored in either the token_id claim
             // or in the jti claim, which is the standard name used by JWT tokens.
-            var identifier = principal.FindFirst(JwtRegisteredClaimNames.Jti) ??
-                             principal.FindFirst(OpenIdConnectConstants.Claims.TokenId);
+            var identifier = principal.FindFirst(OpenIdConnectConstants.Claims.Protocol.JwtId) ??
+                             principal.FindFirst(OpenIdConnectConstants.Claims.Protocol.TokenId);
             if (identifier != null) {
                 ticket.SetTicketId(identifier.Value);
             }
 
-            var usage = principal.FindFirst(OpenIdConnectConstants.Claims.Usage);
+            var usage = principal.FindFirst(OpenIdConnectConstants.Claims.Protocol.Usage);
             if (usage != null) {
                 ticket.SetUsage(usage.Value);
             }
 
-            var confidential = principal.FindFirst(OpenIdConnectConstants.Claims.Confidential);
+            var confidential = principal.FindFirst(OpenIdConnectConstants.Claims.Protocol.Confidential);
             if (confidential != null && string.Equals(confidential.Value, "true", StringComparison.OrdinalIgnoreCase)) {
                 ticket.Properties.Items[OpenIdConnectConstants.Properties.Confidential] = "true";
             }
@@ -664,27 +664,27 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             var ticket = new AuthenticationTicket(principal, properties, Options.AuthenticationScheme);
 
-            var audiences = principal.FindAll(JwtRegisteredClaimNames.Aud);
+            var audiences = principal.FindAll(OpenIdConnectConstants.Claims.Protocol.Audience);
             if (audiences.Any()) {
                 ticket.SetAudiences(audiences.Select(claim => claim.Value));
             }
 
-            var presenters = principal.FindAll(JwtRegisteredClaimNames.Azp);
+            var presenters = principal.FindAll(OpenIdConnectConstants.Claims.Protocol.AuthorizedParty);
             if (presenters.Any()) {
                 ticket.SetPresenters(presenters.Select(claim => claim.Value));
             }
 
-            var identifier = principal.FindFirst(JwtRegisteredClaimNames.Jti);
+            var identifier = principal.FindFirst(OpenIdConnectConstants.Claims.Protocol.JwtId);
             if (identifier != null) {
                 ticket.SetTicketId(identifier.Value);
             }
 
-            var usage = principal.FindFirst(OpenIdConnectConstants.Claims.Usage);
+            var usage = principal.FindFirst(OpenIdConnectConstants.Claims.Protocol.Usage);
             if (usage != null) {
                 ticket.SetUsage(usage.Value);
             }
 
-            var confidential = principal.FindFirst(OpenIdConnectConstants.Claims.Confidential);
+            var confidential = principal.FindFirst(OpenIdConnectConstants.Claims.Protocol.Confidential);
             if (confidential != null && string.Equals(confidential.Value, "true", StringComparison.OrdinalIgnoreCase)) {
                 ticket.Properties.Items[OpenIdConnectConstants.Properties.Confidential] = "true";
             }

@@ -5,7 +5,6 @@
  */
 
 using System;
-using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -208,66 +207,66 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             var payload = new JObject {
-                [JwtRegisteredClaimNames.Sub] = notification.Subject
+                [OpenIdConnectConstants.Claims.Protocol.Subject] = notification.Subject
             };
 
             if (notification.Address != null) {
-                payload[OpenIdConnectConstants.Claims.Address] = notification.Address;
+                payload[OpenIdConnectConstants.Claims.UserInfo.Address] = notification.Address;
             }
 
             if (!string.IsNullOrEmpty(notification.BirthDate)) {
-                payload[JwtRegisteredClaimNames.Birthdate] = notification.BirthDate;
+                payload[OpenIdConnectConstants.Claims.UserInfo.Birthdate] = notification.BirthDate;
             }
 
             if (!string.IsNullOrEmpty(notification.Email)) {
-                payload[JwtRegisteredClaimNames.Email] = notification.Email;
+                payload[OpenIdConnectConstants.Claims.UserInfo.Email] = notification.Email;
             }
 
             if (notification.EmailVerified.HasValue) {
-                payload[OpenIdConnectConstants.Claims.EmailVerified] = notification.EmailVerified.Value;
+                payload[OpenIdConnectConstants.Claims.UserInfo.EmailVerified] = notification.EmailVerified.Value;
             }
 
             if (!string.IsNullOrEmpty(notification.FamilyName)) {
-                payload[JwtRegisteredClaimNames.FamilyName] = notification.FamilyName;
+                payload[OpenIdConnectConstants.Claims.UserInfo.FamilyName] = notification.FamilyName;
             }
 
             if (!string.IsNullOrEmpty(notification.GivenName)) {
-                payload[JwtRegisteredClaimNames.GivenName] = notification.GivenName;
+                payload[OpenIdConnectConstants.Claims.UserInfo.GivenName] = notification.GivenName;
             }
 
             if (!string.IsNullOrEmpty(notification.Issuer)) {
-                payload[JwtRegisteredClaimNames.Iss] = notification.Issuer;
+                payload[OpenIdConnectConstants.Claims.Protocol.Issuer] = notification.Issuer;
             }
 
             if (!string.IsNullOrEmpty(notification.PhoneNumber)) {
-                payload[OpenIdConnectConstants.Claims.PhoneNumber] = notification.PhoneNumber;
+                payload[OpenIdConnectConstants.Claims.UserInfo.PhoneNumber] = notification.PhoneNumber;
             }
 
             if (notification.PhoneNumberVerified.HasValue) {
-                payload[OpenIdConnectConstants.Claims.PhoneNumberVerified] = notification.PhoneNumberVerified.Value;
+                payload[OpenIdConnectConstants.Claims.UserInfo.PhoneNumberVerified] = notification.PhoneNumberVerified.Value;
             }
 
             if (!string.IsNullOrEmpty(notification.PreferredUsername)) {
-                payload[OpenIdConnectConstants.Claims.PreferredUsername] = notification.PreferredUsername;
+                payload[OpenIdConnectConstants.Claims.UserInfo.PreferredUsername] = notification.PreferredUsername;
             }
 
             if (!string.IsNullOrEmpty(notification.Profile)) {
-                payload[OpenIdConnectConstants.Claims.Profile] = notification.Profile;
+                payload[OpenIdConnectConstants.Claims.UserInfo.Profile] = notification.Profile;
             }
 
             if (!string.IsNullOrEmpty(notification.Website)) {
-                payload[OpenIdConnectConstants.Claims.Website] = notification.Website;
+                payload[OpenIdConnectConstants.Claims.UserInfo.Website] = notification.Website;
             }
 
             switch (notification.Audiences.Count) {
                 case 0: break;
 
                 case 1:
-                    payload.Add(JwtRegisteredClaimNames.Aud, notification.Audiences[0]);
+                    payload.Add(OpenIdConnectConstants.Claims.Protocol.Audience, notification.Audiences[0]);
                     break;
 
                 default:
-                    payload.Add(JwtRegisteredClaimNames.Aud, JArray.FromObject(notification.Audiences));
+                    payload.Add(OpenIdConnectConstants.Claims.Protocol.Audience, JArray.FromObject(notification.Audiences));
                     break;
             }
 

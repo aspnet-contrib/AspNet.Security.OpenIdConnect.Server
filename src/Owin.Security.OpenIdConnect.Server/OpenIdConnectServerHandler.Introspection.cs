@@ -161,7 +161,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 Options.Logger.LogInformation("The introspection request was rejected because the token was invalid.");
 
                 return await SendPayloadAsync(new JObject {
-                    [OpenIdConnectConstants.Claims.Active] = false
+                    [OpenIdConnectConstants.Claims.Introspection.Active] = false
                 });
             }
 
@@ -172,7 +172,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 Options.Logger.LogWarning("The introspection request was rejected because the caller was not authenticated.");
 
                 return await SendPayloadAsync(new JObject {
-                    [OpenIdConnectConstants.Claims.Active] = false
+                    [OpenIdConnectConstants.Claims.Introspection.Active] = false
                 });
             }
 
@@ -182,7 +182,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 Options.Logger.LogInformation("The introspection request was rejected because the token was expired.");
 
                 return await SendPayloadAsync(new JObject {
-                    [OpenIdConnectConstants.Claims.Active] = false
+                    [OpenIdConnectConstants.Claims.Introspection.Active] = false
                 });
             }
 
@@ -196,7 +196,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                                               "was issued to a different client or for another resource server.");
 
                     return await SendPayloadAsync(new JObject {
-                        [OpenIdConnectConstants.Claims.Active] = false
+                        [OpenIdConnectConstants.Claims.Introspection.Active] = false
                     });
                 }
 
@@ -206,7 +206,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                                               "identity token was issued to a different client.");
 
                     return await SendPayloadAsync(new JObject {
-                        [OpenIdConnectConstants.Claims.Active] = false
+                        [OpenIdConnectConstants.Claims.Introspection.Active] = false
                     });
                 }
 
@@ -217,7 +217,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                                               "refresh token was issued to a different client.");
 
                     return await SendPayloadAsync(new JObject {
-                        [OpenIdConnectConstants.Claims.Active] = false
+                        [OpenIdConnectConstants.Claims.Introspection.Active] = false
                     });
                 }
             }
@@ -263,17 +263,17 @@ namespace Owin.Security.OpenIdConnect.Server {
                             continue;
                         }
 
-                        if (string.Equals(claim.Type, JwtRegisteredClaimNames.Aud, StringComparison.Ordinal) ||
-                            string.Equals(claim.Type, JwtRegisteredClaimNames.Exp, StringComparison.Ordinal) ||
-                            string.Equals(claim.Type, JwtRegisteredClaimNames.Iat, StringComparison.Ordinal) ||
-                            string.Equals(claim.Type, JwtRegisteredClaimNames.Iss, StringComparison.Ordinal) ||
-                            string.Equals(claim.Type, JwtRegisteredClaimNames.Nbf, StringComparison.Ordinal) ||
-                            string.Equals(claim.Type, JwtRegisteredClaimNames.Sub, StringComparison.Ordinal)) {
+                        if (string.Equals(claim.Type, OpenIdConnectConstants.Claims.Protocol.Audience, StringComparison.Ordinal) ||
+                            string.Equals(claim.Type, OpenIdConnectConstants.Claims.Protocol.Expires, StringComparison.Ordinal) ||
+                            string.Equals(claim.Type, OpenIdConnectConstants.Claims.Protocol.IssuedAt, StringComparison.Ordinal) ||
+                            string.Equals(claim.Type, OpenIdConnectConstants.Claims.Protocol.Issuer, StringComparison.Ordinal) ||
+                            string.Equals(claim.Type, OpenIdConnectConstants.Claims.Protocol.NotBefore, StringComparison.Ordinal) ||
+                            string.Equals(claim.Type, OpenIdConnectConstants.Claims.Protocol.Subject, StringComparison.Ordinal)) {
                             continue;
                         }
 
-                        if (string.Equals(claim.Type, OpenIdConnectConstants.Claims.TokenType, StringComparison.Ordinal) ||
-                            string.Equals(claim.Type, OpenIdConnectConstants.Claims.Scope, StringComparison.Ordinal)) {
+                        if (string.Equals(claim.Type, OpenIdConnectConstants.Claims.Protocol.TokenType, StringComparison.Ordinal) ||
+                            string.Equals(claim.Type, OpenIdConnectConstants.Claims.Protocol.Scope, StringComparison.Ordinal)) {
                             continue;
                         }
 
@@ -306,53 +306,53 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             var payload = new JObject();
 
-            payload.Add(OpenIdConnectConstants.Claims.Active, notification.Active);
+            payload.Add(OpenIdConnectConstants.Claims.Introspection.Active, notification.Active);
 
             // Only add the other properties if
             // the token is considered as active.
             if (notification.Active) {
                 if (!string.IsNullOrEmpty(notification.Issuer)) {
-                    payload.Add(JwtRegisteredClaimNames.Iss, notification.Issuer);
+                    payload.Add(OpenIdConnectConstants.Claims.Protocol.Issuer, notification.Issuer);
                 }
 
                 if (!string.IsNullOrEmpty(notification.Username)) {
-                    payload.Add(OpenIdConnectConstants.Claims.Username, notification.Username);
+                    payload.Add(OpenIdConnectConstants.Claims.Introspection.Username, notification.Username);
                 }
 
                 if (!string.IsNullOrEmpty(notification.Subject)) {
-                    payload.Add(JwtRegisteredClaimNames.Sub, notification.Subject);
+                    payload.Add(OpenIdConnectConstants.Claims.UserInfo.Subject, notification.Subject);
                 }
 
                 if (!string.IsNullOrEmpty(notification.Scope)) {
-                    payload.Add(OpenIdConnectConstants.Claims.Scope, notification.Scope);
+                    payload.Add(OpenIdConnectConstants.Claims.Protocol.Scope, notification.Scope);
                 }
 
                 if (notification.IssuedAt.HasValue) {
-                    payload.Add(JwtRegisteredClaimNames.Iat, EpochTime.GetIntDate(notification.IssuedAt.Value.UtcDateTime));
-                    payload.Add(JwtRegisteredClaimNames.Nbf, EpochTime.GetIntDate(notification.IssuedAt.Value.UtcDateTime));
+                    payload.Add(OpenIdConnectConstants.Claims.Protocol.IssuedAt, EpochTime.GetIntDate(notification.IssuedAt.Value.UtcDateTime));
+                    payload.Add(OpenIdConnectConstants.Claims.Protocol.NotBefore, EpochTime.GetIntDate(notification.IssuedAt.Value.UtcDateTime));
                 }
 
                 if (notification.ExpiresAt.HasValue) {
-                    payload.Add(JwtRegisteredClaimNames.Exp, EpochTime.GetIntDate(notification.ExpiresAt.Value.UtcDateTime));
+                    payload.Add(OpenIdConnectConstants.Claims.Protocol.Expires, EpochTime.GetIntDate(notification.ExpiresAt.Value.UtcDateTime));
                 }
 
                 if (!string.IsNullOrEmpty(notification.TokenId)) {
-                    payload.Add(JwtRegisteredClaimNames.Jti, notification.TokenId);
+                    payload.Add(OpenIdConnectConstants.Claims.Protocol.JwtId, notification.TokenId);
                 }
 
                 if (!string.IsNullOrEmpty(notification.TokenType)) {
-                    payload.Add(OpenIdConnectConstants.Claims.TokenType, notification.TokenType);
+                    payload.Add(OpenIdConnectConstants.Claims.Protocol.TokenType, notification.TokenType);
                 }
 
                 switch (notification.Audiences.Count) {
                     case 0: break;
 
                     case 1:
-                        payload.Add(JwtRegisteredClaimNames.Aud, notification.Audiences[0]);
+                        payload.Add(OpenIdConnectConstants.Claims.Protocol.Audience, notification.Audiences[0]);
                         break;
 
                     default:
-                        payload.Add(JwtRegisteredClaimNames.Aud, JArray.FromObject(notification.Audiences));
+                        payload.Add(OpenIdConnectConstants.Claims.Protocol.Audience, JArray.FromObject(notification.Audiences));
                         break;
                 }
 
