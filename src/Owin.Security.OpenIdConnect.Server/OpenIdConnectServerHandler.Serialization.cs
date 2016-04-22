@@ -145,7 +145,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             // Store the "unique_id" property as a claim.
             ticket.Identity.AddClaim(notification.SecurityTokenHandler is JwtSecurityTokenHandler ?
-                JwtRegisteredClaimNames.Jti :
+                OpenIdConnectConstants.Claims.JwtId :
                 OpenIdConnectConstants.Claims.TokenId, ticket.GetTicketId());
 
             // Store the "usage" property as a claim.
@@ -168,11 +168,11 @@ namespace Owin.Security.OpenIdConnect.Server {
                 // Note: when used as an access token, a JWT token doesn't have to expose a "sub" claim
                 // but the name identifier claim is used as a substitute when it has been explicitly added.
                 // See https://tools.ietf.org/html/rfc7519#section-4.1.2
-                var subject = identity.FindFirst(JwtRegisteredClaimNames.Sub);
+                var subject = identity.FindFirst(OpenIdConnectConstants.Claims.Subject);
                 if (subject == null) {
                     var identifier = identity.FindFirst(ClaimTypes.NameIdentifier);
                     if (identifier != null) {
-                        identity.AddClaim(JwtRegisteredClaimNames.Sub, identifier.Value);
+                        identity.AddClaim(OpenIdConnectConstants.Claims.Subject, identifier.Value);
                     }
                 }
 
@@ -187,7 +187,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                 // Store the audiences as claims.
                 foreach (var audience in ticket.GetAudiences()) {
-                    ticket.Identity.AddClaim(JwtRegisteredClaimNames.Aud, audience);
+                    ticket.Identity.AddClaim(OpenIdConnectConstants.Claims.Audience, audience);
                 }
 
                 // Extract the presenters from the authentication ticket.
@@ -197,7 +197,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     case 0: break;
 
                     case 1:
-                        identity.AddClaim(JwtRegisteredClaimNames.Azp, presenters[0]);
+                        identity.AddClaim(OpenIdConnectConstants.Claims.AuthorizedParty, presenters[0]);
                         break;
 
                     default:
@@ -205,7 +205,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                                                   "but the JWT format only accepts single values.");
 
                         // Only add the first authorized party.
-                        identity.AddClaim(JwtRegisteredClaimNames.Azp, presenters[0]);
+                        identity.AddClaim(OpenIdConnectConstants.Claims.AuthorizedParty, presenters[0]);
                         break;
                 }
 
@@ -216,7 +216,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                     notBefore: ticket.Properties.IssuedUtc.Value.UtcDateTime,
                     expires: ticket.Properties.ExpiresUtc.Value.UtcDateTime);
 
-                token.Payload[JwtRegisteredClaimNames.Iat] = EpochTime.GetIntDate(ticket.Properties.IssuedUtc.Value.UtcDateTime);
+                token.Payload[OpenIdConnectConstants.Claims.IssuedAt] =
+                    EpochTime.GetIntDate(ticket.Properties.IssuedUtc.Value.UtcDateTime);
 
                 // Try to extract a key identifier from the signing credentials
                 // and add the "kid" property to the JWT header if applicable.
@@ -324,7 +325,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return null;
             }
 
-            if (!identity.HasClaim(claim => claim.Type == JwtRegisteredClaimNames.Sub) &&
+            if (!identity.HasClaim(claim => claim.Type == OpenIdConnectConstants.Claims.Subject) &&
                 !identity.HasClaim(claim => claim.Type == ClaimTypes.NameIdentifier)) {
                 Options.Logger.LogError("A unique identifier cannot be found to generate a 'sub' claim: " +
                                         "make sure to add a 'ClaimTypes.NameIdentifier' claim.");
@@ -333,8 +334,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             // Store the unique subject identifier as a claim.
-            if (!identity.HasClaim(claim => claim.Type == JwtRegisteredClaimNames.Sub)) {
-                identity.AddClaim(JwtRegisteredClaimNames.Sub, identity.GetClaim(ClaimTypes.NameIdentifier));
+            if (!identity.HasClaim(claim => claim.Type == OpenIdConnectConstants.Claims.Subject)) {
+                identity.AddClaim(OpenIdConnectConstants.Claims.Subject, identity.GetClaim(ClaimTypes.NameIdentifier));
             }
 
             // Remove the ClaimTypes.NameIdentifier claims to avoid getting duplicate claims.
@@ -347,7 +348,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             // Store the "unique_id" property as a claim.
-            ticket.Identity.AddClaim(JwtRegisteredClaimNames.Jti, ticket.GetTicketId());
+            ticket.Identity.AddClaim(OpenIdConnectConstants.Claims.JwtId, ticket.GetTicketId());
 
             // Store the "usage" property as a claim.
             ticket.Identity.AddClaim(OpenIdConnectConstants.Claims.Usage, ticket.GetUsage());
@@ -360,7 +361,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             // Store the audiences as claims.
             foreach (var audience in ticket.GetAudiences()) {
-                ticket.Identity.AddClaim(JwtRegisteredClaimNames.Aud, audience);
+                ticket.Identity.AddClaim(OpenIdConnectConstants.Claims.Audience, audience);
             }
 
             // If a nonce was present in the authorization request, it MUST
@@ -374,7 +375,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             if (!string.IsNullOrEmpty(nonce)) {
-                ticket.Identity.AddClaim(JwtRegisteredClaimNames.Nonce, nonce);
+                ticket.Identity.AddClaim(OpenIdConnectConstants.Claims.Nonce, nonce);
             }
 
             if (!string.IsNullOrEmpty(response.Code)) {
@@ -384,7 +385,8 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                     // Note: only the left-most half of the hash of the octets is used.
                     // See http://openid.net/specs/openid-connect-core-1_0.html#HybridIDToken
-                    ticket.Identity.AddClaim(JwtRegisteredClaimNames.CHash, Base64UrlEncoder.Encode(hash, 0, hash.Length / 2));
+                    ticket.Identity.AddClaim(OpenIdConnectConstants.Claims.CodeHash,
+                        Base64UrlEncoder.Encode(hash, 0, hash.Length / 2));
                 }
             }
 
@@ -395,7 +397,8 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                     // Note: only the left-most half of the hash of the octets is used.
                     // See http://openid.net/specs/openid-connect-core-1_0.html#CodeIDToken
-                    ticket.Identity.AddClaim(OpenIdConnectConstants.Claims.AtHash, Base64UrlEncoder.Encode(hash, 0, hash.Length / 2));
+                    ticket.Identity.AddClaim(OpenIdConnectConstants.Claims.AccessTokenHash,
+                        Base64UrlEncoder.Encode(hash, 0, hash.Length / 2));
                 }
             }
 
@@ -406,7 +409,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 case 0: break;
 
                 case 1:
-                    identity.AddClaim(JwtRegisteredClaimNames.Azp, presenters[0]);
+                    identity.AddClaim(OpenIdConnectConstants.Claims.AuthorizedParty, presenters[0]);
                     break;
 
                 default:
@@ -414,7 +417,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                                               "but the JWT format only accepts single values.");
 
                     // Only add the first authorized party.
-                    identity.AddClaim(JwtRegisteredClaimNames.Azp, presenters[0]);
+                    identity.AddClaim(OpenIdConnectConstants.Claims.AuthorizedParty, presenters[0]);
                     break;
             }
 
@@ -425,7 +428,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                 notBefore: ticket.Properties.IssuedUtc.Value.UtcDateTime,
                 expires: ticket.Properties.ExpiresUtc.Value.UtcDateTime);
 
-            token.Payload[JwtRegisteredClaimNames.Iat] = EpochTime.GetIntDate(ticket.Properties.IssuedUtc.Value.UtcDateTime);
+            token.Payload[OpenIdConnectConstants.Claims.IssuedAt] =
+                EpochTime.GetIntDate(ticket.Properties.IssuedUtc.Value.UtcDateTime);
 
             // Try to extract a key identifier from the signing credentials
             // and add the "kid" property to the JWT header if applicable.
@@ -574,12 +578,12 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             var ticket = new AuthenticationTicket((ClaimsIdentity) principal.Identity, properties);
 
-            var audiences = principal.FindAll(JwtRegisteredClaimNames.Aud);
+            var audiences = principal.FindAll(OpenIdConnectConstants.Claims.Audience);
             if (audiences.Any()) {
                 ticket.SetAudiences(audiences.Select(claim => claim.Value));
             }
 
-            var presenters = principal.FindAll(JwtRegisteredClaimNames.Azp);
+            var presenters = principal.FindAll(OpenIdConnectConstants.Claims.AuthorizedParty);
             if (presenters.Any()) {
                 ticket.SetPresenters(presenters.Select(claim => claim.Value));
             }
@@ -591,7 +595,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             // Note: the token identifier may be stored in either the token_id claim
             // or in the jti claim, which is the standard name used by JWT tokens.
-            var identifier = principal.FindFirst(JwtRegisteredClaimNames.Jti) ??
+            var identifier = principal.FindFirst(OpenIdConnectConstants.Claims.JwtId) ??
                              principal.FindFirst(OpenIdConnectConstants.Claims.TokenId);
             if (identifier != null) {
                 ticket.SetTicketId(identifier.Value);
@@ -670,17 +674,17 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             var ticket = new AuthenticationTicket((ClaimsIdentity) principal.Identity, properties);
 
-            var audiences = principal.FindAll(JwtRegisteredClaimNames.Aud);
+            var audiences = principal.FindAll(OpenIdConnectConstants.Claims.Audience);
             if (audiences.Any()) {
                 ticket.SetAudiences(audiences.Select(claim => claim.Value));
             }
 
-            var presenters = principal.FindAll(JwtRegisteredClaimNames.Azp);
+            var presenters = principal.FindAll(OpenIdConnectConstants.Claims.AuthorizedParty);
             if (presenters.Any()) {
                 ticket.SetPresenters(presenters.Select(claim => claim.Value));
             }
 
-            var identifier = principal.FindFirst(JwtRegisteredClaimNames.Jti);
+            var identifier = principal.FindFirst(OpenIdConnectConstants.Claims.JwtId);
             if (identifier != null) {
                 ticket.SetTicketId(identifier.Value);
             }
