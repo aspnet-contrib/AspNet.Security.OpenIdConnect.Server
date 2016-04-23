@@ -4,9 +4,11 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
+using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Microsoft.Owin.Security.Notifications;
 using Newtonsoft.Json.Linq;
+using Owin.Security.OpenIdConnect.Extensions;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
@@ -20,14 +22,28 @@ namespace Owin.Security.OpenIdConnect.Server {
         public ApplyIntrospectionResponseContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
-            JObject payload)
+            OpenIdConnectMessage request,
+            JObject response)
             : base(context, options) {
-            Payload = payload;
+            Request = request;
+            Response = response;
         }
+
+        /// <summary>
+        /// Gets the introspection request. 
+        /// </summary>
+        public new OpenIdConnectMessage Request { get; }
 
         /// <summary>
         /// Gets the JSON payload returned to the caller.
         /// </summary>
-        public JObject Payload { get; }
+        public new JObject Response { get; }
+
+        /// <summary>
+        /// Gets the error code returned to the client application.
+        /// When the response indicates a successful response,
+        /// this property returns <c>null</c>.
+        /// </summary>
+        public string Error => Response[OpenIdConnectConstants.Parameters.Error]?.Value<string>();
     }
 }

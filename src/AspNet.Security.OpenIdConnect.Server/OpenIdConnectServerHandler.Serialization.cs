@@ -317,10 +317,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             if (!identity.HasClaim(claim => claim.Type == OpenIdConnectConstants.Claims.Subject) &&
                 !identity.HasClaim(claim => claim.Type == ClaimTypes.NameIdentifier)) {
-                Logger.LogError("A unique identifier cannot be found to generate a 'sub' claim: " +
-                                "make sure to add a 'ClaimTypes.NameIdentifier' claim.");
-
-                return null;
+                throw new InvalidOperationException("A unique identifier cannot be found to generate a 'sub' claim: " +
+                                                    "make sure to add a 'ClaimTypes.NameIdentifier' claim.");
             }
 
             // Extract the main identity from the principal.

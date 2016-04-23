@@ -13,12 +13,11 @@ using Microsoft.AspNetCore.Http.Features.Authentication;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
-using Microsoft.Net.Http.Headers;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     internal partial class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions> {
         private async Task<bool> InvokeLogoutEndpointAsync() {
-            OpenIdConnectMessage request = null;
+            OpenIdConnectMessage request;
 
             // Note: logout requests must be made via GET but POST requests
             // are also accepted to allow flowing large logout payloads.
@@ -35,7 +34,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     Logger.LogError("The logout request was rejected because " +
                                     "the mandatory 'Content-Type' header was missing.");
 
-                    return await SendErrorPageAsync(new OpenIdConnectMessage {
+                    return await SendLogoutResponseAsync(null, new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
                         ErrorDescription = "A malformed logout request has been received: " +
                             "the mandatory 'Content-Type' header was missing from the POST request."
@@ -47,7 +46,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     Logger.LogError("The logout request was rejected because an invalid 'Content-Type' " +
                                     "header was received: {ContentType}.", Request.ContentType);
 
-                    return await SendErrorPageAsync(new OpenIdConnectMessage {
+                    return await SendLogoutResponseAsync(null, new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
                         ErrorDescription = "A malformed logout request has been received: " +
                             "the 'Content-Type' header contained an unexcepted value. " +
@@ -66,7 +65,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 Logger.LogError("The logout request was rejected because an invalid " +
                                 "HTTP method was received: {Method}.", Request.Method);
 
-                return await SendErrorPageAsync(new OpenIdConnectMessage {
+                return await SendLogoutResponseAsync(null, new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "A malformed logout request has been received: " +
                                        "make sure to use either GET or POST."
@@ -76,16 +75,16 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // Store the logout request in the ASP.NET context.
             Context.SetOpenIdConnectRequest(request);
 
-            var validatingContext = new ValidateLogoutRequestContext(Context, Options, request);
-            await Options.Provider.ValidateLogoutRequest(validatingContext);
+            var context = new ValidateLogoutRequestContext(Context, Options, request);
+            await Options.Provider.ValidateLogoutRequest(context);
 
-            if (validatingContext.IsRejected) {
+            if (context.IsRejected) {
                 Logger.LogInformation("The logout request was rejected by application code.");
 
-                return await SendErrorPageAsync(new OpenIdConnectMessage {
-                    Error = validatingContext.Error,
-                    ErrorDescription = validatingContext.ErrorDescription,
-                    ErrorUri = validatingContext.ErrorUri
+                return await SendLogoutResponseAsync(request, new OpenIdConnectMessage {
+                    Error = context.Error,
+                    ErrorDescription = context.ErrorDescription,
+                    ErrorUri = context.ErrorUri
                 });
             }
 
@@ -103,43 +102,68 @@ namespace AspNet.Security.OpenIdConnect.Server {
             return false;
         }
 
-        protected override async Task HandleSignOutAsync(SignOutContext context) {
+        protected override Task HandleSignOutAsync(SignOutContext context) {
             // request may be null when no logout request has been received
             // or has been already handled by InvokeLogoutEndpointAsync.
             var request = Context.GetOpenIdConnectRequest();
             if (request == null) {
-                return;
+                return Task.FromResult<object>(null);
             }
 
             // Stop processing the request if there's no signout context that matches
             // the authentication type associated with this middleware instance
             // or if the response status code doesn't indicate a successful response.
             if (context == null || Response.StatusCode != 200) {
-                return;
+                return Task.FromResult<object>(null);
             }
 
-            // post_logout_redirect_uri is added to the response message since it can be
-            // set or replaced from the ValidateClientLogoutRedirectUri event.
             var response = new OpenIdConnectMessage {
                 PostLogoutRedirectUri = request.PostLogoutRedirectUri,
                 State = request.State
             };
 
+            return SendLogoutResponseAsync(request, response);
+        }
+
+        private async Task<bool> SendLogoutResponseAsync(OpenIdConnectMessage request, OpenIdConnectMessage response) {
+            if (request == null) {
+                request = new OpenIdConnectMessage();
+            }
+
             var notification = new ApplyLogoutResponseContext(Context, Options, request, response);
             await Options.Provider.ApplyLogoutResponse(notification);
 
             if (notification.HandledResponse) {
-                return;
+                return true;
             }
 
             else if (notification.Skipped) {
-                return;
+                return false;
             }
 
-            // Stop processing the request if no explicit
-            // post_logout_redirect_uri has been provided.
+            if (!string.IsNullOrEmpty(response.Error)) {
+                // When returning an error, remove the authorization request from the OWIN context
+                // to inform TeardownCoreAsync that there's nothing more to handle.
+                Context.SetOpenIdConnectRequest(request: null);
+
+                // Apply a 400 status code by default.
+                Response.StatusCode = 400;
+
+                if (Options.ApplicationCanDisplayErrors) {
+                    Context.SetOpenIdConnectResponse(response);
+
+                    // Return false to allow the rest of
+                    // the pipeline to handle the request.
+                    return false;
+                }
+
+                return await SendNativePageAsync(response);
+            }
+
+            // Don't redirect the user agent if no explicit post_logout_redirect_uri was
+            // provided or if the URI was not fully validated by the application code.
             if (string.IsNullOrEmpty(response.PostLogoutRedirectUri)) {
-                return;
+                return true;
             }
 
             var location = response.PostLogoutRedirectUri;
@@ -154,28 +178,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             Response.Redirect(location);
-        }
 
-        protected override async Task<bool> HandleUnauthorizedAsync(ChallengeContext context) {
-            var notification = new MatchEndpointContext(Context, Options);
-
-            if (Options.UserinfoEndpointPath.HasValue &&
-                Options.UserinfoEndpointPath == Request.Path) {
-                notification.MatchesUserinfoEndpoint();
-            }
-
-            await Options.Provider.MatchEndpoint(notification);
-
-            // Return true to indicate to the authentication pipeline that
-            // the 401 response shouldn't be handled by the other middleware.
-            if (!notification.IsUserinfoEndpoint) {
-                return true;
-            }
-
-            Response.StatusCode = 401;
-            Response.Headers[HeaderNames.WWWAuthenticate] = "error=" + OpenIdConnectConstants.Errors.InvalidGrant;
-
-            return false;
+            return true;
         }
     }
 }

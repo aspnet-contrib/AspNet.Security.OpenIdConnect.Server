@@ -6,7 +6,6 @@
 
 using System;
 using System.IdentityModel.Tokens;
-using System.IO;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,7 +13,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Infrastructure;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Owin.Security.OpenIdConnect.Extensions;
 
@@ -37,7 +35,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     Options.Logger.LogError("The introspection request was rejected because " +
                                             "the mandatory 'Content-Type' header was missing.");
 
-                    return await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                    return await SendIntrospectionResponseAsync(null, new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
                         ErrorDescription = "A malformed introspection request has been received: " +
                             "the mandatory 'Content-Type' header was missing from the POST request."
@@ -49,7 +47,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     Options.Logger.LogError("The introspection request was rejected because an invalid 'Content-Type' " +
                                             "header was received: {ContentType}.", Request.ContentType);
 
-                    return await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                    return await SendIntrospectionResponseAsync(null, new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
                         ErrorDescription = "A malformed introspection request has been received: " +
                             "the 'Content-Type' header contained an unexcepted value. " +
@@ -66,7 +64,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 Options.Logger.LogError("The introspection request was rejected because an invalid " +
                                         "HTTP method was received: {Method}.", Request.Method);
 
-                return await SendErrorPageAsync(new OpenIdConnectMessage {
+                return await SendIntrospectionResponseAsync(null, new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "A malformed introspection request has been received: " +
                                        "make sure to use either GET or POST."
@@ -74,7 +72,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             if (string.IsNullOrWhiteSpace(request.Token)) {
-                return await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                return await SendIntrospectionResponseAsync(request, new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "A malformed introspection request has been received: " +
                         "a 'token' parameter with an access, refresh, or identity token is required."
@@ -106,24 +104,24 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
             }
 
-            var validatingContext = new ValidateIntrospectionRequestContext(Context, Options, request);
-            await Options.Provider.ValidateIntrospectionRequest(validatingContext);
+            var context = new ValidateIntrospectionRequestContext(Context, Options, request);
+            await Options.Provider.ValidateIntrospectionRequest(context);
 
-            if (validatingContext.IsRejected) {
+            if (context.IsRejected) {
                 Options.Logger.LogInformation("The introspection request was rejected by application code.");
 
-                return await SendErrorPayloadAsync(new OpenIdConnectMessage {
-                    Error = validatingContext.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
-                    ErrorDescription = validatingContext.ErrorDescription,
-                    ErrorUri = validatingContext.ErrorUri
+                return await SendIntrospectionResponseAsync(request, new OpenIdConnectMessage {
+                    Error = context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = context.ErrorDescription,
+                    ErrorUri = context.ErrorUri
                 });
             }
 
             // Ensure that the client_id has been set from the ValidateIntrospectionRequest event.
-            else if (validatingContext.IsValidated && string.IsNullOrEmpty(request.ClientId)) {
+            else if (context.IsValidated && string.IsNullOrEmpty(request.ClientId)) {
                 Options.Logger.LogError("The introspection request was validated but the client_id was not set.");
 
-                return await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                return await SendIntrospectionResponseAsync(request, new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.ServerError,
                     ErrorDescription = "An internal server error occurred."
                 });
@@ -160,7 +158,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             if (ticket == null) {
                 Options.Logger.LogInformation("The introspection request was rejected because the token was invalid.");
 
-                return await SendPayloadAsync(new JObject {
+                return await SendIntrospectionResponseAsync(request, new JObject {
                     [OpenIdConnectConstants.Claims.Active] = false
                 });
             }
@@ -168,10 +166,10 @@ namespace Owin.Security.OpenIdConnect.Server {
             // Note: unlike refresh or identity tokens that can only be validated by client applications,
             // access tokens can be validated by either resource servers or client applications:
             // in both cases, the caller must be authenticated if the ticket is marked as confidential.
-            if (validatingContext.IsSkipped && ticket.IsConfidential()) {
+            if (context.IsSkipped && ticket.IsConfidential()) {
                 Options.Logger.LogWarning("The introspection request was rejected because the caller was not authenticated.");
 
-                return await SendPayloadAsync(new JObject {
+                return await SendIntrospectionResponseAsync(request, new JObject {
                     [OpenIdConnectConstants.Claims.Active] = false
                 });
             }
@@ -181,7 +179,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 ticket.Properties.ExpiresUtc < Options.SystemClock.UtcNow) {
                 Options.Logger.LogInformation("The introspection request was rejected because the token was expired.");
 
-                return await SendPayloadAsync(new JObject {
+                return await SendIntrospectionResponseAsync(request, new JObject {
                     [OpenIdConnectConstants.Claims.Active] = false
                 });
             }
@@ -195,7 +193,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     Options.Logger.LogWarning("The introspection request was rejected because the access token " +
                                               "was issued to a different client or for another resource server.");
 
-                    return await SendPayloadAsync(new JObject {
+                    return await SendIntrospectionResponseAsync(request, new JObject {
                         [OpenIdConnectConstants.Claims.Active] = false
                     });
                 }
@@ -205,7 +203,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     Options.Logger.LogWarning("The introspection request was rejected because the " +
                                               "identity token was issued to a different client.");
 
-                    return await SendPayloadAsync(new JObject {
+                    return await SendIntrospectionResponseAsync(request, new JObject {
                         [OpenIdConnectConstants.Claims.Active] = false
                     });
                 }
@@ -216,7 +214,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     Options.Logger.LogWarning("The introspection request was rejected because the " +
                                               "refresh token was issued to a different client.");
 
-                    return await SendPayloadAsync(new JObject {
+                    return await SendIntrospectionResponseAsync(request, new JObject {
                         [OpenIdConnectConstants.Claims.Active] = false
                     });
                 }
@@ -290,9 +288,6 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             await Options.Provider.HandleIntrospectionRequest(notification);
 
-            // Flow the changes made to the authentication ticket.
-            ticket = notification.Ticket;
-
             if (notification.HandledResponse) {
                 return true;
             }
@@ -301,59 +296,59 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return false;
             }
 
-            var payload = new JObject();
+            var response = new JObject();
 
-            payload.Add(OpenIdConnectConstants.Claims.Active, notification.Active);
+            response.Add(OpenIdConnectConstants.Claims.Active, notification.Active);
 
             // Only add the other properties if
             // the token is considered as active.
             if (notification.Active) {
                 if (!string.IsNullOrEmpty(notification.Issuer)) {
-                    payload.Add(OpenIdConnectConstants.Claims.Issuer, notification.Issuer);
+                    response.Add(OpenIdConnectConstants.Claims.Issuer, notification.Issuer);
                 }
 
                 if (!string.IsNullOrEmpty(notification.Username)) {
-                    payload.Add(OpenIdConnectConstants.Claims.Username, notification.Username);
+                    response.Add(OpenIdConnectConstants.Claims.Username, notification.Username);
                 }
 
                 if (!string.IsNullOrEmpty(notification.Subject)) {
-                    payload.Add(OpenIdConnectConstants.Claims.Subject, notification.Subject);
+                    response.Add(OpenIdConnectConstants.Claims.Subject, notification.Subject);
                 }
 
                 if (!string.IsNullOrEmpty(notification.Scope)) {
-                    payload.Add(OpenIdConnectConstants.Claims.Scope, notification.Scope);
+                    response.Add(OpenIdConnectConstants.Claims.Scope, notification.Scope);
                 }
 
                 if (notification.IssuedAt.HasValue) {
-                    payload.Add(OpenIdConnectConstants.Claims.IssuedAt,
+                    response.Add(OpenIdConnectConstants.Claims.IssuedAt,
                         EpochTime.GetIntDate(notification.IssuedAt.Value.UtcDateTime));
 
-                    payload.Add(OpenIdConnectConstants.Claims.NotBefore,
+                    response.Add(OpenIdConnectConstants.Claims.NotBefore,
                         EpochTime.GetIntDate(notification.IssuedAt.Value.UtcDateTime));
                 }
 
                 if (notification.ExpiresAt.HasValue) {
-                    payload.Add(OpenIdConnectConstants.Claims.ExpiresAt,
+                    response.Add(OpenIdConnectConstants.Claims.ExpiresAt,
                         EpochTime.GetIntDate(notification.ExpiresAt.Value.UtcDateTime));
                 }
 
                 if (!string.IsNullOrEmpty(notification.TokenId)) {
-                    payload.Add(OpenIdConnectConstants.Claims.JwtId, notification.TokenId);
+                    response.Add(OpenIdConnectConstants.Claims.JwtId, notification.TokenId);
                 }
 
                 if (!string.IsNullOrEmpty(notification.TokenType)) {
-                    payload.Add(OpenIdConnectConstants.Claims.TokenType, notification.TokenType);
+                    response.Add(OpenIdConnectConstants.Claims.TokenType, notification.TokenType);
                 }
 
                 switch (notification.Audiences.Count) {
                     case 0: break;
 
                     case 1:
-                        payload.Add(OpenIdConnectConstants.Claims.Audience, notification.Audiences[0]);
+                        response.Add(OpenIdConnectConstants.Claims.Audience, notification.Audiences[0]);
                         break;
 
                     default:
-                        payload.Add(OpenIdConnectConstants.Claims.Audience, JArray.FromObject(notification.Audiences));
+                        response.Add(OpenIdConnectConstants.Claims.Audience, JArray.FromObject(notification.Audiences));
                         break;
                 }
 
@@ -365,38 +360,40 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                     // Note: make sure to use the indexer
                     // syntax to avoid duplicate properties.
-                    payload[claim.Key] = claim.Value;
+                    response[claim.Key] = claim.Value;
                 }
             }
 
-            var context = new ApplyIntrospectionResponseContext(Context, Options, payload);
-            await Options.Provider.ApplyIntrospectionResponse(context);
+            return await SendIntrospectionResponseAsync(request, response);
+        }
 
-            if (context.HandledResponse) {
+        private Task<bool> SendIntrospectionResponseAsync(OpenIdConnectMessage request, OpenIdConnectMessage response) {
+            var payload = new JObject();
+
+            foreach (var parameter in response.Parameters) {
+                payload[parameter.Key] = parameter.Value;
+            }
+
+            return SendIntrospectionResponseAsync(request, payload);
+        }
+
+        private async Task<bool> SendIntrospectionResponseAsync(OpenIdConnectMessage request, JObject response) {
+            if (request == null) {
+                request = new OpenIdConnectMessage();
+            }
+
+            var notification = new ApplyIntrospectionResponseContext(Context, Options, request, response);
+            await Options.Provider.ApplyIntrospectionResponse(notification);
+
+            if (notification.HandledResponse) {
                 return true;
             }
 
-            else if (context.Skipped) {
+            else if (notification.Skipped) {
                 return false;
             }
 
-            using (var buffer = new MemoryStream())
-            using (var writer = new JsonTextWriter(new StreamWriter(buffer))) {
-                payload.WriteTo(writer);
-                writer.Flush();
-                
-                Response.ContentLength = buffer.Length;
-                Response.ContentType = "application/json;charset=UTF-8";
-
-                Response.Headers.Set("Cache-Control", "no-cache");
-                Response.Headers.Set("Pragma", "no-cache");
-                Response.Headers.Set("Expires", "-1");
-
-                buffer.Seek(offset: 0, loc: SeekOrigin.Begin);
-                await buffer.CopyToAsync(Response.Body, 4096, Request.CallCancelled);
-
-                return true;
-            }
+            return await SendPayloadAsync(response);
         }
     }
 }

@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
@@ -19,7 +20,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         public HandleConfigurationRequestContext(
             HttpContext context,
-            OpenIdConnectServerOptions options)
+            OpenIdConnectServerOptions options,
+            OpenIdConnectMessage request)
             : base(context) {
             Options = options;
         }
@@ -28,6 +30,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// Gets the options used by the OpenID Connect server.
         /// </summary>
         public OpenIdConnectServerOptions Options { get; }
+
+        /// <summary>
+        /// Gets the configuration request.
+        /// </summary>
+        public new OpenIdConnectMessage Request { get; }
 
         /// <summary>
         /// Gets or sets the authorization endpoint address.

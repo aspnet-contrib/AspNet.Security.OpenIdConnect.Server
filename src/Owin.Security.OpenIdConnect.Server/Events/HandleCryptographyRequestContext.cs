@@ -20,9 +20,16 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         public HandleCryptographyRequestContext(
             IOwinContext context,
-            OpenIdConnectServerOptions options)
+            OpenIdConnectServerOptions options,
+            OpenIdConnectMessage request)
             : base(context, options) {
+            Request = request;
         }
+
+        /// <summary>
+        /// Gets the cryptography request.
+        /// </summary>
+        public new OpenIdConnectMessage Request { get; }
 
         /// <summary>
         /// Gets a list of the JSON Web Keys found by the authorization server.

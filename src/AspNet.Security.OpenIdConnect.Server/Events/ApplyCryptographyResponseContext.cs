@@ -4,9 +4,10 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
-using System.Collections.Generic;
+using AspNet.Security.OpenIdConnect.Extensions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Newtonsoft.Json.Linq;
 
 namespace AspNet.Security.OpenIdConnect.Server {
@@ -21,10 +22,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public ApplyCryptographyResponseContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
-            JObject payload)
+            OpenIdConnectMessage request,
+            JObject response)
             : base(context) {
             Options = options;
-            Payload = payload;
+            Request = request;
+            Response = response;
         }
 
         /// <summary>
@@ -33,8 +36,20 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public OpenIdConnectServerOptions Options { get; }
 
         /// <summary>
+        /// Gets the cryptography request. 
+        /// </summary>
+        public new OpenIdConnectMessage Request { get; }
+
+        /// <summary>
         /// Gets the JSON payload returned to the client application.
         /// </summary>
-        public JObject Payload { get; }
+        public new JObject Response { get; }
+
+        /// <summary>
+        /// Gets the error code returned to the client application.
+        /// When the response indicates a successful response,
+        /// this property returns <c>null</c>.
+        /// </summary>
+        public string Error => Response[OpenIdConnectConstants.Parameters.Error]?.Value<string>();
     }
 }

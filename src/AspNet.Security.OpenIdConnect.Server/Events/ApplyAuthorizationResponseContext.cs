@@ -51,17 +51,24 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public new OpenIdConnectMessage Response { get; }
 
         /// <summary>
-        /// Get the access code expected to
+        /// Gets the access code expected to
         /// be returned to the client application.
         /// Depending on the flow, it can be null.
         /// </summary>
         public string AccessToken => Response.AccessToken;
 
         /// <summary>
-        /// Get the authorization code expected to
+        /// Gets the authorization code expected to
         /// be returned to the client application.
         /// Depending on the flow, it can be null.
         /// </summary>
         public string AuthorizationCode => Response.Code;
+
+        /// <summary>
+        /// Gets the error code returned to the client application.
+        /// When the response indicates a successful response,
+        /// this property returns <c>null</c>.
+        /// </summary>
+        public string Error => Response.Error;
     }
 }

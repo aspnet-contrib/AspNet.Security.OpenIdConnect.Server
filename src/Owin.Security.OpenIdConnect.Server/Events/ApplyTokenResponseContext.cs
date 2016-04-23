@@ -9,6 +9,7 @@ using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Notifications;
 using Newtonsoft.Json.Linq;
+using Owin.Security.OpenIdConnect.Extensions;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
@@ -22,17 +23,17 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <param name="options"></param>
         /// <param name="ticket"></param>
         /// <param name="request"></param>
-        /// <param name="payload"></param>
+        /// <param name="response"></param>
         public ApplyTokenResponseContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
             AuthenticationTicket ticket,
             OpenIdConnectMessage request,
-            JObject payload)
+            JObject response)
             : base(context, options) {
             Ticket = ticket;
             Request = request;
-            Payload = payload;
+            Response = response;
         }
 
         /// <summary>
@@ -50,6 +51,13 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// Gets the JSON payload returned to the client
         /// application as part of the token response.
         /// </summary>
-        public JObject Payload { get; }
+        public new JObject Response { get; }
+
+        /// <summary>
+        /// Gets the error code returned to the client application.
+        /// When the response indicates a successful response,
+        /// this property returns <c>null</c>.
+        /// </summary>
+        public string Error => Response[OpenIdConnectConstants.Parameters.Error]?.Value<string>();
     }
 }

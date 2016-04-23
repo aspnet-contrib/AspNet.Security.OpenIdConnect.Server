@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
@@ -14,7 +13,6 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace AspNet.Security.OpenIdConnect.Server {
@@ -26,26 +24,28 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 Logger.LogError("The discovery request was rejected because an invalid " +
                                 "HTTP method was used: {Method}.", Request.Method);
 
-                return await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                return await SendConfigurationResponseAsync(null, new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "Invalid HTTP method: make sure to use GET."
                 });
             }
 
-            var validatingContext = new ValidateConfigurationRequestContext(Context, Options);
-            await Options.Provider.ValidateConfigurationRequest(validatingContext);
+            var request = new OpenIdConnectMessage(Request.Query.ToDictionary());
 
-            if (!validatingContext.IsValidated) {
+            var context = new ValidateConfigurationRequestContext(Context, Options);
+            await Options.Provider.ValidateConfigurationRequest(context);
+
+            if (!context.IsValidated) {
                 Logger.LogInformation("The discovery request was rejected by application code.");
 
-                return await SendErrorPayloadAsync(new OpenIdConnectMessage {
-                    Error = validatingContext.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
-                    ErrorDescription = validatingContext.ErrorDescription,
-                    ErrorUri = validatingContext.ErrorUri
+                return await SendConfigurationResponseAsync(request, new OpenIdConnectMessage {
+                    Error = context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = context.ErrorDescription,
+                    ErrorUri = context.ErrorUri
                 });
             }
 
-            var notification = new HandleConfigurationRequestContext(Context, Options);
+            var notification = new HandleConfigurationRequestContext(Context, Options, request);
             notification.Issuer = Context.GetIssuer(Options);
 
             if (Options.AuthorizationEndpointPath.HasValue) {
@@ -145,76 +145,53 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return false;
             }
 
-            var payload = new JObject();
+            var response = new JObject();
 
-            payload.Add(OpenIdConnectConstants.Metadata.Issuer, notification.Issuer);
+            response.Add(OpenIdConnectConstants.Metadata.Issuer, notification.Issuer);
 
             if (!string.IsNullOrEmpty(notification.AuthorizationEndpoint)) {
-                payload.Add(OpenIdConnectConstants.Metadata.AuthorizationEndpoint, notification.AuthorizationEndpoint);
+                response.Add(OpenIdConnectConstants.Metadata.AuthorizationEndpoint, notification.AuthorizationEndpoint);
             }
 
             if (!string.IsNullOrEmpty(notification.UserinfoEndpoint)) {
-                payload.Add(OpenIdConnectConstants.Metadata.UserinfoEndpoint, notification.UserinfoEndpoint);
+                response.Add(OpenIdConnectConstants.Metadata.UserinfoEndpoint, notification.UserinfoEndpoint);
             }
 
             if (!string.IsNullOrEmpty(notification.IntrospectionEndpoint)) {
-                payload.Add(OpenIdConnectConstants.Metadata.IntrospectionEndpoint, notification.IntrospectionEndpoint);
+                response.Add(OpenIdConnectConstants.Metadata.IntrospectionEndpoint, notification.IntrospectionEndpoint);
             }
 
             if (!string.IsNullOrEmpty(notification.TokenEndpoint)) {
-                payload.Add(OpenIdConnectConstants.Metadata.TokenEndpoint, notification.TokenEndpoint);
+                response.Add(OpenIdConnectConstants.Metadata.TokenEndpoint, notification.TokenEndpoint);
             }
 
             if (!string.IsNullOrEmpty(notification.LogoutEndpoint)) {
-                payload.Add(OpenIdConnectConstants.Metadata.EndSessionEndpoint, notification.LogoutEndpoint);
+                response.Add(OpenIdConnectConstants.Metadata.EndSessionEndpoint, notification.LogoutEndpoint);
             }
 
             if (!string.IsNullOrEmpty(notification.CryptographyEndpoint)) {
-                payload.Add(OpenIdConnectConstants.Metadata.JwksUri, notification.CryptographyEndpoint);
+                response.Add(OpenIdConnectConstants.Metadata.JwksUri, notification.CryptographyEndpoint);
             }
 
-            payload.Add(OpenIdConnectConstants.Metadata.GrantTypesSupported,
+            response.Add(OpenIdConnectConstants.Metadata.GrantTypesSupported,
                 JArray.FromObject(notification.GrantTypes.Distinct()));
 
-            payload.Add(OpenIdConnectConstants.Metadata.ResponseModesSupported,
+            response.Add(OpenIdConnectConstants.Metadata.ResponseModesSupported,
                 JArray.FromObject(notification.ResponseModes.Distinct()));
 
-            payload.Add(OpenIdConnectConstants.Metadata.ResponseTypesSupported,
+            response.Add(OpenIdConnectConstants.Metadata.ResponseTypesSupported,
                 JArray.FromObject(notification.ResponseTypes.Distinct()));
 
-            payload.Add(OpenIdConnectConstants.Metadata.SubjectTypesSupported,
+            response.Add(OpenIdConnectConstants.Metadata.SubjectTypesSupported,
                 JArray.FromObject(notification.SubjectTypes.Distinct()));
 
-            payload.Add(OpenIdConnectConstants.Metadata.ScopesSupported,
+            response.Add(OpenIdConnectConstants.Metadata.ScopesSupported,
                 JArray.FromObject(notification.Scopes.Distinct()));
 
-            payload.Add(OpenIdConnectConstants.Metadata.IdTokenSigningAlgValuesSupported,
+            response.Add(OpenIdConnectConstants.Metadata.IdTokenSigningAlgValuesSupported,
                 JArray.FromObject(notification.SigningAlgorithms.Distinct()));
 
-            var context = new ApplyConfigurationResponseContext(Context, Options, payload);
-            await Options.Provider.ApplyConfigurationResponse(context);
-
-            if (context.HandledResponse) {
-                return true;
-            }
-
-            else if (context.Skipped) {
-                return false;
-            }
-
-            using (var buffer = new MemoryStream())
-            using (var writer = new JsonTextWriter(new StreamWriter(buffer))) {
-                payload.WriteTo(writer);
-                writer.Flush();
-
-                Response.ContentLength = buffer.Length;
-                Response.ContentType = "application/json;charset=UTF-8";
-
-                buffer.Seek(offset: 0, loc: SeekOrigin.Begin);
-                await buffer.CopyToAsync(Response.Body, 4096, Context.RequestAborted);
-
-                return true;
-            }
+            return await SendConfigurationResponseAsync(request, response);
         }
 
         private async Task<bool> InvokeCryptographyEndpointAsync() {
@@ -224,26 +201,28 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 Logger.LogError("The discovery request was rejected because an invalid " +
                                 "HTTP method was used: {Method}.", Request.Method);
 
-                return await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                return await SendCryptographyResponseAsync(null, new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "Invalid HTTP method: make sure to use GET."
                 });
             }
 
-            var validatingContext = new ValidateCryptographyRequestContext(Context, Options);
-            await Options.Provider.ValidateCryptographyRequest(validatingContext);
+            var request = new OpenIdConnectMessage(Request.Query.ToDictionary());
 
-            if (!validatingContext.IsValidated) {
+            var context = new ValidateCryptographyRequestContext(Context, Options);
+            await Options.Provider.ValidateCryptographyRequest(context);
+
+            if (!context.IsValidated) {
                 Logger.LogInformation("The discovery request was rejected by application code.");
 
-                return await SendErrorPayloadAsync(new OpenIdConnectMessage {
-                    Error = validatingContext.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
-                    ErrorDescription = validatingContext.ErrorDescription,
-                    ErrorUri = validatingContext.ErrorUri
+                return await SendCryptographyResponseAsync(request, new OpenIdConnectMessage {
+                    Error = context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = context.ErrorDescription,
+                    ErrorUri = context.ErrorUri
                 });
             }
 
-            var notification = new HandleCryptographyRequestContext(Context, Options);
+            var notification = new HandleCryptographyRequestContext(Context, Options, request);
 
             foreach (var credentials in Options.SigningCredentials) {
                 // Ignore the key if it's not supported.
@@ -317,7 +296,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return false;
             }
 
-            var payload = new JObject();
+            var response = new JObject();
             var keys = new JArray();
 
             foreach (var key in notification.Keys) {
@@ -362,32 +341,67 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 keys.Add(item);
             }
 
-            payload.Add(JsonWebKeyParameterNames.Keys, keys);
+            response.Add(JsonWebKeyParameterNames.Keys, keys);
 
-            var context = new ApplyCryptographyResponseContext(Context, Options, payload);
-            await Options.Provider.ApplyCryptographyResponse(context);
+            return await SendCryptographyResponseAsync(request, response);
+        }
 
-            if (context.HandledResponse) {
+        private Task<bool> SendConfigurationResponseAsync(OpenIdConnectMessage request, OpenIdConnectMessage response) {
+            var payload = new JObject();
+
+            foreach (var parameter in response.Parameters) {
+                payload[parameter.Key] = parameter.Value;
+            }
+
+            return SendConfigurationResponseAsync(request, payload);
+        }
+
+        private async Task<bool> SendConfigurationResponseAsync(OpenIdConnectMessage request, JObject response) {
+            if (request == null) {
+                request = new OpenIdConnectMessage();
+            }
+
+            var notification = new ApplyConfigurationResponseContext(Context, Options, request, response);
+            await Options.Provider.ApplyConfigurationResponse(notification);
+
+            if (notification.HandledResponse) {
                 return true;
             }
 
-            else if (context.Skipped) {
+            else if (notification.Skipped) {
                 return false;
             }
 
-            using (var buffer = new MemoryStream())
-            using (var writer = new JsonTextWriter(new StreamWriter(buffer))) {
-                payload.WriteTo(writer);
-                writer.Flush();
+            return await SendPayloadAsync(response);
+        }
 
-                Response.ContentLength = buffer.Length;
-                Response.ContentType = "application/json;charset=UTF-8";
+        private Task<bool> SendCryptographyResponseAsync(OpenIdConnectMessage request, OpenIdConnectMessage response) {
+            var payload = new JObject();
 
-                buffer.Seek(offset: 0, loc: SeekOrigin.Begin);
-                await buffer.CopyToAsync(Response.Body, 4096, Context.RequestAborted);
+            foreach (var parameter in response.Parameters) {
+                payload[parameter.Key] = parameter.Value;
+            }
 
+            return SendCryptographyResponseAsync(request, payload);
+        }
+
+        private async Task<bool> SendCryptographyResponseAsync(OpenIdConnectMessage request, JObject response) {
+            if (request == null) {
+                request = new OpenIdConnectMessage();
+            }
+
+            var notification = new ApplyCryptographyResponseContext(Context, Options, request, response);
+            await Options.Provider.ApplyCryptographyResponse(notification);
+
+            if (notification.HandledResponse) {
                 return true;
             }
+
+            else if (notification.Skipped) {
+                return false;
+            }
+
+            return await SendPayloadAsync(response);
         }
     }
 }
