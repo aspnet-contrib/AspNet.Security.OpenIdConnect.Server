@@ -269,18 +269,15 @@ namespace AspNet.Security.OpenIdConnect.Server {
                             string.Equals(claim.Type, ClaimTypes.NameIdentifier, StringComparison.Ordinal)) {
                             continue;
                         }
-                        
-                        if (string.Equals(claim.Type, JwtRegisteredClaimNames.Aud, StringComparison.Ordinal) ||
-                            string.Equals(claim.Type, JwtRegisteredClaimNames.Exp, StringComparison.Ordinal) ||
-                            string.Equals(claim.Type, JwtRegisteredClaimNames.Iat, StringComparison.Ordinal) ||
-                            string.Equals(claim.Type, JwtRegisteredClaimNames.Iss, StringComparison.Ordinal) ||
-                            string.Equals(claim.Type, JwtRegisteredClaimNames.Nbf, StringComparison.Ordinal) ||
-                            string.Equals(claim.Type, JwtRegisteredClaimNames.Sub, StringComparison.Ordinal)) {
-                            continue;
-                        }
 
-                        if (string.Equals(claim.Type, OpenIdConnectConstants.Claims.TokenType, StringComparison.Ordinal) ||
-                            string.Equals(claim.Type, OpenIdConnectConstants.Claims.Scope, StringComparison.Ordinal)) {
+                        if (string.Equals(claim.Type, OpenIdConnectConstants.Claims.Audience, StringComparison.Ordinal) ||
+                            string.Equals(claim.Type, OpenIdConnectConstants.Claims.ExpiresAt, StringComparison.Ordinal) ||
+                            string.Equals(claim.Type, OpenIdConnectConstants.Claims.IssuedAt, StringComparison.Ordinal) ||
+                            string.Equals(claim.Type, OpenIdConnectConstants.Claims.Issuer, StringComparison.Ordinal) ||
+                            string.Equals(claim.Type, OpenIdConnectConstants.Claims.NotBefore, StringComparison.Ordinal) ||
+                            string.Equals(claim.Type, OpenIdConnectConstants.Claims.Scope, StringComparison.Ordinal) ||
+                            string.Equals(claim.Type, OpenIdConnectConstants.Claims.Subject, StringComparison.Ordinal) ||
+                            string.Equals(claim.Type, OpenIdConnectConstants.Claims.TokenType, StringComparison.Ordinal)) {
                             continue;
                         }
 
@@ -319,7 +316,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // the token is considered as active.
             if (notification.Active) {
                 if (!string.IsNullOrEmpty(notification.Issuer)) {
-                    payload.Add(JwtRegisteredClaimNames.Iss, notification.Issuer);
+                    payload.Add(OpenIdConnectConstants.Claims.Issuer, notification.Issuer);
                 }
 
                 if (!string.IsNullOrEmpty(notification.Username)) {
@@ -327,7 +324,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 }
 
                 if (!string.IsNullOrEmpty(notification.Subject)) {
-                    payload.Add(JwtRegisteredClaimNames.Sub, notification.Subject);
+                    payload.Add(OpenIdConnectConstants.Claims.Subject, notification.Subject);
                 }
 
                 if (!string.IsNullOrEmpty(notification.Scope)) {
@@ -335,16 +332,20 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 }
 
                 if (notification.IssuedAt.HasValue) {
-                    payload.Add(JwtRegisteredClaimNames.Iat, EpochTime.GetIntDate(notification.IssuedAt.Value.UtcDateTime));
-                    payload.Add(JwtRegisteredClaimNames.Nbf, EpochTime.GetIntDate(notification.IssuedAt.Value.UtcDateTime));
+                    payload.Add(OpenIdConnectConstants.Claims.IssuedAt,
+                        EpochTime.GetIntDate(notification.IssuedAt.Value.UtcDateTime));
+
+                    payload.Add(OpenIdConnectConstants.Claims.NotBefore,
+                        EpochTime.GetIntDate(notification.IssuedAt.Value.UtcDateTime));
                 }
 
                 if (notification.ExpiresAt.HasValue) {
-                    payload.Add(JwtRegisteredClaimNames.Exp, EpochTime.GetIntDate(notification.ExpiresAt.Value.UtcDateTime));
+                    payload.Add(OpenIdConnectConstants.Claims.ExpiresAt,
+                        EpochTime.GetIntDate(notification.ExpiresAt.Value.UtcDateTime));
                 }
 
                 if (!string.IsNullOrEmpty(notification.TokenId)) {
-                    payload.Add(JwtRegisteredClaimNames.Jti, notification.TokenId);
+                    payload.Add(OpenIdConnectConstants.Claims.JwtId, notification.TokenId);
                 }
 
                 if (!string.IsNullOrEmpty(notification.TokenType)) {
@@ -355,11 +356,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     case 0: break;
 
                     case 1:
-                        payload.Add(JwtRegisteredClaimNames.Aud, notification.Audiences[0]);
+                        payload.Add(OpenIdConnectConstants.Claims.Audience, notification.Audiences[0]);
                         break;
 
                     default:
-                        payload.Add(JwtRegisteredClaimNames.Aud, JArray.FromObject(notification.Audiences));
+                        payload.Add(OpenIdConnectConstants.Claims.Audience, JArray.FromObject(notification.Audiences));
                         break;
                 }
 

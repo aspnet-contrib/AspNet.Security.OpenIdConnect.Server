@@ -1,4 +1,9 @@
 ﻿{
+  "compilationOptions": {
+    "emitEntryPoint": true,
+    "preserveCompilationContext": true
+  },
+
   "dependencies": {
     "EntityFramework": "6.1.3",
     "Microsoft.AspNet.Razor": "3.2.3",
@@ -16,15 +21,15 @@
     "Owin.Security.OpenIdConnect.Server": "1.0.0-*"
   },
 
-  "compilationOptions": {
-    "debugType": "portable",
-    "emitEntryPoint": true,
-    "preserveCompilationContext": true
-  },
-
   "frameworks": {
     "net451": { }
   },
+
+  "content": [
+    "Content",
+    "Views",
+    "App.config"
+  ],
 
   "resource": "Certificate.pfx"
 }

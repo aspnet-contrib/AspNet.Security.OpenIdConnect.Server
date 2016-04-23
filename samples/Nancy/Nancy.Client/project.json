@@ -1,4 +1,9 @@
 ﻿{
+  "compilationOptions": {
+    "emitEntryPoint": true,
+    "preserveCompilationContext": true
+  },
+
   "dependencies": {
     "Microsoft.AspNet.Razor": "3.2.3",
     "Microsoft.Owin.Security.OpenIdConnect": "3.0.1",
@@ -11,13 +16,13 @@
     "Newtonsoft.Json": "8.0.3"
   },
 
-  "compilationOptions": {
-    "debugType": "portable",
-    "emitEntryPoint": true,
-    "preserveCompilationContext": true
-  },
-
   "frameworks": {
     "net451": { }
-  }
+  },
+
+  "content": [
+    "Content",
+    "Views",
+    "App.config"
+  ]
 }

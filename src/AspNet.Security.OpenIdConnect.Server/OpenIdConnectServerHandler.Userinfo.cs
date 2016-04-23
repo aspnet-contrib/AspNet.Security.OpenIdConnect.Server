@@ -5,7 +5,6 @@
  */
 
 using System;
-using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -207,20 +206,20 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return true;
             }
 
-            var payload = new JObject {
-                [JwtRegisteredClaimNames.Sub] = notification.Subject
-            };
+            var payload = new JObject();
+
+            payload.Add(OpenIdConnectConstants.Claims.Subject, notification.Subject);
 
             if (notification.Address != null) {
                 payload[OpenIdConnectConstants.Claims.Address] = notification.Address;
             }
 
             if (!string.IsNullOrEmpty(notification.BirthDate)) {
-                payload[JwtRegisteredClaimNames.Birthdate] = notification.BirthDate;
+                payload[OpenIdConnectConstants.Claims.Birthdate] = notification.BirthDate;
             }
 
             if (!string.IsNullOrEmpty(notification.Email)) {
-                payload[JwtRegisteredClaimNames.Email] = notification.Email;
+                payload[OpenIdConnectConstants.Claims.Email] = notification.Email;
             }
 
             if (notification.EmailVerified.HasValue) {
@@ -228,15 +227,15 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             if (!string.IsNullOrEmpty(notification.FamilyName)) {
-                payload[JwtRegisteredClaimNames.FamilyName] = notification.FamilyName;
+                payload[OpenIdConnectConstants.Claims.FamilyName] = notification.FamilyName;
             }
 
             if (!string.IsNullOrEmpty(notification.GivenName)) {
-                payload[JwtRegisteredClaimNames.GivenName] = notification.GivenName;
+                payload[OpenIdConnectConstants.Claims.GivenName] = notification.GivenName;
             }
 
             if (!string.IsNullOrEmpty(notification.Issuer)) {
-                payload[JwtRegisteredClaimNames.Iss] = notification.Issuer;
+                payload[OpenIdConnectConstants.Claims.Issuer] = notification.Issuer;
             }
 
             if (!string.IsNullOrEmpty(notification.PhoneNumber)) {
@@ -263,11 +262,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 case 0: break;
 
                 case 1:
-                    payload.Add(JwtRegisteredClaimNames.Aud, notification.Audiences[0]);
+                    payload.Add(OpenIdConnectConstants.Claims.Audience, notification.Audiences[0]);
                     break;
 
                 default:
-                    payload.Add(JwtRegisteredClaimNames.Aud, JArray.FromObject(notification.Audiences));
+                    payload.Add(OpenIdConnectConstants.Claims.Audience, JArray.FromObject(notification.Audiences));
                     break;
             }
 
