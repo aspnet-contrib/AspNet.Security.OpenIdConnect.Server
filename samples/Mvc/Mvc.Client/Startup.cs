@@ -10,7 +10,7 @@ namespace Mvc.Client {
     public class Startup {
         public void ConfigureServices(IServiceCollection services) {
             services.AddAuthentication(options => {
-                options.SignInScheme = "ClientCookie";
+                options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
             });
 
             services.AddMvc();
@@ -24,14 +24,12 @@ namespace Mvc.Client {
             app.UseCookieAuthentication(new CookieAuthenticationOptions {
                 AutomaticAuthenticate = true,
                 AutomaticChallenge = true,
-                AuthenticationScheme = "ClientCookie",
-                CookieName = CookieAuthenticationDefaults.CookiePrefix + "ClientCookie",
                 ExpireTimeSpan = TimeSpan.FromMinutes(5),
-                LoginPath = new PathString("/signin")
+                LoginPath = new PathString("/signin"),
+                LogoutPath = new PathString("/signout")
             });
 
             app.UseOpenIdConnectAuthentication(new OpenIdConnectOptions {
-                AuthenticationScheme = OpenIdConnectDefaults.AuthenticationScheme,
                 RequireHttpsMetadata = false,
                 SaveTokens = true,
 

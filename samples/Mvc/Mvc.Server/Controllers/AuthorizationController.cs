@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Server;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http.Authentication;
@@ -198,7 +199,7 @@ namespace Mvc.Server.Controllers {
             // Returning a SignOutResult will ask the cookies middleware to delete the local cookie created when
             // the user agent is redirected from the external identity provider after a successful authentication flow
             // and will redirect the user agent to the post_logout_redirect_uri specified by the client application.
-            return SignOut("ServerCookie", OpenIdConnectServerDefaults.AuthenticationScheme);
+            return SignOut(CookieAuthenticationDefaults.AuthenticationScheme, OpenIdConnectServerDefaults.AuthenticationScheme);
         }
         
         protected virtual Task<Application> GetApplicationAsync(string identifier, CancellationToken cancellationToken) {

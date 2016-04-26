@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Security.Claims;
 using Microsoft.Owin.Security;
+using Microsoft.Owin.Security.Cookies;
 using Nancy.Security;
 using Nancy.Server.Extensions;
 
@@ -36,7 +37,7 @@ namespace Nancy.Server.Modules {
                     RedirectUri = returnUrl
                 };
                 
-                var identity = new ClaimsIdentity("ServerCookie");
+                var identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationType);
                 identity.AddClaim(new Claim(ClaimTypes.Name, identifier));
                 identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, identifier));
 
@@ -49,7 +50,7 @@ namespace Nancy.Server.Modules {
                 // Instruct the cookies middleware to delete the local cookie created
                 // when the user agent is redirected from the external identity provider
                 // after a successful authentication flow (e.g Google or Facebook).
-                AuthenticationManager.SignOut("ServerCookie");
+                AuthenticationManager.SignOut(CookieAuthenticationDefaults.AuthenticationType);
 
                 return HttpStatusCode.OK;
             };

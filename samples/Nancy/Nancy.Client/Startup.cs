@@ -13,22 +13,18 @@ using Owin;
 namespace Nancy.Client {
     public class Startup {
         public void Configuration(IAppBuilder app) {
-            app.SetDefaultSignInAsAuthenticationType("ClientCookie");
+            app.SetDefaultSignInAsAuthenticationType(CookieAuthenticationDefaults.AuthenticationType);
 
             // Insert a new cookies middleware in the pipeline to store the user
             // identity after he has been redirected from the identity provider.
             app.UseCookieAuthentication(new CookieAuthenticationOptions {
                 AuthenticationMode = AuthenticationMode.Active,
-                AuthenticationType = "ClientCookie",
-                CookieName = CookieAuthenticationDefaults.CookiePrefix + "ClientCookie",
                 ExpireTimeSpan = TimeSpan.FromMinutes(5)
             });
 
             // Insert a new OIDC client middleware in the pipeline.
             app.UseOpenIdConnectAuthentication(new OpenIdConnectAuthenticationOptions {
                 AuthenticationMode = AuthenticationMode.Active,
-                AuthenticationType = OpenIdConnectAuthenticationDefaults.AuthenticationType,
-                SignInAsAuthenticationType = app.GetDefaultSignInAsAuthenticationType(),
 
                 // Note: these settings must match the application details inserted in
                 // the database at the server level (see ApplicationContextInitializer.cs).

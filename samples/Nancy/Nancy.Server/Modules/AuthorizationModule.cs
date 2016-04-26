@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
+using Microsoft.Owin.Security.Cookies;
 using Nancy.Security;
 using Nancy.Server.Extensions;
 using Nancy.Server.Models;
@@ -202,11 +203,10 @@ namespace Nancy.Server.Modules {
 
                 // Ask the cookies middleware to delete the local cookie created
                 // when the user agent is redirected from the external identity provider
-                // after a successful authentication flow (e.g Google or Facebook).
-                OwinContext.Authentication.SignOut("ServerCookie");
-
-                // Redirect the user agent to the post_logout_redirect_uri specified by the client application.
-                OwinContext.Authentication.SignOut(OpenIdConnectServerDefaults.AuthenticationType);
+                // after a successful authentication flow (e.g Google or Facebook) and
+                // redirect the user agent to the post_logout_redirect_uri specified by the client application.
+                OwinContext.Authentication.SignOut(CookieAuthenticationDefaults.AuthenticationType,
+                                                   OpenIdConnectServerDefaults.AuthenticationType);
 
                 return HttpStatusCode.OK;
             };
