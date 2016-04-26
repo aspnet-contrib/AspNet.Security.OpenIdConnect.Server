@@ -8,9 +8,10 @@ using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens;
 using System.Security.Cryptography;
+using System.Text.Encodings.Web;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Owin;
 using Microsoft.Owin.Infrastructure;
@@ -218,6 +219,12 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// When this property is not explicitly set, a default in-memory implementation is used instead.
         /// </summary>
         public IDistributedCache Cache { get; set; } = new MemoryDistributedCache(new MemoryCache(new MemoryCacheOptions()));
+
+        /// <summary>
+        /// Used to sanitize HTML responses. If you don't provide an explicit instance,
+        /// <see cref="HtmlEncoder.Default"/> will be used as the default encoder.
+        /// </summary>
+        public HtmlEncoder HtmlEncoder { get; set; } = HtmlEncoder.Default;
 
         /// <summary>
         /// The random number generator used for cryptographic operations.

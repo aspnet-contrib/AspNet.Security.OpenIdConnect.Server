@@ -7,7 +7,6 @@
 using System;
 using System.Globalization;
 using System.IO;
-using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
@@ -572,7 +571,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     // by IOpenIdConnectServerProvider.ValidateAuthorizationRequest,
                     // it's still safer to encode it to avoid cross-site scripting attacks
                     // if the authorization server has a relaxed policy concerning redirect URIs.
-                    writer.WriteLine($"<form name='form' method='post' action='{WebUtility.HtmlEncode(response.RedirectUri)}'>");
+                    writer.WriteLine($"<form name='form' method='post' action='{Options.HtmlEncoder.Encode(response.RedirectUri)}'>");
 
                     foreach (var parameter in response.Parameters) {
                         // Don't include redirect_uri in the form.
@@ -580,8 +579,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                             continue;
                         }
 
-                        var key = WebUtility.HtmlEncode(parameter.Key);
-                        var value = WebUtility.HtmlEncode(parameter.Value);
+                        var key = Options.HtmlEncoder.Encode(parameter.Key);
+                        var value = Options.HtmlEncoder.Encode(parameter.Value);
 
                         writer.WriteLine($"<input type='hidden' name='{key}' value='{value}' />");
                     }

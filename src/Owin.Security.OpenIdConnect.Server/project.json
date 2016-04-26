@@ -35,7 +35,8 @@
     "Microsoft.Owin.Security.Interop": "1.0.0-rc2-*",
     "Newtonsoft.Json": "8.0.3",
     "Owin": "1.0.0",
-    "Owin.Security.OpenIdConnect.Extensions": "1.0.0-beta5-*"
+    "Owin.Security.OpenIdConnect.Extensions": "1.0.0-beta5-*",
+    "System.Text.Encodings.Web": "4.0.0-rc2-*"
   },
 
   "frameworks": {
