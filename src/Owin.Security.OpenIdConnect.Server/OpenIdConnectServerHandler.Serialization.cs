@@ -327,10 +327,8 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             if (!identity.HasClaim(claim => claim.Type == OpenIdConnectConstants.Claims.Subject) &&
                 !identity.HasClaim(claim => claim.Type == ClaimTypes.NameIdentifier)) {
-                Options.Logger.LogError("A unique identifier cannot be found to generate a 'sub' claim: " +
-                                        "make sure to add a 'ClaimTypes.NameIdentifier' claim.");
-
-                return null;
+                throw new InvalidOperationException("A unique identifier cannot be found to generate a 'sub' claim: " +
+                                                    "make sure to add a 'ClaimTypes.NameIdentifier' claim.");
             }
 
             // Store the unique subject identifier as a claim.

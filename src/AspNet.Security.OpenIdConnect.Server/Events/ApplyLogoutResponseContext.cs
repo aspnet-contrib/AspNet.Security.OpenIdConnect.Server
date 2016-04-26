@@ -45,5 +45,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// Gets the logout response. 
         /// </summary>
         public new OpenIdConnectMessage Response { get; }
+
+        /// <summary>
+        /// Gets the error code returned to the client application.
+        /// When the response indicates a successful response,
+        /// this property returns <c>null</c>.
+        /// </summary>
+        public string Error => Response.Error;
     }
 }

@@ -5,6 +5,7 @@
  */
 
 using System.Collections.Generic;
+using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Microsoft.Owin.Security.Notifications;
 
@@ -19,9 +20,16 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         public HandleConfigurationRequestContext(
             IOwinContext context,
-            OpenIdConnectServerOptions options)
+            OpenIdConnectServerOptions options,
+            OpenIdConnectMessage request)
             : base(context, options) {
+            Request = request;
         }
+
+        /// <summary>
+        /// Gets the configuration request.
+        /// </summary>
+        public new OpenIdConnectMessage Request { get; }
 
         /// <summary>
         /// Gets or sets the authorization endpoint address.

@@ -31,26 +31,36 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         public OpenIdConnectServerMiddleware(OwinMiddleware next, IAppBuilder app, OpenIdConnectServerOptions options)
             : base(next, options) {
-            if (Options.RandomNumberGenerator == null) {
-                throw new ArgumentNullException("options.RandomNumberGenerator");
+            if (Options.HtmlEncoder == null) {
+                throw new ArgumentException("The HTML encoder registered in the options " +
+                                            "cannot be null.", nameof(options));
             }
 
             if (Options.Provider == null) {
-                throw new ArgumentNullException("options.Provider");
+                throw new ArgumentException("The authorization provider registered in " +
+                                            "the options cannot be null.", nameof(options));
             }
-            
+
+            if (Options.RandomNumberGenerator == null) {
+                throw new ArgumentException("The random number generator registered in " +
+                                            "the options cannot be null.", nameof(options));
+            }
+
             if (Options.SystemClock == null) {
-                throw new ArgumentNullException("options.SystemClock");
+                throw new ArgumentException("The system clock registered in the options " +
+                                            "cannot be null.", nameof(options));
             }
 
             if (Options.Issuer != null) {
                 if (!Options.Issuer.IsAbsoluteUri) {
-                    throw new ArgumentException("options.Issuer must be a valid absolute URI.", "options.Issuer");
+                    throw new ArgumentException("The issuer registered in the options must be " +
+                                                "a valid absolute URI.", nameof(options));
                 }
 
                 // See http://openid.net/specs/openid-connect-discovery-1_0.html#IssuerDiscovery
                 if (!string.IsNullOrEmpty(Options.Issuer.Query) || !string.IsNullOrEmpty(Options.Issuer.Fragment)) {
-                    throw new ArgumentException("options.Issuer must contain no query and no fragment parts.", "options.Issuer");
+                    throw new ArgumentException("The issuer registered in the options must contain no query " +
+                                                "and no fragment parts.", nameof(options));
                 }
 
                 // Note: while the issuer parameter should be a HTTPS URI, making HTTPS mandatory
@@ -59,8 +69,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                 // To mitigate this issue, AllowInsecureHttp can be set to true to bypass the HTTPS check.
                 // See http://openid.net/specs/openid-connect-discovery-1_0.html#IssuerDiscovery
                 if (!Options.AllowInsecureHttp && string.Equals(Options.Issuer.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase)) {
-                    throw new ArgumentException("options.Issuer must be a HTTPS URI when " +
-                        "options.AllowInsecureHttp is not set to true.", "options.Issuer");
+                    throw new ArgumentException("The issuer registered in the options must be a HTTPS URI when " +
+                                                "AllowInsecureHttp is not set to true.", nameof(options));
                 }
             }
 

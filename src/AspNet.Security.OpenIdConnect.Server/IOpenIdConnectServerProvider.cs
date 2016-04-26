@@ -117,7 +117,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Called when a request to the Token endpoint arrives with a "grant_type" of "client_credentials". This occurs when a registered client
         /// application wishes to acquire an "access_token" to interact with protected resources on it's own behalf, rather than on behalf of an authenticated user. 
-        /// If the web application supports the client credentials it may assume the context.ClientId has been validated by the ValidateClientAuthentication call.
+        /// If the web application supports the client credentials it may assume the context.ClientId has been validated by the ValidateTokenRequest call.
         /// To issue an access token the context.Validated must be called with a new ticket containing the claims about the client application which should be associated
         /// with the access token. The application should take appropriate measures to ensure that the endpoint isn't abused by malicious callers.
         /// The default behavior is to reject this grant type.

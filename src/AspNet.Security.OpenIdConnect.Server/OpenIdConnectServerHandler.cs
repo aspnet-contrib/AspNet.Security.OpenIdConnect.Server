@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.AspNetCore.Http.Features.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.Net.Http.Headers;
@@ -196,7 +196,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                                       "has been configured to reject HTTP requests. To permanently disable the transport " +
                                       "security requirement, set 'OpenIdConnectServerOptions.AllowInsecureHttp' to 'true'.");
 
-                    return await SendNativeErrorPageAsync(new OpenIdConnectMessage {
+                    return await SendNativePageAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
                         ErrorDescription = "This server only accepts HTTPS requests."
                     });
@@ -210,7 +210,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                                       "has been configured to reject HTTP requests. To permanently disable the transport " +
                                       "security requirement, set 'OpenIdConnectServerOptions.AllowInsecureHttp' to 'true'.");
 
-                    return await SendErrorPayloadAsync(new OpenIdConnectMessage {
+                    return await SendPayloadAsync(new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
                         ErrorDescription = "This server only accepts HTTPS requests."
                     });
@@ -248,133 +248,29 @@ namespace AspNet.Security.OpenIdConnect.Server {
             return false;
         }
 
-        private async Task<bool> ApplyAuthorizationResponseAsync(OpenIdConnectMessage request, OpenIdConnectMessage response) {
-            if (request.IsFormPostResponseMode()) {
-                using (var buffer = new MemoryStream())
-                using (var writer = new StreamWriter(buffer)) {
-                    writer.WriteLine("<!doctype html>");
-                    writer.WriteLine("<html>");
-                    writer.WriteLine("<body>");
+        protected override async Task<bool> HandleUnauthorizedAsync(ChallengeContext context) {
+            var notification = new MatchEndpointContext(Context, Options);
 
-                    // While the redirect_uri parameter should be guarded against unknown values
-                    // by IOpenIdConnectServerProvider.ValidateClientRedirectUri,
-                    // it's still safer to encode it to avoid cross-site scripting attacks
-                    // if the authorization server has a relaxed policy concerning redirect URIs.
-                    writer.WriteLine("<form name='form' method='post' action='" + Options.HtmlEncoder.Encode(response.RedirectUri) + "'>");
-
-                    foreach (var parameter in response.Parameters) {
-                        // Don't include redirect_uri in the form.
-                        if (string.Equals(parameter.Key, OpenIdConnectParameterNames.RedirectUri, StringComparison.Ordinal)) {
-                            continue;
-                        }
-
-                        var name = Options.HtmlEncoder.Encode(parameter.Key);
-                        var value = Options.HtmlEncoder.Encode(parameter.Value);
-
-                        writer.WriteLine("<input type='hidden' name='" + name + "' value='" + value + "' />");
-                    }
-
-                    writer.WriteLine("<noscript>Click here to finish the authorization process: <input type='submit' /></noscript>");
-                    writer.WriteLine("</form>");
-                    writer.WriteLine("<script>document.form.submit();</script>");
-                    writer.WriteLine("</body>");
-                    writer.WriteLine("</html>");
-                    writer.Flush();
-
-                    Response.StatusCode = 200;
-                    Response.ContentLength = buffer.Length;
-                    Response.ContentType = "text/html;charset=UTF-8";
-
-                    buffer.Seek(offset: 0, loc: SeekOrigin.Begin);
-                    await buffer.CopyToAsync(Response.Body, 4096, Context.RequestAborted);
-
-                    return true;
-                }
+            if (Options.UserinfoEndpointPath.HasValue &&
+                Options.UserinfoEndpointPath == Request.Path) {
+                notification.MatchesUserinfoEndpoint();
             }
 
-            else if (request.IsFragmentResponseMode()) {
-                var location = response.RedirectUri;
-                var appender = new Appender(location, '#');
+            await Options.Provider.MatchEndpoint(notification);
 
-                foreach (var parameter in response.Parameters) {
-                    // Don't include redirect_uri in the fragment.
-                    if (string.Equals(parameter.Key, OpenIdConnectParameterNames.RedirectUri, StringComparison.Ordinal)) {
-                        continue;
-                    }
-
-                    appender.Append(parameter.Key, parameter.Value);
-                }
-
-                Response.Redirect(appender.ToString());
+            // Return true to indicate to the authentication pipeline that
+            // the 401 response shouldn't be handled by the other middleware.
+            if (!notification.IsUserinfoEndpoint) {
                 return true;
             }
 
-            else if (request.IsQueryResponseMode()) {
-                var location = response.RedirectUri;
-
-                foreach (var parameter in response.Parameters) {
-                    // Don't include redirect_uri in the query string.
-                    if (string.Equals(parameter.Key, OpenIdConnectParameterNames.RedirectUri, StringComparison.Ordinal)) {
-                        continue;
-                    }
-
-                    location = QueryHelpers.AddQueryString(location, parameter.Key, parameter.Value);
-                }
-
-                Response.Redirect(location);
-                return true;
-            }
+            Response.StatusCode = 401;
+            Response.Headers[HeaderNames.WWWAuthenticate] = "error=" + OpenIdConnectConstants.Errors.InvalidGrant;
 
             return false;
         }
 
-        private async Task<bool> SendErrorRedirectAsync(OpenIdConnectMessage request, OpenIdConnectMessage response) {
-            // Remove the authorization request from the ASP.NET context to inform
-            // TeardownCoreAsync that there's nothing more to handle.
-            Context.SetOpenIdConnectRequest(request: null);
-
-            // Use a generic error if none has been explicitly provided.
-            if (string.IsNullOrEmpty(response.Error)) {
-                response.Error = OpenIdConnectConstants.Errors.InvalidRequest;
-            }
-
-            // Directly display an error page if redirect_uri cannot be used.
-            if (string.IsNullOrEmpty(response.RedirectUri)) {
-                return await SendErrorPageAsync(response);
-            }
-
-            // Try redirecting the user agent to the client
-            // application or display a default error page.
-            if (!await ApplyAuthorizationResponseAsync(request, response)) {
-                return await SendErrorPageAsync(response);
-            }
-
-            // Return true to stop processing the request.
-            return true;
-        }
-
-        private async Task<bool> SendErrorPageAsync(OpenIdConnectMessage response) {
-            // Use a generic error if none has been explicitly provided.
-            if (string.IsNullOrEmpty(response.Error)) {
-                response.Error = OpenIdConnectConstants.Errors.InvalidRequest;
-            }
-
-            if (Options.ApplicationCanDisplayErrors) {
-                Context.SetOpenIdConnectResponse(response);
-
-                // Apply a 400 status code by default.
-                Response.StatusCode = 400;
-
-                // Return false to allow the rest of
-                // the pipeline to handle the request.
-                return false;
-            }
-
-            // Render the default error page.
-            return await SendNativeErrorPageAsync(response);
-        }
-
-        private async Task<bool> SendNativeErrorPageAsync(OpenIdConnectMessage response) {
+        private async Task<bool> SendNativePageAsync(OpenIdConnectMessage response) {
             using (var buffer = new MemoryStream())
             using (var writer = new StreamWriter(buffer)) {
                 foreach (var parameter in response.Parameters) {
@@ -383,7 +279,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 writer.Flush();
 
-                Response.StatusCode = 400;
+                if (!string.IsNullOrEmpty(response.Error)) {
+                    Response.StatusCode = 400;
+                }
+
                 Response.ContentLength = buffer.Length;
                 Response.ContentType = "text/plain;charset=UTF-8";
 
@@ -399,42 +298,27 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
         }
 
-        private async Task<bool> SendPayloadAsync(JToken payload) {
-            using (var buffer = new MemoryStream())
-            using (var writer = new JsonTextWriter(new StreamWriter(buffer))) {
-                payload.WriteTo(writer);
-                writer.Flush();
+        private Task<bool> SendPayloadAsync(OpenIdConnectMessage response) {
+            var payload = new JObject();
 
-                Response.ContentLength = buffer.Length;
-                Response.ContentType = "application/json;charset=UTF-8";
-
-                buffer.Seek(offset: 0, loc: SeekOrigin.Begin);
-                await buffer.CopyToAsync(Response.Body, 4096, Context.RequestAborted);
-
-                // Return true to stop processing the request.
-                return true;
+            foreach (var parameter in response.Parameters) {
+                payload[parameter.Key] = parameter.Value;
             }
+
+            return SendPayloadAsync(payload);
         }
 
-        private async Task<bool> SendErrorPayloadAsync(OpenIdConnectMessage response) {
+        private async Task<bool> SendPayloadAsync(JObject response) {
             using (var buffer = new MemoryStream())
             using (var writer = new JsonTextWriter(new StreamWriter(buffer))) {
-                var payload = new JObject();
-
-                payload.Add(OpenIdConnectConstants.Parameters.Error, response.Error);
-
-                if (!string.IsNullOrEmpty(response.ErrorDescription)) {
-                    payload.Add(OpenIdConnectConstants.Parameters.ErrorDescription, response.ErrorDescription);
-                }
-
-                if (!string.IsNullOrEmpty(response.ErrorUri)) {
-                    payload.Add(OpenIdConnectConstants.Parameters.ErrorUri, response.ErrorUri);
-                }
-
-                payload.WriteTo(writer);
+                response.WriteTo(writer);
                 writer.Flush();
 
-                Response.StatusCode = 400;
+                var error = response[OpenIdConnectConstants.Parameters.Error];
+                if (error != null) {
+                    Response.StatusCode = 400;
+                }
+
                 Response.ContentLength = buffer.Length;
                 Response.ContentType = "application/json;charset=UTF-8";
 

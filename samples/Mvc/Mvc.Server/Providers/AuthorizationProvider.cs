@@ -125,7 +125,6 @@ namespace Mvc.Server.Providers {
                 return;
             }
 
-            // Note: ValidateClientLogoutRedirectUri is not invoked when post_logout_redirect_uri is null.
             // When provided, post_logout_redirect_uri must exactly match the address registered by the client application.
             if (!await database.Applications.AnyAsync(application => application.LogoutRedirectUri == context.PostLogoutRedirectUri)) {
                 context.Reject(
