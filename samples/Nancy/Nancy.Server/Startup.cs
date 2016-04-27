@@ -13,7 +13,7 @@ using Owin.Security.OAuth.Validation;
 namespace Nancy.Server {
     public class Startup {
         public void Configuration(IAppBuilder app) {
-            app.SetDefaultSignInAsAuthenticationType("ServerCookie");
+            app.SetDefaultSignInAsAuthenticationType(CookieAuthenticationDefaults.AuthenticationType);
 
             app.UseWhen(context => context.Request.Path.StartsWithSegments(new PathString("/api")), map => {
                 map.UseOAuthValidation(new OAuthValidationOptions {
@@ -38,8 +38,6 @@ namespace Nancy.Server {
             app.UseWhen(context => !context.Request.Path.StartsWithSegments(new PathString("/api")), map => {
                 map.UseCookieAuthentication(new CookieAuthenticationOptions {
                     AuthenticationMode = AuthenticationMode.Active,
-                    AuthenticationType = "ServerCookie",
-                    CookieName = CookieAuthenticationDefaults.CookiePrefix + "ServerCookie",
                     ExpireTimeSpan = TimeSpan.FromMinutes(5),
                     LoginPath = new PathString("/signin")
                 });
