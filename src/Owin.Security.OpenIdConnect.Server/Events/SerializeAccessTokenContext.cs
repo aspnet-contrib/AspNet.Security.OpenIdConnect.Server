@@ -9,14 +9,14 @@ using System.IdentityModel.Tokens;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
-using Microsoft.Owin.Security.Provider;
+using Microsoft.Owin.Security.Notifications;
 using Owin.Security.OpenIdConnect.Extensions;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used when issuing an access token.
     /// </summary>
-    public class SerializeAccessTokenContext : BaseContext<OpenIdConnectServerOptions> {
+    public class SerializeAccessTokenContext : BaseNotification<OpenIdConnectServerOptions> {
         /// <summary>
         /// Initializes a new instance of the <see cref="SerializeAccessTokenContext"/> class
         /// </summary>

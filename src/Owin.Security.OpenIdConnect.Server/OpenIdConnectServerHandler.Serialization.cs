@@ -57,8 +57,12 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             await Options.Provider.SerializeAuthorizationCode(notification);
 
-            if (!string.IsNullOrEmpty(notification.AuthorizationCode)) {
+            if (notification.HandledResponse || !string.IsNullOrEmpty(notification.AuthorizationCode)) {
                 return notification.AuthorizationCode;
+            }
+
+            else if (notification.Skipped) {
+                return null;
             }
 
             if (notification.DataFormat == null) {
@@ -135,8 +139,12 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             await Options.Provider.SerializeAccessToken(notification);
 
-            if (!string.IsNullOrEmpty(notification.AccessToken)) {
+            if (notification.HandledResponse || !string.IsNullOrEmpty(notification.AccessToken)) {
                 return notification.AccessToken;
+            }
+
+            else if (notification.Skipped) {
+                return null;
             }
 
             if (notification.SecurityTokenHandler == null) {
@@ -317,8 +325,12 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             await Options.Provider.SerializeIdentityToken(notification);
 
-            if (!string.IsNullOrEmpty(notification.IdentityToken)) {
+            if (notification.HandledResponse || !string.IsNullOrEmpty(notification.IdentityToken)) {
                 return notification.IdentityToken;
+            }
+
+            else if (notification.Skipped) {
+                return null;
             }
 
             if (notification.SecurityTokenHandler == null) {
@@ -474,8 +486,12 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             await Options.Provider.SerializeRefreshToken(notification);
 
-            if (!string.IsNullOrEmpty(notification.RefreshToken)) {
+            if (notification.HandledResponse || !string.IsNullOrEmpty(notification.RefreshToken)) {
                 return notification.RefreshToken;
+            }
+
+            else if (notification.Skipped) {
+                return null;
             }
 
             return notification.DataFormat?.Protect(ticket);
@@ -488,10 +504,12 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             await Options.Provider.DeserializeAuthorizationCode(notification);
 
-            // Directly return the authentication ticket if one
-            // has been provided by DeserializeAuthorizationCode.
-            if (notification.Ticket != null) {
+            if (notification.HandledResponse || notification.Ticket != null) {
                 return notification.Ticket;
+            }
+
+            else if (notification.Skipped) {
+                return null;
             }
 
             var buffer = await Options.Cache.GetAsync($"asos-authorization-code:{code}");
@@ -531,10 +549,12 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             await Options.Provider.DeserializeAccessToken(notification);
 
-            // Directly return the authentication ticket if one
-            // has been provided by DeserializeAccessToken.
-            if (notification.Ticket != null) {
+            if (notification.HandledResponse || notification.Ticket != null) {
                 return notification.Ticket;
+            }
+
+            else if (notification.Skipped) {
+                return null;
             }
 
             var handler = notification.SecurityTokenHandler as ISecurityTokenValidator;
@@ -628,10 +648,12 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             await Options.Provider.DeserializeIdentityToken(notification);
 
-            // Directly return the authentication ticket if one
-            // has been provided by DeserializeIdentityToken.
-            if (notification.Ticket != null) {
+            if (notification.HandledResponse || notification.Ticket != null) {
                 return notification.Ticket;
+            }
+
+            else if (notification.Skipped) {
+                return null;
             }
 
             if (notification.SecurityTokenHandler == null) {
@@ -714,10 +736,12 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             await Options.Provider.DeserializeRefreshToken(notification);
 
-            // Directly return the authentication ticket if one
-            // has been provided by DeserializeRefreshToken.
-            if (notification.Ticket != null) {
+            if (notification.HandledResponse || notification.Ticket != null) {
                 return notification.Ticket;
+            }
+
+            else if (notification.Skipped) {
+                return null;
             }
 
             var ticket = notification.DataFormat?.Unprotect(token);

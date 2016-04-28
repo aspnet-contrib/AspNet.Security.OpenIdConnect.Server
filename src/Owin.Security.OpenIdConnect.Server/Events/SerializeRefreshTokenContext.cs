@@ -8,14 +8,14 @@ using System.Collections.Generic;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
-using Microsoft.Owin.Security.Provider;
+using Microsoft.Owin.Security.Notifications;
 using Owin.Security.OpenIdConnect.Extensions;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used when issuing a refresh token.
     /// </summary>
-    public class SerializeRefreshTokenContext : BaseContext<OpenIdConnectServerOptions> {
+    public class SerializeRefreshTokenContext : BaseNotification<OpenIdConnectServerOptions> {
         /// <summary>
         /// Initializes a new instance of the <see cref="SerializeRefreshTokenContext"/> class
         /// </summary>
