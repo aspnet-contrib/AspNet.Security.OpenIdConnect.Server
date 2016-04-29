@@ -137,7 +137,8 @@ namespace Mvc.Server.Controllers {
             ticket.SetScopes(new[] {
                 /* openid: */ OpenIdConnectConstants.Scopes.OpenId,
                 /* email: */ OpenIdConnectConstants.Scopes.Email,
-                /* profile: */ OpenIdConnectConstants.Scopes.Profile
+                /* profile: */ OpenIdConnectConstants.Scopes.Profile,
+                /* offline_access: */ OpenIdConnectConstants.Scopes.OfflineAccess
             }.Intersect(request.GetScopes()));
 
             // Set the resources servers the access token should be issued for.

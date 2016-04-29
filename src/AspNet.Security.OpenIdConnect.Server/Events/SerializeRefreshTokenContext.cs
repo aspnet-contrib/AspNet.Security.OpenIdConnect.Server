@@ -37,11 +37,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
         }
 
         /// <summary>
-        /// Gets the authentication ticket to serialize.
-        /// </summary>
-        public AuthenticationTicket Ticket { get; }
-
-        /// <summary>
         /// Gets the options used by the OpenID Connect server.
         /// </summary>
         public OpenIdConnectServerOptions Options { get; }

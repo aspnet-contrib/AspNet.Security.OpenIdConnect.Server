@@ -26,6 +26,11 @@ namespace Nancy.Client {
             app.UseOpenIdConnectAuthentication(new OpenIdConnectAuthenticationOptions {
                 AuthenticationMode = AuthenticationMode.Active,
 
+                // Note: setting the Authority allows the OIDC client middleware to automatically
+                // retrieve the identity provider's configuration and spare you from setting
+                // the different endpoints URIs or the token validation parameters explicitly.
+                Authority = "http://localhost:54541/",
+
                 // Note: these settings must match the application details inserted in
                 // the database at the server level (see ApplicationContextInitializer.cs).
                 ClientId = "myClient",
@@ -33,10 +38,7 @@ namespace Nancy.Client {
                 RedirectUri = "http://localhost:56765/oidc",
                 PostLogoutRedirectUri = "http://localhost:56765/",
 
-                // Note: setting the Authority allows the OIDC client middleware to automatically
-                // retrieve the identity provider's configuration and spare you from setting
-                // the different endpoints URIs or the token validation parameters explicitly.
-                Authority = "http://localhost:54541/",
+                Scope = "openid profile offline_access",
 
                 // Note: by default, the OIDC client throws an OpenIdConnectProtocolException
                 // when an error occurred during the authentication/authorization process.

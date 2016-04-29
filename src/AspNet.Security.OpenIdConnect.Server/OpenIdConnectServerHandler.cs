@@ -73,7 +73,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             // Missing or invalid requests are ignored in HandleAuthenticateAsync:
-            // in this case, Skip is used to indicate authentication failed.
+            // in this case, Skip is used to indicate that authentication failed.
             if (request == null) {
                 return AuthenticateResult.Skip();
             }

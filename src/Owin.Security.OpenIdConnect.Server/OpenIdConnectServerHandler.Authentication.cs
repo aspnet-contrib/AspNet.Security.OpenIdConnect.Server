@@ -419,24 +419,18 @@ namespace Owin.Security.OpenIdConnect.Server {
                 // to avoid modifying the properties set on the original ticket.
                 var properties = context.Properties.Copy();
 
-                string resources;
-                if (!properties.Dictionary.TryGetValue(OpenIdConnectConstants.Properties.Resources, out resources)) {
-                    Options.Logger.LogInformation("No explicit resource was associated with the authentication ticket: " +
-                                                  "the access token will be issued without any audience attached.");
-                }
-
                 // Note: when the "resource" parameter added to the OpenID Connect response
-                // is identical to the request parameter, setting it is not necessary.
-                if (!string.IsNullOrEmpty(request.Resource) &&
+                // is identical to the request parameter, returning it is not necessary.
+                var resources = properties.GetProperty(OpenIdConnectConstants.Properties.Resources);
+                if (!string.IsNullOrEmpty(request.Resource) && !string.IsNullOrEmpty(resources) &&
                     !string.Equals(request.Resource, resources, StringComparison.Ordinal)) {
                     response.Resource = resources;
                 }
 
                 // Note: when the "scope" parameter added to the OpenID Connect response
-                // is identical to the request parameter, setting it is not necessary.
-                string scopes;
-                properties.Dictionary.TryGetValue(OpenIdConnectConstants.Properties.Scopes, out scopes);
-                if (!string.IsNullOrEmpty(request.Scope) &&
+                // is identical to the request parameter, returning it is not necessary.
+                var scopes = properties.GetProperty(OpenIdConnectConstants.Properties.Scopes);
+                if (!string.IsNullOrEmpty(request.Scope) && !string.IsNullOrEmpty(scopes) &&
                     !string.Equals(request.Scope, scopes, StringComparison.Ordinal)) {
                     response.Scope = scopes;
                 }

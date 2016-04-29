@@ -156,6 +156,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 throw new InvalidOperationException("The authentication ticket cannot be replaced.");
             }
 
+            if (!notification.Audiences.Any()) {
+                Logger.LogInformation("No explicit audience was associated with the access token.");
+            }
+
             if (notification.SecurityTokenHandler == null) {
                 return notification.DataFormat?.Protect(ticket);
             }
@@ -179,7 +183,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             // Create a new claim per scope item, that will result
             // in a "scope" array being added in the access token.
-            foreach (var scope in ticket.GetScopes()) {
+            foreach (var scope in notification.Scopes) {
                 identity.AddClaim(OpenIdConnectConstants.Claims.Scope, scope);
             }
 
@@ -206,13 +210,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 }
 
                 // Store the audiences as claims.
-                foreach (var audience in ticket.GetAudiences()) {
+                foreach (var audience in notification.Audiences) {
                     identity.AddClaim(OpenIdConnectConstants.Claims.Audience, audience);
                 }
 
                 // Extract the presenters from the authentication ticket.
-                var presenters = ticket.GetPresenters().ToArray();
-
+                var presenters = notification.Presenters.ToArray();
                 switch (presenters.Length) {
                     case 0: break;
 
@@ -375,7 +378,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             // Store the audiences as claims.
-            foreach (var audience in ticket.GetAudiences()) {
+            foreach (var audience in notification.Audiences) {
                 identity.AddClaim(OpenIdConnectConstants.Claims.Audience, audience);
             }
 
@@ -418,8 +421,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             // Extract the presenters from the authentication ticket.
-            var presenters = ticket.GetPresenters().ToArray();
-
+            var presenters = notification.Presenters.ToArray();
             switch (presenters.Length) {
                 case 0: break;
 

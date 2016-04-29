@@ -18,8 +18,6 @@ using Owin.Security.OpenIdConnect.Extensions;
 
 namespace Owin.Security.OpenIdConnect.Server {
     internal partial class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions> {
-        // Implementing AuthenticateCoreAsync allows the inner application
-        // to retrieve the identity extracted from the optional id_token_hint.
         protected override async Task<AuthenticationTicket> AuthenticateCoreAsync() {
             var notification = new MatchEndpointContext(Context, Options);
 
@@ -71,7 +69,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             // Missing or invalid requests are ignored in AuthenticateCoreAsync:
-            // in this case, null is always returned to indicate authentication failed.
+            // in this case, null is returned to indicate that authentication failed.
             if (request == null) {
                 return null;
             }

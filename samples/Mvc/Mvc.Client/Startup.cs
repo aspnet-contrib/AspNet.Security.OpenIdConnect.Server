@@ -33,6 +33,11 @@ namespace Mvc.Client {
                 RequireHttpsMetadata = false,
                 SaveTokens = true,
 
+                // Note: setting the Authority allows the OIDC client middleware to automatically
+                // retrieve the identity provider's configuration and spare you from setting
+                // the different endpoints URIs or the token validation parameters explicitly.
+                Authority = "http://localhost:54540/",
+
                 // Note: these settings must match the application details
                 // inserted in the database at the server level.
                 ClientId = "myClient",
@@ -42,10 +47,8 @@ namespace Mvc.Client {
                 // Use the authorization code flow.
                 ResponseType = OpenIdConnectResponseTypes.Code,
 
-                // Note: setting the Authority allows the OIDC client middleware to automatically
-                // retrieve the identity provider's configuration and spare you from setting
-                // the different endpoints URIs or the token validation parameters explicitly.
-                Authority = "http://localhost:54540/"
+                // Specify the "offline_access" scope to retrieve a refresh token.
+                Scope = { "offline_access" }
             });
 
             app.UseStaticFiles();

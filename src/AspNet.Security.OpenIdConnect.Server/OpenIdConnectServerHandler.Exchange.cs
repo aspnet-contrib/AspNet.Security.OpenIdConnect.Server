@@ -282,9 +282,36 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     }
                 }
 
-                if (!string.IsNullOrEmpty(request.Scope)) {
+                if (request.IsRefreshTokenGrantType() && !string.IsNullOrEmpty(request.Resource)) {
+                    // When an explicit resource parameter has been included in the token request
+                    // but was missing from the initial request, the request MUST be rejected.
+                    var resources = ticket.GetResources();
+                    if (!resources.Any()) {
+                        Logger.LogError("The token request was rejected because the 'resource' parameter was not allowed.");
+
+                        return await SendTokenResponseAsync(request, new OpenIdConnectMessage {
+                            Error = OpenIdConnectConstants.Errors.InvalidGrant,
+                            ErrorDescription = "Token request cannot contain a resource parameter" +
+                                               "if the authorization request didn't contain one"
+                        });
+                    }
+
+                    // When an explicit resource parameter has been included in the token request,
+                    // the authorization server MUST ensure that it doesn't contain resources
+                    // that were not allowed during the initial authorization/token request.
+                    else if (!new HashSet<string>(resources).IsSupersetOf(request.GetResources())) {
+                        Logger.LogError("The token request was rejected because the 'resource' parameter was not valid.");
+
+                        return await SendTokenResponseAsync(request, new OpenIdConnectMessage {
+                            Error = OpenIdConnectConstants.Errors.InvalidGrant,
+                            ErrorDescription = "Token request doesn't contain a valid resource parameter"
+                        });
+                    }
+                }
+
+                if (request.IsRefreshTokenGrantType() && !string.IsNullOrEmpty(request.Scope)) {
                     // When an explicit scope parameter has been included in the token request
-                    // but was missing from the authorization request, the request MUST be rejected.
+                    // but was missing from the initial request, the request MUST be rejected.
                     // See http://tools.ietf.org/html/rfc6749#section-6
                     var scopes = ticket.GetScopes();
                     if (!scopes.Any()) {
@@ -299,7 +326,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                     // When an explicit scope parameter has been included in the token request,
                     // the authorization server MUST ensure that it doesn't contain scopes
-                    // that were not allowed during the authorization request.
+                    // that were not allowed during the initial authorization/token request.
                     // See https://tools.ietf.org/html/rfc6749#section-6
                     else if (!new HashSet<string>(scopes).IsSupersetOf(request.GetScopes())) {
                         Logger.LogError("The token request was rejected because the 'scope' parameter was not valid.");
@@ -309,10 +336,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
                             ErrorDescription = "Token request doesn't contain a valid scope parameter"
                         });
                     }
-
-                    // Replace the scopes initially granted by the scopes
-                    // listed by the client application in the token request.
-                    ticket.SetScopes(request.GetScopes());
                 }
 
                 if (request.IsAuthorizationCodeGrantType()) {
@@ -479,24 +502,38 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 // to avoid modifying the properties set on the original ticket.
                 var properties = ticket.Properties.Copy();
 
-                string resources;
-                if (!properties.Items.TryGetValue(OpenIdConnectConstants.Properties.Resources, out resources)) {
-                    Logger.LogInformation("No explicit resource has been associated with the authentication ticket: " +
-                                          "the access token will thus be issued without any audience attached.");
+                // When receiving a grant_type=refresh_token request, determine whether the client application
+                // requests a limited set of resources and replace the "resources" property if necessary.
+                if (request.IsRefreshTokenGrantType() && !string.IsNullOrEmpty(request.Resource)) {
+                    // Replace the resources initially granted by the resources listed by the client application in the token request.
+                    // Note: at this stage, request.GetResources() cannot return more items than the ones that were initially granted
+                    // by the resource owner as the "resources" parameter is always validated when receiving the token request.
+                    properties.Items[OpenIdConnectConstants.Properties.Resources] = string.Join(" ", request.GetResources());
                 }
 
                 // Note: when the "resource" parameter added to the OpenID Connect response
-                // is identical to the request parameter, keeping it is not necessary.
-                if (request.IsAuthorizationCodeGrantType() || (!string.IsNullOrEmpty(request.Resource) &&
+                // is identical to the request parameter, returning it is not necessary.
+                var resources = properties.GetProperty(OpenIdConnectConstants.Properties.Resources);
+                if (request.IsAuthorizationCodeGrantType() || (!string.IsNullOrEmpty(resources) &&
+                                                               !string.IsNullOrEmpty(request.Resource) &&
                                                                !string.Equals(request.Resource, resources, StringComparison.Ordinal))) {
                     response.Resource = resources;
                 }
 
+                // When receiving a grant_type=refresh_token request, determine whether the client application
+                // requests a limited set of scopes and replace the "scopes" property if necessary.
+                if (request.IsRefreshTokenGrantType() && !string.IsNullOrEmpty(request.Scope)) {
+                    // Replace the scopes initially granted by the scopes listed by the client application in the token request.
+                    // Note: at this stage, request.GetScopes() cannot return more items than the ones that were initially granted
+                    // by the resource owner as the "scope" parameter is always validated when receiving the token request.
+                    properties.Items[OpenIdConnectConstants.Properties.Scopes] = string.Join(" ", request.GetScopes());
+                }
+
                 // Note: when the "scope" parameter added to the OpenID Connect response
-                // is identical to the request parameter, keeping it is not necessary.
-                string scopes;
-                properties.Items.TryGetValue(OpenIdConnectConstants.Properties.Scopes, out scopes);
-                if (request.IsAuthorizationCodeGrantType() || (!string.IsNullOrEmpty(request.Scope) && 
+                // is identical to the request parameter, returning it is not necessary.
+                var scopes = properties.GetProperty(OpenIdConnectConstants.Properties.Scopes);
+                if (request.IsAuthorizationCodeGrantType() || (!string.IsNullOrEmpty(scopes) && 
+                                                               !string.IsNullOrEmpty(request.Scope) &&
                                                                !string.Equals(request.Scope, scopes, StringComparison.Ordinal))) {
                     response.Scope = scopes;
                 }
