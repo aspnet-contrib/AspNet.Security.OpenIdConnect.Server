@@ -14,7 +14,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used when issuing a refresh token.
     /// </summary>
-    public class SerializeRefreshTokenContext : BaseContext {
+    public class SerializeRefreshTokenContext : BaseControlContext {
         /// <summary>
         /// Initializes a new instance of the <see cref="SerializeRefreshTokenContext"/> class
         /// </summary>

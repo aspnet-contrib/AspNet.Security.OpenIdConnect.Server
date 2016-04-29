@@ -8,14 +8,14 @@ using System.Collections.Generic;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
-using Microsoft.Owin.Security.Provider;
+using Microsoft.Owin.Security.Notifications;
 using Owin.Security.OpenIdConnect.Extensions;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used when issuing an authorization code.
     /// </summary>
-    public class SerializeAuthorizationCodeContext : BaseContext<OpenIdConnectServerOptions> {
+    public class SerializeAuthorizationCodeContext : BaseNotification<OpenIdConnectServerOptions> {
         /// <summary>
         /// Initializes a new instance of the <see cref="SerializeAuthorizationCodeContext"/> class
         /// </summary>

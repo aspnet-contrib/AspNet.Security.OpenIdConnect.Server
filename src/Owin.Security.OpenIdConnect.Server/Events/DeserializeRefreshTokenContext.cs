@@ -7,13 +7,13 @@
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
-using Microsoft.Owin.Security.Provider;
+using Microsoft.Owin.Security.Notifications;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used when receiving a refresh token.
     /// </summary>
-    public class DeserializeRefreshTokenContext : BaseContext<OpenIdConnectServerOptions> {
+    public class DeserializeRefreshTokenContext : BaseNotification<OpenIdConnectServerOptions> {
         /// <summary>
         /// Initializes a new instance of the <see cref="DeserializeRefreshTokenContext"/> class
         /// </summary>

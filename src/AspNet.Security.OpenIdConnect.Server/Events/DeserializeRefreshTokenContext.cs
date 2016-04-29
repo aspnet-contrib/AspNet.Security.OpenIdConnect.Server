@@ -12,7 +12,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used when receiving a refresh token.
     /// </summary>
-    public class DeserializeRefreshTokenContext : BaseContext {
+    public class DeserializeRefreshTokenContext : BaseControlContext {
         /// <summary>
         /// Initializes a new instance of the <see cref="DeserializeRefreshTokenContext"/> class
         /// </summary>
@@ -30,11 +30,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
             Request = request;
             RefreshToken = token;
         }
-
-        /// <summary>
-        /// Gets or sets the deserialized authentication ticket.
-        /// </summary>
-        public AuthenticationTicket Ticket { get; set; }
 
         /// <summary>
         /// Gets the options used by the OpenID Connect server.

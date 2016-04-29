@@ -8,13 +8,13 @@ using System.IdentityModel.Tokens;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
-using Microsoft.Owin.Security.Provider;
+using Microsoft.Owin.Security.Notifications;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used when receiving an identity token.
     /// </summary>
-    public class DeserializeIdentityTokenContext : BaseContext<OpenIdConnectServerOptions> {
+    public class DeserializeIdentityTokenContext : BaseNotification<OpenIdConnectServerOptions> {
         /// <summary>
         /// Initializes a new instance of the <see cref="DeserializeAccessTokenContext"/> class
         /// </summary>
