@@ -200,7 +200,7 @@ namespace Mvc.Server.Controllers {
             // Returning a SignOutResult will ask the cookies middleware to delete the local cookie created when
             // the user agent is redirected from the external identity provider after a successful authentication flow
             // and will redirect the user agent to the post_logout_redirect_uri specified by the client application.
-            return SignOut(CookieAuthenticationDefaults.AuthenticationScheme, OpenIdConnectServerDefaults.AuthenticationScheme);
+            return SignOut("ServerCookie", OpenIdConnectServerDefaults.AuthenticationScheme);
         }
         
         protected virtual Task<Application> GetApplicationAsync(string identifier, CancellationToken cancellationToken) {

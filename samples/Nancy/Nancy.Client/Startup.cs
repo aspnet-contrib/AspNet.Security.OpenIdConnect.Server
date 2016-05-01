@@ -13,12 +13,14 @@ using Owin;
 namespace Nancy.Client {
     public class Startup {
         public void Configuration(IAppBuilder app) {
-            app.SetDefaultSignInAsAuthenticationType(CookieAuthenticationDefaults.AuthenticationType);
+            app.SetDefaultSignInAsAuthenticationType("ClientCookie");
 
             // Insert a new cookies middleware in the pipeline to store the user
             // identity after he has been redirected from the identity provider.
             app.UseCookieAuthentication(new CookieAuthenticationOptions {
                 AuthenticationMode = AuthenticationMode.Active,
+                AuthenticationType = "ClientCookie",
+                CookieName = CookieAuthenticationDefaults.CookiePrefix + "ClientCookie",
                 ExpireTimeSpan = TimeSpan.FromMinutes(5)
             });
 

@@ -206,8 +206,7 @@ namespace Nancy.Server.Modules {
                 // when the user agent is redirected from the external identity provider
                 // after a successful authentication flow (e.g Google or Facebook) and
                 // redirect the user agent to the post_logout_redirect_uri specified by the client application.
-                OwinContext.Authentication.SignOut(CookieAuthenticationDefaults.AuthenticationType,
-                                                   OpenIdConnectServerDefaults.AuthenticationType);
+                OwinContext.Authentication.SignOut("ServerCookie", OpenIdConnectServerDefaults.AuthenticationType);
 
                 return HttpStatusCode.OK;
             };

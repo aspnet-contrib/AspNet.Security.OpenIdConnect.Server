@@ -10,7 +10,7 @@ namespace Mvc.Client {
     public class Startup {
         public void ConfigureServices(IServiceCollection services) {
             services.AddAuthentication(options => {
-                options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.SignInScheme = "ClientCookie";
             });
 
             services.AddMvc();
@@ -24,6 +24,8 @@ namespace Mvc.Client {
             app.UseCookieAuthentication(new CookieAuthenticationOptions {
                 AutomaticAuthenticate = true,
                 AutomaticChallenge = true,
+                AuthenticationScheme = "ClientCookie",
+                CookieName = CookieAuthenticationDefaults.CookiePrefix + "ClientCookie",
                 ExpireTimeSpan = TimeSpan.FromMinutes(5),
                 LoginPath = new PathString("/signin"),
                 LogoutPath = new PathString("/signout")
@@ -32,11 +34,6 @@ namespace Mvc.Client {
             app.UseOpenIdConnectAuthentication(new OpenIdConnectOptions {
                 RequireHttpsMetadata = false,
                 SaveTokens = true,
-
-                // Note: setting the Authority allows the OIDC client middleware to automatically
-                // retrieve the identity provider's configuration and spare you from setting
-                // the different endpoints URIs or the token validation parameters explicitly.
-                Authority = "http://localhost:54540/",
 
                 // Note: these settings must match the application details
                 // inserted in the database at the server level.
@@ -47,8 +44,10 @@ namespace Mvc.Client {
                 // Use the authorization code flow.
                 ResponseType = OpenIdConnectResponseTypes.Code,
 
-                // Specify the "offline_access" scope to retrieve a refresh token.
-                Scope = { "offline_access" }
+                // Note: setting the Authority allows the OIDC client middleware to automatically
+                // retrieve the identity provider's configuration and spare you from setting
+                // the different endpoints URIs or the token validation parameters explicitly.
+                Authority = "http://localhost:54540/"
             });
 
             app.UseStaticFiles();

@@ -37,7 +37,7 @@ namespace Nancy.Server.Modules {
                     RedirectUri = returnUrl
                 };
                 
-                var identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationType);
+                var identity = new ClaimsIdentity("ServerCookie");
                 identity.AddClaim(new Claim(ClaimTypes.Name, identifier));
                 identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, identifier));
 
@@ -50,7 +50,7 @@ namespace Nancy.Server.Modules {
                 // Instruct the cookies middleware to delete the local cookie created
                 // when the user agent is redirected from the external identity provider
                 // after a successful authentication flow (e.g Google or Facebook).
-                AuthenticationManager.SignOut(CookieAuthenticationDefaults.AuthenticationType);
+                AuthenticationManager.SignOut("ServerCookie");
 
                 return HttpStatusCode.OK;
             };

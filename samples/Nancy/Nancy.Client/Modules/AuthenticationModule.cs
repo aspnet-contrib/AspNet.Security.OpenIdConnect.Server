@@ -1,6 +1,5 @@
 ﻿using System;
 using Microsoft.Owin.Security;
-using Microsoft.Owin.Security.Cookies;
 using Microsoft.Owin.Security.OpenIdConnect;
 using Nancy.Security;
 
@@ -33,8 +32,7 @@ namespace Nancy.Client.Modules {
                 // Instruct the cookies middleware to delete the local cookie created when the user agent
                 // is redirected from the identity provider after a successful authorization flow and
                 // to redirect the user agent to the identity provider to sign out.
-                manager.SignOut(CookieAuthenticationDefaults.AuthenticationType,
-                                OpenIdConnectAuthenticationDefaults.AuthenticationType);
+                manager.SignOut("ClientCookie", OpenIdConnectAuthenticationDefaults.AuthenticationType);
 
                 return HttpStatusCode.OK;
             };
