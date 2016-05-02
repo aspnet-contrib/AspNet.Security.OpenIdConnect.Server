@@ -57,7 +57,9 @@ app.UseOpenIdConnectServer(options => {
 
 ## Samples
 
-**Official samples targetting ASP.NET Core 1.0 RC1** can be found on [aspnet-contrib/AspNet.Security.OpenIdConnect.Samples](https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Samples).
+The samples found [in the current project](./samples/) directory always target the latest ASP.NET Core releases and are mainly meant to ease its testing.
+
+**Official samples targetting ASP.NET Core 1.0 RC1** can be found on [aspnet-contrib/AspNet.Security.OpenIdConnect.Samples](https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Samples). 
 
 **Looking for something simpler?** Don't miss **[OpenIddict](https://github.com/openiddict/core)**, the **simple and easy-to-use OpenID Connect server for ASP.NET Core 1.0** based on AspNet.Security.OpenIdConnect.Server and ASP.NET Identity.
 
