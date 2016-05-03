@@ -137,16 +137,16 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // the type of the token sent by the client application.
             // See https://tools.ietf.org/html/rfc7662#section-2.1
             switch (request.GetTokenTypeHint()) {
-                case OpenIdConnectConstants.Usages.AccessToken:
+                case OpenIdConnectConstants.TokenTypeHints.AccessToken:
                     ticket = await DeserializeAccessTokenAsync(request.GetToken(), request);
                     break;
 
-                case OpenIdConnectConstants.Usages.RefreshToken:
-                    ticket = await DeserializeRefreshTokenAsync(request.GetToken(), request);
+                case OpenIdConnectConstants.TokenTypeHints.IdToken:
+                    ticket = await DeserializeIdentityTokenAsync(request.GetToken(), request);
                     break;
 
-                case OpenIdConnectConstants.Usages.IdToken:
-                    ticket = await DeserializeIdentityTokenAsync(request.GetToken(), request);
+                case OpenIdConnectConstants.TokenTypeHints.RefreshToken:
+                    ticket = await DeserializeRefreshTokenAsync(request.GetToken(), request);
                     break;
             }
 

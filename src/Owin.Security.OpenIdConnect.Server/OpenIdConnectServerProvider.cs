@@ -51,6 +51,11 @@ namespace Owin.Security.OpenIdConnect.Server {
         public Func<ValidateLogoutRequestContext, Task> OnValidateLogoutRequest { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
+        /// Called for each request to the revocation endpoint to determine if the request is valid and should continue.
+        /// </summary>
+        public Func<ValidateRevocationRequestContext, Task> OnValidateRevocationRequest { get; set; } = context => Task.FromResult<object>(null);
+
+        /// <summary>
         /// Called for each request to the token endpoint to determine if the request is valid and should continue.
         /// </summary>
         public Func<ValidateTokenRequestContext, Task> OnValidateTokenRequest { get; set; } = context => Task.FromResult<object>(null);
@@ -155,6 +160,12 @@ namespace Owin.Security.OpenIdConnect.Server {
         public Func<HandleLogoutRequestContext, Task> OnHandleLogoutRequest { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
+        /// Called by the client applications to revoke an access or refresh token.
+        /// An application may implement this call in order to do any final modification to the revocation response.
+        /// </summary>
+        public Func<HandleRevocationRequestContext, Task> OnHandleRevocationRequest { get; set; } = context => Task.FromResult<object>(null);
+
+        /// <summary>
         /// Called at the final stage of a successful Token endpoint request.
         /// An application may implement this call in order to do any final 
         /// modification of the claims being used to issue access or refresh tokens. 
@@ -208,6 +219,13 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// This call may also be used to add additional response parameters to the authorization response.
         /// </summary>
         public Func<ApplyLogoutResponseContext, Task> OnApplyLogoutResponse { get; set; } = context => Task.FromResult<object>(null);
+
+        /// <summary>
+        /// Called before the authorization server starts emitting the revocation response to the response stream.
+        /// If the web application wishes to produce the token status and metadata directly in this call, it may write to the 
+        /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
+        /// </summary>
+        public Func<ApplyRevocationResponseContext, Task> OnApplyRevocationResponse { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
         /// Called before the TokenEndpoint redirects its response to the caller.
@@ -326,6 +344,13 @@ namespace Owin.Security.OpenIdConnect.Server {
         public virtual Task ValidateLogoutRequest(ValidateLogoutRequestContext context) => OnValidateLogoutRequest(context);
 
         /// <summary>
+        /// Called for each request to the revocation endpoint to determine if the request is valid and should continue.
+        /// </summary>
+        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        public virtual Task ValidateRevocationRequest(ValidateRevocationRequestContext context) => OnValidateRevocationRequest(context);
+
+        /// <summary>
         /// Called for each request to the token endpoint to determine if the request is valid and should continue.
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
@@ -418,16 +443,29 @@ namespace Owin.Security.OpenIdConnect.Server {
         public virtual Task HandleAuthorizationRequest(HandleAuthorizationRequestContext context) => OnHandleAuthorizationRequest(context);
 
         /// <summary>
-        /// Called before the AuthorizationEndpoint redirects its response to the caller.
-        /// The response could contain an access token when using implicit flow or
-        /// an authorization code when using the authorization code flow.
-        /// If the web application wishes to produce the authorization response directly in the AuthorizationEndpoint call it may write to the 
-        /// context.Response directly and should call context.RequestCompleted to stop other handlers from executing.
-        /// This call may also be used to add additional response parameters to the authorization response.
+        /// Called by the client applications to retrieve the OpenID Connect configuration associated with this instance.
+        /// An application may implement this call in order to do any final modification to the configuration metadata.
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task ApplyAuthorizationResponse(ApplyAuthorizationResponseContext context) => OnApplyAuthorizationResponse(context);
+        public virtual Task HandleConfigurationRequest(HandleConfigurationRequestContext context) => OnHandleConfigurationRequest(context);
+
+        /// <summary>
+        /// Called by the client applications to retrieve the OpenID Connect JSON Web Key set associated with this instance.
+        /// An application may implement this call in order to do any final modification to the keys set.
+        /// </summary>
+        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        public virtual Task HandleCryptographyRequest(HandleCryptographyRequestContext context) => OnHandleCryptographyRequest(context);
+
+        /// <summary>
+        /// Called by applications to determine the status and metadata for a token.
+        /// Validation conforms to the OAuth 2.0 Token Introspection specification with some additions. See documentation for details.
+        /// An application may implement this call in order to do any final modification to the status and metadata.
+        /// </summary>`
+        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        public virtual Task HandleIntrospectionRequest(HandleIntrospectionRequestContext context) => OnHandleIntrospectionRequest(context);
 
         /// <summary>
         /// Called at the final stage of an incoming logout endpoint request before the execution continues on to the web application component 
@@ -441,14 +479,21 @@ namespace Owin.Security.OpenIdConnect.Server {
         public virtual Task HandleLogoutRequest(HandleLogoutRequestContext context) => OnHandleLogoutRequest(context);
 
         /// <summary>
-        /// Called before the LogoutEndpoint endpoint redirects its response to the caller.
-        /// If the web application wishes to produce the authorization response directly in the LogoutEndpoint call it may write to the 
-        /// context.Response directly and should call context.RequestCompleted to stop other handlers from executing.
-        /// This call may also be used to add additional response parameters to the authorization response.
+        /// Called by the client applications to revoke an access or refresh token.
+        /// An application may implement this call in order to do any final modification to the revocation response.
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task ApplyLogoutResponse(ApplyLogoutResponseContext context) => OnApplyLogoutResponse(context);
+        public virtual Task HandleRevocationRequest(HandleRevocationRequestContext context) => OnHandleRevocationRequest(context);
+
+        /// <summary>
+        /// Called at the final stage of a successful Token endpoint request.
+        /// An application may implement this call in order to do any final 
+        /// modification of the claims being used to issue access or refresh tokens. 
+        /// </summary>
+        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        public virtual Task HandleTokenRequest(HandleTokenRequestContext context) => OnHandleTokenRequest(context);
 
         /// <summary>
         /// Called at the final stage of an incoming userinfo endpoint request before the execution continues on to the web application component 
@@ -461,22 +506,16 @@ namespace Owin.Security.OpenIdConnect.Server {
         public virtual Task HandleUserinfoRequest(HandleUserinfoRequestContext context) => OnHandleUserinfoRequest(context);
 
         /// <summary>
-        /// Called before the UserinfoEndpoint endpoint starts writing to the response stream.
-        /// If the web application wishes to produce the userinfo response directly in the UserinfoEndpoint call it may write to the 
+        /// Called before the AuthorizationEndpoint redirects its response to the caller.
+        /// The response could contain an access token when using implicit flow or
+        /// an authorization code when using the authorization code flow.
+        /// If the web application wishes to produce the authorization response directly in the AuthorizationEndpoint call it may write to the 
         /// context.Response directly and should call context.RequestCompleted to stop other handlers from executing.
         /// This call may also be used to add additional response parameters to the authorization response.
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task ApplyUserinfoResponse(ApplyUserinfoResponseContext context) => OnApplyUserinfoResponse(context);
-
-        /// <summary>
-        /// Called by the client applications to retrieve the OpenID Connect configuration associated with this instance.
-        /// An application may implement this call in order to do any final modification to the configuration metadata.
-        /// </summary>
-        /// <param name="context">The context of the event carries information in and results out.</param>
-        /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task HandleConfigurationRequest(HandleConfigurationRequestContext context) => OnHandleConfigurationRequest(context);
+        public virtual Task ApplyAuthorizationResponse(ApplyAuthorizationResponseContext context) => OnApplyAuthorizationResponse(context);
 
         /// <summary>
         /// Called before the authorization server starts emitting the OpenID Connect configuration associated with this instance.
@@ -488,14 +527,6 @@ namespace Owin.Security.OpenIdConnect.Server {
         public virtual Task ApplyConfigurationResponse(ApplyConfigurationResponseContext context) => OnApplyConfigurationResponse(context);
 
         /// <summary>
-        /// Called by the client applications to retrieve the OpenID Connect JSON Web Key set associated with this instance.
-        /// An application may implement this call in order to do any final modification to the keys set.
-        /// </summary>
-        /// <param name="context">The context of the event carries information in and results out.</param>
-        /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task HandleCryptographyRequest(HandleCryptographyRequestContext context) => OnHandleCryptographyRequest(context);
-
-        /// <summary>
         /// Called before the authorization server starts emitting the OpenID Connect JSON Web Key set associated with this instance.
         /// If the web application wishes to produce the JSON Web Key set directly in this call, it may write to the 
         /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
@@ -505,13 +536,33 @@ namespace Owin.Security.OpenIdConnect.Server {
         public virtual Task ApplyCryptographyResponse(ApplyCryptographyResponseContext context) => OnApplyCryptographyResponse(context);
 
         /// <summary>
-        /// Called at the final stage of a successful Token endpoint request.
-        /// An application may implement this call in order to do any final 
-        /// modification of the claims being used to issue access or refresh tokens. 
+        /// Called before the authorization server starts emitting the status and metadata associated with the token received.
+        /// Validation conforms to the OAuth 2.0 Token Introspection specification with some additions. See documentation for details.
+        /// If the web application wishes to produce the status and metadata directly in this call, it may write to the 
+        /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task HandleTokenRequest(HandleTokenRequestContext context) => OnHandleTokenRequest(context);
+        public virtual Task ApplyIntrospectionResponse(ApplyIntrospectionResponseContext context) => OnApplyIntrospectionResponse(context);
+
+        /// <summary>
+        /// Called before the LogoutEndpoint endpoint redirects its response to the caller.
+        /// If the web application wishes to produce the authorization response directly in the LogoutEndpoint call it may write to the 
+        /// context.Response directly and should call context.RequestCompleted to stop other handlers from executing.
+        /// This call may also be used to add additional response parameters to the authorization response.
+        /// </summary>
+        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        public virtual Task ApplyLogoutResponse(ApplyLogoutResponseContext context) => OnApplyLogoutResponse(context);
+
+        /// <summary>
+        /// Called before the authorization server starts emitting the revocation response to the response stream.
+        /// If the web application wishes to produce the token status and metadata directly in this call, it may write to the 
+        /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
+        /// </summary>
+        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        public virtual Task ApplyRevocationResponse(ApplyRevocationResponseContext context) => OnApplyRevocationResponse(context);
 
         /// <summary>
         /// Called before the TokenEndpoint redirects its response to the caller.
@@ -523,23 +574,14 @@ namespace Owin.Security.OpenIdConnect.Server {
         public virtual Task ApplyTokenResponse(ApplyTokenResponseContext context) => OnApplyTokenResponse(context);
 
         /// <summary>
-        /// Called by applications to determine the status and metadata for a token.
-        /// Validation conforms to the OAuth 2.0 Token Introspection specification with some additions. See documentation for details.
-        /// An application may implement this call in order to do any final modification to the status and metadata.
-        /// </summary>`
-        /// <param name="context">The context of the event carries information in and results out.</param>
-        /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task HandleIntrospectionRequest(HandleIntrospectionRequestContext context) => OnHandleIntrospectionRequest(context);
-
-        /// <summary>
-        /// Called before the authorization server starts emitting the status and metadata associated with the token received.
-        /// Validation conforms to the OAuth 2.0 Token Introspection specification with some additions. See documentation for details.
-        /// If the web application wishes to produce the status and metadata directly in this call, it may write to the 
-        /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
+        /// Called before the UserinfoEndpoint endpoint starts writing to the response stream.
+        /// If the web application wishes to produce the userinfo response directly in the UserinfoEndpoint call it may write to the 
+        /// context.Response directly and should call context.RequestCompleted to stop other handlers from executing.
+        /// This call may also be used to add additional response parameters to the authorization response.
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
-        public virtual Task ApplyIntrospectionResponse(ApplyIntrospectionResponseContext context) => OnApplyIntrospectionResponse(context);
+        public virtual Task ApplyUserinfoResponse(ApplyUserinfoResponseContext context) => OnApplyUserinfoResponse(context);
 
         /// <summary>
         /// Called to create a new authorization code. An application may use this context

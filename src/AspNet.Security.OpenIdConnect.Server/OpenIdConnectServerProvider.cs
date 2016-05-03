@@ -46,6 +46,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public Func<ValidateIntrospectionRequestContext, Task> OnValidateIntrospectionRequest { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
+        /// Called for each request to the revocation endpoint to determine if the request is valid and should continue.
+        /// </summary>
+        public Func<ValidateRevocationRequestContext, Task> OnValidateRevocationRequest { get; set; } = context => Task.FromResult<object>(null);
+
+        /// <summary>
         /// Called for each request to the logout endpoint to determine if the request is valid and should continue.
         /// </summary>
         public Func<ValidateLogoutRequestContext, Task> OnValidateLogoutRequest { get; set; } = context => Task.FromResult<object>(null);
@@ -155,6 +160,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public Func<HandleLogoutRequestContext, Task> OnHandleLogoutRequest { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
+        /// Called by the client applications to revoke an access or refresh token.
+        /// An application may implement this call in order to do any final modification to the revocation response.
+        /// </summary>
+        public Func<HandleRevocationRequestContext, Task> OnHandleRevocationRequest { get; set; } = context => Task.FromResult<object>(null);
+
+        /// <summary>
         /// Called at the final stage of a successful Token endpoint request.
         /// An application may implement this call in order to do any final 
         /// modification of the claims being used to issue access or refresh tokens. 
@@ -208,6 +219,13 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// This call may also be used to add additional response parameters to the authorization response.
         /// </summary>
         public Func<ApplyLogoutResponseContext, Task> OnApplyLogoutResponse { get; set; } = context => Task.FromResult<object>(null);
+
+        /// <summary>
+        /// Called before the authorization server starts emitting the revocation response to the response stream.
+        /// If the web application wishes to produce the token status and metadata directly in this call, it may write to the 
+        /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
+        /// </summary>
+        public Func<ApplyRevocationResponseContext, Task> OnApplyRevocationResponse { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
         /// Called before the TokenEndpoint redirects its response to the caller.
@@ -324,6 +342,13 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
         public virtual Task ValidateLogoutRequest(ValidateLogoutRequestContext context) => OnValidateLogoutRequest(context);
+
+        /// <summary>
+        /// Called for each request to the revocation endpoint to determine if the request is valid and should continue.
+        /// </summary>
+        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        public virtual Task ValidateRevocationRequest(ValidateRevocationRequestContext context) => OnValidateRevocationRequest(context);
 
         /// <summary>
         /// Called for each request to the token endpoint to determine if the request is valid and should continue.
@@ -454,6 +479,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public virtual Task HandleLogoutRequest(HandleLogoutRequestContext context) => OnHandleLogoutRequest(context);
 
         /// <summary>
+        /// Called by the client applications to revoke an access or refresh token.
+        /// An application may implement this call in order to do any final modification to the revocation response.
+        /// </summary>
+        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        public virtual Task HandleRevocationRequest(HandleRevocationRequestContext context) => OnHandleRevocationRequest(context);
+
+        /// <summary>
         /// Called at the final stage of a successful Token endpoint request.
         /// An application may implement this call in order to do any final 
         /// modification of the claims being used to issue access or refresh tokens. 
@@ -521,6 +554,15 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
         public virtual Task ApplyLogoutResponse(ApplyLogoutResponseContext context) => OnApplyLogoutResponse(context);
+
+        /// <summary>
+        /// Called before the authorization server starts emitting the revocation response to the response stream.
+        /// If the web application wishes to produce the token status and metadata directly in this call, it may write to the 
+        /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
+        /// </summary>
+        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        public virtual Task ApplyRevocationResponse(ApplyRevocationResponseContext context) => OnApplyRevocationResponse(context);
 
         /// <summary>
         /// Called before the TokenEndpoint redirects its response to the caller.

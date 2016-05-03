@@ -10,16 +10,16 @@ using Owin.Security.OpenIdConnect.Extensions;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
-    /// Provides context information used when validating an introspection request.
+    /// Provides context information used when validating a revocation request.
     /// </summary>
-    public class ValidateIntrospectionRequestContext : BaseValidatingClientContext {
+    public class ValidateRevocationRequestContext : BaseValidatingClientContext {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ValidateIntrospectionRequestContext"/> class.
+        /// Initializes a new instance of the <see cref="ValidateRevocationRequestContext"/> class.
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="request"></param>
-        public ValidateIntrospectionRequestContext(
+        public ValidateRevocationRequestContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request)
@@ -28,7 +28,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
         /// <summary>
         /// Gets the optional token_type_hint parameter extracted from the
-        /// introspection request, or <c>null</c> if it cannot be found.
+        /// revocation request, or <c>null</c> if it cannot be found.
         /// </summary>
         public string TokenTypeHint => Request.GetParameter(OpenIdConnectConstants.Parameters.TokenTypeHint);
     }

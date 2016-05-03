@@ -95,6 +95,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             public const string UnauthorizedClient = "unauthorized_client";
             public const string UnsupportedGrantType = "unsupported_grant_type";
             public const string UnsupportedResponseType = "unsupported_response_type";
+            public const string UnsupportedTokenType = "unsupported_token_type";
         }
 
         public static class GrantTypes {
@@ -189,14 +190,20 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             public const string Public = "public";
         }
 
+        public static class TokenTypeHints {
+            public const string AccessToken = "access_token";
+            public const string IdToken = "id_token";
+            public const string RefreshToken = "refresh_token";
+        }
+
         public static class TokenTypes {
             public const string Bearer = "Bearer";
         }
 
         public static class Usages {
             public const string AccessToken = "access_token";
-            public const string Code = "code";
-            public const string IdToken = "id_token";
+            public const string AuthorizationCode = "code";
+            public const string IdentityToken = "id_token";
             public const string RefreshToken = "refresh_token";
         }
     }

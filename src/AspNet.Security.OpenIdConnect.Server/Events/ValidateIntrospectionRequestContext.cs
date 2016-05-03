@@ -4,6 +4,7 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
+using AspNet.Security.OpenIdConnect.Extensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
@@ -24,5 +25,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
             OpenIdConnectMessage request)
             : base(context, options, request) {
         }
+
+        /// <summary>
+        /// Gets the optional token_type_hint parameter extracted from the
+        /// introspection request, or <c>null</c> if it cannot be found.
+        /// </summary>
+        public string TokenTypeHint => Request.GetParameter(OpenIdConnectConstants.Parameters.TokenTypeHint);
     }
 }

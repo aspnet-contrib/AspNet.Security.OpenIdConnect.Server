@@ -39,7 +39,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // SerializeAccessTokenAsync and SerializeIdentityTokenAsync are responsible of ensuring
             // that subsequent access and identity tokens are correctly filtered.
             var ticket = new AuthenticationTicket(principal, properties, Options.AuthenticationScheme);
-            ticket.SetUsage(OpenIdConnectConstants.Usages.Code);
+            ticket.SetUsage(OpenIdConnectConstants.Usages.AuthorizationCode);
 
             // Associate a random identifier with the authorization code.
             ticket.SetTicketId(Guid.NewGuid().ToString());
@@ -306,7 +306,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             // Create a new ticket containing the updated properties and the filtered principal.
             var ticket = new AuthenticationTicket(principal, properties, Options.AuthenticationScheme);
-            ticket.SetUsage(OpenIdConnectConstants.Usages.IdToken);
+            ticket.SetUsage(OpenIdConnectConstants.Usages.IdentityToken);
 
             // Associate a random identifier with the identity token.
             ticket.SetTicketId(Guid.NewGuid().ToString());

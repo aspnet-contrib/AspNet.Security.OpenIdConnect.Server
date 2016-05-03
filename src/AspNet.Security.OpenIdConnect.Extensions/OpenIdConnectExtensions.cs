@@ -908,7 +908,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 return false;
             }
 
-            return string.Equals(value, OpenIdConnectConstants.Usages.Code, StringComparison.OrdinalIgnoreCase);
+            return string.Equals(value, OpenIdConnectConstants.Usages.AuthorizationCode, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -946,7 +946,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 return false;
             }
 
-            return string.Equals(value, OpenIdConnectConstants.Usages.IdToken, StringComparison.OrdinalIgnoreCase);
+            return string.Equals(value, OpenIdConnectConstants.Usages.IdentityToken, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
