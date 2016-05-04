@@ -42,14 +42,19 @@ namespace Owin.Security.OpenIdConnect.Server {
         public string CryptographyEndpoint { get; set; }
 
         /// <summary>
-        /// Gets or sets the userinfo endpoint address.
-        /// </summary>
-        public string UserinfoEndpoint { get; set; }
-
-        /// <summary>
         /// Gets or sets the introspection endpoint address.
         /// </summary>
         public string IntrospectionEndpoint { get; set; }
+
+        /// <summary>
+        /// Gets or sets the logout endpoint address.
+        /// </summary>
+        public string LogoutEndpoint { get; set; }
+
+        /// <summary>
+        /// Gets or sets the revocation endpoint address.
+        /// </summary>
+        public string RevocationEndpoint { get; set; }
 
         /// <summary>
         /// Gets or sets the token endpoint address.
@@ -57,9 +62,9 @@ namespace Owin.Security.OpenIdConnect.Server {
         public string TokenEndpoint { get; set; }
 
         /// <summary>
-        /// Gets or sets the logout endpoint address.
+        /// Gets or sets the userinfo endpoint address.
         /// </summary>
-        public string LogoutEndpoint { get; set; }
+        public string UserinfoEndpoint { get; set; }
 
         /// <summary>
         /// Gets or sets the issuer address.

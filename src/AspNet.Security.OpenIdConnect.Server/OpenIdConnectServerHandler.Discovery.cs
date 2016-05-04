@@ -56,20 +56,24 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 notification.CryptographyEndpoint = notification.Issuer.AddPath(Options.CryptographyEndpointPath);
             }
 
-            if (Options.UserinfoEndpointPath.HasValue) {
-                notification.UserinfoEndpoint = notification.Issuer.AddPath(Options.UserinfoEndpointPath);
-            }
-
             if (Options.IntrospectionEndpointPath.HasValue) {
                 notification.IntrospectionEndpoint = notification.Issuer.AddPath(Options.IntrospectionEndpointPath);
+            }
+
+            if (Options.LogoutEndpointPath.HasValue) {
+                notification.LogoutEndpoint = notification.Issuer.AddPath(Options.LogoutEndpointPath);
+            }
+
+            if (Options.RevocationEndpointPath.HasValue) {
+                notification.RevocationEndpoint = notification.Issuer.AddPath(Options.RevocationEndpointPath);
             }
 
             if (Options.TokenEndpointPath.HasValue) {
                 notification.TokenEndpoint = notification.Issuer.AddPath(Options.TokenEndpointPath);
             }
 
-            if (Options.LogoutEndpointPath.HasValue) {
-                notification.LogoutEndpoint = notification.Issuer.AddPath(Options.LogoutEndpointPath);
+            if (Options.UserinfoEndpointPath.HasValue) {
+                notification.UserinfoEndpoint = notification.Issuer.AddPath(Options.UserinfoEndpointPath);
             }
 
             if (Options.AuthorizationEndpointPath.HasValue) {
@@ -153,24 +157,28 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 response.Add(OpenIdConnectConstants.Metadata.AuthorizationEndpoint, notification.AuthorizationEndpoint);
             }
 
-            if (!string.IsNullOrEmpty(notification.UserinfoEndpoint)) {
-                response.Add(OpenIdConnectConstants.Metadata.UserinfoEndpoint, notification.UserinfoEndpoint);
+            if (!string.IsNullOrEmpty(notification.CryptographyEndpoint)) {
+                response.Add(OpenIdConnectConstants.Metadata.JwksUri, notification.CryptographyEndpoint);
             }
 
             if (!string.IsNullOrEmpty(notification.IntrospectionEndpoint)) {
                 response.Add(OpenIdConnectConstants.Metadata.IntrospectionEndpoint, notification.IntrospectionEndpoint);
             }
 
-            if (!string.IsNullOrEmpty(notification.TokenEndpoint)) {
-                response.Add(OpenIdConnectConstants.Metadata.TokenEndpoint, notification.TokenEndpoint);
-            }
-
             if (!string.IsNullOrEmpty(notification.LogoutEndpoint)) {
                 response.Add(OpenIdConnectConstants.Metadata.EndSessionEndpoint, notification.LogoutEndpoint);
             }
 
-            if (!string.IsNullOrEmpty(notification.CryptographyEndpoint)) {
-                response.Add(OpenIdConnectConstants.Metadata.JwksUri, notification.CryptographyEndpoint);
+            if (!string.IsNullOrEmpty(notification.RevocationEndpoint)) {
+                response.Add(OpenIdConnectConstants.Metadata.RevocationEndpoint, notification.RevocationEndpoint);
+            }
+
+            if (!string.IsNullOrEmpty(notification.TokenEndpoint)) {
+                response.Add(OpenIdConnectConstants.Metadata.TokenEndpoint, notification.TokenEndpoint);
+            }
+
+            if (!string.IsNullOrEmpty(notification.UserinfoEndpoint)) {
+                response.Add(OpenIdConnectConstants.Metadata.UserinfoEndpoint, notification.UserinfoEndpoint);
             }
 
             response.Add(OpenIdConnectConstants.Metadata.GrantTypesSupported,

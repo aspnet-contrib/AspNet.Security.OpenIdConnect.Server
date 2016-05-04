@@ -118,6 +118,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             public const string ResponseTypesSupported = "response_types_supported";
             public const string ScopesSupported = "scopes_supported";
             public const string SubjectTypesSupported = "subject_types_supported";
+            public const string RevocationEndpoint = "revocation_endpoint";
             public const string TokenEndpoint = "token_endpoint";
             public const string UserinfoEndpoint = "userinfo_endpoint";
         }
