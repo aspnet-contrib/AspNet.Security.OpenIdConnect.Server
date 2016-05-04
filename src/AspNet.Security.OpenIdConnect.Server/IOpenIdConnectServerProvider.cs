@@ -60,6 +60,13 @@ namespace AspNet.Security.OpenIdConnect.Server {
         Task ValidateLogoutRequest(ValidateLogoutRequestContext context);
 
         /// <summary>
+        /// Called for each request to the revocation endpoint to determine if the request is valid and should continue.
+        /// </summary>
+        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        Task ValidateRevocationRequest(ValidateRevocationRequestContext context);
+
+        /// <summary>
         /// Called for each request to the token endpoint to determine if the request is valid and should continue.
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
@@ -188,6 +195,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
         Task HandleLogoutRequest(HandleLogoutRequestContext context);
 
         /// <summary>
+        /// Called by the client applications to revoke an access or refresh token.
+        /// An application may implement this call in order to do any final modification to the revocation response.
+        /// </summary>
+        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        Task HandleRevocationRequest(HandleRevocationRequestContext context);
+
+        /// <summary>
         /// Called at the final stage of a successful Token endpoint request.
         /// An application may implement this call in order to do any final 
         /// modification of the claims being used to issue access or refresh tokens. 
@@ -255,6 +270,15 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
         Task ApplyLogoutResponse(ApplyLogoutResponseContext context);
+
+        /// <summary>
+        /// Called before the authorization server starts emitting the revocation response to the response stream.
+        /// If the web application wishes to produce the token status and metadata directly in this call, it may write to the 
+        /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
+        /// </summary>
+        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        Task ApplyRevocationResponse(ApplyRevocationResponseContext context);
 
         /// <summary>
         /// Called before the TokenEndpoint redirects its response to the caller.

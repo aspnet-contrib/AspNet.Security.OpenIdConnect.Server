@@ -20,7 +20,7 @@ namespace Mvc.Server {
                 });
 
             services.AddAuthentication(options => {
-                options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.SignInScheme = "ServerCookie";
             });
 
             services.AddDistributedMemoryCache();
@@ -58,6 +58,8 @@ namespace Mvc.Server {
                 branch.UseCookieAuthentication(new CookieAuthenticationOptions {
                     AutomaticAuthenticate = true,
                     AutomaticChallenge = true,
+                    AuthenticationScheme = "ServerCookie",
+                    CookieName = CookieAuthenticationDefaults.CookiePrefix + "ServerCookie",
                     ExpireTimeSpan = TimeSpan.FromMinutes(5),
                     LoginPath = new PathString("/signin"),
                     LogoutPath = new PathString("/signout")

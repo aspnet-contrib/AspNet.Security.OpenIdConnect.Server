@@ -18,8 +18,6 @@ using Owin.Security.OpenIdConnect.Extensions;
 
 namespace Owin.Security.OpenIdConnect.Server {
     internal partial class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions> {
-        // Implementing AuthenticateCoreAsync allows the inner application
-        // to retrieve the identity extracted from the optional id_token_hint.
         protected override async Task<AuthenticationTicket> AuthenticateCoreAsync() {
             var notification = new MatchEndpointContext(Context, Options);
 
@@ -71,7 +69,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             // Missing or invalid requests are ignored in AuthenticateCoreAsync:
-            // in this case, null is always returned to indicate authentication failed.
+            // in this case, null is returned to indicate that authentication failed.
             if (request == null) {
                 return null;
             }
@@ -146,26 +144,6 @@ namespace Owin.Security.OpenIdConnect.Server {
                 notification.MatchesAuthorizationEndpoint();
             }
 
-            else if (Options.TokenEndpointPath.HasValue &&
-                     Options.TokenEndpointPath == Request.Path) {
-                notification.MatchesTokenEndpoint();
-            }
-
-            else if (Options.IntrospectionEndpointPath.HasValue &&
-                     Options.IntrospectionEndpointPath == Request.Path) {
-                notification.MatchesIntrospectionEndpoint();
-            }
-
-            else if (Options.UserinfoEndpointPath.HasValue &&
-                     Options.UserinfoEndpointPath == Request.Path) {
-                notification.MatchesUserinfoEndpoint();
-            }
-
-            else if (Options.LogoutEndpointPath.HasValue &&
-                     Options.LogoutEndpointPath == Request.Path) {
-                notification.MatchesLogoutEndpoint();
-            }
-
             else if (Options.ConfigurationEndpointPath.HasValue &&
                      Options.ConfigurationEndpointPath == Request.Path) {
                 notification.MatchesConfigurationEndpoint();
@@ -174,6 +152,31 @@ namespace Owin.Security.OpenIdConnect.Server {
             else if (Options.CryptographyEndpointPath.HasValue &&
                      Options.CryptographyEndpointPath == Request.Path) {
                 notification.MatchesCryptographyEndpoint();
+            }
+
+            else if (Options.IntrospectionEndpointPath.HasValue &&
+                     Options.IntrospectionEndpointPath == Request.Path) {
+                notification.MatchesIntrospectionEndpoint();
+            }
+
+            else if (Options.LogoutEndpointPath.HasValue &&
+                     Options.LogoutEndpointPath == Request.Path) {
+                notification.MatchesLogoutEndpoint();
+            }
+
+            else if (Options.RevocationEndpointPath.HasValue &&
+                     Options.RevocationEndpointPath == Request.Path) {
+                notification.MatchesRevocationEndpoint();
+            }
+
+            else if (Options.TokenEndpointPath.HasValue &&
+                     Options.TokenEndpointPath == Request.Path) {
+                notification.MatchesTokenEndpoint();
+            }
+
+            else if (Options.UserinfoEndpointPath.HasValue &&
+                     Options.UserinfoEndpointPath == Request.Path) {
+                notification.MatchesUserinfoEndpoint();
             }
 
             await Options.Provider.MatchEndpoint(notification);
@@ -201,9 +204,9 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
 
                 // Return a JSON error for endpoints that don't involve the user participation.
-                else if (notification.IsTokenEndpoint || notification.IsUserinfoEndpoint ||
-                         notification.IsIntrospectionEndpoint || notification.IsConfigurationEndpoint ||
-                         notification.IsCryptographyEndpoint) {
+                else if (notification.IsConfigurationEndpoint || notification.IsCryptographyEndpoint ||
+                         notification.IsIntrospectionEndpoint || notification.IsRevocationEndpoint ||
+                         notification.IsTokenEndpoint || notification.IsUserinfoEndpoint) {
                     Options.Logger.LogWarning("The current request was rejected because the OpenID Connect server middleware " +
                                               "has been configured to reject HTTP requests. To permanently disable the transport " +
                                               "security requirement, set 'OpenIdConnectServerOptions.AllowInsecureHttp' to 'true'.");
@@ -219,28 +222,32 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return await InvokeAuthorizationEndpointAsync();
             }
 
-            else if (notification.IsLogoutEndpoint) {
-                return await InvokeLogoutEndpointAsync();
-            }
-
-            else if (notification.IsTokenEndpoint) {
-                return await InvokeTokenEndpointAsync();
-            }
-
-            else if (notification.IsIntrospectionEndpoint) {
-                return await InvokeIntrospectionEndpointAsync();
-            }
-
-            else if (notification.IsUserinfoEndpoint) {
-                return await InvokeUserinfoEndpointAsync();
-            }
-
             else if (notification.IsConfigurationEndpoint) {
                 return await InvokeConfigurationEndpointAsync();
             }
 
             else if (notification.IsCryptographyEndpoint) {
                 return await InvokeCryptographyEndpointAsync();
+            }
+
+            else if (notification.IsIntrospectionEndpoint) {
+                return await InvokeIntrospectionEndpointAsync();
+            }
+
+            else if (notification.IsLogoutEndpoint) {
+                return await InvokeLogoutEndpointAsync();
+            }
+
+            else if (notification.IsRevocationEndpoint) {
+                return await InvokeRevocationEndpointAsync();
+            }
+
+            else if (notification.IsTokenEndpoint) {
+                return await InvokeTokenEndpointAsync();
+            }
+
+            else if (notification.IsUserinfoEndpoint) {
+                return await InvokeUserinfoEndpointAsync();
             }
 
             return false;

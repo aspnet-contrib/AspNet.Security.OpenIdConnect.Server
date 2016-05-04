@@ -133,16 +133,16 @@ namespace Owin.Security.OpenIdConnect.Server {
             // the type of the token sent by the client application.
             // See https://tools.ietf.org/html/rfc7662#section-2.1
             switch (request.GetTokenTypeHint()) {
-                case OpenIdConnectConstants.Usages.AccessToken:
+                case OpenIdConnectConstants.TokenTypeHints.AccessToken:
                     ticket = await DeserializeAccessTokenAsync(request.Token, request);
                     break;
 
-                case OpenIdConnectConstants.Usages.RefreshToken:
-                    ticket = await DeserializeRefreshTokenAsync(request.Token, request);
+                case OpenIdConnectConstants.TokenTypeHints.IdToken:
+                    ticket = await DeserializeIdentityTokenAsync(request.Token, request);
                     break;
 
-                case OpenIdConnectConstants.Usages.IdToken:
-                    ticket = await DeserializeIdentityTokenAsync(request.Token, request);
+                case OpenIdConnectConstants.TokenTypeHints.RefreshToken:
+                    ticket = await DeserializeRefreshTokenAsync(request.Token, request);
                     break;
             }
 

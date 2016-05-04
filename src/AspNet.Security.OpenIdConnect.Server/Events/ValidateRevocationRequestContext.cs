@@ -4,23 +4,23 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
-using Microsoft.IdentityModel.Protocols;
-using Microsoft.Owin;
-using Owin.Security.OpenIdConnect.Extensions;
+using AspNet.Security.OpenIdConnect.Extensions;
+using Microsoft.AspNetCore.Http;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
-namespace Owin.Security.OpenIdConnect.Server {
+namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
-    /// Provides context information used when validating an introspection request.
+    /// Provides context information used when validating a revocation request.
     /// </summary>
-    public class ValidateIntrospectionRequestContext : BaseValidatingClientContext {
+    public class ValidateRevocationRequestContext : BaseValidatingClientContext {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ValidateIntrospectionRequestContext"/> class.
+        /// Initializes a new instance of the <see cref="ValidateRevocationRequestContext"/> class.
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="request"></param>
-        public ValidateIntrospectionRequestContext(
-            IOwinContext context,
+        public ValidateRevocationRequestContext(
+            HttpContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request)
             : base(context, options, request) {
@@ -28,7 +28,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
         /// <summary>
         /// Gets the optional token_type_hint parameter extracted from the
-        /// introspection request, or <c>null</c> if it cannot be found.
+        /// revocation request, or <c>null</c> if it cannot be found.
         /// </summary>
         public string TokenTypeHint => Request.GetParameter(OpenIdConnectConstants.Parameters.TokenTypeHint);
     }

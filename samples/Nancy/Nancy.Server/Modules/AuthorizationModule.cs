@@ -130,7 +130,8 @@ namespace Nancy.Server.Modules {
                 ticket.SetScopes(new[] {
                     /* openid: */ OpenIdConnectConstants.Scopes.OpenId,
                     /* email: */ OpenIdConnectConstants.Scopes.Email,
-                    /* profile: */ OpenIdConnectConstants.Scopes.Profile
+                    /* profile: */ OpenIdConnectConstants.Scopes.Profile,
+                    /* offline_access: */ OpenIdConnectConstants.Scopes.OfflineAccess
                 }.Intersect(request.GetScopes()));
 
                 // Set the resources servers the access token should be issued for.
@@ -205,8 +206,7 @@ namespace Nancy.Server.Modules {
                 // when the user agent is redirected from the external identity provider
                 // after a successful authentication flow (e.g Google or Facebook) and
                 // redirect the user agent to the post_logout_redirect_uri specified by the client application.
-                OwinContext.Authentication.SignOut(CookieAuthenticationDefaults.AuthenticationType,
-                                                   OpenIdConnectServerDefaults.AuthenticationType);
+                OwinContext.Authentication.SignOut("ServerCookie", OpenIdConnectServerDefaults.AuthenticationType);
 
                 return HttpStatusCode.OK;
             };

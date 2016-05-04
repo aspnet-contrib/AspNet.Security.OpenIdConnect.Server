@@ -40,7 +40,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             // SerializeAccessTokenAsync and SerializeIdentityTokenAsync are responsible of ensuring
             // that subsequent access and identity tokens are correctly filtered.
             var ticket = new AuthenticationTicket(identity, properties);
-            ticket.SetUsage(OpenIdConnectConstants.Usages.Code);
+            ticket.SetUsage(OpenIdConnectConstants.Usages.AuthorizationCode);
 
             // Associate a random identifier with the authorization code.
             ticket.SetTicketId(Guid.NewGuid().ToString());
@@ -147,6 +147,10 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return null;
             }
 
+            if (!notification.Audiences.Any()) {
+                Options.Logger.LogInformation("No explicit audience was associated with the access token.");
+            }
+
             if (notification.SecurityTokenHandler == null) {
                 return notification.DataFormat?.Protect(ticket);
             }
@@ -167,7 +171,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             // Create a new claim per scope item, that will result
             // in a "scope" array being added in the access token.
-            foreach (var scope in ticket.GetScopes()) {
+            foreach (var scope in notification.Scopes) {
                 ticket.Identity.AddClaim(OpenIdConnectConstants.Claims.Scope, scope);
             }
 
@@ -194,13 +198,12 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
 
                 // Store the audiences as claims.
-                foreach (var audience in ticket.GetAudiences()) {
+                foreach (var audience in notification.Audiences) {
                     ticket.Identity.AddClaim(OpenIdConnectConstants.Claims.Audience, audience);
                 }
 
                 // Extract the presenters from the authentication ticket.
-                var presenters = ticket.GetPresenters().ToArray();
-
+                var presenters = notification.Presenters.ToArray();
                 switch (presenters.Length) {
                     case 0: break;
 
@@ -305,7 +308,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             // Create a new ticket containing the updated properties and the filtered identity.
             var ticket = new AuthenticationTicket(identity, properties);
-            ticket.SetUsage(OpenIdConnectConstants.Usages.IdToken);
+            ticket.SetUsage(OpenIdConnectConstants.Usages.IdentityToken);
 
             // Associate a random identifier with the identity token.
             ticket.SetTicketId(Guid.NewGuid().ToString());
@@ -370,7 +373,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             // Store the audiences as claims.
-            foreach (var audience in ticket.GetAudiences()) {
+            foreach (var audience in notification.Audiences) {
                 ticket.Identity.AddClaim(OpenIdConnectConstants.Claims.Audience, audience);
             }
 
@@ -413,8 +416,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             // Extract the presenters from the authentication ticket.
-            var presenters = ticket.GetPresenters().ToArray();
-
+            var presenters = notification.Presenters.ToArray();
             switch (presenters.Length) {
                 case 0: break;
 

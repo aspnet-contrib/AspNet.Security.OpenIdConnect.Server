@@ -28,7 +28,9 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(message));
             }
 
-            return message.Resource?.Split(' ') ?? Enumerable.Empty<string>();
+            return message.Resource?.Split(' ')
+                                   ?.Distinct(StringComparer.Ordinal)
+                   ?? Enumerable.Empty<string>();
         }
 
         /// <summary>
@@ -40,7 +42,9 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(message));
             }
 
-            return message.Scope?.Split(' ') ?? Enumerable.Empty<string>();
+            return message.Scope?.Split(' ')
+                                ?.Distinct(StringComparer.Ordinal)
+                   ?? Enumerable.Empty<string>();
         }
 
         /// <summary>
@@ -598,22 +602,40 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
         }
 
         /// <summary>
+        /// Gets a given property from the authentication properties.
+        /// </summary>
+        /// <param name="properties">The authentication properties.</param>
+        /// <param name="property">The specific property to look for.</param>
+        /// <returns>The value corresponding to the property, or <c>null</c> if the property cannot be found.</returns>
+        public static string GetProperty([NotNull] this AuthenticationProperties properties, [NotNull] string property) {
+            if (properties == null) {
+                throw new ArgumentNullException(nameof(properties));
+            }
+
+            if (string.IsNullOrEmpty(property)) {
+                throw new ArgumentException($"{nameof(property)} cannot be null or empty.", nameof(property));
+            }
+
+            string value;
+            if (!properties.Items.TryGetValue(property, out value)) {
+                return null;
+            }
+
+            return value;
+        }
+
+        /// <summary>
         /// Gets a given property from the authentication ticket.
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
         /// <param name="property">The specific property to look for.</param>
         /// <returns>The value corresponding to the property, or <c>null</c> if the property cannot be found.</returns>
-        public static string GetProperty([NotNull] this AuthenticationTicket ticket, string property) {
+        public static string GetProperty([NotNull] this AuthenticationTicket ticket, [NotNull] string property) {
             if (ticket == null) {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            string value;
-            if (!ticket.Properties.Items.TryGetValue(property, out value)) {
-                return null;
-            }
-
-            return value;
+            return ticket.Properties.GetProperty(property);
         }
 
         /// <summary>
@@ -886,7 +908,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 return false;
             }
 
-            return string.Equals(value, OpenIdConnectConstants.Usages.Code, StringComparison.OrdinalIgnoreCase);
+            return string.Equals(value, OpenIdConnectConstants.Usages.AuthorizationCode, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -924,7 +946,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 return false;
             }
 
-            return string.Equals(value, OpenIdConnectConstants.Usages.IdToken, StringComparison.OrdinalIgnoreCase);
+            return string.Equals(value, OpenIdConnectConstants.Usages.IdentityToken, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
