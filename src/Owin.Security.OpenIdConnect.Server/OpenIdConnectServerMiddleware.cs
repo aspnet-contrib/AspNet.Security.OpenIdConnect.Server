@@ -10,7 +10,6 @@ using System.IdentityModel.Tokens;
 using System.IO;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.DataProtection;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Owin;
 using Microsoft.Owin.BuilderProperties;
@@ -79,28 +78,17 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             if (Options.DataProtectionProvider == null) {
-                // Create a new DI container and register
-                // the data protection services.
-                var services = new ServiceCollection();
+                // Try to use the application name provided by
+                // the OWIN host as the application discriminator.
+                var discriminator = new AppProperties(app.Properties).AppName;
 
-                services.AddDataProtection(configuration => {
-                    // Try to use the application name provided by
-                    // the OWIN host as the application discriminator.
-                    var discriminator = new AppProperties(app.Properties).AppName;
+                // When an application discriminator cannot be resolved from
+                // the OWIN host properties, generate a temporary identifier.
+                if (string.IsNullOrEmpty(discriminator)) {
+                    discriminator = Guid.NewGuid().ToString();
+                }
 
-                    // When an application discriminator cannot be resolved from
-                    // the OWIN host properties, generate a temporary identifier.
-                    if (string.IsNullOrEmpty(discriminator)) {
-                        discriminator = Guid.NewGuid().ToString();
-                    }
-
-                    configuration.ApplicationDiscriminator = discriminator;
-                });
-
-                var container = services.BuildServiceProvider();
-
-                // Resolve a data protection provider from the services container.
-                Options.DataProtectionProvider = container.GetRequiredService<IDataProtectionProvider>();
+                Options.DataProtectionProvider = DataProtectionProvider.Create(discriminator);
             }
 
             if (Options.AccessTokenFormat == null) {
