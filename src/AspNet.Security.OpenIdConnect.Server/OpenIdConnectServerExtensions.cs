@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Reflection;
@@ -252,8 +253,16 @@ namespace Microsoft.AspNetCore.Builder {
 
                     var rsaSecurityKey = key as RsaSecurityKey;
                     if (rsaSecurityKey != null) {
+                        // Note: if the RSA parameters are not attached to the signing key,
+                        // extract them by calling ExportParameters on the RSA instance.
+                        var parameters = rsaSecurityKey.Parameters;
+                        if (parameters.Modulus == null) {
+                            parameters = rsaSecurityKey.Rsa.ExportParameters(includePrivateParameters: false);
+                            Debug.Assert(parameters.Modulus != null, "A null modulus was returned by RSA.ExportParameters()");
+                        }
+
                         // Only use the 40 first chars of the base64url-encoded modulus.
-                        key.KeyId = Base64UrlEncoder.Encode(rsaSecurityKey.Parameters.Modulus);
+                        key.KeyId = Base64UrlEncoder.Encode(parameters.Modulus);
                         key.KeyId = key.KeyId.Substring(0, Math.Min(key.KeyId.Length, 40)).ToUpperInvariant();
                     }
                 }

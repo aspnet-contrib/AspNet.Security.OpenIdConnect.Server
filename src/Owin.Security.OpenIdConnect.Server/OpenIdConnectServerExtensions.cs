@@ -283,6 +283,7 @@ namespace Owin {
 
                     // Export the RSA public key to extract a key identifier based on the modulus component.
                     var parameters = algorithm.ExportParameters(includePrivateParameters: false);
+                    Debug.Assert(parameters.Modulus != null, "A null modulus was returned by RSA.ExportParameters()");
 
                     // Only use the 40 first chars of the base64url-encoded modulus.
                     var kid = Base64UrlEncoder.Encode(parameters.Modulus);
@@ -511,6 +512,7 @@ namespace Owin {
 
                     // Export the RSA public key to extract a key identifier based on the modulus component.
                     var parameters = algorithm.ExportParameters(includePrivateParameters: false);
+                    Debug.Assert(parameters.Modulus != null, "A null modulus was returned by RSA.ExportParameters()");
 
                     // Only use the 40 first chars of the base64url-encoded modulus.
                     var kid = Base64UrlEncoder.Encode(parameters.Modulus);

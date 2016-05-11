@@ -100,6 +100,7 @@ namespace Nancy.Server {
             app.UseOpenIdConnectServer(options => {
                 options.Provider = new AuthorizationProvider();
 
+                // Register the certificate used to sign the JWT tokens.
                 options.SigningCredentials.AddCertificate(
                     assembly: typeof(Startup).Assembly,
                     resource: "Nancy.Server.Certificate.pfx",

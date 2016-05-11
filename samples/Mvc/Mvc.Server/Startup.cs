@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using AspNet.Security.OAuth.Validation;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
@@ -79,15 +80,16 @@ namespace Mvc.Server {
             app.UseOpenIdConnectServer(options => {
                 options.Provider = new AuthorizationProvider();
 
+                // Register the certificate used to sign the JWT tokens.
+                options.SigningCredentials.AddCertificate(
+                    assembly: typeof(Startup).GetTypeInfo().Assembly,
+                    resource: "Mvc.Server.Certificate.pfx",
+                    password: "Owin.Security.OpenIdConnect.Server");
+
                 // Note: see AuthorizationController.cs for more
                 // information concerning ApplicationCanDisplayErrors.
                 options.ApplicationCanDisplayErrors = true;
                 options.AllowInsecureHttp = true;
-
-                // Note: by default, tokens are signed using dynamically-generated
-                // RSA keys but you can also use your own certificate:
-                // 
-                // options.SigningCredentials.AddCertificate(certificate);
             });
 
             app.UseStaticFiles();
