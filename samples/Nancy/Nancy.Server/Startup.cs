@@ -100,7 +100,10 @@ namespace Nancy.Server {
             app.UseOpenIdConnectServer(options => {
                 options.Provider = new AuthorizationProvider();
 
-                // Register the certificate used to sign the JWT tokens.
+                // Register the embedded X.509 certificate used to sign the JWT tokens.
+                // Note: this certificate is a TEST certificate: NEVER USE IT ON PRODUCTION.
+                // Instead, generate a self-signed certificate using Pluralsight's self-cert utility:
+                // https://s3.amazonaws.com/pluralsight-free/keith-brown/samples/SelfCert.zip
                 options.SigningCredentials.AddCertificate(
                     assembly: typeof(Startup).Assembly,
                     resource: "Nancy.Server.Certificate.pfx",

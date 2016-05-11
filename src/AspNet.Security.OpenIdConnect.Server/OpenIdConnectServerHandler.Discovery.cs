@@ -304,7 +304,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     N = Base64UrlEncoder.Encode(parameters.Modulus)
                 };
 
-                // If the signing key is embedded in a X509 certificate, set
+                // If the signing key is embedded in a X.509 certificate, set
                 // the x5t and x5c parameters using the certificate details.
                 var x509Certificate = x509SecurityKey?.Certificate;
                 if (x509Certificate != null) {
