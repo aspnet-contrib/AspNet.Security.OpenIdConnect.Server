@@ -331,7 +331,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     }
                 }
 
-                // If the encryption key is embedded in a X509 certificate, set
+                // If the encryption key is embedded in a X.509 certificate, set
                 // the x5t and x5c parameters using the certificate details.
                 if (x509Certificate != null) {
                     // x5t must be base64url-encoded.
@@ -435,7 +435,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     }
                 }
 
-                // If the signing key is embedded in a X509 certificate, set
+                // If the signing key is embedded in a X.509 certificate, set
                 // the x5t and x5c parameters using the certificate details.
                 if (x509Certificate != null) {
                     // x5t must be base64url-encoded.

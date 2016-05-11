@@ -5,9 +5,7 @@
  */
 
 using System;
-using System.Diagnostics;
 using System.IdentityModel.Tokens;
-using System.IO;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Logging;
@@ -117,36 +115,44 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             // If no key has been explicitly added, use the fallback mode.
             if (Options.EncryptingCredentials.Count == 0 || Options.SigningCredentials.Count == 0) {
+                // When detecting a non-development environment, log a warning to inform the developer
+                // that registering a X.509 certificate is recommended when going live.
+                var environment = new AppProperties(app.Properties).Get<string>("host.AppMode");
+                if (!string.Equals(environment, "Development", StringComparison.OrdinalIgnoreCase)) {
+                    Options.Logger.LogWarning("No explicit signing credentials have been registered. " +
+                                              "Using a X.509 certificate stored in the machine store " +
+                                              "is recommended for production environments.");
+                }
+
                 var directory = OpenIdConnectServerHelpers.GetDefaultKeyStorageDirectory();
-                Debug.Assert(directory != null);
+                if (directory == null) {
+                    Options.Logger.LogWarning("No suitable directory can be found to store the RSA keys." +
+                                              "Using a X.509 certificate stored in the machine store " +
+                                              "is recommended for production environments.");
+
+                    return;
+                }
 
                 // Get a data protector from the services provider.
                 var protector = Options.DataProtectionProvider.CreateProtector(
                     nameof(OpenIdConnectServerMiddleware),
                     Options.AuthenticationType, "Keys", "v1");
 
-                foreach (var file in directory.EnumerateFiles("*.key")) {
-                    using (var buffer = new MemoryStream())
-                    using (var stream = file.Open(FileMode.Open, FileAccess.Read, FileShare.Read)) {
-                        // Copy the key content to the buffer.
-                        stream.CopyTo(buffer);
-
+                // Note: all the exceptions thrown when enumerating
+                // existing keys or generating new ones must be caught.
+                try {
+                    foreach (var key in OpenIdConnectServerHelpers.GetKeys(directory)) {
                         // Extract the key material using the data protector.
                         // Ignore the key if the decryption process failed.
                         string usage;
-                        var parameters = OpenIdConnectServerHelpers.DecryptKey(protector, buffer.ToArray(), out usage);
+                        var parameters = OpenIdConnectServerHelpers.DecryptKey(protector, key.Value, out usage);
                         if (parameters == null) {
-                            Options.Logger.LogDebug("An invalid/incompatible key was ignored: {Key}.", file.FullName);
+                            Options.Logger.LogDebug("An invalid/incompatible key was ignored: {Key}.", key.Key);
 
                             continue;
                         }
 
                         if (string.Equals(usage, "Encryption", StringComparison.OrdinalIgnoreCase)) {
-                            // Only add the encryption key if none has been explictly added.
-                            if (Options.EncryptingCredentials.Count != 0) {
-                                continue;
-                            }
-
                             var algorithm = RSA.Create();
                             algorithm.ImportParameters(parameters.Value);
 
@@ -154,15 +160,10 @@ namespace Owin.Security.OpenIdConnect.Server {
                             Options.EncryptingCredentials.AddKey(new RsaSecurityKey(algorithm));
 
                             Options.Logger.LogInformation("An existing key was automatically added to the " +
-                                                          "encryption credentials list: {Key}.", file.FullName);
+                                                          "encryption credentials list: {Key}.", key.Key);
                         }
 
                         else if (string.Equals(usage, "Signing", StringComparison.OrdinalIgnoreCase)) {
-                            // Only add the signing key if none has been explictly added.
-                            if (Options.SigningCredentials.Count != 0) {
-                                continue;
-                            }
-
                             var algorithm = RSA.Create();
                             algorithm.ImportParameters(parameters.Value);
 
@@ -170,55 +171,72 @@ namespace Owin.Security.OpenIdConnect.Server {
                             Options.SigningCredentials.AddKey(new RsaSecurityKey(algorithm));
 
                             Options.Logger.LogInformation("An existing key was automatically added to the " +
-                                                          "signing credentials list: {Key}.", file.FullName);
+                                                          "signing credentials list: {Key}.", key.Key);
                         }
                     }
                 }
 
-                // If no encryption key has been found, generate and persist a new RSA key.
-                if (Options.EncryptingCredentials.Count == 0) {
-                    // Generate a new RSA key and export its public/private parameters.
-                    var algorithm = OpenIdConnectServerHelpers.GenerateKey(size: 2048);
-                    var parameters = algorithm.ExportParameters(/* includePrivateParameters: */ true);
-
-                    // Generate a new file name for the key and determine its absolute path.
-                    var path = Path.Combine(directory.FullName, Guid.NewGuid().ToString() + ".key");
-
-                    using (var stream = new FileStream(path, FileMode.CreateNew, FileAccess.Write)) {
-                        // Encrypt the key using the data protector.
-                        var bytes = OpenIdConnectServerHelpers.EncryptKey(protector, parameters, usage: "Encryption");
-
-                        // Write the encrypted key to the file stream.
-                        stream.Write(bytes, 0, bytes.Length);
-                    }
-
-                    Options.EncryptingCredentials.AddKey(new RsaSecurityKey(algorithm));
-
-                    Options.Logger.LogInformation("A new RSA key was automatically generated, added to the " +
-                                                  "encryption credentials list and persisted on the disk: {Path}.", path);
+                catch (Exception exception) {
+                    Options.Logger.LogDebug("An error ocurred when retrieving the keys stored " +
+                                            "on the disk: {Exception}.", exception.ToString());
                 }
 
-                // If no signing key has been found, generate and persist a new RSA key.
-                if (Options.SigningCredentials.Count == 0) {
-                    // Generate a new RSA key and export its public/private parameters.
-                    var algorithm = OpenIdConnectServerHelpers.GenerateKey(size: 2048);
-                    var parameters = algorithm.ExportParameters(/* includePrivateParameters: */ true);
+                // Note: all the exceptions thrown when enumerating
+                // existing keys or generating new ones must be caught.
+                try {
+                    // If no encryption key has been found, generate and persist a new RSA key.
+                    if (Options.EncryptingCredentials.Count == 0) {
+                        // Generate a new RSA key and export its public/private parameters.
+                        var algorithm = OpenIdConnectServerHelpers.GenerateKey(size: 2048);
+                        var parameters = algorithm.ExportParameters(/* includePrivateParameters: */ true);
 
-                    // Generate a new file name for the key and determine its absolute path.
-                    var path = Path.Combine(directory.FullName, Guid.NewGuid().ToString() + ".key");
+                        // Add the encryption key to the credentials list before trying to persist it on the disk.
+                        Options.EncryptingCredentials.AddKey(new RsaSecurityKey(algorithm));
+                        
+                        try {
+                            // Encrypt the key using the data protector and try to persist it on the disk.
+                            var key = OpenIdConnectServerHelpers.EncryptKey(protector, parameters, usage: "Signing");
+                            var path = OpenIdConnectServerHelpers.PersistKey(directory, key);
 
-                    using (var stream = new FileStream(path, FileMode.CreateNew, FileAccess.Write)) {
-                        // Encrypt the key using the data protector.
-                        var bytes = OpenIdConnectServerHelpers.EncryptKey(protector, parameters, usage: "Signing");
+                            Options.Logger.LogInformation("A new RSA key was automatically generated, added to the " +
+                                                          "encryption credentials list and persisted on the disk: {Path}.", path);
+                        }
 
-                        // Write the encrypted key to the file stream.
-                        stream.Write(bytes, 0, bytes.Length);
+                        catch (Exception exception) {
+                            Options.Logger.LogWarning("An error ocurred when persisting a new key on the disk: {Exception}. " +
+                                                      "The key will be kept in memory and will be lost when the " +
+                                                      "application shuts down or restarts.", exception.ToString());
+                        }
                     }
 
-                    Options.SigningCredentials.AddKey(new RsaSecurityKey(algorithm));
+                    // If no signing key has been found, generate and persist a new RSA key.
+                    if (Options.SigningCredentials.Count == 0) {
+                        // Generate a new RSA key and export its public/private parameters.
+                        var algorithm = OpenIdConnectServerHelpers.GenerateKey(size: 2048);
+                        var parameters = algorithm.ExportParameters(/* includePrivateParameters: */ true);
 
-                    Options.Logger.LogInformation("A new RSA key was automatically generated, added to the " +
-                                                  "signing credentials list and persisted on the disk: {Path}.", path);
+                        // Add the signing key to the credentials list before trying to persist it on the disk.
+                        Options.SigningCredentials.AddKey(new RsaSecurityKey(algorithm));
+
+                        try {
+                            // Encrypt the key using the data protector and try to persist it on the disk.
+                            var key = OpenIdConnectServerHelpers.EncryptKey(protector, parameters, usage: "Signing");
+                            var path = OpenIdConnectServerHelpers.PersistKey(directory, key);
+
+                            Options.Logger.LogInformation("A new RSA key was automatically generated, added to the " +
+                                                          "signing credentials list and persisted on the disk: {Path}.", path);
+                        }
+
+                        catch (Exception exception) {
+                            Options.Logger.LogWarning("An error ocurred when persisting a new key on the disk: {Exception}. " +
+                                                      "The key will be kept in memory and will be lost when the " +
+                                                      "application shuts down or restarts.", exception.ToString());
+                        }
+                    }
+                }
+
+                catch (Exception exception) {
+                    Options.Logger.LogDebug("An error ocurred when generating a new key: {Exception}.", exception.ToString());
                 }
             }
         }
