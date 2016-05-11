@@ -6,7 +6,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using Microsoft.AspNetCore.Authentication;
@@ -234,9 +236,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             foreach (var credentials in Options.SigningCredentials) {
                 // Ignore the key if it's not supported.
-                if (!credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature) &&
-                    !credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha384Signature) &&
-                    !credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha512Signature)) {
+                if (!(credentials.Key is AsymmetricSecurityKey) &&
+                     !credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature)) {
                     Logger.LogInformation("An unsupported signing key was ignored and excluded " +
                                           "from the key set: {Type}. Only asymmetric security keys " +
                                           "supporting RS256, RS384 or RS512 can be exposed " +
@@ -245,53 +246,75 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     continue;
                 }
 
-                // Determine whether the security key is a RSA key embedded in a X.509 certificate.
+                RSA algorithm = null;
+
+                // Note: IdentityModel 5 doesn't expose a method allowing to retrieve the underlying algorithm
+                // from a generic asymmetric security key. To work around this limitation, try to cast
+                // the security key to the built-in IdentityModel types to extract the required RSA instance.
+                // See https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet/issues/395
                 var x509SecurityKey = credentials.Key as X509SecurityKey;
                 if (x509SecurityKey != null) {
-                    // Create a new JSON Web Key exposing the
-                    // certificate instead of its public RSA key.
-                    notification.Keys.Add(new JsonWebKey {
-                        Use = JsonWebKeyUseNames.Sig,
-                        Kty = JsonWebAlgorithmsKeyTypes.RSA,
-
-                        // Resolve the JWA identifier from the algorithm specified in the credentials.
-                        Alg = OpenIdConnectServerHelpers.GetJwtAlgorithm(credentials.Algorithm),
-
-                        // Use the key identifier specified
-                        // in the signing credentials.
-                        Kid = credentials.Kid,
-
-                        // x5t must be base64url-encoded.
-                        // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#section-4.8
-                        X5t = Base64UrlEncoder.Encode(x509SecurityKey.Certificate.GetCertHash()),
-
-                        // Unlike E or N, the certificates contained in x5c
-                        // must be base64-encoded and not base64url-encoded.
-                        // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#section-4.7
-                        X5c = { Convert.ToBase64String(x509SecurityKey.Certificate.RawData) }
-                    });
+                    algorithm = (RSA) x509SecurityKey.PublicKey;
                 }
 
                 var rsaSecurityKey = credentials.Key as RsaSecurityKey;
                 if (rsaSecurityKey != null) {
-                    // Export the RSA public key.
-                    notification.Keys.Add(new JsonWebKey {
-                        Use = JsonWebKeyUseNames.Sig,
-                        Kty = JsonWebAlgorithmsKeyTypes.RSA,
+                    algorithm = rsaSecurityKey.Rsa;
 
-                        // Resolve the JWA identifier from the algorithm specified in the credentials.
-                        Alg = OpenIdConnectServerHelpers.GetJwtAlgorithm(credentials.Algorithm),
-
-                        // Use the key identifier specified
-                        // in the signing credentials.
-                        Kid = credentials.Kid,
-
-                        // Both E and N must be base64url-encoded.
-                        // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#appendix-A.1
-                        E = Base64UrlEncoder.Encode(rsaSecurityKey.Parameters.Exponent),
-                        N = Base64UrlEncoder.Encode(rsaSecurityKey.Parameters.Modulus)
-                    });
+                    // If no RSA instance can be found, create one using
+                    // the RSA parameters attached to the security key.
+                    if (algorithm == null) {
+                        algorithm = RSA.Create();
+                        algorithm.ImportParameters(rsaSecurityKey.Parameters);
+                    }
                 }
+
+                // Skip the key if a RSA instance cannot be retrieved.
+                if (algorithm == null) {
+                    Logger.LogError("A signing key was ignored because it was unable " +
+                                    "to provide the requested RSA instance.");
+
+                    continue;
+                }
+
+                // Export the RSA public key to create a new JSON Web Key
+                // exposing the exponent and the modulus parameters.
+                var parameters = algorithm.ExportParameters(includePrivateParameters: false);
+                Debug.Assert(parameters.Exponent != null, "A null exponent was returned by RSA.ExportParameters()");
+                Debug.Assert(parameters.Modulus != null, "A null modulus was returned by RSA.ExportParameters()");
+
+                var key = new JsonWebKey {
+                    Use = JsonWebKeyUseNames.Sig,
+                    Kty = JsonWebAlgorithmsKeyTypes.RSA,
+
+                    // Resolve the JWA identifier from the algorithm specified in the credentials.
+                    Alg = OpenIdConnectServerHelpers.GetJwtAlgorithm(credentials.Algorithm),
+
+                    // Use the key identifier specified
+                    // in the signing credentials.
+                    Kid = credentials.Kid,
+
+                    // Both E and N must be base64url-encoded.
+                    // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#appendix-A.1
+                    E = Base64UrlEncoder.Encode(parameters.Exponent),
+                    N = Base64UrlEncoder.Encode(parameters.Modulus)
+                };
+
+                // If the signing key is embedded in a X509 certificate, set
+                // the x5t and x5c parameters using the certificate details.
+                var x509Certificate = x509SecurityKey?.Certificate;
+                if (x509Certificate != null) {
+                    // x5t must be base64url-encoded.
+                    // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#section-4.8
+                    key.X5t = Base64UrlEncoder.Encode(x509SecurityKey.Certificate.GetCertHash());
+
+                    // Unlike E or N, the certificates contained in x5c
+                    // must be base64-encoded and not base64url-encoded.
+                    // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#section-4.7
+                    key.X5c.Add(Convert.ToBase64String(x509SecurityKey.Certificate.RawData));
+                }
+
+                notification.Keys.Add(key);
             }
 
             await Options.Provider.HandleCryptographyRequest(notification);
@@ -326,10 +349,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     [JsonWebKeyParameterNames.Use] = key.Use,
                     [JsonWebKeyParameterNames.Kty] = key.Kty,
                     [JsonWebKeyParameterNames.Alg] = key.Alg,
-                    [JsonWebKeyParameterNames.X5t] = key.X5t,
-                    [JsonWebKeyParameterNames.X5u] = key.X5u,
                     [JsonWebKeyParameterNames.E] = key.E,
-                    [JsonWebKeyParameterNames.N] = key.N
+                    [JsonWebKeyParameterNames.N] = key.N,
+                    [JsonWebKeyParameterNames.X5t] = key.X5t,
+                    [JsonWebKeyParameterNames.X5u] = key.X5u
                 };
 
                 foreach (var parameter in parameters) {
@@ -338,11 +361,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     }
                 }
 
-                if (key.KeyOps.Any()) {
+                if (key.KeyOps.Count != 0) {
                     item.Add(JsonWebKeyParameterNames.KeyOps, JArray.FromObject(key.KeyOps));
                 }
 
-                if (key.X5c.Any()) {
+                if (key.X5c.Count != 0) {
                     item.Add(JsonWebKeyParameterNames.X5c, JArray.FromObject(key.X5c));
                 }
 

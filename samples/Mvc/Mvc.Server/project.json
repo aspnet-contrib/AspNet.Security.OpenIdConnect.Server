@@ -69,5 +69,7 @@
     "**.xproj",
     "**.user",
     "**.vspscc"
-  ]
+  ],
+
+  "resource": "Certificate.pfx"
 }
