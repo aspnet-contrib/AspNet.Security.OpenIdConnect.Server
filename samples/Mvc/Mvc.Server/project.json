@@ -7,6 +7,14 @@
 
     "embed": {
       "include": [ "Certificate.pfx" ]
+    },
+
+    "copyToOutput": {
+      "include": [
+        "wwwroot",
+        "Views",
+        "web.config"
+      ]
     }
   },
 
