@@ -1,13 +1,19 @@
 ﻿{
-  "compilationOptions": {
+  "buildOptions": {
     "emitEntryPoint": true,
-    "preserveCompilationContext": true
+    "warningsAsErrors": true,
+    "preserveCompilationContext": true,
+
+    "embed": {
+      "include": [ "Certificate.pfx" ]
+    }
   },
 
   "dependencies": {
     "EntityFramework": "6.1.3",
     "Microsoft.AspNet.Razor": "3.2.3",
     "Microsoft.Extensions.Logging.Debug": "1.0.0-*",
+    "Microsoft.NETCore.Platforms": "1.0.1-*",
     "Microsoft.Owin.Security.Cookies": "3.0.1",
     "Microsoft.Owin.Security.Jwt": "3.0.1",
     "Microsoft.Owin.Security.OAuth": "3.0.1",
@@ -25,11 +31,11 @@
     "net451": { }
   },
 
-  "content": [
-    "Content",
-    "Views",
-    "App.config"
-  ],
-
-  "resource": "Certificate.pfx"
+  "publishOptions": {
+    "include": [
+      "Content",
+      "Views",
+      "App.config"
+    ]
+  }
 }

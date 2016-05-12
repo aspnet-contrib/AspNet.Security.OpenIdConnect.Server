@@ -1,8 +1,13 @@
 {
-  "compilationOptions": {
+  "buildOptions": {
     "debugType": "portable",
     "emitEntryPoint": true,
-    "preserveCompilationContext": true
+    "warningsAsErrors": true,
+    "preserveCompilationContext": true,
+
+    "embed": {
+      "include": [ "Certificate.pfx" ]
+    }
   },
 
   "dependencies": {
@@ -26,7 +31,11 @@
   },
 
   "frameworks": {
-    "net451": { },
+    "net451": {
+      "dependencies": {
+        "Microsoft.NETCore.Platforms": "1.0.1-*"
+      }
+    },
 
     "netcoreapp1.0": {
       "dependencies": {
@@ -51,25 +60,11 @@
     "postpublish": "dotnet publish-iis --publish-folder %publish:OutputPath% --framework %publish:FullTargetFramework%"
   },
 
-  "content": [
-    "wwwroot",
-    "Views",
-    "web.config"
-  ],
-
-  "exclude": [
-    "wwwroot",
-    "node_modules",
-    "bower_components"
-  ],
-
-  "publishExclude": [
-    "node_modules",
-    "bower_components",
-    "**.xproj",
-    "**.user",
-    "**.vspscc"
-  ],
-
-  "resource": "Certificate.pfx"
+  "publishOptions": {
+    "include": [
+      "wwwroot",
+      "Views",
+      "web.config"
+    ]
+  }
 }

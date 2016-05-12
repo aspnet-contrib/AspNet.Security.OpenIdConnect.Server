@@ -1,11 +1,13 @@
 ﻿{
-  "compilationOptions": {
+  "buildOptions": {
     "emitEntryPoint": true,
+    "warningsAsErrors": true,
     "preserveCompilationContext": true
   },
 
   "dependencies": {
     "Microsoft.AspNet.Razor": "3.2.3",
+    "Microsoft.NETCore.Platforms": "1.0.1-*",
     "Microsoft.Owin.Security.OpenIdConnect": "3.0.1",
     "Microsoft.Owin.Security.OAuth": "3.0.1",
     "Microsoft.Owin.Security.Cookies": "3.0.1",
@@ -20,9 +22,11 @@
     "net451": { }
   },
 
-  "content": [
-    "Content",
-    "Views",
-    "App.config"
-  ]
+  "publishOptions": {
+    "include": [
+      "Content",
+      "Views",
+      "App.config"
+    ]
+  }
 }
