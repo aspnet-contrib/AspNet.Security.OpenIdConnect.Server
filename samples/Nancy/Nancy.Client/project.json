@@ -1,6 +1,7 @@
 ﻿{
-  "compilationOptions": {
+  "buildOptions": {
     "emitEntryPoint": true,
+    "warningsAsErrors": true,
     "preserveCompilationContext": true
   },
 
@@ -20,9 +21,11 @@
     "net451": { }
   },
 
-  "content": [
-    "Content",
-    "Views",
-    "App.config"
-  ]
+  "publishOptions": {
+    "include": [
+      "Content",
+      "Views",
+      "App.config"
+    ]
+  }
 }

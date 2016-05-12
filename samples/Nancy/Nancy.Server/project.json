@@ -1,7 +1,12 @@
 ﻿{
-  "compilationOptions": {
+  "buildOptions": {
     "emitEntryPoint": true,
-    "preserveCompilationContext": true
+    "warningsAsErrors": true,
+    "preserveCompilationContext": true,
+
+    "embed": {
+      "include": [ "Certificate.pfx" ]
+    }
   },
 
   "dependencies": {
@@ -25,11 +30,11 @@
     "net451": { }
   },
 
-  "content": [
-    "Content",
-    "Views",
-    "App.config"
-  ],
-
-  "resource": "Certificate.pfx"
+  "publishOptions": {
+    "include": [
+      "Content",
+      "Views",
+      "App.config"
+    ]
+  }
 }
