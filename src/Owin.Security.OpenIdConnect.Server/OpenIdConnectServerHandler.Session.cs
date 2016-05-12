@@ -75,7 +75,9 @@ namespace Owin.Security.OpenIdConnect.Server {
             await Options.Provider.ValidateLogoutRequest(context);
 
             if (context.IsRejected) {
-                Options.Logger.LogInformation("The logout request was rejected by application code.");
+                Options.Logger.LogError("The logout request was rejected with the following error: {Error} ; {Description}",
+                                        /* Error: */ context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                                        /* Description: */ context.ErrorDescription);
 
                 return await SendLogoutResponseAsync(request, new OpenIdConnectMessage {
                     Error = context.Error,

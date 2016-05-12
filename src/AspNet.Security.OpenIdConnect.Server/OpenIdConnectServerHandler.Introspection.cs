@@ -112,7 +112,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
             await Options.Provider.ValidateIntrospectionRequest(context);
 
             if (context.IsRejected) {
-                Logger.LogInformation("The introspection request was rejected by application code.");
+                Logger.LogError("The introspection request was rejected with the following error: {Error} ; {Description}",
+                                /* Error: */ context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                                /* Description: */ context.ErrorDescription);
 
                 return await SendIntrospectionResponseAsync(request, new OpenIdConnectMessage {
                     Error = context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,

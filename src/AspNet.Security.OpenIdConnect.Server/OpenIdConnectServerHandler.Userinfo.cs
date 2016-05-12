@@ -141,7 +141,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
             await Options.Provider.ValidateUserinfoRequest(context);
 
             if (!context.IsValidated) {
-                Logger.LogInformation("The userinfo request was rejected by application code.");
+                Logger.LogError("The userinfo request was rejected with the following error: {Error} ; {Description}",
+                                /* Error: */ context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                                /* Description: */ context.ErrorDescription);
 
                 return await SendUserinfoResponseAsync(request, new OpenIdConnectMessage {
                     Error = context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,

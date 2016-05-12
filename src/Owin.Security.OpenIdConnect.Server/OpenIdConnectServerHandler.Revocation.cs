@@ -92,7 +92,9 @@ namespace Owin.Security.OpenIdConnect.Server {
             await Options.Provider.ValidateRevocationRequest(context);
 
             if (context.IsRejected) {
-                Options.Logger.LogInformation("The revocation request was rejected by application code.");
+                Options.Logger.LogError("The revocation request was rejected with the following error: {Error} ; {Description}",
+                                        /* Error: */ context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                                        /* Description: */ context.ErrorDescription);
 
                 return await SendRevocationResponseAsync(request, new OpenIdConnectMessage {
                     Error = context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
