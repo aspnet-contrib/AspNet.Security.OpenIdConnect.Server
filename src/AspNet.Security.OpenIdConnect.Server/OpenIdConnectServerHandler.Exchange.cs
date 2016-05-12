@@ -136,7 +136,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
             await Options.Provider.ValidateTokenRequest(context);
 
             if (context.IsRejected) {
-                Logger.LogInformation("The token request was rejected by application code.");
+                Logger.LogError("The token request was rejected with the following error: {Error} ; {Description}",
+                                /* Error: */ context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                                /* Description: */ context.ErrorDescription);
 
                 return await SendTokenResponseAsync(request, new OpenIdConnectMessage {
                     Error = context.Error ?? OpenIdConnectConstants.Errors.InvalidClient,

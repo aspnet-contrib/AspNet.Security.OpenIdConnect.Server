@@ -138,7 +138,9 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             // Stop processing the request if Validated was not called.
             if (!context.IsValidated) {
-                Options.Logger.LogInformation("The userinfo request was rejected by application code.");
+                Options.Logger.LogError("The userinfo request was rejected with the following error: {Error} ; {Description}",
+                                        /* Error: */ context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                                        /* Description: */ context.ErrorDescription);
 
                 return await SendUserinfoResponseAsync(request, new OpenIdConnectMessage {
                     Error = context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,

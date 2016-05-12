@@ -289,7 +289,9 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             // Stop processing the request if Validated was not called.
             if (!context.IsValidated) {
-                Options.Logger.LogInformation("The authorization request was rejected by application code.");
+                Options.Logger.LogError("The authorization request was rejected with the following error: {Error} ; {Description}",
+                                        /* Error: */ context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                                        /* Description: */ context.ErrorDescription);
 
                 return await SendAuthorizationResponseAsync(request, new OpenIdConnectMessage {
                     Error = context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,

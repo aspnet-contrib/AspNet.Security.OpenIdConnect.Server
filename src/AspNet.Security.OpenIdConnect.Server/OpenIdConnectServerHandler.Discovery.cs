@@ -38,7 +38,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
             await Options.Provider.ValidateConfigurationRequest(context);
 
             if (!context.IsValidated) {
-                Logger.LogInformation("The discovery request was rejected by application code.");
+                Logger.LogError("The discovery request was rejected with the following error: {Error} ; {Description}",
+                                /* Error: */ context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                                /* Description: */ context.ErrorDescription);
 
                 return await SendConfigurationResponseAsync(request, new OpenIdConnectMessage {
                     Error = context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
@@ -223,7 +225,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
             await Options.Provider.ValidateCryptographyRequest(context);
 
             if (!context.IsValidated) {
-                Logger.LogInformation("The discovery request was rejected by application code.");
+                Logger.LogError("The discovery request was rejected with the following error: {Error} ; {Description}",
+                                /* Error: */ context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                                /* Description: */ context.ErrorDescription);
 
                 return await SendCryptographyResponseAsync(request, new OpenIdConnectMessage {
                     Error = context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
