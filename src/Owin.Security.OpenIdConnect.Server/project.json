@@ -32,7 +32,7 @@
   },
 
   "dependencies": {
-    "JetBrains.Annotations": { "type": "build", "version": "10.1.2-eap" },
+    "JetBrains.Annotations": { "type": "build", "version": "10.1.4" },
     "Microsoft.Extensions.Logging": "1.0.0-rc2-*",
     "Microsoft.Extensions.Caching.Memory": "1.0.0-rc2-*",
     "Microsoft.Owin.Security.Interop": "1.0.0-rc2-*",
