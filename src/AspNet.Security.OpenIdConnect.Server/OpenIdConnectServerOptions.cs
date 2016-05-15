@@ -42,7 +42,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// encouraged to use a 2048 or 4096-bits RSA asymmetric key in production. Note that only keys supporting the
         /// <see cref="SecurityAlgorithms.RsaSha256Signature"/> algorithm can be exposed on the configuration metadata endpoint.
         /// </summary>
-        public IList<SigningCredentials> SigningCredentials { get; set; } = new List<SigningCredentials>();
+        public IList<SigningCredentials> SigningCredentials { get; } = new List<SigningCredentials>();
 
         /// <summary>
         /// The request path where client applications will redirect the user-agent in order to 
