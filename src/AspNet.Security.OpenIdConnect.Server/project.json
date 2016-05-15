@@ -31,8 +31,8 @@
   },
 
   "dependencies": {
-    "AspNet.Security.OpenIdConnect.Extensions": "1.0.0-*",
-    "JetBrains.Annotations": { "type": "build", "version": "10.1.2-eap" },
+    "AspNet.Security.OpenIdConnect.Extensions": { "target": "project" },
+    "JetBrains.Annotations": { "type": "build", "version": "10.1.4" },
     "Microsoft.AspNetCore.Authentication": "1.0.0-*",
     "Microsoft.AspNetCore.Hosting.Abstractions": "1.0.0-*",
     "Microsoft.Extensions.Caching.Abstractions": "1.0.0-*",
@@ -41,13 +41,7 @@
   },
 
   "frameworks": {
-    "net451": {
-      "frameworkAssemblies": {
-        "System.ComponentModel": { "type": "build" },
-        "System.Runtime": { "type": "build" },
-        "System.Threading.Tasks": { "type": "build" }
-      }
-    },
+    "net451": { },
 
     "netstandard1.4": {
       "dependencies": {

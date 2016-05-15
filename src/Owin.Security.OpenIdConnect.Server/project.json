@@ -32,7 +32,7 @@
   },
 
   "dependencies": {
-    "JetBrains.Annotations": { "type": "build", "version": "10.1.2-eap" },
+    "JetBrains.Annotations": { "type": "build", "version": "10.1.4" },
     "Microsoft.Extensions.Logging": "1.0.0-*",
     "Microsoft.Extensions.Caching.Memory": "1.0.0-*",
     "Microsoft.Owin.Security.Interop": "1.0.0-*",
@@ -45,10 +45,7 @@
   "frameworks": {
     "net451": {
       "frameworkAssemblies": {
-        "System.ComponentModel": { "type": "build" },
         "System.IdentityModel": "4.0.0.0",
-        "System.Runtime": { "type": "build" },
-        "System.Threading.Tasks": { "type": "build" },
         "System.Xml": "4.0.0.0"
       }
     }

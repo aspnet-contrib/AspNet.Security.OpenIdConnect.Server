@@ -21,7 +21,7 @@
   "dependencies": {
     "AspNet.Security.OAuth.Introspection": "1.0.0-*",
     "AspNet.Security.OAuth.Validation": "1.0.0-*",
-    "AspNet.Security.OpenIdConnect.Server": "1.0.0-*",
+    "AspNet.Security.OpenIdConnect.Server": { "target": "project" },
     "Microsoft.AspNetCore.Authentication.Cookies": "1.0.0-*",
     "Microsoft.AspNetCore.Authentication.Google": "1.0.0-*",
     "Microsoft.AspNetCore.Authentication.Twitter": "1.0.0-*",
