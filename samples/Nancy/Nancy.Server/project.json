@@ -24,7 +24,7 @@
     "NWebsec.Owin": "1.0.0",
     "Owin.Security.OAuth.Introspection": "1.0.0-alpha1-*",
     "Owin.Security.OAuth.Validation": "1.0.0-alpha1-*",
-    "Owin.Security.OpenIdConnect.Server": "1.0.0-beta5-*"
+    "Owin.Security.OpenIdConnect.Server": { "target": "project" }
   },
 
   "frameworks": {
