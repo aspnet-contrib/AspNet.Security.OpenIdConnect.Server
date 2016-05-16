@@ -196,11 +196,11 @@ namespace Owin {
         }
 
         /// <summary>
-        /// Adds a specific <see cref="X509Certificate2"/> retrieved from the X509 machine store
+        /// Adds a specific <see cref="X509Certificate2"/> retrieved from the X.509 machine store
         /// to decrypt authorization requests received by the OpenID Connect server.
         /// </summary>
         /// <param name="credentials">The options used to configure the OpenID Connect server.</param>
-        /// <param name="thumbprint">The thumbprint of the certificate used to identify it in the X509 store.</param>
+        /// <param name="thumbprint">The thumbprint of the certificate used to identify it in the X.509 store.</param>
         /// <returns>The encryption credentials.</returns>
         public static IList<EncryptingCredentials> AddCertificate(
             [NotNull] this IList<EncryptingCredentials> credentials, [NotNull] string thumbprint) {
@@ -208,13 +208,13 @@ namespace Owin {
         }
 
         /// <summary>
-        /// Adds a specific <see cref="X509Certificate2"/> retrieved from the given X509 store
+        /// Adds a specific <see cref="X509Certificate2"/> retrieved from the given X.509 store
         /// to decrypt authorization requests received by the OpenID Connect server.
         /// </summary>
         /// <param name="credentials">The options used to configure the OpenID Connect server.</param>
-        /// <param name="thumbprint">The thumbprint of the certificate used to identify it in the X509 store.</param>
-        /// <param name="name">The name of the X509 store.</param>
-        /// <param name="location">The location of the X509 store.</param>
+        /// <param name="thumbprint">The thumbprint of the certificate used to identify it in the X.509 store.</param>
+        /// <param name="name">The name of the X.509 store.</param>
+        /// <param name="location">The location of the X.509 store.</param>
         /// <returns>The encryption credentials.</returns>
         public static IList<EncryptingCredentials> AddCertificate(
             [NotNull] this IList<EncryptingCredentials> credentials,
@@ -308,7 +308,8 @@ namespace Owin {
                 return credentials;
             }
 
-            throw new InvalidOperationException("The encryption key type is not supported.");
+            throw new InvalidOperationException("A key wrap algorithm cannot be automatically inferred from the encryption key. " +
+                                                "Consider using 'options.EncryptingCredentials.Add(EncryptingCredentials)' instead.");
         }
 
         /// <summary>
@@ -427,10 +428,10 @@ namespace Owin {
 
         /// <summary>
         /// Adds a specific <see cref="X509Certificate2"/> retrieved from the
-        /// X509 machine store to sign tokens issued by the OpenID Connect server.
+        /// X.509 machine store to sign tokens issued by the OpenID Connect server.
         /// </summary>
         /// <param name="credentials">The options used to configure the OpenID Connect server.</param>
-        /// <param name="thumbprint">The thumbprint of the certificate used to identify it in the X509 store.</param>
+        /// <param name="thumbprint">The thumbprint of the certificate used to identify it in the X.509 store.</param>
         /// <returns>The signing credentials.</returns>
         public static IList<SigningCredentials> AddCertificate(
             [NotNull] this IList<SigningCredentials> credentials, [NotNull] string thumbprint) {
@@ -439,12 +440,12 @@ namespace Owin {
 
         /// <summary>
         /// Adds a specific <see cref="X509Certificate2"/> retrieved from the
-        /// given X509 store to sign tokens issued by the OpenID Connect server.
+        /// given X.509 store to sign tokens issued by the OpenID Connect server.
         /// </summary>
         /// <param name="credentials">The options used to configure the OpenID Connect server.</param>
-        /// <param name="thumbprint">The thumbprint of the certificate used to identify it in the X509 store.</param>
-        /// <param name="name">The name of the X509 store.</param>
-        /// <param name="location">The location of the X509 store.</param>
+        /// <param name="thumbprint">The thumbprint of the certificate used to identify it in the X.509 store.</param>
+        /// <param name="name">The name of the X.509 store.</param>
+        /// <param name="location">The location of the X.509 store.</param>
         /// <returns>The signing credentials.</returns>
         public static IList<SigningCredentials> AddCertificate(
             [NotNull] this IList<SigningCredentials> credentials,
@@ -538,7 +539,8 @@ namespace Owin {
                 return credentials;
             }
 
-            throw new InvalidOperationException("The signing key type is not supported.");
+            throw new InvalidOperationException("A signature algorithm cannot be automatically inferred from the signing key. " +
+                                                "Consider using 'options.SigningCredentials.Add(SigningCredentials)' instead.");
         }
 
         /// <summary>

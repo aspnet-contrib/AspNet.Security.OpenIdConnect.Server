@@ -164,6 +164,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return notification.DataFormat?.Protect(ticket);
             }
 
+            if (notification.SigningCredentials == null) {
+                Logger.LogWarning("No signing credentials are registered in the OpenID Connect server options. " +
+                                  "Consider registering a X.509 certificate to ensure access tokens are signed.");
+            }
+
             // Extract the main identity from the principal.
             identity = (ClaimsIdentity) ticket.Principal.Identity;
 
@@ -346,6 +351,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 !identity.HasClaim(claim => claim.Type == ClaimTypes.NameIdentifier)) {
                 throw new InvalidOperationException("A unique identifier cannot be found to generate a 'sub' claim: " +
                                                     "make sure to add a 'ClaimTypes.NameIdentifier' claim.");
+            }
+
+            if (notification.SigningCredentials == null) {
+                Logger.LogWarning("No signing credentials are registered in the OpenID Connect server options. " +
+                                  "Consider registering a X.509 certificate to ensure identity tokens are signed.");
             }
 
             // Extract the main identity from the principal.

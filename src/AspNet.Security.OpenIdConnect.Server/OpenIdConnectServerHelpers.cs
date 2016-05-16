@@ -229,11 +229,44 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 catch { }
             }
 
-            throw new InvalidOperationException("No directory can be found to store the RSA keys.");
+            return null;
         }
 
         private static DirectoryInfo GetKeyStorageDirectoryFromBasePath(string path) {
             return Directory.CreateDirectory(Path.Combine(path, "ASP.NET", "aspnet-contrib", "oidc-server"));
+        }
+
+        internal static IDictionary<string, byte[]> GetKeys(DirectoryInfo directory) {
+            var keys = new Dictionary<string, byte[]>();
+
+            foreach (var file in directory.EnumerateFiles("*.key")) {
+                try {
+                    using (var buffer = new MemoryStream())
+                    using (var stream = file.Open(FileMode.Open, FileAccess.Read, FileShare.Read)) {
+                        // Copy the key content to the buffer.
+                        stream.CopyTo(buffer);
+
+                        // Add the key to the returned dictionary.
+                        keys.Add(file.FullName, buffer.ToArray());
+                    }
+                }
+
+                catch { }
+            }
+
+            return keys;
+        }
+
+        internal static string PersistKey(DirectoryInfo directory, byte[] key) {
+            // Generate a new file name for the key and determine its absolute path.
+            var path = Path.Combine(directory.FullName, Guid.NewGuid().ToString() + ".key");
+
+            using (var stream = new FileStream(path, FileMode.CreateNew, FileAccess.Write)) {
+                // Write the encrypted key to the file stream.
+                stream.Write(key, 0, key.Length);
+            }
+
+            return path;
         }
 
         internal static string GetIssuer(this HttpContext context, OpenIdConnectServerOptions options) {

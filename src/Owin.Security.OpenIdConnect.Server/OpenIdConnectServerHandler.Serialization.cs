@@ -155,6 +155,11 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return notification.DataFormat?.Protect(ticket);
             }
 
+            if (notification.SigningCredentials == null) {
+                Options.Logger.LogWarning("No signing credentials are registered in the OpenID Connect server options. " +
+                                          "Consider registering a X.509 certificate to ensure access tokens are signed.");
+            }
+
             // Store the "unique_id" property as a claim.
             ticket.Identity.AddClaim(notification.SecurityTokenHandler is JwtSecurityTokenHandler ?
                 OpenIdConnectConstants.Claims.JwtId :
@@ -346,6 +351,11 @@ namespace Owin.Security.OpenIdConnect.Server {
                                                     "make sure to add a 'ClaimTypes.NameIdentifier' claim.");
             }
 
+            if (notification.SigningCredentials == null) {
+                Options.Logger.LogWarning("No signing credentials are registered in the OpenID Connect server options. " +
+                                          "Consider registering a X.509 certificate to ensure identity tokens are signed.");
+            }
+
             // Store the unique subject identifier as a claim.
             if (!identity.HasClaim(claim => claim.Type == OpenIdConnectConstants.Claims.Subject)) {
                 identity.AddClaim(OpenIdConnectConstants.Claims.Subject, identity.GetClaim(ClaimTypes.NameIdentifier));
@@ -532,7 +542,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                 // Ensure the received ticket is an authorization code.
                 if (!ticket.IsAuthorizationCode()) {
-                    Options.Logger.LogInformation("The received token was not an authorization code: {Code}.", code);
+                    Options.Logger.LogDebug("The received token was not an authorization code: {Code}.", code);
 
                     return null;
                 }
@@ -633,7 +643,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             // Ensure the received ticket is an access token.
             if (!ticket.IsAccessToken()) {
-                Options.Logger.LogWarning("The received token was not an access token: {Token}.", token);
+                Options.Logger.LogDebug("The received token was not an access token: {Token}.", token);
 
                 return null;
             }
@@ -723,7 +733,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             // Ensure the received ticket is an identity token.
             if (!ticket.IsIdentityToken()) {
-                Options.Logger.LogInformation("The received token was not an identity token: {Token}.", token);
+                Options.Logger.LogDebug("The received token was not an identity token: {Token}.", token);
 
                 return null;
             }
@@ -753,7 +763,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             // Ensure the received ticket is an identity token.
             if (!ticket.IsRefreshToken()) {
-                Options.Logger.LogInformation("The received token was not a refresh token: {Token}.", token);
+                Options.Logger.LogDebug("The received token was not a refresh token: {Token}.", token);
 
                 return null;
             }
