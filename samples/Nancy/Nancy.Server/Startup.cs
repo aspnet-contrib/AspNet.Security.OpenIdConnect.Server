@@ -124,7 +124,8 @@ namespace Nancy.Server {
                 options.ApplicationCanDisplayErrors = true;
                 options.AllowInsecureHttp = true;
 
-                options.UseLogging(logger => logger.AddDebug());
+                // Register the logging listeners used by the OpenID Connect server middleware.
+                options.UseLogging(logger => logger.AddConsole().AddDebug());
             });
 
             app.Use((context, next) => {
