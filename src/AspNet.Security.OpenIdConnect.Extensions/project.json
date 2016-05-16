@@ -41,7 +41,7 @@
 
     "netstandard1.4": {
       "dependencies": {
-        "System.Linq": "4.1.0-*"
+        "System.Linq": "4.1.0-rc2-*"
       },
 
       "imports": [
