@@ -5,8 +5,8 @@ AspNet.Security.OpenIdConnect.Server
 
 **The latest official release can be found on [NuGet](https://www.nuget.org/packages/AspNet.Security.OpenIdConnect.Server) and the nightly builds on [MyGet](https://www.myget.org/gallery/aspnet-contrib)**.
 
-[![Build status](https://ci.appveyor.com/api/projects/status/tyenw4ffs00j4sav/branch/release?svg=true)](https://ci.appveyor.com/project/aspnet-contrib/aspnet-security-openidconnect-server/branch/release)
-[![Build status](https://travis-ci.org/aspnet-contrib/AspNet.Security.OpenIdConnect.Server.svg?branch=release)](https://travis-ci.org/aspnet-contrib/AspNet.Security.OpenIdConnect.Server)
+[![Build status](https://ci.appveyor.com/api/projects/status/tyenw4ffs00j4sav/branch/master?svg=true)](https://ci.appveyor.com/project/aspnet-contrib/aspnet-security-openidconnect-server/branch/master)
+[![Build status](https://travis-ci.org/aspnet-contrib/AspNet.Security.OpenIdConnect.Server.svg?branch=master)](https://travis-ci.org/aspnet-contrib/AspNet.Security.OpenIdConnect.Server)
 
 ## Get started
 

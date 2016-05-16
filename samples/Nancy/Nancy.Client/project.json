@@ -7,7 +7,7 @@
 
   "dependencies": {
     "Microsoft.AspNet.Razor": "3.2.3",
-    "Microsoft.NETCore.Platforms": "1.0.1-rc2-*",
+    "Microsoft.NETCore.Platforms": "1.0.1-rc2-24027",
     "Microsoft.Owin.Security.OpenIdConnect": "3.0.1",
     "Microsoft.Owin.Security.OAuth": "3.0.1",
     "Microsoft.Owin.Security.Cookies": "3.0.1",

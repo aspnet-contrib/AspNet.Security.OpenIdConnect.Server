@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0-beta5-*",
+  "version": "1.0.0-beta5-final",
 
   "packOptions": {
     "description": "OpenID Connect extensions for AspNet.Security.OpenIdConnect.Server.",
@@ -32,8 +32,8 @@
 
   "dependencies": {
     "JetBrains.Annotations": { "type": "build", "version": "10.1.4" },
-    "Microsoft.AspNetCore.Authentication": "1.0.0-rc2-*",
-    "Microsoft.IdentityModel.Protocols.OpenIdConnect": "2.0.0-rc2-*"
+    "Microsoft.AspNetCore.Authentication": "1.0.0-rc2-final",
+    "Microsoft.IdentityModel.Protocols.OpenIdConnect": "2.0.0-rc2-305061149"
   },
 
   "frameworks": {
@@ -41,7 +41,7 @@
 
     "netstandard1.4": {
       "dependencies": {
-        "System.Linq": "4.1.0-rc2-*"
+        "System.Linq": "4.1.0-rc2-24027"
       },
 
       "imports": [
