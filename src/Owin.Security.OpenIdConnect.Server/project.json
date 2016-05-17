@@ -1,9 +1,10 @@
 ﻿{
   "version": "1.0.0-beta5-*",
 
+  "description": "OpenID Connect server middleware for OWIN/Katana.",
+  "authors": [ "Kévin Chalet" ],
+
   "packOptions": {
-    "description": "OpenID Connect server middleware for OWIN/Katana.",
-    "authors": [ "Kévin Chalet" ],
     "owners": [ "Kévin Chalet" ],
 
     "projectUrl": "https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server",

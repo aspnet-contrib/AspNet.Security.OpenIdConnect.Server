@@ -1,9 +1,10 @@
 ﻿{
   "version": "1.0.0-beta5-*",
 
+  "description": "OpenID Connect extensions for Owin.Security.OpenIdConnect.Server.",
+  "authors": [ "Kévin Chalet" ],
+
   "packOptions": {
-    "description": "OpenID Connect extensions for Owin.Security.OpenIdConnect.Server.",
-    "authors": [ "Kévin Chalet" ],
     "owners": [ "Kévin Chalet" ],
 
     "projectUrl": "https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server",
