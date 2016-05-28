@@ -53,7 +53,7 @@ default BUILD_DIR_LOCAL='${Path.Combine(TARGET_DIR_LOCAL, "build")}'
             }
         }
 
-        DotnetPack(projectFile, BUILD_DIR_LOCAL, Configuration_Local);
+        DotnetPack(projectFile, BUILD_DIR_LOCAL, Configuration_Local, "");
     });
 
     foreach (var nupkg in Files.Include(Path.Combine(BUILD_DIR_LOCAL, "*/" + Configuration_Local + "/*.nupkg")))
