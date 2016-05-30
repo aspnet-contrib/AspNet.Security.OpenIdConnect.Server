@@ -13,9 +13,7 @@ using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using AspNet.Security.OpenIdConnect.Server;
 using JetBrains.Annotations;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
@@ -48,11 +46,6 @@ namespace Microsoft.AspNetCore.Builder {
             }
 
             var options = new OpenIdConnectServerOptions();
-
-            // By default, enable AllowInsecureHttp in development/testing environments.
-            var environment = app.ApplicationServices.GetRequiredService<IHostingEnvironment>();
-            options.AllowInsecureHttp = environment.IsDevelopment() || environment.IsEnvironment("Testing");
-
             configuration(options);
 
             return app.UseMiddleware<OpenIdConnectServerMiddleware>(Options.Create(options));

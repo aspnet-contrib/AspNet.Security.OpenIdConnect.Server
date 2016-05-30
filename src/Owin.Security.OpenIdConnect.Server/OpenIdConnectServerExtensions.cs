@@ -17,7 +17,6 @@ using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
-using Microsoft.Owin.BuilderProperties;
 using Microsoft.Owin.Security;
 using Owin.Security.OpenIdConnect.Extensions;
 using Owin.Security.OpenIdConnect.Server;
@@ -50,11 +49,6 @@ namespace Owin {
             }
 
             var options = new OpenIdConnectServerOptions();
-
-            // By default, enable AllowInsecureHttp in development environments.
-            var environment = new AppProperties(app.Properties).Get<string>("host.AppMode");
-            options.AllowInsecureHttp = string.Equals(environment, "Development", StringComparison.OrdinalIgnoreCase);
-
             configuration(options);
 
             return app.Use(typeof(OpenIdConnectServerMiddleware), app, options);

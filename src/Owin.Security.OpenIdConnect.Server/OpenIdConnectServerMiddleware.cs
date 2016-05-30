@@ -113,11 +113,17 @@ namespace Owin.Security.OpenIdConnect.Server {
                 Options.RefreshTokenFormat = new AspNetTicketDataFormat(new DataProtectorShim(protector));
             }
 
+            var environment = new AppProperties(app.Properties).Get<string>("host.AppMode");
+            if (Options.AllowInsecureHttp && !string.Equals(environment, "Development", StringComparison.OrdinalIgnoreCase)) {
+                Options.Logger.LogWarning("Disabling the transport security requirement is not recommended on production. " +
+                                          "Consider setting 'OpenIdConnectServerOptions.AllowInsecureHttp' to 'false' " +
+                                          "to prevent the OpenID Connect server middleware from serving non-HTTPS requests.");
+            }
+
             // If no key has been explicitly added, use the fallback mode.
             if (Options.EncryptingCredentials.Count == 0 || Options.SigningCredentials.Count == 0) {
                 // When detecting a non-development environment, log a warning to inform the developer
                 // that registering a X.509 certificate is recommended when going live.
-                var environment = new AppProperties(app.Properties).Get<string>("host.AppMode");
                 if (!string.Equals(environment, "Development", StringComparison.OrdinalIgnoreCase)) {
                     Options.Logger.LogWarning("No explicit signing credentials have been registered. " +
                                               "Using a X.509 certificate stored in the machine store " +

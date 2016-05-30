@@ -113,6 +113,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 Options.HtmlEncoder = htmlEncoder;
             }
 
+            if (Options.AllowInsecureHttp && environment.IsProduction()) {
+                Logger.LogWarning("Disabling the transport security requirement is not recommended on production. " +
+                                  "Consider setting 'OpenIdConnectServerOptions.AllowInsecureHttp' to 'false' " +
+                                  "to prevent the OpenID Connect server middleware from serving non-HTTPS requests.");
+            }
+
             // If no key has been explicitly added, use the fallback mode.
             if (Options.SigningCredentials.Count == 0) {
                 // When detecting a non-development environment, log a warning to inform the developer
