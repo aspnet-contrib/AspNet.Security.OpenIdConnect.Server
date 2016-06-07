@@ -26,9 +26,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // See https://tools.ietf.org/html/rfc7662#section-2.1
             // and https://tools.ietf.org/html/rfc7662#section-4
             if (string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
-                request = new OpenIdConnectMessage(Request.Query.ToDictionary()) {
-                    RequestType = OpenIdConnectRequestType.AuthenticationRequest
-                };
+                request = new OpenIdConnectMessage(Request.Query.ToDictionary());
             }
 
             else if (string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase)) {
@@ -59,9 +57,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 var form = await Request.ReadFormAsync(Context.RequestAborted);
 
-                request = new OpenIdConnectMessage(form.ToDictionary()) {
-                    RequestType = OpenIdConnectRequestType.AuthenticationRequest
-                };
+                request = new OpenIdConnectMessage(form.ToDictionary());
             }
 
             else {

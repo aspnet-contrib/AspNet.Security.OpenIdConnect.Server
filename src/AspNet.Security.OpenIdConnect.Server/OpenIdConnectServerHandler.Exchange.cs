@@ -59,7 +59,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             var form = await Request.ReadFormAsync(Context.RequestAborted);
 
             var request = new OpenIdConnectMessage(form.ToDictionary()) {
-                RequestType = OpenIdConnectRequestType.TokenRequest
+                RequestType = OpenIdConnectRequestType.Token
             };
 
             // Store the token request in the ASP.NET context.

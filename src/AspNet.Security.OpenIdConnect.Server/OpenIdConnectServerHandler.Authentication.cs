@@ -28,7 +28,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 // Create a new authorization request using the
                 // parameters retrieved from the query string.
                 request = new OpenIdConnectMessage(Request.Query.ToDictionary()) {
-                    RequestType = OpenIdConnectRequestType.AuthenticationRequest
+                    RequestType = OpenIdConnectRequestType.Authentication
                 };
             }
 
@@ -63,7 +63,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 var form = await Request.ReadFormAsync(Context.RequestAborted);
 
                 request = new OpenIdConnectMessage(form.ToDictionary()) {
-                    RequestType = OpenIdConnectRequestType.AuthenticationRequest
+                    RequestType = OpenIdConnectRequestType.Authentication
                 };
             }
 

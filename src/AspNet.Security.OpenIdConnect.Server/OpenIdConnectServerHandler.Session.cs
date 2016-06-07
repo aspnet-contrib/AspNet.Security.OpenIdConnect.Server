@@ -24,7 +24,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // See https://openid.net/specs/openid-connect-session-1_0.html#RPLogout
             if (string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
                 request = new OpenIdConnectMessage(Request.Query.ToDictionary()) {
-                    RequestType = OpenIdConnectRequestType.LogoutRequest
+                    RequestType = OpenIdConnectRequestType.Logout
                 };
             }
 
@@ -57,7 +57,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 var form = await Request.ReadFormAsync(Context.RequestAborted);
 
                 request = new OpenIdConnectMessage(form.ToDictionary()) {
-                    RequestType = OpenIdConnectRequestType.LogoutRequest
+                    RequestType = OpenIdConnectRequestType.Logout
                 };
             }
 
