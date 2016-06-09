@@ -612,7 +612,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 payload[parameter.Key] = parameter.Value;
             }
 
-            return SendTokenResponseAsync(request, payload);
+            return SendTokenResponseAsync(request, payload, ticket);
         }
 
         private async Task<bool> SendTokenResponseAsync(
