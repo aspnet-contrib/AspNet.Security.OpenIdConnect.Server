@@ -204,7 +204,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public bool AllowInsecureHttp { get; set; }
 
         /// <summary>
-        /// The cache instance used to store short-lived data like authentication requests or authorization codes.
+        /// The cache instance used to store short-lived data like authentication/authorization requests.
         /// You can replace the default instance by a distributed implementation to support Web farm environments.
         /// When this property is not explicitly set, the global cache defined in Startup.cs is used instead.
         /// </summary>
