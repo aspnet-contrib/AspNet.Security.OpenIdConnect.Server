@@ -6,11 +6,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Security.Claims;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
-using Microsoft.Owin.Security.Notifications;
 using Newtonsoft.Json.Linq;
 
 namespace Owin.Security.OpenIdConnect.Server {
@@ -18,7 +16,7 @@ namespace Owin.Security.OpenIdConnect.Server {
     /// An event raised before the authorization server handles
     /// the request made to the token introspection endpoint.
     /// </summary>
-    public class HandleIntrospectionRequestContext : BaseNotification<OpenIdConnectServerOptions> {
+    public class HandleIntrospectionRequestContext : BaseValidatingContext {
         /// <summary>
         /// Creates an instance of this context.
         /// </summary>
@@ -30,6 +28,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             : base(context, options) {
             Request = request;
             Ticket = ticket;
+            Validate();
         }
 
         /// <summary>

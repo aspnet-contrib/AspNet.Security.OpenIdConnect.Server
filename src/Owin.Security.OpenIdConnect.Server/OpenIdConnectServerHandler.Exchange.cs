@@ -132,7 +132,15 @@ namespace Owin.Security.OpenIdConnect.Server {
             var context = new ValidateTokenRequestContext(Context, Options, request);
             await Options.Provider.ValidateTokenRequest(context);
 
-            if (context.IsRejected) {
+            if (context.HandledResponse) {
+                return true;
+            }
+
+            else if (context.Skipped) {
+                return false;
+            }
+
+            else if (context.IsRejected) {
                 Options.Logger.LogError("The token request was rejected with the following error: {Error} ; {Description}",
                                         /* Error: */ context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                                         /* Description: */ context.ErrorDescription);
@@ -336,119 +344,23 @@ namespace Owin.Security.OpenIdConnect.Server {
                         });
                     }
                 }
-
-                if (request.IsAuthorizationCodeGrantType()) {
-                    // Note: the authentication ticket is copied to avoid modifying the properties of the authorization code.
-                    var grant = new GrantAuthorizationCodeContext(Context, Options, request, ticket.Copy());
-                    await Options.Provider.GrantAuthorizationCode(grant);
-
-                    if (!grant.IsValidated) {
-                        // Note: use invalid_grant as the default error if none has been explicitly provided.
-                        return await SendTokenResponseAsync(request, new OpenIdConnectMessage {
-                            Error = grant.Error ?? OpenIdConnectConstants.Errors.InvalidGrant,
-                            ErrorDescription = grant.ErrorDescription,
-                            ErrorUri = grant.ErrorUri
-                        });
-                    }
-
-                    // By default, when using the authorization code grant, the authentication ticket extracted from the
-                    // authorization code is used as-is. To avoid aligning the expiration date of the generated tokens
-                    // with the lifetime of the authorization code, the ticket properties are automatically reset to null.
-                    if (grant.Ticket.Properties.IssuedUtc == ticket.Properties.IssuedUtc) {
-                        grant.Ticket.Properties.IssuedUtc = null;
-                    }
-
-                    if (grant.Ticket.Properties.ExpiresUtc == ticket.Properties.ExpiresUtc) {
-                        grant.Ticket.Properties.ExpiresUtc = null;
-                    }
-
-                    ticket = grant.Ticket;
-                }
-
-                else {
-                    // Note: the authentication ticket is copied to avoid modifying the properties of the refresh token.
-                    var grant = new GrantRefreshTokenContext(Context, Options, request, ticket.Copy());
-                    await Options.Provider.GrantRefreshToken(grant);
-
-                    if (!grant.IsValidated) {
-                        // Note: use invalid_grant as the default error if none has been explicitly provided.
-                        return await SendTokenResponseAsync(request, new OpenIdConnectMessage {
-                            Error = grant.Error ?? OpenIdConnectConstants.Errors.InvalidGrant,
-                            ErrorDescription = grant.ErrorDescription,
-                            ErrorUri = grant.ErrorUri
-                        });
-                    }
-
-                    // By default, when using the refresh token grant, the authentication ticket extracted from the
-                    // refresh token is used as-is. To avoid aligning the expiration date of the generated tokens
-                    // with the lifetime of the refresh token, the ticket properties are automatically reset to null.
-                    if (grant.Ticket.Properties.IssuedUtc == ticket.Properties.IssuedUtc) {
-                        grant.Ticket.Properties.IssuedUtc = null;
-                    }
-
-                    if (grant.Ticket.Properties.ExpiresUtc == ticket.Properties.ExpiresUtc) {
-                        grant.Ticket.Properties.ExpiresUtc = null;
-                    }
-
-                    ticket = grant.Ticket;
-                }
-            }
-
-            // See http://tools.ietf.org/html/rfc6749#section-4.3
-            // and http://tools.ietf.org/html/rfc6749#section-4.3.2
-            else if (request.IsPasswordGrantType()) {
-                var grant = new GrantResourceOwnerCredentialsContext(Context, Options, request);
-                await Options.Provider.GrantResourceOwnerCredentials(grant);
-
-                if (!grant.IsValidated) {
-                    // Note: use invalid_grant as the default error if none has been explicitly provided.
-                    return await SendTokenResponseAsync(request, new OpenIdConnectMessage {
-                        Error = grant.Error ?? OpenIdConnectConstants.Errors.InvalidGrant,
-                        ErrorDescription = grant.ErrorDescription,
-                        ErrorUri = grant.ErrorUri
-                    });
-                }
-
-                ticket = grant.Ticket;
-            }
-
-            // See http://tools.ietf.org/html/rfc6749#section-4.4
-            // and http://tools.ietf.org/html/rfc6749#section-4.4.2
-            else if (request.IsClientCredentialsGrantType()) {
-                var grant = new GrantClientCredentialsContext(Context, Options, request);
-                await Options.Provider.GrantClientCredentials(grant);
-
-                if (!grant.IsValidated) {
-                    // Note: use unauthorized_client as the default error if none has been explicitly provided.
-                    return await SendTokenResponseAsync(request, new OpenIdConnectMessage {
-                        Error = grant.Error ?? OpenIdConnectConstants.Errors.UnauthorizedClient,
-                        ErrorDescription = grant.ErrorDescription,
-                        ErrorUri = grant.ErrorUri
-                    });
-                }
-
-                ticket = grant.Ticket;
-            }
-
-            // See http://tools.ietf.org/html/rfc6749#section-8.3
-            else {
-                var grant = new GrantCustomExtensionContext(Context, Options, request);
-                await Options.Provider.GrantCustomExtension(grant);
-
-                if (!grant.IsValidated) {
-                    // Note: use unsupported_grant_type as the default error if none has been explicitly provided.
-                    return await SendTokenResponseAsync(request, new OpenIdConnectMessage {
-                        Error = grant.Error ?? OpenIdConnectConstants.Errors.UnsupportedGrantType,
-                        ErrorDescription = grant.ErrorDescription,
-                        ErrorUri = grant.ErrorUri
-                    });
-                }
-
-                ticket = grant.Ticket;
             }
 
             var notification = new HandleTokenRequestContext(Context, Options, request, ticket);
             await Options.Provider.HandleTokenRequest(notification);
+
+            // By default, when using the authorization code/refresh token grant, the authentication ticket extracted from the
+            // authorization code/refresh token is used as-is. To avoid aligning the expiration date of the generated tokens
+            // with the lifetime of the authorization code/refresh token, the ticket properties are automatically reset to null.
+            if (notification.Ticket != null && (request.IsAuthorizationCodeGrantType() || request.IsRefreshTokenGrantType())) {
+                if (notification.Ticket.Properties.IssuedUtc == ticket.Properties.IssuedUtc) {
+                    notification.Ticket.Properties.IssuedUtc = null;
+                }
+
+                if (notification.Ticket.Properties.ExpiresUtc == ticket.Properties.ExpiresUtc) {
+                    notification.Ticket.Properties.ExpiresUtc = null;
+                }
+            }
 
             if (notification.HandledResponse) {
                 return true;
@@ -458,17 +370,30 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return false;
             }
 
+            else if (notification.IsRejected) {
+                Options.Logger.LogError("The token request was rejected with the following error: {Error} ; {Description}",
+                                        /* Error: */ notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                                        /* Description: */ notification.ErrorDescription);
+
+                return await SendTokenResponseAsync(request, new OpenIdConnectMessage {
+                    Error = notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = notification.ErrorDescription,
+                    ErrorUri = notification.ErrorUri
+                });
+            }
+
             // Flow the changes made to the ticket.
             ticket = notification.Ticket;
 
-            // Ensure an authentication ticket has been provided:
-            // a null ticket MUST result in an internal server error.
+            // Ensure an authentication ticket has been provided or return
+            // an error code indicating that the grant type is not supported.
             if (ticket == null) {
                 Options.Logger.LogError("The token request was rejected because no authentication " +
                                         "ticket was returned by application code.");
 
                 return await SendTokenResponseAsync(request, new OpenIdConnectMessage {
-                    Error = OpenIdConnectConstants.Errors.ServerError
+                    Error = OpenIdConnectConstants.Errors.UnsupportedGrantType,
+                    ErrorDescription = "The specified grant_type parameter is not supported."
                 });
             }
 

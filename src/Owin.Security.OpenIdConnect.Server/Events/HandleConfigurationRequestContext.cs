@@ -7,7 +7,6 @@
 using System.Collections.Generic;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
-using Microsoft.Owin.Security.Notifications;
 using Newtonsoft.Json.Linq;
 
 namespace Owin.Security.OpenIdConnect.Server {
@@ -15,7 +14,7 @@ namespace Owin.Security.OpenIdConnect.Server {
     /// An event raised before the authorization server handles
     /// the request made to the configuration metadata endpoint.
     /// </summary>
-    public class HandleConfigurationRequestContext : BaseNotification<OpenIdConnectServerOptions> {
+    public class HandleConfigurationRequestContext : BaseValidatingContext {
         /// <summary>
         /// Creates an instance of this context.
         /// </summary>
@@ -25,6 +24,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             OpenIdConnectMessage request)
             : base(context, options) {
             Request = request;
+            Validate();
         }
 
         /// <summary>

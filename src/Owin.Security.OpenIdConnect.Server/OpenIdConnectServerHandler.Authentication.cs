@@ -264,8 +264,15 @@ namespace Owin.Security.OpenIdConnect.Server {
             var context = new ValidateAuthorizationRequestContext(Context, Options, request);
             await Options.Provider.ValidateAuthorizationRequest(context);
 
-            // Stop processing the request if Validated was not called.
-            if (!context.IsValidated) {
+            if (context.HandledResponse) {
+                return true;
+            }
+
+            else if (context.Skipped) {
+                return false;
+            }
+
+            else if (!context.IsValidated) {
                 Options.Logger.LogError("The authorization request was rejected with the following error: {Error} ; {Description}",
                                         /* Error: */ context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                                         /* Description: */ context.ErrorDescription);
@@ -312,6 +319,18 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             else if (notification.Skipped) {
                 return false;
+            }
+
+            else if (notification.IsRejected) {
+                Options.Logger.LogError("The authorization request was rejected with the following error: {Error} ; {Description}",
+                                        /* Error: */ notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                                        /* Description: */ notification.ErrorDescription);
+
+                return await SendAuthorizationResponseAsync(request, new OpenIdConnectMessage {
+                    Error = notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = notification.ErrorDescription,
+                    ErrorUri = notification.ErrorUri
+                });
             }
 
             return false;

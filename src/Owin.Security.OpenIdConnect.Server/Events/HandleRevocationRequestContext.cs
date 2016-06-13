@@ -7,14 +7,13 @@
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
-using Microsoft.Owin.Security.Notifications;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// An event raised before the authorization server handles
     /// the request made to the token revocation endpoint.
     /// </summary>
-    public class HandleRevocationRequestContext : BaseNotification<OpenIdConnectServerOptions> {
+    public class HandleRevocationRequestContext : BaseValidatingContext {
         /// <summary>
         /// Creates an instance of this context.
         /// </summary>
@@ -26,6 +25,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             : base(context, options) {
             Request = request;
             Ticket = ticket;
+            Validate();
         }
 
         /// <summary>

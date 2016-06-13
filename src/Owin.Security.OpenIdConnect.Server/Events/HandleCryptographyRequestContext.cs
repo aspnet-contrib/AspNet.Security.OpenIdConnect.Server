@@ -7,14 +7,13 @@
 using System.Collections.Generic;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
-using Microsoft.Owin.Security.Notifications;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// An event raised before the authorization server handles
     /// the request made to the JWKS metadata endpoint.
     /// </summary>
-    public class HandleCryptographyRequestContext : BaseNotification<OpenIdConnectServerOptions> {
+    public class HandleCryptographyRequestContext : BaseValidatingContext {
         /// <summary>
         /// Creates an instance of this context.
         /// </summary>
@@ -24,6 +23,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             OpenIdConnectMessage request)
             : base(context, options) {
             Request = request;
+            Validate();
         }
 
         /// <summary>

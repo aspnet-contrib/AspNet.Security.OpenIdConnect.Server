@@ -37,7 +37,15 @@ namespace AspNet.Security.OpenIdConnect.Server {
             var context = new ValidateConfigurationRequestContext(Context, Options);
             await Options.Provider.ValidateConfigurationRequest(context);
 
-            if (!context.IsValidated) {
+            if (context.HandledResponse) {
+                return true;
+            }
+
+            else if (context.Skipped) {
+                return false;
+            }
+
+            else if (!context.IsValidated) {
                 Logger.LogError("The discovery request was rejected with the following error: {Error} ; {Description}",
                                 /* Error: */ context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                                 /* Description: */ context.ErrorDescription);
@@ -148,6 +156,18 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return false;
             }
 
+            else if (notification.IsRejected) {
+                Logger.LogError("The discovery request was rejected with the following error: {Error} ; {Description}",
+                                /* Error: */ notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                                /* Description: */ notification.ErrorDescription);
+
+                return await SendConfigurationResponseAsync(request, new OpenIdConnectMessage {
+                    Error = notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = notification.ErrorDescription,
+                    ErrorUri = notification.ErrorUri
+                });
+            }
+
             var response = new JObject();
 
             response.Add(OpenIdConnectConstants.Metadata.Issuer, notification.Issuer);
@@ -240,7 +260,15 @@ namespace AspNet.Security.OpenIdConnect.Server {
             var context = new ValidateCryptographyRequestContext(Context, Options);
             await Options.Provider.ValidateCryptographyRequest(context);
 
-            if (!context.IsValidated) {
+            if (context.HandledResponse) {
+                return true;
+            }
+
+            else if (context.Skipped) {
+                return false;
+            }
+
+            else if (!context.IsValidated) {
                 Logger.LogError("The discovery request was rejected with the following error: {Error} ; {Description}",
                                 /* Error: */ context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                                 /* Description: */ context.ErrorDescription);
@@ -345,6 +373,18 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             else if (notification.Skipped) {
                 return false;
+            }
+
+            else if (notification.IsRejected) {
+                Logger.LogError("The discovery request was rejected with the following error: {Error} ; {Description}",
+                                /* Error: */ notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                                /* Description: */ notification.ErrorDescription);
+
+                return await SendCryptographyResponseAsync(request, new OpenIdConnectMessage {
+                    Error = notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = notification.ErrorDescription,
+                    ErrorUri = notification.ErrorUri
+                });
             }
 
             var response = new JObject();

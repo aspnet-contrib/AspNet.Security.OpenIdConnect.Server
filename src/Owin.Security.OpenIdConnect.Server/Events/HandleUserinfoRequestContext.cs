@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
-using Microsoft.Owin.Security.Notifications;
 using Newtonsoft.Json.Linq;
 
 namespace Owin.Security.OpenIdConnect.Server {
@@ -16,7 +15,7 @@ namespace Owin.Security.OpenIdConnect.Server {
     /// An event raised after the Authorization Server has processed the request, but before it is passed on to the web application.
     /// Calling RequestCompleted will prevent the request from passing on to the web application.
     /// </summary>
-    public class HandleUserinfoRequestContext : BaseNotification<OpenIdConnectServerOptions> {
+    public class HandleUserinfoRequestContext : BaseValidatingContext {
         /// <summary>
         /// Creates an instance of this context
         /// </summary>
@@ -26,8 +25,9 @@ namespace Owin.Security.OpenIdConnect.Server {
             OpenIdConnectMessage request,
             AuthenticationTicket ticket)
             : base(context, options) {
-            Ticket = ticket;
             Request = request;
+            Ticket = ticket;
+            Validate();
         }
 
         /// <summary>

@@ -107,7 +107,15 @@ namespace AspNet.Security.OpenIdConnect.Server {
             var context = new ValidateIntrospectionRequestContext(Context, Options, request);
             await Options.Provider.ValidateIntrospectionRequest(context);
 
-            if (context.IsRejected) {
+            if (context.HandledResponse) {
+                return true;
+            }
+
+            else if (context.Skipped) {
+                return false;
+            }
+
+            else if (context.IsRejected) {
                 Logger.LogError("The introspection request was rejected with the following error: {Error} ; {Description}",
                                 /* Error: */ context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                                 /* Description: */ context.ErrorDescription);
@@ -299,6 +307,18 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             else if (notification.Skipped) {
                 return false;
+            }
+
+            else if (notification.IsRejected) {
+                Logger.LogError("The introspection request was rejected with the following error: {Error} ; {Description}",
+                                /* Error: */ notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                                /* Description: */ notification.ErrorDescription);
+
+                return await SendIntrospectionResponseAsync(request, new OpenIdConnectMessage {
+                    Error = notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = notification.ErrorDescription,
+                    ErrorUri = notification.ErrorUri
+                });
             }
 
             var response = new JObject();

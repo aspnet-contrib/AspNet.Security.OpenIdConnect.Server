@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
@@ -17,7 +16,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// An event raised before the authorization server handles
     /// the request made to the token introspection endpoint.
     /// </summary>
-    public class HandleIntrospectionRequestContext : BaseControlContext {
+    public class HandleIntrospectionRequestContext : BaseValidatingContext {
         /// <summary>
         /// Creates an instance of this context.
         /// </summary>
@@ -26,16 +25,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request,
             AuthenticationTicket ticket)
-            : base(context) {
-            Options = options;
+            : base(context, options) {
             Request = request;
             Ticket = ticket;
+            Validate();
         }
-
-        /// <summary>
-        /// Gets the options used by the OpenID Connect server.
-        /// </summary>
-        public OpenIdConnectServerOptions Options { get; }
 
         /// <summary>
         /// Gets the introspection request.

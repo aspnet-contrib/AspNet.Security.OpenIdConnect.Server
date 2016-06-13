@@ -7,13 +7,12 @@
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
-using Microsoft.Owin.Security.Notifications;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Provides context information used when processing an OpenIdConnect token request.
     /// </summary>
-    public class HandleTokenRequestContext : BaseNotification<OpenIdConnectServerOptions> {
+    public class HandleTokenRequestContext : BaseValidatingTicketContext {
         /// <summary>
         /// Initializes a new instance of the <see cref="HandleTokenRequestContext"/> class
         /// </summary>
@@ -26,15 +25,10 @@ namespace Owin.Security.OpenIdConnect.Server {
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request,
             AuthenticationTicket ticket)
-            : base(context, options) {
+            : base(context, options, ticket) {
             Request = request;
-            Ticket = ticket;
+            Validate();
         }
-
-        /// <summary>
-        /// Gets or sets the authentication ticket.
-        /// </summary>
-        public AuthenticationTicket Ticket { get; set; }
 
         /// <summary>
         /// Gets the token endpoint request. 

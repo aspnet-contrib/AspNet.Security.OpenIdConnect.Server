@@ -5,7 +5,6 @@
  */
 
 using System.Collections.Generic;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
@@ -15,7 +14,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// An event raised before the authorization server handles
     /// the request made to the JWKS metadata endpoint.
     /// </summary>
-    public class HandleCryptographyRequestContext : BaseControlContext {
+    public class HandleCryptographyRequestContext : BaseValidatingContext {
         /// <summary>
         /// Creates an instance of this context.
         /// </summary>
@@ -23,15 +22,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
             HttpContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectMessage request)
-            : base(context) {
-            Options = options;
+            : base(context, options) {
             Request = request;
+            Validate();
         }
-
-        /// <summary>
-        /// Gets the options used by the OpenID Connect server.
-        /// </summary>
-        public OpenIdConnectServerOptions Options { get; }
 
         /// <summary>
         /// Gets the cryptography request.
