@@ -562,9 +562,17 @@ namespace AspNet.Security.OpenIdConnect.Server {
         private async Task<AuthenticationTicket> DeserializeAccessTokenAsync(string token, OpenIdConnectMessage request) {
             var notification = new DeserializeAccessTokenContext(Context, Options, request, token) {
                 DataFormat = Options.AccessTokenFormat,
-                Issuer = Context.GetIssuer(Options),
-                SecurityTokenHandler = Options.AccessTokenHandler,
-                SigningCredentials = Options.SigningCredentials.FirstOrDefault()
+                SecurityTokenHandler = Options.AccessTokenHandler
+            };
+
+            // Note: ValidateAudience and ValidateLifetime are always set to false:
+            // if necessary, the audience and the expiration can be validated
+            // in InvokeIntrospectionEndpointAsync or InvokeTokenEndpointAsync.
+            notification.TokenValidationParameters = new TokenValidationParameters {
+                IssuerSigningKeys = Options.SigningCredentials.Select(credentials => credentials.Key),
+                ValidIssuer = Context.GetIssuer(Options),
+                ValidateAudience = false,
+                ValidateLifetime = false
             };
 
             await Options.Provider.DeserializeAccessToken(notification);
@@ -582,22 +590,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return notification.DataFormat?.Unprotect(token);
             }
 
-            // Create new validation parameters to validate the security token.
-            // ValidateAudience and ValidateLifetime are always set to false:
-            // if necessary, the audience and the expiration can be validated
-            // in InvokeIntrospectionEndpointAsync or InvokeTokenEndpointAsync.
-            var parameters = new TokenValidationParameters {
-                IssuerSigningKey = notification.SigningCredentials.Key,
-                ValidIssuer = notification.Issuer,
-                ValidateAudience = false,
-                ValidateLifetime = false
-            };
-
             SecurityToken securityToken;
             ClaimsPrincipal principal;
 
             try {
-                principal = handler.ValidateToken(token, parameters, out securityToken);
+                principal = handler.ValidateToken(token, notification.TokenValidationParameters, out securityToken);
             }
 
             catch (Exception exception) {
@@ -661,9 +658,17 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
         private async Task<AuthenticationTicket> DeserializeIdentityTokenAsync(string token, OpenIdConnectMessage request) {
             var notification = new DeserializeIdentityTokenContext(Context, Options, request, token) {
-                Issuer = Context.GetIssuer(Options),
-                SecurityTokenHandler = Options.IdentityTokenHandler,
-                SigningCredentials = Options.SigningCredentials.FirstOrDefault()
+                SecurityTokenHandler = Options.IdentityTokenHandler
+            };
+
+            // Note: ValidateAudience and ValidateLifetime are always set to false:
+            // if necessary, the audience and the expiration can be validated
+            // in InvokeIntrospectionEndpointAsync or InvokeTokenEndpointAsync.
+            notification.TokenValidationParameters = new TokenValidationParameters {
+                IssuerSigningKeys = Options.SigningCredentials.Select(credentials => credentials.Key),
+                ValidIssuer = Context.GetIssuer(Options),
+                ValidateAudience = false,
+                ValidateLifetime = false
             };
 
             await Options.Provider.DeserializeIdentityToken(notification);
@@ -680,22 +685,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return null;
             }
 
-            // Create new validation parameters to validate the security token.
-            // ValidateAudience and ValidateLifetime are always set to false:
-            // if necessary, the audience and the expiration can be validated
-            // in InvokeIntrospectionEndpointAsync or InvokeTokenEndpointAsync.
-            var parameters = new TokenValidationParameters {
-                IssuerSigningKey = notification.SigningCredentials.Key,
-                ValidIssuer = notification.Issuer,
-                ValidateAudience = false,
-                ValidateLifetime = false
-            };
-
             SecurityToken securityToken;
             ClaimsPrincipal principal;
 
             try {
-                principal = notification.SecurityTokenHandler.ValidateToken(token, parameters, out securityToken);
+                principal = notification.SecurityTokenHandler.ValidateToken(token, notification.TokenValidationParameters, out securityToken);
             }
 
             catch (Exception exception) {

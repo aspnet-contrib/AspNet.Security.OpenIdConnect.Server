@@ -366,7 +366,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 // Resolve the underlying algorithm from the security key.
                 var algorithm = (RSA) ((AsymmetricSecurityKey) credentials.SigningKey)
                     .GetAsymmetricAlgorithm(
-                        algorithm: SecurityAlgorithms.RsaOaepKeyWrap,
+                        algorithm: SecurityAlgorithms.RsaSha256Signature,
                         privateKey: false);
 
                 // Skip the key if a RSA instance cannot be retrieved.

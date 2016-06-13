@@ -44,15 +44,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public new OpenIdConnectMessage Request { get; }
 
         /// <summary>
-        /// Gets or sets the issuer address.
+        /// Gets or sets the validation parameters used to verify the authenticity of identity tokens.
         /// </summary>
-        public string Issuer { get; set; }
-
-        /// <summary>
-        /// Gets or sets the signing credentials used to
-        /// verify the authenticity of the identity token.
-        /// </summary>
-        public SigningCredentials SigningCredentials { get; set; }
+        public TokenValidationParameters TokenValidationParameters { get; set; } = new TokenValidationParameters();
 
         /// <summary>
         /// Gets or sets the security token handler used to

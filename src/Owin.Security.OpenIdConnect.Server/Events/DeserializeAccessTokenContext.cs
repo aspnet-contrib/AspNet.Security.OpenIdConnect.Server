@@ -43,15 +43,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         public AuthenticationTicket Ticket { get; set; }
 
         /// <summary>
-        /// Gets or sets the issuer address.
+        /// Gets or sets the validation parameters used to verify the authenticity of access tokens.
+        /// Note: this property is only used when <see cref="SecurityTokenHandler"/> is not <c>null</c>.
         /// </summary>
-        public string Issuer { get; set; }
-
-        /// <summary>
-        /// Gets or sets the signing credentials used to
-        /// verify the authenticity of the access token.
-        /// </summary>
-        public SigningCredentials SigningCredentials { get; set; }
+        public TokenValidationParameters TokenValidationParameters { get; set; } = new TokenValidationParameters();
 
         /// <summary>
         /// Gets or sets the data format used to deserialize the authentication ticket.
