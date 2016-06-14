@@ -104,6 +104,12 @@ namespace Mvc.Server.Providers {
                 return;
             }
 
+            // Note: to mitigate brute force attacks, you SHOULD strongly consider applying
+            // a key derivation function like PBKDF2 to slow down the secret validation process.
+            // You SHOULD also consider using a time-constant comparer to prevent timing attacks.
+            // For that, you can use the CryptoHelper library developed by @henkmollema:
+            // https://github.com/henkmollema/CryptoHelper. If you don't need .NET Core support,
+            // SecurityDriven.NET/inferno is a rock-solid alternative: http://securitydriven.net/inferno/
             if (!string.Equals(context.ClientSecret, application.Secret, StringComparison.Ordinal)) {
                 context.Reject(
                     error: OpenIdConnectConstants.Errors.InvalidClient,
