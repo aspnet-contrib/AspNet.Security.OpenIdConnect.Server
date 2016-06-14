@@ -26,11 +26,25 @@ namespace Nancy.Server.Providers {
             // that don't result in an access token being returned directly from the authorization endpoint.
             // You may consider relaxing it to support the implicit flow. In this case, consider adding checks
             // rejecting implicit/hybrid authorization requests when the client is a confidential application.
-            if (context.Request.HasResponseType(OpenIdConnectConstants.ResponseTypes.Token)) {
+            if (!context.Request.IsAuthorizationCodeFlow() && !context.Request.IsHybridFlow() ||
+                 context.Request.HasResponseType(OpenIdConnectConstants.ResponseTypes.Token)) {
                 context.Reject(
                     error: OpenIdConnectConstants.Errors.UnsupportedResponseType,
                     description: "Only response_type=code and response_type=id_token or " +
                                  "response_type=code id_token are supported by this authorization server");
+
+                return;
+            }
+
+            // Note: to support custom response modes, the OpenID Connect server middleware doesn't
+            // reject unknown modes before the ApplyAuthorizationResponse event is invoked.
+            // To ensure invalid modes are rejected early enough, a check is made here.
+            if (!string.IsNullOrEmpty(context.Request.ResponseMode) && !context.Request.IsFormPostResponseMode() &&
+                                                                       !context.Request.IsFragmentResponseMode() &&
+                                                                       !context.Request.IsQueryResponseMode()) {
+                context.Reject(
+                    error: OpenIdConnectConstants.Errors.InvalidRequest,
+                    description: "The specified response_mode is unsupported.");
 
                 return;
             }

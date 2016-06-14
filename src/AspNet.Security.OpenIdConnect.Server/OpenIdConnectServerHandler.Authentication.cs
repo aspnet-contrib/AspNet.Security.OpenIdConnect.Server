@@ -215,29 +215,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 });
             }
 
-            // Reject requests whose response_type parameter is unsupported.
-            else if (!request.IsNoneFlow() && !request.IsAuthorizationCodeFlow() &&
-                     !request.IsImplicitFlow() && !request.IsHybridFlow()) {
-                Logger.LogError("The authorization request was rejected because the 'response_type' " +
-                                "parameter was invalid: {ResponseType}.", request.ResponseType);
-
-                return await SendAuthorizationResponseAsync(request, new OpenIdConnectMessage {
-                    Error = OpenIdConnectConstants.Errors.UnsupportedResponseType,
-                    ErrorDescription = "response_type unsupported"
-                });
-            }
-
-            // Reject requests whose response_mode is unsupported.
-            else if (!request.IsFormPostResponseMode() && !request.IsFragmentResponseMode() && !request.IsQueryResponseMode()) {
-                Logger.LogError("The authorization request was rejected because the 'response_mode' " +
-                                "parameter was invalid: {ResponseMode}.", request.ResponseMode);
-
-                return await SendAuthorizationResponseAsync(request, new OpenIdConnectMessage {
-                    Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                    ErrorDescription = "response_mode unsupported"
-                });
-            }
-
             // response_mode=query (explicit or not) and a response_type containing id_token
             // or token are not considered as a safe combination and MUST be rejected.
             // See http://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#Security
@@ -266,7 +243,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 });
             }
 
-            // Reject requests containing the id_token response_mode if no openid scope has been received.
+            // Reject requests containing the id_token response_type if no openid scope has been received.
             else if (request.HasResponseType(OpenIdConnectConstants.ResponseTypes.IdToken) &&
                     !request.HasScope(OpenIdConnectConstants.Scopes.OpenId)) {
                 Logger.LogError("The authorization request was rejected because the 'openid' scope was missing.");
@@ -643,7 +620,13 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return true;
             }
 
-            return await SendNativePageAsync(response);
+            Logger.LogError("The authorization request was rejected because the 'response_mode' " +
+                            "parameter was invalid: {ResponseMode}.", request.ResponseMode);
+
+            return await SendNativePageAsync(new OpenIdConnectMessage {
+                Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                ErrorDescription = "response_mode unsupported"
+            });
         }
     }
 }

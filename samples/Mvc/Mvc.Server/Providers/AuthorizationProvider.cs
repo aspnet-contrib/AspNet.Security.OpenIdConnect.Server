@@ -34,6 +34,19 @@ namespace Mvc.Server.Providers {
                 return;
             }
 
+            // Note: to support custom response modes, the OpenID Connect server middleware doesn't
+            // reject unknown modes before the ApplyAuthorizationResponse event is invoked.
+            // To ensure invalid modes are rejected early enough, a check is made here.
+            if (!string.IsNullOrEmpty(context.Request.ResponseMode) && !context.Request.IsFormPostResponseMode() &&
+                                                                       !context.Request.IsFragmentResponseMode() &&
+                                                                       !context.Request.IsQueryResponseMode()) {
+                context.Reject(
+                    error: OpenIdConnectConstants.Errors.InvalidRequest,
+                    description: "The specified response_mode is unsupported.");
+
+                return;
+            }
+
             var database = context.HttpContext.RequestServices.GetRequiredService<ApplicationContext>();
 
             // Retrieve the application details corresponding to the requested client_id.
