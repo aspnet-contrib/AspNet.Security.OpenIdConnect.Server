@@ -258,8 +258,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                 // When the encrypting credentials use an asymmetric key, replace them by a
                 // EncryptedKeyEncryptingCredentials instance to generate a symmetric key.
-                if (descriptor.EncryptingCredentials != null &&
-                    descriptor.EncryptingCredentials.SecurityKey is AsymmetricSecurityKey) {
+                if (descriptor.EncryptingCredentials?.SecurityKey is AsymmetricSecurityKey) {
                     // Note: EncryptedKeyEncryptingCredentials automatically generates an in-memory key
                     // that will be encrypted using the original credentials and added to the resulting token
                     // if the security token handler fully supports token encryption (e.g SAML or SAML2).
@@ -559,6 +558,14 @@ namespace Owin.Security.OpenIdConnect.Server {
                 ValidateLifetime = false
             };
 
+            if (notification.SecurityTokenHandler is JwtSecurityTokenHandler) {
+                notification.TokenValidationParameters.IssuerSigningTokens =
+                    from credentials in Options.SigningCredentials
+                    where credentials.SigningKeyIdentifier != null
+                    from clause in credentials.SigningKeyIdentifier.OfType<LocalIdKeyIdentifierClause>()
+                    select new NamedKeySecurityToken(OpenIdConnectConstants.Claims.KeyId, clause.LocalId, credentials.SigningKey);
+            }
+
             await Options.Provider.DeserializeAccessToken(notification);
 
             if (notification.HandledResponse || notification.Ticket != null) {
@@ -654,6 +661,14 @@ namespace Owin.Security.OpenIdConnect.Server {
                 ValidateAudience = false,
                 ValidateLifetime = false
             };
+
+            if (notification.SecurityTokenHandler is JwtSecurityTokenHandler) {
+                notification.TokenValidationParameters.IssuerSigningTokens =
+                    from credentials in Options.SigningCredentials
+                    where credentials.SigningKeyIdentifier != null
+                    from clause in credentials.SigningKeyIdentifier.OfType<LocalIdKeyIdentifierClause>()
+                    select new NamedKeySecurityToken(OpenIdConnectConstants.Claims.KeyId, clause.LocalId, credentials.SigningKey);
+            }
 
             await Options.Provider.DeserializeIdentityToken(notification);
 

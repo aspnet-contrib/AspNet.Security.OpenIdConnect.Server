@@ -201,7 +201,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                         
                         try {
                             // Encrypt the key using the data protector and try to persist it on the disk.
-                            var key = OpenIdConnectServerHelpers.EncryptKey(protector, parameters, usage: "Signing");
+                            var key = OpenIdConnectServerHelpers.EncryptKey(protector, parameters, usage: "Encryption");
                             var path = OpenIdConnectServerHelpers.PersistKey(directory, key);
 
                             Options.Logger.LogInformation("A new RSA key was automatically generated, added to the " +

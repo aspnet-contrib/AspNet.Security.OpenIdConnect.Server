@@ -264,20 +264,13 @@ namespace Owin.Security.OpenIdConnect.Server {
                     .GetAsymmetricAlgorithm(
                         algorithm: SecurityAlgorithms.RsaOaepKeyWrap,
                         privateKey: false);
-
-                // Skip the key if a RSA instance cannot be retrieved.
-                if (algorithm == null) {
-                    Options.Logger.LogError("An encryption key was ignored because it was unable " +
-                                            "to provide the requested RSA instance.");
-
-                    continue;
-                }
+                Debug.Assert(algorithm != null, "SecurityKey.GetAsymmetricAlgorithm() shouldn't return a null algorithm.");
 
                 // Export the RSA public key to create a new JSON Web Key
                 // exposing the exponent and the modulus parameters.
                 var parameters = algorithm.ExportParameters(includePrivateParameters: false);
-                Debug.Assert(parameters.Exponent != null, "A null exponent was returned by RSA.ExportParameters()");
-                Debug.Assert(parameters.Modulus != null, "A null modulus was returned by RSA.ExportParameters()");
+                Debug.Assert(parameters.Exponent != null, "RSA.ExportParameters() shouldn't return a null exponent.");
+                Debug.Assert(parameters.Modulus != null, "RSA.ExportParameters() shouldn't return a null modulus.");
 
                 var key = new JsonWebKey {
                     Use = JsonWebKeyUseNames.Enc,
@@ -368,20 +361,13 @@ namespace Owin.Security.OpenIdConnect.Server {
                     .GetAsymmetricAlgorithm(
                         algorithm: SecurityAlgorithms.RsaSha256Signature,
                         privateKey: false);
-
-                // Skip the key if a RSA instance cannot be retrieved.
-                if (algorithm == null) {
-                    Options.Logger.LogError("A signing key was ignored because it was unable " +
-                                            "to provide the requested RSA instance.");
-
-                    continue;
-                }
+                Debug.Assert(algorithm != null, "SecurityKey.GetAsymmetricAlgorithm() shouldn't return a null algorithm.");
 
                 // Export the RSA public key to create a new JSON Web Key
                 // exposing the exponent and the modulus parameters.
                 var parameters = algorithm.ExportParameters(includePrivateParameters: false);
-                Debug.Assert(parameters.Exponent != null, "A null exponent was returned by RSA.ExportParameters()");
-                Debug.Assert(parameters.Modulus != null, "A null modulus was returned by RSA.ExportParameters()");
+                Debug.Assert(parameters.Exponent != null, "RSA.ExportParameters() shouldn't return a null exponent.");
+                Debug.Assert(parameters.Modulus != null, "RSA.ExportParameters() shouldn't return a null modulus.");
 
                 var key = new JsonWebKey {
                     Use = JsonWebKeyUseNames.Sig,

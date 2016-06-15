@@ -273,7 +273,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     }
                 }
 
-                // Skip the key if a RSA instance cannot be retrieved.
+                // Skip the key if a RSA instance cannot be extracted.
                 if (algorithm == null) {
                     Logger.LogError("A signing key was ignored because it was unable " +
                                     "to provide the requested RSA instance.");
@@ -284,8 +284,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 // Export the RSA public key to create a new JSON Web Key
                 // exposing the exponent and the modulus parameters.
                 var parameters = algorithm.ExportParameters(includePrivateParameters: false);
-                Debug.Assert(parameters.Exponent != null, "A null exponent was returned by RSA.ExportParameters()");
-                Debug.Assert(parameters.Modulus != null, "A null modulus was returned by RSA.ExportParameters()");
+                Debug.Assert(parameters.Exponent != null, "RSA.ExportParameters() shouldn't return a null exponent.");
+                Debug.Assert(parameters.Modulus != null, "RSA.ExportParameters() shouldn't return a null modulus.");
 
                 var key = new JsonWebKey {
                     Use = JsonWebKeyUseNames.Sig,

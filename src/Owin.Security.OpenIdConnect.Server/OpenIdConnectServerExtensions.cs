@@ -96,11 +96,16 @@ namespace Owin {
                 throw new InvalidOperationException("The certificate doesn't contain the required private key.");
             }
 
-            var identifier = new SecurityKeyIdentifier(
-                new LocalIdKeyIdentifierClause(certificate.Thumbprint.ToUpperInvariant()),
-                new X509SecurityToken(certificate).CreateKeyIdentifierClause<X509IssuerSerialKeyIdentifierClause>(),
-                new X509SecurityToken(certificate).CreateKeyIdentifierClause<X509RawDataKeyIdentifierClause>(),
-                new X509SecurityToken(certificate).CreateKeyIdentifierClause<X509ThumbprintKeyIdentifierClause>());
+            var identifier = new SecurityKeyIdentifier {
+                new X509IssuerSerialKeyIdentifierClause(certificate),
+                new X509RawDataKeyIdentifierClause(certificate),
+                new X509ThumbprintKeyIdentifierClause(certificate),
+                new LocalIdKeyIdentifierClause(certificate.Thumbprint.ToUpperInvariant())
+            };
+
+            // Mark the security key identifier as read-only to
+            // ensure it can't be altered during a request.
+            identifier.MakeReadOnly();
 
             credentials.Add(new X509EncryptingCredentials(certificate, identifier));
 
@@ -273,19 +278,23 @@ namespace Owin {
                     var algorithm = (RSA) rsaSecurityKey.GetAsymmetricAlgorithm(
                         algorithm: SecurityAlgorithms.RsaOaepKeyWrap,
                         requiresPrivateKey: false);
-                    Debug.Assert(algorithm != null);
+                    Debug.Assert(algorithm != null, "SecurityKey.GetAsymmetricAlgorithm() shouldn't return a null algorithm.");
 
                     // Export the RSA public key to extract a key identifier based on the modulus component.
                     var parameters = algorithm.ExportParameters(includePrivateParameters: false);
-                    Debug.Assert(parameters.Modulus != null, "A null modulus was returned by RSA.ExportParameters()");
+                    Debug.Assert(parameters.Modulus != null, "RSA.ExportParameters() shouldn't return a null modulus.");
 
                     // Only use the 40 first chars of the base64url-encoded modulus.
                     var kid = Base64UrlEncoder.Encode(parameters.Modulus);
                     kid = kid.Substring(0, Math.Min(kid.Length, 40)).ToUpperInvariant();
 
-                    identifier.Add(new LocalIdKeyIdentifierClause(kid));
                     identifier.Add(new RsaKeyIdentifierClause(algorithm));
+                    identifier.Add(new LocalIdKeyIdentifierClause(kid));
                 }
+
+                // Mark the security key identifier as read-only to
+                // ensure it can't be altered during a request.
+                identifier.MakeReadOnly();
 
                 credentials.Add(new EncryptingCredentials(key, identifier, SecurityAlgorithms.RsaOaepKeyWrap));
 
@@ -296,6 +305,10 @@ namespace Owin {
                 // When using an in-memory symmetric key, no identifier clause can be inferred from the key itself.
                 // To prevent the built-in security token handlers from throwing an exception, a default identifier is added.
                 var identifier = new SecurityKeyIdentifier(new LocalIdKeyIdentifierClause("Default"));
+
+                // Mark the security key identifier as read-only to
+                // ensure it can't be altered during a request.
+                identifier.MakeReadOnly();
 
                 credentials.Add(new EncryptingCredentials(key, identifier, SecurityAlgorithms.Aes256Encryption));
 
@@ -327,11 +340,16 @@ namespace Owin {
                 throw new InvalidOperationException("The certificate doesn't contain the required private key.");
             }
 
-            var identifier = new SecurityKeyIdentifier(
-                new LocalIdKeyIdentifierClause(certificate.Thumbprint.ToUpperInvariant()),
-                new X509SecurityToken(certificate).CreateKeyIdentifierClause<X509IssuerSerialKeyIdentifierClause>(),
-                new X509SecurityToken(certificate).CreateKeyIdentifierClause<X509RawDataKeyIdentifierClause>(),
-                new X509SecurityToken(certificate).CreateKeyIdentifierClause<X509ThumbprintKeyIdentifierClause>());
+            var identifier = new SecurityKeyIdentifier {
+                new X509IssuerSerialKeyIdentifierClause(certificate),
+                new X509RawDataKeyIdentifierClause(certificate),
+                new X509ThumbprintKeyIdentifierClause(certificate),
+                new LocalIdKeyIdentifierClause(certificate.Thumbprint.ToUpperInvariant())
+            };
+
+            // Mark the security key identifier as read-only to
+            // ensure it can't be altered during a request.
+            identifier.MakeReadOnly();
 
             credentials.Add(new X509SigningCredentials(certificate, identifier));
 
@@ -503,18 +521,23 @@ namespace Owin {
                     var algorithm = (RSA) rsaSecurityKey.GetAsymmetricAlgorithm(
                         algorithm: SecurityAlgorithms.RsaSha256Signature,
                         requiresPrivateKey: false);
-                    Debug.Assert(algorithm != null);
+                    Debug.Assert(algorithm != null, "SecurityKey.GetAsymmetricAlgorithm() shouldn't return a null algorithm.");
 
                     // Export the RSA public key to extract a key identifier based on the modulus component.
                     var parameters = algorithm.ExportParameters(includePrivateParameters: false);
-                    Debug.Assert(parameters.Modulus != null, "A null modulus was returned by RSA.ExportParameters()");
+                    Debug.Assert(parameters.Modulus != null, "RSA.ExportParameters() shouldn't return a null modulus.");
 
                     // Only use the 40 first chars of the base64url-encoded modulus.
                     var kid = Base64UrlEncoder.Encode(parameters.Modulus);
                     kid = kid.Substring(0, Math.Min(kid.Length, 40)).ToUpperInvariant();
 
+                    identifier.Add(new RsaKeyIdentifierClause(algorithm));
                     identifier.Add(new LocalIdKeyIdentifierClause(kid));
                 }
+
+                // Mark the security key identifier as read-only to
+                // ensure it can't be altered during a request.
+                identifier.MakeReadOnly();
 
                 credentials.Add(new SigningCredentials(key, SecurityAlgorithms.RsaSha256Signature,
                                                             SecurityAlgorithms.Sha256Digest, identifier));
@@ -526,6 +549,10 @@ namespace Owin {
                 // When using an in-memory symmetric key, no identifier clause can be inferred from the key itself.
                 // To prevent the built-in security token handlers from throwing an exception, a default identifier is added.
                 var identifier = new SecurityKeyIdentifier(new LocalIdKeyIdentifierClause("Default"));
+
+                // Mark the security key identifier as read-only to
+                // ensure it can't be altered during a request.
+                identifier.MakeReadOnly();
 
                 credentials.Add(new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature,
                                                             SecurityAlgorithms.Sha256Digest, identifier));
