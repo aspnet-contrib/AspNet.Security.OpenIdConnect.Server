@@ -156,8 +156,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             if (notification.SigningCredentials == null) {
-                Options.Logger.LogWarning("No signing credentials are registered in the OpenID Connect server options. " +
-                                          "Consider registering a X.509 certificate to ensure access tokens are signed.");
+                throw new InvalidOperationException("A signing key must be provided.");
             }
 
             // Store the "unique_id" property as a claim.
@@ -238,8 +237,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 // Try to extract a key identifier from the signing credentials
                 // and add the "kid" property to the JWT header if applicable.
                 LocalIdKeyIdentifierClause clause = null;
-                if (notification.SigningCredentials?.SigningKeyIdentifier != null &&
-                    notification.SigningCredentials.SigningKeyIdentifier.TryFind(out clause)) {
+                if (notification.SigningCredentials.SigningKeyIdentifier.TryFind(out clause)) {
                     token.Header[JwtHeaderParameterNames.Kid] = clause.LocalId;
                 }
 
@@ -352,8 +350,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             if (notification.SigningCredentials == null) {
-                Options.Logger.LogWarning("No signing credentials are registered in the OpenID Connect server options. " +
-                                          "Consider registering a X.509 certificate to ensure identity tokens are signed.");
+                throw new InvalidOperationException("A signing key must be provided.");
             }
 
             // Store the unique subject identifier as a claim.
@@ -401,27 +398,23 @@ namespace Owin.Security.OpenIdConnect.Server {
                 ticket.Identity.AddClaim(OpenIdConnectConstants.Claims.Nonce, nonce);
             }
 
-            if (!string.IsNullOrEmpty(response.Code)) {
-                using (var algorithm = HashAlgorithm.Create(notification.SigningCredentials.DigestAlgorithm)) {
-                    // Create the c_hash using the authorization code returned by SerializeAuthorizationCodeAsync.
+            using (var algorithm = HashAlgorithm.Create(notification.SigningCredentials.DigestAlgorithm)) {
+                // Create an authorization code hash if necessary.
+                if (!string.IsNullOrEmpty(response.Code)) {
                     var hash = algorithm.ComputeHash(Encoding.ASCII.GetBytes(response.Code));
 
                     // Note: only the left-most half of the hash of the octets is used.
                     // See http://openid.net/specs/openid-connect-core-1_0.html#HybridIDToken
-                    ticket.Identity.AddClaim(OpenIdConnectConstants.Claims.CodeHash,
-                        Base64UrlEncoder.Encode(hash, 0, hash.Length / 2));
+                    identity.AddClaim(OpenIdConnectConstants.Claims.CodeHash, Base64UrlEncoder.Encode(hash, 0, hash.Length / 2));
                 }
-            }
 
-            if (!string.IsNullOrEmpty(response.AccessToken)) {
-                using (var algorithm = HashAlgorithm.Create(notification.SigningCredentials.DigestAlgorithm)) {
-                    // Create the at_hash using the access token returned by SerializeAccessTokenAsync.
+                // Create an access token hash if necessary.
+                if (!string.IsNullOrEmpty(response.AccessToken)) {
                     var hash = algorithm.ComputeHash(Encoding.ASCII.GetBytes(response.AccessToken));
 
                     // Note: only the left-most half of the hash of the octets is used.
                     // See http://openid.net/specs/openid-connect-core-1_0.html#CodeIDToken
-                    ticket.Identity.AddClaim(OpenIdConnectConstants.Claims.AccessTokenHash,
-                        Base64UrlEncoder.Encode(hash, 0, hash.Length / 2));
+                    identity.AddClaim(OpenIdConnectConstants.Claims.AccessTokenHash, Base64UrlEncoder.Encode(hash, 0, hash.Length / 2));
                 }
             }
 
@@ -456,8 +449,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             // Try to extract a key identifier from the signing credentials
             // and add the "kid" property to the JWT header if applicable.
             LocalIdKeyIdentifierClause clause = null;
-            if (notification.SigningCredentials?.SigningKeyIdentifier != null &&
-                notification.SigningCredentials.SigningKeyIdentifier.TryFind(out clause)) {
+            if (notification.SigningCredentials.SigningKeyIdentifier.TryFind(out clause)) {
                 token.Header[JwtHeaderParameterNames.Kid] = clause.LocalId;
             }
 

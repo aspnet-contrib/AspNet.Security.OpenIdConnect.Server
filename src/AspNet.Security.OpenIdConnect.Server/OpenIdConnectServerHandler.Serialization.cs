@@ -165,8 +165,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             if (notification.SigningCredentials == null) {
-                Logger.LogWarning("No signing credentials are registered in the OpenID Connect server options. " +
-                                  "Consider registering a X.509 certificate to ensure access tokens are signed.");
+                throw new InvalidOperationException("A signing key must be provided.");
             }
 
             // Extract the main identity from the principal.
@@ -245,7 +244,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     notBefore: ticket.Properties.IssuedUtc.Value.UtcDateTime,
                     expires: ticket.Properties.ExpiresUtc.Value.UtcDateTime);
 
-                var x509SecurityKey = notification.SigningCredentials?.Key as X509SecurityKey;
+                var x509SecurityKey = notification.SigningCredentials.Key as X509SecurityKey;
                 if (x509SecurityKey != null) {
                     // Note: unlike "kid", "x5t" is not automatically added by JwtHeader's constructor in IdentityModel for .NET Core.
                     // Though not required by the specifications, this property is needed for IdentityModel for Katana to work correctly.
@@ -354,8 +353,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             if (notification.SigningCredentials == null) {
-                Logger.LogWarning("No signing credentials are registered in the OpenID Connect server options. " +
-                                  "Consider registering a X.509 certificate to ensure identity tokens are signed.");
+                throw new InvalidOperationException("A signing key must be provided.");
             }
 
             // Extract the main identity from the principal.
@@ -406,27 +404,23 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 identity.AddClaim(OpenIdConnectConstants.Claims.Nonce, nonce);
             }
 
-            if (!string.IsNullOrEmpty(response.Code)) {
-                using (var algorithm = OpenIdConnectServerHelpers.GetHashAlgorithm(notification.SigningCredentials.Algorithm)) {
-                    // Create the c_hash using the authorization code returned by SerializeAuthorizationCodeAsync.
+            using (var algorithm = OpenIdConnectServerHelpers.GetHashAlgorithm(notification.SigningCredentials.Algorithm)) {
+                // Create an authorization code hash if necessary.
+                if (!string.IsNullOrEmpty(response.Code)) {
                     var hash = algorithm.ComputeHash(Encoding.ASCII.GetBytes(response.Code));
 
                     // Note: only the left-most half of the hash of the octets is used.
                     // See http://openid.net/specs/openid-connect-core-1_0.html#HybridIDToken
-                    identity.AddClaim(OpenIdConnectConstants.Claims.CodeHash,
-                        Base64UrlEncoder.Encode(hash, 0, hash.Length / 2));
+                    identity.AddClaim(OpenIdConnectConstants.Claims.CodeHash, Base64UrlEncoder.Encode(hash, 0, hash.Length / 2));
                 }
-            }
 
-            if (!string.IsNullOrEmpty(response.AccessToken)) {
-                using (var algorithm = OpenIdConnectServerHelpers.GetHashAlgorithm(notification.SigningCredentials.Algorithm)) {
-                    // Create the at_hash using the access token returned by SerializeAccessTokenAsync.
+                // Create an access token hash if necessary.
+                if (!string.IsNullOrEmpty(response.AccessToken)) {
                     var hash = algorithm.ComputeHash(Encoding.ASCII.GetBytes(response.AccessToken));
 
                     // Note: only the left-most half of the hash of the octets is used.
                     // See http://openid.net/specs/openid-connect-core-1_0.html#CodeIDToken
-                    identity.AddClaim(OpenIdConnectConstants.Claims.AccessTokenHash,
-                        Base64UrlEncoder.Encode(hash, 0, hash.Length / 2));
+                    identity.AddClaim(OpenIdConnectConstants.Claims.AccessTokenHash, Base64UrlEncoder.Encode(hash, 0, hash.Length / 2));
                 }
             }
 
@@ -456,7 +450,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 notBefore: ticket.Properties.IssuedUtc.Value.UtcDateTime,
                 expires: ticket.Properties.ExpiresUtc.Value.UtcDateTime);
 
-            var x509SecurityKey = notification.SigningCredentials?.Key as X509SecurityKey;
+            var x509SecurityKey = notification.SigningCredentials.Key as X509SecurityKey;
             if (x509SecurityKey != null) {
                 // Note: unlike "kid", "x5t" is not automatically added by JwtHeader's constructor in IdentityModel for .NET Core.
                 // Though not required by the specifications, this property is needed for IdentityModel for Katana to work correctly.

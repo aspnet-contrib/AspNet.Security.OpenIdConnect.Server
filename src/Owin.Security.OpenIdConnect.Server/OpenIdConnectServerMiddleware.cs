@@ -245,6 +245,10 @@ namespace Owin.Security.OpenIdConnect.Server {
                     Options.Logger.LogDebug("An error ocurred when generating a new key: {Exception}.", exception.ToString());
                 }
             }
+
+            if (Options.SigningCredentials.Count == 0) {
+                throw new ArgumentException("At least one signing key must be registered.", nameof(options));
+            }
         }
 
         /// <summary>
