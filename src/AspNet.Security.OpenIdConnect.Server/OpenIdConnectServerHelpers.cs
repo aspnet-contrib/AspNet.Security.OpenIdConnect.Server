@@ -293,6 +293,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
             return collection.Select(item => new KeyValuePair<string, string[]>(item.Key, item.Value.ToArray()));
         }
 
+        internal static bool IsSupportedAlgorithm(this SecurityKey key, string algorithm) {
+            return key.CryptoProviderFactory.IsSupportedAlgorithm(algorithm, key);
+        }
+
         internal static HashAlgorithm GetHashAlgorithm(string algorithm) {
             if (string.IsNullOrEmpty(algorithm)) {
                 throw new ArgumentNullException(nameof(algorithm));

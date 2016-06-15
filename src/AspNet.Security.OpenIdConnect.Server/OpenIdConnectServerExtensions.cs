@@ -260,13 +260,13 @@ namespace Microsoft.AspNetCore.Builder {
                     }
                 }
 
-                credentials.Add(new SigningCredentials(key, SecurityAlgorithms.RsaSha256));
+                credentials.Add(new SigningCredentials(key, SecurityAlgorithms.RsaSha256Signature));
 
                 return credentials;
             }
 
             else if (key.IsSupportedAlgorithm(SecurityAlgorithms.HmacSha256Signature)) {
-                credentials.Add(new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
+                credentials.Add(new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature));
 
                 return credentials;
             }
