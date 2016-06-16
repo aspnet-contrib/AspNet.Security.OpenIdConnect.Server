@@ -588,6 +588,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
             ClaimsPrincipal principal;
 
             try {
+                if (!handler.CanReadToken(token)) {
+                    Logger.LogDebug("The access token handler refused to read the token: {Token}", token);
+
+                    return null;
+                }
+
                 principal = handler.ValidateToken(token, notification.TokenValidationParameters, out securityToken);
             }
 
@@ -683,6 +689,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
             ClaimsPrincipal principal;
 
             try {
+                if (!notification.SecurityTokenHandler.CanReadToken(token)) {
+                    Logger.LogDebug("The identity token handler refused to read the token: {Token}", token);
+
+                    return null;
+                }
+
                 principal = notification.SecurityTokenHandler.ValidateToken(token, notification.TokenValidationParameters, out securityToken);
             }
 

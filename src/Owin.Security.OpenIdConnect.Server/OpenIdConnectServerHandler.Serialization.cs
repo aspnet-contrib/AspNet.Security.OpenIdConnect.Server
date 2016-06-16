@@ -585,11 +585,17 @@ namespace Owin.Security.OpenIdConnect.Server {
             ClaimsPrincipal principal;
 
             try {
+                if (!handler.CanReadToken(token)) {
+                    Options.Logger.LogDebug("The access token handler refused to read the token: {Token}", token);
+
+                    return null;
+                }
+
                 principal = handler.ValidateToken(token, notification.TokenValidationParameters, out securityToken);
             }
 
             catch (Exception exception) {
-                Options.Logger.LogInformation("An exception occured when deserializing an access token: {Message}", exception.Message);
+                Options.Logger.LogDebug("An exception occured when deserializing an access token: {Message}", exception.Message);
 
                 return null;
             }
@@ -688,11 +694,17 @@ namespace Owin.Security.OpenIdConnect.Server {
             ClaimsPrincipal principal;
 
             try {
+                if (!notification.SecurityTokenHandler.CanReadToken(token)) {
+                    Options.Logger.LogDebug("The identity token handler refused to read the token: {Token}", token);
+
+                    return null;
+                }
+
                 principal = notification.SecurityTokenHandler.ValidateToken(token, notification.TokenValidationParameters, out securityToken);
             }
 
             catch (Exception exception) {
-                Options.Logger.LogInformation("An exception occured when deserializing an identity token: {Message}", exception.Message);
+                Options.Logger.LogDebug("An exception occured when deserializing an identity token: {Message}", exception.Message);
 
                 return null;
             }

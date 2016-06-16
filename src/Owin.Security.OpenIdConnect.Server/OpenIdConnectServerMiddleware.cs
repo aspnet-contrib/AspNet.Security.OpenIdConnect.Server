@@ -71,6 +71,10 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
             }
 
+            if (Options.AccessTokenHandler != null && !(Options.AccessTokenHandler is ISecurityTokenValidator)) {
+                throw new ArgumentException("The access token handler must implement 'ISecurityTokenValidator'.", nameof(options));
+            }
+
             if (Options.Logger == null) {
                 Options.Logger = new LoggerFactory().CreateLogger<OpenIdConnectServerMiddleware>();
             }
