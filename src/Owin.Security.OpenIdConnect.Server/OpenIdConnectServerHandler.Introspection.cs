@@ -67,6 +67,35 @@ namespace Owin.Security.OpenIdConnect.Server {
                 });
             }
 
+            var @event = new ExtractIntrospectionRequestContext(Context, Options, request);
+            await Options.Provider.ExtractIntrospectionRequest(@event);
+
+            // Allow the application code to replace the introspection request.
+            request = @event.Request;
+
+            if (@event.HandledResponse) {
+                return true;
+            }
+
+            else if (@event.Skipped) {
+                return false;
+            }
+
+            else if (@event.IsRejected) {
+                Options.Logger.LogError("The introspection request was rejected with the following error: {Error} ; {Description}",
+                                        /* Error: */ @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                                        /* Description: */ @event.ErrorDescription);
+
+                return await SendIntrospectionResponseAsync(null, new OpenIdConnectMessage {
+                    Error = @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = @event.ErrorDescription,
+                    ErrorUri = @event.ErrorUri
+                });
+            }
+
+            // Insert the introspection request in the OWIN context.
+            Context.SetOpenIdConnectRequest(request);
+
             if (string.IsNullOrWhiteSpace(request.Token)) {
                 return await SendIntrospectionResponseAsync(request, new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
@@ -74,9 +103,6 @@ namespace Owin.Security.OpenIdConnect.Server {
                         "a 'token' parameter with an access, refresh, or identity token is required."
                 });
             }
-
-            // Insert the introspection request in the OWIN context.
-            Context.SetOpenIdConnectRequest(request);
 
             // When client_id and client_secret are both null, try to extract them from the Authorization header.
             // See http://tools.ietf.org/html/rfc6749#section-2.3.1 and

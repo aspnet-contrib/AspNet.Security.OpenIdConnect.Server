@@ -15,7 +15,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http.Authentication;
 using Microsoft.AspNetCore.Http.Features.Authentication;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
@@ -78,49 +77,30 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 });
             }
 
-            // Re-assemble the authorization request using the distributed cache if
-            // a 'unique_id' parameter has been extracted from the received message.
-            var identifier = request.GetRequestId();
-            if (!string.IsNullOrEmpty(identifier)) {
-                var buffer = await Options.Cache.GetAsync($"asos-request:{identifier}");
-                if (buffer == null) {
-                    Logger.LogError("A request_id was extracted from the authorization request ({RequestId}) " +
-                                    "but no corresponding entry was found in the cache.", identifier);
+            var @event = new ExtractAuthorizationRequestContext(Context, Options, request);
+            await Options.Provider.ExtractAuthorizationRequest(@event);
 
-                    return await SendAuthorizationResponseAsync(request, new OpenIdConnectMessage {
-                        Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                        ErrorDescription = "Invalid request: timeout expired."
-                    });
-                }
+            // Allow the application code to replace the authorization request.
+            request = @event.Request;
 
-                using (var stream = new MemoryStream(buffer))
-                using (var reader = new BinaryReader(stream)) {
-                    // Make sure the stored authorization request
-                    // has been serialized using the same method.
-                    var version = reader.ReadInt32();
-                    if (version != 1) {
-                        await Options.Cache.RemoveAsync($"asos-request:{identifier}");
+            if (@event.HandledResponse) {
+                return true;
+            }
 
-                        Logger.LogError("The authorization request retrieved from the cache was invalid.");
+            else if (@event.Skipped) {
+                return false;
+            }
 
-                        return await SendAuthorizationResponseAsync(request, new OpenIdConnectMessage {
-                            Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                            ErrorDescription = "Invalid request: timeout expired."
-                        });
-                    }
+            else if (@event.IsRejected) {
+                Logger.LogError("The authorization request was rejected with the following error: {Error} ; {Description}",
+                                /* Error: */ @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                                /* Description: */ @event.ErrorDescription);
 
-                    for (int index = 0, length = reader.ReadInt32(); index < length; index++) {
-                        var name = reader.ReadString();
-                        var value = reader.ReadString();
-
-                        // Skip restoring the parameter retrieved from the stored request
-                        // if the OpenID Connect message extracted from the query string
-                        // or the request form defined the same parameter.
-                        if (!request.Parameters.ContainsKey(name)) {
-                            request.SetParameter(name, value);
-                        }
-                    }
-                }
+                return await SendAuthorizationResponseAsync(null, new OpenIdConnectMessage {
+                    Error = @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = @event.ErrorDescription,
+                    ErrorUri = @event.ErrorUri
+                });
             }
 
             // Store the authorization request in the ASP.NET context.
@@ -287,32 +267,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 });
             }
 
-            identifier = request.GetRequestId();
-            if (string.IsNullOrEmpty(identifier)) {
-                // Generate a new 256-bits identifier and associate it with the authorization request.
-                identifier = Options.RandomNumberGenerator.GenerateKey(length: 256 / 8);
-                request.SetRequestId(identifier);
-
-                using (var stream = new MemoryStream())
-                using (var writer = new BinaryWriter(stream)) {
-                    writer.Write(/* version: */ 1);
-                    writer.Write(request.Parameters.Count);
-
-                    foreach (var parameter in request.Parameters) {
-                        writer.Write(parameter.Key);
-                        writer.Write(parameter.Value);
-                    }
-
-                    // Serialize the authorization request.
-                    var bytes = stream.ToArray();
-
-                    // Store the authorization request in the distributed cache.
-                    await Options.Cache.SetAsync($"asos-request:{identifier}", bytes, new DistributedCacheEntryOptions {
-                        AbsoluteExpiration = Options.SystemClock.UtcNow + TimeSpan.FromHours(1)
-                    });
-                }
-            }
-
             var notification = new HandleAuthorizationRequestContext(Context, Options, request);
             await Options.Provider.HandleAuthorizationRequest(notification);
 
@@ -474,28 +428,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 }
             }
 
-            // Remove the OpenID Connect request from the distributed cache.
-            var identifier = request.GetRequestId();
-            if (!string.IsNullOrEmpty(identifier)) {
-                await Options.Cache.RemoveAsync($"asos-request:{identifier}");
-            }
-
             var ticket = new AuthenticationTicket(context.Principal,
                 new AuthenticationProperties(context.Properties),
                 context.AuthenticationScheme);
 
-            var notification = new ApplyAuthorizationResponseContext(Context, Options, ticket, request, response);
-            await Options.Provider.ApplyAuthorizationResponse(notification);
-
-            if (notification.HandledResponse) {
-                return;
-            }
-
-            else if (notification.Skipped) {
-                return;
-            }
-
-            await SendAuthorizationResponseAsync(request, response);
+            await SendAuthorizationResponseAsync(request, response, ticket);
         }
 
         protected override async Task<bool> HandleForbiddenAsync(ChallengeContext context) {

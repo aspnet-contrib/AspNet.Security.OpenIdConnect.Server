@@ -72,6 +72,32 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 });
             }
 
+            var @event = new ExtractLogoutRequestContext(Context, Options, request);
+            await Options.Provider.ExtractLogoutRequest(@event);
+
+            // Allow the application code to replace the logout request.
+            request = @event.Request;
+
+            if (@event.HandledResponse) {
+                return true;
+            }
+
+            else if (@event.Skipped) {
+                return false;
+            }
+
+            else if (@event.IsRejected) {
+                Logger.LogError("The logout request was rejected with the following error: {Error} ; {Description}",
+                                /* Error: */ @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                                /* Description: */ @event.ErrorDescription);
+
+                return await SendLogoutResponseAsync(null, new OpenIdConnectMessage {
+                    Error = @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = @event.ErrorDescription,
+                    ErrorUri = @event.ErrorUri
+                });
+            }
+
             // Store the logout request in the ASP.NET context.
             Context.SetOpenIdConnectRequest(request);
 

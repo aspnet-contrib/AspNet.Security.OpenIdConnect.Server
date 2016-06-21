@@ -55,6 +55,29 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             var request = new OpenIdConnectMessage(await Request.ReadFormAsync());
 
+            var @event = new ExtractRevocationRequestContext(Context, Options, request);
+            await Options.Provider.ExtractRevocationRequest(@event);
+
+            if (@event.HandledResponse) {
+                return true;
+            }
+
+            else if (@event.Skipped) {
+                return false;
+            }
+
+            else if (@event.IsRejected) {
+                Options.Logger.LogError("The revocation request was rejected with the following error: {Error} ; {Description}",
+                                        /* Error: */ @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                                        /* Description: */ @event.ErrorDescription);
+
+                return await SendRevocationResponseAsync(null, new OpenIdConnectMessage {
+                    Error = @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = @event.ErrorDescription,
+                    ErrorUri = @event.ErrorUri
+                });
+            }
+
             if (string.IsNullOrWhiteSpace(request.Token)) {
                 return await SendRevocationResponseAsync(request, new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,

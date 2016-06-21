@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Mvc.Server.Controllers {
     public class UserinfoController : Controller {
-        // Note: make sure to always specify ActiveAuthenticationSchemes = "oidc-server"
+        // Note: make sure to always specify ActiveAuthenticationSchemes = "ASOS"
         // or use AutomaticAuthentication = true in the OpenID Connect server middleware options.
         [Authorize(ActiveAuthenticationSchemes = OpenIdConnectServerDefaults.AuthenticationScheme)]
         [HttpGet("/connect/userinfo")]

@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -34,18 +33,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
             [NotNull] IOptions<OpenIdConnectServerOptions> options,
             [NotNull] IHostingEnvironment environment,
             [NotNull] ILoggerFactory loggerFactory,
-            [NotNull] IDistributedCache cache,
             [NotNull] HtmlEncoder htmlEncoder,
             [NotNull] UrlEncoder urlEncoder,
             [NotNull] IDataProtectionProvider dataProtectionProvider)
             : base(next, options, loggerFactory, urlEncoder) {
             if (Options.Provider == null) {
                 throw new ArgumentException("The authorization provider registered in " +
-                                            "the options cannot be null.", nameof(options));
-            }
-
-            if (Options.RandomNumberGenerator == null) {
-                throw new ArgumentException("The random number generator registered in " +
                                             "the options cannot be null.", nameof(options));
             }
 
@@ -103,10 +96,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     Options.AuthenticationScheme, "Refresh_Token", "v1");
 
                 Options.RefreshTokenFormat = new TicketDataFormat(protector);
-            }
-
-            if (Options.Cache == null) {
-                Options.Cache = cache;
             }
 
             if (Options.HtmlEncoder == null) {

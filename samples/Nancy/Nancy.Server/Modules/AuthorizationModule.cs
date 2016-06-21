@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
-using Microsoft.Owin.Security.Cookies;
 using Nancy.Security;
 using Nancy.Server.Extensions;
 using Nancy.Server.Models;
@@ -18,9 +17,9 @@ using Owin.Security.OpenIdConnect.Server;
 namespace Nancy.Server.Modules {
     public class AuthorizationModule : NancyModule {
         public AuthorizationModule() {
-            Get["/connect/authorize", runAsync: true] =
-            Post["/connect/authorize", runAsync: true] = async (parameters, cancellationToken) => {
+            Get["/connect/authorize", runAsync: true] = async (parameters, cancellationToken) => {
                 this.CreateNewCsrfToken();
+                this.RequiresMSOwinAuthentication();
 
                 // Note: when a fatal error occurs during the request processing, an OpenID Connect response
                 // is prematurely forged and added to the ASP.NET context by OpenIdConnectServerHandler.
@@ -38,17 +37,6 @@ namespace Nancy.Server.Modules {
                         Error = "invalid_request",
                         ErrorDescription = "An internal error has occurred"
                     }];
-                }
-
-                // Note: authentication could be theorically enforced at the filter level via AuthorizeAttribute
-                // but this authorization endpoint accepts both GET and POST requests while the cookie middleware
-                // only uses 302 responses to redirect the user agent to the login page, making it incompatible with POST.
-                // To work around this limitation, the OpenID Connect request is automatically saved in the cache and will be
-                // restored by the OpenID Connect server middleware after the external authentication process has been completed.
-                if (OwinContext.Authentication.User?.Identity == null ||
-                   !OwinContext.Authentication.User.Identity.IsAuthenticated) {
-                    return Response.AsRedirect("/signin?returnUrl=" + Uri.EscapeUriString("/connect/authorize?request_id=" +
-                                                                                          request.GetRequestId()));
                 }
 
                 // Note: ASOS automatically ensures that an application corresponds to the client_id specified

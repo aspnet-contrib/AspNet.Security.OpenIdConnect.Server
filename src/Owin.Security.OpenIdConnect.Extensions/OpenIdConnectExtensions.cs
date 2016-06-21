@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using JetBrains.Annotations;
@@ -18,6 +19,48 @@ namespace Owin.Security.OpenIdConnect.Extensions {
     /// easier to work with, specially in server-side scenarios.
     /// </summary>
     public static class OpenIdConnectExtensions {
+        /// <summary>
+        /// Serializes an OpenID Connect message.
+        /// </summary>
+        /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
+        /// <returns>The serialized payload.</returns>
+        public static byte[] Export([NotNull] this OpenIdConnectMessage message) {
+            if (message == null) {
+                throw new ArgumentNullException(nameof(message));
+            }
+
+            using (var stream = new MemoryStream()) {
+                Export(message, stream);
+
+                return stream.ToArray();
+            }
+        }
+
+        /// <summary>
+        /// Serializes an OpenID Connect message.
+        /// </summary>
+        /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
+        /// <param name="stream">The stream the serialized payload will be written to.</param>
+        public static void Export([NotNull] this OpenIdConnectMessage message, [NotNull] Stream stream) {
+            if (message == null) {
+                throw new ArgumentNullException(nameof(message));
+            }
+
+            if (stream == null) {
+                throw new ArgumentNullException(nameof(stream));
+            }
+
+            using (var writer = new BinaryWriter(stream)) {
+                writer.Write(/* version: */ 0);
+                writer.Write(message.Parameters.Count);
+
+                foreach (var parameter in message.Parameters) {
+                    writer.Write(parameter.Key);
+                    writer.Write(parameter.Value);
+                }
+            }
+        }
+
         /// <summary>
         /// Extracts the refresh token from an <see cref="OpenIdConnectMessage"/>.
         /// </summary>
@@ -108,6 +151,66 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             }
 
             return HasValue(message.Scope, component);
+        }
+
+        /// <summary>
+        /// Deserializes and populates an OpenID Connect message.
+        /// </summary>
+        /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
+        /// <param name="payload">The payload containing the serialized parameters.</param>
+        /// <returns>The <see cref="OpenIdConnectMessage"/> instance.</returns>
+        public static OpenIdConnectMessage Import([NotNull] this OpenIdConnectMessage message, [NotNull] byte[] payload) {
+            if (message == null) {
+                throw new ArgumentNullException(nameof(message));
+            }
+
+            if (payload == null) {
+                throw new ArgumentNullException(nameof(payload));
+            }
+
+            using (var stream = new MemoryStream(payload)) {
+                return Import(message, stream);
+            }
+        }
+
+        /// <summary>
+        /// Deserializes and populates an OpenID Connect message.
+        /// </summary>
+        /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
+        /// <param name="stream">The stream containing the serialized parameters.</param>
+        /// <returns>The <see cref="OpenIdConnectMessage"/> instance.</returns>
+        public static OpenIdConnectMessage Import([NotNull] this OpenIdConnectMessage message, [NotNull] Stream stream) {
+            if (message == null) {
+                throw new ArgumentNullException(nameof(message));
+            }
+
+            if (stream == null) {
+                throw new ArgumentNullException(nameof(stream));
+            }
+
+            using (var reader = new BinaryReader(stream)) {
+                // Make sure the stored authorization request
+                // has been serialized using the same method.
+                var version = reader.ReadInt32();
+                if (version != 0) {
+                    throw new InvalidOperationException("The OpenID Connect message was serialized using an incompatible version.");
+                }
+
+                for (int index = 0, length = reader.ReadInt32(); index < length; index++) {
+                    var name = reader.ReadString();
+                    var value = reader.ReadString();
+
+                    // Skip restoring the parameter retrieved from the payload
+                    // if the OpenID Connect message defined the same parameter.
+                    if (message.Parameters.ContainsKey(name)) {
+                        continue;
+                    }
+
+                    message.SetParameter(name, value);
+                }
+
+                return message;
+            }
         }
 
         /// <summary>

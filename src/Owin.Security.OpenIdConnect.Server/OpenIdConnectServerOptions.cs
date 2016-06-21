@@ -7,11 +7,8 @@
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens;
-using System.Security.Cryptography;
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.DataProtection;
-using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Owin;
 using Microsoft.Owin.Infrastructure;
@@ -221,23 +218,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         public bool AllowInsecureHttp { get; set; }
 
         /// <summary>
-        /// The cache instance used to store short-lived data like authentication/authorization requests.
-        /// You can replace the default instance by a distributed implementation to support Web farm environments.
-        /// When this property is not explicitly set, a default in-memory implementation is used instead.
-        /// </summary>
-        public IDistributedCache Cache { get; set; } = new MemoryDistributedCache(new MemoryCache(new MemoryCacheOptions()));
-
-        /// <summary>
         /// Used to sanitize HTML responses. If you don't provide an explicit instance,
         /// <see cref="HtmlEncoder.Default"/> will be used as the default encoder.
         /// </summary>
         public HtmlEncoder HtmlEncoder { get; set; } = HtmlEncoder.Default;
-
-        /// <summary>
-        /// The random number generator used for cryptographic operations.
-        /// Replacing the default instance is usually not necessary.
-        /// </summary>
-        public RandomNumberGenerator RandomNumberGenerator { get; set; } = RandomNumberGenerator.Create();
 
         /// <summary>
         /// Gets or sets the data protection provider used to create the default

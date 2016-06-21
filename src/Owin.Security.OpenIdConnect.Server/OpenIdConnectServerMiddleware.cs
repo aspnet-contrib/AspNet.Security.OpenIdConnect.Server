@@ -38,11 +38,6 @@ namespace Owin.Security.OpenIdConnect.Server {
                                             "the options cannot be null.", nameof(options));
             }
 
-            if (Options.RandomNumberGenerator == null) {
-                throw new ArgumentException("The random number generator registered in " +
-                                            "the options cannot be null.", nameof(options));
-            }
-
             if (Options.SystemClock == null) {
                 throw new ArgumentException("The system clock registered in the options " +
                                             "cannot be null.", nameof(options));

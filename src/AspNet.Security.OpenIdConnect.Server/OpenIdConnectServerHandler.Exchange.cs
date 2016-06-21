@@ -62,6 +62,32 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 RequestType = OpenIdConnectRequestType.Token
             };
 
+            var @event = new ExtractTokenRequestContext(Context, Options, request);
+            await Options.Provider.ExtractTokenRequest(@event);
+
+            // Allow the application code to replace the token request.
+            request = @event.Request;
+
+            if (@event.HandledResponse) {
+                return true;
+            }
+
+            else if (@event.Skipped) {
+                return false;
+            }
+
+            else if (@event.IsRejected) {
+                Logger.LogError("The token request was rejected with the following error: {Error} ; {Description}",
+                                /* Error: */ @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                                /* Description: */ @event.ErrorDescription);
+
+                return await SendTokenResponseAsync(null, new OpenIdConnectMessage {
+                    Error = @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = @event.ErrorDescription,
+                    ErrorUri = @event.ErrorUri
+                });
+            }
+
             // Store the token request in the ASP.NET context.
             Context.SetOpenIdConnectRequest(request);
 

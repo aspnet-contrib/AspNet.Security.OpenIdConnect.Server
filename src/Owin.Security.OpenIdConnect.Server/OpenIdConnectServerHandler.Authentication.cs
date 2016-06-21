@@ -9,7 +9,6 @@ using System.Globalization;
 using System.IO;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin.Infrastructure;
@@ -74,51 +73,32 @@ namespace Owin.Security.OpenIdConnect.Server {
                 });
             }
 
-            // Re-assemble the authorization request using the distributed cache if
-            // a 'unique_id' parameter has been extracted from the received message.
-            var identifier = request.GetRequestId();
-            if (!string.IsNullOrEmpty(identifier)) {
-                var buffer = await Options.Cache.GetAsync($"asos-request:{identifier}");
-                if (buffer == null) {
-                    Options.Logger.LogError("A request_id was extracted from the authorization request ({RequestId}) " +
-                                            "but no corresponding entry was found in the cache.", identifier);
+            var @event = new ExtractAuthorizationRequestContext(Context, Options, request);
+            await Options.Provider.ExtractAuthorizationRequest(@event);
 
-                    return await SendAuthorizationResponseAsync(request, new OpenIdConnectMessage {
-                        Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                        ErrorDescription = "Invalid request: timeout expired."
-                    });
-                }
+            // Allow the application code to replace the authorization request.
+            request = @event.Request;
 
-                using (var stream = new MemoryStream(buffer))
-                using (var reader = new BinaryReader(stream)) {
-                    // Make sure the stored authorization request
-                    // has been serialized using the same method.
-                    var version = reader.ReadInt32();
-                    if (version != 1) {
-                        await Options.Cache.RemoveAsync($"asos-request:{identifier}");
-
-                        Options.Logger.LogError("The authorization request retrieved from the cache was invalid.");
-
-                        return await SendAuthorizationResponseAsync(request, new OpenIdConnectMessage {
-                            Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                            ErrorDescription = "Invalid request: timeout expired."
-                        });
-                    }
-
-                    for (int index = 0, length = reader.ReadInt32(); index < length; index++) {
-                        var name = reader.ReadString();
-                        var value = reader.ReadString();
-
-                        // Skip restoring the parameter retrieved from the stored request
-                        // if the OpenID Connect message extracted from the query string
-                        // or the request form defined the same parameter.
-                        if (!request.Parameters.ContainsKey(name)) {
-                            request.SetParameter(name, value);
-                        }
-                    }
-                }
+            if (@event.HandledResponse) {
+                return true;
             }
-            
+
+            else if (@event.Skipped) {
+                return false;
+            }
+
+            else if (@event.IsRejected) {
+                Options.Logger.LogError("The authorization request was rejected with the following error: {Error} ; {Description}",
+                                        /* Error: */ @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                                        /* Description: */ @event.ErrorDescription);
+
+                return await SendAuthorizationResponseAsync(null, new OpenIdConnectMessage {
+                    Error = @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = @event.ErrorDescription,
+                    ErrorUri = @event.ErrorUri
+                });
+            }
+
             // Store the authorization request in the OWIN context.
             Context.SetOpenIdConnectRequest(request);
 
@@ -284,32 +264,6 @@ namespace Owin.Security.OpenIdConnect.Server {
                 });
             }
 
-            identifier = request.GetRequestId();
-            if (string.IsNullOrEmpty(identifier)) {
-                // Generate a new 256-bits identifier and associate it with the authorization request.
-                identifier = Options.RandomNumberGenerator.GenerateKey(length: 256 / 8);
-                request.SetRequestId(identifier);
-
-                using (var stream = new MemoryStream())
-                using (var writer = new BinaryWriter(stream)) {
-                    writer.Write(/* version: */ 1);
-                    writer.Write(request.Parameters.Count);
-
-                    foreach (var parameter in request.Parameters) {
-                        writer.Write(parameter.Key);
-                        writer.Write(parameter.Value);
-                    }
-
-                    // Serialize the authorization request.
-                    var bytes = stream.ToArray();
-
-                    // Store the authorization request in the distributed cache.
-                    await Options.Cache.SetAsync($"asos-request:{identifier}", bytes, new DistributedCacheEntryOptions {
-                        AbsoluteExpiration = Options.SystemClock.UtcNow + TimeSpan.FromHours(1)
-                    });
-                }
-            }
-
             var notification = new HandleAuthorizationRequestContext(Context, Options, request);
             await Options.Provider.HandleAuthorizationRequest(notification);
 
@@ -455,6 +409,8 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             // Determine whether an identity token should be returned
             // and invoke SerializeIdentityTokenAsync if necessary.
+            // Note: the identity token MUST be created after the authorization code
+            // and the access token to create appropriate at_hash and c_hash claims.
             if (request.HasResponseType(OpenIdConnectConstants.ResponseTypes.IdToken)) {
                 // Make sure to create a copy of the authentication properties
                 // to avoid modifying the properties set on the original ticket.
@@ -468,12 +424,6 @@ namespace Owin.Security.OpenIdConnect.Server {
                     throw new InvalidOperationException("An error occurred during the serialization of the " +
                                                         "identity token and a null value was returned.");
                 }
-            }
-
-            // Remove the OpenID Connect request from the cache.
-            var identifier = request.GetRequestId();
-            if (!string.IsNullOrEmpty(identifier)) {
-                await Options.Cache.RemoveAsync($"asos-request:{identifier}");
             }
 
             var ticket = new AuthenticationTicket(context.Identity, context.Properties);

@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Server;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http.Authentication;
@@ -46,12 +45,19 @@ namespace Mvc.Server.Controllers {
             // Note: authentication could be theorically enforced at the filter level via AuthorizeAttribute
             // but this authorization endpoint accepts both GET and POST requests while the cookie middleware
             // only uses 302 responses to redirect the user agent to the login page, making it incompatible with POST.
-            // To work around this limitation, the OpenID Connect request is automatically saved in the cache and will be
-            // restored by the OpenID Connect server middleware after the external authentication process has been completed.
+            // To work around this limitation, the OpenID Connect request is automatically saved in the user session and will be
+            // restored by AuthorizationProvider.ExtractAuthorizationRequest after the external authentication process has been completed.
             if (!User.Identities.Any(identity => identity.IsAuthenticated)) {
+                // Generate a unique identifier. Note: using a crypto-secure
+                // random number generator is not necessary in this case.
+                var identifier = Guid.NewGuid().ToString();
+
+                // Store the authorization request in the user session.
+                HttpContext.Session.Set("authorization-request:" + identifier, request.Export());
+
                 return Challenge(new AuthenticationProperties {
                     RedirectUri = Url.Action(nameof(Authorize), new {
-                        request_id = request.GetRequestId()
+                        request_id = identifier
                     })
                 });
             }
@@ -85,6 +91,11 @@ namespace Mvc.Server.Controllers {
                     Error = OpenIdConnectConstants.Errors.ServerError,
                     ErrorDescription = "An internal error has occurred"
                 });
+            }
+
+            // Remove the authorization request from the user session.
+            if (!string.IsNullOrEmpty(request.GetRequestId())) {
+                HttpContext.Session.Remove("authorization-request:" + request.GetRequestId());
             }
 
             // Create a new ClaimsIdentity containing the claims that
@@ -163,6 +174,11 @@ namespace Mvc.Server.Controllers {
                     Error = OpenIdConnectConstants.Errors.ServerError,
                     ErrorDescription = "An internal error has occurred"
                 });
+            }
+
+            // Remove the authorization request from the user session.
+            if (!string.IsNullOrEmpty(request.GetRequestId())) {
+                HttpContext.Session.Remove("authorization-request:" + request.GetRequestId());
             }
 
             // Notify ASOS that the authorization grant has been denied by the resource owner.

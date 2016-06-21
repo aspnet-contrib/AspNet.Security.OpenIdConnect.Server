@@ -26,6 +26,54 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public Func<MatchEndpointContext, Task> OnMatchEndpoint { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
+        /// Called for each request to the authorization endpoint to give the application code
+        /// a chance to manually extract the authorization request from the ambient HTTP context.
+        /// </summary>
+        public Func<ExtractAuthorizationRequestContext, Task> OnExtractAuthorizationRequest { get; set; } = context => Task.FromResult<object>(null);
+
+        /// <summary>
+        /// Called for each request to the configuration endpoint to give the application code
+        /// a chance to manually extract the configuration request from the ambient HTTP context.
+        /// </summary>
+        public Func<ExtractConfigurationRequestContext, Task> OnExtractConfigurationRequest { get; set; } = context => Task.FromResult<object>(null);
+
+        /// <summary>
+        /// Called for each request to the cryptography endpoint to give the application code
+        /// a chance to manually extract the cryptography request from the ambient HTTP context.
+        /// </summary>
+        public Func<ExtractCryptographyRequestContext, Task> OnExtractCryptographyRequest { get; set; } = context => Task.FromResult<object>(null);
+
+        /// <summary>
+        /// Called for each request to the introspection endpoint to give the application code
+        /// a chance to manually extract the introspection request from the ambient HTTP context.
+        /// </summary>
+        public Func<ExtractIntrospectionRequestContext, Task> OnExtractIntrospectionRequest { get; set; } = context => Task.FromResult<object>(null);
+
+        /// <summary>
+        /// Called for each request to the logout endpoint to give the application code
+        /// a chance to manually extract the logout request from the ambient HTTP context.
+        /// </summary>
+        public Func<ExtractLogoutRequestContext, Task> OnExtractLogoutRequest { get; set; } = context => Task.FromResult<object>(null);
+
+        /// <summary>
+        /// Called for each request to the revocation endpoint to give the application code
+        /// a chance to manually extract the revocation request from the ambient HTTP context.
+        /// </summary>
+        public Func<ExtractRevocationRequestContext, Task> OnExtractRevocationRequest { get; set; } = context => Task.FromResult<object>(null);
+
+        /// <summary>
+        /// Called for each request to the token endpoint to give the application code
+        /// a chance to manually extract the token request from the ambient HTTP context.
+        /// </summary>
+        public Func<ExtractTokenRequestContext, Task> OnExtractTokenRequest { get; set; } = context => Task.FromResult<object>(null);
+
+        /// <summary>
+        /// Called for each request to the userinfo endpoint to give the application code
+        /// a chance to manually extract the userinfo request from the ambient HTTP context.
+        /// </summary>
+        public Func<ExtractUserinfoRequestContext, Task> OnExtractUserinfoRequest { get; set; } = context => Task.FromResult<object>(null);
+
+        /// <summary>
         /// Called for each request to the authorization endpoint to determine if the request is valid and should continue.
         /// </summary>
         public Func<ValidateAuthorizationRequestContext, Task> OnValidateAuthorizationRequest { get; set; } = context => Task.FromResult<object>(null);
@@ -252,6 +300,70 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
         public virtual Task MatchEndpoint(MatchEndpointContext context) => OnMatchEndpoint(context);
+
+        /// <summary>
+        /// Called for each request to the authorization endpoint to give the application code
+        /// a chance to manually extract the authorization request from the ambient HTTP context.
+        /// </summary>
+        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        public virtual Task ExtractAuthorizationRequest(ExtractAuthorizationRequestContext context) => OnExtractAuthorizationRequest(context);
+
+        /// <summary>
+        /// Called for each request to the configuration endpoint to give the application code
+        /// a chance to manually extract the configuration request from the ambient HTTP context.
+        /// </summary>
+        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        public virtual Task ExtractConfigurationRequest(ExtractConfigurationRequestContext context) => OnExtractConfigurationRequest(context);
+
+        /// <summary>
+        /// Called for each request to the cryptography endpoint to give the application code
+        /// a chance to manually extract the cryptography request from the ambient HTTP context.
+        /// </summary>
+        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        public virtual Task ExtractCryptographyRequest(ExtractCryptographyRequestContext context) => OnExtractCryptographyRequest(context);
+
+        /// <summary>
+        /// Called for each request to the introspection endpoint to give the application code
+        /// a chance to manually extract the introspection request from the ambient HTTP context.
+        /// </summary>
+        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        public virtual Task ExtractIntrospectionRequest(ExtractIntrospectionRequestContext context) => OnExtractIntrospectionRequest(context);
+
+        /// <summary>
+        /// Called for each request to the logout endpoint to give the application code
+        /// a chance to manually extract the logout request from the ambient HTTP context.
+        /// </summary>
+        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        public virtual Task ExtractLogoutRequest(ExtractLogoutRequestContext context) => OnExtractLogoutRequest(context);
+
+        /// <summary>
+        /// Called for each request to the revocation endpoint to give the application code
+        /// a chance to manually extract the revocation request from the ambient HTTP context.
+        /// </summary>
+        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        public virtual Task ExtractRevocationRequest(ExtractRevocationRequestContext context) => OnExtractRevocationRequest(context);
+
+        /// <summary>
+        /// Called for each request to the token endpoint to give the application code
+        /// a chance to manually extract the token request from the ambient HTTP context.
+        /// </summary>
+        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        public virtual Task ExtractTokenRequest(ExtractTokenRequestContext context) => OnExtractTokenRequest(context);
+
+        /// <summary>
+        /// Called for each request to the userinfo endpoint to give the application code
+        /// a chance to manually extract the userinfo request from the ambient HTTP context.
+        /// </summary>
+        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        public virtual Task ExtractUserinfoRequest(ExtractUserinfoRequestContext context) => OnExtractUserinfoRequest(context);
 
         /// <summary>
         /// Called for each request to the authorization endpoint to determine if the request is valid and should continue.

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Server;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Mvc.Server.Models;
@@ -18,7 +19,27 @@ namespace Mvc.Server.Providers {
                 context.MatchesAuthorizationEndpoint();
             }
 
-            return Task.FromResult<object>(null);
+            return Task.FromResult(0);
+        }
+
+        public override Task ExtractAuthorizationRequest(ExtractAuthorizationRequestContext context) {
+            // If a request_id parameter can be found in the authorization request,
+            // restore the complete authorization request stored in the user session.
+            if (!string.IsNullOrEmpty(context.Request.GetRequestId())) {
+                var payload = context.HttpContext.Session.Get("authorization-request:" + context.Request.GetRequestId());
+                if (payload == null) {
+                    context.Reject(
+                        error: OpenIdConnectConstants.Errors.InvalidRequest,
+                        description: "Invalid request: timeout expired.");
+
+                    return Task.FromResult(0);
+                }
+
+                // Restore the authorization request parameters.
+                context.Request.Import(payload);
+            }
+
+            return Task.FromResult(0);
         }
 
         public override async Task ValidateAuthorizationRequest(ValidateAuthorizationRequestContext context) {

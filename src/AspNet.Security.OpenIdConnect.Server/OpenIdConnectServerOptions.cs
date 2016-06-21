@@ -7,13 +7,11 @@
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Security.Cryptography;
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.IdentityModel.Tokens;
 
 namespace AspNet.Security.OpenIdConnect.Server {
@@ -204,23 +202,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public bool AllowInsecureHttp { get; set; }
 
         /// <summary>
-        /// The cache instance used to store short-lived data like authentication/authorization requests.
-        /// You can replace the default instance by a distributed implementation to support Web farm environments.
-        /// When this property is not explicitly set, the global cache defined in Startup.cs is used instead.
-        /// </summary>
-        public IDistributedCache Cache { get; set; }
-
-        /// <summary>
         /// Used to sanitize HTML responses. If you don't provide an explicit instance,
         /// one will be automatically retrieved through the dependency injection system.
         /// </summary>
         public HtmlEncoder HtmlEncoder { get; set; }
-
-        /// <summary>
-        /// The random number generator used for cryptographic operations.
-        /// Replacing the default instance is usually not necessary.
-        /// </summary>
-        public RandomNumberGenerator RandomNumberGenerator { get; set; } = RandomNumberGenerator.Create();
 
         /// <summary>
         /// Gets or sets the data protection provider used to create the default

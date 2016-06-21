@@ -25,6 +25,70 @@ namespace Owin.Security.OpenIdConnect.Server {
         Task MatchEndpoint(MatchEndpointContext context);
 
         /// <summary>
+        /// Called for each request to the authorization endpoint to give the application code
+        /// a chance to manually extract the authorization request from the ambient HTTP context.
+        /// </summary>
+        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        Task ExtractAuthorizationRequest(ExtractAuthorizationRequestContext context);
+
+        /// <summary>
+        /// Called for each request to the configuration endpoint to give the application code
+        /// a chance to manually extract the configuration request from the ambient HTTP context.
+        /// </summary>
+        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        Task ExtractConfigurationRequest(ExtractConfigurationRequestContext context);
+
+        /// <summary>
+        /// Called for each request to the cryptography endpoint to give the application code
+        /// a chance to manually extract the cryptography request from the ambient HTTP context.
+        /// </summary>
+        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        Task ExtractCryptographyRequest(ExtractCryptographyRequestContext context);
+
+        /// <summary>
+        /// Called for each request to the introspection endpoint to give the application code
+        /// a chance to manually extract the introspection request from the ambient HTTP context.
+        /// </summary>
+        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        Task ExtractIntrospectionRequest(ExtractIntrospectionRequestContext context);
+
+        /// <summary>
+        /// Called for each request to the logout endpoint to give the application code
+        /// a chance to manually extract the logout request from the ambient HTTP context.
+        /// </summary>
+        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        Task ExtractLogoutRequest(ExtractLogoutRequestContext context);
+
+        /// <summary>
+        /// Called for each request to the revocation endpoint to give the application code
+        /// a chance to manually extract the revocation request from the ambient HTTP context.
+        /// </summary>
+        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        Task ExtractRevocationRequest(ExtractRevocationRequestContext context);
+
+        /// <summary>
+        /// Called for each request to the token endpoint to give the application code
+        /// a chance to manually extract the token request from the ambient HTTP context.
+        /// </summary>
+        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        Task ExtractTokenRequest(ExtractTokenRequestContext context);
+
+        /// <summary>
+        /// Called for each request to the userinfo endpoint to give the application code
+        /// a chance to manually extract the userinfo request from the ambient HTTP context.
+        /// </summary>
+        /// <param name="context">The context of the event carries information in and results out.</param>
+        /// <returns>Task to enable asynchronous execution</returns>
+        Task ExtractUserinfoRequest(ExtractUserinfoRequestContext context);
+
+        /// <summary>
         /// Called for each request to the authorization endpoint to determine if the request is valid and should continue.
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>

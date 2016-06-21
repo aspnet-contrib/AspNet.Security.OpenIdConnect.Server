@@ -66,6 +66,32 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 });
             }
 
+            var @event = new ExtractUserinfoRequestContext(Context, Options, request);
+            await Options.Provider.ExtractUserinfoRequest(@event);
+
+            // Allow the application code to replace the userinfo request.
+            request = @event.Request;
+
+            if (@event.HandledResponse) {
+                return true;
+            }
+
+            else if (@event.Skipped) {
+                return false;
+            }
+
+            else if (@event.IsRejected) {
+                Logger.LogError("The userinfo request was rejected with the following error: {Error} ; {Description}",
+                                /* Error: */ @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                                /* Description: */ @event.ErrorDescription);
+
+                return await SendUserinfoResponseAsync(null, new OpenIdConnectMessage {
+                    Error = @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = @event.ErrorDescription,
+                    ErrorUri = @event.ErrorUri
+                });
+            }
+
             // Insert the userinfo request in the ASP.NET context.
             Context.SetOpenIdConnectRequest(request);
 
@@ -109,7 +135,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             var ticket = await DeserializeAccessTokenAsync(token, request);
             if (ticket == null) {
-                Logger.LogError("The userinfo request was rejected because access token was invalid.");
+                Logger.LogError("The userinfo request was rejected because the access token was invalid.");
 
                 // Note: an invalid token should result in an unauthorized response
                 // but returning a 401 status would invoke the previously registered
@@ -124,7 +150,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             if (!ticket.Properties.ExpiresUtc.HasValue ||
                  ticket.Properties.ExpiresUtc < Options.SystemClock.UtcNow) {
-                Logger.LogError("The userinfo request was rejected because access token was expired.");
+                Logger.LogError("The userinfo request was rejected because the access token was expired.");
 
                 // Note: an invalid token should result in an unauthorized response
                 // but returning a 401 status would invoke the previously registered
