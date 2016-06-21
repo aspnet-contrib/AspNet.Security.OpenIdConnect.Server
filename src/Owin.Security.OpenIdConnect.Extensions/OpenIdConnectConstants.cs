@@ -216,6 +216,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
 
         public static class TokenTypeHints {
             public const string AccessToken = "access_token";
+            public const string AuthorizationCode = "authorization_code";
             public const string IdToken = "id_token";
             public const string RefreshToken = "refresh_token";
         }

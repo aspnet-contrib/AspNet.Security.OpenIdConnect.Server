@@ -134,6 +134,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     ticket = await DeserializeAccessTokenAsync(request.GetToken(), request);
                     break;
 
+                case OpenIdConnectConstants.TokenTypeHints.AuthorizationCode:
+                    ticket = await DeserializeAuthorizationCodeAsync(request.GetToken(), request);
+                    break;
+
+                case OpenIdConnectConstants.TokenTypeHints.IdToken:
+                    ticket = await DeserializeIdentityTokenAsync(request.GetToken(), request);
+                    break;
+
                 case OpenIdConnectConstants.TokenTypeHints.RefreshToken:
                     ticket = await DeserializeRefreshTokenAsync(request.GetToken(), request);
                     break;
@@ -144,6 +152,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // See https://tools.ietf.org/html/rfc7009#section-2.1
             if (ticket == null) {
                 ticket = await DeserializeAccessTokenAsync(request.GetToken(), request) ??
+                         await DeserializeAuthorizationCodeAsync(request.GetToken(), request) ??
+                         await DeserializeIdentityTokenAsync(request.GetToken(), request) ??
                          await DeserializeRefreshTokenAsync(request.GetToken(), request);
             }
 
@@ -165,23 +175,56 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // access tokens can be revoked by either resource servers or client applications:
             // in both cases, the caller must be authenticated if the ticket is marked as confidential.
             if (context.IsSkipped && ticket.IsConfidential()) {
-                Logger.LogWarning("The revocation request was rejected because the caller was not authenticated.");
+                Logger.LogError("The revocation request was rejected because the caller was not authenticated.");
 
                 return await SendRevocationResponseAsync(request, new OpenIdConnectMessage {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest
                 });
             }
 
-            // When a client_id can be inferred from the revocation request,
-            // ensure that the client application is an authorized presenter.
-            if (!string.IsNullOrEmpty(request.ClientId) && ticket.HasPresenter() &&
-                                                          !ticket.HasPresenter(request.ClientId)) {
-                Logger.LogWarning("The revocation request was rejected because the " +
-                                  "refresh token was issued to a different client.");
+            // When a client_id can be inferred from the introspection request,
+            // ensure that the client application is a valid audience/presenter.
+            if (!string.IsNullOrEmpty(request.ClientId)) {
+                if (ticket.IsAuthorizationCode() && ticket.HasPresenter() && !ticket.HasPresenter(request.ClientId)) {
+                    Logger.LogError("The revocation request was rejected because the " +
+                                    "authorization code was issued to a different client.");
 
-                return await SendRevocationResponseAsync(request, new OpenIdConnectMessage {
-                    Error = OpenIdConnectConstants.Errors.InvalidRequest
-                });
+                    return await SendRevocationResponseAsync(request, new OpenIdConnectMessage {
+                        Error = OpenIdConnectConstants.Errors.InvalidRequest
+                    });
+                }
+
+                // Ensure the caller is listed as a valid audience or authorized presenter.
+                else if (ticket.IsAccessToken() && ticket.HasAudience() && !ticket.HasAudience(request.ClientId) &&
+                                                   ticket.HasPresenter() && !ticket.HasPresenter(request.ClientId)) {
+                    Logger.LogError("The revocation request was rejected because the access token " +
+                                    "was issued to a different client or for another resource server.");
+
+                    return await SendRevocationResponseAsync(request, new OpenIdConnectMessage {
+                        Error = OpenIdConnectConstants.Errors.InvalidRequest
+                    });
+                }
+
+                // Reject the request if the caller is not listed as a valid audience.
+                else if (ticket.IsIdentityToken() && ticket.HasAudience() && !ticket.HasAudience(request.ClientId)) {
+                    Logger.LogError("The revocation request was rejected because the " +
+                                    "identity token was issued to a different client.");
+
+                    return await SendRevocationResponseAsync(request, new OpenIdConnectMessage {
+                        Error = OpenIdConnectConstants.Errors.InvalidRequest
+                    });
+                }
+
+                // Reject the introspection request if the caller doesn't
+                // correspond to the client application the token was issued to.
+                else if (ticket.IsRefreshToken() && ticket.HasPresenter() && !ticket.HasPresenter(request.ClientId)) {
+                    Logger.LogError("The revocation request was rejected because the " +
+                                    "refresh token was issued to a different client.");
+
+                    return await SendRevocationResponseAsync(request, new OpenIdConnectMessage {
+                        Error = OpenIdConnectConstants.Errors.InvalidRequest
+                    });
+                }
             }
 
             var notification = new HandleRevocationRequestContext(Context, Options, request, ticket);

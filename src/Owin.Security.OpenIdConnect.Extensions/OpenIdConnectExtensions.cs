@@ -59,18 +59,6 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         }
 
         /// <summary>
-        /// Gets the token parameter from an <see cref="OpenIdConnectMessage"/>.
-        /// </summary>
-        /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>
-        public static string GetToken([NotNull] this OpenIdConnectMessage message) {
-            if (message == null) {
-                throw new ArgumentNullException(nameof(message));
-            }
-
-            return message.GetParameter(OpenIdConnectConstants.Parameters.Token);
-        }
-
-        /// <summary>
         /// Gets the token type hint from an <see cref="OpenIdConnectMessage"/>.
         /// </summary>
         /// <param name="message">The <see cref="OpenIdConnectMessage"/> instance.</param>

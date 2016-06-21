@@ -143,6 +143,10 @@ namespace Owin.Security.OpenIdConnect.Server {
                     ticket = await DeserializeAccessTokenAsync(request.Token, request);
                     break;
 
+                case OpenIdConnectConstants.TokenTypeHints.AuthorizationCode:
+                    ticket = await DeserializeAuthorizationCodeAsync(request.Token, request);
+                    break;
+
                 case OpenIdConnectConstants.TokenTypeHints.IdToken:
                     ticket = await DeserializeIdentityTokenAsync(request.Token, request);
                     break;
@@ -157,6 +161,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             // See https://tools.ietf.org/html/rfc7662#section-2.1
             if (ticket == null) {
                 ticket = await DeserializeAccessTokenAsync(request.Token, request) ??
+                         await DeserializeAuthorizationCodeAsync(request.Token, request) ??
                          await DeserializeIdentityTokenAsync(request.Token, request) ??
                          await DeserializeRefreshTokenAsync(request.Token, request);
             }
@@ -173,7 +178,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             // access tokens can be validated by either resource servers or client applications:
             // in both cases, the caller must be authenticated if the ticket is marked as confidential.
             if (context.IsSkipped && ticket.IsConfidential()) {
-                Options.Logger.LogWarning("The introspection request was rejected because the caller was not authenticated.");
+                Options.Logger.LogError("The introspection request was rejected because the caller was not authenticated.");
 
                 return await SendIntrospectionResponseAsync(request, new JObject {
                     [OpenIdConnectConstants.Claims.Active] = false
@@ -193,11 +198,20 @@ namespace Owin.Security.OpenIdConnect.Server {
             // When a client_id can be inferred from the introspection request,
             // ensure that the client application is a valid audience/presenter.
             if (!string.IsNullOrEmpty(request.ClientId)) {
+                if (ticket.IsAuthorizationCode() && ticket.HasPresenter() && !ticket.HasPresenter(request.ClientId)) {
+                    Options.Logger.LogError("The introspection request was rejected because the " +
+                                            "authorization code was issued to a different client.");
+
+                    return await SendIntrospectionResponseAsync(request, new JObject {
+                        [OpenIdConnectConstants.Claims.Active] = false
+                    });
+                }
+
                 // Ensure the caller is listed as a valid audience or authorized presenter.
-                if (ticket.IsAccessToken() && ticket.HasAudience() && !ticket.HasAudience(request.ClientId) &&
-                                              ticket.HasPresenter() && !ticket.HasPresenter(request.ClientId)) {
-                    Options.Logger.LogWarning("The introspection request was rejected because the access token " +
-                                              "was issued to a different client or for another resource server.");
+                else if (ticket.IsAccessToken() && ticket.HasAudience() && !ticket.HasAudience(request.ClientId) &&
+                                                   ticket.HasPresenter() && !ticket.HasPresenter(request.ClientId)) {
+                    Options.Logger.LogError("The introspection request was rejected because the access token " +
+                                            "was issued to a different client or for another resource server.");
 
                     return await SendIntrospectionResponseAsync(request, new JObject {
                         [OpenIdConnectConstants.Claims.Active] = false
@@ -206,8 +220,8 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                 // Reject the request if the caller is not listed as a valid audience.
                 else if (ticket.IsIdentityToken() && ticket.HasAudience() && !ticket.HasAudience(request.ClientId)) {
-                    Options.Logger.LogWarning("The introspection request was rejected because the " +
-                                              "identity token was issued to a different client.");
+                    Options.Logger.LogError("The introspection request was rejected because the " +
+                                            "identity token was issued to a different client.");
 
                     return await SendIntrospectionResponseAsync(request, new JObject {
                         [OpenIdConnectConstants.Claims.Active] = false
@@ -217,8 +231,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                 // Reject the introspection request if the caller doesn't
                 // correspond to the client application the token was issued to.
                 else if (ticket.IsRefreshToken() && ticket.HasPresenter() && !ticket.HasPresenter(request.ClientId)) {
-                    Options.Logger.LogWarning("The introspection request was rejected because the " +
-                                              "refresh token was issued to a different client.");
+                    Options.Logger.LogError("The introspection request was rejected because the " +
+                                            "refresh token was issued to a different client.");
 
                     return await SendIntrospectionResponseAsync(request, new JObject {
                         [OpenIdConnectConstants.Claims.Active] = false
