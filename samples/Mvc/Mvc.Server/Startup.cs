@@ -1,4 +1,5 @@
 using System;
+using System.IdentityModel.Tokens.Jwt;
 using System.Reflection;
 using AspNet.Security.OAuth.Validation;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -103,6 +104,9 @@ namespace Mvc.Server {
                 // information concerning ApplicationCanDisplayErrors.
                 options.ApplicationCanDisplayErrors = true;
                 options.AllowInsecureHttp = true;
+
+                // Note: to override the default access token format and use JWT, assign AccessTokenHandler:
+                // options.AccessTokenHandler = new JwtSecurityTokenHandler();
             });
 
             app.UseStaticFiles();

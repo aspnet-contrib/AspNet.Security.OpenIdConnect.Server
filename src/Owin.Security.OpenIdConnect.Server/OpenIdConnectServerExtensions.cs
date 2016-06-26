@@ -590,21 +590,6 @@ namespace Owin {
         }
 
         /// <summary>
-        /// Configures the OpenID Connect server to issue JWT access tokens.
-        /// </summary>
-        /// <param name="options">The options used to configure the OpenID Connect server.</param>
-        /// <returns>The options used to configure the OpenID Connect server.</returns>
-        public static OpenIdConnectServerOptions UseJwtTokens([NotNull] this OpenIdConnectServerOptions options) {
-            if (options == null) {
-                throw new ArgumentNullException(nameof(options));
-            }
-
-            options.AccessTokenHandler = new JwtSecurityTokenHandler();
-
-            return options;
-        }
-
-        /// <summary>
         /// Retrieves the <see cref="OpenIdConnectMessage"/> instance
         /// associated with the current request from the OWIN context.
         /// </summary>

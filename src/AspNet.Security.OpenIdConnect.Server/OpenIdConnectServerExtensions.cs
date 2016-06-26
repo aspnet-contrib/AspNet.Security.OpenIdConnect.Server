@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
@@ -276,23 +275,16 @@ namespace Microsoft.AspNetCore.Builder {
         }
 
         /// <summary>
-        /// Configures the OpenID Connect server to issue JWT access tokens.
-        /// </summary>
-        /// <param name="options">The options used to configure the OpenID Connect server.</param>
-        /// <returns>The options used to configure the OpenID Connect server.</returns>
-        public static OpenIdConnectServerOptions UseJwtTokens([NotNull] this OpenIdConnectServerOptions options) {
-            options.AccessTokenHandler = new JwtSecurityTokenHandler();
-
-            return options;
-        }
-
-        /// <summary>
         /// Retrieves the <see cref="OpenIdConnectMessage"/> instance
         /// associated with the current request from the ASP.NET context.
         /// </summary>
         /// <param name="context">The ASP.NET context.</param>
         /// <returns>The <see cref="OpenIdConnectMessage"/> associated with the current request.</returns>
         public static OpenIdConnectMessage GetOpenIdConnectRequest([NotNull] this HttpContext context) {
+            if (context == null) {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             var feature = context.Features.Get<OpenIdConnectServerFeature>();
             if (feature == null) {
                 feature = new OpenIdConnectServerFeature();
@@ -309,6 +301,10 @@ namespace Microsoft.AspNetCore.Builder {
         /// <param name="context">The ASP.NET context.</param>
         /// <param name="request">The ambient <see cref="OpenIdConnectMessage"/>.</param>
         public static void SetOpenIdConnectRequest([NotNull] this HttpContext context, OpenIdConnectMessage request) {
+            if (context == null) {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             var feature = context.Features.Get<OpenIdConnectServerFeature>();
             if (feature == null) {
                 feature = new OpenIdConnectServerFeature();
@@ -326,6 +322,10 @@ namespace Microsoft.AspNetCore.Builder {
         /// <param name="context">The ASP.NET context.</param>
         /// <returns>The <see cref="OpenIdConnectMessage"/> associated with the current response.</returns>
         public static OpenIdConnectMessage GetOpenIdConnectResponse([NotNull] this HttpContext context) {
+            if (context == null) {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             var feature = context.Features.Get<OpenIdConnectServerFeature>();
             if (feature == null) {
                 feature = new OpenIdConnectServerFeature();
@@ -342,6 +342,10 @@ namespace Microsoft.AspNetCore.Builder {
         /// <param name="context">The ASP.NET context.</param>
         /// <param name="response">The ambient <see cref="OpenIdConnectMessage"/>.</param>
         public static void SetOpenIdConnectResponse([NotNull] this HttpContext context, OpenIdConnectMessage response) {
+            if (context == null) {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             var feature = context.Features.Get<OpenIdConnectServerFeature>();
             if (feature == null) {
                 feature = new OpenIdConnectServerFeature();
