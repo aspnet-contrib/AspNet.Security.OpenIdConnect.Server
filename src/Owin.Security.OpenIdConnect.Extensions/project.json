@@ -35,7 +35,8 @@
   "dependencies": {
     "JetBrains.Annotations": { "type": "build", "version": "10.1.4" },
     "Microsoft.IdentityModel.Protocol.Extensions": "1.0.2.202250711",
-    "Microsoft.Owin.Security": "3.0.1"
+    "Microsoft.Owin.Security": "3.0.1",
+    "Newtonsoft.Json": "9.0.1"
   },
 
   "frameworks": {
