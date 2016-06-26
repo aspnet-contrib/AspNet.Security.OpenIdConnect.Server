@@ -94,13 +94,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             if (Options.TokenEndpointPath.HasValue) {
                 notification.GrantTypes.Add(OpenIdConnectConstants.GrantTypes.RefreshToken);
-
-                // If the authorization endpoint is disabled, assume the authorization server will
-                // allow the client credentials and resource owner password credentials grant types.
-                if (!Options.AuthorizationEndpointPath.HasValue) {
-                    notification.GrantTypes.Add(OpenIdConnectConstants.GrantTypes.ClientCredentials);
-                    notification.GrantTypes.Add(OpenIdConnectConstants.GrantTypes.Password);
-                }
+                notification.GrantTypes.Add(OpenIdConnectConstants.GrantTypes.ClientCredentials);
+                notification.GrantTypes.Add(OpenIdConnectConstants.GrantTypes.Password);
             }
 
             // Only populate response_modes_supported and response_types_supported
@@ -185,23 +180,35 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 response.Add(OpenIdConnectConstants.Metadata.UserinfoEndpoint, notification.UserinfoEndpoint);
             }
 
-            response.Add(OpenIdConnectConstants.Metadata.GrantTypesSupported,
-                JArray.FromObject(notification.GrantTypes.Distinct()));
+            if (notification.GrantTypes.Count != 0) {
+                response.Add(OpenIdConnectConstants.Metadata.GrantTypesSupported,
+                    JArray.FromObject(notification.GrantTypes.Distinct()));
+            }
 
-            response.Add(OpenIdConnectConstants.Metadata.ResponseModesSupported,
-                JArray.FromObject(notification.ResponseModes.Distinct()));
+            if (notification.ResponseModes.Count != 0) {
+                response.Add(OpenIdConnectConstants.Metadata.ResponseModesSupported,
+                    JArray.FromObject(notification.ResponseModes.Distinct()));
+            }
 
-            response.Add(OpenIdConnectConstants.Metadata.ResponseTypesSupported,
-                JArray.FromObject(notification.ResponseTypes.Distinct()));
+            if (notification.ResponseTypes.Count != 0) {
+                response.Add(OpenIdConnectConstants.Metadata.ResponseTypesSupported,
+                    JArray.FromObject(notification.ResponseTypes.Distinct()));
+            }
 
-            response.Add(OpenIdConnectConstants.Metadata.SubjectTypesSupported,
-                JArray.FromObject(notification.SubjectTypes.Distinct()));
+            if (notification.SubjectTypes.Count != 0) {
+                response.Add(OpenIdConnectConstants.Metadata.SubjectTypesSupported,
+                    JArray.FromObject(notification.SubjectTypes.Distinct()));
+            }
 
-            response.Add(OpenIdConnectConstants.Metadata.ScopesSupported,
-                JArray.FromObject(notification.Scopes.Distinct()));
+            if (notification.Scopes.Count != 0) {
+                response.Add(OpenIdConnectConstants.Metadata.ScopesSupported,
+                    JArray.FromObject(notification.Scopes.Distinct()));
+            }
 
-            response.Add(OpenIdConnectConstants.Metadata.IdTokenSigningAlgValuesSupported,
-                JArray.FromObject(notification.SigningAlgorithms.Distinct()));
+            if (notification.SigningAlgorithms.Count != 0) {
+                response.Add(OpenIdConnectConstants.Metadata.IdTokenSigningAlgValuesSupported,
+                    JArray.FromObject(notification.SigningAlgorithms.Distinct()));
+            }
 
             return await SendConfigurationResponseAsync(request, response);
         }
