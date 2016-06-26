@@ -274,7 +274,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     continue;
                 }
 
-                response.Add(claim.Key, claim.Value);
+                response[claim.Key] = claim.Value;
             }
 
             return await SendUserinfoResponseAsync(request, response);

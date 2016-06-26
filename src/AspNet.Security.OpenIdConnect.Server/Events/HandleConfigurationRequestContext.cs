@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Newtonsoft.Json.Linq;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
@@ -35,6 +36,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// Gets the configuration request.
         /// </summary>
         public new OpenIdConnectMessage Request { get; }
+
+        /// <summary>
+        /// Gets the list of properties returned to the client application.
+        /// </summary>
+        public IDictionary<string, JToken> Properties { get; } = new Dictionary<string, JToken>();
 
         /// <summary>
         /// Gets or sets the authorization endpoint address.

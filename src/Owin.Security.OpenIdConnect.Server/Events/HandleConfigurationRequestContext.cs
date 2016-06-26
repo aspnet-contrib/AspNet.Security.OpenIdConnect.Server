@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Microsoft.Owin.Security.Notifications;
+using Newtonsoft.Json.Linq;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
@@ -30,6 +31,11 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// Gets the configuration request.
         /// </summary>
         public new OpenIdConnectMessage Request { get; }
+
+        /// <summary>
+        /// Gets the list of properties returned to the client application.
+        /// </summary>
+        public IDictionary<string, JToken> Properties { get; } = new Dictionary<string, JToken>();
 
         /// <summary>
         /// Gets or sets the authorization endpoint address.

@@ -210,6 +210,15 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     JArray.FromObject(notification.SigningAlgorithms.Distinct()));
             }
 
+            foreach (var property in notification.Properties) {
+                // Ignore properties whose value is null.
+                if (property.Value == null) {
+                    continue;
+                }
+
+                response[property.Key] = property.Value;
+            }
+
             return await SendConfigurationResponseAsync(request, response);
         }
 
