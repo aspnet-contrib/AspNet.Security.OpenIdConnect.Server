@@ -537,6 +537,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
             var payload = new JObject();
 
             foreach (var parameter in response.Parameters) {
+                // Note: OpenIdConnectMessage exposes "expires_in" as a string property.
+                // To ensure a long value is returned, the property is manually converted.
+                if (string.Equals(parameter.Key, OpenIdConnectConstants.Parameters.ExpiresIn, StringComparison.OrdinalIgnoreCase)) {
+                    payload[parameter.Key] = long.Parse(parameter.Value);
+
+                    continue;
+                }
+
                 payload[parameter.Key] = parameter.Value;
             }
 
