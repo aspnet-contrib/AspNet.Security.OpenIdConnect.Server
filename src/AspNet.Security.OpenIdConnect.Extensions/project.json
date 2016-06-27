@@ -33,8 +33,8 @@
 
   "dependencies": {
     "JetBrains.Annotations": { "type": "build", "version": "10.1.4" },
-    "Microsoft.AspNetCore.Authentication": "1.0.0-*",
-    "Microsoft.IdentityModel.Protocols.OpenIdConnect": "2.0.0-*"
+    "Microsoft.AspNetCore.Authentication": "1.0.0",
+    "Microsoft.IdentityModel.Protocols.OpenIdConnect": "2.0.0"
   },
 
   "frameworks": {
@@ -42,7 +42,7 @@
 
     "netstandard1.4": {
       "dependencies": {
-        "System.Linq": "4.1.0-*"
+        "System.Linq": "4.1.0"
       },
 
       "imports": [

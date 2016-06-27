@@ -34,12 +34,12 @@
 
   "dependencies": {
     "JetBrains.Annotations": { "type": "build", "version": "10.1.4" },
-    "Microsoft.Extensions.Logging": "1.0.0-*",
-    "Microsoft.Extensions.Caching.Memory": "1.0.0-*",
-    "Microsoft.Owin.Security.Interop": "1.0.0-*",
+    "Microsoft.Extensions.Logging": "1.0.0",
+    "Microsoft.Extensions.Caching.Memory": "1.0.0",
+    "Microsoft.Owin.Security.Interop": "1.0.0",
     "Owin": "1.0.0",
-    "Owin.Security.OpenIdConnect.Extensions": "1.0.0-*",
-    "System.Text.Encodings.Web": "4.0.0-*"
+    "Owin.Security.OpenIdConnect.Extensions": { "target": "project" },
+    "System.Text.Encodings.Web": "4.0.0"
   },
 
   "frameworks": {
