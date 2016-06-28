@@ -120,9 +120,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 var directory = OpenIdConnectServerHelpers.GetDefaultKeyStorageDirectory();
                 if (directory == null) {
-                    Logger.LogWarning("No suitable directory can be found to store the RSA keys." +
-                                      "Using a X.509 certificate stored in the machine store " +
-                                      "is recommended for production environments.");
+                    Logger.LogError("No suitable directory can be found to store the dynamically-generated RSA keys.");
 
                     return;
                 }

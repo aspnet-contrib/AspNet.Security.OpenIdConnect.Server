@@ -102,9 +102,7 @@ namespace Nancy.Server {
                 options.Provider = new AuthorizationProvider();
 
                 // Note: if you don't explicitly register a signing key, one is automatically generated and
-                // persisted on the disk. If the key cannot be persisted, an in-memory key is used instead:
-                // when the application shuts down, the key is definitely lost and the access/identity tokens
-                // will be considered as invalid by client applications/resource servers when validating them.
+                // persisted on the disk. If the key cannot be persisted, an exception is thrown.
                 // 
                 // On production, using a X.509 certificate stored in the machine store is recommended.
                 // You can generate a self-signed certificate using Pluralsight's self-cert utility:
