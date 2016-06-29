@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0-beta6-*",
+  "version": "1.0.0-beta6-final",
 
   "description": "OpenID Connect extensions for AspNet.Security.OpenIdConnect.Server.",
   "authors": [ "Kévin Chalet" ],
