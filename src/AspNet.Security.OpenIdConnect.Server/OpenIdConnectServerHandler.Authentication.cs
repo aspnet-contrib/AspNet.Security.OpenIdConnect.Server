@@ -162,30 +162,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 }
             }
 
-            // Reject requests using the unsupported request parameter.
-            if (!string.IsNullOrEmpty(request.GetParameter(OpenIdConnectConstants.Parameters.Request))) {
-                Logger.LogError("The authorization request was rejected because it contained " +
-                                "an unsupported parameter: {Parameter}.", "request");
-
-                return await SendAuthorizationResponseAsync(request, new OpenIdConnectMessage {
-                    Error = OpenIdConnectConstants.Errors.RequestNotSupported,
-                    ErrorDescription = "The request parameter is not supported."
-                });
-            }
-
-            // Reject requests using the unsupported request_uri parameter.
-            else if (!string.IsNullOrEmpty(request.RequestUri)) {
-                Logger.LogError("The authorization request was rejected because it contained " +
-                                "an unsupported parameter: {Parameter}.", "request_uri");
-
-                return await SendAuthorizationResponseAsync(request, new OpenIdConnectMessage {
-                    Error = OpenIdConnectConstants.Errors.RequestUriNotSupported,
-                    ErrorDescription = "The request_uri parameter is not supported."
-                });
-            }
-
             // Reject requests missing the mandatory response_type parameter.
-            else if (string.IsNullOrEmpty(request.ResponseType)) {
+            if (string.IsNullOrEmpty(request.ResponseType)) {
                 Logger.LogError("The authorization request was rejected because " +
                                 "the mandatory 'response_type' parameter was missing.");
 
