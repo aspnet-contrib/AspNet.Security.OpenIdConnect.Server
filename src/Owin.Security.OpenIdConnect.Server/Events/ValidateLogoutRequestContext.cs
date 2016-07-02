@@ -55,7 +55,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         public override bool Validate() {
             if (string.IsNullOrEmpty(PostLogoutRedirectUri)) {
                 // Don't allow default validation when
-                // redirect_uri not provided with request.
+                // the redirect_uri is not provided.
                 return false;
             }
 
@@ -65,44 +65,23 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Checks the redirect URI to determine whether it equals <see cref="PostLogoutRedirectUri"/>.
         /// </summary>
-        /// <param name="redirectUri"></param>
+        /// <param name="address"></param>
         /// <returns></returns>
-        public bool Validate(string redirectUri) {
-            if (redirectUri == null) {
-                throw new ArgumentNullException("redirectUri");
+        public bool Validate(string address) {
+            if (string.IsNullOrEmpty(address)) {
+                throw new ArgumentException("The post_logout_redirect_uri cannot be null or empty.", nameof(address));
             }
 
             if (!string.IsNullOrEmpty(PostLogoutRedirectUri) &&
-                !string.Equals(PostLogoutRedirectUri, redirectUri, StringComparison.Ordinal)) {
-                // Don't allow validation to alter redirect_uri provided with request
+                !string.Equals(PostLogoutRedirectUri, address, StringComparison.Ordinal)) {
+                // Don't allow validation to alter the redirect_uri
+                // parameter extracted from the request.
                 return false;
             }
 
-            PostLogoutRedirectUri = redirectUri;
+            PostLogoutRedirectUri = address;
 
             return Validate();
-        }
-
-        /// <summary>
-        /// Resets post_logout_redirect_uri and marks
-        /// the context as skipped by the application.
-        /// </summary>
-        public override bool Skip() {
-            // Reset post_logout_redirect_uri if validation was skipped.
-            PostLogoutRedirectUri = null;
-
-            return base.Skip();
-        }
-
-        /// <summary>
-        /// Resets post_logout_redirect_uri and marks
-        /// the context as rejected by the application.
-        /// </summary>
-        public override bool Reject() {
-            // Reset post_logout_redirect_uri if validation failed.
-            PostLogoutRedirectUri = null;
-
-            return base.Reject();
         }
     }
 }
