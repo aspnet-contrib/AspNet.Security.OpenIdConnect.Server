@@ -98,6 +98,16 @@ namespace Owin.Security.OpenIdConnect.Server {
                 });
             }
 
+            // Reject grant_type=authorization_code requests if the authorization endpoint is disabled.
+            else if (request.IsAuthorizationCodeGrantType() && !Options.AuthorizationEndpointPath.HasValue) {
+                Options.Logger.LogError("The token request was rejected because the authorization code grant was disabled.");
+
+                return await SendTokenResponseAsync(request, new OpenIdConnectMessage {
+                    Error = OpenIdConnectConstants.Errors.UnsupportedGrantType,
+                    ErrorDescription = "The authorization code grant is not allowed by this authorization server."
+                });
+            }
+
             // Reject grant_type=authorization_code requests missing the authorization code.
             // See https://tools.ietf.org/html/rfc6749#section-4.1.3
             else if (request.IsAuthorizationCodeGrantType() && string.IsNullOrEmpty(request.Code)) {

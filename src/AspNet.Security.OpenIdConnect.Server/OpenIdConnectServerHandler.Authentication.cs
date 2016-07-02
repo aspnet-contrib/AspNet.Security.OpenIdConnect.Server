@@ -212,7 +212,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 });
             }
 
-            // Reject requests containing the code response_mode if the token endpoint has been disabled.
+            // Reject requests containing the code response_type if the token endpoint has been disabled.
             else if (request.HasResponseType(OpenIdConnectConstants.ResponseTypes.Code) && !Options.TokenEndpointPath.HasValue) {
                 Logger.LogError("The authorization request was rejected because the authorization code flow was disabled.");
 
