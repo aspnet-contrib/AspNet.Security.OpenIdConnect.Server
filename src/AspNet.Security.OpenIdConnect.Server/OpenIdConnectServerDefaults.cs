@@ -17,11 +17,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public const string AuthenticationScheme = "ASOS";
 
         /// <summary>
-        /// Default value for <see cref="OpenIdConnectServerOptions.AuthorizationEndpointPath"/>.
-        /// </summary>
-        public const string AuthorizationEndpointPath = "/connect/authorize";
-
-        /// <summary>
         /// Default value for <see cref="OpenIdConnectServerOptions.ConfigurationEndpointPath"/>.
         /// </summary>
         public const string ConfigurationEndpointPath = "/.well-known/openid-configuration";
@@ -30,30 +25,5 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// Default value for <see cref="OpenIdConnectServerOptions.CryptographyEndpointPath"/>.
         /// </summary>
         public const string CryptographyEndpointPath = "/.well-known/jwks";
-
-        /// <summary>
-        /// Default value for <see cref="OpenIdConnectServerOptions.IntrospectionEndpointPath"/>.
-        /// </summary>
-        public const string IntrospectionEndpointPath = "/connect/introspect";
-
-        /// <summary>
-        /// Default value for <see cref="OpenIdConnectServerOptions.LogoutEndpointPath"/>.
-        /// </summary>
-        public const string LogoutEndpointPath = "/connect/logout";
-
-        /// <summary>
-        /// Default value for <see cref="OpenIdConnectServerOptions.RevocationEndpointPath"/>.
-        /// </summary>
-        public const string RevocationEndpointPath = "/connect/revoke";
-
-        /// <summary>
-        /// Default value for <see cref="OpenIdConnectServerOptions.TokenEndpointPath"/>.
-        /// </summary>
-        public const string TokenEndpointPath = "/connect/token";
-
-        /// <summary>
-        /// Default value for <see cref="OpenIdConnectServerOptions.UserinfoEndpointPath"/>.
-        /// </summary>
-        public const string UserinfoEndpointPath = "/connect/userinfo";
     }
 }

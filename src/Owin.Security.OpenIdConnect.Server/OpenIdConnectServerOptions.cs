@@ -56,9 +56,8 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// The request path where client applications will redirect the user-agent in order to 
         /// obtain user consent to issue a token. Must begin with a leading slash, like "/connect/authorize".
-        /// This setting can be set to <see cref="PathString.Empty"/> to disable the authorization endpoint.
         /// </summary>
-        public PathString AuthorizationEndpointPath { get; set; } = new PathString(OpenIdConnectServerDefaults.AuthorizationEndpointPath);
+        public PathString AuthorizationEndpointPath { get; set; }
 
         /// <summary>
         /// The request path where client applications will be able to retrieve the configuration metadata associated
@@ -77,37 +76,33 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// The request path applications communicate with to validate an access, identity or refresh token.
         /// Must begin with a leading slash, like "/connect/introspect".
-        /// You can set it to <see cref="PathString.Empty"/> to disable the introspection endpoint.
         /// </summary>
-        public PathString IntrospectionEndpointPath { get; set; } = new PathString(OpenIdConnectServerDefaults.IntrospectionEndpointPath);
+        public PathString IntrospectionEndpointPath { get; set; }
 
         /// <summary>
         /// The request path client applications communicate with to log out. 
         /// Must begin with a leading slash, like "/connect/logout".
-        /// You can set it to <see cref="PathString.Empty"/> to disable the logout endpoint.
         /// </summary>
-        public PathString LogoutEndpointPath { get; set; } = new PathString(OpenIdConnectServerDefaults.LogoutEndpointPath);
+        public PathString LogoutEndpointPath { get; set; }
 
         /// <summary>
         /// The request path applications communicate with to revoke an access or refresh token.
         /// Must begin with a leading slash, like "/connect/revoke".
-        /// You can set it to <see cref="PathString.Empty"/> to disable the revocation endpoint.
         /// </summary>
-        public PathString RevocationEndpointPath { get; set; } = new PathString(OpenIdConnectServerDefaults.RevocationEndpointPath);
+        public PathString RevocationEndpointPath { get; set; }
 
         /// <summary>
         /// The request path client applications communicate with directly as part of the OpenID Connect protocol. 
         /// Must begin with a leading slash, like "/connect/token". If the client is issued a client_secret, it must
-        /// be provided to this endpoint. You can set it to <see cref="PathString.Empty"/> to disable the token endpoint.
+        /// be provided to this endpoint.
         /// </summary>
-        public PathString TokenEndpointPath { get; set; } = new PathString(OpenIdConnectServerDefaults.TokenEndpointPath);
+        public PathString TokenEndpointPath { get; set; }
 
         /// <summary>
         /// The request path client applications communicate with to retrieve user information. 
         /// Must begin with a leading slash, like "/connect/userinfo".
-        /// You can set it to <see cref="PathString.Empty"/> to disable the userinfo endpoint.
         /// </summary>
-        public PathString UserinfoEndpointPath { get; set; } = new PathString(OpenIdConnectServerDefaults.UserinfoEndpointPath);
+        public PathString UserinfoEndpointPath { get; set; }
 
         /// <summary>
         /// Specifies a <see cref="IOpenIdConnectServerProvider"/> that the <see cref="OpenIdConnectServerMiddleware" /> invokes

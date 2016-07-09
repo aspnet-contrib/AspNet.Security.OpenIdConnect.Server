@@ -88,6 +88,12 @@ namespace Mvc.Server {
             app.UseOpenIdConnectServer(options => {
                 options.Provider = new AuthorizationProvider();
 
+                // Enable the authorization, logout, token and userinfo endpoints.
+                options.AuthorizationEndpointPath = "/connect/authorize";
+                options.LogoutEndpointPath = "/connect/logout";
+                options.TokenEndpointPath = "/connect/token";
+                options.UserinfoEndpointPath = "/connect/userinfo";
+
                 // Note: if you don't explicitly register a signing key, one is automatically generated and
                 // persisted on the disk. If the key cannot be persisted, an exception is thrown.
                 // 

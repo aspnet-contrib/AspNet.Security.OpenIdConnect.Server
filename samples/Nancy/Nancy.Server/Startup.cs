@@ -101,6 +101,12 @@ namespace Nancy.Server {
             app.UseOpenIdConnectServer(options => {
                 options.Provider = new AuthorizationProvider();
 
+                // Enable the authorization, logout, token and userinfo endpoints.
+                options.AuthorizationEndpointPath = new PathString("/connect/authorize");
+                options.LogoutEndpointPath = new PathString("/connect/logout");
+                options.TokenEndpointPath = new PathString("/connect/token");
+                options.UserinfoEndpointPath = new PathString("/connect/userinfo");
+
                 // Note: if you don't explicitly register a signing key, one is automatically generated and
                 // persisted on the disk. If the key cannot be persisted, an exception is thrown.
                 // 
