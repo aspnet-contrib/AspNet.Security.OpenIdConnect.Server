@@ -5,6 +5,7 @@
  */
 
 using Microsoft.AspNetCore.Http;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
@@ -16,11 +17,19 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
+        /// <param name="request"></param>
         public ValidateConfigurationRequestContext(
             HttpContext context,
-            OpenIdConnectServerOptions options)
+            OpenIdConnectServerOptions options,
+            OpenIdConnectMessage request)
             : base(context, options) {
+            Request = request;
             Validate();
         }
+
+        /// <summary>
+        /// Gets the configuration request.
+        /// </summary>
+        public new OpenIdConnectMessage Request { get; }
     }
 }

@@ -60,7 +60,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 });
             }
 
-            var context = new ValidateConfigurationRequestContext(Context, Options);
+            var context = new ValidateConfigurationRequestContext(Context, Options, request);
             await Options.Provider.ValidateConfigurationRequest(context);
 
             if (context.HandledResponse) {
@@ -309,7 +309,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 });
             }
 
-            var context = new ValidateCryptographyRequestContext(Context, Options);
+            var context = new ValidateCryptographyRequestContext(Context, Options, request);
             await Options.Provider.ValidateCryptographyRequest(context);
 
             if (context.HandledResponse) {
