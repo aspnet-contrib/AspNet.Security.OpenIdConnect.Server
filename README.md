@@ -14,6 +14,8 @@ Based on `OAuthAuthorizationServerMiddleware` from **Katana 3**, **AspNet.Securi
 
 ```csharp
 app.UseOpenIdConnectServer(options => {
+    options.TokenEndpointPath = "/connect/token";
+
     options.Provider = new OpenIdConnectServerProvider {
         // Implement OnValidateTokenRequest to support flows using the token endpoint.
         OnValidateTokenRequest = context => {

@@ -153,7 +153,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 // and http://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
                 else if (!string.IsNullOrEmpty(uri.Fragment)) {
                     Logger.LogError("The authorization request was rejected because the 'redirect_uri' " +
-                                    "contained a URL segment: {RedirectUri}.", request.RedirectUri);
+                                    "contained a URL fragment: {RedirectUri}.", request.RedirectUri);
 
                     return await SendAuthorizationResponseAsync(request, new OpenIdConnectMessage {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,

@@ -337,7 +337,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                         return await SendTokenResponseAsync(request, new OpenIdConnectMessage {
                             Error = OpenIdConnectConstants.Errors.InvalidGrant,
-                            ErrorDescription = "Token request cannot contain a resource parameter" +
+                            ErrorDescription = "Token request cannot contain a resource parameter " +
                                                "if the authorization request didn't contain one"
                         });
                     }
@@ -365,7 +365,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                         return await SendTokenResponseAsync(request, new OpenIdConnectMessage {
                             Error = OpenIdConnectConstants.Errors.InvalidGrant,
-                            ErrorDescription = "Token request cannot contain a scope parameter" +
+                            ErrorDescription = "Token request cannot contain a scope parameter " +
                                                "if the authorization request didn't contain one"
                         });
                     }
