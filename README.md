@@ -19,10 +19,22 @@ app.UseOpenIdConnectServer(options => {
     options.Provider = new OpenIdConnectServerProvider {
         // Implement OnValidateTokenRequest to support flows using the token endpoint.
         OnValidateTokenRequest = context => {
+            // Reject token requests that don't use grant_type=password or grant_type=refresh_token.
+            if (!context.Request.IsPasswordGrantType() && !context.Request.IsRefreshTokenGrantType()) {
+                context.Reject(
+                    error: OpenIdConnectConstants.Errors.UnsupportedGrantType,
+                    description: "Only grant_type=password and refresh_token " +
+                                 "requests are accepted by this server.");
+
+                return Task.FromResult(0);
+            }
+
             // Note: you can skip the request validation when the client_id
             // parameter is missing to support unauthenticated token requests.
             // if (string.IsNullOrEmpty(context.ClientId)) {
             //     context.Skip();
+            // 
+            //     return Task.FromResult(0);
             // }
 
             // Note: to mitigate brute force attacks, you SHOULD strongly consider applying
@@ -40,6 +52,8 @@ app.UseOpenIdConnectServer(options => {
 
         // Implement OnHandleTokenRequest to support token requests.
         OnHandleTokenRequest = context => {
+            // Only handle grant_type=password token requests and let the
+            // OpenID Connect server middleware handle the other grant types.
             if (context.Request.IsPasswordGrantType()) {
 	            // Implement context.Request.Username/context.Request.Password validation here.
 	            // Note: you can call context Reject() to indicate that authentication failed.
