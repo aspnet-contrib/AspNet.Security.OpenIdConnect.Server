@@ -29,30 +29,26 @@ namespace Owin.Security.OpenIdConnect.Server {
         public OpenIdConnectServerMiddleware(OwinMiddleware next, IAppBuilder app, OpenIdConnectServerOptions options)
             : base(next, options) {
             if (Options.HtmlEncoder == null) {
-                throw new ArgumentException("The HTML encoder registered in the options " +
-                                            "cannot be null.", nameof(options));
+                throw new ArgumentException("The HTML encoder registered in the options cannot be null.", nameof(options));
             }
 
             if (Options.Provider == null) {
-                throw new ArgumentException("The authorization provider registered in " +
-                                            "the options cannot be null.", nameof(options));
+                throw new ArgumentException("The authorization provider registered in the options cannot be null.", nameof(options));
             }
 
             if (Options.SystemClock == null) {
-                throw new ArgumentException("The system clock registered in the options " +
-                                            "cannot be null.", nameof(options));
+                throw new ArgumentException("The system clock registered in the options cannot be null.", nameof(options));
             }
 
             if (Options.Issuer != null) {
                 if (!Options.Issuer.IsAbsoluteUri) {
-                    throw new ArgumentException("The issuer registered in the options must be " +
-                                                "a valid absolute URI.", nameof(options));
+                    throw new ArgumentException("The issuer registered in the options must be a valid absolute URI.", nameof(options));
                 }
 
                 // See http://openid.net/specs/openid-connect-discovery-1_0.html#IssuerDiscovery
                 if (!string.IsNullOrEmpty(Options.Issuer.Query) || !string.IsNullOrEmpty(Options.Issuer.Fragment)) {
-                    throw new ArgumentException("The issuer registered in the options must contain no query " +
-                                                "and no fragment parts.", nameof(options));
+                    throw new ArgumentException("The issuer registered in the options must contain " +
+                                                "no query and no fragment parts.", nameof(options));
                 }
 
                 // Note: while the issuer parameter should be a HTTPS URI, making HTTPS mandatory
@@ -114,7 +110,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             var environment = new AppProperties(app.Properties).Get<string>("host.AppMode");
             if (Options.AllowInsecureHttp && !string.Equals(environment, "Development", StringComparison.OrdinalIgnoreCase)) {
-                Options.Logger.LogWarning("Disabling the transport security requirement is not recommended on production. " +
+                Options.Logger.LogWarning("Disabling the transport security requirement is not recommended in production. " +
                                           "Consider setting 'OpenIdConnectServerOptions.AllowInsecureHttp' to 'false' " +
                                           "to prevent the OpenID Connect server middleware from serving non-HTTPS requests.");
             }

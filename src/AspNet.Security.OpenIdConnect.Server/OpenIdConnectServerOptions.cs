@@ -94,11 +94,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public PathString UserinfoEndpointPath { get; set; }
 
         /// <summary>
-        /// Specifies a <see cref="IOpenIdConnectServerProvider"/> that the <see cref="OpenIdConnectServerMiddleware" /> invokes
-        /// to enable developer control over the while authentication/authorization process.
-        /// If not specified, a <see cref="OpenIdConnectServerProvider" /> is automatically instanciated.
+        /// Specifies a <see cref="IOpenIdConnectServerProvider"/> that the <see cref="OpenIdConnectServerMiddleware" />
+        /// invokes to enable developer control over the while authentication/authorization process.
         /// </summary>
-        public IOpenIdConnectServerProvider Provider { get; set; } = new OpenIdConnectServerProvider();
+        public IOpenIdConnectServerProvider Provider { get; set; }
 
         /// <summary>
         /// The data format used to protect and unprotect the information contained in the authorization code. 
