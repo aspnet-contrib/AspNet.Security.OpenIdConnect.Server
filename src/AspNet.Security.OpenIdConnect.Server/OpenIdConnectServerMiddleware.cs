@@ -42,7 +42,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             if (Options.SystemClock == null) {
-                throw new ArgumentException("The system clock registered in the optionscannot be null.", nameof(options));
+                throw new ArgumentException("The system clock registered in the options cannot be null.", nameof(options));
             }
 
             if (Options.Issuer != null) {
