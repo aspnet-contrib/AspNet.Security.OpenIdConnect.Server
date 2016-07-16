@@ -97,13 +97,19 @@ app.UseOpenIdConnectServer(options => {
 });
 ```
 
+## Resources
+
+**Looking for additional resources to help you get started?** Don't miss these interesting blog posts:
+
+- **[Creating your own OpenID Connect server with ASOS](http://kevinchalet.com/2016/07/13/creating-your-own-openid-connect-server-with-asos-introduction/)** by [Kévin Chalet](https://github.com/PinpointTownes)
+
 ## Samples
 
 The samples found [in the current project](./samples/) directory always target the latest ASP.NET Core releases and are mainly meant to ease its testing.
 
-**Official samples targetting ASP.NET Core 1.0 RC1** can be found on [aspnet-contrib/AspNet.Security.OpenIdConnect.Samples](https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Samples). 
+**Official samples targetting ASP.NET Core 1.0 RTM** can be found on [aspnet-contrib/AspNet.Security.OpenIdConnect.Samples](https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Samples). 
 
-**Looking for something simpler?** Don't miss **[OpenIddict](https://github.com/openiddict/core)**, the **simple and easy-to-use OpenID Connect server for ASP.NET Core 1.0** based on AspNet.Security.OpenIdConnect.Server and ASP.NET Identity.
+**Looking for something simpler?** Don't miss **[OpenIddict](https://github.com/openiddict/core)**, the **simple and easy-to-use OpenID Connect server for ASP.NET Core 1.0** based on AspNet.Security.OpenIdConnect.Server and ASP.NET Core Identity.
 
 ## Support
 
