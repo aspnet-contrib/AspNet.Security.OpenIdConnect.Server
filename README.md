@@ -55,43 +55,43 @@ app.UseOpenIdConnectServer(options => {
             // Only handle grant_type=password token requests and let the
             // OpenID Connect server middleware handle the other grant types.
             if (context.Request.IsPasswordGrantType()) {
-	            // Implement context.Request.Username/context.Request.Password validation here.
-	            // Note: you can call context Reject() to indicate that authentication failed.
+                // Implement context.Request.Username/context.Request.Password validation here.
+                // Note: you can call context Reject() to indicate that authentication failed.
                 // Using password derivation and time-constant comparer is STRONGLY recommended.
-	            if (!string.Equals(context.Request.Username, "Bob", StringComparison.Ordinal) &&
-	                !string.Equals(context.Request.Password, "P@ssw0rd", StringComparison.Ordinal)) {
+                if (!string.Equals(context.Request.Username, "Bob", StringComparison.Ordinal) &&
+                    !string.Equals(context.Request.Password, "P@ssw0rd", StringComparison.Ordinal)) {
                     context.Reject(
                         error: OpenIdConnectConstants.Errors.InvalidGrant,
                         description: "Invalid user credentials.");
 
-	                return Task.FromResult(0);
-	            }
+                    return Task.FromResult(0);
+                }
 
-	            var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
-	            identity.AddClaim(ClaimTypes.NameIdentifier, "[unique id]");
+                var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                identity.AddClaim(ClaimTypes.NameIdentifier, "[unique id]");
 
-	            // By default, claims are not serialized in the access/identity tokens.
-	            // Use the overload taking a "destinations" parameter to make sure
+                // By default, claims are not serialized in the access/identity tokens.
+                // Use the overload taking a "destinations" parameter to make sure
                 // your claims are correctly inserted in the appropriate tokens.
-	            identity.AddClaim("urn:customclaim", "value",
-	                OpenIdConnectConstants.Destinations.AccessToken,
-	                OpenIdConnectConstants.Destinations.IdentityToken);
+                identity.AddClaim("urn:customclaim", "value",
+                    OpenIdConnectConstants.Destinations.AccessToken,
+                    OpenIdConnectConstants.Destinations.IdentityToken);
 
-	            var ticket = new AuthenticationTicket(
-	                new ClaimsPrincipal(identity),
-	                new AuthenticationProperties(),
-	                context.Options.AuthenticationScheme);
+                var ticket = new AuthenticationTicket(
+                    new ClaimsPrincipal(identity),
+                    new AuthenticationProperties(),
+                    context.Options.AuthenticationScheme);
 
-	            // Call SetScopes with the list of scopes you want to grant
-	            // (specify offline_access to issue a refresh token).
-	            ticket.SetScopes(
+                // Call SetScopes with the list of scopes you want to grant
+                // (specify offline_access to issue a refresh token).
+                ticket.SetScopes(
                     OpenIdConnectConstants.Scopes.Profile,
                     OpenIdConnectConstants.Scopes.OfflineAccess);
 
-	            context.Validate(ticket);
+                context.Validate(ticket);
             }
 
-	        return Task.FromResult(0);
+            return Task.FromResult(0);
         }
     };
 });
