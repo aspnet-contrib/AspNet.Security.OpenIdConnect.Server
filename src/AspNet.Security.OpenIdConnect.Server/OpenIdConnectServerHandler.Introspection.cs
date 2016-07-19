@@ -332,9 +332,29 @@ namespace AspNet.Security.OpenIdConnect.Server {
                             type = claim.Type;
                         }
 
-                        // Note: make sure to use the indexer
-                        // syntax to avoid duplicate properties.
-                        notification.Claims[type] = claim.Value;
+                        // If there's no existing claim with the same type,
+                        // simply add the claim as-is without converting it.
+                        if (!notification.Claims.ContainsKey(type)) {
+                            notification.Claims[type] = claim.Value;
+
+                            continue;
+                        }
+
+                        // When multiple claims with the same name exist, convert the existing entry
+                        // to a new JArray to allow returning multiple claim values to the caller.
+                        var array = notification.Claims[type] as JArray;
+                        if (array == null) {
+                            array = new JArray();
+
+                            // Copy the existing claim value to the new array.
+                            array.Add(notification.Claims[type]);
+
+                            // Replace the entry in the claims collection.
+                            notification.Claims[type] = array;
+                        }
+
+                        // Add the new item in the JArray.
+                        array.Add(claim.Value);
                     }
                 }
             }
