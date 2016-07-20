@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using AspNet.Security.OpenIdConnect.Server;
 using JetBrains.Annotations;
@@ -72,7 +73,7 @@ namespace Microsoft.AspNetCore.Builder {
         }
 
         /// <summary>
-        /// Adds a specific <see cref="X509Certificate2"/> to sign tokens issued by the OpenID Connect server.
+        /// Adds a specific <see cref="X509Certificate2"/> to sign the tokens issued by the OpenID Connect server.
         /// </summary>
         /// <param name="credentials">The options used to configure the OpenID Connect server.</param>
         /// <param name="certificate">The certificate used to sign security tokens issued by the server.</param>
@@ -96,7 +97,7 @@ namespace Microsoft.AspNetCore.Builder {
 
         /// <summary>
         /// Adds a specific <see cref="X509Certificate2"/> retrieved from an
-        /// embedded resource to sign tokens issued by the OpenID Connect server.
+        /// embedded resource to sign the tokens issued by the OpenID Connect server.
         /// </summary>
         /// <param name="credentials">The options used to configure the OpenID Connect server.</param>
         /// <param name="assembly">The assembly containing the certificate.</param>
@@ -133,7 +134,7 @@ namespace Microsoft.AspNetCore.Builder {
 
         /// <summary>
         /// Adds a specific <see cref="X509Certificate2"/> contained in
-        /// a stream to sign tokens issued by the OpenID Connect server.
+        /// a stream to sign the tokens issued by the OpenID Connect server.
         /// </summary>
         /// <param name="credentials">The options used to configure the OpenID Connect server.</param>
         /// <param name="stream">The stream containing the certificate.</param>
@@ -148,7 +149,7 @@ namespace Microsoft.AspNetCore.Builder {
 
         /// <summary>
         /// Adds a specific <see cref="X509Certificate2"/> contained in
-        /// a stream to sign tokens issued by the OpenID Connect server.
+        /// a stream to sign the tokens issued by the OpenID Connect server.
         /// </summary>
         /// <param name="credentials">The options used to configure the OpenID Connect server.</param>
         /// <param name="stream">The stream containing the certificate.</param>
@@ -178,8 +179,8 @@ namespace Microsoft.AspNetCore.Builder {
         }
 
         /// <summary>
-        /// Adds a specific <see cref="X509Certificate2"/> retrieved from the
-        /// X.509 machine store to sign tokens issued by the OpenID Connect server.
+        /// Adds a specific <see cref="X509Certificate2"/> retrieved from the X.509
+        /// machine store to sign the tokens issued by the OpenID Connect server.
         /// </summary>
         /// <param name="credentials">The options used to configure the OpenID Connect server.</param>
         /// <param name="thumbprint">The thumbprint of the certificate used to identify it in the X.509 store.</param>
@@ -190,8 +191,8 @@ namespace Microsoft.AspNetCore.Builder {
         }
 
         /// <summary>
-        /// Adds a specific <see cref="X509Certificate2"/> retrieved from the
-        /// given X.509 store to sign tokens issued by the OpenID Connect server.
+        /// Adds a specific <see cref="X509Certificate2"/> retrieved from the given
+        /// X.509 store to sign the tokens issued by the OpenID Connect server.
         /// </summary>
         /// <param name="credentials">The options used to configure the OpenID Connect server.</param>
         /// <param name="thumbprint">The thumbprint of the certificate used to identify it in the X.509 store.</param>
@@ -218,7 +219,64 @@ namespace Microsoft.AspNetCore.Builder {
         }
 
         /// <summary>
-        /// Adds a specific <see cref="SecurityKey"/> to sign tokens issued by the OpenID Connect server.
+        /// Adds a new ephemeral key used to sign the tokens issued by the OpenID Connect server:
+        /// the key is discarded when the application shuts down and tokens signed using this key
+        /// are automatically invalidated. This method should only be used during development.
+        /// On production, using a X.509 certificate stored in the machine store is recommended.
+        /// </summary>
+        /// <returns>The signing credentials.</returns>
+        public static IList<SigningCredentials> AddEphemeralKey([NotNull] this IList<SigningCredentials> credentials) {
+            if (credentials == null) {
+                throw new ArgumentNullException(nameof(credentials));
+            }
+
+            // Note: a 1024-bit key might be returned by RSA.Create() on .NET Desktop/Mono,
+            // where RSACryptoServiceProvider is still the default implementation and
+            // where custom implementations can be registered via CryptoConfig.
+            // To ensure the key size is always acceptable, replace it if necessary.
+            var algorithm = RSA.Create();
+
+            if (algorithm.KeySize < 2048) {
+                algorithm.KeySize = 2048;
+            }
+
+#if NET451
+            // Note: RSACng cannot be used as it's not available on Mono.
+            if (algorithm.KeySize < 2048 && algorithm is RSACryptoServiceProvider) {
+                algorithm.Dispose();
+                algorithm = new RSACryptoServiceProvider(2048);
+            }
+#endif
+
+            if (algorithm.KeySize < 2048) {
+                throw new InvalidOperationException("The ephemeral key generation failed.");
+            }
+
+            // Note: the RSA instance cannot be flowed as-is due to a bug in IdentityModel that disposes
+            // the underlying algorithm when it can be cast to RSACryptoServiceProvider. To work around
+            // this bug, the RSA public/private parameters are manually exported and re-imported when needed.
+            SecurityKey key;
+#if NET451
+            if (algorithm is RSACryptoServiceProvider) {
+                var parameters = algorithm.ExportParameters(includePrivateParameters: true);
+                key = new RsaSecurityKey(parameters);
+
+                // Dispose the algorithm instance.
+                algorithm.Dispose();
+            }
+
+            else {
+#endif
+                key = new RsaSecurityKey(algorithm);
+#if NET451
+            }
+#endif
+
+            return credentials.AddKey(key);
+        }
+
+        /// <summary>
+        /// Adds a specific <see cref="SecurityKey"/> to sign the tokens issued by the OpenID Connect server.
         /// </summary>
         /// <param name="credentials">The options used to configure the OpenID Connect server.</param>
         /// <param name="key">The key used to sign security tokens issued by the server.</param>

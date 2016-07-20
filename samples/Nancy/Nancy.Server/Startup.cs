@@ -1,6 +1,7 @@
 using System;
 using System.IdentityModel.Tokens;
 using System.IO;
+using System.Reflection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
@@ -17,9 +18,7 @@ namespace Nancy.Server {
             app.SetDefaultSignInAsAuthenticationType("ServerCookie");
 
             app.UseWhen(context => context.Request.Path.StartsWithSegments(new PathString("/api")), map => {
-                map.UseOAuthValidation(new OAuthValidationOptions {
-                    AuthenticationMode = AuthenticationMode.Active
-                });
+                map.UseOAuthValidation();
 
                 // Alternatively, you can also use the introspection middleware.
                 // Using it is recommended if your resource server is in a
@@ -107,9 +106,11 @@ namespace Nancy.Server {
                 options.TokenEndpointPath = new PathString("/connect/token");
                 options.UserinfoEndpointPath = new PathString("/connect/userinfo");
 
-                // Note: if you don't explicitly register a signing key, one is automatically generated and
-                // persisted on the disk. If the key cannot be persisted, an exception is thrown.
-                // 
+                // Register a new ephemeral key, that is discarded when the application
+                // shuts down. Tokens signed using this key are automatically invalidated.
+                // This method should only be used during development.
+                options.SigningCredentials.AddEphemeralKey();
+
                 // On production, using a X.509 certificate stored in the machine store is recommended.
                 // You can generate a self-signed certificate using Pluralsight's self-cert utility:
                 // https://s3.amazonaws.com/pluralsight-free/keith-brown/samples/SelfCert.zip

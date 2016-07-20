@@ -8,13 +8,11 @@ using System;
 using System.Text.Encodings.Web;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
@@ -67,6 +65,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 }
             }
 
+            if (Options.SigningCredentials.Count == 0) {
+                throw new ArgumentException("At least one signing key must be registered. Consider registering " +
+                                            "a X.509 certificate or call 'options.SigningCredentials.AddEphemeralKey()' " +
+                                            "to generate and register an ephemeral signing key.", nameof(options));
+            }
+
             if (Options.DataProtectionProvider == null) {
                 Options.DataProtectionProvider = dataProtectionProvider;
             }
@@ -103,98 +107,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 Logger.LogWarning("Disabling the transport security requirement is not recommended in production. " +
                                   "Consider setting 'OpenIdConnectServerOptions.AllowInsecureHttp' to 'false' " +
                                   "to prevent the OpenID Connect server middleware from serving non-HTTPS requests.");
-            }
-
-            // If no key has been explicitly added, use the fallback mode.
-            if (Options.SigningCredentials.Count == 0) {
-                // When detecting a non-development environment, log a warning to inform the developer
-                // that registering a X.509 certificate is recommended when going live.
-                if (environment.IsProduction()) {
-                    Logger.LogWarning("No explicit signing credentials have been registered. " +
-                                      "Using a X.509 certificate stored in the machine store " +
-                                      "is recommended for production environments.");
-                }
-
-                var directory = OpenIdConnectServerHelpers.GetDefaultKeyStorageDirectory();
-                if (directory == null) {
-                    Logger.LogError("No suitable directory can be found to store the dynamically-generated RSA keys.");
-
-                    return;
-                }
-
-                // Get a data protector from the services provider.
-                var protector = dataProtectionProvider.CreateProtector(
-                    nameof(OpenIdConnectServerMiddleware),
-                    Options.AuthenticationScheme, "Keys", "v1");
-
-                // Note: all the exceptions thrown when enumerating
-                // existing keys or generating new ones must be caught.
-                try {
-                    foreach (var key in OpenIdConnectServerHelpers.GetKeys(directory)) {
-                        // Extract the key material using the data protector.
-                        // Ignore the key if the decryption process failed.
-                        string usage;
-                        var parameters = OpenIdConnectServerHelpers.DecryptKey(protector, key.Value, out usage);
-                        if (parameters == null) {
-                            Logger.LogDebug("An invalid/incompatible key was ignored: {Key}.", key.Key);
-
-                            continue;
-                        }
-
-                        // Only add the key if it corresponds to the intended usage.
-                        if (!string.Equals(usage, "Signing", StringComparison.OrdinalIgnoreCase)) {
-                            continue;
-                        }
-
-                        // Add the key to the signing credentials list.
-                        Options.SigningCredentials.AddKey(new RsaSecurityKey(parameters.Value));
-
-                        Logger.LogInformation("An existing key was automatically added to the " +
-                                              "signing credentials list: {Key}.", key.Key);
-                    }
-                }
-
-                catch (Exception exception) {
-                    Logger.LogDebug("An error ocurred when retrieving the keys stored " +
-                                    "on the disk: {Exception}.", exception.ToString());
-                }
-
-                // Note: all the exceptions thrown when enumerating
-                // existing keys or generating new ones must be caught.
-                try {
-                    // If no signing key has been found, generate and persist a new RSA key.
-                    if (Options.SigningCredentials.Count == 0) {
-                        // Generate a new RSA key and export its public/private parameters.
-                        var provider = OpenIdConnectServerHelpers.GenerateKey(size: 2048);
-                        var parameters = provider.ExportParameters(/* includePrivateParameters */ true);
-
-                        // Add the signing key to the credentials list before trying to persist it on the disk.
-                        Options.SigningCredentials.AddKey(new RsaSecurityKey(parameters));
-
-                        try {
-                            // Encrypt the key using the data protector and try to persist it on the disk.
-                            var key = OpenIdConnectServerHelpers.EncryptKey(protector, parameters, usage: "Signing");
-                            var path = OpenIdConnectServerHelpers.PersistKey(directory, key);
-
-                            Logger.LogInformation("A new RSA key was automatically generated, added to the " +
-                                                  "signing credentials list and persisted on the disk: {Path}.", path);
-                        }
-
-                        catch (Exception exception) {
-                            Logger.LogWarning("An error ocurred when persisting a new key on the disk: {Exception}. " +
-                                              "The key will be kept in memory and will be lost when the " +
-                                              "application shuts down or restarts.", exception.ToString());
-                        }
-                    }
-                }
-
-                catch (Exception exception) {
-                    Logger.LogDebug("An error ocurred when generating a new key: {Exception}.", exception.ToString());
-                }
-            }
-
-            if (Options.SigningCredentials.Count == 0) {
-                throw new ArgumentException("At least one signing key must be registered.", nameof(options));
             }
         }
 

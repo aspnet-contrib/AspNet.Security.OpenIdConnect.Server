@@ -235,6 +235,41 @@ namespace Owin {
         }
 
         /// <summary>
+        /// Adds a new ephemeral key used to decrypt the authorization requests received by the OpenID Connect server:
+        /// the key is discarded when the application shuts down and authorization requests encrypted using this key
+        /// cannot be decrypted when the key is lost. This method should only be used during development.
+        /// On production, using a X.509 certificate stored in the machine store is recommended.
+        /// </summary>
+        /// <returns>The signing credentials.</returns>
+        public static IList<EncryptingCredentials> AddEphemeralKey([NotNull] this IList<EncryptingCredentials> credentials) {
+            if (credentials == null) {
+                throw new ArgumentNullException(nameof(credentials));
+            }
+
+            // Note: a 1024-bit key might be returned by RSA.Create() on .NET Desktop/Mono,
+            // where RSACryptoServiceProvider is still the default implementation and
+            // where custom implementations can be registered via CryptoConfig.
+            // To ensure the key size is always acceptable, replace it if necessary.
+            var algorithm = RSA.Create();
+
+            if (algorithm.KeySize < 2048) {
+                algorithm.KeySize = 2048;
+            }
+
+            // Note: RSACng cannot be used as it's not available on Mono.
+            if (algorithm.KeySize < 2048 && algorithm is RSACryptoServiceProvider) {
+                algorithm.Dispose();
+                algorithm = new RSACryptoServiceProvider(2048);
+            }
+
+            if (algorithm.KeySize < 2048) {
+                throw new InvalidOperationException("The ephemeral key generation failed.");
+            }
+            
+            return credentials.AddKey(new RsaSecurityKey(algorithm));
+        }
+
+        /// <summary>
         /// Adds a specific <see cref="SecurityKey"/> to decrypt
         /// authorization requests received by the OpenID Connect server.
         /// </summary>
@@ -320,7 +355,7 @@ namespace Owin {
         }
 
         /// <summary>
-        /// Adds a specific <see cref="X509Certificate2"/> to sign tokens issued by the OpenID Connect server.
+        /// Adds a specific <see cref="X509Certificate2"/> to sign the tokens issued by the OpenID Connect server.
         /// </summary>
         /// <param name="credentials">The options used to configure the OpenID Connect server.</param>
         /// <param name="certificate">The certificate used to sign security tokens issued by the server.</param>
@@ -358,7 +393,7 @@ namespace Owin {
 
         /// <summary>
         /// Adds a specific <see cref="X509Certificate2"/> retrieved from an
-        /// embedded resource to sign tokens issued by the OpenID Connect server.
+        /// embedded resource to sign the tokens issued by the OpenID Connect server.
         /// </summary>
         /// <param name="credentials">The options used to configure the OpenID Connect server.</param>
         /// <param name="assembly">The assembly containing the certificate.</param>
@@ -395,7 +430,7 @@ namespace Owin {
 
         /// <summary>
         /// Adds a specific <see cref="X509Certificate2"/> contained in
-        /// a stream to sign tokens issued by the OpenID Connect server.
+        /// a stream to sign the tokens issued by the OpenID Connect server.
         /// </summary>
         /// <param name="credentials">The options used to configure the OpenID Connect server.</param>
         /// <param name="stream">The stream containing the certificate.</param>
@@ -439,8 +474,8 @@ namespace Owin {
         }
 
         /// <summary>
-        /// Adds a specific <see cref="X509Certificate2"/> retrieved from the
-        /// X.509 machine store to sign tokens issued by the OpenID Connect server.
+        /// Adds a specific <see cref="X509Certificate2"/> retrieved from the X.509
+        /// machine store to sign the tokens issued by the OpenID Connect server.
         /// </summary>
         /// <param name="credentials">The options used to configure the OpenID Connect server.</param>
         /// <param name="thumbprint">The thumbprint of the certificate used to identify it in the X.509 store.</param>
@@ -451,8 +486,8 @@ namespace Owin {
         }
 
         /// <summary>
-        /// Adds a specific <see cref="X509Certificate2"/> retrieved from the
-        /// given X.509 store to sign tokens issued by the OpenID Connect server.
+        /// Adds a specific <see cref="X509Certificate2"/> retrieved from the given
+        /// X.509 store to sign the tokens issued by the OpenID Connect server.
         /// </summary>
         /// <param name="credentials">The options used to configure the OpenID Connect server.</param>
         /// <param name="thumbprint">The thumbprint of the certificate used to identify it in the X.509 store.</param>
@@ -479,7 +514,42 @@ namespace Owin {
         }
 
         /// <summary>
-        /// Adds a specific <see cref="SecurityKey"/> to sign tokens issued by the OpenID Connect server.
+        /// Adds a new ephemeral key used to sign the tokens issued by the OpenID Connect server:
+        /// the key is discarded when the application shuts down and tokens signed using this key
+        /// are automatically invalidated. This method should only be used during development:
+        /// on production, using a X.509 certificate stored in the machine store is recommended.
+        /// </summary>
+        /// <returns>The signing credentials.</returns>
+        public static IList<SigningCredentials> AddEphemeralKey([NotNull] this IList<SigningCredentials> credentials) {
+            if (credentials == null) {
+                throw new ArgumentNullException(nameof(credentials));
+            }
+
+            // Note: a 1024-bit key might be returned by RSA.Create() on .NET Desktop/Mono,
+            // where RSACryptoServiceProvider is still the default implementation and
+            // where custom implementations can be registered via CryptoConfig.
+            // To ensure the key size is always acceptable, replace it if necessary.
+            var algorithm = RSA.Create();
+
+            if (algorithm.KeySize < 2048) {
+                algorithm.KeySize = 2048;
+            }
+
+            // Note: RSACng cannot be used as it's not available on Mono.
+            if (algorithm.KeySize < 2048 && algorithm is RSACryptoServiceProvider) {
+                algorithm.Dispose();
+                algorithm = new RSACryptoServiceProvider(2048);
+            }
+
+            if (algorithm.KeySize < 2048) {
+                throw new InvalidOperationException("The ephemeral key generation failed.");
+            }
+
+            return credentials.AddKey(new RsaSecurityKey(algorithm));
+        }
+
+        /// <summary>
+        /// Adds a specific <see cref="SecurityKey"/> to sign the tokens issued by the OpenID Connect server.
         /// </summary>
         /// <param name="credentials">The options used to configure the OpenID Connect server.</param>
         /// <param name="key">The key used to sign security tokens issued by the server.</param>
