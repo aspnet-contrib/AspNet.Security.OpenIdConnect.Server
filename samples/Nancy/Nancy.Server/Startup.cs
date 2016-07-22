@@ -1,7 +1,5 @@
 using System;
-using System.IdentityModel.Tokens;
 using System.IO;
-using System.Reflection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
@@ -10,7 +8,6 @@ using Nancy.Server.Extensions;
 using Nancy.Server.Providers;
 using NWebsec.Owin;
 using Owin;
-using Owin.Security.OAuth.Validation;
 
 namespace Nancy.Server {
     public class Startup {
@@ -23,7 +20,7 @@ namespace Nancy.Server {
                 // Alternatively, you can also use the introspection middleware.
                 // Using it is recommended if your resource server is in a
                 // different application/separated from the authorization server.
-                // 
+                //
                 // map.UseOAuthIntrospection(options => {
                 //     options.AuthenticationMode = AuthenticationMode.Active;
                 //     options.Authority = "http://localhost:54540/";
@@ -114,12 +111,12 @@ namespace Nancy.Server {
                 // On production, using a X.509 certificate stored in the machine store is recommended.
                 // You can generate a self-signed certificate using Pluralsight's self-cert utility:
                 // https://s3.amazonaws.com/pluralsight-free/keith-brown/samples/SelfCert.zip
-                // 
+                //
                 // options.SigningCredentials.AddCertificate("7D2A741FE34CC2C7369237A5F2078988E17A6A75");
-                // 
+                //
                 // Alternatively, you can also store the certificate as an embedded .pfx resource
                 // directly in this assembly or in a file published alongside this project:
-                // 
+                //
                 // options.SigningCredentials.AddCertificate(
                 //     assembly: typeof(Startup).GetTypeInfo().Assembly,
                 //     resource: "Nancy.Server.Certificate.pfx",

@@ -4,8 +4,8 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
-using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
+using Owin.Security.OpenIdConnect.Extensions;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
@@ -19,7 +19,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         public HandleAuthorizationRequestContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
-            OpenIdConnectMessage request)
+            OpenIdConnectRequest request)
             : base(context, options) {
             Request = request;
             Validate();
@@ -28,6 +28,6 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the authorization request.
         /// </summary>
-        public new OpenIdConnectMessage Request { get; }
+        public new OpenIdConnectRequest Request { get; }
     }
 }

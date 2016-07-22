@@ -11,11 +11,11 @@ using System.IO;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Server;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Microsoft.AspNetCore.Builder {
@@ -50,7 +50,6 @@ namespace Microsoft.AspNetCore.Builder {
 
             return app.UseMiddleware<OpenIdConnectServerMiddleware>(Options.Create(options));
         }
-
 
         /// <summary>
         /// Adds a new OpenID Connect server instance in the ASP.NET pipeline.
@@ -333,12 +332,12 @@ namespace Microsoft.AspNetCore.Builder {
         }
 
         /// <summary>
-        /// Retrieves the <see cref="OpenIdConnectMessage"/> instance
+        /// Retrieves the <see cref="OpenIdConnectRequest"/> instance
         /// associated with the current request from the ASP.NET context.
         /// </summary>
         /// <param name="context">The ASP.NET context.</param>
-        /// <returns>The <see cref="OpenIdConnectMessage"/> associated with the current request.</returns>
-        public static OpenIdConnectMessage GetOpenIdConnectRequest([NotNull] this HttpContext context) {
+        /// <returns>The <see cref="OpenIdConnectRequest"/> associated with the current request.</returns>
+        public static OpenIdConnectRequest GetOpenIdConnectRequest([NotNull] this HttpContext context) {
             if (context == null) {
                 throw new ArgumentNullException(nameof(context));
             }
@@ -354,32 +353,12 @@ namespace Microsoft.AspNetCore.Builder {
         }
 
         /// <summary>
-        /// Inserts the ambient <see cref="OpenIdConnectMessage"/> request in the ASP.NET context.
-        /// </summary>
-        /// <param name="context">The ASP.NET context.</param>
-        /// <param name="request">The ambient <see cref="OpenIdConnectMessage"/>.</param>
-        public static void SetOpenIdConnectRequest([NotNull] this HttpContext context, OpenIdConnectMessage request) {
-            if (context == null) {
-                throw new ArgumentNullException(nameof(context));
-            }
-
-            var feature = context.Features.Get<OpenIdConnectServerFeature>();
-            if (feature == null) {
-                feature = new OpenIdConnectServerFeature();
-
-                context.Features.Set(feature);
-            }
-
-            feature.Request = request;
-        }
-
-        /// <summary>
-        /// Retrieves the <see cref="OpenIdConnectMessage"/> instance
+        /// Retrieves the <see cref="OpenIdConnectResponse"/> instance
         /// associated with the current response from the ASP.NET context.
         /// </summary>
         /// <param name="context">The ASP.NET context.</param>
-        /// <returns>The <see cref="OpenIdConnectMessage"/> associated with the current response.</returns>
-        public static OpenIdConnectMessage GetOpenIdConnectResponse([NotNull] this HttpContext context) {
+        /// <returns>The <see cref="OpenIdConnectResponse"/> associated with the current response.</returns>
+        public static OpenIdConnectResponse GetOpenIdConnectResponse([NotNull] this HttpContext context) {
             if (context == null) {
                 throw new ArgumentNullException(nameof(context));
             }
@@ -395,11 +374,31 @@ namespace Microsoft.AspNetCore.Builder {
         }
 
         /// <summary>
-        /// Inserts the ambient <see cref="OpenIdConnectMessage"/> response in the ASP.NET context.
+        /// Inserts the ambient <see cref="OpenIdConnectRequest"/> request in the ASP.NET context.
         /// </summary>
         /// <param name="context">The ASP.NET context.</param>
-        /// <param name="response">The ambient <see cref="OpenIdConnectMessage"/>.</param>
-        public static void SetOpenIdConnectResponse([NotNull] this HttpContext context, OpenIdConnectMessage response) {
+        /// <param name="request">The ambient <see cref="OpenIdConnectRequest"/>.</param>
+        public static void SetOpenIdConnectRequest([NotNull] this HttpContext context, OpenIdConnectRequest request) {
+            if (context == null) {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            var feature = context.Features.Get<OpenIdConnectServerFeature>();
+            if (feature == null) {
+                feature = new OpenIdConnectServerFeature();
+
+                context.Features.Set(feature);
+            }
+
+            feature.Request = request;
+        }
+
+        /// <summary>
+        /// Inserts the ambient <see cref="OpenIdConnectResponse"/> response in the ASP.NET context.
+        /// </summary>
+        /// <param name="context">The ASP.NET context.</param>
+        /// <param name="response">The ambient <see cref="OpenIdConnectResponse"/>.</param>
+        public static void SetOpenIdConnectResponse([NotNull] this HttpContext context, OpenIdConnectResponse response) {
             if (context == null) {
                 throw new ArgumentNullException(nameof(context));
             }

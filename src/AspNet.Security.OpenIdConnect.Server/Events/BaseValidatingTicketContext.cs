@@ -26,7 +26,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         }
 
         /// <summary>
-        /// Replaces the ticket information on this context and marks it as as validated by the application. 
+        /// Replaces the ticket information on this context and marks it as as validated by the application.
         /// IsValidated becomes true and HasError becomes false as a result of calling.
         /// </summary>
         /// <param name="ticket">Assigned to the Ticket property</param>
@@ -37,7 +37,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         }
 
         /// <summary>
-        /// Alters the ticket information on this context and marks it as as validated by the application. 
+        /// Alters the ticket information on this context and marks it as as validated by the application.
         /// IsValidated becomes true and HasError becomes false as a result of calling.
         /// </summary>
         /// <param name="principal">Assigned to the Ticket.Principal property</param>

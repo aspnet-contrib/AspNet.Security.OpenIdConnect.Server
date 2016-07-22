@@ -12,7 +12,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
     /// Default implementation of <see cref="IOpenIdConnectServerProvider"/> used by the authorization
     /// server to communicate with the web application while processing requests.
-    /// <see cref="OpenIdConnectServerProvider"/> provides some default behavior, 
+    /// <see cref="OpenIdConnectServerProvider"/> provides some default behavior,
     /// may be used as a virtual base class, and offers delegate properties
     /// which may be used to handle individual calls without declaring a new class type.
     /// </summary>
@@ -114,10 +114,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public Func<ValidateUserinfoRequestContext, Task> OnValidateUserinfoRequest { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
-        /// Called at the final stage of an incoming authorization endpoint request before the execution continues on to the web application component 
+        /// Called at the final stage of an incoming authorization endpoint request before the execution continues on to the web application component
         /// responsible for producing the html response. Anything present in the OWIN pipeline following the Authorization Server may produce the
-        /// response for the authorization page. If running on IIS any ASP.NET technology running on the server may produce the response for the 
-        /// authorization page. If the web application wishes to produce the response directly in the AuthorizationEndpoint call it may write to the 
+        /// response for the authorization page. If running on IIS any ASP.NET technology running on the server may produce the response for the
+        /// authorization page. If the web application wishes to produce the response directly in the AuthorizationEndpoint call it may write to the
         /// context.Response directly and should call context.RequestCompleted to stop other handlers from executing. If the web application wishes
         /// to grant the authorization directly in the AuthorizationEndpoint call it cay call context.OwinContext.Authentication.SignIn with the
         /// appropriate ClaimsIdentity and should call context.RequestCompleted to stop other handlers from executing.
@@ -144,10 +144,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public Func<HandleIntrospectionRequestContext, Task> OnHandleIntrospectionRequest { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
-        /// Called at the final stage of an incoming logout endpoint request before the execution continues on to the web application component 
+        /// Called at the final stage of an incoming logout endpoint request before the execution continues on to the web application component
         /// responsible for producing the html response. Anything present in the OWIN pipeline following the Authorization Server may produce the
-        /// response for the logout page. If running on IIS any ASP.NET technology running on the server may produce the response for the 
-        /// authorization page. If the web application wishes to produce the response directly in the LogoutEndpoint call it may write to the 
+        /// response for the logout page. If running on IIS any ASP.NET technology running on the server may produce the response for the
+        /// authorization page. If the web application wishes to produce the response directly in the LogoutEndpoint call it may write to the
         /// context.Response directly and should call context.RequestCompleted to stop other handlers from executing.
         /// </summary>
         public Func<HandleLogoutRequestContext, Task> OnHandleLogoutRequest { get; set; } = context => Task.FromResult<object>(null);
@@ -160,13 +160,13 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
         /// <summary>
         /// Called at the final stage of a successful Token endpoint request.
-        /// An application may implement this call in order to do any final 
-        /// modification of the claims being used to issue access or refresh tokens. 
+        /// An application may implement this call in order to do any final
+        /// modification of the claims being used to issue access or refresh tokens.
         /// </summary>
         public Func<HandleTokenRequestContext, Task> OnHandleTokenRequest { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
-        /// Called at the final stage of an incoming userinfo endpoint request before the execution continues on to the web application component 
+        /// Called at the final stage of an incoming userinfo endpoint request before the execution continues on to the web application component
         /// responsible for producing the JSON response. Anything present in the OWIN pipeline following the Authorization Server may produce the
         /// response for the userinfo response. If the web application wishes to produce the response directly in the UserinfoEndpoint call it
         /// may write to the context.Response directly and should call context.HandleResponse to stop other handlers from executing.
@@ -177,7 +177,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// Called before the AuthorizationEndpoint redirects its response to the caller.
         /// The response could contain an access token when using implicit flow or
         /// an authorization code when using the authorization code flow.
-        /// If the web application wishes to produce the authorization response directly in the AuthorizationEndpoint call it may write to the 
+        /// If the web application wishes to produce the authorization response directly in the AuthorizationEndpoint call it may write to the
         /// context.Response directly and should call context.RequestCompleted to stop other handlers from executing.
         /// This call may also be used to add additional response parameters to the authorization response.
         /// </summary>
@@ -185,14 +185,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
         /// <summary>
         /// Called before the authorization server starts emitting the OpenID Connect configuration associated with this instance.
-        /// If the web application wishes to produce the configuration metadata directly in this call, it may write to the 
+        /// If the web application wishes to produce the configuration metadata directly in this call, it may write to the
         /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
         /// </summary>
         public Func<ApplyConfigurationResponseContext, Task> OnApplyConfigurationResponse { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
         /// Called before the authorization server starts emitting the OpenID Connect JSON Web Key set associated with this instance.
-        /// If the web application wishes to produce the JSON Web Key set directly in this call, it may write to the 
+        /// If the web application wishes to produce the JSON Web Key set directly in this call, it may write to the
         /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
         /// </summary>
         public Func<ApplyCryptographyResponseContext, Task> OnApplyCryptographyResponse { get; set; } = context => Task.FromResult<object>(null);
@@ -200,14 +200,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Called before the authorization server starts emitting the status and metadata associated with the token received.
         /// Validation conforms to the OAuth 2.0 Token Introspection specification with some additions. See documentation for details.
-        /// If the web application wishes to produce the token status and metadata directly in this call, it may write to the 
+        /// If the web application wishes to produce the token status and metadata directly in this call, it may write to the
         /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
         /// </summary>
         public Func<ApplyIntrospectionResponseContext, Task> OnApplyIntrospectionResponse { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
         /// Called before the LogoutEndpoint endpoint redirects its response to the caller.
-        /// If the web application wishes to produce the authorization response directly in the LogoutEndpoint call it may write to the 
+        /// If the web application wishes to produce the authorization response directly in the LogoutEndpoint call it may write to the
         /// context.Response directly and should call context.RequestCompleted to stop other handlers from executing.
         /// This call may also be used to add additional response parameters to the authorization response.
         /// </summary>
@@ -215,21 +215,21 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
         /// <summary>
         /// Called before the authorization server starts emitting the revocation response to the response stream.
-        /// If the web application wishes to produce the token status and metadata directly in this call, it may write to the 
+        /// If the web application wishes to produce the token status and metadata directly in this call, it may write to the
         /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
         /// </summary>
         public Func<ApplyRevocationResponseContext, Task> OnApplyRevocationResponse { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
         /// Called before the TokenEndpoint redirects its response to the caller.
-        /// This call may also be used in order to add additional 
+        /// This call may also be used in order to add additional
         /// response parameters to the JSON response payload.
         /// </summary>
         public Func<ApplyTokenResponseContext, Task> OnApplyTokenResponse { get; set; } = context => Task.FromResult<object>(null);
 
         /// <summary>
         /// Called before the UserinfoEndpoint endpoint starts writing to the response stream.
-        /// If the web application wishes to produce the userinfo response directly in the UserinfoEndpoint call it may write to the 
+        /// If the web application wishes to produce the userinfo response directly in the UserinfoEndpoint call it may write to the
         /// context.Response directly and should call context.RequestCompleted to stop other handlers from executing.
         /// This call may also be used to add additional response parameters to the authorization response.
         /// </summary>
@@ -422,10 +422,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public virtual Task ValidateUserinfoRequest(ValidateUserinfoRequestContext context) => OnValidateUserinfoRequest(context);
 
         /// <summary>
-        /// Called at the final stage of an incoming authorization endpoint request before the execution continues on to the web application component 
+        /// Called at the final stage of an incoming authorization endpoint request before the execution continues on to the web application component
         /// responsible for producing the html response. Anything present in the OWIN pipeline following the Authorization Server may produce the
-        /// response for the authorization page. If running on IIS any ASP.NET technology running on the server may produce the response for the 
-        /// authorization page. If the web application wishes to produce the response directly in the AuthorizationEndpoint call it may write to the 
+        /// response for the authorization page. If running on IIS any ASP.NET technology running on the server may produce the response for the
+        /// authorization page. If the web application wishes to produce the response directly in the AuthorizationEndpoint call it may write to the
         /// context.Response directly and should call context.RequestCompleted to stop other handlers from executing. If the web application wishes
         /// to grant the authorization directly in the AuthorizationEndpoint call it cay call context.OwinContext.Authentication.SignIn with the
         /// appropriate ClaimsIdentity and should call context.RequestCompleted to stop other handlers from executing.
@@ -460,10 +460,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public virtual Task HandleIntrospectionRequest(HandleIntrospectionRequestContext context) => OnHandleIntrospectionRequest(context);
 
         /// <summary>
-        /// Called at the final stage of an incoming logout endpoint request before the execution continues on to the web application component 
+        /// Called at the final stage of an incoming logout endpoint request before the execution continues on to the web application component
         /// responsible for producing the html response. Anything present in the OWIN pipeline following the Authorization Server may produce the
-        /// response for the logout page. If running on IIS any ASP.NET technology running on the server may produce the response for the 
-        /// authorization page. If the web application wishes to produce the response directly in the LogoutEndpoint call it may write to the 
+        /// response for the logout page. If running on IIS any ASP.NET technology running on the server may produce the response for the
+        /// authorization page. If the web application wishes to produce the response directly in the LogoutEndpoint call it may write to the
         /// context.Response directly and should call context.RequestCompleted to stop other handlers from executing.
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
@@ -480,15 +480,15 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
         /// <summary>
         /// Called at the final stage of a successful Token endpoint request.
-        /// An application may implement this call in order to do any final 
-        /// modification of the claims being used to issue access or refresh tokens. 
+        /// An application may implement this call in order to do any final
+        /// modification of the claims being used to issue access or refresh tokens.
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
         /// <returns>Task to enable asynchronous execution</returns>
         public virtual Task HandleTokenRequest(HandleTokenRequestContext context) => OnHandleTokenRequest(context);
 
         /// <summary>
-        /// Called at the final stage of an incoming userinfo endpoint request before the execution continues on to the web application component 
+        /// Called at the final stage of an incoming userinfo endpoint request before the execution continues on to the web application component
         /// responsible for producing the JSON response. Anything present in the OWIN pipeline following the Authorization Server may produce the
         /// response for the userinfo response. If the web application wishes to produce the response directly in the UserinfoEndpoint call it
         /// may write to the context.Response directly and should call context.HandleResponse to stop other handlers from executing.
@@ -501,7 +501,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// Called before the AuthorizationEndpoint redirects its response to the caller.
         /// The response could contain an access token when using implicit flow or
         /// an authorization code when using the authorization code flow.
-        /// If the web application wishes to produce the authorization response directly in the AuthorizationEndpoint call it may write to the 
+        /// If the web application wishes to produce the authorization response directly in the AuthorizationEndpoint call it may write to the
         /// context.Response directly and should call context.RequestCompleted to stop other handlers from executing.
         /// This call may also be used to add additional response parameters to the authorization response.
         /// </summary>
@@ -511,7 +511,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
         /// <summary>
         /// Called before the authorization server starts emitting the OpenID Connect configuration associated with this instance.
-        /// If the web application wishes to produce the configuration metadata directly in this call, it may write to the 
+        /// If the web application wishes to produce the configuration metadata directly in this call, it may write to the
         /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
@@ -520,7 +520,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
         /// <summary>
         /// Called before the authorization server starts emitting the OpenID Connect JSON Web Key set associated with this instance.
-        /// If the web application wishes to produce the JSON Web Key set directly in this call, it may write to the 
+        /// If the web application wishes to produce the JSON Web Key set directly in this call, it may write to the
         /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
@@ -530,7 +530,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Called before the authorization server starts emitting the status and metadata associated with the token received.
         /// Validation conforms to the OAuth 2.0 Token Introspection specification with some additions. See documentation for details.
-        /// If the web application wishes to produce the status and metadata directly in this call, it may write to the 
+        /// If the web application wishes to produce the status and metadata directly in this call, it may write to the
         /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
@@ -539,7 +539,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
         /// <summary>
         /// Called before the LogoutEndpoint endpoint redirects its response to the caller.
-        /// If the web application wishes to produce the authorization response directly in the LogoutEndpoint call it may write to the 
+        /// If the web application wishes to produce the authorization response directly in the LogoutEndpoint call it may write to the
         /// context.Response directly and should call context.RequestCompleted to stop other handlers from executing.
         /// This call may also be used to add additional response parameters to the authorization response.
         /// </summary>
@@ -549,7 +549,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
         /// <summary>
         /// Called before the authorization server starts emitting the revocation response to the response stream.
-        /// If the web application wishes to produce the token status and metadata directly in this call, it may write to the 
+        /// If the web application wishes to produce the token status and metadata directly in this call, it may write to the
         /// context.Response directly and should call context.RequestCompleted to stop the default behavior from executing.
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
@@ -558,7 +558,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
         /// <summary>
         /// Called before the TokenEndpoint redirects its response to the caller.
-        /// This call may also be used in order to add additional 
+        /// This call may also be used in order to add additional
         /// response parameters to the JSON response payload.
         /// </summary>
         /// <param name="context">The context of the event carries information in and results out.</param>
@@ -567,7 +567,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
         /// <summary>
         /// Called before the UserinfoEndpoint endpoint starts writing to the response stream.
-        /// If the web application wishes to produce the userinfo response directly in the UserinfoEndpoint call it may write to the 
+        /// If the web application wishes to produce the userinfo response directly in the UserinfoEndpoint call it may write to the
         /// context.Response directly and should call context.RequestCompleted to stop other handlers from executing.
         /// This call may also be used to add additional response parameters to the authorization response.
         /// </summary>

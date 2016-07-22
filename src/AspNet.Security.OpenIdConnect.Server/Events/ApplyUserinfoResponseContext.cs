@@ -7,8 +7,6 @@
 using AspNet.Security.OpenIdConnect.Extensions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
-using Newtonsoft.Json.Linq;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
@@ -25,8 +23,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public ApplyUserinfoResponseContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
-            OpenIdConnectMessage request,
-            JObject response)
+            OpenIdConnectRequest request,
+            OpenIdConnectResponse response)
             : base(context) {
             Options = options;
             Request = request;
@@ -39,20 +37,20 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public OpenIdConnectServerOptions Options { get; }
 
         /// <summary>
-        /// Gets the token request. 
+        /// Gets the token request.
         /// </summary>
-        public new OpenIdConnectMessage Request { get; }
+        public new OpenIdConnectRequest Request { get; }
 
         /// <summary>
-        /// Gets the JSON payload returned to the client application.
+        /// Gets the response returned to the client application.
         /// </summary>
-        public new JObject Response { get; }
+        public new OpenIdConnectResponse Response { get; }
 
         /// <summary>
         /// Gets the error code returned to the client application.
         /// When the response indicates a successful response,
         /// this property returns <c>null</c>.
         /// </summary>
-        public string Error => Response[OpenIdConnectConstants.Parameters.Error]?.Value<string>();
+        public string Error => Response.Error;
     }
 }

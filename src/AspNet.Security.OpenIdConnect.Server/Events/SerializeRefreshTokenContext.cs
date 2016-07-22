@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using AspNet.Security.OpenIdConnect.Extensions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
@@ -26,8 +25,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public SerializeRefreshTokenContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
-            OpenIdConnectMessage request,
-            OpenIdConnectMessage response,
+            OpenIdConnectRequest request,
+            OpenIdConnectResponse response,
             AuthenticationTicket ticket)
             : base(context) {
             Options = options;
@@ -44,12 +43,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the authorization or token request.
         /// </summary>
-        public new OpenIdConnectMessage Request { get; }
+        public new OpenIdConnectRequest Request { get; }
 
         /// <summary>
         /// Gets the authorization or token response.
         /// </summary>
-        public new OpenIdConnectMessage Response { get; }
+        public new OpenIdConnectResponse Response { get; }
 
         /// <summary>
         /// Gets or sets the presenters associated with the authentication ticket.

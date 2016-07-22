@@ -8,7 +8,6 @@ using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin.Security.Infrastructure;
 using Newtonsoft.Json.Linq;
 using Owin.Security.OpenIdConnect.Extensions;
@@ -16,10 +15,13 @@ using Owin.Security.OpenIdConnect.Extensions;
 namespace Owin.Security.OpenIdConnect.Server {
     internal partial class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions> {
         private async Task<bool> InvokeUserinfoEndpointAsync() {
-            OpenIdConnectMessage request;
+            OpenIdConnectRequest request;
 
             if (string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
-                request = new OpenIdConnectMessage(Request.Query);
+                request = new OpenIdConnectRequest(Request.Query) {
+                    IsConfidential = false, // Note: userinfo requests are never confidential.
+                    RequestType = OpenIdConnectConstants.RequestTypes.Userinfo
+                };
             }
 
             else if (string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase)) {
@@ -28,7 +30,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     Options.Logger.LogError("The userinfo request was rejected because " +
                                             "the mandatory 'Content-Type' header was missing.");
 
-                    return await SendUserinfoResponseAsync(null, new OpenIdConnectMessage {
+                    return await SendUserinfoResponseAsync(null, new OpenIdConnectResponse {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
                         ErrorDescription = "A malformed userinfo request has been received: " +
                             "the mandatory 'Content-Type' header was missing from the POST request."
@@ -40,7 +42,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     Options.Logger.LogError("The userinfo request was rejected because an invalid 'Content-Type' " +
                                             "header was received: {ContentType}.", Request.ContentType);
 
-                    return await SendUserinfoResponseAsync(null, new OpenIdConnectMessage {
+                    return await SendUserinfoResponseAsync(null, new OpenIdConnectResponse {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
                         ErrorDescription = "A malformed userinfo request has been received: " +
                             "the 'Content-Type' header contained an unexcepted value. " +
@@ -48,14 +50,17 @@ namespace Owin.Security.OpenIdConnect.Server {
                     });
                 }
 
-                request = new OpenIdConnectMessage(await Request.ReadFormAsync());
+                request = new OpenIdConnectRequest(await Request.ReadFormAsync()) {
+                    IsConfidential = false, // Note: userinfo requests are never confidential.
+                    RequestType = OpenIdConnectConstants.RequestTypes.Userinfo
+                };
             }
 
             else {
                 Options.Logger.LogError("The userinfo request was rejected because an invalid " +
                                         "HTTP method was received: {Method}.", Request.Method);
 
-                return await SendUserinfoResponseAsync(null, new OpenIdConnectMessage {
+                return await SendUserinfoResponseAsync(null, new OpenIdConnectResponse {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "A malformed userinfo request has been received: " +
                                        "make sure to use either GET or POST."
@@ -65,8 +70,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             var @event = new ExtractUserinfoRequestContext(Context, Options, request);
             await Options.Provider.ExtractUserinfoRequest(@event);
 
-            // Allow the application code to replace the userinfo request.
-            request = @event.Request;
+            // Insert the userinfo request in the OWIN context.
+            Context.SetOpenIdConnectRequest(request);
 
             if (@event.HandledResponse) {
                 return true;
@@ -81,15 +86,12 @@ namespace Owin.Security.OpenIdConnect.Server {
                                         /* Error: */ @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                                         /* Description: */ @event.ErrorDescription);
 
-                return await SendUserinfoResponseAsync(null, new OpenIdConnectMessage {
+                return await SendUserinfoResponseAsync(request, new OpenIdConnectResponse {
                     Error = @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = @event.ErrorDescription,
                     ErrorUri = @event.ErrorUri
                 });
             }
-
-            // Insert the userinfo request in the OWIN context.
-            Context.SetOpenIdConnectRequest(request);
 
             string token;
             if (!string.IsNullOrEmpty(request.AccessToken)) {
@@ -102,7 +104,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     Options.Logger.LogError("The userinfo request was rejected because " +
                                             "the 'Authorization' header was missing.");
 
-                    return await SendUserinfoResponseAsync(request, new OpenIdConnectMessage {
+                    return await SendUserinfoResponseAsync(request, new OpenIdConnectResponse {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
                         ErrorDescription = "A malformed userinfo request has been received."
                     });
@@ -112,7 +114,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     Options.Logger.LogError("The userinfo request was rejected because the " +
                                             "'Authorization' header was invalid: {Header}.", header);
 
-                    return await SendUserinfoResponseAsync(request, new OpenIdConnectMessage {
+                    return await SendUserinfoResponseAsync(request, new OpenIdConnectResponse {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
                         ErrorDescription = "A malformed userinfo request has been received."
                     });
@@ -122,7 +124,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 if (string.IsNullOrEmpty(token)) {
                     Options.Logger.LogError("The userinfo request was rejected because the access token was missing.");
 
-                    return await SendUserinfoResponseAsync(request, new OpenIdConnectMessage {
+                    return await SendUserinfoResponseAsync(request, new OpenIdConnectResponse {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
                         ErrorDescription = "A malformed userinfo request has been received."
                     });
@@ -138,7 +140,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 // authentication middleware and potentially replace it by a 302 response.
                 // To work around this limitation, a 400 error is returned instead.
                 // See http://openid.net/specs/openid-connect-core-1_0.html#UserInfoError
-                return await SendUserinfoResponseAsync(request, new OpenIdConnectMessage {
+                return await SendUserinfoResponseAsync(request, new OpenIdConnectResponse {
                     Error = OpenIdConnectConstants.Errors.InvalidGrant,
                     ErrorDescription = "Invalid token."
                 });
@@ -153,7 +155,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 // authentication middleware and potentially replace it by a 302 response.
                 // To work around this limitation, a 400 error is returned instead.
                 // See http://openid.net/specs/openid-connect-core-1_0.html#UserInfoError
-                return await SendUserinfoResponseAsync(request, new OpenIdConnectMessage {
+                return await SendUserinfoResponseAsync(request, new OpenIdConnectResponse {
                     Error = OpenIdConnectConstants.Errors.InvalidGrant,
                     ErrorDescription = "Expired token."
                 });
@@ -175,7 +177,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                                         /* Error: */ context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                                         /* Description: */ context.ErrorDescription);
 
-                return await SendUserinfoResponseAsync(request, new OpenIdConnectMessage {
+                return await SendUserinfoResponseAsync(request, new OpenIdConnectResponse {
                     Error = context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = context.ErrorDescription,
                     ErrorUri = context.ErrorUri
@@ -227,7 +229,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                                         /* Error: */ notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                                         /* Description: */ notification.ErrorDescription);
 
-                return await SendUserinfoResponseAsync(request, new OpenIdConnectMessage {
+                return await SendUserinfoResponseAsync(request, new OpenIdConnectResponse {
                     Error = notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = notification.ErrorDescription,
                     ErrorUri = notification.ErrorUri
@@ -240,15 +242,15 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                 Response.StatusCode = 500;
 
-                return await SendUserinfoResponseAsync(request, new OpenIdConnectMessage {
+                return await SendUserinfoResponseAsync(request, new OpenIdConnectResponse {
                     Error = OpenIdConnectConstants.Errors.ServerError,
                     ErrorDescription = "The mandatory 'sub' claim was missing."
                 });
             }
 
-            var response = new JObject();
+            var response = new OpenIdConnectResponse();
 
-            response.Add(OpenIdConnectConstants.Claims.Subject, notification.Subject);
+            response[OpenIdConnectConstants.Claims.Subject] = notification.Subject;
 
             if (notification.Address != null) {
                 response[OpenIdConnectConstants.Claims.Address] = notification.Address;
@@ -302,11 +304,11 @@ namespace Owin.Security.OpenIdConnect.Server {
                 case 0: break;
 
                 case 1:
-                    response.Add(OpenIdConnectConstants.Claims.Audience, notification.Audiences[0]);
+                    response[OpenIdConnectConstants.Claims.Audience] = notification.Audiences[0];
                     break;
 
                 default:
-                    response.Add(OpenIdConnectConstants.Claims.Audience, JArray.FromObject(notification.Audiences));
+                    response[OpenIdConnectConstants.Claims.Audience] = JArray.FromObject(notification.Audiences);
                     break;
             }
 
@@ -322,20 +324,12 @@ namespace Owin.Security.OpenIdConnect.Server {
             return await SendUserinfoResponseAsync(request, response);
         }
 
-        private Task<bool> SendUserinfoResponseAsync(OpenIdConnectMessage request, OpenIdConnectMessage response) {
-            var payload = new JObject();
-
-            foreach (var parameter in response.Parameters) {
-                payload[parameter.Key] = parameter.Value;
-            }
-
-            return SendUserinfoResponseAsync(request, payload);
-        }
-
-        private async Task<bool> SendUserinfoResponseAsync(OpenIdConnectMessage request, JObject response) {
+        private async Task<bool> SendUserinfoResponseAsync(OpenIdConnectRequest request, OpenIdConnectResponse response) {
             if (request == null) {
-                request = new OpenIdConnectMessage();
+                request = new OpenIdConnectRequest();
             }
+
+            Context.SetOpenIdConnectResponse(response);
 
             var notification = new ApplyUserinfoResponseContext(Context, Options, request, response);
             await Options.Provider.ApplyUserinfoResponse(notification);

@@ -6,9 +6,9 @@
 
 using System;
 using System.Collections.Generic;
+using AspNet.Security.OpenIdConnect.Extensions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Newtonsoft.Json.Linq;
 
 namespace AspNet.Security.OpenIdConnect.Server {
@@ -23,7 +23,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public HandleIntrospectionRequestContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
-            OpenIdConnectMessage request,
+            OpenIdConnectRequest request,
             AuthenticationTicket ticket)
             : base(context, options) {
             Request = request;
@@ -34,7 +34,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the introspection request.
         /// </summary>
-        public new OpenIdConnectMessage Request { get; }
+        public new OpenIdConnectRequest Request { get; }
 
         /// <summary>
         /// Gets the list of claims returned to the caller.

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Mvc.Server.Models;
+using Newtonsoft.Json;
 
 namespace Mvc.Server.Providers {
     public sealed class AuthorizationProvider : OpenIdConnectServerProvider {
@@ -25,8 +26,8 @@ namespace Mvc.Server.Providers {
         public override Task ExtractAuthorizationRequest(ExtractAuthorizationRequestContext context) {
             // If a request_id parameter can be found in the authorization request,
             // restore the complete authorization request stored in the user session.
-            if (!string.IsNullOrEmpty(context.Request.GetRequestId())) {
-                var payload = context.HttpContext.Session.Get("authorization-request:" + context.Request.GetRequestId());
+            if (!string.IsNullOrEmpty(context.Request.RequestId)) {
+                var payload = context.HttpContext.Session.GetString("authorization-request:" + context.Request.RequestId);
                 if (payload == null) {
                     context.Reject(
                         error: OpenIdConnectConstants.Errors.InvalidRequest,
@@ -36,7 +37,7 @@ namespace Mvc.Server.Providers {
                 }
 
                 // Restore the authorization request parameters.
-                context.Request.Import(payload);
+                JsonConvert.PopulateObject(payload, context.Request);
             }
 
             return Task.FromResult(0);

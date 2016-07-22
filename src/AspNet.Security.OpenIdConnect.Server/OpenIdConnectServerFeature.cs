@@ -4,11 +4,24 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using AspNet.Security.OpenIdConnect.Extensions;
 
 namespace AspNet.Security.OpenIdConnect.Server {
+    /// <summary>
+    /// Exposes the OpenID Connect request/response
+    /// attached with the current HTTP context.
+    /// </summary>
     public class OpenIdConnectServerFeature {
-        public OpenIdConnectMessage Request { get; set; }
-        public OpenIdConnectMessage Response { get; set; }
+        /// <summary>
+        /// Gets or sets the OpenID Connect request
+        /// attached with the current HTTP context.
+        /// </summary>
+        public OpenIdConnectRequest Request { get; set; }
+
+        /// <summary>
+        /// Gets or sets the OpenID Connect response
+        /// attached with the current HTTP context.
+        /// </summary>
+        public OpenIdConnectResponse Response { get; set; }
     }
 }

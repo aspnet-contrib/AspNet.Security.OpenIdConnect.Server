@@ -14,7 +14,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Infrastructure;
 using Owin.Security.OpenIdConnect.Extensions;
@@ -23,7 +22,7 @@ namespace Owin.Security.OpenIdConnect.Server {
     internal partial class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions> {
         private async Task<string> SerializeAuthorizationCodeAsync(
             ClaimsIdentity identity, AuthenticationProperties properties,
-            OpenIdConnectMessage request, OpenIdConnectMessage response) {
+            OpenIdConnectRequest request, OpenIdConnectResponse response) {
             // properties.IssuedUtc and properties.ExpiresUtc
             // should always be preferred when explicitly set.
             if (properties.IssuedUtc == null) {
@@ -72,7 +71,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
         private async Task<string> SerializeAccessTokenAsync(
             ClaimsIdentity identity, AuthenticationProperties properties,
-            OpenIdConnectMessage request, OpenIdConnectMessage response) {
+            OpenIdConnectRequest request, OpenIdConnectResponse response) {
             // properties.IssuedUtc and properties.ExpiresUtc
             // should always be preferred when explicitly set.
             if (properties.IssuedUtc == null) {
@@ -264,7 +263,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
         private async Task<string> SerializeIdentityTokenAsync(
             ClaimsIdentity identity, AuthenticationProperties properties,
-            OpenIdConnectMessage request, OpenIdConnectMessage response) {
+            OpenIdConnectRequest request, OpenIdConnectResponse response) {
             // properties.IssuedUtc and properties.ExpiresUtc
             // should always be preferred when explicitly set.
             if (properties.IssuedUtc == null) {
@@ -437,7 +436,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
         private async Task<string> SerializeRefreshTokenAsync(
             ClaimsIdentity identity, AuthenticationProperties properties,
-            OpenIdConnectMessage request, OpenIdConnectMessage response) {
+            OpenIdConnectRequest request, OpenIdConnectResponse response) {
             // properties.IssuedUtc and properties.ExpiresUtc
             // should always be preferred when explicitly set.
             if (properties.IssuedUtc == null) {
@@ -480,7 +479,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             return notification.DataFormat?.Protect(ticket);
         }
 
-        private async Task<AuthenticationTicket> DeserializeAuthorizationCodeAsync(string code, OpenIdConnectMessage request) {
+        private async Task<AuthenticationTicket> DeserializeAuthorizationCodeAsync(string code, OpenIdConnectRequest request) {
             var notification = new DeserializeAuthorizationCodeContext(Context, Options, request, code) {
                 DataFormat = Options.AuthorizationCodeFormat
             };
@@ -510,7 +509,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             return ticket;
         }
 
-        private async Task<AuthenticationTicket> DeserializeAccessTokenAsync(string token, OpenIdConnectMessage request) {
+        private async Task<AuthenticationTicket> DeserializeAccessTokenAsync(string token, OpenIdConnectRequest request) {
             var notification = new DeserializeAccessTokenContext(Context, Options, request, token) {
                 DataFormat = Options.AccessTokenFormat,
                 SecurityTokenHandler = Options.AccessTokenHandler
@@ -621,7 +620,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             return ticket;
         }
 
-        private async Task<AuthenticationTicket> DeserializeIdentityTokenAsync(string token, OpenIdConnectMessage request) {
+        private async Task<AuthenticationTicket> DeserializeIdentityTokenAsync(string token, OpenIdConnectRequest request) {
             var notification = new DeserializeIdentityTokenContext(Context, Options, request, token) {
                 SecurityTokenHandler = Options.IdentityTokenHandler
             };
@@ -722,7 +721,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             return ticket;
         }
 
-        private async Task<AuthenticationTicket> DeserializeRefreshTokenAsync(string token, OpenIdConnectMessage request) {
+        private async Task<AuthenticationTicket> DeserializeRefreshTokenAsync(string token, OpenIdConnectRequest request) {
             var notification = new DeserializeRefreshTokenContext(Context, Options, request, token) {
                 DataFormat = Options.RefreshTokenFormat
             };

@@ -5,8 +5,8 @@
  */
 
 using System.Collections.Generic;
+using AspNet.Security.OpenIdConnect.Extensions;
 using Microsoft.AspNetCore.Http;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Newtonsoft.Json.Linq;
 
 namespace AspNet.Security.OpenIdConnect.Server {
@@ -21,7 +21,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public HandleConfigurationRequestContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
-            OpenIdConnectMessage request)
+            OpenIdConnectRequest request)
             : base(context, options) {
             Request = request;
             Validate();
@@ -30,7 +30,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the configuration request.
         /// </summary>
-        public new OpenIdConnectMessage Request { get; }
+        public new OpenIdConnectRequest Request { get; }
 
         /// <summary>
         /// Gets the list of properties returned to the client application.

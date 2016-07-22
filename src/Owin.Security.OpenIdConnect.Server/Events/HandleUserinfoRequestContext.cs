@@ -5,10 +5,10 @@
  */
 
 using System.Collections.Generic;
-using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Newtonsoft.Json.Linq;
+using Owin.Security.OpenIdConnect.Extensions;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
@@ -22,7 +22,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         public HandleUserinfoRequestContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
-            OpenIdConnectMessage request,
+            OpenIdConnectRequest request,
             AuthenticationTicket ticket)
             : base(context, options) {
             Request = request;
@@ -33,7 +33,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the userinfo request.
         /// </summary>
-        public new OpenIdConnectMessage Request { get; }
+        public new OpenIdConnectRequest Request { get; }
 
         /// <summary>
         /// Gets the authentication ticket.
@@ -126,7 +126,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         public string Profile { get; set; }
 
         /// <summary>
-        /// Gets or sets the unique value 
+        /// Gets or sets the unique value
         /// used for the mandatory "sub" claim.
         /// </summary>
         public string Subject { get; set; }

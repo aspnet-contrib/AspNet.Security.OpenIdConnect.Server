@@ -28,19 +28,22 @@ namespace Owin.Security.OpenIdConnect.Server {
                 Options.Logger.LogError("The discovery request was rejected because an invalid " +
                                         "HTTP method was used: {Method}.", Request.Method);
 
-                return await SendConfigurationResponseAsync(null, new OpenIdConnectMessage {
+                return await SendConfigurationResponseAsync(null, new OpenIdConnectResponse {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "Invalid HTTP method: make sure to use GET."
                 });
             }
 
-            var request = new OpenIdConnectMessage(Request.Query);
+            var request = new OpenIdConnectRequest(Request.Query) {
+                IsConfidential = false, // Note: discovery requests are never confidential.
+                RequestType = OpenIdConnectConstants.RequestTypes.Configuration
+            };
 
             var @event = new ExtractConfigurationRequestContext(Context, Options, request);
             await Options.Provider.ExtractConfigurationRequest(@event);
 
-            // Allow the application code to replace the discovery request.
-            request = @event.Request;
+            // Store the discovery request in the OWIN context.
+            Context.SetOpenIdConnectRequest(request);
 
             if (@event.HandledResponse) {
                 return true;
@@ -55,7 +58,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                                         /* Error: */ @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                                         /* Description: */ @event.ErrorDescription);
 
-                return await SendConfigurationResponseAsync(null, new OpenIdConnectMessage {
+                return await SendConfigurationResponseAsync(request, new OpenIdConnectResponse {
                     Error = @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = @event.ErrorDescription,
                     ErrorUri = @event.ErrorUri
@@ -78,7 +81,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                                         /* Error: */ context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                                         /* Description: */ context.ErrorDescription);
 
-                return await SendConfigurationResponseAsync(request, new OpenIdConnectMessage {
+                return await SendConfigurationResponseAsync(request, new OpenIdConnectResponse {
                     Error = context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = context.ErrorDescription,
                     ErrorUri = context.ErrorUri
@@ -189,73 +192,73 @@ namespace Owin.Security.OpenIdConnect.Server {
                                         /* Error: */ notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                                         /* Description: */ notification.ErrorDescription);
 
-                return await SendConfigurationResponseAsync(request, new OpenIdConnectMessage {
+                return await SendConfigurationResponseAsync(request, new OpenIdConnectResponse {
                     Error = notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = notification.ErrorDescription,
                     ErrorUri = notification.ErrorUri
                 });
             }
 
-            var response = new JObject();
+            var response = new OpenIdConnectResponse();
 
-            response.Add(OpenIdConnectConstants.Metadata.Issuer, notification.Issuer);
+            response[OpenIdConnectConstants.Metadata.Issuer] = notification.Issuer;
 
             if (!string.IsNullOrEmpty(notification.AuthorizationEndpoint)) {
-                response.Add(OpenIdConnectConstants.Metadata.AuthorizationEndpoint, notification.AuthorizationEndpoint);
+                response[OpenIdConnectConstants.Metadata.AuthorizationEndpoint] = notification.AuthorizationEndpoint;
             }
 
             if (!string.IsNullOrEmpty(notification.CryptographyEndpoint)) {
-                response.Add(OpenIdConnectConstants.Metadata.JwksUri, notification.CryptographyEndpoint);
+                response[OpenIdConnectConstants.Metadata.JwksUri] = notification.CryptographyEndpoint;
             }
 
             if (!string.IsNullOrEmpty(notification.IntrospectionEndpoint)) {
-                response.Add(OpenIdConnectConstants.Metadata.IntrospectionEndpoint, notification.IntrospectionEndpoint);
+                response[OpenIdConnectConstants.Metadata.IntrospectionEndpoint] = notification.IntrospectionEndpoint;
             }
 
             if (!string.IsNullOrEmpty(notification.LogoutEndpoint)) {
-                response.Add(OpenIdConnectConstants.Metadata.EndSessionEndpoint, notification.LogoutEndpoint);
+                response[OpenIdConnectConstants.Metadata.EndSessionEndpoint] = notification.LogoutEndpoint;
             }
 
             if (!string.IsNullOrEmpty(notification.RevocationEndpoint)) {
-                response.Add(OpenIdConnectConstants.Metadata.RevocationEndpoint, notification.RevocationEndpoint);
+                response[OpenIdConnectConstants.Metadata.RevocationEndpoint] = notification.RevocationEndpoint;
             }
 
             if (!string.IsNullOrEmpty(notification.TokenEndpoint)) {
-                response.Add(OpenIdConnectConstants.Metadata.TokenEndpoint, notification.TokenEndpoint);
+                response[OpenIdConnectConstants.Metadata.TokenEndpoint] = notification.TokenEndpoint;
             }
 
             if (!string.IsNullOrEmpty(notification.UserinfoEndpoint)) {
-                response.Add(OpenIdConnectConstants.Metadata.UserinfoEndpoint, notification.UserinfoEndpoint);
+                response[OpenIdConnectConstants.Metadata.UserinfoEndpoint] = notification.UserinfoEndpoint;
             }
 
             if (notification.GrantTypes.Count != 0) {
-                response.Add(OpenIdConnectConstants.Metadata.GrantTypesSupported,
-                    JArray.FromObject(notification.GrantTypes.Distinct()));
+                response[OpenIdConnectConstants.Metadata.GrantTypesSupported] =
+                    JArray.FromObject(notification.GrantTypes.Distinct());
             }
 
             if (notification.ResponseModes.Count != 0) {
-                response.Add(OpenIdConnectConstants.Metadata.ResponseModesSupported,
-                    JArray.FromObject(notification.ResponseModes.Distinct()));
+                response[OpenIdConnectConstants.Metadata.ResponseModesSupported] =
+                    JArray.FromObject(notification.ResponseModes.Distinct());
             }
 
             if (notification.ResponseTypes.Count != 0) {
-                response.Add(OpenIdConnectConstants.Metadata.ResponseTypesSupported,
-                    JArray.FromObject(notification.ResponseTypes.Distinct()));
+                response[OpenIdConnectConstants.Metadata.ResponseTypesSupported] =
+                    JArray.FromObject(notification.ResponseTypes.Distinct());
             }
 
             if (notification.SubjectTypes.Count != 0) {
-                response.Add(OpenIdConnectConstants.Metadata.SubjectTypesSupported,
-                    JArray.FromObject(notification.SubjectTypes.Distinct()));
+                response[OpenIdConnectConstants.Metadata.SubjectTypesSupported] =
+                    JArray.FromObject(notification.SubjectTypes.Distinct());
             }
 
             if (notification.Scopes.Count != 0) {
-                response.Add(OpenIdConnectConstants.Metadata.ScopesSupported,
-                    JArray.FromObject(notification.Scopes.Distinct()));
+                response[OpenIdConnectConstants.Metadata.ScopesSupported] =
+                    JArray.FromObject(notification.Scopes.Distinct());
             }
 
             if (notification.SigningAlgorithms.Count != 0) {
-                response.Add(OpenIdConnectConstants.Metadata.IdTokenSigningAlgValuesSupported,
-                    JArray.FromObject(notification.SigningAlgorithms.Distinct()));
+                response[OpenIdConnectConstants.Metadata.IdTokenSigningAlgValuesSupported] =
+                    JArray.FromObject(notification.SigningAlgorithms.Distinct());
             }
 
             foreach (var property in notification.Properties) {
@@ -277,19 +280,22 @@ namespace Owin.Security.OpenIdConnect.Server {
                 Options.Logger.LogError("The discovery request was rejected because an invalid " +
                                         "HTTP method was used: {Method}.", Request.Method);
 
-                return await SendCryptographyResponseAsync(null, new OpenIdConnectMessage {
+                return await SendCryptographyResponseAsync(null, new OpenIdConnectResponse {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "Invalid HTTP method: make sure to use GET."
                 });
             }
 
-            var request = new OpenIdConnectMessage(Request.Query);
+            var request = new OpenIdConnectRequest(Request.Query) {
+                IsConfidential = false, // Note: discovery requests are never confidential.
+                RequestType = OpenIdConnectConstants.RequestTypes.Cryptography
+            };
 
             var @event = new ExtractCryptographyRequestContext(Context, Options, request);
             await Options.Provider.ExtractCryptographyRequest(@event);
 
-            // Allow the application code to replace the discovery request.
-            request = @event.Request;
+            // Store the discovery request in the OWIN context.
+            Context.SetOpenIdConnectRequest(request);
 
             if (@event.HandledResponse) {
                 return true;
@@ -304,7 +310,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                                         /* Error: */ @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                                         /* Description: */ @event.ErrorDescription);
 
-                return await SendCryptographyResponseAsync(null, new OpenIdConnectMessage {
+                return await SendCryptographyResponseAsync(request, new OpenIdConnectResponse {
                     Error = @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = @event.ErrorDescription,
                     ErrorUri = @event.ErrorUri
@@ -327,7 +333,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                                         /* Error: */ context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                                         /* Description: */ context.ErrorDescription);
 
-                return await SendCryptographyResponseAsync(request, new OpenIdConnectMessage {
+                return await SendCryptographyResponseAsync(request, new OpenIdConnectResponse {
                     Error = context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = context.ErrorDescription,
                     ErrorUri = context.ErrorUri
@@ -546,14 +552,14 @@ namespace Owin.Security.OpenIdConnect.Server {
                                         /* Error: */ notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                                         /* Description: */ notification.ErrorDescription);
 
-                return await SendCryptographyResponseAsync(request, new OpenIdConnectMessage {
+                return await SendCryptographyResponseAsync(request, new OpenIdConnectResponse {
                     Error = notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = notification.ErrorDescription,
                     ErrorUri = notification.ErrorUri
                 });
             }
 
-            var response = new JObject();
+            var response = new OpenIdConnectResponse();
             var keys = new JArray();
 
             foreach (var key in notification.Keys) {
@@ -595,25 +601,17 @@ namespace Owin.Security.OpenIdConnect.Server {
                 keys.Add(item);
             }
 
-            response.Add(JsonWebKeyParameterNames.Keys, keys);
+            response[JsonWebKeyParameterNames.Keys] = keys;
 
             return await SendCryptographyResponseAsync(request, response);
         }
 
-        private Task<bool> SendConfigurationResponseAsync(OpenIdConnectMessage request, OpenIdConnectMessage response) {
-            var payload = new JObject();
-
-            foreach (var parameter in response.Parameters) {
-                payload[parameter.Key] = parameter.Value;
-            }
-
-            return SendConfigurationResponseAsync(request, payload);
-        }
-
-        private async Task<bool> SendConfigurationResponseAsync(OpenIdConnectMessage request, JObject response) {
+        private async Task<bool> SendConfigurationResponseAsync(OpenIdConnectRequest request, OpenIdConnectResponse response) {
             if (request == null) {
-                request = new OpenIdConnectMessage();
+                request = new OpenIdConnectRequest();
             }
+
+            Context.SetOpenIdConnectResponse(response);
 
             var notification = new ApplyConfigurationResponseContext(Context, Options, request, response);
             await Options.Provider.ApplyConfigurationResponse(notification);
@@ -629,20 +627,12 @@ namespace Owin.Security.OpenIdConnect.Server {
             return await SendPayloadAsync(response);
         }
 
-        private Task<bool> SendCryptographyResponseAsync(OpenIdConnectMessage request, OpenIdConnectMessage response) {
-            var payload = new JObject();
-
-            foreach (var parameter in response.Parameters) {
-                payload[parameter.Key] = parameter.Value;
-            }
-
-            return SendCryptographyResponseAsync(request, payload);
-        }
-
-        private async Task<bool> SendCryptographyResponseAsync(OpenIdConnectMessage request, JObject response) {
+        private async Task<bool> SendCryptographyResponseAsync(OpenIdConnectRequest request, OpenIdConnectResponse response) {
             if (request == null) {
-                request = new OpenIdConnectMessage();
+                request = new OpenIdConnectRequest();
             }
+
+            Context.SetOpenIdConnectResponse(response);
 
             var notification = new ApplyCryptographyResponseContext(Context, Options, request, response);
             await Options.Provider.ApplyCryptographyResponse(notification);

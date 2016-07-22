@@ -16,13 +16,13 @@ using Microsoft.Owin.Security.Interop;
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
     /// Authorization Server middleware component which is added to an OWIN pipeline. This class is not
-    /// created by application code directly, instead it is added by calling the the IAppBuilder UseOpenIdConnectServer 
+    /// created by application code directly, instead it is added by calling the the IAppBuilder UseOpenIdConnectServer
     /// extension method.
     /// </summary>
     public class OpenIdConnectServerMiddleware : AuthenticationMiddleware<OpenIdConnectServerOptions> {
         /// <summary>
         /// Authorization Server middleware component which is added to an OWIN pipeline. This constructor is not
-        /// called by application code directly, instead it is added by calling the the IAppBuilder UseOpenIdConnectServer 
+        /// called by application code directly, instead it is added by calling the the IAppBuilder UseOpenIdConnectServer
         /// extension method.
         /// </summary>
         public OpenIdConnectServerMiddleware(OwinMiddleware next, IAppBuilder app, OpenIdConnectServerOptions options)
@@ -122,7 +122,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         }
 
         /// <summary>
-        /// Called by the AuthenticationMiddleware base class to create a per-request handler. 
+        /// Called by the AuthenticationMiddleware base class to create a per-request handler.
         /// </summary>
         /// <returns>A new instance of the request handler</returns>
         protected override AuthenticationHandler<OpenIdConnectServerOptions> CreateHandler() {

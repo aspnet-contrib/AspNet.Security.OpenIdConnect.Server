@@ -17,13 +17,13 @@ using Microsoft.Extensions.Options;
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
     /// Authorization Server middleware component which is added to an OWIN pipeline. This class is not
-    /// created by application code directly, instead it is added by calling the the IAppBuilder UseOpenIdConnectServer 
+    /// created by application code directly, instead it is added by calling the the IAppBuilder UseOpenIdConnectServer
     /// extension method.
     /// </summary>
     public class OpenIdConnectServerMiddleware : AuthenticationMiddleware<OpenIdConnectServerOptions> {
         /// <summary>
         /// Authorization Server middleware component which is added to an OWIN pipeline. This constructor is not
-        /// called by application code directly, instead it is added by calling the the IAppBuilder UseOpenIdConnectServer 
+        /// called by application code directly, instead it is added by calling the the IAppBuilder UseOpenIdConnectServer
         /// extension method.
         /// </summary>
         public OpenIdConnectServerMiddleware(
@@ -50,7 +50,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 // See http://openid.net/specs/openid-connect-discovery-1_0.html#IssuerDiscovery
                 if (!string.IsNullOrEmpty(Options.Issuer.Query) || !string.IsNullOrEmpty(Options.Issuer.Fragment)) {
-                    throw new ArgumentException("The issuer registered in the options must contain " + 
+                    throw new ArgumentException("The issuer registered in the options must contain " +
                                                 "no query and no fragment parts.", nameof(options));
                 }
 
@@ -111,7 +111,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         }
 
         /// <summary>
-        /// Called by the AuthenticationMiddleware base class to create a per-request handler. 
+        /// Called by the AuthenticationMiddleware base class to create a per-request handler.
         /// </summary>
         /// <returns>A new instance of the request handler</returns>
         protected override AuthenticationHandler<OpenIdConnectServerOptions> CreateHandler() {

@@ -4,8 +4,8 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
+using AspNet.Security.OpenIdConnect.Extensions;
 using Microsoft.AspNetCore.Http;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
@@ -18,19 +18,19 @@ namespace AspNet.Security.OpenIdConnect.Server {
         protected BaseValidatingClientContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
-            OpenIdConnectMessage request)
+            OpenIdConnectRequest request)
             : base(context, options) {
             Request = request;
         }
 
         /// <summary>
-        /// Gets the authorization request. 
+        /// Gets the authorization request.
         /// </summary>
-        public new OpenIdConnectMessage Request { get; }
+        public new OpenIdConnectRequest Request { get; }
 
         /// <summary>
         /// The "client_id" parameter for the current request.
-        /// The authorization server application is responsible for 
+        /// The authorization server application is responsible for
         /// validating this value to ensure it identifies a registered client.
         /// </summary>
         public string ClientId {
@@ -40,7 +40,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
         /// <summary>
         /// The "client_secret" parameter for the current request.
-        /// The authorization server application is responsible for 
+        /// The authorization server application is responsible for
         /// validating this value to ensure it identifies a registered client.
         /// </summary>
         public string ClientSecret {

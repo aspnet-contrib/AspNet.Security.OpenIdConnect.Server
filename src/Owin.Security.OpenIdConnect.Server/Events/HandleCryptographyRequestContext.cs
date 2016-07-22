@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
+using Owin.Security.OpenIdConnect.Extensions;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
@@ -20,7 +21,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         public HandleCryptographyRequestContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
-            OpenIdConnectMessage request)
+            OpenIdConnectRequest request)
             : base(context, options) {
             Request = request;
             Validate();
@@ -29,7 +30,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the cryptography request.
         /// </summary>
-        public new OpenIdConnectMessage Request { get; }
+        public new OpenIdConnectRequest Request { get; }
 
         /// <summary>
         /// Gets a list of the JSON Web Keys found by the authorization server.

@@ -5,9 +5,9 @@
  */
 
 using System.Collections.Generic;
-using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Newtonsoft.Json.Linq;
+using Owin.Security.OpenIdConnect.Extensions;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
@@ -21,7 +21,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         public HandleConfigurationRequestContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
-            OpenIdConnectMessage request)
+            OpenIdConnectRequest request)
             : base(context, options) {
             Request = request;
             Validate();
@@ -30,7 +30,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the configuration request.
         /// </summary>
-        public new OpenIdConnectMessage Request { get; }
+        public new OpenIdConnectRequest Request { get; }
 
         /// <summary>
         /// Gets the list of properties returned to the client application.

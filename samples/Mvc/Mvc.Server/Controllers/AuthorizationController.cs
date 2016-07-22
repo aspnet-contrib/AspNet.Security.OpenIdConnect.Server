@@ -8,11 +8,12 @@ using AspNet.Security.OpenIdConnect.Server;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Mvc.Server.Models;
+using Newtonsoft.Json;
 
 namespace Mvc.Server.Controllers {
     public class AuthorizationController : Controller {
@@ -21,7 +22,7 @@ namespace Mvc.Server.Controllers {
         public AuthorizationController(ApplicationContext database) {
             this.database = database;
         }
-        
+
         [HttpGet("~/connect/authorize"), HttpPost("~/connect/authorize")]
         public async Task<IActionResult> Authorize(CancellationToken cancellationToken) {
             // Note: when a fatal error occurs during the request processing, an OpenID Connect response
@@ -36,7 +37,7 @@ namespace Mvc.Server.Controllers {
             // Extract the authorization request from the ASP.NET environment.
             var request = HttpContext.GetOpenIdConnectRequest();
             if (request == null) {
-                return View("Error", new OpenIdConnectMessage {
+                return View("Error", new OpenIdConnectResponse {
                     Error = OpenIdConnectConstants.Errors.ServerError,
                     ErrorDescription = "An internal error has occurred"
                 });
@@ -53,7 +54,7 @@ namespace Mvc.Server.Controllers {
                 var identifier = Guid.NewGuid().ToString();
 
                 // Store the authorization request in the user session.
-                HttpContext.Session.Set("authorization-request:" + identifier, request.Export());
+                HttpContext.Session.SetString("authorization-request:" + identifier, JsonConvert.SerializeObject(request));
 
                 return Challenge(new AuthenticationProperties {
                     RedirectUri = Url.Action(nameof(Authorize), new {
@@ -68,7 +69,7 @@ namespace Mvc.Server.Controllers {
             // manually removed the application details from the database after the initial check made by ASOS.
             var application = await GetApplicationAsync(request.ClientId, cancellationToken);
             if (application == null) {
-                return View("Error", new OpenIdConnectMessage {
+                return View("Error", new OpenIdConnectResponse {
                     Error = OpenIdConnectConstants.Errors.InvalidClient,
                     ErrorDescription = "Details concerning the calling client application cannot be found in the database"
                 });
@@ -87,15 +88,15 @@ namespace Mvc.Server.Controllers {
 
             var request = HttpContext.GetOpenIdConnectRequest();
             if (request == null) {
-                return View("Error", new OpenIdConnectMessage {
+                return View("Error", new OpenIdConnectResponse {
                     Error = OpenIdConnectConstants.Errors.ServerError,
                     ErrorDescription = "An internal error has occurred"
                 });
             }
 
             // Remove the authorization request from the user session.
-            if (!string.IsNullOrEmpty(request.GetRequestId())) {
-                HttpContext.Session.Remove("authorization-request:" + request.GetRequestId());
+            if (!string.IsNullOrEmpty(request.RequestId)) {
+                HttpContext.Session.Remove("authorization-request:" + request.RequestId);
             }
 
             // Create a new ClaimsIdentity containing the claims that
@@ -119,7 +120,7 @@ namespace Mvc.Server.Controllers {
 
             var application = await GetApplicationAsync(request.ClientId, cancellationToken);
             if (application == null) {
-                return View("Error", new OpenIdConnectMessage {
+                return View("Error", new OpenIdConnectResponse {
                     Error = OpenIdConnectConstants.Errors.InvalidClient,
                     ErrorDescription = "Details concerning the calling client application cannot be found in the database"
                 });
@@ -170,15 +171,15 @@ namespace Mvc.Server.Controllers {
 
             var request = HttpContext.GetOpenIdConnectRequest();
             if (request == null) {
-                return View("Error", new OpenIdConnectMessage {
+                return View("Error", new OpenIdConnectResponse {
                     Error = OpenIdConnectConstants.Errors.ServerError,
                     ErrorDescription = "An internal error has occurred"
                 });
             }
 
             // Remove the authorization request from the user session.
-            if (!string.IsNullOrEmpty(request.GetRequestId())) {
-                HttpContext.Session.Remove("authorization-request:" + request.GetRequestId());
+            if (!string.IsNullOrEmpty(request.RequestId)) {
+                HttpContext.Session.Remove("authorization-request:" + request.RequestId);
             }
 
             // Notify ASOS that the authorization grant has been denied by the resource owner.
@@ -201,7 +202,7 @@ namespace Mvc.Server.Controllers {
 
             var request = HttpContext.GetOpenIdConnectRequest();
             if (request == null) {
-                return View("Error", new OpenIdConnectMessage {
+                return View("Error", new OpenIdConnectResponse {
                     Error = OpenIdConnectConstants.Errors.ServerError,
                     ErrorDescription = "An internal error has occurred"
                 });
@@ -218,7 +219,7 @@ namespace Mvc.Server.Controllers {
             // and will redirect the user agent to the post_logout_redirect_uri specified by the client application.
             return SignOut("ServerCookie", OpenIdConnectServerDefaults.AuthenticationScheme);
         }
-        
+
         protected virtual Task<Application> GetApplicationAsync(string identifier, CancellationToken cancellationToken) {
             // Retrieve the application details corresponding to the requested client_id.
             return (from application in database.Applications

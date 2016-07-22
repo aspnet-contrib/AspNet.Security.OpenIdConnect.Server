@@ -25,6 +25,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         public OpenIdConnectServerOptions()
             : base(OpenIdConnectServerDefaults.AuthenticationType) {
+            AuthenticationMode = AuthenticationMode.Passive;
         }
 
         /// <summary>
@@ -54,7 +55,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         public IList<SigningCredentials> SigningCredentials { get; } = new List<SigningCredentials>();
 
         /// <summary>
-        /// The request path where client applications will redirect the user-agent in order to 
+        /// The request path where client applications will redirect the user-agent in order to
         /// obtain user consent to issue a token. Must begin with a leading slash, like "/connect/authorize".
         /// </summary>
         public PathString AuthorizationEndpointPath { get; set; }
@@ -80,7 +81,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         public PathString IntrospectionEndpointPath { get; set; }
 
         /// <summary>
-        /// The request path client applications communicate with to log out. 
+        /// The request path client applications communicate with to log out.
         /// Must begin with a leading slash, like "/connect/logout".
         /// </summary>
         public PathString LogoutEndpointPath { get; set; }
@@ -92,14 +93,14 @@ namespace Owin.Security.OpenIdConnect.Server {
         public PathString RevocationEndpointPath { get; set; }
 
         /// <summary>
-        /// The request path client applications communicate with directly as part of the OpenID Connect protocol. 
+        /// The request path client applications communicate with directly as part of the OpenID Connect protocol.
         /// Must begin with a leading slash, like "/connect/token". If the client is issued a client_secret, it must
         /// be provided to this endpoint.
         /// </summary>
         public PathString TokenEndpointPath { get; set; }
 
         /// <summary>
-        /// The request path client applications communicate with to retrieve user information. 
+        /// The request path client applications communicate with to retrieve user information.
         /// Must begin with a leading slash, like "/connect/userinfo".
         /// </summary>
         public PathString UserinfoEndpointPath { get; set; }
@@ -111,16 +112,16 @@ namespace Owin.Security.OpenIdConnect.Server {
         public IOpenIdConnectServerProvider Provider { get; set; }
 
         /// <summary>
-        /// The data format used to protect and unprotect the information contained in the authorization code. 
-        /// If not provided by the application the default data protection provider depends on the host server. 
+        /// The data format used to protect and unprotect the information contained in the authorization code.
+        /// If not provided by the application the default data protection provider depends on the host server.
         /// The SystemWeb host on IIS will use ASP.NET machine key data protection, and HttpListener and other self-hosted
         /// servers will use DPAPI data protection.
         /// </summary>
         public ISecureDataFormat<AuthenticationTicket> AuthorizationCodeFormat { get; set; }
 
         /// <summary>
-        /// The data format used to protect the information contained in the access token. 
-        /// If not provided by the application the default data protection provider depends on the host server. 
+        /// The data format used to protect the information contained in the access token.
+        /// If not provided by the application the default data protection provider depends on the host server.
         /// The SystemWeb host on IIS will use ASP.NET machine key data protection, and HttpListener and other self-hosted
         /// servers will use DPAPI data protection.
         /// This property is only used when <see cref="AccessTokenHandler"/> is explicitly set to <value>null</value>
@@ -130,8 +131,8 @@ namespace Owin.Security.OpenIdConnect.Server {
         public ISecureDataFormat<AuthenticationTicket> AccessTokenFormat { get; set; }
 
         /// <summary>
-        /// The data format used to protect and unprotect the information contained in the refresh token. 
-        /// If not provided by the application the default data protection provider depends on the host server. 
+        /// The data format used to protect and unprotect the information contained in the refresh token.
+        /// If not provided by the application the default data protection provider depends on the host server.
         /// The SystemWeb host on IIS will use ASP.NET machine key data protection, and HttpListener and other self-hosted
         /// servers will use DPAPI data protection.
         /// This property is only used when <see cref="IOpenIdConnectServerProvider.SerializeRefreshToken"/> doesn't call
@@ -156,26 +157,26 @@ namespace Owin.Security.OpenIdConnect.Server {
 
         /// <summary>
         /// The period of time the authorization code remains valid after being issued. The default is 5 minutes.
-        /// This time span must also take into account clock synchronization between servers in a web farm, so a very 
+        /// This time span must also take into account clock synchronization between servers in a web farm, so a very
         /// brief value could result in unexpectedly expired tokens.
         /// </summary>
         public TimeSpan AuthorizationCodeLifetime { get; set; } = TimeSpan.FromMinutes(5);
 
         /// <summary>
         /// The period of time the access token remains valid after being issued. The default is 1 hour.
-        /// The client application is expected to refresh or acquire a new access token after the token has expired. 
+        /// The client application is expected to refresh or acquire a new access token after the token has expired.
         /// </summary>
         public TimeSpan AccessTokenLifetime { get; set; } = TimeSpan.FromHours(1);
 
         /// <summary>
         /// The period of time the identity token remains valid after being issued. The default is 20 minutes.
-        /// The client application is expected to refresh or acquire a new identity token after the token has expired. 
+        /// The client application is expected to refresh or acquire a new identity token after the token has expired.
         /// </summary>
         public TimeSpan IdentityTokenLifetime { get; set; } = TimeSpan.FromMinutes(20);
 
         /// <summary>
         /// The period of time the refresh token remains valid after being issued. The default is 14 days.
-        /// The client application is expected to start a whole new authentication flow after the refresh token has expired. 
+        /// The client application is expected to start a whole new authentication flow after the refresh token has expired.
         /// </summary>
         public TimeSpan RefreshTokenLifetime { get; set; } = TimeSpan.FromDays(14);
 
@@ -188,7 +189,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
         /// <summary>
         /// Set to true if the web application is able to render error messages on the authorization endpoint. This is only needed for cases where
-        /// the browser is not redirected back to the client application, for example, when the client_id or redirect_uri are incorrect. The 
+        /// the browser is not redirected back to the client application, for example, when the client_id or redirect_uri are incorrect. The
         /// authorization endpoint should expect to see "oauth.Error", "oauth.ErrorDescription", "oauth.ErrorUri" properties added to the owin environment.
         /// </summary>
         public bool ApplicationCanDisplayErrors { get; set; }

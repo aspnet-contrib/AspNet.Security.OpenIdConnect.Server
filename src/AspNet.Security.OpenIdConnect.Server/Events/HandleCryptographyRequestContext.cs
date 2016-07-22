@@ -5,8 +5,8 @@
  */
 
 using System.Collections.Generic;
+using AspNet.Security.OpenIdConnect.Extensions;
 using Microsoft.AspNetCore.Http;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 
 namespace AspNet.Security.OpenIdConnect.Server {
@@ -21,7 +21,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public HandleCryptographyRequestContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
-            OpenIdConnectMessage request)
+            OpenIdConnectRequest request)
             : base(context, options) {
             Request = request;
             Validate();
@@ -30,7 +30,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the cryptography request.
         /// </summary>
-        public new OpenIdConnectMessage Request { get; }
+        public new OpenIdConnectRequest Request { get; }
 
         /// <summary>
         /// Gets a list of the JSON Web Keys found by the authorization server.

@@ -11,9 +11,7 @@ using AspNet.Security.OpenIdConnect.Extensions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.Net.Http.Headers;
-using Newtonsoft.Json.Linq;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     internal partial class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions> {
@@ -22,7 +20,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 Logger.LogError("The revocation request was rejected because an invalid " +
                                 "HTTP method was received: {Method}.", Request.Method);
 
-                return await SendRevocationResponseAsync(null, new OpenIdConnectMessage {
+                return await SendRevocationResponseAsync(null, new OpenIdConnectResponse {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "A malformed revocation request has been received: " +
                                        "make sure to use either GET or POST."
@@ -34,7 +32,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 Logger.LogError("The revocation request was rejected because " +
                                 "the mandatory 'Content-Type' header was missing.");
 
-                return await SendRevocationResponseAsync(null, new OpenIdConnectMessage {
+                return await SendRevocationResponseAsync(null, new OpenIdConnectResponse {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "A malformed revocation request has been received: " +
                         "the mandatory 'Content-Type' header was missing from the POST request."
@@ -46,7 +44,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 Logger.LogError("The revocation request was rejected because an invalid 'Content-Type' " +
                                 "header was received: {ContentType}.", Request.ContentType);
 
-                return await SendRevocationResponseAsync(null, new OpenIdConnectMessage {
+                return await SendRevocationResponseAsync(null, new OpenIdConnectResponse {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "A malformed revocation request has been received: " +
                         "the 'Content-Type' header contained an unexcepted value. " +
@@ -54,12 +52,15 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 });
             }
 
-            var form = await Request.ReadFormAsync(Context.RequestAborted);
-
-            var request = new OpenIdConnectMessage(form.ToDictionary());
+            var request = new OpenIdConnectRequest(await Request.ReadFormAsync(Context.RequestAborted)) {
+                RequestType = OpenIdConnectConstants.RequestTypes.Revocation
+            };
 
             var @event = new ExtractRevocationRequestContext(Context, Options, request);
             await Options.Provider.ExtractRevocationRequest(@event);
+
+            // Insert the revocation request in the ASP.NET context.
+            Context.SetOpenIdConnectRequest(request);
 
             if (@event.HandledResponse) {
                 return true;
@@ -74,23 +75,20 @@ namespace AspNet.Security.OpenIdConnect.Server {
                                 /* Error: */ @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                                 /* Description: */ @event.ErrorDescription);
 
-                return await SendRevocationResponseAsync(null, new OpenIdConnectMessage {
+                return await SendRevocationResponseAsync(request, new OpenIdConnectResponse {
                     Error = @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = @event.ErrorDescription,
                     ErrorUri = @event.ErrorUri
                 });
             }
 
-            if (string.IsNullOrWhiteSpace(request.GetToken())) {
-                return await SendRevocationResponseAsync(request, new OpenIdConnectMessage {
+            if (string.IsNullOrWhiteSpace(request.Token)) {
+                return await SendRevocationResponseAsync(request, new OpenIdConnectResponse {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "A malformed revocation request has been received: " +
                         "a 'token' parameter with an access or refresh token is required."
                 });
             }
-
-            // Insert the revocation request in the ASP.NET context.
-            Context.SetOpenIdConnectRequest(request);
 
             // When client_id and client_secret are both null, try to extract them from the Authorization header.
             // See http://tools.ietf.org/html/rfc6749#section-2.3.1 and
@@ -117,6 +115,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
             var context = new ValidateRevocationRequestContext(Context, Options, request);
             await Options.Provider.ValidateRevocationRequest(context);
 
+            // Infer the request confidentiality status from the validation context.
+            request.IsConfidential = context.IsValidated;
+
             if (context.HandledResponse) {
                 return true;
             }
@@ -130,7 +131,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                                 /* Error: */ context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                                 /* Description: */ context.ErrorDescription);
 
-                return await SendRevocationResponseAsync(request, new OpenIdConnectMessage {
+                return await SendRevocationResponseAsync(request, new OpenIdConnectResponse {
                     Error = context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = context.ErrorDescription,
                     ErrorUri = context.ErrorUri
@@ -141,7 +142,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             else if (context.IsValidated && string.IsNullOrEmpty(request.ClientId)) {
                 Logger.LogError("The revocation request was validated but the client_id was not set.");
 
-                return await SendRevocationResponseAsync(request, new OpenIdConnectMessage {
+                return await SendRevocationResponseAsync(request, new OpenIdConnectResponse {
                     Error = OpenIdConnectConstants.Errors.ServerError,
                     ErrorDescription = "An internal server error occurred."
                 });
@@ -152,21 +153,21 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // Note: use the "token_type_hint" parameter to determine
             // the type of the token sent by the client application.
             // See https://tools.ietf.org/html/rfc7009#section-2.1
-            switch (request.GetTokenTypeHint()) {
+            switch (request.TokenTypeHint) {
                 case OpenIdConnectConstants.TokenTypeHints.AccessToken:
-                    ticket = await DeserializeAccessTokenAsync(request.GetToken(), request);
+                    ticket = await DeserializeAccessTokenAsync(request.Token, request);
                     break;
 
                 case OpenIdConnectConstants.TokenTypeHints.AuthorizationCode:
-                    ticket = await DeserializeAuthorizationCodeAsync(request.GetToken(), request);
+                    ticket = await DeserializeAuthorizationCodeAsync(request.Token, request);
                     break;
 
                 case OpenIdConnectConstants.TokenTypeHints.IdToken:
-                    ticket = await DeserializeIdentityTokenAsync(request.GetToken(), request);
+                    ticket = await DeserializeIdentityTokenAsync(request.Token, request);
                     break;
 
                 case OpenIdConnectConstants.TokenTypeHints.RefreshToken:
-                    ticket = await DeserializeRefreshTokenAsync(request.GetToken(), request);
+                    ticket = await DeserializeRefreshTokenAsync(request.Token, request);
                     break;
             }
 
@@ -174,16 +175,16 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // the search must be extended to all supported token types.
             // See https://tools.ietf.org/html/rfc7009#section-2.1
             if (ticket == null) {
-                ticket = await DeserializeAccessTokenAsync(request.GetToken(), request) ??
-                         await DeserializeAuthorizationCodeAsync(request.GetToken(), request) ??
-                         await DeserializeIdentityTokenAsync(request.GetToken(), request) ??
-                         await DeserializeRefreshTokenAsync(request.GetToken(), request);
+                ticket = await DeserializeAccessTokenAsync(request.Token, request) ??
+                         await DeserializeAuthorizationCodeAsync(request.Token, request) ??
+                         await DeserializeIdentityTokenAsync(request.Token, request) ??
+                         await DeserializeRefreshTokenAsync(request.Token, request);
             }
 
             if (ticket == null) {
                 Logger.LogInformation("The revocation request was ignored because the token was invalid.");
 
-                return await SendRevocationResponseAsync(request, new OpenIdConnectMessage());
+                return await SendRevocationResponseAsync(request, new OpenIdConnectResponse());
             }
 
             // If the ticket is already expired, directly return a 200 response.
@@ -191,7 +192,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                      ticket.Properties.ExpiresUtc < Options.SystemClock.UtcNow) {
                 Logger.LogInformation("The revocation request was ignored because the token was already expired.");
 
-                return await SendRevocationResponseAsync(request, new OpenIdConnectMessage());
+                return await SendRevocationResponseAsync(request, new OpenIdConnectResponse());
             }
 
             // Note: unlike refresh tokens that can only be revoked by client applications,
@@ -200,7 +201,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             if (context.IsSkipped && ticket.IsConfidential()) {
                 Logger.LogError("The revocation request was rejected because the caller was not authenticated.");
 
-                return await SendRevocationResponseAsync(request, new OpenIdConnectMessage {
+                return await SendRevocationResponseAsync(request, new OpenIdConnectResponse {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest
                 });
             }
@@ -212,7 +213,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     Logger.LogError("The revocation request was rejected because the " +
                                     "authorization code was issued to a different client.");
 
-                    return await SendRevocationResponseAsync(request, new OpenIdConnectMessage {
+                    return await SendRevocationResponseAsync(request, new OpenIdConnectResponse {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest
                     });
                 }
@@ -223,7 +224,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     Logger.LogError("The revocation request was rejected because the access token " +
                                     "was issued to a different client or for another resource server.");
 
-                    return await SendRevocationResponseAsync(request, new OpenIdConnectMessage {
+                    return await SendRevocationResponseAsync(request, new OpenIdConnectResponse {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest
                     });
                 }
@@ -233,7 +234,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     Logger.LogError("The revocation request was rejected because the " +
                                     "identity token was issued to a different client.");
 
-                    return await SendRevocationResponseAsync(request, new OpenIdConnectMessage {
+                    return await SendRevocationResponseAsync(request, new OpenIdConnectResponse {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest
                     });
                 }
@@ -244,7 +245,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     Logger.LogError("The revocation request was rejected because the " +
                                     "refresh token was issued to a different client.");
 
-                    return await SendRevocationResponseAsync(request, new OpenIdConnectMessage {
+                    return await SendRevocationResponseAsync(request, new OpenIdConnectResponse {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest
                     });
                 }
@@ -266,7 +267,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                                 /* Error: */ notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                                 /* Description: */ notification.ErrorDescription);
 
-                return await SendRevocationResponseAsync(request, new OpenIdConnectMessage {
+                return await SendRevocationResponseAsync(request, new OpenIdConnectResponse {
                     Error = notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = notification.ErrorDescription,
                     ErrorUri = notification.ErrorUri
@@ -274,29 +275,21 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             if (!notification.Revoked) {
-                return await SendRevocationResponseAsync(request, new OpenIdConnectMessage {
+                return await SendRevocationResponseAsync(request, new OpenIdConnectResponse {
                     Error = OpenIdConnectConstants.Errors.UnsupportedTokenType,
                     ErrorDescription = "The token cannot be revoked."
                 });
             }
 
-            return await SendRevocationResponseAsync(request, new JObject());
+            return await SendRevocationResponseAsync(request, new OpenIdConnectResponse());
         }
 
-        private Task<bool> SendRevocationResponseAsync(OpenIdConnectMessage request, OpenIdConnectMessage response) {
-            var payload = new JObject();
-
-            foreach (var parameter in response.Parameters) {
-                payload[parameter.Key] = parameter.Value;
-            }
-
-            return SendRevocationResponseAsync(request, payload);
-        }
-
-        private async Task<bool> SendRevocationResponseAsync(OpenIdConnectMessage request, JObject response) {
+        private async Task<bool> SendRevocationResponseAsync(OpenIdConnectRequest request, OpenIdConnectResponse response) {
             if (request == null) {
-                request = new OpenIdConnectMessage();
+                request = new OpenIdConnectRequest();
             }
+
+            Context.SetOpenIdConnectResponse(response);
 
             var notification = new ApplyRevocationResponseContext(Context, Options, request, response);
             await Options.Provider.ApplyRevocationResponse(notification);

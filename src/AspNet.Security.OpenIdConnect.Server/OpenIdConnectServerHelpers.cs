@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Tokens;
 
 namespace AspNet.Security.OpenIdConnect.Server {
@@ -49,10 +47,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
             return address + path;
         }
 
-        internal static IEnumerable<KeyValuePair<string, string[]>> ToDictionary(this IEnumerable<KeyValuePair<string, StringValues>> collection) {
-            return collection.Select(item => new KeyValuePair<string, string[]>(item.Key, item.Value.ToArray()));
-        }
-
         internal static bool IsSupportedAlgorithm(this SecurityKey key, string algorithm) {
             return key.CryptoProviderFactory.IsSupportedAlgorithm(algorithm, key);
         }
@@ -70,7 +64,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 case SecurityAlgorithms.HmacSha256Signature:
                 case SecurityAlgorithms.EcdsaSha256Signature:
                     return SHA256.Create();
-                
+
                 case SecurityAlgorithms.RsaSha384:
                 case SecurityAlgorithms.HmacSha384:
                 case SecurityAlgorithms.EcdsaSha384:
@@ -78,7 +72,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 case SecurityAlgorithms.HmacSha384Signature:
                 case SecurityAlgorithms.EcdsaSha384Signature:
                     return SHA384.Create();
-                
+
                 case SecurityAlgorithms.RsaSha512:
                 case SecurityAlgorithms.HmacSha512:
                 case SecurityAlgorithms.EcdsaSha512:
@@ -108,7 +102,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 case SecurityAlgorithms.HmacSha512:
                 case SecurityAlgorithms.HmacSha512Signature:
                     return SecurityAlgorithms.HmacSha512;
-                
+
                 case SecurityAlgorithms.RsaSha256:
                 case SecurityAlgorithms.RsaSha256Signature:
                     return SecurityAlgorithms.RsaSha256;
@@ -116,7 +110,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 case SecurityAlgorithms.RsaSha384:
                 case SecurityAlgorithms.RsaSha384Signature:
                     return SecurityAlgorithms.RsaSha384;
-                
+
                 case SecurityAlgorithms.RsaSha512:
                 case SecurityAlgorithms.RsaSha512Signature:
                     return SecurityAlgorithms.RsaSha512;

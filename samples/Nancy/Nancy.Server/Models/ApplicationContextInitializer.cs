@@ -5,7 +5,7 @@ namespace Nancy.Server.Models {
         protected override void Seed(ApplicationContext context) {
             // Note: when using the introspection middleware, your resource server
             // MUST be registered as an OAuth2 client and have valid credentials.
-            // 
+            //
             // context.Applications.Add(new Application {
             //     ApplicationID = "resource_server",
             //     DisplayName = "Main resource server",

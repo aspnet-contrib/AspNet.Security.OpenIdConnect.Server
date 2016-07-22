@@ -4,9 +4,9 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
+using AspNet.Security.OpenIdConnect.Extensions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
@@ -26,8 +26,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             HttpContext context,
             OpenIdConnectServerOptions options,
             AuthenticationTicket ticket,
-            OpenIdConnectMessage request,
-            OpenIdConnectMessage response)
+            OpenIdConnectRequest request,
+            OpenIdConnectResponse response)
             : base(context) {
             Options = options;
             Ticket = ticket;
@@ -41,14 +41,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public OpenIdConnectServerOptions Options { get; }
 
         /// <summary>
-        /// Gets the authorization request. 
+        /// Gets the authorization request.
         /// </summary>
-        public new OpenIdConnectMessage Request { get; }
+        public new OpenIdConnectRequest Request { get; }
 
         /// <summary>
-        /// Gets the authorization response. 
+        /// Gets the authorization response.
         /// </summary>
-        public new OpenIdConnectMessage Response { get; }
+        public new OpenIdConnectResponse Response { get; }
 
         /// <summary>
         /// Gets the access code expected to

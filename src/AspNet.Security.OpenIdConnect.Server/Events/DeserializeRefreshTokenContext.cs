@@ -4,9 +4,9 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
+using AspNet.Security.OpenIdConnect.Extensions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
@@ -23,7 +23,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public DeserializeRefreshTokenContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
-            OpenIdConnectMessage request,
+            OpenIdConnectRequest request,
             string token)
             : base(context) {
             Options = options;
@@ -39,7 +39,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the authorization or token request.
         /// </summary>
-        public new OpenIdConnectMessage Request { get; }
+        public new OpenIdConnectRequest Request { get; }
 
         /// <summary>
         /// Gets or sets the data format used to deserialize the authentication ticket.

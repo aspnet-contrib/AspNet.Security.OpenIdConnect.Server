@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Security.Claims;
 using Microsoft.Owin.Security;
-using Microsoft.Owin.Security.Cookies;
 using Nancy.Security;
 using Nancy.Server.Extensions;
 
@@ -24,7 +23,7 @@ namespace Nancy.Server.Modules {
                 if (string.IsNullOrEmpty(identifier)) {
                     return HttpStatusCode.BadRequest;
                 }
-                
+
                 // Note: the ReturnUrl parameter corresponds to the endpoint the user agent
                 // will be redirected to after a successful authentication and not
                 // the redirect_uri of the requesting client application.
@@ -36,7 +35,7 @@ namespace Nancy.Server.Modules {
                 var properties = new AuthenticationProperties {
                     RedirectUri = returnUrl
                 };
-                
+
                 var identity = new ClaimsIdentity("ServerCookie");
                 identity.AddClaim(new Claim(ClaimTypes.Name, identifier));
                 identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, identifier));

@@ -4,7 +4,6 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Nancy.Security;
@@ -33,7 +32,7 @@ namespace Nancy.Server.Modules {
                 // Extract the authorization request from the OWIN environment.
                 var request = OwinContext.GetOpenIdConnectRequest();
                 if (request == null) {
-                    return View["Error.cshtml", new OpenIdConnectMessage {
+                    return View["Error.cshtml", new OpenIdConnectResponse {
                         Error = "invalid_request",
                         ErrorDescription = "An internal error has occurred"
                     }];
@@ -45,7 +44,7 @@ namespace Nancy.Server.Modules {
                 // manually removed the application details from the database after the initial check made by ASOS.
                 var application = await GetApplicationAsync(request.ClientId, cancellationToken);
                 if (application == null) {
-                    return View["Error.cshtml", new OpenIdConnectMessage {
+                    return View["Error.cshtml", new OpenIdConnectResponse {
                         Error = "invalid_client",
                         ErrorDescription = "Details concerning the calling client application cannot be found in the database"
                     }];
@@ -53,9 +52,9 @@ namespace Nancy.Server.Modules {
 
                 // Note: in a real world application, you'd probably
                 // prefer creating a specific view model.
-                return View["Authorize.cshtml", new { Application = application, Request = request }];
+                return View["Authorize.cshtml", Tuple.Create(request, application)];
             };
-            
+
             Post["/connect/authorize/accept", runAsync: true] = async (parameters, cancellationToken) => {
                 this.RequiresMSOwinAuthentication();
                 this.ValidateCsrfToken();
@@ -67,12 +66,12 @@ namespace Nancy.Server.Modules {
 
                 var request = OwinContext.GetOpenIdConnectRequest();
                 if (request == null) {
-                    return View["Error.cshtml", new OpenIdConnectMessage {
+                    return View["Error.cshtml", new OpenIdConnectResponse {
                         Error = "invalid_request",
                         ErrorDescription = "An internal error has occurred"
                     }];
                 }
-                
+
                 // Create a new ClaimsIdentity containing the claims that
                 // will be used to create an id_token, a token or a code.
                 var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationType);
@@ -92,7 +91,7 @@ namespace Nancy.Server.Modules {
 
                 var application = await GetApplicationAsync(request.ClientId, CancellationToken.None);
                 if (application == null) {
-                    return View["Error.cshtml", new OpenIdConnectMessage {
+                    return View["Error.cshtml", new OpenIdConnectResponse {
                         Error = "invalid_client",
                         ErrorDescription = "Details concerning the calling client application cannot be found in the database"
                     }];
@@ -145,7 +144,7 @@ namespace Nancy.Server.Modules {
                 // Extract the authorization request from the cache, the query string or the request form.
                 var request = OwinContext.GetOpenIdConnectRequest();
                 if (request == null) {
-                    return View["Error.cshtml", new OpenIdConnectMessage {
+                    return View["Error.cshtml", new OpenIdConnectResponse {
                         Error = "invalid_request",
                         ErrorDescription = "An internal error has occurred"
                     }];
@@ -173,7 +172,7 @@ namespace Nancy.Server.Modules {
                 // Extract the logout request from the OWIN environment.
                 var request = OwinContext.GetOpenIdConnectRequest();
                 if (request == null) {
-                    return View["Error.cshtml", new OpenIdConnectMessage {
+                    return View["Error.cshtml", new OpenIdConnectResponse {
                         Error = "invalid_request",
                         ErrorDescription = "An internal error has occurred"
                     }];
@@ -213,7 +212,7 @@ namespace Nancy.Server.Modules {
                 return context;
             }
         }
-        
+
         protected async Task<Application> GetApplicationAsync(string identifier, CancellationToken cancellationToken) {
             using (var context = new ApplicationContext()) {
                 // Retrieve the application details corresponding to the requested client_id.

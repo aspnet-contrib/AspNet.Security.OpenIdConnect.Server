@@ -5,8 +5,8 @@
  */
 
 using System;
-using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
+using Owin.Security.OpenIdConnect.Extensions;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
@@ -22,7 +22,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         public ValidateAuthorizationRequestContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
-            OpenIdConnectMessage request)
+            OpenIdConnectRequest request)
             : base(context, options) {
             Request = request;
         }
@@ -30,7 +30,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the authorization request.
         /// </summary>
-        public new OpenIdConnectMessage Request { get; }
+        public new OpenIdConnectRequest Request { get; }
 
         /// <summary>
         /// Gets the client identifier.

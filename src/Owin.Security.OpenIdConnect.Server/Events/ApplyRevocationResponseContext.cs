@@ -4,10 +4,8 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
-using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Microsoft.Owin.Security.Notifications;
-using Newtonsoft.Json.Linq;
 using Owin.Security.OpenIdConnect.Extensions;
 
 namespace Owin.Security.OpenIdConnect.Server {
@@ -22,28 +20,28 @@ namespace Owin.Security.OpenIdConnect.Server {
         public ApplyRevocationResponseContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
-            OpenIdConnectMessage request,
-            JObject response)
+            OpenIdConnectRequest request,
+            OpenIdConnectResponse response)
             : base(context, options) {
             Request = request;
             Response = response;
         }
 
         /// <summary>
-        /// Gets the revocation request. 
+        /// Gets the revocation request.
         /// </summary>
-        public new OpenIdConnectMessage Request { get; }
+        public new OpenIdConnectRequest Request { get; }
 
         /// <summary>
         /// Gets the JSON payload returned to the caller.
         /// </summary>
-        public new JObject Response { get; }
+        public new OpenIdConnectResponse Response { get; }
 
         /// <summary>
         /// Gets the error code returned to the client application.
         /// When the response indicates a successful response,
         /// this property returns <c>null</c>.
         /// </summary>
-        public string Error => Response[OpenIdConnectConstants.Parameters.Error]?.Value<string>();
+        public string Error => Response.Error;
     }
 }

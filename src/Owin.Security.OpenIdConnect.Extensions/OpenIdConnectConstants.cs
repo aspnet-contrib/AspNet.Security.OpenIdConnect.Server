@@ -4,8 +4,6 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
-#pragma warning disable 1591
-
 namespace Owin.Security.OpenIdConnect.Extensions {
     public static class OpenIdConnectConstants {
         public static class Algorithms {
@@ -148,6 +146,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
 
         public static class Parameters {
             public const string AccessToken = "access_token";
+            public const string Active = "active";
             public const string ClientId = "client_id";
             public const string ClientSecret = "client_secret";
             public const string Code = "code";
@@ -157,13 +156,17 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             public const string ExpiresIn = "expires_in";
             public const string GrantType = "grant_type";
             public const string IdToken = "id_token";
+            public const string IdTokenHint = "id_token_hint";
             public const string Nonce = "nonce";
             public const string Password = "password";
+            public const string PostLogoutRedirectUri = "post_logout_redirect_uri";
+            public const string Prompt = "prompt";
             public const string RedirectUri = "redirect_uri";
             public const string RefreshToken = "refresh_token";
             public const string Request = "request";
             public const string RequestId = "request_id";
             public const string RequestUri = "request_uri";
+            public const string Resource = "resource";
             public const string ResponseMode = "response_mode";
             public const string ResponseType = "response_type";
             public const string Scope = "scope";
@@ -185,6 +188,17 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             public const string Scopes = ".scopes";
             public const string TicketId = ".ticket_id";
             public const string Usage = ".usage";
+        }
+
+        public static class RequestTypes {
+            public const string Authorization = "authorization";
+            public const string Configuration = "configuration";
+            public const string Cryptography = "cryptography";
+            public const string Introspection = "introspection";
+            public const string Logout = "logout";
+            public const string Revocation = "revocation";
+            public const string Token = "token";
+            public const string Userinfo = "userinfo";
         }
 
         public static class ResponseModes {

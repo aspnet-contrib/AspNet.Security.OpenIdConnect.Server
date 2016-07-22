@@ -4,6 +4,14 @@
     "warningsAsErrors": true,
     "preserveCompilationContext": true,
 
+    "copyToOutput": {
+      "include": [
+        "Content",
+        "Views",
+        "App.config"
+      ]
+    },
+
     "embed": {
       "include": [ "Certificate.pfx" ]
     }

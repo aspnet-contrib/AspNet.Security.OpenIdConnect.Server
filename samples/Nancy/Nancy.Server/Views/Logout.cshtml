@@ -1,8 +1,8 @@
-﻿@using Microsoft.IdentityModel.Protocols
+﻿@using Microsoft.Owin.Security
 @using Nancy.ViewEngines.Razor
-@using Microsoft.Owin.Security
+@using Owin.Security.OpenIdConnect.Extensions
 
-@inherits NancyRazorViewBase<Tuple<OpenIdConnectMessage, AuthenticateResult>>
+@inherits NancyRazorViewBase<Tuple<OpenIdConnectRequest, AuthenticateResult>>
 
 <div class="jumbotron">
     <h1>Log out</h1>
@@ -15,8 +15,7 @@
     <form action="/connect/logout" enctype="application/x-www-form-urlencoded" method="post">
         @Html.AntiForgeryToken()
 
-        @* Flow the logout request *@
-        @foreach (var parameter in Model.Item1.Parameters) {
+        @foreach (var parameter in Model.Item1) {
             <input type="hidden" name="@parameter.Key" value="@parameter.Value" />
         }
 

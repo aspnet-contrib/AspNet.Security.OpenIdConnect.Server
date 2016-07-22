@@ -6,7 +6,6 @@
 
 using System.Collections.Generic;
 using System.IdentityModel.Tokens;
-using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Notifications;
@@ -28,8 +27,8 @@ namespace Owin.Security.OpenIdConnect.Server {
         public SerializeIdentityTokenContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
-            OpenIdConnectMessage request,
-            OpenIdConnectMessage response,
+            OpenIdConnectRequest request,
+            OpenIdConnectResponse response,
             AuthenticationTicket ticket)
             : base(context, options) {
             Request = request;
@@ -40,12 +39,12 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the authorization or token request.
         /// </summary>
-        public new OpenIdConnectMessage Request { get; }
+        public new OpenIdConnectRequest Request { get; }
 
         /// <summary>
         /// Gets the authorization or token response.
         /// </summary>
-        public new OpenIdConnectMessage Response { get; }
+        public new OpenIdConnectResponse Response { get; }
 
         /// <summary>
         /// Gets the authentication ticket.

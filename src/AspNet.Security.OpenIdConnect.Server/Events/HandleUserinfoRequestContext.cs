@@ -5,9 +5,9 @@
  */
 
 using System.Collections.Generic;
+using AspNet.Security.OpenIdConnect.Extensions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Newtonsoft.Json.Linq;
 
 namespace AspNet.Security.OpenIdConnect.Server {
@@ -22,7 +22,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public HandleUserinfoRequestContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
-            OpenIdConnectMessage request,
+            OpenIdConnectRequest request,
             AuthenticationTicket ticket)
             : base(context, options) {
             Request = request;
@@ -33,7 +33,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the userinfo request.
         /// </summary>
-        public new OpenIdConnectMessage Request { get; }
+        public new OpenIdConnectRequest Request { get; }
 
         /// <summary>
         /// Gets the list of claims returned to the client application.
@@ -121,7 +121,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public string Profile { get; set; }
 
         /// <summary>
-        /// Gets or sets the unique value 
+        /// Gets or sets the unique value
         /// used for the mandatory "sub" claim.
         /// </summary>
         public string Subject { get; set; }

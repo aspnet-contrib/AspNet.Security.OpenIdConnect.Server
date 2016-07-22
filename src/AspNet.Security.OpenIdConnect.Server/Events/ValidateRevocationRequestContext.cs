@@ -6,7 +6,6 @@
 
 using AspNet.Security.OpenIdConnect.Extensions;
 using Microsoft.AspNetCore.Http;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
@@ -22,7 +21,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public ValidateRevocationRequestContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
-            OpenIdConnectMessage request)
+            OpenIdConnectRequest request)
             : base(context, options, request) {
         }
 
@@ -30,6 +29,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// Gets the optional token_type_hint parameter extracted from the
         /// revocation request, or <c>null</c> if it cannot be found.
         /// </summary>
-        public string TokenTypeHint => Request.GetParameter(OpenIdConnectConstants.Parameters.TokenTypeHint);
+        public string TokenTypeHint => Request.TokenTypeHint;
     }
 }

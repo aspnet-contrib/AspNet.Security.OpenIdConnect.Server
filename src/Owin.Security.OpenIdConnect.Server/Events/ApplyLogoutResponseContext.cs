@@ -4,9 +4,9 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
-using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Microsoft.Owin.Security.Notifications;
+using Owin.Security.OpenIdConnect.Extensions;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
@@ -23,22 +23,22 @@ namespace Owin.Security.OpenIdConnect.Server {
         public ApplyLogoutResponseContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
-            OpenIdConnectMessage request,
-            OpenIdConnectMessage response)
+            OpenIdConnectRequest request,
+            OpenIdConnectResponse response)
             : base(context, options) {
             Request = request;
             Response = response;
         }
 
         /// <summary>
-        /// Gets the logout request. 
+        /// Gets the logout request.
         /// </summary>
-        public new OpenIdConnectMessage Request { get; }
+        public new OpenIdConnectRequest Request { get; }
 
         /// <summary>
-        /// Gets the logout response. 
+        /// Gets the logout response.
         /// </summary>
-        public new OpenIdConnectMessage Response { get; }
+        public new OpenIdConnectResponse Response { get; }
 
         /// <summary>
         /// Gets the error code returned to the client application.

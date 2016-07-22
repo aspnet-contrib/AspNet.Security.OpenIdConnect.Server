@@ -4,9 +4,9 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
+using AspNet.Security.OpenIdConnect.Extensions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
@@ -23,8 +23,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public ApplyLogoutResponseContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
-            OpenIdConnectMessage request,
-            OpenIdConnectMessage response)
+            OpenIdConnectRequest request,
+            OpenIdConnectResponse response)
             : base(context) {
             Options = options;
             Request = request;
@@ -37,14 +37,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public OpenIdConnectServerOptions Options { get; }
 
         /// <summary>
-        /// Gets the logout request. 
+        /// Gets the logout request.
         /// </summary>
-        public new OpenIdConnectMessage Request { get; }
+        public new OpenIdConnectRequest Request { get; }
 
         /// <summary>
-        /// Gets the logout response. 
+        /// Gets the logout response.
         /// </summary>
-        public new OpenIdConnectMessage Response { get; }
+        public new OpenIdConnectResponse Response { get; }
 
         /// <summary>
         /// Gets the error code returned to the client application.

@@ -26,13 +26,13 @@ namespace Owin.Security.OpenIdConnect.Server {
 
         /// <summary>
         /// Contains the identity and properties for the application to authenticate. If the Validated method
-        /// is invoked with an AuthenticationTicket or ClaimsIdentity argument, that new value is assigned to 
+        /// is invoked with an AuthenticationTicket or ClaimsIdentity argument, that new value is assigned to
         /// this property in addition to changing IsValidated to true.
         /// </summary>
         public AuthenticationTicket Ticket { get; private set; }
 
         /// <summary>
-        /// Replaces the ticket information on this context and marks it as as validated by the application. 
+        /// Replaces the ticket information on this context and marks it as as validated by the application.
         /// IsValidated becomes true and HasError becomes false as a result of calling.
         /// </summary>
         /// <param name="ticket">Assigned to the Ticket property</param>
@@ -43,7 +43,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         }
 
         /// <summary>
-        /// Alters the ticket information on this context and marks it as as validated by the application. 
+        /// Alters the ticket information on this context and marks it as as validated by the application.
         /// IsValidated becomes true and HasError becomes false as a result of calling.
         /// </summary>
         /// <param name="identity">Assigned to the Ticket.Identity property</param>

@@ -5,9 +5,9 @@
  */
 
 using System.IdentityModel.Tokens.Jwt;
+using AspNet.Security.OpenIdConnect.Extensions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 
 namespace AspNet.Security.OpenIdConnect.Server {
@@ -25,7 +25,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public DeserializeIdentityTokenContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
-            OpenIdConnectMessage request,
+            OpenIdConnectRequest request,
             string token)
             : base(context) {
             Options = options;
@@ -41,7 +41,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the authorization or token request.
         /// </summary>
-        public new OpenIdConnectMessage Request { get; }
+        public new OpenIdConnectRequest Request { get; }
 
         /// <summary>
         /// Gets or sets the validation parameters used to verify the authenticity of identity tokens.

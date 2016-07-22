@@ -6,10 +6,10 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Newtonsoft.Json.Linq;
+using Owin.Security.OpenIdConnect.Extensions;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
@@ -23,7 +23,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         public HandleIntrospectionRequestContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
-            OpenIdConnectMessage request,
+            OpenIdConnectRequest request,
             AuthenticationTicket ticket)
             : base(context, options) {
             Request = request;
@@ -39,7 +39,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the introspection request.
         /// </summary>
-        public new OpenIdConnectMessage Request { get; }
+        public new OpenIdConnectRequest Request { get; }
 
         /// <summary>
         /// Gets the list of claims returned to the caller.

@@ -2,7 +2,15 @@
   "buildOptions": {
     "emitEntryPoint": true,
     "warningsAsErrors": true,
-    "preserveCompilationContext": true
+    "preserveCompilationContext": true,
+
+    "copyToOutput": {
+      "include": [
+        "Content",
+        "Views",
+        "App.config"
+      ]
+    }
   },
 
   "dependencies": {

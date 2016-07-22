@@ -4,9 +4,9 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
-using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
+using Owin.Security.OpenIdConnect.Extensions;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
@@ -23,7 +23,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         public HandleTokenRequestContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
-            OpenIdConnectMessage request,
+            OpenIdConnectRequest request,
             AuthenticationTicket ticket)
             : base(context, options, ticket) {
             Request = request;
@@ -31,8 +31,8 @@ namespace Owin.Security.OpenIdConnect.Server {
         }
 
         /// <summary>
-        /// Gets the token endpoint request. 
+        /// Gets the token endpoint request.
         /// </summary>
-        public new OpenIdConnectMessage Request { get; }
+        public new OpenIdConnectRequest Request { get; }
     }
 }

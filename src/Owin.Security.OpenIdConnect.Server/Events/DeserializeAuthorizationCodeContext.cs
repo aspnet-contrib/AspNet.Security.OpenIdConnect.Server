@@ -4,10 +4,10 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
-using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Notifications;
+using Owin.Security.OpenIdConnect.Extensions;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
@@ -24,7 +24,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         public DeserializeAuthorizationCodeContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
-            OpenIdConnectMessage request,
+            OpenIdConnectRequest request,
             string code)
             : base(context, options) {
             Request = request;
@@ -34,7 +34,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the authorization request.
         /// </summary>
-        public new OpenIdConnectMessage Request { get; }
+        public new OpenIdConnectRequest Request { get; }
 
         /// <summary>
         /// Gets or sets the authentication ticket.

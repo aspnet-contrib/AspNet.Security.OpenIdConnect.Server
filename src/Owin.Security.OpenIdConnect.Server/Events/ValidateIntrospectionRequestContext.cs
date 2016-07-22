@@ -4,7 +4,6 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
-using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Owin.Security.OpenIdConnect.Extensions;
 
@@ -22,7 +21,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         public ValidateIntrospectionRequestContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
-            OpenIdConnectMessage request)
+            OpenIdConnectRequest request)
             : base(context, options, request) {
         }
 
@@ -30,6 +29,6 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// Gets the optional token_type_hint parameter extracted from the
         /// introspection request, or <c>null</c> if it cannot be found.
         /// </summary>
-        public string TokenTypeHint => Request.GetParameter(OpenIdConnectConstants.Parameters.TokenTypeHint);
+        public string TokenTypeHint => Request.TokenTypeHint;
     }
 }

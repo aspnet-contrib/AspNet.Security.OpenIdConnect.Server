@@ -1,7 +1,4 @@
 using System;
-using System.IdentityModel.Tokens.Jwt;
-using System.Reflection;
-using AspNet.Security.OAuth.Validation;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -44,7 +41,7 @@ namespace Mvc.Server {
                 // Alternatively, you can also use the introspection middleware.
                 // Using it is recommended if your resource server is in a
                 // different application/separated from the authorization server.
-                // 
+                //
                 // branch.UseOAuthIntrospection(new OAuthIntrospectionOptions {
                 //     AutomaticAuthenticate = true,
                 //     AutomaticChallenge = true,
@@ -99,12 +96,12 @@ namespace Mvc.Server {
                 // On production, using a X.509 certificate stored in the machine store is recommended.
                 // You can generate a self-signed certificate using Pluralsight's self-cert utility:
                 // https://s3.amazonaws.com/pluralsight-free/keith-brown/samples/SelfCert.zip
-                // 
+                //
                 // options.SigningCredentials.AddCertificate("7D2A741FE34CC2C7369237A5F2078988E17A6A75");
-                // 
+                //
                 // Alternatively, you can also store the certificate as an embedded .pfx resource
                 // directly in this assembly or in a file published alongside this project:
-                // 
+                //
                 // options.SigningCredentials.AddCertificate(
                 //     assembly: typeof(Startup).GetTypeInfo().Assembly,
                 //     resource: "Mvc.Server.Certificate.pfx",
@@ -128,7 +125,7 @@ namespace Mvc.Server {
             using (var database = app.ApplicationServices.GetService<ApplicationContext>()) {
                 // Note: when using the introspection middleware, your resource server
                 // MUST be registered as an OAuth2 client and have valid credentials.
-                // 
+                //
                 // database.Applications.Add(new Application {
                 //     ApplicationID = "resource_server",
                 //     DisplayName = "Main resource server",
