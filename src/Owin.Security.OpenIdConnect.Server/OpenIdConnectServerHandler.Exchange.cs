@@ -6,7 +6,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IdentityModel.Tokens;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -299,7 +302,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 // and http://openid.net/specs/openid-connect-core-1_0.html#TokenRequestValidation
                 var address = ticket.GetProperty(OpenIdConnectConstants.Properties.RedirectUri);
                 if (request.IsAuthorizationCodeGrantType() && !string.IsNullOrEmpty(address)) {
-                    ticket.Properties.Dictionary.Remove(OpenIdConnectConstants.Properties.RedirectUri);
+                    ticket.SetProperty(OpenIdConnectConstants.Properties.RedirectUri, null);
 
                     if (string.IsNullOrEmpty(request.RedirectUri)) {
                         Options.Logger.LogError("The token request was rejected because the mandatory 'redirect_uri' " +
@@ -318,6 +321,57 @@ namespace Owin.Security.OpenIdConnect.Server {
                         return await SendTokenResponseAsync(request, new OpenIdConnectResponse {
                             Error = OpenIdConnectConstants.Errors.InvalidGrant,
                             ErrorDescription = "Authorization code does not contain matching redirect_uri"
+                        });
+                    }
+                }
+
+                // If a code challenge was initially sent in the authorization request and associated with the
+                // code, validate the code verifier to ensure the token request is sent by a legit caller.
+                var challenge = ticket.GetProperty(OpenIdConnectConstants.Properties.CodeChallenge);
+                if (request.IsAuthorizationCodeGrantType() && !string.IsNullOrEmpty(challenge)) {
+                    ticket.SetProperty(OpenIdConnectConstants.Properties.CodeChallenge, null);
+
+                    // Get the code verifier from the token request.
+                    // If it cannot be found, return an invalid_grant error.
+                    var verifier = request.CodeVerifier;
+                    if (string.IsNullOrEmpty(verifier)) {
+                        Options.Logger.LogError("The token request was rejected because the required 'code_verifier' " +
+                                                "parameter was missing from the grant_type=authorization_code request.");
+
+                        return await SendTokenResponseAsync(request, new OpenIdConnectResponse {
+                            Error = OpenIdConnectConstants.Errors.InvalidGrant,
+                            ErrorDescription = "The required 'code_verifier' was missing from the token request."
+                        });
+                    }
+
+                    // Note: the code challenge method is always validated when receiving the authorization request.
+                    var method = ticket.GetProperty(OpenIdConnectConstants.Properties.CodeChallengeMethod);
+                    ticket.SetProperty(OpenIdConnectConstants.Properties.CodeChallengeMethod, null);
+
+                    Debug.Assert(string.IsNullOrEmpty(method) ||
+                                 string.Equals(method, OpenIdConnectConstants.CodeChallengeMethods.Plain, StringComparison.Ordinal) ||
+                                 string.Equals(method, OpenIdConnectConstants.CodeChallengeMethods.Sha256, StringComparison.Ordinal),
+                        "The specified code challenge method should be supported.");
+
+                    // If the S256 challenge method was used, compute the hash corresponding to the code verifier.
+                    if (string.Equals(method, OpenIdConnectConstants.CodeChallengeMethods.Sha256, StringComparison.Ordinal)) {
+                        using (var algorithm = SHA256.Create()) {
+                            // Compute the SHA-256 hash of the code verifier and encode it using base64-url.
+                            // See https://tools.ietf.org/html/rfc7636#section-4.6 for more information.
+                            var hash = algorithm.ComputeHash(Encoding.ASCII.GetBytes(request.CodeVerifier));
+
+                            verifier = Base64UrlEncoder.Encode(hash);
+                        }
+                    }
+
+                    // Compare the verifier and the code challenge: if the two don't match, return an error.
+                    // Note: to prevent timing attacks, a time-constant comparer is always used.
+                    if (!OpenIdConnectServerHelpers.AreEqual(verifier, challenge)) {
+                        Options.Logger.LogError("The token request was rejected because the 'code_verifier' was invalid.");
+
+                        return await SendTokenResponseAsync(request, new OpenIdConnectResponse {
+                            Error = OpenIdConnectConstants.Errors.InvalidGrant,
+                            ErrorDescription = "The specified 'code_verifier' was invalid."
                         });
                     }
                 }

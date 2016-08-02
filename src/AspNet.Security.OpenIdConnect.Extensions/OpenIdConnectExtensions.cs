@@ -810,6 +810,43 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
         }
 
         /// <summary>
+        /// Determines whether a given exists in the authentication properties.
+        /// </summary>
+        /// <param name="properties">The authentication properties.</param>
+        /// <param name="property">The specific property to look for.</param>
+        /// <returns><c>true</c> if the property was found, <c>false</c> otherwise.</returns>
+        public static bool HasProperty([NotNull] this AuthenticationProperties properties, [NotNull] string property) {
+            if (properties == null) {
+                throw new ArgumentNullException(nameof(properties));
+            }
+
+            if (string.IsNullOrEmpty(property)) {
+                throw new ArgumentException($"{nameof(property)} cannot be null or empty.", nameof(property));
+            }
+
+            string value;
+            if (!properties.Items.TryGetValue(property, out value)) {
+                return false;
+            }
+
+            return !string.IsNullOrEmpty(value);
+        }
+
+        /// <summary>
+        /// Determines whether a given exists in the authentication ticket.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <param name="property">The specific property to look for.</param>
+        /// <returns><c>true</c> if the property was found, <c>false</c> otherwise.</returns>
+        public static bool HasProperty([NotNull] this AuthenticationTicket ticket, [NotNull] string property) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            return ticket.Properties.HasProperty(property);
+        }
+
+        /// <summary>
         /// Determines whether the authentication ticket contains at least one audience.
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
@@ -819,7 +856,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            return !string.IsNullOrEmpty(ticket.GetProperty(OpenIdConnectConstants.Properties.Audiences));
+            return ticket.HasProperty(OpenIdConnectConstants.Properties.Audiences);
         }
 
         /// <summary>
@@ -851,7 +888,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            return !string.IsNullOrEmpty(ticket.GetProperty(OpenIdConnectConstants.Properties.Presenters));
+            return ticket.HasProperty(OpenIdConnectConstants.Properties.Presenters);
         }
 
         /// <summary>
@@ -883,7 +920,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            return !string.IsNullOrEmpty(ticket.GetProperty(OpenIdConnectConstants.Properties.Resources));
+            return ticket.HasProperty(OpenIdConnectConstants.Properties.Resources);
         }
 
         /// <summary>
@@ -915,7 +952,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            return !string.IsNullOrEmpty(ticket.GetProperty(OpenIdConnectConstants.Properties.Scopes));
+            return ticket.HasProperty(OpenIdConnectConstants.Properties.Scopes);
         }
 
         /// <summary>
@@ -1030,6 +1067,52 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
             }
 
             return string.Equals(value, OpenIdConnectConstants.Usages.RefreshToken, StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// Adds, updates or removes a given property in the authentication properties.
+        /// </summary>
+        /// <param name="properties">The authentication properties.</param>
+        /// <param name="property">The specific property to add, update or remove.</param>
+        /// <param name="value">The value associated with the property.</param>
+        /// <returns>The authentication properties.</returns>
+        public static AuthenticationProperties SetProperty(
+            [NotNull] this AuthenticationProperties properties,
+            [NotNull] string property, [CanBeNull] string value) {
+            if (properties == null) {
+                throw new ArgumentNullException(nameof(properties));
+            }
+
+            if (string.IsNullOrEmpty(property)) {
+                throw new ArgumentException($"{nameof(property)} cannot be null or empty.", nameof(property));
+            }
+
+            if (string.IsNullOrEmpty(value)) {
+                properties.Items.Remove(property);
+
+                return properties;
+            }
+
+            properties.Items[property] = value;
+
+            return properties;
+        }
+
+        /// <summary>
+        /// Adds, updates or removes a given property in the authentication ticket.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <param name="property">The specific property to add, update or remove.</param>
+        /// <param name="value">The value associated with the property.</param>
+        /// <returns>The authentication ticket.</returns>
+        public static AuthenticationProperties SetProperty(
+            [NotNull] this AuthenticationTicket ticket,
+            [NotNull] string property, [CanBeNull] string value) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            return ticket.Properties.SetProperty(property, value);
         }
 
         /// <summary>

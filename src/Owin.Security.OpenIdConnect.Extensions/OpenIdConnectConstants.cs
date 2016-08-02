@@ -68,6 +68,11 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             public const string Zoneinfo = "zoneinfo";
         }
 
+        public static class CodeChallengeMethods {
+            public const string Plain = "plain";
+            public const string Sha256 = "S256";
+        }
+
         public static class Destinations {
             public const string AccessToken = "access_token";
             public const string IdentityToken = "id_token";
@@ -111,6 +116,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             public const string ClaimsParameterSupported = "claims_parameter_supported";
             public const string ClaimsSupported = "claims_supported";
             public const string ClaimTypesSupported = "claim_types_supported";
+            public const string CodeChallengeMethodsSupported = "code_challenge_methods_supported";
             public const string DisplayValuesSupported = "display_values_supported";
             public const string EndSessionEndpoint = "end_session_endpoint";
             public const string GrantTypesSupported = "grant_types_supported";
@@ -150,6 +156,9 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             public const string ClientId = "client_id";
             public const string ClientSecret = "client_secret";
             public const string Code = "code";
+            public const string CodeChallenge = "code_challenge";
+            public const string CodeChallengeMethod = "code_challenge_method";
+            public const string CodeVerifier = "code_verifier";
             public const string Error = "error";
             public const string ErrorDescription = "error_description";
             public const string ErrorUri = "error_uri";
@@ -179,6 +188,8 @@ namespace Owin.Security.OpenIdConnect.Extensions {
 
         public static class Properties {
             public const string Audiences = ".audiences";
+            public const string CodeChallenge = "code_challenge";
+            public const string CodeChallengeMethod = "code_challenge_method";
             public const string Confidential = ".confidential";
             public const string Destinations = ".destinations";
             public const string Nonce = ".nonce";

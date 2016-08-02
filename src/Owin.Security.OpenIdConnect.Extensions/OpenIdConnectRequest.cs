@@ -95,6 +95,30 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         }
 
         /// <summary>
+        /// Gets or sets the "code_challenge" parameter.
+        /// </summary>
+        public string CodeChallenge {
+            get { return GetParameter<string>(OpenIdConnectConstants.Parameters.CodeChallenge); }
+            set { SetParameter(OpenIdConnectConstants.Parameters.CodeChallenge, value); }
+        }
+
+        /// <summary>
+        /// Gets or sets the "code_challenge_method" parameter.
+        /// </summary>
+        public string CodeChallengeMethod {
+            get { return GetParameter<string>(OpenIdConnectConstants.Parameters.CodeChallengeMethod); }
+            set { SetParameter(OpenIdConnectConstants.Parameters.CodeChallengeMethod, value); }
+        }
+
+        /// <summary>
+        /// Gets or sets the "code_verifier" parameter.
+        /// </summary>
+        public string CodeVerifier {
+            get { return GetParameter<string>(OpenIdConnectConstants.Parameters.CodeVerifier); }
+            set { SetParameter(OpenIdConnectConstants.Parameters.CodeVerifier, value); }
+        }
+
+        /// <summary>
         /// Gets or sets the "grant_type" parameter.
         /// </summary>
         public string GrantType {

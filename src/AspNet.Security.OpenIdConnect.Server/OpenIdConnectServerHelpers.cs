@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.AspNetCore.Http;
@@ -7,7 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     internal static class OpenIdConnectServerHelpers {
-        internal static X509Certificate2 GetCertificate(StoreName name, StoreLocation location, string thumbprint) {
+        public static X509Certificate2 GetCertificate(StoreName name, StoreLocation location, string thumbprint) {
             var store = new X509Store(name, location);
 
             try {
@@ -27,7 +28,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
         }
 
-        internal static string GetIssuer(this HttpContext context, OpenIdConnectServerOptions options) {
+        public static string GetIssuer(this HttpContext context, OpenIdConnectServerOptions options) {
             var issuer = options.Issuer;
             if (issuer == null) {
                 if (!Uri.TryCreate(context.Request.Scheme + "://" + context.Request.Host +
@@ -39,7 +40,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             return issuer.AbsoluteUri;
         }
 
-        internal static string AddPath(this string address, PathString path) {
+        public static string AddPath(this string address, PathString path) {
             if (address.EndsWith("/")) {
                 address = address.Substring(0, address.Length - 1);
             }
@@ -47,11 +48,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
             return address + path;
         }
 
-        internal static bool IsSupportedAlgorithm(this SecurityKey key, string algorithm) {
+        public static bool IsSupportedAlgorithm(this SecurityKey key, string algorithm) {
             return key.CryptoProviderFactory.IsSupportedAlgorithm(algorithm, key);
         }
 
-        internal static HashAlgorithm GetHashAlgorithm(string algorithm) {
+        public static HashAlgorithm GetHashAlgorithm(string algorithm) {
             if (string.IsNullOrEmpty(algorithm)) {
                 throw new ArgumentNullException(nameof(algorithm));
             }
@@ -85,7 +86,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             throw new NotSupportedException($"The hash algorithm cannot be inferred from the '{algorithm}' signature algorithm.");
         }
 
-        internal static string GetJwtAlgorithm(string algorithm) {
+        public static string GetJwtAlgorithm(string algorithm) {
             if (string.IsNullOrEmpty(algorithm)) {
                 throw new ArgumentNullException(nameof(algorithm));
             }
@@ -126,7 +127,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
         }
 
-        internal static string GenerateKey(this RandomNumberGenerator generator, int length) {
+        public static string GenerateKey(this RandomNumberGenerator generator, int length) {
             if (generator == null) {
                 throw new ArgumentNullException(nameof(generator));
             }
@@ -135,6 +136,34 @@ namespace AspNet.Security.OpenIdConnect.Server {
             generator.GetBytes(bytes);
 
             return Base64UrlEncoder.Encode(bytes);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        public static bool AreEqual(string first, string second) {
+            // Note: these null checks can be theoretically considered as early checks
+            // (which would defeat the purpose of a time-constant comparison method),
+            // but the expected string length is the only information an attacker
+            // could get at this stage, which is not critical where this method is used.
+
+            if (first == null && second == null) {
+                return true;
+            }
+
+            if (first == null || second == null) {
+                return false;
+            }
+
+            if (first.Length != second.Length) {
+                return false;
+            }
+
+            var result = true;
+
+            for (var index = 0; index < first.Length; index++) {
+                result &= first[index] == second[index];
+            }
+
+            return result;
         }
     }
 }

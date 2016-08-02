@@ -610,7 +610,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             var confidential = principal.FindFirst(OpenIdConnectConstants.Claims.Confidential);
             if (confidential != null && string.Equals(confidential.Value, "true", StringComparison.OrdinalIgnoreCase)) {
-                ticket.Properties.Items[OpenIdConnectConstants.Properties.Confidential] = "true";
+                ticket.SetProperty(OpenIdConnectConstants.Properties.Confidential, "true");
             }
 
             // Ensure that e received ticket is an access token.
@@ -703,7 +703,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             var confidential = principal.FindFirst(OpenIdConnectConstants.Claims.Confidential);
             if (confidential != null && string.Equals(confidential.Value, "true", StringComparison.OrdinalIgnoreCase)) {
-                ticket.Properties.Items[OpenIdConnectConstants.Properties.Confidential] = "true";
+                ticket.SetProperty(OpenIdConnectConstants.Properties.Confidential, "true");
             }
 
             // Ensure the received ticket is an identity token.

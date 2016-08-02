@@ -175,6 +175,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             notification.SigningAlgorithms.Add(OpenIdConnectConstants.Algorithms.RsaSha256);
 
+            // Note: supporting S256 is mandatory for authorization servers that implement PKCE.
+            // See https://tools.ietf.org/html/rfc7636#section-4.2 for more information.
+            notification.CodeChallengeMethods.Add(OpenIdConnectConstants.CodeChallengeMethods.Plain);
+            notification.CodeChallengeMethods.Add(OpenIdConnectConstants.CodeChallengeMethods.Sha256);
+
             await Options.Provider.HandleConfigurationRequest(notification);
 
             if (notification.HandledResponse) {
@@ -227,6 +232,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             if (!string.IsNullOrEmpty(notification.UserinfoEndpoint)) {
                 response[OpenIdConnectConstants.Metadata.UserinfoEndpoint] = notification.UserinfoEndpoint;
+            }
+
+            if (notification.CodeChallengeMethods.Count != 0) {
+                response[OpenIdConnectConstants.Metadata.CodeChallengeMethodsSupported] =
+                    JArray.FromObject(notification.CodeChallengeMethods.Distinct());
             }
 
             if (notification.GrantTypes.Count != 0) {

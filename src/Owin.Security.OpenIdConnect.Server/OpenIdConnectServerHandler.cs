@@ -329,35 +329,30 @@ namespace Owin.Security.OpenIdConnect.Server {
                 response.RedirectUri = request.RedirectUri;
                 response.State = request.State;
 
-                if (!string.IsNullOrEmpty(request.Nonce)) {
-                    // Keep the original nonce parameter for later comparison.
-                    ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.Nonce] = request.Nonce;
-                }
-
-                if (!string.IsNullOrEmpty(request.RedirectUri)) {
-                    // Keep the original redirect_uri parameter for later comparison.
-                    ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.RedirectUri] = request.RedirectUri;
-                }
+                // Keep the code_challenge, code_challenge_method, nonce and redirect_uri parameters for later comparison.
+                ticket.SetProperty(OpenIdConnectConstants.Properties.CodeChallenge, request.CodeChallenge);
+                ticket.SetProperty(OpenIdConnectConstants.Properties.CodeChallengeMethod, request.CodeChallengeMethod);
+                ticket.SetProperty(OpenIdConnectConstants.Properties.Nonce, request.Nonce);
+                ticket.SetProperty(OpenIdConnectConstants.Properties.RedirectUri, request.RedirectUri);
             }
 
+            // Store a boolean indicating whether the ticket should be marked as confidential.
             if (request.IsConfidential && request.IsTokenRequest()) {
-                // Store a boolean indicating whether the ticket should be marked as confidential.
-                ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.Confidential] = "true";
+                ticket.SetProperty(OpenIdConnectConstants.Properties.Confidential, "true");
             }
 
             // Always include the "openid" scope when the developer doesn't explicitly call SetScopes.
             // Note: the application is allowed to specify a different "scopes": in this case,
             // don't replace the "scopes" property stored in the authentication ticket.
-            if (!ticket.Properties.Dictionary.ContainsKey(OpenIdConnectConstants.Properties.Scopes) &&
-                 request.HasScope(OpenIdConnectConstants.Scopes.OpenId)) {
-                ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.Scopes] = OpenIdConnectConstants.Scopes.OpenId;
+            if (!ticket.HasProperty(OpenIdConnectConstants.Properties.Scopes) && request.HasScope(OpenIdConnectConstants.Scopes.OpenId)) {
+                ticket.SetProperty(OpenIdConnectConstants.Properties.Scopes, OpenIdConnectConstants.Scopes.OpenId);
             }
 
-            string audiences;
-            // When a "resources" property cannot be found in the authentication properties, infer it from the "audiences" property.
-            if (!ticket.Properties.Dictionary.ContainsKey(OpenIdConnectConstants.Properties.Resources) &&
-                 ticket.Properties.Dictionary.TryGetValue(OpenIdConnectConstants.Properties.Audiences, out audiences)) {
-                ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.Resources] = audiences;
+            // When a "resources" property cannot be found in the ticket, infer it from the "audiences" property.
+            if (!ticket.HasProperty(OpenIdConnectConstants.Properties.Resources)) {
+                var audiences = ticket.GetProperty(OpenIdConnectConstants.Properties.Audiences);
+
+                ticket.SetProperty(OpenIdConnectConstants.Properties.Resources, audiences);
             }
 
             // Only return an authorization code if the request is an authorization request and has response_type=code.
@@ -390,13 +385,13 @@ namespace Owin.Security.OpenIdConnect.Server {
                     if (!string.IsNullOrEmpty(request.Resource)) {
                         // Replace the resources initially granted by the resources listed by the client application in the token request.
                         // Note: request.GetResources() automatically removes duplicate entries, so additional filtering is not necessary.
-                        properties.Dictionary[OpenIdConnectConstants.Properties.Resources] = string.Join(" ", request.GetResources());
+                        properties.SetProperty(OpenIdConnectConstants.Properties.Resources, string.Join(" ", request.GetResources()));
                     }
 
                     if (!string.IsNullOrEmpty(request.Scope)) {
                         // Replace the scopes initially granted by the scopes listed by the client application in the token request.
                         // Note: request.GetScopes() automatically removes duplicate entries, so additional filtering is not necessary.
-                        properties.Dictionary[OpenIdConnectConstants.Properties.Scopes] = string.Join(" ", request.GetScopes());
+                        properties.SetProperty(OpenIdConnectConstants.Properties.Scopes, string.Join(" ", request.GetScopes()));
                     }
                 }
 

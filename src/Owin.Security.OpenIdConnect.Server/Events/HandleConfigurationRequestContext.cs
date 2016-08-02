@@ -78,6 +78,12 @@ namespace Owin.Security.OpenIdConnect.Server {
         public string Issuer { get; set; }
 
         /// <summary>
+        /// Gets a list of the code challenge methods
+        /// supported by the authorization server.
+        /// </summary>
+        public IList<string> CodeChallengeMethods { get; } = new List<string>();
+
+        /// <summary>
         /// Gets a list of the grant types
         /// supported by the authorization server.
         /// </summary>
