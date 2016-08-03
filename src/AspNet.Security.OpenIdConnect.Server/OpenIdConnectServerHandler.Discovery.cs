@@ -173,12 +173,25 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             notification.SubjectTypes.Add(OpenIdConnectConstants.SubjectTypes.Public);
 
-            notification.SigningAlgorithms.Add(OpenIdConnectConstants.Algorithms.RsaSha256);
-
             // Note: supporting S256 is mandatory for authorization servers that implement PKCE.
             // See https://tools.ietf.org/html/rfc7636#section-4.2 for more information.
             notification.CodeChallengeMethods.Add(OpenIdConnectConstants.CodeChallengeMethods.Plain);
             notification.CodeChallengeMethods.Add(OpenIdConnectConstants.CodeChallengeMethods.Sha256);
+
+            foreach (var credentials in Options.SigningCredentials) {
+                // Try to resolve the JWA algorithm short name. If a null value is returned, ignore it.
+                var algorithm = OpenIdConnectServerHelpers.GetJwtAlgorithm(credentials.Algorithm);
+                if (string.IsNullOrEmpty(algorithm)) {
+                    continue;
+                }
+
+                // If the algorithm is already listed, ignore it.
+                if (notification.SigningAlgorithms.Contains(algorithm)) {
+                    continue;
+                }
+
+                notification.SigningAlgorithms.Add(algorithm);
+            }
 
             await Options.Provider.HandleConfigurationRequest(notification);
 

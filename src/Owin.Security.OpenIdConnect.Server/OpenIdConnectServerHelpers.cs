@@ -54,8 +54,20 @@ namespace Owin.Security.OpenIdConnect.Server {
                 case SecurityAlgorithms.HmacSha256Signature:
                     return JwtAlgorithms.HMAC_SHA256;
 
+                case "http://www.w3.org/2001/04/xmldsig-more#hmac-sha384":
+                    return JwtAlgorithms.HMAC_SHA384;
+
+                case "http://www.w3.org/2001/04/xmldsig-more#hmac-sha512":
+                    return JwtAlgorithms.HMAC_SHA512;
+
                 case SecurityAlgorithms.RsaSha256Signature:
                     return JwtAlgorithms.RSA_SHA256;
+
+                case "http://www.w3.org/2001/04/xmldsig-more#rsa-sha384":
+                    return JwtAlgorithms.RSA_SHA384;
+
+                case "http://www.w3.org/2001/04/xmldsig-more#rsa-sha512":
+                    return JwtAlgorithms.RSA_SHA512;
 
                 case SecurityAlgorithms.RsaOaepKeyWrap:
                     return "RSA-OAEP";
@@ -64,7 +76,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     return "RSA1_5";
 
                 default:
-                    throw new InvalidOperationException($"The '{algorithm}' has no corresponding JWA identifier.");
+                    return null;
             }
         }
 

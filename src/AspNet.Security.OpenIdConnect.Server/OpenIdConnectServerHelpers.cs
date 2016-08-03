@@ -123,7 +123,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     return "RSA1_5";
 
                 default:
-                    throw new InvalidOperationException($"The '{algorithm}' algorithm has no corresponding JWA identifier.");
+                    return null;
             }
         }
 
