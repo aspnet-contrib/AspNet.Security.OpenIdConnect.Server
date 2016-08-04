@@ -27,7 +27,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             }
 
             foreach (var parameter in payload.Properties()) {
-                SetParameter(parameter.Name, parameter);
+                SetParameter(parameter.Name, parameter.Value);
             }
         }
 
