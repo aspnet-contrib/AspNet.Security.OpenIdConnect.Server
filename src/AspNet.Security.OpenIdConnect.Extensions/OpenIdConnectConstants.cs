@@ -224,6 +224,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
         }
 
         public static class Separators {
+            public static readonly char[] Ampersand = { '&' };
             public static readonly char[] Space = { ' ' };
         }
 
