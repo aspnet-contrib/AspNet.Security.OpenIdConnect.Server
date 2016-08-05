@@ -27,6 +27,16 @@ Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Nancy.Server", "samples\Nan
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Mvc", "Mvc", "{1502EA4B-8F4B-4F0D-B337-33AF09FF660F}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{96FF51F9-A2F3-4DBB-B825-A3FC16747697}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "AspNet.Security.OpenIdConnect.Extensions.Tests", "test\AspNet.Security.OpenIdConnect.Extensions.Tests\AspNet.Security.OpenIdConnect.Extensions.Tests.xproj", "{8F443F73-CA00-425C-B74C-98E0D91DCD71}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "AspNet.Security.OpenIdConnect.Server.Tests", "test\AspNet.Security.OpenIdConnect.Server.Tests\AspNet.Security.OpenIdConnect.Server.Tests.xproj", "{FAD212A8-1FD4-4E8C-96B2-152F2F1C26F3}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Owin.Security.OpenIdConnect.Extensions.Tests", "test\Owin.Security.OpenIdConnect.Extensions.Tests\Owin.Security.OpenIdConnect.Extensions.Tests.xproj", "{88D8F453-51C3-40F2-9C8A-E1F91A7D3C43}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Owin.Security.OpenIdConnect.Server.Tests", "test\Owin.Security.OpenIdConnect.Server.Tests\Owin.Security.OpenIdConnect.Server.Tests.xproj", "{5A12ABFF-FC41-43B6-8C57-97309198B6FF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -65,6 +75,22 @@ Global
 		{E970D74E-B32C-4323-8A22-92862AEA5344}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E970D74E-B32C-4323-8A22-92862AEA5344}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E970D74E-B32C-4323-8A22-92862AEA5344}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8F443F73-CA00-425C-B74C-98E0D91DCD71}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8F443F73-CA00-425C-B74C-98E0D91DCD71}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8F443F73-CA00-425C-B74C-98E0D91DCD71}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8F443F73-CA00-425C-B74C-98E0D91DCD71}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FAD212A8-1FD4-4E8C-96B2-152F2F1C26F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FAD212A8-1FD4-4E8C-96B2-152F2F1C26F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FAD212A8-1FD4-4E8C-96B2-152F2F1C26F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FAD212A8-1FD4-4E8C-96B2-152F2F1C26F3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{88D8F453-51C3-40F2-9C8A-E1F91A7D3C43}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{88D8F453-51C3-40F2-9C8A-E1F91A7D3C43}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{88D8F453-51C3-40F2-9C8A-E1F91A7D3C43}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{88D8F453-51C3-40F2-9C8A-E1F91A7D3C43}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5A12ABFF-FC41-43B6-8C57-97309198B6FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5A12ABFF-FC41-43B6-8C57-97309198B6FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5A12ABFF-FC41-43B6-8C57-97309198B6FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5A12ABFF-FC41-43B6-8C57-97309198B6FF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -80,5 +106,9 @@ Global
 		{922B11BE-16FF-4CD8-9C42-DD59613C1389} = {EA16048E-A9C0-4213-8892-491D3049449C}
 		{E970D74E-B32C-4323-8A22-92862AEA5344} = {EA16048E-A9C0-4213-8892-491D3049449C}
 		{1502EA4B-8F4B-4F0D-B337-33AF09FF660F} = {FF6097D2-F92B-4AA8-A547-AE90C25DC7AC}
+		{8F443F73-CA00-425C-B74C-98E0D91DCD71} = {96FF51F9-A2F3-4DBB-B825-A3FC16747697}
+		{FAD212A8-1FD4-4E8C-96B2-152F2F1C26F3} = {96FF51F9-A2F3-4DBB-B825-A3FC16747697}
+		{88D8F453-51C3-40F2-9C8A-E1F91A7D3C43} = {96FF51F9-A2F3-4DBB-B825-A3FC16747697}
+		{5A12ABFF-FC41-43B6-8C57-97309198B6FF} = {96FF51F9-A2F3-4DBB-B825-A3FC16747697}
 	EndGlobalSection
 EndGlobal
