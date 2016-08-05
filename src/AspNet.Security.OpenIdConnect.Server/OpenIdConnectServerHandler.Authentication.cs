@@ -264,11 +264,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             else if (!context.IsValidated) {
                 Logger.LogError("The authorization request was rejected with the following error: {Error} ; {Description}",
-                                /* Error: */ context.Error ?? OpenIdConnectConstants.Errors.InvalidClient,
+                                /* Error: */ context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                                 /* Description: */ context.ErrorDescription);
 
                 return await SendAuthorizationResponseAsync(request, new OpenIdConnectResponse {
-                    Error = context.Error ?? OpenIdConnectConstants.Errors.InvalidClient,
+                    Error = context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = context.ErrorDescription,
                     ErrorUri = context.ErrorUri
                 });
@@ -297,7 +297,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 });
             }
 
-            return false;
+            // If an authentication ticket was provided, stop processing
+            // the request and return an authorization response.
+            var ticket = notification.Ticket;
+            if (ticket == null) {
+                return false;
+            }
+
+            return await HandleSignInAsync(ticket);
         }
 
         private async Task<bool> SendAuthorizationResponseAsync(

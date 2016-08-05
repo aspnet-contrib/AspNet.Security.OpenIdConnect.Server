@@ -523,7 +523,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                         continue;
                     }
 
-                    writer.WriteLine("{0}: {1}", parameter.Key, (string) value);
+                    writer.WriteLine("{0}:{1}", parameter.Key, (string) value);
                 }
 
                 writer.Flush();
