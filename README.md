@@ -97,6 +97,13 @@ app.UseOpenIdConnectServer(options => {
 });
 ```
 
+In order for the OpenID Connect server middleware to work properly, the authentication services must be registered in the DI container:
+```csharp
+public void ConfigureServices(IServiceCollection services) {
+    services.AddAuthentication();
+}
+```
+
 ## Resources
 
 **Looking for additional resources to help you get started?** Don't miss these interesting blog posts:
