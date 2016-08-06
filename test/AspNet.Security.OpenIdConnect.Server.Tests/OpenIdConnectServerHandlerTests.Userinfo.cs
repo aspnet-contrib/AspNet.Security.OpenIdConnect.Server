@@ -1,0 +1,622 @@
+﻿using System;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using AspNet.Security.OpenIdConnect.Extensions;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Authentication;
+using Microsoft.Net.Http.Headers;
+using Newtonsoft.Json;
+using Xunit;
+using static System.Net.Http.HttpMethod;
+
+namespace AspNet.Security.OpenIdConnect.Server.Tests {
+    public partial class OpenIdConnectServerHandlerTests {
+        [Theory]
+        [InlineData(nameof(Delete))]
+        [InlineData(nameof(Head))]
+        [InlineData(nameof(Options))]
+        [InlineData(nameof(Put))]
+        [InlineData(nameof(Trace))]
+        public async Task InvokeUserinfoEndpointAsync_UnexpectedMethodReturnsAnError(string method) {
+            // Arrange
+            var server = CreateAuthorizationServer();
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.SendAsync(method, UserinfoEndpoint, new OpenIdConnectRequest());
+
+            // Assert
+            Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
+            Assert.Equal("A malformed userinfo request has been received: " +
+                         "make sure to use either GET or POST.", response.ErrorDescription);
+        }
+
+        [Theory]
+        [InlineData("custom_error", null, null)]
+        [InlineData("custom_error", "custom_description", null)]
+        [InlineData("custom_error", "custom_description", "custom_uri")]
+        [InlineData(null, "custom_description", null)]
+        [InlineData(null, "custom_description", "custom_uri")]
+        [InlineData(null, null, "custom_uri")]
+        [InlineData(null, null, null)]
+        public async Task InvokeUserinfoEndpointAsync_ExtractUserinfoRequest_AllowsRejectingRequest(string error, string description, string uri) {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnExtractUserinfoRequest = context => {
+                    context.Reject(error, description, uri);
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest());
+
+            // Assert
+            Assert.Equal(error ?? OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
+            Assert.Equal(description, response.ErrorDescription);
+            Assert.Equal(uri, response.ErrorUri);
+        }
+
+        [Fact]
+        public async Task InvokeUserinfoEndpointAsync_ExtractUserinfoRequest_AllowsHandlingResponse() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnExtractUserinfoRequest = context => {
+                    context.HandleResponse();
+
+                    context.Response.Headers[HeaderNames.ContentType] = "application/json";
+
+                    return context.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                        name = "Bob le Bricoleur"
+                    }));
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.GetAsync(UserinfoEndpoint);
+
+            // Assert
+            Assert.Equal("Bob le Bricoleur", (string) response["name"]);
+        }
+
+        [Fact]
+        public async Task InvokeUserinfoEndpointAsync_ExtractUserinfoRequest_AllowsSkippingToNextMiddleware() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnExtractUserinfoRequest = context => {
+                    context.SkipToNextMiddleware();
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.GetAsync(UserinfoEndpoint);
+
+            // Assert
+            Assert.Equal("Bob le Magnifique", (string) response["name"]);
+        }
+
+        [Fact]
+        public async Task InvokeUserinfoEndpointAsync_MissingTokenCausesAnError() {
+            // Arrange
+            var server = CreateAuthorizationServer();
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest {
+                AccessToken = null
+            });
+
+            // Assert
+            Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
+            Assert.Equal("A malformed userinfo request has been received.", response.ErrorDescription);
+        }
+
+        [Theory]
+        [InlineData("custom_error", null, null)]
+        [InlineData("custom_error", "custom_description", null)]
+        [InlineData("custom_error", "custom_description", "custom_uri")]
+        [InlineData(null, "custom_description", null)]
+        [InlineData(null, "custom_description", "custom_uri")]
+        [InlineData(null, null, "custom_uri")]
+        [InlineData(null, null, null)]
+        public async Task InvokeUserinfoEndpointAsync_ValidateUserinfoRequest_AllowsRejectingRequest(string error, string description, string uri) {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnValidateUserinfoRequest = context => {
+                    context.Reject(error, description, uri);
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest {
+                AccessToken = "SlAV32hkKG"
+            });
+
+            // Assert
+            Assert.Equal(error ?? OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
+            Assert.Equal(description, response.ErrorDescription);
+            Assert.Equal(uri, response.ErrorUri);
+        }
+
+        [Fact]
+        public async Task InvokeUserinfoEndpointAsync_ValidateUserinfoRequest_AllowsHandlingResponse() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnValidateUserinfoRequest = context => {
+                    context.HandleResponse();
+
+                    context.Response.Headers[HeaderNames.ContentType] = "application/json";
+
+                    return context.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                        name = "Bob le Magnifique"
+                    }));
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest {
+                AccessToken = "SlAV32hkKG"
+            });
+
+            // Assert
+            Assert.Equal("Bob le Magnifique", (string) response["name"]);
+        }
+
+        [Fact]
+        public async Task InvokeUserinfoEndpointAsync_ValidateUserinfoRequest_AllowsSkippingToNextMiddleware() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnValidateUserinfoRequest = context => {
+                    context.SkipToNextMiddleware();
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest {
+                AccessToken = "SlAV32hkKG"
+            });
+
+            // Assert
+            Assert.Equal("Bob le Magnifique", (string) response["name"]);
+        }
+
+        [Fact]
+        public async Task InvokeUserinfoEndpointAsync_InvalidTokenCausesAnError() {
+            // Arrange
+            var server = CreateAuthorizationServer();
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest {
+                AccessToken = "SlAV32hkKG"
+            });
+
+            // Assert
+            Assert.Equal(OpenIdConnectConstants.Errors.InvalidGrant, response.Error);
+            Assert.Equal("Invalid token.", response.ErrorDescription);
+        }
+
+        [Fact]
+        public async Task InvokeUserinfoEndpointAsync_ExpiredTokenCausesAnError() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnDeserializeAccessToken = context => {
+                    Assert.Equal("SlAV32hkKG", context.AccessToken);
+
+                    context.Ticket = new AuthenticationTicket(
+                        new ClaimsPrincipal(),
+                        new AuthenticationProperties(),
+                        context.Options.AuthenticationScheme);
+
+                    context.Ticket.Properties.ExpiresUtc = options.SystemClock.UtcNow - TimeSpan.FromDays(1);
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest {
+                AccessToken = "SlAV32hkKG"
+            });
+
+            // Assert
+            Assert.Equal(OpenIdConnectConstants.Errors.InvalidGrant, response.Error);
+            Assert.Equal("Expired token.", response.ErrorDescription);
+        }
+
+        [Fact]
+        public async Task InvokeUserinfoEndpointAsync_BasicClaimsAreCorrectlyReturned() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnDeserializeAccessToken = context => {
+                    Assert.Equal("SlAV32hkKG", context.AccessToken);
+
+                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+
+                    context.Ticket = new AuthenticationTicket(
+                        new ClaimsPrincipal(identity),
+                        new AuthenticationProperties(),
+                        context.Options.AuthenticationScheme);
+
+                    context.Ticket.SetPresenters("Fabrikam");
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest {
+                AccessToken = "SlAV32hkKG"
+            });
+
+            // Assert
+            Assert.Equal(3, response.Count());
+            Assert.Equal(server.BaseAddress.AbsoluteUri, (string) response[OpenIdConnectConstants.Claims.Issuer]);
+            Assert.Equal("Bob le Magnifique", response[OpenIdConnectConstants.Claims.Subject]);
+            Assert.Equal("Fabrikam", (string) response[OpenIdConnectConstants.Claims.Audience]);
+        }
+
+        [Fact]
+        public async Task InvokeUserinfoEndpointAsync_NonBasicClaimsAreNotReturnedWhenNoScopeWasGranted() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnDeserializeAccessToken = context => {
+                    Assert.Equal("SlAV32hkKG", context.AccessToken);
+
+                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(ClaimTypes.GivenName, "Bob");
+                    identity.AddClaim(ClaimTypes.Surname, "Saint-Clar");
+                    identity.AddClaim(ClaimTypes.DateOfBirth, "04/09/1933");
+                    identity.AddClaim(ClaimTypes.Email, "bob@le-magnifique.com");
+                    identity.AddClaim(ClaimTypes.HomePhone, "0148962355");
+
+                    context.Ticket = new AuthenticationTicket(
+                        new ClaimsPrincipal(identity),
+                        new AuthenticationProperties(),
+                        context.Options.AuthenticationScheme);
+
+                    context.Ticket.SetPresenters("Fabrikam");
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest {
+                AccessToken = "SlAV32hkKG"
+            });
+
+            // Assert
+            Assert.Equal(3, response.Count());
+            Assert.Equal(server.BaseAddress.AbsoluteUri, (string) response[OpenIdConnectConstants.Claims.Issuer]);
+            Assert.Equal("Bob le Magnifique", response[OpenIdConnectConstants.Claims.Subject]);
+            Assert.Equal("Fabrikam", (string) response[OpenIdConnectConstants.Claims.Audience]);
+        }
+
+        [Fact]
+        public async Task InvokeUserinfoEndpointAsync_ProfileClaimsAreCorrectlyReturned() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnDeserializeAccessToken = context => {
+                    Assert.Equal("SlAV32hkKG", context.AccessToken);
+
+                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(ClaimTypes.GivenName, "Bob");
+                    identity.AddClaim(ClaimTypes.Surname, "Saint-Clar");
+                    identity.AddClaim(ClaimTypes.DateOfBirth, "04/09/1933");
+
+                    context.Ticket = new AuthenticationTicket(
+                        new ClaimsPrincipal(identity),
+                        new AuthenticationProperties(),
+                        context.Options.AuthenticationScheme);
+
+                    context.Ticket.SetPresenters("Fabrikam");
+                    context.Ticket.SetScopes(OpenIdConnectConstants.Scopes.Profile);
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest {
+                AccessToken = "SlAV32hkKG"
+            });
+
+            // Assert
+            Assert.Equal("Bob", (string) response[OpenIdConnectConstants.Claims.GivenName]);
+            Assert.Equal("Saint-Clar", (string) response[OpenIdConnectConstants.Claims.FamilyName]);
+            Assert.Equal("04/09/1933", (string) response[OpenIdConnectConstants.Claims.Birthdate]);
+        }
+
+        [Fact]
+        public async Task InvokeUserinfoEndpointAsync_EmailClaimIsCorrectlyReturned() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnDeserializeAccessToken = context => {
+                    Assert.Equal("SlAV32hkKG", context.AccessToken);
+
+                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(ClaimTypes.Email, "bob@le-magnifique.com");
+
+                    context.Ticket = new AuthenticationTicket(
+                        new ClaimsPrincipal(identity),
+                        new AuthenticationProperties(),
+                        context.Options.AuthenticationScheme);
+
+                    context.Ticket.SetPresenters("Fabrikam");
+                    context.Ticket.SetScopes(OpenIdConnectConstants.Scopes.Email);
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest {
+                AccessToken = "SlAV32hkKG"
+            });
+
+            // Assert
+            Assert.Equal("bob@le-magnifique.com", (string) response[OpenIdConnectConstants.Claims.Email]);
+        }
+
+        [Fact]
+        public async Task InvokeUserinfoEndpointAsync_PhoneClaimIsCorrectlyReturned() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnDeserializeAccessToken = context => {
+                    Assert.Equal("SlAV32hkKG", context.AccessToken);
+
+                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(ClaimTypes.HomePhone, "0148962355");
+
+                    context.Ticket = new AuthenticationTicket(
+                        new ClaimsPrincipal(identity),
+                        new AuthenticationProperties(),
+                        context.Options.AuthenticationScheme);
+
+                    context.Ticket.SetPresenters("Fabrikam");
+                    context.Ticket.SetScopes(OpenIdConnectConstants.Scopes.Phone);
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest {
+                AccessToken = "SlAV32hkKG"
+            });
+
+            // Assert
+            Assert.Equal("0148962355", (string) response[OpenIdConnectConstants.Claims.PhoneNumber]);
+        }
+
+        [Theory]
+        [InlineData("custom_error", null, null)]
+        [InlineData("custom_error", "custom_description", null)]
+        [InlineData("custom_error", "custom_description", "custom_uri")]
+        [InlineData(null, "custom_description", null)]
+        [InlineData(null, "custom_description", "custom_uri")]
+        [InlineData(null, null, "custom_uri")]
+        [InlineData(null, null, null)]
+        public async Task InvokeUserinfoEndpointAsync_HandleUserinfoRequest_AllowsRejectingRequest(string error, string description, string uri) {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnDeserializeAccessToken = context => {
+                    Assert.Equal("SlAV32hkKG", context.AccessToken);
+
+                    context.Ticket = new AuthenticationTicket(
+                        new ClaimsPrincipal(),
+                        new AuthenticationProperties(),
+                        context.Options.AuthenticationScheme);
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnHandleUserinfoRequest = context => {
+                    context.Reject(error, description, uri);
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest {
+                AccessToken = "SlAV32hkKG"
+            });
+
+            // Assert
+            Assert.Equal(error ?? OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
+            Assert.Equal(description, response.ErrorDescription);
+            Assert.Equal(uri, response.ErrorUri);
+        }
+
+        [Fact]
+        public async Task InvokeUserinfoEndpointAsync_HandleUserinfoRequest_AllowsHandlingResponse() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnDeserializeAccessToken = context => {
+                    Assert.Equal("SlAV32hkKG", context.AccessToken);
+
+                    context.Ticket = new AuthenticationTicket(
+                        new ClaimsPrincipal(),
+                        new AuthenticationProperties(),
+                        context.Options.AuthenticationScheme);
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnHandleUserinfoRequest = context => {
+                    context.HandleResponse();
+
+                    context.Response.Headers[HeaderNames.ContentType] = "application/json";
+
+                    return context.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                        name = "Bob le Magnifique"
+                    }));
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest {
+                AccessToken = "SlAV32hkKG"
+            });
+
+            // Assert
+            Assert.Equal("Bob le Magnifique", (string) response["name"]);
+        }
+
+        [Fact]
+        public async Task InvokeUserinfoEndpointAsync_HandleUserinfoRequest_AllowsSkippingToNextMiddleware() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnDeserializeAccessToken = context => {
+                    Assert.Equal("SlAV32hkKG", context.AccessToken);
+
+                    context.Ticket = new AuthenticationTicket(
+                        new ClaimsPrincipal(),
+                        new AuthenticationProperties(),
+                        context.Options.AuthenticationScheme);
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnHandleUserinfoRequest = context => {
+                    context.SkipToNextMiddleware();
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest {
+                AccessToken = "SlAV32hkKG"
+            });
+
+            // Assert
+            Assert.Equal("Bob le Magnifique", (string) response["name"]);
+        }
+
+        [Fact]
+        public async Task SendUserinfoResponseAsync_ApplyUserinfoResponse_AllowsHandlingResponse() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnDeserializeAccessToken = context => {
+                    Assert.Equal("SlAV32hkKG", context.AccessToken);
+
+                    context.Ticket = new AuthenticationTicket(
+                        new ClaimsPrincipal(),
+                        new AuthenticationProperties(),
+                        context.Options.AuthenticationScheme);
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnApplyUserinfoResponse = context => {
+                    context.HandleResponse();
+
+                    context.HttpContext.Response.Headers[HeaderNames.ContentType] = "application/json";
+
+                    return context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                        name = "Bob le Magnifique"
+                    }));
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest {
+                Token = "SlAV32hkKG"
+            });
+
+            // Assert
+            Assert.Equal("Bob le Magnifique", (string) response["name"]);
+        }
+
+        [Fact]
+        public async Task SendUserinfoResponseAsync_ApplyUserinfoResponse_ResponseContainsCustomParameters() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnDeserializeAccessToken = context => {
+                    Assert.Equal("SlAV32hkKG", context.AccessToken);
+
+                    context.Ticket = new AuthenticationTicket(
+                        new ClaimsPrincipal(),
+                        new AuthenticationProperties(),
+                        context.Options.AuthenticationScheme);
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnValidateUserinfoRequest = context => {
+                    context.Skip();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnApplyUserinfoResponse = context => {
+                    context.Response["custom_parameter"] = "custom_value";
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest {
+                Token = "SlAV32hkKG"
+            });
+
+            // Assert
+            Assert.Equal("custom_value", (string) response["custom_parameter"]);
+        }
+    }
+}

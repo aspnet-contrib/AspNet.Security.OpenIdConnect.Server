@@ -133,36 +133,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 }
             }
 
-            var ticket = await DeserializeAccessTokenAsync(token, request);
-            if (ticket == null) {
-                Logger.LogError("The userinfo request was rejected because the access token was invalid.");
-
-                // Note: an invalid token should result in an unauthorized response
-                // but returning a 401 status would invoke the previously registered
-                // authentication middleware and potentially replace it by a 302 response.
-                // To work around this limitation, a 400 error is returned instead.
-                // See http://openid.net/specs/openid-connect-core-1_0.html#UserInfoError
-                return await SendUserinfoResponseAsync(request, new OpenIdConnectResponse {
-                    Error = OpenIdConnectConstants.Errors.InvalidGrant,
-                    ErrorDescription = "Invalid token."
-                });
-            }
-
-            if (!ticket.Properties.ExpiresUtc.HasValue ||
-                 ticket.Properties.ExpiresUtc < Options.SystemClock.UtcNow) {
-                Logger.LogError("The userinfo request was rejected because the access token was expired.");
-
-                // Note: an invalid token should result in an unauthorized response
-                // but returning a 401 status would invoke the previously registered
-                // authentication middleware and potentially replace it by a 302 response.
-                // To work around this limitation, a 400 error is returned instead.
-                // See http://openid.net/specs/openid-connect-core-1_0.html#UserInfoError
-                return await SendUserinfoResponseAsync(request, new OpenIdConnectResponse {
-                    Error = OpenIdConnectConstants.Errors.InvalidGrant,
-                    ErrorDescription = "Expired token."
-                });
-            }
-
             var context = new ValidateUserinfoRequestContext(Context, Options, request);
             await Options.Provider.ValidateUserinfoRequest(context);
 
@@ -183,6 +153,36 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     Error = context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = context.ErrorDescription,
                     ErrorUri = context.ErrorUri
+                });
+            }
+
+            var ticket = await DeserializeAccessTokenAsync(token, request);
+            if (ticket == null) {
+                Logger.LogError("The userinfo request was rejected because the access token was invalid.");
+
+                // Note: an invalid token should result in an unauthorized response
+                // but returning a 401 status would invoke the previously registered
+                // authentication middleware and potentially replace it by a 302 response.
+                // To work around this limitation, a 400 error is returned instead.
+                // See http://openid.net/specs/openid-connect-core-1_0.html#UserInfoError
+                return await SendUserinfoResponseAsync(request, new OpenIdConnectResponse {
+                    Error = OpenIdConnectConstants.Errors.InvalidGrant,
+                    ErrorDescription = "Invalid token."
+                });
+            }
+
+            if (ticket.Properties.ExpiresUtc.HasValue &&
+                ticket.Properties.ExpiresUtc < Options.SystemClock.UtcNow) {
+                Logger.LogError("The userinfo request was rejected because the access token was expired.");
+
+                // Note: an invalid token should result in an unauthorized response
+                // but returning a 401 status would invoke the previously registered
+                // authentication middleware and potentially replace it by a 302 response.
+                // To work around this limitation, a 400 error is returned instead.
+                // See http://openid.net/specs/openid-connect-core-1_0.html#UserInfoError
+                return await SendUserinfoResponseAsync(request, new OpenIdConnectResponse {
+                    Error = OpenIdConnectConstants.Errors.InvalidGrant,
+                    ErrorDescription = "Expired token."
                 });
             }
 
