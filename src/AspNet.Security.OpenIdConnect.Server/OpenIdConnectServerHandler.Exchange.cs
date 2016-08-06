@@ -183,7 +183,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                                 /* Description: */ context.ErrorDescription);
 
                 return await SendTokenResponseAsync(request, new OpenIdConnectResponse {
-                    Error = context.Error ?? OpenIdConnectConstants.Errors.InvalidClient,
+                    Error = context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = context.ErrorDescription,
                     ErrorUri = context.ErrorUri
                 });
@@ -209,6 +209,19 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 });
             }
 
+            // At this stage, client_id cannot be null for grant_type=authorization_code requests,
+            // as it must either be set in the ValidateTokenRequest notification
+            // by the developer or manually flowed by non-confidential client applications.
+            // See https://tools.ietf.org/html/rfc6749#section-4.1.3
+            if (request.IsAuthorizationCodeGrantType() && string.IsNullOrEmpty(request.ClientId)) {
+                Logger.LogError("The token request was rejected because the mandatory 'client_id' was missing.");
+
+                return await SendTokenResponseAsync(request, new OpenIdConnectResponse {
+                    Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = "client_id was missing from the token request"
+                });
+            }
+
             AuthenticationTicket ticket = null;
 
             // See http://tools.ietf.org/html/rfc6749#section-4.1
@@ -229,17 +242,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     });
                 }
 
-                if (!ticket.Properties.ExpiresUtc.HasValue ||
-                     ticket.Properties.ExpiresUtc < Options.SystemClock.UtcNow) {
-                    Logger.LogError("The token request was rejected because the " +
-                                    "authorization code or the refresh token was expired.");
-
-                    return await SendTokenResponseAsync(request, new OpenIdConnectResponse {
-                        Error = OpenIdConnectConstants.Errors.InvalidGrant,
-                        ErrorDescription = "Expired ticket"
-                    });
-                }
-
                 // If the client was fully authenticated when retrieving its refresh token,
                 // the current request must be rejected if client authentication was not enforced.
                 if (request.IsRefreshTokenGrantType() && !context.IsValidated && ticket.IsConfidential()) {
@@ -249,6 +251,17 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     return await SendTokenResponseAsync(request, new OpenIdConnectResponse {
                         Error = OpenIdConnectConstants.Errors.InvalidGrant,
                         ErrorDescription = "Client authentication is required to use this ticket"
+                    });
+                }
+
+                if (ticket.Properties.ExpiresUtc.HasValue &&
+                    ticket.Properties.ExpiresUtc < Options.SystemClock.UtcNow) {
+                    Logger.LogError("The token request was rejected because the " +
+                                    "authorization code or the refresh token was expired.");
+
+                    return await SendTokenResponseAsync(request, new OpenIdConnectResponse {
+                        Error = OpenIdConnectConstants.Errors.InvalidGrant,
+                        ErrorDescription = "Expired ticket"
                     });
                 }
 
@@ -262,19 +275,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     return await SendTokenResponseAsync(request, new OpenIdConnectResponse {
                         Error = OpenIdConnectConstants.Errors.ServerError,
                         ErrorDescription = "An internal server error occurred."
-                    });
-                }
-
-                // At this stage, client_id cannot be null for grant_type=authorization_code requests,
-                // as it must either be set in the ValidateTokenRequest notification
-                // by the developer or manually flowed by non-confidential client applications.
-                // See https://tools.ietf.org/html/rfc6749#section-4.1.3
-                if (request.IsAuthorizationCodeGrantType() && string.IsNullOrEmpty(request.ClientId)) {
-                    Logger.LogError("The token request was rejected because the mandatory 'client_id' was missing.");
-
-                    return await SendTokenResponseAsync(request, new OpenIdConnectResponse {
-                        Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                        ErrorDescription = "client_id was missing from the token request"
                     });
                 }
 
@@ -340,7 +340,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                                         "parameter was missing from the grant_type=authorization_code request.");
 
                         return await SendTokenResponseAsync(request, new OpenIdConnectResponse {
-                            Error = OpenIdConnectConstants.Errors.InvalidGrant,
+                            Error = OpenIdConnectConstants.Errors.InvalidRequest,
                             ErrorDescription = "The required 'code_verifier' was missing from the token request."
                         });
                     }
