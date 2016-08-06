@@ -18,6 +18,10 @@
 
   "frameworks": {
     "netcoreapp1.0": {
+      "buildOptions": {
+        "define": [ "SUPPORTS_ECDSA" ]
+      },
+
       "dependencies": {
         "Microsoft.NETCore.App": { "type": "platform", "version": "1.0.0" },
         "moq.netcore": "4.4.0-beta8",

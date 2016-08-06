@@ -301,7 +301,7 @@ namespace Microsoft.AspNetCore.Builder {
 
                         // Dispose the algorithm instance.
                         rsa.Dispose();
-                    }   
+                    }
 
                     else {
 #endif
@@ -316,7 +316,7 @@ namespace Microsoft.AspNetCore.Builder {
                     return credentials;
                 }
 
-#if NETSTANDARD1_6
+#if SUPPORTS_ECDSA
                 case SecurityAlgorithms.EcdsaSha256Signature: {
                     // Generate a new ECDSA key using the P-256 curve.
                     var ecdsa = ECDsa.Create(ECCurve.NamedCurves.nistP256);
@@ -394,6 +394,7 @@ namespace Microsoft.AspNetCore.Builder {
                 return credentials;
             }
 
+#if SUPPORTS_ECDSA
             // Note: ECDSA algorithms are bound to specific curves and must be treated separately.
             else if (key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha256Signature)) {
                 credentials.Add(new SigningCredentials(key, SecurityAlgorithms.EcdsaSha256Signature));
@@ -412,6 +413,7 @@ namespace Microsoft.AspNetCore.Builder {
 
                 return credentials;
             }
+#endif
 
             throw new InvalidOperationException("A signature algorithm cannot be automatically inferred from the signing key. " +
                                                 "Consider using 'options.SigningCredentials.Add(SigningCredentials)' instead.");

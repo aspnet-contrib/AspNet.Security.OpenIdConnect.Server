@@ -365,7 +365,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             foreach (var credentials in Options.SigningCredentials) {
                 // Ignore the key if it's not supported.
-#if NETSTANDARD1_6
+#if SUPPORTS_ECDSA
                 if (!credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature) &&
                     !credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha256Signature) &&
                     !credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha384Signature) &&
@@ -445,7 +445,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     key.N = Base64UrlEncoder.Encode(parameters.Modulus);
                 }
 
-#if NETSTANDARD1_6
+#if SUPPORTS_ECDSA
                 else if (credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha256Signature) ||
                          credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha384Signature) ||
                          credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha512Signature)) {
@@ -489,16 +489,16 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 // If the signing key is embedded in a X.509 certificate, set
                 // the x5t and x5c parameters using the certificate details.
-                var x509Certificate = (credentials.Key as X509SecurityKey)?.Certificate;
-                if (x509Certificate != null) {
+                var certificate = (credentials.Key as X509SecurityKey)?.Certificate;
+                if (certificate != null) {
                     // x5t must be base64url-encoded.
                     // See https://tools.ietf.org/html/rfc7517#section-4.8
-                    key.X5t = Base64UrlEncoder.Encode(x509Certificate.GetCertHash());
+                    key.X5t = Base64UrlEncoder.Encode(certificate.GetCertHash());
 
                     // Unlike E or N, the certificates contained in x5c
                     // must be base64-encoded and not base64url-encoded.
                     // See https://tools.ietf.org/html/rfc7517#section-4.7
-                    key.X5c.Add(Convert.ToBase64String(x509Certificate.RawData));
+                    key.X5c.Add(Convert.ToBase64String(certificate.RawData));
                 }
 
                 notification.Keys.Add(key);
@@ -574,7 +574,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 keys.Add(item);
             }
 
-            response[JsonWebKeyParameterNames.Keys] = keys;
+            response[OpenIdConnectConstants.Parameters.Keys] = keys;
 
             return await SendCryptographyResponseAsync(request, response);
         }

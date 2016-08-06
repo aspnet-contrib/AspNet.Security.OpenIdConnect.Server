@@ -56,7 +56,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return identifier.Substring(0, Math.Min(identifier.Length, 40)).ToUpperInvariant();
             }
 
-#if NETSTANDARD1_6
+#if SUPPORTS_ECDSA
             var ecsdaSecurityKey = key as ECDsaSecurityKey;
             if (ecsdaSecurityKey != null) {
                 // Extract the ECDSA parameters from the signing credentials.
@@ -185,7 +185,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
         }
 
-#if NETSTANDARD1_6
+#if SUPPORTS_ECDSA
         public static string GetJwtAlgorithmCurve(ECCurve curve) {
             if (curve.IsNamed) {
                 if (curve.Oid.FriendlyName == ECCurve.NamedCurves.nistP256.Oid.FriendlyName) {
