@@ -498,6 +498,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             await Options.Provider.DeserializeAuthorizationCode(notification);
 
             if (notification.HandledResponse || notification.Ticket != null) {
+                notification.Ticket.SetUsage(OpenIdConnectConstants.Usages.AuthorizationCode);
+
                 return notification.Ticket;
             }
 
@@ -539,6 +541,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             await Options.Provider.DeserializeAccessToken(notification);
 
             if (notification.HandledResponse || notification.Ticket != null) {
+                notification.Ticket.SetUsage(OpenIdConnectConstants.Usages.AccessToken);
+
                 return notification.Ticket;
             }
 
@@ -641,6 +645,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             await Options.Provider.DeserializeIdentityToken(notification);
 
             if (notification.HandledResponse || notification.Ticket != null) {
+                notification.Ticket.SetUsage(OpenIdConnectConstants.Usages.IdentityToken);
+
                 return notification.Ticket;
             }
 
@@ -724,6 +730,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             await Options.Provider.DeserializeRefreshToken(notification);
 
             if (notification.HandledResponse || notification.Ticket != null) {
+                notification.Ticket.SetUsage(OpenIdConnectConstants.Usages.RefreshToken);
+
                 return notification.Ticket;
             }
 

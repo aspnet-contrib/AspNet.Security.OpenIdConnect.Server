@@ -298,10 +298,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // Note: non-metadata claims are only added if the caller is authenticated
             // AND is in the specified audiences, unless there's so explicit audience.
             if (!ticket.HasAudience() || (!string.IsNullOrEmpty(request.ClientId) && ticket.HasAudience(request.ClientId))) {
-                // Extract the main identity associated with the principal.
-                var identity = (ClaimsIdentity) ticket.Principal.Identity;
-
-                notification.Username = identity.Name;
+                notification.Username = ticket.Principal.Identity?.Name;
                 notification.Scope = ticket.GetProperty(OpenIdConnectConstants.Properties.Scopes);
 
                 // Potentially sensitive claims are only exposed to trusted callers
@@ -310,8 +307,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     foreach (var claim in ticket.Principal.Claims) {
                         // Exclude standard claims, that are already handled via strongly-typed properties.
                         // Make sure to always update this list when adding new built-in claim properties.
-                        if (string.Equals(claim.Type, identity.NameClaimType, StringComparison.Ordinal) ||
-                            string.Equals(claim.Type, ClaimTypes.NameIdentifier, StringComparison.Ordinal)) {
+                        if (string.Equals(claim.Type, ClaimTypes.NameIdentifier, StringComparison.Ordinal)) {
                             continue;
                         }
 
