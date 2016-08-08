@@ -5,6 +5,7 @@
  */
 
 using System;
+using System.IdentityModel.Tokens.Jwt;
 using System.Text.Encodings.Web;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Authentication;
@@ -69,6 +70,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 throw new ArgumentException("At least one signing key must be registered. Consider registering " +
                                             "a X.509 certificate or call 'options.SigningCredentials.AddEphemeralKey()' " +
                                             "to generate and register an ephemeral signing key.", nameof(options));
+            }
+
+            if (Options.AccessTokenHandler != null && !(Options.AccessTokenHandler is JwtSecurityTokenHandler)) {
+                throw new ArgumentException("The access token handler must be derived from 'JwtSecurityTokenHandler'.", nameof(options));
             }
 
             if (Options.DataProtectionProvider == null) {
