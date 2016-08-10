@@ -39,7 +39,7 @@ namespace Nancy.Server.Modules {
                 }
 
                 // Note: ASOS automatically ensures that an application corresponds to the client_id specified
-                // in the authorization request by calling IOpenIdConnectServerProvider.ValidateAuthorizationRequest.
+                // in the authorization request by calling OpenIdConnectServerProvider.ValidateAuthorizationRequest.
                 // In theory, this null check shouldn't be needed, but a race condition could occur if you
                 // manually removed the application details from the database after the initial check made by ASOS.
                 var application = await GetApplicationAsync(request.ClientId, cancellationToken);

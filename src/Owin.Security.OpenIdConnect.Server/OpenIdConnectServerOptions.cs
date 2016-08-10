@@ -106,10 +106,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         public PathString UserinfoEndpointPath { get; set; }
 
         /// <summary>
-        /// Specifies a <see cref="IOpenIdConnectServerProvider"/> that the <see cref="OpenIdConnectServerMiddleware" />
+        /// Specifies a <see cref="OpenIdConnectServerProvider"/> that the <see cref="OpenIdConnectServerMiddleware" />
         /// invokes to enable developer control over the while authentication/authorization process.
         /// </summary>
-        public IOpenIdConnectServerProvider Provider { get; set; }
+        public OpenIdConnectServerProvider Provider { get; set; }
 
         /// <summary>
         /// The data format used to protect and unprotect the information contained in the authorization code.
@@ -125,7 +125,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// The SystemWeb host on IIS will use ASP.NET machine key data protection, and HttpListener and other self-hosted
         /// servers will use DPAPI data protection.
         /// This property is only used when <see cref="AccessTokenHandler"/> is explicitly set to <value>null</value>
-        /// and when <see cref="IOpenIdConnectServerProvider.SerializeAccessToken"/> doesn't call
+        /// and when <see cref="OpenIdConnectServerProvider.SerializeAccessToken"/> doesn't call
         /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
         public ISecureDataFormat<AuthenticationTicket> AccessTokenFormat { get; set; }
@@ -135,14 +135,14 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// If not provided by the application the default data protection provider depends on the host server.
         /// The SystemWeb host on IIS will use ASP.NET machine key data protection, and HttpListener and other self-hosted
         /// servers will use DPAPI data protection.
-        /// This property is only used when <see cref="IOpenIdConnectServerProvider.SerializeRefreshToken"/> doesn't call
+        /// This property is only used when <see cref="OpenIdConnectServerProvider.SerializeRefreshToken"/> doesn't call
         /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
         public ISecureDataFormat<AuthenticationTicket> RefreshTokenFormat { get; set; }
 
         /// <summary>
         /// The <see cref="SecurityTokenHandler"/> instance used to forge access tokens.
-        /// Note: this property is only used when <see cref="IOpenIdConnectServerProvider.SerializeAccessToken"/>
+        /// Note: this property is only used when <see cref="OpenIdConnectServerProvider.SerializeAccessToken"/>
         /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
         public SecurityTokenHandler AccessTokenHandler { get; set; }
@@ -150,7 +150,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// The <see cref="JwtSecurityTokenHandler"/> instance used to forge identity tokens.
         /// You can replace the default instance to change the way id_tokens are serialized.
-        /// This property is only used when <see cref="IOpenIdConnectServerProvider.SerializeIdentityToken"/> doesn't call
+        /// This property is only used when <see cref="OpenIdConnectServerProvider.SerializeIdentityToken"/> doesn't call
         /// <see cref="BaseNotification{OpenIdConnectServerOptions}.HandleResponse"/>.
         /// </summary>
         public JwtSecurityTokenHandler IdentityTokenHandler { get; set; } = new JwtSecurityTokenHandler();

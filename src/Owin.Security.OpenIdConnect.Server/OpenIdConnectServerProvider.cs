@@ -10,13 +10,11 @@ using Microsoft.Owin.Security.Notifications;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
-    /// Default implementation of <see cref="IOpenIdConnectServerProvider"/> used by the authorization
-    /// server to communicate with the web application while processing requests.
-    /// <see cref="OpenIdConnectServerProvider"/> provides some default behavior,
-    /// may be used as a virtual base class, and offers delegate properties
-    /// which may be used to handle individual calls without declaring a new class type.
+    /// Exposes events used by the authorization server to communicate with the web application
+    /// while processing incoming requests. This class may be used as a virtual base class, and offers
+    /// delegate properties which may be used to handle individual calls without declaring a new type.
     /// </summary>
-    public class OpenIdConnectServerProvider : IOpenIdConnectServerProvider {
+    public class OpenIdConnectServerProvider {
         /// <summary>
         /// Called to determine if an incoming request is treated as an authorization or token
         /// endpoint. If Options.AuthorizationEndpointPath or Options.TokenEndpointPath

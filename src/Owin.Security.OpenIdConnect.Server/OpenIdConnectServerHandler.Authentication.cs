@@ -366,7 +366,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     writer.WriteLine("<body>");
 
                     // While the redirect_uri parameter should be guarded against unknown values
-                    // by IOpenIdConnectServerProvider.ValidateAuthorizationRequest,
+                    // by OpenIdConnectServerProvider.ValidateAuthorizationRequest,
                     // it's still safer to encode it to avoid cross-site scripting attacks
                     // if the authorization server has a relaxed policy concerning redirect URIs.
                     writer.WriteLine($"<form name='form' method='post' action='{Options.HtmlEncoder.Encode(response.RedirectUri)}'>");
