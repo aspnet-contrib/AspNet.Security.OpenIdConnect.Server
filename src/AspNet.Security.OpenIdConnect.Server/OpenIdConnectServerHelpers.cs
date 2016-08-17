@@ -20,10 +20,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             finally {
-#if NETSTANDARD1_4
-                store.Dispose();
-#else
+#if NET451
                 store.Close();
+#else
+                store.Dispose();
 #endif
             }
         }
@@ -92,6 +92,18 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             switch (algorithm) {
+                case SecurityAlgorithms.EcdsaSha256:
+                case SecurityAlgorithms.EcdsaSha256Signature:
+                    return SecurityAlgorithms.EcdsaSha256;
+
+                case SecurityAlgorithms.EcdsaSha384:
+                case SecurityAlgorithms.EcdsaSha384Signature:
+                    return SecurityAlgorithms.EcdsaSha384;
+
+                case SecurityAlgorithms.EcdsaSha512:
+                case SecurityAlgorithms.EcdsaSha512Signature:
+                    return SecurityAlgorithms.EcdsaSha512;
+
                 case SecurityAlgorithms.HmacSha256:
                 case SecurityAlgorithms.HmacSha256Signature:
                     return SecurityAlgorithms.HmacSha256;
@@ -126,6 +138,28 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     return null;
             }
         }
+
+#if NETSTANDARD1_6
+        public static string GetJwtAlgorithmCurve(ECCurve curve) {
+            if (curve.IsNamed) {
+                if (curve.Oid.FriendlyName == ECCurve.NamedCurves.nistP256.Oid.FriendlyName) {
+                    return JsonWebKeyECTypes.P256;
+                }
+
+                else if (curve.Oid.FriendlyName == ECCurve.NamedCurves.nistP384.Oid.FriendlyName) {
+                    return JsonWebKeyECTypes.P384;
+                }
+
+                else if (curve.Oid.FriendlyName == ECCurve.NamedCurves.nistP521.Oid.FriendlyName) {
+                    // Note: JsonWebKeyECTypes.P512 cannot be used as it doesn't represent a valid curve.
+                    // See https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet/issues/486
+                    return "P-521";
+                }
+            }
+
+            return null;
+        }
+#endif
 
         public static string GenerateKey(this RandomNumberGenerator generator, int length) {
             if (generator == null) {

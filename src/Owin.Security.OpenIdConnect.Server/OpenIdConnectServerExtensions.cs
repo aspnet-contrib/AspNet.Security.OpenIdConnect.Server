@@ -312,11 +312,15 @@ namespace Owin {
                     var algorithm = (RSA) rsaSecurityKey.GetAsymmetricAlgorithm(
                         algorithm: SecurityAlgorithms.RsaOaepKeyWrap,
                         requiresPrivateKey: false);
-                    Debug.Assert(algorithm != null, "SecurityKey.GetAsymmetricAlgorithm() shouldn't return a null algorithm.");
+
+                    Debug.Assert(algorithm != null,
+                        "SecurityKey.GetAsymmetricAlgorithm() shouldn't return a null algorithm.");
 
                     // Export the RSA public key to extract a key identifier based on the modulus component.
                     var parameters = algorithm.ExportParameters(includePrivateParameters: false);
-                    Debug.Assert(parameters.Modulus != null, "RSA.ExportParameters() shouldn't return a null modulus.");
+
+                    Debug.Assert(parameters.Modulus != null,
+                        "RSA.ExportParameters() shouldn't return a null modulus.");
 
                     // Only use the 40 first chars of the base64url-encoded modulus.
                     var kid = Base64UrlEncoder.Encode(parameters.Modulus);
@@ -590,11 +594,15 @@ namespace Owin {
                     var algorithm = (RSA) rsaSecurityKey.GetAsymmetricAlgorithm(
                         algorithm: SecurityAlgorithms.RsaSha256Signature,
                         requiresPrivateKey: false);
-                    Debug.Assert(algorithm != null, "SecurityKey.GetAsymmetricAlgorithm() shouldn't return a null algorithm.");
+
+                    Debug.Assert(algorithm != null,
+                        "SecurityKey.GetAsymmetricAlgorithm() shouldn't return a null algorithm.");
 
                     // Export the RSA public key to extract a key identifier based on the modulus component.
                     var parameters = algorithm.ExportParameters(includePrivateParameters: false);
-                    Debug.Assert(parameters.Modulus != null, "RSA.ExportParameters() shouldn't return a null modulus.");
+
+                    Debug.Assert(parameters.Modulus != null,
+                        "RSA.ExportParameters() shouldn't return a null modulus.");
 
                     // Only use the 40 first chars of the base64url-encoded modulus.
                     var kid = Base64UrlEncoder.Encode(parameters.Modulus);

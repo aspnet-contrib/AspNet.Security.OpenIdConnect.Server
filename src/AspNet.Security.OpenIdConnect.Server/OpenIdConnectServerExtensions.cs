@@ -290,32 +290,49 @@ namespace Microsoft.AspNetCore.Builder {
                 throw new ArgumentNullException(nameof(key));
             }
 
-            if (key.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature)) {
-                // When no key identifier can be retrieved from the security key, a value is automatically
-                // inferred from the hexadecimal representation of the certificate thumbprint (SHA-1)
-                // when the key is bound to a X.509 certificate or from the public part of the RSA key.
-                if (string.IsNullOrEmpty(key.KeyId)) {
-                    var x509SecurityKey = key as X509SecurityKey;
-                    if (x509SecurityKey != null) {
-                        key.KeyId = x509SecurityKey.Certificate.Thumbprint;
-                    }
-
-                    var rsaSecurityKey = key as RsaSecurityKey;
-                    if (rsaSecurityKey != null) {
-                        // Note: if the RSA parameters are not attached to the signing key,
-                        // extract them by calling ExportParameters on the RSA instance.
-                        var parameters = rsaSecurityKey.Parameters;
-                        if (parameters.Modulus == null) {
-                            parameters = rsaSecurityKey.Rsa.ExportParameters(includePrivateParameters: false);
-                            Debug.Assert(parameters.Modulus != null, "A null modulus was returned by RSA.ExportParameters()");
-                        }
-
-                        // Only use the 40 first chars of the base64url-encoded modulus.
-                        key.KeyId = Base64UrlEncoder.Encode(parameters.Modulus);
-                        key.KeyId = key.KeyId.Substring(0, Math.Min(key.KeyId.Length, 40)).ToUpperInvariant();
-                    }
+            // When no key identifier can be retrieved from the security key, a value is automatically
+            // inferred from the hexadecimal representation of the certificate thumbprint (SHA-1)
+            // when the key is bound to a X.509 certificate or from the public part of the signing key.
+            if (string.IsNullOrEmpty(key.KeyId)) {
+                var x509SecurityKey = key as X509SecurityKey;
+                if (x509SecurityKey != null) {
+                    key.KeyId = x509SecurityKey.Certificate.Thumbprint;
                 }
 
+                var rsaSecurityKey = key as RsaSecurityKey;
+                if (rsaSecurityKey != null) {
+                    // Note: if the RSA parameters are not attached to the signing key,
+                    // extract them by calling ExportParameters on the RSA instance.
+                    var parameters = rsaSecurityKey.Parameters;
+                    if (parameters.Modulus == null) {
+                        parameters = rsaSecurityKey.Rsa.ExportParameters(includePrivateParameters: false);
+
+                        Debug.Assert(parameters.Modulus != null,
+                            "A null modulus shouldn't be returned by RSA.ExportParameters().");
+                    }
+
+                    // Only use the 40 first chars of the base64url-encoded modulus.
+                    key.KeyId = Base64UrlEncoder.Encode(parameters.Modulus);
+                    key.KeyId = key.KeyId.Substring(0, Math.Min(key.KeyId.Length, 40)).ToUpperInvariant();
+                }
+
+#if NETSTANDARD1_6
+                var ecsdaSecurityKey = key as ECDsaSecurityKey;
+                if (ecsdaSecurityKey != null) {
+                    // Extract the ECDSA parameters from the signing credentials.
+                    var parameters = ecsdaSecurityKey.ECDsa.ExportParameters(includePrivateParameters: false);
+
+                    Debug.Assert(parameters.Q.X != null,
+                        "Invalid coordinates shouldn't be returned by ECDsa.ExportParameters().");
+
+                    // Only use the 40 first chars of the base64url-encoded X-coordinate.
+                    key.KeyId = Base64UrlEncoder.Encode(parameters.Q.X);
+                    key.KeyId = key.KeyId.Substring(0, Math.Min(key.KeyId.Length, 40)).ToUpperInvariant();
+                }
+#endif
+            }
+
+            if (key.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature)) {
                 credentials.Add(new SigningCredentials(key, SecurityAlgorithms.RsaSha256Signature));
 
                 return credentials;
@@ -323,6 +340,25 @@ namespace Microsoft.AspNetCore.Builder {
 
             else if (key.IsSupportedAlgorithm(SecurityAlgorithms.HmacSha256Signature)) {
                 credentials.Add(new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature));
+
+                return credentials;
+            }
+
+            // Note: ECDSA algorithms are bound to specific curves and must be treated separately.
+            else if (key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha256Signature)) {
+                credentials.Add(new SigningCredentials(key, SecurityAlgorithms.EcdsaSha256Signature));
+
+                return credentials;
+            }
+
+            else if (key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha384Signature)) {
+                credentials.Add(new SigningCredentials(key, SecurityAlgorithms.EcdsaSha384Signature));
+
+                return credentials;
+            }
+
+            else if (key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha512Signature)) {
+                credentials.Add(new SigningCredentials(key, SecurityAlgorithms.EcdsaSha512Signature));
 
                 return credentials;
             }

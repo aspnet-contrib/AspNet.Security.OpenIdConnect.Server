@@ -367,13 +367,11 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             foreach (var credentials in Options.EncryptingCredentials) {
                 // Ignore the key if it's not supported.
-                if (!(credentials.SecurityKey is AsymmetricSecurityKey) ||
-                    (!credentials.SecurityKey.IsSupportedAlgorithm(SecurityAlgorithms.RsaOaepKeyWrap) &&
-                     !credentials.SecurityKey.IsSupportedAlgorithm(SecurityAlgorithms.RsaV15KeyWrap))) {
-                    Options.Logger.LogInformation("An unsupported encryption key was ignored and excluded " +
-                                                  "from the key set: {Type}. Only asymmetric security keys " +
-                                                  "supporting RSA1_5 or RSA-OAEP can be exposed via the JWKS " +
-                                                  "endpoint.", credentials.SecurityKey.GetType().Name);
+                if (!credentials.SecurityKey.IsSupportedAlgorithm(SecurityAlgorithms.RsaOaepKeyWrap) &&
+                    !credentials.SecurityKey.IsSupportedAlgorithm(SecurityAlgorithms.RsaV15KeyWrap)) {
+                    Options.Logger.LogInformation("An unsupported encryption key was ignored and excluded from the " +
+                                                  "key set: {Type}. Only RSA asymmetric security keys can be exposed " +
+                                                  "via the JWKS endpoint.", credentials.SecurityKey.GetType().Name);
 
                     continue;
                 }
@@ -383,17 +381,26 @@ namespace Owin.Security.OpenIdConnect.Server {
                 credentials.SecurityKeyIdentifier?.TryFind(out identifier);
 
                 // Resolve the underlying algorithm from the security key.
-                var algorithm = (RSA) ((AsymmetricSecurityKey) credentials.SecurityKey)
+                var algorithm = ((AsymmetricSecurityKey) credentials.SecurityKey)
                     .GetAsymmetricAlgorithm(
                         algorithm: SecurityAlgorithms.RsaOaepKeyWrap,
-                        privateKey: false);
-                Debug.Assert(algorithm != null, "SecurityKey.GetAsymmetricAlgorithm() shouldn't return a null algorithm.");
+                        privateKey: false) as RSA;
+
+                // Skip the key if an algorithm instance cannot be extracted.
+                if (algorithm == null) {
+                    Options.Logger.LogWarning("An encryption key was ignored because it was unable " +
+                                              "to provide the requested algorithm instance.");
+
+                    continue;
+                }
 
                 // Export the RSA public key to create a new JSON Web Key
                 // exposing the exponent and the modulus parameters.
                 var parameters = algorithm.ExportParameters(includePrivateParameters: false);
-                Debug.Assert(parameters.Exponent != null, "RSA.ExportParameters() shouldn't return a null exponent.");
-                Debug.Assert(parameters.Modulus != null, "RSA.ExportParameters() shouldn't return a null modulus.");
+
+                Debug.Assert(parameters.Exponent != null &&
+                             parameters.Modulus != null,
+                    "RSA.ExportParameters() shouldn't return null parameters.");
 
                 var key = new JsonWebKey {
                     Use = JsonWebKeyUseNames.Enc,
@@ -406,8 +413,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                     // in the signing credentials.
                     Kid = identifier.LocalId,
 
-                    // Both E and N must be base64url-encoded.
-                    // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#appendix-A.1
+                    // Note: both E and N must be base64url-encoded.
+                    // See https://tools.ietf.org/html/rfc7518#section-6.2.1.2
                     E = Base64UrlEncoder.Encode(parameters.Exponent),
                     N = Base64UrlEncoder.Encode(parameters.Modulus)
                 };
@@ -451,12 +458,12 @@ namespace Owin.Security.OpenIdConnect.Server {
                 // the x5t and x5c parameters using the certificate details.
                 if (x509Certificate != null) {
                     // x5t must be base64url-encoded.
-                    // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#section-4.8
+                    // See https://tools.ietf.org/html/rfc7517#section-4.8
                     key.X5t = Base64UrlEncoder.Encode(x509Certificate.GetCertHash());
 
                     // Unlike E or N, the certificates contained in x5c
                     // must be base64-encoded and not base64url-encoded.
-                    // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#section-4.7
+                    // See https://tools.ietf.org/html/rfc7517#section-4.7
                     key.X5c.Add(Convert.ToBase64String(x509Certificate.RawData));
                 }
 
@@ -465,11 +472,9 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             foreach (var credentials in Options.SigningCredentials) {
                 // Ignore the key if it's not supported.
-                if (!(credentials.SigningKey is AsymmetricSecurityKey) ||
-                     !credentials.SigningKey.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature)) {
-                    Options.Logger.LogInformation("An unsupported signing key was ignored and excluded " +
-                                                  "from the key set: {Type}. Only asymmetric security keys " +
-                                                  "supporting RS256, RS384 or RS512 can be exposed " +
+                if (!credentials.SigningKey.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature)) {
+                    Options.Logger.LogInformation("An unsupported signing key was ignored and excluded from the " +
+                                                  "key set: {Type}. Only RSA asymmetric security keys can be exposed " +
                                                   "via the JWKS endpoint.", credentials.SigningKey.GetType().Name);
 
                     continue;
@@ -480,17 +485,26 @@ namespace Owin.Security.OpenIdConnect.Server {
                 credentials.SigningKeyIdentifier?.TryFind(out identifier);
 
                 // Resolve the underlying algorithm from the security key.
-                var algorithm = (RSA) ((AsymmetricSecurityKey) credentials.SigningKey)
+                var algorithm = ((AsymmetricSecurityKey) credentials.SigningKey)
                     .GetAsymmetricAlgorithm(
                         algorithm: SecurityAlgorithms.RsaSha256Signature,
-                        privateKey: false);
-                Debug.Assert(algorithm != null, "SecurityKey.GetAsymmetricAlgorithm() shouldn't return a null algorithm.");
+                        privateKey: false) as RSA;
+
+                // Skip the key if an algorithm instance cannot be extracted.
+                if (algorithm == null) {
+                    Options.Logger.LogWarning("A signing key was ignored because it was unable " +
+                                              "to provide the requested algorithm instance.");
+
+                    continue;
+                }
 
                 // Export the RSA public key to create a new JSON Web Key
                 // exposing the exponent and the modulus parameters.
                 var parameters = algorithm.ExportParameters(includePrivateParameters: false);
-                Debug.Assert(parameters.Exponent != null, "RSA.ExportParameters() shouldn't return a null exponent.");
-                Debug.Assert(parameters.Modulus != null, "RSA.ExportParameters() shouldn't return a null modulus.");
+
+                Debug.Assert(parameters.Exponent != null &&
+                             parameters.Modulus != null,
+                    "RSA.ExportParameters() shouldn't return null parameters.");
 
                 var key = new JsonWebKey {
                     Use = JsonWebKeyUseNames.Sig,
@@ -503,8 +517,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                     // in the signing credentials.
                     Kid = identifier?.LocalId,
 
-                    // Both E and N must be base64url-encoded.
-                    // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#appendix-A.1
+                    // Note: both E and N must be base64url-encoded.
+                    // See https://tools.ietf.org/html/rfc7518#section-6.2.1.2
                     E = Base64UrlEncoder.Encode(parameters.Exponent),
                     N = Base64UrlEncoder.Encode(parameters.Modulus)
                 };
@@ -548,12 +562,12 @@ namespace Owin.Security.OpenIdConnect.Server {
                 // the x5t and x5c parameters using the certificate details.
                 if (x509Certificate != null) {
                     // x5t must be base64url-encoded.
-                    // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#section-4.8
+                    // See https://tools.ietf.org/html/rfc7517#section-4.8
                     key.X5t = Base64UrlEncoder.Encode(x509Certificate.GetCertHash());
 
                     // Unlike E or N, the certificates contained in x5c
                     // must be base64-encoded and not base64url-encoded.
-                    // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#section-4.7
+                    // See https://tools.ietf.org/html/rfc7517#section-4.7
                     key.X5c.Add(Convert.ToBase64String(x509Certificate.RawData));
                 }
 
@@ -589,7 +603,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 var item = new JObject();
 
                 // Ensure a key type has been provided.
-                // See http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#section-4.1
+                // See https://tools.ietf.org/html/rfc7517#section-4.1
                 if (string.IsNullOrEmpty(key.Kty)) {
                     Options.Logger.LogError("A JSON Web Key was excluded from the key set because " +
                                             "it didn't contain the mandatory 'kid' parameter.");
