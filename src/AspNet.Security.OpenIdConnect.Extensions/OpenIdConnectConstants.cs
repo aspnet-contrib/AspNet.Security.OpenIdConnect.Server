@@ -148,6 +148,9 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
         public static class Parameters {
             public const string AccessToken = "access_token";
             public const string Active = "active";
+            public const string Assertion = "assertion";
+            public const string ClientAssertion = "client_assertion";
+            public const string ClientAssertionType = "client_assertion_type";
             public const string ClientId = "client_id";
             public const string ClientSecret = "client_secret";
             public const string Code = "code";

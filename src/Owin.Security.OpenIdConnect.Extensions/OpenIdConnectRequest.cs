@@ -71,6 +71,30 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         }
 
         /// <summary>
+        /// Gets or sets the "assertion" parameter.
+        /// </summary>
+        public string Assertion {
+            get { return GetParameter<string>(OpenIdConnectConstants.Parameters.Assertion); }
+            set { SetParameter(OpenIdConnectConstants.Parameters.Assertion, value); }
+        }
+
+        /// <summary>
+        /// Gets or sets the "client_assertion" parameter.
+        /// </summary>
+        public string ClientAssertion {
+            get { return GetParameter<string>(OpenIdConnectConstants.Parameters.ClientAssertion); }
+            set { SetParameter(OpenIdConnectConstants.Parameters.ClientAssertion, value); }
+        }
+
+        /// <summary>
+        /// Gets or sets the "client_assertion_type" parameter.
+        /// </summary>
+        public string ClientAssertionType {
+            get { return GetParameter<string>(OpenIdConnectConstants.Parameters.ClientAssertionType); }
+            set { SetParameter(OpenIdConnectConstants.Parameters.ClientAssertionType, value); }
+        }
+
+        /// <summary>
         /// Gets or sets the "client_id" parameter.
         /// </summary>
         public string ClientId {
