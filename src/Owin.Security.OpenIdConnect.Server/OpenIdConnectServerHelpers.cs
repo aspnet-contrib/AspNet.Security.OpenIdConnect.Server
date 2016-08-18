@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IdentityModel.Tokens;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -23,6 +25,76 @@ namespace Owin.Security.OpenIdConnect.Server {
             finally {
                 store.Close();
             }
+        }
+
+        public static SecurityKeyIdentifier GetKeyIdentifier(this SecurityKey key) {
+            if (key == null) {
+                throw new ArgumentNullException(nameof(key));
+            }
+
+            SecurityKeyIdentifier identifier = null;
+            X509Certificate2 certificate = null;
+
+            var x509SecurityKey = key as X509SecurityKey;
+            if (x509SecurityKey != null) {
+                certificate = x509SecurityKey.Certificate;
+            }
+
+            var x509AsymmetricSecurityKey = key as X509AsymmetricSecurityKey;
+            if (x509AsymmetricSecurityKey != null) {
+                // The X.509 certificate is not directly accessible when using X509AsymmetricSecurityKey.
+                // Reflection is the only way to get the certificate used to create the security key.
+                var field = typeof(X509AsymmetricSecurityKey).GetField(
+                    name: "certificate",
+                    bindingAttr: BindingFlags.Instance | BindingFlags.NonPublic);
+                Debug.Assert(field != null, "The 'certificate' field shouldn't be missing.");
+
+                certificate = (X509Certificate2) field.GetValue(x509AsymmetricSecurityKey);
+            }
+
+            if (certificate != null) {
+                identifier = new SecurityKeyIdentifier {
+                    new X509IssuerSerialKeyIdentifierClause(x509SecurityKey.Certificate),
+                    new X509RawDataKeyIdentifierClause(x509SecurityKey.Certificate),
+                    new X509ThumbprintKeyIdentifierClause(x509SecurityKey.Certificate),
+                    new LocalIdKeyIdentifierClause(x509SecurityKey.Certificate.Thumbprint.ToUpperInvariant())
+                };
+            }
+
+            if (identifier == null) {
+                // Create an empty security key identifier.
+                identifier = new SecurityKeyIdentifier();
+
+                var rsaSecurityKey = key as RsaSecurityKey;
+                if (rsaSecurityKey != null) {
+                    // Resolve the underlying algorithm from the security key.
+                    var algorithm = (RSA) rsaSecurityKey.GetAsymmetricAlgorithm(
+                        algorithm: SecurityAlgorithms.RsaSha256Signature,
+                        requiresPrivateKey: false);
+
+                    Debug.Assert(algorithm != null,
+                        "SecurityKey.GetAsymmetricAlgorithm() shouldn't return a null algorithm.");
+
+                    // Export the RSA public key to extract a key identifier based on the modulus component.
+                    var parameters = algorithm.ExportParameters(includePrivateParameters: false);
+
+                    Debug.Assert(parameters.Modulus != null,
+                        "RSA.ExportParameters() shouldn't return a null modulus.");
+
+                    // Only use the 40 first chars of the base64url-encoded modulus.
+                    var kid = Base64UrlEncoder.Encode(parameters.Modulus);
+                    kid = kid.Substring(0, Math.Min(kid.Length, 40)).ToUpperInvariant();
+
+                    identifier.Add(new RsaKeyIdentifierClause(algorithm));
+                    identifier.Add(new LocalIdKeyIdentifierClause(kid));
+                }
+            }
+
+            // Mark the security key identifier as read-only to
+            // ensure it can't be altered during a request.
+            identifier.MakeReadOnly();
+
+            return identifier;
         }
 
         public static string GetIssuer(this IOwinContext context, OpenIdConnectServerOptions options) {

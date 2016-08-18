@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IdentityModel.Tokens;
 using System.IO;
 using System.Linq;
@@ -239,33 +238,64 @@ namespace Owin {
         /// cannot be decrypted when the key is lost. This method should only be used during development.
         /// On production, using a X.509 certificate stored in the machine store is recommended.
         /// </summary>
-        /// <returns>The signing credentials.</returns>
+        /// <param name="credentials">The encryption credentials.</param>
+        /// <returns>The encryption credentials.</returns>
         public static IList<EncryptingCredentials> AddEphemeralKey([NotNull] this IList<EncryptingCredentials> credentials) {
+            return credentials.AddEphemeralKey(SecurityAlgorithms.RsaOaepKeyWrap);
+        }
+
+        /// <summary>
+        /// Adds a new ephemeral key used to decrypt the authorization requests received by the OpenID Connect server:
+        /// the key is discarded when the application shuts down and authorization requests encrypted using this key
+        /// cannot be decrypted when the key is lost. This method should only be used during development.
+        /// On production, using a X.509 certificate stored in the machine store is recommended.
+        /// </summary>
+        /// <param name="credentials">The encryption credentials.</param>
+        /// <param name="algorithm">The algorithm associated with the encryption key.</param>
+        /// <returns>The encryption credentials.</returns>
+        public static IList<EncryptingCredentials> AddEphemeralKey(
+            [NotNull] this IList<EncryptingCredentials> credentials, [NotNull] string algorithm) {
             if (credentials == null) {
                 throw new ArgumentNullException(nameof(credentials));
             }
 
-            // Note: a 1024-bit key might be returned by RSA.Create() on .NET Desktop/Mono,
-            // where RSACryptoServiceProvider is still the default implementation and
-            // where custom implementations can be registered via CryptoConfig.
-            // To ensure the key size is always acceptable, replace it if necessary.
-            var algorithm = RSA.Create();
-
-            if (algorithm.KeySize < 2048) {
-                algorithm.KeySize = 2048;
+            if (string.IsNullOrEmpty(algorithm)) {
+                throw new ArgumentException("The algorithm cannot be null or empty.", nameof(algorithm));
             }
 
-            // Note: RSACng cannot be used as it's not available on Mono.
-            if (algorithm.KeySize < 2048 && algorithm is RSACryptoServiceProvider) {
-                algorithm.Dispose();
-                algorithm = new RSACryptoServiceProvider(2048);
-            }
+            switch (algorithm) {
+                case SecurityAlgorithms.RsaOaepKeyWrap:
+                case SecurityAlgorithms.RsaV15KeyWrap: {
+                    // Note: a 1024-bit key might be returned by RSA.Create() on .NET Desktop/Mono,
+                    // where RSACryptoServiceProvider is still the default implementation and
+                    // where custom implementations can be registered via CryptoConfig.
+                    // To ensure the key size is always acceptable, replace it if necessary.
+                    var rsa = RSA.Create();
 
-            if (algorithm.KeySize < 2048) {
-                throw new InvalidOperationException("The ephemeral key generation failed.");
-            }
+                    if (rsa.KeySize < 2048) {
+                        rsa.KeySize = 2048;
+                    }
 
-            return credentials.AddKey(new RsaSecurityKey(algorithm));
+                    // Note: RSACng cannot be used as it's not available on Mono.
+                    if (rsa.KeySize < 2048 && rsa is RSACryptoServiceProvider) {
+                        rsa.Dispose();
+                        rsa = new RSACryptoServiceProvider(2048);
+                    }
+
+                    if (rsa.KeySize < 2048) {
+                        throw new InvalidOperationException("The ephemeral key generation failed.");
+                    }
+
+                    var key = new RsaSecurityKey(rsa);
+
+                    credentials.Add(new EncryptingCredentials(key, key.GetKeyIdentifier(), algorithm));
+
+                    return credentials;
+                }
+
+                default:
+                    throw new InvalidOperationException("The specified algorithm is not supported.");
+            }
         }
 
         /// <summary>
@@ -286,55 +316,7 @@ namespace Owin {
             }
 
             if (key.IsSupportedAlgorithm(SecurityAlgorithms.RsaOaepKeyWrap)) {
-                var x509SecurityKey = key as X509SecurityKey;
-                if (x509SecurityKey != null) {
-                    return credentials.AddCertificate(x509SecurityKey.Certificate);
-                }
-
-                var x509AsymmetricSecurityKey = key as X509AsymmetricSecurityKey;
-                if (x509AsymmetricSecurityKey != null) {
-                    // The X.509 certificate is not directly accessible when using X509AsymmetricSecurityKey.
-                    // Reflection is the only way to get the certificate used to create the security key.
-                    var field = typeof(X509AsymmetricSecurityKey).GetField(
-                        name: "certificate",
-                        bindingAttr: BindingFlags.Instance | BindingFlags.NonPublic);
-                    Debug.Assert(field != null);
-
-                    return credentials.AddCertificate((X509Certificate2) field.GetValue(x509AsymmetricSecurityKey));
-                }
-
-                // Create an empty security key identifier.
-                var identifier = new SecurityKeyIdentifier();
-
-                var rsaSecurityKey = key as RsaSecurityKey;
-                if (rsaSecurityKey != null) {
-                    // When using a RSA key, the public part is used to uniquely identify the key.
-                    var algorithm = (RSA) rsaSecurityKey.GetAsymmetricAlgorithm(
-                        algorithm: SecurityAlgorithms.RsaOaepKeyWrap,
-                        requiresPrivateKey: false);
-
-                    Debug.Assert(algorithm != null,
-                        "SecurityKey.GetAsymmetricAlgorithm() shouldn't return a null algorithm.");
-
-                    // Export the RSA public key to extract a key identifier based on the modulus component.
-                    var parameters = algorithm.ExportParameters(includePrivateParameters: false);
-
-                    Debug.Assert(parameters.Modulus != null,
-                        "RSA.ExportParameters() shouldn't return a null modulus.");
-
-                    // Only use the 40 first chars of the base64url-encoded modulus.
-                    var kid = Base64UrlEncoder.Encode(parameters.Modulus);
-                    kid = kid.Substring(0, Math.Min(kid.Length, 40)).ToUpperInvariant();
-
-                    identifier.Add(new RsaKeyIdentifierClause(algorithm));
-                    identifier.Add(new LocalIdKeyIdentifierClause(kid));
-                }
-
-                // Mark the security key identifier as read-only to
-                // ensure it can't be altered during a request.
-                identifier.MakeReadOnly();
-
-                credentials.Add(new EncryptingCredentials(key, identifier, SecurityAlgorithms.RsaOaepKeyWrap));
+                credentials.Add(new EncryptingCredentials(key, key.GetKeyIdentifier(), SecurityAlgorithms.RsaOaepKeyWrap));
 
                 return credentials;
             }
@@ -519,36 +501,67 @@ namespace Owin {
         /// <summary>
         /// Adds a new ephemeral key used to sign the tokens issued by the OpenID Connect server:
         /// the key is discarded when the application shuts down and tokens signed using this key
-        /// are automatically invalidated. This method should only be used during development:
-        /// on production, using a X.509 certificate stored in the machine store is recommended.
+        /// are automatically invalidated. This method should only be used during development.
+        /// On production, using a X.509 certificate stored in the machine store is recommended.
         /// </summary>
+        /// <param name="credentials">The signing credentials.</param>
         /// <returns>The signing credentials.</returns>
         public static IList<SigningCredentials> AddEphemeralKey([NotNull] this IList<SigningCredentials> credentials) {
+            return credentials.AddEphemeralKey(SecurityAlgorithms.RsaSha256Signature);
+        }
+
+        /// <summary>
+        /// Adds a new ephemeral key used to sign the tokens issued by the OpenID Connect server:
+        /// the key is discarded when the application shuts down and tokens signed using this key
+        /// are automatically invalidated. This method should only be used during development.
+        /// On production, using a X.509 certificate stored in the machine store is recommended.
+        /// </summary>
+        /// <param name="credentials">The signing credentials.</param>
+        /// <param name="algorithm">The algorithm associated with the signing key.</param>
+        /// <returns>The signing credentials.</returns>
+        public static IList<SigningCredentials> AddEphemeralKey(
+            [NotNull] this IList<SigningCredentials> credentials, [NotNull] string algorithm) {
             if (credentials == null) {
                 throw new ArgumentNullException(nameof(credentials));
             }
 
-            // Note: a 1024-bit key might be returned by RSA.Create() on .NET Desktop/Mono,
-            // where RSACryptoServiceProvider is still the default implementation and
-            // where custom implementations can be registered via CryptoConfig.
-            // To ensure the key size is always acceptable, replace it if necessary.
-            var algorithm = RSA.Create();
-
-            if (algorithm.KeySize < 2048) {
-                algorithm.KeySize = 2048;
+            if (string.IsNullOrEmpty(algorithm)) {
+                throw new ArgumentException("The algorithm cannot be null or empty.", nameof(algorithm));
             }
 
-            // Note: RSACng cannot be used as it's not available on Mono.
-            if (algorithm.KeySize < 2048 && algorithm is RSACryptoServiceProvider) {
-                algorithm.Dispose();
-                algorithm = new RSACryptoServiceProvider(2048);
-            }
+            switch (algorithm) {
+                case SecurityAlgorithms.RsaSha256Signature: {
+                    // Note: a 1024-bit key might be returned by RSA.Create() on .NET Desktop/Mono,
+                    // where RSACryptoServiceProvider is still the default implementation and
+                    // where custom implementations can be registered via CryptoConfig.
+                    // To ensure the key size is always acceptable, replace it if necessary.
+                    var rsa = RSA.Create();
 
-            if (algorithm.KeySize < 2048) {
-                throw new InvalidOperationException("The ephemeral key generation failed.");
-            }
+                    if (rsa.KeySize < 2048) {
+                        rsa.KeySize = 2048;
+                    }
 
-            return credentials.AddKey(new RsaSecurityKey(algorithm));
+                    // Note: RSACng cannot be used as it's not available on Mono.
+                    if (rsa.KeySize < 2048 && rsa is RSACryptoServiceProvider) {
+                        rsa.Dispose();
+                        rsa = new RSACryptoServiceProvider(2048);
+                    }
+
+                    if (rsa.KeySize < 2048) {
+                        throw new InvalidOperationException("The ephemeral key generation failed.");
+                    }
+
+                    var key = new RsaSecurityKey(rsa);
+
+                    credentials.Add(new SigningCredentials(key, algorithm,
+                        SecurityAlgorithms.Sha256Digest, key.GetKeyIdentifier()));
+
+                    return credentials;
+                }
+
+                default:
+                    throw new InvalidOperationException("The specified algorithm is not supported.");
+            }
         }
 
         /// <summary>
@@ -568,56 +581,8 @@ namespace Owin {
             }
 
             if (key.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature)) {
-                var x509SecurityKey = key as X509SecurityKey;
-                if (x509SecurityKey != null) {
-                    return credentials.AddCertificate(x509SecurityKey.Certificate);
-                }
-
-                var x509AsymmetricSecurityKey = key as X509AsymmetricSecurityKey;
-                if (x509AsymmetricSecurityKey != null) {
-                    // The X.509 certificate is not directly accessible when using X509AsymmetricSecurityKey.
-                    // Reflection is the only way to get the certificate used to create the security key.
-                    var field = typeof(X509AsymmetricSecurityKey).GetField(
-                        name: "certificate",
-                        bindingAttr: BindingFlags.Instance | BindingFlags.NonPublic);
-                    Debug.Assert(field != null);
-
-                    return credentials.AddCertificate((X509Certificate2) field.GetValue(x509AsymmetricSecurityKey));
-                }
-
-                // Create an empty security key identifier.
-                var identifier = new SecurityKeyIdentifier();
-
-                var rsaSecurityKey = key as RsaSecurityKey;
-                if (rsaSecurityKey != null) {
-                    // Resolve the underlying algorithm from the security key.
-                    var algorithm = (RSA) rsaSecurityKey.GetAsymmetricAlgorithm(
-                        algorithm: SecurityAlgorithms.RsaSha256Signature,
-                        requiresPrivateKey: false);
-
-                    Debug.Assert(algorithm != null,
-                        "SecurityKey.GetAsymmetricAlgorithm() shouldn't return a null algorithm.");
-
-                    // Export the RSA public key to extract a key identifier based on the modulus component.
-                    var parameters = algorithm.ExportParameters(includePrivateParameters: false);
-
-                    Debug.Assert(parameters.Modulus != null,
-                        "RSA.ExportParameters() shouldn't return a null modulus.");
-
-                    // Only use the 40 first chars of the base64url-encoded modulus.
-                    var kid = Base64UrlEncoder.Encode(parameters.Modulus);
-                    kid = kid.Substring(0, Math.Min(kid.Length, 40)).ToUpperInvariant();
-
-                    identifier.Add(new RsaKeyIdentifierClause(algorithm));
-                    identifier.Add(new LocalIdKeyIdentifierClause(kid));
-                }
-
-                // Mark the security key identifier as read-only to
-                // ensure it can't be altered during a request.
-                identifier.MakeReadOnly();
-
                 credentials.Add(new SigningCredentials(key, SecurityAlgorithms.RsaSha256Signature,
-                                                            SecurityAlgorithms.Sha256Digest, identifier));
+                                                            SecurityAlgorithms.Sha256Digest, key.GetKeyIdentifier()));
 
                 return credentials;
             }

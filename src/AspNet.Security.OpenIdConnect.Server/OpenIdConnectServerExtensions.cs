@@ -223,55 +223,125 @@ namespace Microsoft.AspNetCore.Builder {
         /// are automatically invalidated. This method should only be used during development.
         /// On production, using a X.509 certificate stored in the machine store is recommended.
         /// </summary>
+        /// <param name="credentials">The signing credentials.</param>
         /// <returns>The signing credentials.</returns>
         public static IList<SigningCredentials> AddEphemeralKey([NotNull] this IList<SigningCredentials> credentials) {
+            return credentials.AddEphemeralKey(SecurityAlgorithms.RsaSha256Signature);
+        }
+
+        /// <summary>
+        /// Adds a new ephemeral key used to sign the tokens issued by the OpenID Connect server:
+        /// the key is discarded when the application shuts down and tokens signed using this key
+        /// are automatically invalidated. This method should only be used during development.
+        /// On production, using a X.509 certificate stored in the machine store is recommended.
+        /// </summary>
+        /// <param name="credentials">The signing credentials.</param>
+        /// <param name="algorithm">The algorithm associated with the signing key.</param>
+        /// <returns>The signing credentials.</returns>
+        public static IList<SigningCredentials> AddEphemeralKey(
+            [NotNull] this IList<SigningCredentials> credentials, [NotNull] string algorithm) {
             if (credentials == null) {
                 throw new ArgumentNullException(nameof(credentials));
             }
 
-            // Note: a 1024-bit key might be returned by RSA.Create() on .NET Desktop/Mono,
-            // where RSACryptoServiceProvider is still the default implementation and
-            // where custom implementations can be registered via CryptoConfig.
-            // To ensure the key size is always acceptable, replace it if necessary.
-            var algorithm = RSA.Create();
-
-            if (algorithm.KeySize < 2048) {
-                algorithm.KeySize = 2048;
+            if (string.IsNullOrEmpty(algorithm)) {
+                throw new ArgumentException("The algorithm cannot be null or empty.", nameof(algorithm));
             }
+
+            switch (algorithm) {
+                case SecurityAlgorithms.RsaSha256Signature:
+                case SecurityAlgorithms.RsaSha384Signature:
+                case SecurityAlgorithms.RsaSha512Signature: {
+                    // Note: a 1024-bit key might be returned by RSA.Create() on .NET Desktop/Mono,
+                    // where RSACryptoServiceProvider is still the default implementation and
+                    // where custom implementations can be registered via CryptoConfig.
+                    // To ensure the key size is always acceptable, replace it if necessary.
+                    var rsa = RSA.Create();
+
+                    if (rsa.KeySize < 2048) {
+                        rsa.KeySize = 2048;
+                    }
 
 #if NET451
-            // Note: RSACng cannot be used as it's not available on Mono.
-            if (algorithm.KeySize < 2048 && algorithm is RSACryptoServiceProvider) {
-                algorithm.Dispose();
-                algorithm = new RSACryptoServiceProvider(2048);
-            }
+                    // Note: RSACng cannot be used as it's not available on Mono.
+                    if (rsa.KeySize < 2048 && rsa is RSACryptoServiceProvider) {
+                        rsa.Dispose();
+                        rsa = new RSACryptoServiceProvider(2048);
+                    }
 #endif
 
-            if (algorithm.KeySize < 2048) {
-                throw new InvalidOperationException("The ephemeral key generation failed.");
-            }
+                    if (rsa.KeySize < 2048) {
+                        throw new InvalidOperationException("The ephemeral key generation failed.");
+                    }
 
-            // Note: the RSA instance cannot be flowed as-is due to a bug in IdentityModel that disposes
-            // the underlying algorithm when it can be cast to RSACryptoServiceProvider. To work around
-            // this bug, the RSA public/private parameters are manually exported and re-imported when needed.
-            SecurityKey key;
+                    // Note: the RSA instance cannot be flowed as-is due to a bug in IdentityModel that disposes
+                    // the underlying algorithm when it can be cast to RSACryptoServiceProvider. To work around
+                    // this bug, the RSA public/private parameters are manually exported and re-imported when needed.
+                    SecurityKey key;
 #if NET451
-            if (algorithm is RSACryptoServiceProvider) {
-                var parameters = algorithm.ExportParameters(includePrivateParameters: true);
-                key = new RsaSecurityKey(parameters);
+                    if (rsa is RSACryptoServiceProvider) {
+                        var parameters = rsa.ExportParameters(includePrivateParameters: true);
+                        key = new RsaSecurityKey(parameters);
+                        key.KeyId = key.GetKeyIdentifier();
 
-                // Dispose the algorithm instance.
-                algorithm.Dispose();
-            }
+                        // Dispose the algorithm instance.
+                        rsa.Dispose();
+                    }   
 
-            else {
+                    else {
 #endif
-                key = new RsaSecurityKey(algorithm);
+                        key = new RsaSecurityKey(rsa);
+                        key.KeyId = key.GetKeyIdentifier();
 #if NET451
-            }
+                    }
 #endif
 
-            return credentials.AddKey(key);
+                    credentials.Add(new SigningCredentials(key, algorithm));
+
+                    return credentials;
+                }
+
+#if NETSTANDARD1_6
+                case SecurityAlgorithms.EcdsaSha256Signature: {
+                    // Generate a new ECDSA key using the P-256 curve.
+                    var ecdsa = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+
+                    var key = new ECDsaSecurityKey(ecdsa);
+                    key.KeyId = key.GetKeyIdentifier();
+
+                    credentials.Add(new SigningCredentials(key, algorithm));
+
+                    return credentials;
+                }
+
+                case SecurityAlgorithms.EcdsaSha384Signature: {
+                    // Generate a new ECDSA key using the P-384 curve.
+                    var ecdsa = ECDsa.Create(ECCurve.NamedCurves.nistP384);
+
+                    var key = new ECDsaSecurityKey(ecdsa);
+                    key.KeyId = key.GetKeyIdentifier();
+
+                    credentials.Add(new SigningCredentials(key, algorithm));
+
+                    return credentials;
+                }
+
+                case SecurityAlgorithms.EcdsaSha512Signature: {
+                    // Generate a new ECDSA key using the P-521 curve.
+                    var ecdsa = ECDsa.Create(ECCurve.NamedCurves.nistP521);
+
+                    var key = new ECDsaSecurityKey(ecdsa);
+                    key.KeyId = key.GetKeyIdentifier();
+
+                    credentials.Add(new SigningCredentials(key, algorithm));
+
+                    return credentials;
+                }
+#endif
+
+                default:
+                    throw new InvalidOperationException("The specified algorithm is not supported.");
+            }
         }
 
         /// <summary>
@@ -294,42 +364,7 @@ namespace Microsoft.AspNetCore.Builder {
             // inferred from the hexadecimal representation of the certificate thumbprint (SHA-1)
             // when the key is bound to a X.509 certificate or from the public part of the signing key.
             if (string.IsNullOrEmpty(key.KeyId)) {
-                var x509SecurityKey = key as X509SecurityKey;
-                if (x509SecurityKey != null) {
-                    key.KeyId = x509SecurityKey.Certificate.Thumbprint;
-                }
-
-                var rsaSecurityKey = key as RsaSecurityKey;
-                if (rsaSecurityKey != null) {
-                    // Note: if the RSA parameters are not attached to the signing key,
-                    // extract them by calling ExportParameters on the RSA instance.
-                    var parameters = rsaSecurityKey.Parameters;
-                    if (parameters.Modulus == null) {
-                        parameters = rsaSecurityKey.Rsa.ExportParameters(includePrivateParameters: false);
-
-                        Debug.Assert(parameters.Modulus != null,
-                            "A null modulus shouldn't be returned by RSA.ExportParameters().");
-                    }
-
-                    // Only use the 40 first chars of the base64url-encoded modulus.
-                    key.KeyId = Base64UrlEncoder.Encode(parameters.Modulus);
-                    key.KeyId = key.KeyId.Substring(0, Math.Min(key.KeyId.Length, 40)).ToUpperInvariant();
-                }
-
-#if NETSTANDARD1_6
-                var ecsdaSecurityKey = key as ECDsaSecurityKey;
-                if (ecsdaSecurityKey != null) {
-                    // Extract the ECDSA parameters from the signing credentials.
-                    var parameters = ecsdaSecurityKey.ECDsa.ExportParameters(includePrivateParameters: false);
-
-                    Debug.Assert(parameters.Q.X != null,
-                        "Invalid coordinates shouldn't be returned by ECDsa.ExportParameters().");
-
-                    // Only use the 40 first chars of the base64url-encoded X-coordinate.
-                    key.KeyId = Base64UrlEncoder.Encode(parameters.Q.X);
-                    key.KeyId = key.KeyId.Substring(0, Math.Min(key.KeyId.Length, 40)).ToUpperInvariant();
-                }
-#endif
+                key.KeyId = key.GetKeyIdentifier();
             }
 
             if (key.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature)) {

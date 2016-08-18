@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
@@ -26,6 +27,51 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 store.Dispose();
 #endif
             }
+        }
+
+        public static string GetKeyIdentifier(this SecurityKey key) {
+            if (key == null) {
+                throw new ArgumentNullException(nameof(key));
+            }
+
+            var x509SecurityKey = key as X509SecurityKey;
+            if (x509SecurityKey != null) {
+                return x509SecurityKey.Certificate.Thumbprint;
+            }
+
+            var rsaSecurityKey = key as RsaSecurityKey;
+            if (rsaSecurityKey != null) {
+                // Note: if the RSA parameters are not attached to the signing key,
+                // extract them by calling ExportParameters on the RSA instance.
+                var parameters = rsaSecurityKey.Parameters;
+                if (parameters.Modulus == null) {
+                    parameters = rsaSecurityKey.Rsa.ExportParameters(includePrivateParameters: false);
+
+                    Debug.Assert(parameters.Modulus != null,
+                        "A null modulus shouldn't be returned by RSA.ExportParameters().");
+                }
+
+                // Only use the 40 first chars of the base64url-encoded modulus.
+                var identifier = Base64UrlEncoder.Encode(parameters.Modulus);
+                return identifier.Substring(0, Math.Min(identifier.Length, 40)).ToUpperInvariant();
+            }
+
+#if NETSTANDARD1_6
+            var ecsdaSecurityKey = key as ECDsaSecurityKey;
+            if (ecsdaSecurityKey != null) {
+                // Extract the ECDSA parameters from the signing credentials.
+                var parameters = ecsdaSecurityKey.ECDsa.ExportParameters(includePrivateParameters: false);
+
+                Debug.Assert(parameters.Q.X != null,
+                    "Invalid coordinates shouldn't be returned by ECDsa.ExportParameters().");
+
+                // Only use the 40 first chars of the base64url-encoded X coordinate.
+                var identifier = Base64UrlEncoder.Encode(parameters.Q.X);
+                return identifier.Substring(0, Math.Min(identifier.Length, 40)).ToUpperInvariant();
+            }
+#endif
+
+            return null;
         }
 
         public static string GetIssuer(this HttpContext context, OpenIdConnectServerOptions options) {
