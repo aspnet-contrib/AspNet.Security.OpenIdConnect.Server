@@ -310,7 +310,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 // Keep the code_challenge, code_challenge_method, nonce and redirect_uri parameters for later comparison.
                 ticket.SetProperty(OpenIdConnectConstants.Properties.CodeChallenge, request.CodeChallenge);
                 ticket.SetProperty(OpenIdConnectConstants.Properties.CodeChallengeMethod, request.CodeChallengeMethod);
-                ticket.SetProperty(OpenIdConnectConstants.Properties.Nonce,  request.Nonce);
+                ticket.SetProperty(OpenIdConnectConstants.Properties.Nonce, request.Nonce);
                 ticket.SetProperty(OpenIdConnectConstants.Properties.RedirectUri, request.RedirectUri);
             }
 

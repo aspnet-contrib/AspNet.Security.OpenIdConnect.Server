@@ -191,8 +191,8 @@ namespace Owin.Security.OpenIdConnect.Extensions {
 
         public static class Properties {
             public const string Audiences = ".audiences";
-            public const string CodeChallenge = "code_challenge";
-            public const string CodeChallengeMethod = "code_challenge_method";
+            public const string CodeChallenge = ".code_challenge";
+            public const string CodeChallengeMethod = ".code_challenge_method";
             public const string Confidential = ".confidential";
             public const string Destinations = ".destinations";
             public const string Nonce = ".nonce";
