@@ -115,11 +115,11 @@ namespace Microsoft.AspNetCore.Builder {
             }
 
             if (string.IsNullOrEmpty(resource)) {
-                throw new ArgumentNullException(nameof(resource));
+                throw new ArgumentException("The resource cannot be null or empty.", nameof(password));
             }
 
             if (string.IsNullOrEmpty(password)) {
-                throw new ArgumentNullException(nameof(password));
+                throw new ArgumentException("The password cannot be null or empty.", nameof(password));
             }
 
             using (var stream = assembly.GetManifestResourceStream(resource)) {
@@ -167,7 +167,7 @@ namespace Microsoft.AspNetCore.Builder {
             }
 
             if (string.IsNullOrEmpty(password)) {
-                throw new ArgumentNullException(nameof(password));
+                throw new ArgumentException("The password cannot be null or empty.", nameof(password));
             }
 
             using (var buffer = new MemoryStream()) {
@@ -179,14 +179,29 @@ namespace Microsoft.AspNetCore.Builder {
 
         /// <summary>
         /// Adds a specific <see cref="X509Certificate2"/> retrieved from the X.509
-        /// machine store to sign the tokens issued by the OpenID Connect server.
+        /// user/machine store to sign the tokens issued by the OpenID Connect server.
         /// </summary>
         /// <param name="credentials">The options used to configure the OpenID Connect server.</param>
         /// <param name="thumbprint">The thumbprint of the certificate used to identify it in the X.509 store.</param>
         /// <returns>The signing credentials.</returns>
         public static IList<SigningCredentials> AddCertificate(
             [NotNull] this IList<SigningCredentials> credentials, [NotNull] string thumbprint) {
-            return credentials.AddCertificate(thumbprint, StoreName.My, StoreLocation.LocalMachine);
+            if (credentials == null) {
+                throw new ArgumentNullException(nameof(credentials));
+            }
+
+            if (string.IsNullOrEmpty(thumbprint)) {
+                throw new ArgumentException("The thumbprint cannot be null or empty.", nameof(thumbprint));
+            }
+
+            var certificate = OpenIdConnectServerHelpers.GetCertificate(StoreName.My, StoreLocation.CurrentUser, thumbprint) ??
+                              OpenIdConnectServerHelpers.GetCertificate(StoreName.My, StoreLocation.LocalMachine, thumbprint);
+
+            if (certificate == null) {
+                throw new InvalidOperationException("The certificate corresponding to the given thumbprint was not found.");
+            }
+
+            return credentials.AddCertificate(certificate);
         }
 
         /// <summary>
@@ -206,7 +221,7 @@ namespace Microsoft.AspNetCore.Builder {
             }
 
             if (string.IsNullOrEmpty(thumbprint)) {
-                throw new ArgumentNullException(nameof(thumbprint));
+                throw new ArgumentException("The thumbprint cannot be null or empty.", nameof(thumbprint));
             }
 
             var certificate = OpenIdConnectServerHelpers.GetCertificate(name, location, thumbprint);
