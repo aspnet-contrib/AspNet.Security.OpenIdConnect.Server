@@ -88,8 +88,8 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
         /// <summary>
         /// Gets or sets the "expires_in" parameter.
         /// </summary>
-        public long ExpiresIn {
-            get { return GetParameter<long>(OpenIdConnectConstants.Parameters.ExpiresIn); }
+        public long? ExpiresIn {
+            get { return GetParameter<long?>(OpenIdConnectConstants.Parameters.ExpiresIn); }
             set { SetParameter(OpenIdConnectConstants.Parameters.ExpiresIn, value); }
         }
 
