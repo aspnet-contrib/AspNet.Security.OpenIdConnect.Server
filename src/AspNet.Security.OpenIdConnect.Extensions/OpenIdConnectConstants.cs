@@ -223,6 +223,10 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
             public const string Token = "token";
         }
 
+        public static class Separators {
+            public static readonly char[] Space = { ' ' };
+        }
+
         public static class Scopes {
             public const string Address = "address";
             public const string Email = "email";

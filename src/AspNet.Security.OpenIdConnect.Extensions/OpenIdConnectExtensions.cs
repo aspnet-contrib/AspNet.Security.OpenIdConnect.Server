@@ -27,7 +27,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            return request.Resource?.Split(' ')
+            return request.Resource?.Split(OpenIdConnectConstants.Separators.Space, StringSplitOptions.RemoveEmptyEntries)
                                    ?.Distinct(StringComparer.Ordinal)
                    ?? Enumerable.Empty<string>();
         }
@@ -41,7 +41,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            return request.Scope?.Split(' ')
+            return request.Scope?.Split(OpenIdConnectConstants.Separators.Space, StringSplitOptions.RemoveEmptyEntries)
                                 ?.Distinct(StringComparer.Ordinal)
                    ?? Enumerable.Empty<string>();
         }
@@ -55,7 +55,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(response));
             }
 
-            return response.Resource?.Split(' ')
+            return response.Resource?.Split(OpenIdConnectConstants.Separators.Space, StringSplitOptions.RemoveEmptyEntries)
                                     ?.Distinct(StringComparer.Ordinal)
                    ?? Enumerable.Empty<string>();
         }
@@ -69,7 +69,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(response));
             }
 
-            return response.Scope?.Split(' ')
+            return response.Scope?.Split(OpenIdConnectConstants.Separators.Space, StringSplitOptions.RemoveEmptyEntries)
                                  ?.Distinct(StringComparer.Ordinal)
                    ?? Enumerable.Empty<string>();
         }
@@ -410,7 +410,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
             string destinations;
             claim.Properties.TryGetValue(OpenIdConnectConstants.Properties.Destinations, out destinations);
 
-            return destinations?.Split(' ')
+            return destinations?.Split(OpenIdConnectConstants.Separators.Space, StringSplitOptions.RemoveEmptyEntries)
                                ?.Distinct(StringComparer.Ordinal)
                    ?? Enumerable.Empty<string>();
         }
@@ -714,7 +714,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
             }
 
             return ticket.GetProperty(OpenIdConnectConstants.Properties.Audiences)
-                        ?.Split(' ')
+                        ?.Split(OpenIdConnectConstants.Separators.Space, StringSplitOptions.RemoveEmptyEntries)
                         ?.Distinct(StringComparer.Ordinal)
                    ?? Enumerable.Empty<string>();
         }
@@ -731,7 +731,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
             }
 
             return ticket.GetProperty(OpenIdConnectConstants.Properties.Presenters)
-                        ?.Split(' ')
+                        ?.Split(OpenIdConnectConstants.Separators.Space, StringSplitOptions.RemoveEmptyEntries)
                         ?.Distinct(StringComparer.Ordinal)
                    ?? Enumerable.Empty<string>();
         }
@@ -761,7 +761,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
             }
 
             return ticket.GetProperty(OpenIdConnectConstants.Properties.Resources)
-                        ?.Split(' ')
+                        ?.Split(OpenIdConnectConstants.Separators.Space, StringSplitOptions.RemoveEmptyEntries)
                         ?.Distinct(StringComparer.Ordinal)
                    ?? Enumerable.Empty<string>();
         }
@@ -778,7 +778,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
             }
 
             return ticket.GetProperty(OpenIdConnectConstants.Properties.Scopes)
-                        ?.Split(' ')
+                        ?.Split(OpenIdConnectConstants.Separators.Space, StringSplitOptions.RemoveEmptyEntries)
                         ?.Distinct(StringComparer.Ordinal)
                    ?? Enumerable.Empty<string>();
         }
@@ -870,7 +870,9 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            var audiences = ticket.GetProperty(OpenIdConnectConstants.Properties.Audiences)?.Split(' ');
+            var audiences = ticket.GetProperty(OpenIdConnectConstants.Properties.Audiences)
+                                 ?.Split(OpenIdConnectConstants.Separators.Space, StringSplitOptions.RemoveEmptyEntries);
+
             if (audiences == null) {
                 return false;
             }
@@ -902,7 +904,9 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            var presenters = ticket.GetProperty(OpenIdConnectConstants.Properties.Presenters)?.Split(' ');
+            var presenters = ticket.GetProperty(OpenIdConnectConstants.Properties.Presenters)
+                                  ?.Split(OpenIdConnectConstants.Separators.Space, StringSplitOptions.RemoveEmptyEntries);
+
             if (presenters == null) {
                 return false;
             }
@@ -934,7 +938,9 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            var resources = ticket.GetProperty(OpenIdConnectConstants.Properties.Resources)?.Split(' ');
+            var resources = ticket.GetProperty(OpenIdConnectConstants.Properties.Resources)
+                                 ?.Split(OpenIdConnectConstants.Separators.Space, StringSplitOptions.RemoveEmptyEntries);
+
             if (resources == null) {
                 return false;
             }
@@ -966,7 +972,9 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            var scopes = ticket.GetProperty(OpenIdConnectConstants.Properties.Scopes)?.Split(' ');
+            var scopes = ticket.GetProperty(OpenIdConnectConstants.Properties.Scopes)
+                              ?.Split(OpenIdConnectConstants.Separators.Space, StringSplitOptions.RemoveEmptyEntries);
+
             if (scopes == null) {
                 return false;
             }
@@ -1328,7 +1336,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 return false;
             }
 
-            return (from component in source.Split(' ')
+            return (from component in source.Split(OpenIdConnectConstants.Separators.Space, StringSplitOptions.RemoveEmptyEntries)
                     where string.Equals(component, value, StringComparison.Ordinal)
                     select component).Any();
         }
@@ -1343,7 +1351,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
             }
 
             var set = new HashSet<string>(
-                collection: source.Split(' '),
+                collection: source.Split(OpenIdConnectConstants.Separators.Space, StringSplitOptions.RemoveEmptyEntries),
                 comparer: StringComparer.Ordinal);
 
             return set.SetEquals(components);
