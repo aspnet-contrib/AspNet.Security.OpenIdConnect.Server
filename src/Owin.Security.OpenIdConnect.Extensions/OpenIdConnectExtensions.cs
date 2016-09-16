@@ -1091,7 +1091,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             }
 
             if (string.IsNullOrEmpty(property)) {
-                throw new ArgumentException($"{nameof(property)} cannot be null or empty.", nameof(property));
+                throw new ArgumentException("The property name cannot be null or empty.", nameof(property));
             }
 
             if (string.IsNullOrEmpty(value)) {
@@ -1140,8 +1140,8 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 return ticket;
             }
 
-            if (audiences.Any(audience => audience.Contains(" "))) {
-                throw new ArgumentException("The audiences cannot contain spaces.", nameof(audiences));
+            if (audiences.Any(audience => string.IsNullOrEmpty(audience) || audience.Contains(" "))) {
+                throw new ArgumentException("The audiences cannot be null, empty or contain spaces.", nameof(audiences));
             }
 
             ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.Audiences] =
@@ -1181,8 +1181,8 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 return ticket;
             }
 
-            if (presenters.Any(presenter => presenter.Contains(" "))) {
-                throw new ArgumentException("The presenters cannot contain spaces.", nameof(presenters));
+            if (presenters.Any(presenter => string.IsNullOrEmpty(presenter) || presenter.Contains(" "))) {
+                throw new ArgumentException("The presenters cannot be null, empty or contain spaces.", nameof(presenters));
             }
 
             ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.Presenters] =
@@ -1222,8 +1222,8 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 return ticket;
             }
 
-            if (resources.Any(resource => resource.Contains(" "))) {
-                throw new ArgumentException("The resources cannot contain spaces.", nameof(resources));
+            if (resources.Any(resource => string.IsNullOrEmpty(resource) || resource.Contains(" "))) {
+                throw new ArgumentException("The resources cannot be null, empty or contain spaces.", nameof(resources));
             }
 
             ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.Resources] =
@@ -1263,8 +1263,8 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 return ticket;
             }
 
-            if (scopes.Any(scope => scope.Contains(" "))) {
-                throw new ArgumentException("The scopes cannot contain spaces.", nameof(scopes));
+            if (scopes.Any(scope => string.IsNullOrEmpty(scope) || scope.Contains(" "))) {
+                throw new ArgumentException("The scopes cannot be null, empty or contain spaces.", nameof(scopes));
             }
 
             ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.Scopes] =
