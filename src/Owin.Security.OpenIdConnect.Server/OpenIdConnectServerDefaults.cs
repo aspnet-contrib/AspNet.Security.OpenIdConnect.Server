@@ -8,22 +8,12 @@ using Microsoft.Owin.Security;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
-    /// Default values used by authorization server and bearer authentication.
+    /// Exposes the default values used by the OpenID Connect server middleware.
     /// </summary>
     public static class OpenIdConnectServerDefaults {
         /// <summary>
         /// Default value for <see cref="AuthenticationOptions.AuthenticationType"/>.
         /// </summary>
         public const string AuthenticationType = "ASOS";
-
-        /// <summary>
-        /// Default value for <see cref="OpenIdConnectServerOptions.ConfigurationEndpointPath"/>.
-        /// </summary>
-        public const string ConfigurationEndpointPath = "/.well-known/openid-configuration";
-
-        /// <summary>
-        /// Default value for <see cref="OpenIdConnectServerOptions.CryptographyEndpointPath"/>.
-        /// </summary>
-        public const string CryptographyEndpointPath = "/.well-known/jwks";
     }
 }

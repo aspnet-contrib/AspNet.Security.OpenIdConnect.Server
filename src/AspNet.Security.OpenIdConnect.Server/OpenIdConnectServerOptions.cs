@@ -53,14 +53,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// with this instance. Must begin with a leading slash, like "/.well-known/openid-configuration".
         /// This setting can be set to <see cref="PathString.Empty"/> to disable the configuration endpoint.
         /// </summary>
-        public PathString ConfigurationEndpointPath { get; set; } = new PathString(OpenIdConnectServerDefaults.ConfigurationEndpointPath);
+        public PathString ConfigurationEndpointPath { get; set; } = "/.well-known/openid-configuration";
 
         /// <summary>
         /// The request path where client applications will be able to retrieve the JSON Web Key Set
         /// associated with this instance. Must begin with a leading slash, like "/.well-known/jwks".
         /// This setting can be set to <see cref="PathString.Empty"/> to disable the cryptography endpoint.
         /// </summary>
-        public PathString CryptographyEndpointPath { get; set; } = new PathString(OpenIdConnectServerDefaults.CryptographyEndpointPath);
+        public PathString CryptographyEndpointPath { get; set; } = "/.well-known/jwks";
 
         /// <summary>
         /// The request path client applications communicate with to validate an access, identity or refresh token.
@@ -189,9 +189,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public ISystemClock SystemClock { get; set; } = new SystemClock();
 
         /// <summary>
-        /// Gets or sets the boolean indicating whether incoming requests arriving on non-HTTPS endpoints should be rejected.
-        /// By default, this property is set to <c>false</c> but is automatically enabled when running in a development environment.
-        /// Setting this option to <c>false</c> in production is strongly encouraged to mitigate man-in-the-middle attacks.
+        /// Gets or sets a boolean indicating whether incoming requests arriving on non-HTTPS endpoints should be rejected.
+        /// By default, this property is set to <c>false</c> to help mitigate man-in-the-middle attacks.
         /// </summary>
         public bool AllowInsecureHttp { get; set; }
 

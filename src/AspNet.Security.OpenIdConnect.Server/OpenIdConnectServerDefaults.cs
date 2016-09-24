@@ -8,22 +8,12 @@ using Microsoft.AspNetCore.Builder;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     /// <summary>
-    /// Default values used by authorization server.
+    /// Exposes the default values used by the OpenID Connect server middleware.
     /// </summary>
     public static class OpenIdConnectServerDefaults {
         /// <summary>
         /// Default value for <see cref="AuthenticationOptions.AuthenticationScheme"/>.
         /// </summary>
         public const string AuthenticationScheme = "ASOS";
-
-        /// <summary>
-        /// Default value for <see cref="OpenIdConnectServerOptions.ConfigurationEndpointPath"/>.
-        /// </summary>
-        public const string ConfigurationEndpointPath = "/.well-known/openid-configuration";
-
-        /// <summary>
-        /// Default value for <see cref="OpenIdConnectServerOptions.CryptographyEndpointPath"/>.
-        /// </summary>
-        public const string CryptographyEndpointPath = "/.well-known/jwks";
     }
 }
