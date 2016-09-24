@@ -225,28 +225,29 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     });
                 }
 
-                // Ensure a code_challenge was specified if a code_challenge_method was used.
-                else if (!string.IsNullOrEmpty(request.CodeChallengeMethod) &&
-                          string.IsNullOrEmpty(request.CodeChallenge)) {
-                    Logger.LogError("The authorization request was rejected because the code_challenge was missing.");
+                if (!string.IsNullOrEmpty(request.CodeChallengeMethod)) {
+                    // Ensure a code_challenge was specified if a code_challenge_method was used.
+                    if (string.IsNullOrEmpty(request.CodeChallenge)) {
+                        Logger.LogError("The authorization request was rejected because the code_challenge was missing.");
 
-                    return await SendAuthorizationResponseAsync(request, new OpenIdConnectResponse {
-                        Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                        ErrorDescription = "The 'code_challenge_method' parameter " +
-                                           "cannot be used without 'code_challenge'."
-                    });
-                }
+                        return await SendAuthorizationResponseAsync(request, new OpenIdConnectResponse {
+                            Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                            ErrorDescription = "The 'code_challenge_method' parameter " +
+                                               "cannot be used without 'code_challenge'."
+                        });
+                    }
 
-                // If a code_challenge_method was specified, ensure the algorithm is supported.
-                else if (request.CodeChallengeMethod != OpenIdConnectConstants.CodeChallengeMethods.Plain &&
-                         request.CodeChallengeMethod != OpenIdConnectConstants.CodeChallengeMethods.Sha256) {
-                    Logger.LogError("The authorization request was rejected because " +
-                                    "the specified code challenge was not supported.");
+                    // If a code_challenge_method was specified, ensure the algorithm is supported.
+                    if (request.CodeChallengeMethod != OpenIdConnectConstants.CodeChallengeMethods.Plain &&
+                        request.CodeChallengeMethod != OpenIdConnectConstants.CodeChallengeMethods.Sha256) {
+                        Logger.LogError("The authorization request was rejected because " +
+                                        "the specified code challenge was not supported.");
 
-                    return await SendAuthorizationResponseAsync(request, new OpenIdConnectResponse {
-                        Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                        ErrorDescription = "The specified code_challenge_method is not supported."
-                    });
+                        return await SendAuthorizationResponseAsync(request, new OpenIdConnectResponse {
+                            Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                            ErrorDescription = "The specified code_challenge_method is not supported."
+                        });
+                    }
                 }
             }
 
