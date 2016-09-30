@@ -151,9 +151,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             identity = (ClaimsIdentity) ticket.Principal.Identity;
 
             // Store the "unique_id" property as a claim.
-            identity.AddClaim(notification.SecurityTokenHandler is JwtSecurityTokenHandler ?
-                OpenIdConnectConstants.Claims.JwtId :
-                OpenIdConnectConstants.Claims.TokenId, ticket.GetTicketId());
+            identity.AddClaim(OpenIdConnectConstants.Claims.JwtId, ticket.GetTicketId());
 
             // Store the "usage" property as a claim.
             identity.AddClaim(OpenIdConnectConstants.Claims.Usage, ticket.GetUsage());
@@ -170,93 +168,59 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 identity.AddClaim(OpenIdConnectConstants.Claims.Scope, scope);
             }
 
-            var handler = notification.SecurityTokenHandler as JwtSecurityTokenHandler;
-            if (handler != null) {
-                // Note: when used as an access token, a JWT token doesn't have to expose a "sub" claim
-                // but the name identifier claim is used as a substitute when it has been explicitly added.
-                // See https://tools.ietf.org/html/rfc7519#section-4.1.2
-                var subject = identity.FindFirst(OpenIdConnectConstants.Claims.Subject);
-                if (subject == null) {
-                    var identifier = identity.FindFirst(ClaimTypes.NameIdentifier);
-                    if (identifier != null) {
-                        identity.AddClaim(OpenIdConnectConstants.Claims.Subject, identifier.Value);
-                    }
+            // Note: when used as an access token, a JWT token doesn't have to expose a "sub" claim
+            // but the name identifier claim is used as a substitute when it has been explicitly added.
+            // See https://tools.ietf.org/html/rfc7519#section-4.1.2
+            var subject = identity.FindFirst(OpenIdConnectConstants.Claims.Subject);
+            if (subject == null) {
+                var identifier = identity.FindFirst(ClaimTypes.NameIdentifier);
+                if (identifier != null) {
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, identifier.Value);
                 }
-
-                // Remove the ClaimTypes.NameIdentifier claims to avoid getting duplicate claims.
-                // Note: the "sub" claim is automatically mapped by JwtSecurityTokenHandler
-                // to ClaimTypes.NameIdentifier when validating a JWT token.
-                // Note: make sure to call ToArray() to avoid an InvalidOperationException
-                // on old versions of Mono, where FindAll() is implemented using an iterator.
-                foreach (var claim in identity.FindAll(ClaimTypes.NameIdentifier).ToArray()) {
-                    identity.RemoveClaim(claim);
-                }
-
-                // Store the audiences as claims.
-                foreach (var audience in notification.Audiences) {
-                    identity.AddClaim(OpenIdConnectConstants.Claims.Audience, audience);
-                }
-
-                // Extract the presenters from the authentication ticket.
-                var presenters = notification.Presenters.ToArray();
-                switch (presenters.Length) {
-                    case 0: break;
-
-                    case 1:
-                        identity.AddClaim(OpenIdConnectConstants.Claims.AuthorizedParty, presenters[0]);
-                        break;
-
-                    default:
-                        Logger.LogWarning("Multiple presenters have been associated with the access token " +
-                                          "but the JWT format only accepts single values.");
-
-                        // Only add the first authorized party.
-                        identity.AddClaim(OpenIdConnectConstants.Claims.AuthorizedParty, presenters[0]);
-                        break;
-                }
-
-                var token = handler.CreateJwtSecurityToken(
-                    subject: identity,
-                    issuer: notification.Issuer,
-                    signingCredentials: notification.SigningCredentials,
-                    issuedAt: ticket.Properties.IssuedUtc.Value.UtcDateTime,
-                    notBefore: ticket.Properties.IssuedUtc.Value.UtcDateTime,
-                    expires: ticket.Properties.ExpiresUtc.Value.UtcDateTime);
-
-                var x509SecurityKey = notification.SigningCredentials.Key as X509SecurityKey;
-                if (x509SecurityKey != null) {
-                    // Note: unlike "kid", "x5t" is not automatically added by JwtHeader's constructor in IdentityModel for .NET Core.
-                    // Though not required by the specifications, this property is needed for IdentityModel for Katana to work correctly.
-                    // See https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server/issues/132
-                    // and https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet/issues/181.
-                    token.Header[JwtHeaderParameterNames.X5t] = Base64UrlEncoder.Encode(x509SecurityKey.Certificate.GetCertHash());
-                }
-
-                return handler.WriteToken(token);
             }
 
-            else {
-                var token = notification.SecurityTokenHandler.CreateToken(new SecurityTokenDescriptor {
-                    Subject = identity,
-                    Issuer = notification.Issuer,
-                    Audience = notification.Audiences.ElementAtOrDefault(0),
-                    SigningCredentials = notification.SigningCredentials,
-                    IssuedAt = notification.Ticket.Properties.IssuedUtc.Value.UtcDateTime,
-                    NotBefore = notification.Ticket.Properties.IssuedUtc.Value.UtcDateTime,
-                    Expires = notification.Ticket.Properties.ExpiresUtc.Value.UtcDateTime
-                });
-
-                // Note: the security token is manually serialized to prevent
-                // an exception from being thrown if the handler doesn't implement
-                // the SecurityTokenHandler.WriteToken overload returning a string.
-                var builder = new StringBuilder();
-                using (var writer = XmlWriter.Create(builder, new XmlWriterSettings {
-                    Encoding = new UTF8Encoding(false), OmitXmlDeclaration = true })) {
-                    notification.SecurityTokenHandler.WriteToken(writer, token);
-                }
-
-                return builder.ToString();
+            // Remove the ClaimTypes.NameIdentifier claims to avoid getting duplicate claims.
+            // Note: the "sub" claim is automatically mapped by JwtSecurityTokenHandler
+            // to ClaimTypes.NameIdentifier when validating a JWT token.
+            // Note: make sure to call ToArray() to avoid an InvalidOperationException
+            // on old versions of Mono, where FindAll() is implemented using an iterator.
+            foreach (var claim in identity.FindAll(ClaimTypes.NameIdentifier).ToArray()) {
+                identity.RemoveClaim(claim);
             }
+
+            // Store the audiences as claims.
+            foreach (var audience in notification.Audiences) {
+                identity.AddClaim(OpenIdConnectConstants.Claims.Audience, audience);
+            }
+
+            // Extract the presenters from the authentication ticket.
+            var presenters = notification.Presenters.ToArray();
+            switch (presenters.Length) {
+                case 0: break;
+
+                case 1:
+                    identity.AddClaim(OpenIdConnectConstants.Claims.AuthorizedParty, presenters[0]);
+                    break;
+
+                default:
+                    Logger.LogWarning("Multiple presenters have been associated with the access token " +
+                                      "but the JWT format only accepts single values.");
+
+                    // Only add the first authorized party.
+                    identity.AddClaim(OpenIdConnectConstants.Claims.AuthorizedParty, presenters[0]);
+                    break;
+            }
+
+            var token = notification.SecurityTokenHandler.CreateToken(new SecurityTokenDescriptor {
+                Subject = identity,
+                Issuer = notification.Issuer,
+                SigningCredentials = notification.SigningCredentials,
+                IssuedAt = notification.Ticket.Properties.IssuedUtc?.UtcDateTime,
+                NotBefore = notification.Ticket.Properties.IssuedUtc?.UtcDateTime,
+                Expires = notification.Ticket.Properties.ExpiresUtc?.UtcDateTime
+            });
+
+            return notification.SecurityTokenHandler.WriteToken(token);
         }
 
         private async Task<string> SerializeIdentityTokenAsync(
@@ -421,22 +385,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     break;
             }
 
-            var token = notification.SecurityTokenHandler.CreateJwtSecurityToken(
-                subject: identity,
-                issuer: notification.Issuer,
-                signingCredentials: notification.SigningCredentials,
-                issuedAt: ticket.Properties.IssuedUtc.Value.UtcDateTime,
-                notBefore: ticket.Properties.IssuedUtc.Value.UtcDateTime,
-                expires: ticket.Properties.ExpiresUtc.Value.UtcDateTime);
-
-            var x509SecurityKey = notification.SigningCredentials.Key as X509SecurityKey;
-            if (x509SecurityKey != null) {
-                // Note: unlike "kid", "x5t" is not automatically added by JwtHeader's constructor in IdentityModel for .NET Core.
-                // Though not required by the specifications, this property is needed for IdentityModel for Katana to work correctly.
-                // See https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server/issues/132
-                // and https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet/issues/181.
-                token.Header[JwtHeaderParameterNames.X5t] = Base64UrlEncoder.Encode(x509SecurityKey.Certificate.GetCertHash());
-            }
+            var token = notification.SecurityTokenHandler.CreateToken(new SecurityTokenDescriptor {
+                Subject = identity,
+                Issuer = notification.Issuer,
+                SigningCredentials = notification.SigningCredentials,
+                IssuedAt = notification.Ticket.Properties.IssuedUtc?.UtcDateTime,
+                NotBefore = notification.Ticket.Properties.IssuedUtc?.UtcDateTime,
+                Expires = notification.Ticket.Properties.ExpiresUtc?.UtcDateTime
+            });
 
             return notification.SecurityTokenHandler.WriteToken(token);
         }
