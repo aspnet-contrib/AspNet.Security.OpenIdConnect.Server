@@ -97,7 +97,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// Specifies a <see cref="OpenIdConnectServerProvider"/> that the <see cref="OpenIdConnectServerMiddleware" />
         /// invokes to enable developer control over the while authentication/authorization process.
         /// </summary>
-        public OpenIdConnectServerProvider Provider { get; set; }
+        public OpenIdConnectServerProvider Provider { get; set; } = new OpenIdConnectServerProvider();
 
         /// <summary>
         /// The data format used to protect and unprotect the information contained in the authorization code.
