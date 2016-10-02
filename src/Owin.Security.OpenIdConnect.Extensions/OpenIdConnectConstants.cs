@@ -169,6 +169,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             public const string GrantType = "grant_type";
             public const string IdToken = "id_token";
             public const string IdTokenHint = "id_token_hint";
+            public const string Keys = "keys";
             public const string Nonce = "nonce";
             public const string Password = "password";
             public const string PostLogoutRedirectUri = "post_logout_redirect_uri";
@@ -229,6 +230,7 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         }
 
         public static class Separators {
+            public static readonly char[] Ampersand = { '&' };
             public static readonly char[] Space = { ' ' };
         }
 

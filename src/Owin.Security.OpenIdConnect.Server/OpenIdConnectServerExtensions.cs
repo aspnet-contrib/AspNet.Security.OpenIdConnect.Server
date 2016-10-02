@@ -8,14 +8,12 @@ using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 using Microsoft.Owin;
-using Microsoft.Owin.Security;
 using Owin.Security.OpenIdConnect.Extensions;
 using Owin.Security.OpenIdConnect.Server;
 
@@ -98,7 +96,8 @@ namespace Owin {
                 new X509IssuerSerialKeyIdentifierClause(certificate),
                 new X509RawDataKeyIdentifierClause(certificate),
                 new X509ThumbprintKeyIdentifierClause(certificate),
-                new LocalIdKeyIdentifierClause(certificate.Thumbprint.ToUpperInvariant())
+                new LocalIdKeyIdentifierClause(certificate.Thumbprint.ToUpperInvariant()),
+                new NamedKeySecurityKeyIdentifierClause(JwtHeaderParameterNames.X5t, certificate.Thumbprint.ToUpperInvariant())
             };
 
             // Mark the security key identifier as read-only to
@@ -338,15 +337,7 @@ namespace Owin {
             }
 
             else if (key.IsSupportedAlgorithm(SecurityAlgorithms.Aes256Encryption)) {
-                // When using an in-memory symmetric key, no identifier clause can be inferred from the key itself.
-                // To prevent the built-in security token handlers from throwing an exception, a default identifier is added.
-                var identifier = new SecurityKeyIdentifier(new LocalIdKeyIdentifierClause("Default"));
-
-                // Mark the security key identifier as read-only to
-                // ensure it can't be altered during a request.
-                identifier.MakeReadOnly();
-
-                credentials.Add(new EncryptingCredentials(key, identifier, SecurityAlgorithms.Aes256Encryption));
+                credentials.Add(new EncryptingCredentials(key, key.GetKeyIdentifier(), SecurityAlgorithms.Aes256Encryption));
 
                 return credentials;
             }
@@ -380,7 +371,8 @@ namespace Owin {
                 new X509IssuerSerialKeyIdentifierClause(certificate),
                 new X509RawDataKeyIdentifierClause(certificate),
                 new X509ThumbprintKeyIdentifierClause(certificate),
-                new LocalIdKeyIdentifierClause(certificate.Thumbprint.ToUpperInvariant())
+                new LocalIdKeyIdentifierClause(certificate.Thumbprint.ToUpperInvariant()),
+                new NamedKeySecurityKeyIdentifierClause(JwtHeaderParameterNames.X5t, certificate.Thumbprint.ToUpperInvariant())
             };
 
             // Mark the security key identifier as read-only to
@@ -619,16 +611,8 @@ namespace Owin {
             }
 
             else if (key.IsSupportedAlgorithm(SecurityAlgorithms.HmacSha256Signature)) {
-                // When using an in-memory symmetric key, no identifier clause can be inferred from the key itself.
-                // To prevent the built-in security token handlers from throwing an exception, a default identifier is added.
-                var identifier = new SecurityKeyIdentifier(new LocalIdKeyIdentifierClause("Default"));
-
-                // Mark the security key identifier as read-only to
-                // ensure it can't be altered during a request.
-                identifier.MakeReadOnly();
-
                 credentials.Add(new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature,
-                                                            SecurityAlgorithms.Sha256Digest, identifier));
+                                                            SecurityAlgorithms.Sha256Digest, key.GetKeyIdentifier()));
 
                 return credentials;
             }
@@ -715,86 +699,5 @@ namespace Owin {
 
             context.Set(OpenIdConnectConstants.Environment.Response, response);
         }
-
-        /// <summary>
-        /// Add information into the response environment that will cause the authentication
-        /// middleware to return a forbidden response to the caller. This also changes the status
-        /// code of the response to 403. The nature of that challenge varies greatly, and ranges
-        /// from adding a response header or changing the 403 status code to a 302 redirect.
-        /// </summary>
-        /// <param name="manager">
-        /// The authentication manager used to manage challenges.
-        /// </param>
-        /// <param name="properties">
-        /// Additional arbitrary values which may be used by particular authentication types.
-        /// </param>
-        /// <param name="schemes">
-        /// Identify which middleware should perform their alterations on the response. If
-        /// the authenticationTypes is null or empty, that means the AuthenticationMode.Active
-        /// middleware should perform their alterations on the response.
-        /// </param>
-        public static void Forbid(
-            [NotNull] this IAuthenticationManager manager,
-            [NotNull] AuthenticationProperties properties, [NotNull] params string[] schemes) {
-            // Note: unlike ASP.NET Core's AuthenticationManager, Katana's manager doesn't natively support "forbidden responses".
-            // To work around this limitation, this extension backports ASP.NET Core's ForbidAsync method to OWIN/Katana.
-
-            if (manager == null) {
-                throw new ArgumentNullException(nameof(manager));
-            }
-
-            if (properties == null) {
-                throw new ArgumentNullException(nameof(properties));
-            }
-
-            if (schemes == null) {
-                throw new ArgumentNullException(nameof(schemes));
-            }
-
-            // Note: the OWIN context is not exposed by IAuthenticationManager
-            // but can be extracted from the default implementation using reflection.
-            var context = manager.GetType()
-                                 .GetField("_context", BindingFlags.Instance | BindingFlags.NonPublic)
-                                ?.GetValue(manager) as IOwinContext;
-            if (context == null) {
-                throw new InvalidOperationException("This method can only be used with the default AuthenticationManager implementation.");
-            }
-
-            var challenge = manager.AuthenticationResponseChallenge;
-            if (challenge == null) {
-                manager.AuthenticationResponseChallenge = new AuthenticationResponseChallenge(schemes, properties);
-
-                return;
-            }
-
-            // Concat the authentication schemes used by the prior
-            // challenge with the schemes specified by the caller.
-            var types = challenge.AuthenticationTypes.Concat(schemes).ToArray();
-
-            if (properties != null && !ReferenceEquals(properties.Dictionary, challenge.Properties.Dictionary)) {
-                foreach (var item in properties.Dictionary) {
-                    challenge.Properties.Dictionary[item.Key] = item.Value;
-                }
-            }
-
-            manager.AuthenticationResponseChallenge = new AuthenticationResponseChallenge(types, challenge.Properties);
-        }
-
-        /// <summary>
-        /// Add information into the response environment that will cause the authentication
-        /// middleware to return a forbidden response to the caller. This also changes the status
-        /// code of the response to 403. The nature of that challenge varies greatly, and ranges
-        /// from adding a response header or changing the 403 status code to a 302 redirect.
-        /// </summary>
-        /// <param name="manager">
-        /// The authentication manager used to manage challenges.
-        /// </param>
-        /// <param name="schemes">
-        /// Identify which middleware should perform their alterations on the response. If
-        /// the authenticationTypes is null or empty, that means the AuthenticationMode.Active
-        /// middleware should perform their alterations on the response.
-        /// </param>
-        public static void Forbid([NotNull] this IAuthenticationManager manager, [NotNull] params string[] schemes)
-            => manager.Forbid(new AuthenticationProperties(), schemes);
     }
 }

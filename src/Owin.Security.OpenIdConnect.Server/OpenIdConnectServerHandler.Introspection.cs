@@ -305,8 +305,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     foreach (var claim in ticket.Identity.Claims) {
                         // Exclude standard claims, that are already handled via strongly-typed properties.
                         // Make sure to always update this list when adding new built-in claim properties.
-                        if (string.Equals(claim.Type, ticket.Identity.NameClaimType, StringComparison.Ordinal) ||
-                            string.Equals(claim.Type, ClaimTypes.NameIdentifier, StringComparison.Ordinal)) {
+                        if (string.Equals(claim.Type, ClaimTypes.NameIdentifier, StringComparison.Ordinal)) {
                             continue;
                         }
 

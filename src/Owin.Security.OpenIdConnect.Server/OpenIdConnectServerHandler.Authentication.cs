@@ -299,7 +299,14 @@ namespace Owin.Security.OpenIdConnect.Server {
                 });
             }
 
-            return false;
+            // If an authentication ticket was provided, stop processing
+            // the request and return an authorization response.
+            var ticket = notification.Ticket;
+            if (ticket == null) {
+                return false;
+            }
+
+            return await HandleSignInAsync(ticket);
         }
 
         private async Task<bool> SendAuthorizationResponseAsync(

@@ -419,27 +419,27 @@ namespace Owin.Security.OpenIdConnect.Server {
                     N = Base64UrlEncoder.Encode(parameters.Modulus)
                 };
 
-                X509Certificate2 x509Certificate = null;
+                X509Certificate2 certificate = null;
 
                 // Determine whether the encrypting credentials are directly based on a X.509 certificate.
                 var x509EncryptingCredentials = credentials as X509EncryptingCredentials;
                 if (x509EncryptingCredentials != null) {
-                    x509Certificate = x509EncryptingCredentials.Certificate;
+                    certificate = x509EncryptingCredentials.Certificate;
                 }
 
                 // Skip looking for a X509SecurityKey in EncryptingCredentials.SecurityKey
                 // if a certificate has been found in the EncryptingCredentials instance.
-                if (x509Certificate == null) {
+                if (certificate == null) {
                     // Determine whether the security key is an asymmetric key embedded in a X.509 certificate.
                     var x509SecurityKey = credentials.SecurityKey as X509SecurityKey;
                     if (x509SecurityKey != null) {
-                        x509Certificate = x509SecurityKey.Certificate;
+                        certificate = x509SecurityKey.Certificate;
                     }
                 }
 
                 // Skip looking for a X509AsymmetricSecurityKey in EncryptingCredentials.SecurityKey
                 // if a certificate has been found in EncryptingCredentials or EncryptingCredentials.SecurityKey.
-                if (x509Certificate == null) {
+                if (certificate == null) {
                     // Determine whether the security key is an asymmetric key embedded in a X.509 certificate.
                     var x509AsymmetricSecurityKey = credentials.SecurityKey as X509AsymmetricSecurityKey;
                     if (x509AsymmetricSecurityKey != null) {
@@ -450,21 +450,21 @@ namespace Owin.Security.OpenIdConnect.Server {
                             bindingAttr: BindingFlags.Instance | BindingFlags.NonPublic);
                         Debug.Assert(field != null);
 
-                        x509Certificate = (X509Certificate2) field.GetValue(x509AsymmetricSecurityKey);
+                        certificate = (X509Certificate2) field.GetValue(x509AsymmetricSecurityKey);
                     }
                 }
 
                 // If the encryption key is embedded in a X.509 certificate, set
                 // the x5t and x5c parameters using the certificate details.
-                if (x509Certificate != null) {
+                if (certificate != null) {
                     // x5t must be base64url-encoded.
                     // See https://tools.ietf.org/html/rfc7517#section-4.8
-                    key.X5t = Base64UrlEncoder.Encode(x509Certificate.GetCertHash());
+                    key.X5t = Base64UrlEncoder.Encode(certificate.GetCertHash());
 
                     // Unlike E or N, the certificates contained in x5c
                     // must be base64-encoded and not base64url-encoded.
                     // See https://tools.ietf.org/html/rfc7517#section-4.7
-                    key.X5c.Add(Convert.ToBase64String(x509Certificate.RawData));
+                    key.X5c.Add(Convert.ToBase64String(certificate.RawData));
                 }
 
                 notification.Keys.Add(key);
@@ -523,27 +523,27 @@ namespace Owin.Security.OpenIdConnect.Server {
                     N = Base64UrlEncoder.Encode(parameters.Modulus)
                 };
 
-                X509Certificate2 x509Certificate = null;
+                X509Certificate2 certificate = null;
 
                 // Determine whether the signing credentials are directly based on a X.509 certificate.
                 var x509SigningCredentials = credentials as X509SigningCredentials;
                 if (x509SigningCredentials != null) {
-                    x509Certificate = x509SigningCredentials.Certificate;
+                    certificate = x509SigningCredentials.Certificate;
                 }
 
                 // Skip looking for a X509SecurityKey in SigningCredentials.SigningKey
                 // if a certificate has been found in the SigningCredentials instance.
-                if (x509Certificate == null) {
+                if (certificate == null) {
                     // Determine whether the security key is an asymmetric key embedded in a X.509 certificate.
                     var x509SecurityKey = credentials.SigningKey as X509SecurityKey;
                     if (x509SecurityKey != null) {
-                        x509Certificate = x509SecurityKey.Certificate;
+                        certificate = x509SecurityKey.Certificate;
                     }
                 }
 
                 // Skip looking for a X509AsymmetricSecurityKey in SigningCredentials.SigningKey
                 // if a certificate has been found in SigningCredentials or SigningCredentials.SigningKey.
-                if (x509Certificate == null) {
+                if (certificate == null) {
                     // Determine whether the security key is an asymmetric key embedded in a X.509 certificate.
                     var x509AsymmetricSecurityKey = credentials.SigningKey as X509AsymmetricSecurityKey;
                     if (x509AsymmetricSecurityKey != null) {
@@ -554,21 +554,21 @@ namespace Owin.Security.OpenIdConnect.Server {
                             bindingAttr: BindingFlags.Instance | BindingFlags.NonPublic);
                         Debug.Assert(field != null);
 
-                        x509Certificate = (X509Certificate2) field.GetValue(x509AsymmetricSecurityKey);
+                        certificate = (X509Certificate2) field.GetValue(x509AsymmetricSecurityKey);
                     }
                 }
 
                 // If the signing key is embedded in a X.509 certificate, set
                 // the x5t and x5c parameters using the certificate details.
-                if (x509Certificate != null) {
+                if (certificate != null) {
                     // x5t must be base64url-encoded.
                     // See https://tools.ietf.org/html/rfc7517#section-4.8
-                    key.X5t = Base64UrlEncoder.Encode(x509Certificate.GetCertHash());
+                    key.X5t = Base64UrlEncoder.Encode(certificate.GetCertHash());
 
                     // Unlike E or N, the certificates contained in x5c
                     // must be base64-encoded and not base64url-encoded.
                     // See https://tools.ietf.org/html/rfc7517#section-4.7
-                    key.X5c.Add(Convert.ToBase64String(x509Certificate.RawData));
+                    key.X5c.Add(Convert.ToBase64String(certificate.RawData));
                 }
 
                 notification.Keys.Add(key);
@@ -638,7 +638,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 keys.Add(item);
             }
 
-            response[JsonWebKeyParameterNames.Keys] = keys;
+            response[OpenIdConnectConstants.Parameters.Keys] = keys;
 
             return await SendCryptographyResponseAsync(request, response);
         }

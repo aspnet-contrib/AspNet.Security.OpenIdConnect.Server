@@ -1,0 +1,734 @@
+﻿using System.Security.Claims;
+using System.Threading.Tasks;
+using Microsoft.Owin;
+using Newtonsoft.Json;
+using Owin.Security.OpenIdConnect.Extensions;
+using Xunit;
+using static System.Net.Http.HttpMethod;
+
+namespace Owin.Security.OpenIdConnect.Server.Tests {
+    public partial class OpenIdConnectServerHandlerTests {
+        [Theory]
+        [InlineData(nameof(Delete))]
+        [InlineData(nameof(Head))]
+        [InlineData(nameof(Options))]
+        [InlineData(nameof(Put))]
+        [InlineData(nameof(Trace))]
+        public async Task InvokeAuthorizationEndpointAsync_UnexpectedMethodReturnsAnError(string method) {
+            // Arrange
+            var server = CreateAuthorizationServer();
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.SendAsync(method, AuthorizationEndpoint, new OpenIdConnectRequest());
+
+            // Assert
+            Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
+            Assert.Equal("A malformed authorization request has been received: " +
+                         "make sure to use either GET or POST.", response.ErrorDescription);
+        }
+
+        [Theory]
+        [InlineData("custom_error", null, null)]
+        [InlineData("custom_error", "custom_description", null)]
+        [InlineData("custom_error", "custom_description", "custom_uri")]
+        [InlineData(null, "custom_description", null)]
+        [InlineData(null, "custom_description", "custom_uri")]
+        [InlineData(null, null, "custom_uri")]
+        [InlineData(null, null, null)]
+        public async Task InvokeAuthorizationEndpointAsync_ExtractAuthorizationRequest_AllowsRejectingRequest(string error, string description, string uri) {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnExtractAuthorizationRequest = context => {
+                    context.Reject(error, description, uri);
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.GetAsync(AuthorizationEndpoint);
+
+            // Assert
+            Assert.Equal(error ?? OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
+            Assert.Equal(description, response.ErrorDescription);
+            Assert.Equal(uri, response.ErrorUri);
+        }
+
+        [Fact]
+        public async Task InvokeAuthorizationEndpointAsync_ExtractAuthorizationRequest_AllowsHandlingResponse() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnExtractAuthorizationRequest = context => {
+                    context.HandleResponse();
+
+                    context.Response.Headers["Content-Type"] = "application/json";
+
+                    return context.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                        name = "Bob le Magnifique"
+                    }));
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.GetAsync(AuthorizationEndpoint);
+
+            // Assert
+            Assert.Equal("Bob le Magnifique", (string) response["name"]);
+        }
+
+        [Fact]
+        public async Task InvokeAuthorizationEndpointAsync_ExtractAuthorizationRequest_AllowsSkippingToNextMiddleware() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnExtractAuthorizationRequest = context => {
+                    context.SkipToNextMiddleware();
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.GetAsync(AuthorizationEndpoint);
+
+            // Assert
+            Assert.Equal("Bob le Magnifique", (string) response["name"]);
+        }
+
+        [Fact]
+        public async Task InvokeAuthorizationEndpointAsync_MissingClientIdCausesAnError() {
+            // Arrange
+            var server = CreateAuthorizationServer();
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest {
+                ClientId = null
+            });
+
+            // Assert
+            Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
+            Assert.Equal("client_id was missing", response.ErrorDescription);
+        }
+
+        [Fact]
+        public async Task InvokeAuthorizationEndpointAsync_MissingRedirectUriCausesAnErrorForOpenIdRequests() {
+            // Arrange
+            var server = CreateAuthorizationServer();
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest {
+                ClientId = "Fabrikam",
+                RedirectUri = null,
+                Scope = OpenIdConnectConstants.Scopes.OpenId
+            });
+
+            // Assert
+            Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
+            Assert.Equal("redirect_uri must be included when making an OpenID Connect request", response.ErrorDescription);
+        }
+
+        [Theory]
+        [InlineData("/path", "redirect_uri must be absolute")]
+        [InlineData("http://www.fabrikam.com/path#param=value", "redirect_uri must not include a fragment")]
+        public async Task InvokeAuthorizationEndpointAsync_InvalidRedirectUriCausesAnError(string address, string message) {
+            // Arrange
+            var server = CreateAuthorizationServer();
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest {
+                ClientId = "Fabrikam",
+                RedirectUri = address,
+                Scope = OpenIdConnectConstants.Scopes.OpenId
+            });
+
+            // Assert
+            Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
+            Assert.Equal(message, response.ErrorDescription);
+        }
+
+        [Fact]
+        public async Task InvokeAuthorizationEndpointAsync_MissingResponseTypeCausesAnError() {
+            // Arrange
+            var server = CreateAuthorizationServer();
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest {
+                ClientId = "Fabrikam",
+                RedirectUri = "http://www.fabrikam.com/path",
+                ResponseType = null,
+                Scope = OpenIdConnectConstants.Scopes.OpenId
+            });
+
+            // Assert
+            Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
+            Assert.Equal("response_type parameter missing", response.ErrorDescription);
+        }
+
+        [Theory]
+        [InlineData("code id_token", OpenIdConnectConstants.ResponseModes.Query)]
+        [InlineData("code id_token token", OpenIdConnectConstants.ResponseModes.Query)]
+        [InlineData("code token", OpenIdConnectConstants.ResponseModes.Query)]
+        [InlineData("id_token", OpenIdConnectConstants.ResponseModes.Query)]
+        [InlineData("id_token token", OpenIdConnectConstants.ResponseModes.Query)]
+        [InlineData("token", OpenIdConnectConstants.ResponseModes.Query)]
+        public async Task InvokeAuthorizationEndpointAsync_UnsafeResponseModeCausesAnError(string type, string mode) {
+            // Arrange
+            var server = CreateAuthorizationServer();
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest {
+                ClientId = "Fabrikam",
+                RedirectUri = "http://www.fabrikam.com/path",
+                ResponseMode = mode,
+                ResponseType = type,
+                Scope = OpenIdConnectConstants.Scopes.OpenId
+            });
+
+            // Assert
+            Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
+            Assert.Equal("response_type/response_mode combination unsupported", response.ErrorDescription);
+        }
+
+        [Theory]
+        [InlineData("code id_token")]
+        [InlineData("code id_token token")]
+        [InlineData("code token")]
+        [InlineData("id_token")]
+        [InlineData("id_token token")]
+        [InlineData("token")]
+        public async Task InvokeAuthorizationEndpointAsync_MissingNonceCausesAnErrorForOpenIdRequests(string type) {
+            // Arrange
+            var server = CreateAuthorizationServer();
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest {
+                ClientId = "Fabrikam",
+                RedirectUri = "http://www.fabrikam.com/path",
+                ResponseType = type,
+                Scope = OpenIdConnectConstants.Scopes.OpenId
+            });
+
+            // Assert
+            Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
+            Assert.Equal("nonce parameter missing", response.ErrorDescription);
+        }
+
+        [Theory]
+        [InlineData("code id_token")]
+        [InlineData("code id_token token")]
+        [InlineData("id_token")]
+        [InlineData("id_token token")]
+        public async Task InvokeAuthorizationEndpointAsync_MissingOpenIdScopeCausesAnErrorForOpenIdRequests(string type) {
+            // Arrange
+            var server = CreateAuthorizationServer();
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest {
+                ClientId = "Fabrikam",
+                RedirectUri = "http://www.fabrikam.com/path",
+                ResponseType = type
+            });
+
+            // Assert
+            Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
+            Assert.Equal("openid scope missing", response.ErrorDescription);
+        }
+
+        [Theory]
+        [InlineData("code id_token")]
+        [InlineData("code id_token token")]
+        [InlineData("code token")]
+        public async Task InvokeAuthorizationEndpointAsync_CodeResponseTypeCausesAnErrorWhenTokenEndpointIsDisabled(string type) {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.TokenEndpointPath = PathString.Empty;
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest {
+                ClientId = "Fabrikam",
+                Nonce = "n-0S6_WzA2Mj",
+                RedirectUri = "http://www.fabrikam.com/path",
+                ResponseType = type,
+                Scope = OpenIdConnectConstants.Scopes.OpenId
+            });
+
+            // Assert
+            Assert.Equal(OpenIdConnectConstants.Errors.UnsupportedResponseType, response.Error);
+            Assert.Equal("response_type=code is not supported by this server", response.ErrorDescription);
+        }
+
+        [Theory]
+        [InlineData("id_token")]
+        [InlineData("id_token token")]
+        [InlineData("token")]
+        public async Task InvokeAuthorizationEndpointAsync_MissingCodeResponseTypeCausesAnErrorWhenCodeChallengeIsUsed(string type) {
+            // Arrange
+            var server = CreateAuthorizationServer();
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest {
+                ClientId = "Fabrikam",
+                CodeChallenge = "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+                CodeChallengeMethod = OpenIdConnectConstants.CodeChallengeMethods.Sha256,
+                Nonce = "n-0S6_WzA2Mj",
+                RedirectUri = "http://www.fabrikam.com/path",
+                ResponseType = type,
+                Scope = OpenIdConnectConstants.Scopes.OpenId
+            });
+
+            // Assert
+            Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
+            Assert.Equal("The 'code_challenge' and 'code_challenge_method' parameters " +
+                         "can only be used with a response type containing 'code'.", response.ErrorDescription);
+        }
+
+        [Fact]
+        public async Task InvokeAuthorizationEndpointAsync_MissingCodeChallengeCausesAnErrorWhenCodeChallengeMethodIsSpecified() {
+            // Arrange
+            var server = CreateAuthorizationServer();
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest {
+                ClientId = "Fabrikam",
+                CodeChallengeMethod = OpenIdConnectConstants.CodeChallengeMethods.Sha256,
+                RedirectUri = "http://www.fabrikam.com/path",
+                ResponseType = OpenIdConnectConstants.ResponseTypes.Code,
+                Scope = OpenIdConnectConstants.Scopes.OpenId
+            });
+
+            // Assert
+            Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
+            Assert.Equal("The 'code_challenge_method' parameter " +
+                         "cannot be used without 'code_challenge'.", response.ErrorDescription);
+        }
+
+        [Fact]
+        public async Task InvokeAuthorizationEndpointAsync_InvalidCodeChallengeMethodCausesAnError() {
+            // Arrange
+            var server = CreateAuthorizationServer();
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest {
+                ClientId = "Fabrikam",
+                CodeChallenge = "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+                CodeChallengeMethod = "invalid_code_challenge_method",
+                RedirectUri = "http://www.fabrikam.com/path",
+                ResponseType = OpenIdConnectConstants.ResponseTypes.Code,
+                Scope = OpenIdConnectConstants.Scopes.OpenId
+            });
+
+            // Assert
+            Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
+            Assert.Equal("The specified code_challenge_method is not supported.", response.ErrorDescription);
+        }
+
+        [Fact]
+        public async Task InvokeAuthorizationEndpointAsync_CodeChallengeMethodDefaultsToPlain() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnValidateAuthorizationRequest = context => {
+                    context.Validate();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnHandleAuthorizationRequest = context => {
+                    var identity = new ClaimsIdentity(context.Options.AuthenticationType);
+                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+
+                    context.Validate(identity);
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest {
+                ClientId = "Fabrikam",
+                CodeChallenge = "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+                RedirectUri = "http://www.fabrikam.com/path",
+                ResponseType = OpenIdConnectConstants.ResponseTypes.Code,
+                Scope = OpenIdConnectConstants.Scopes.OpenId
+            });
+
+            // Assert
+            Assert.NotNull(response.Code);
+        }
+
+        [Theory]
+        [InlineData("custom_error", null, null)]
+        [InlineData("custom_error", "custom_description", null)]
+        [InlineData("custom_error", "custom_description", "custom_uri")]
+        [InlineData(null, "custom_description", null)]
+        [InlineData(null, "custom_description", "custom_uri")]
+        [InlineData(null, null, "custom_uri")]
+        [InlineData(null, null, null)]
+        public async Task InvokeAuthorizationEndpointAsync_ValidateAuthorizationRequest_AllowsRejectingRequest(string error, string description, string uri) {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnValidateAuthorizationRequest = context => {
+                    context.Reject(error, description, uri);
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest {
+                ClientId = "Fabrikam",
+                RedirectUri = "http://www.fabrikam.com/path",
+                ResponseType = OpenIdConnectConstants.ResponseTypes.Code,
+                Scope = OpenIdConnectConstants.Scopes.OpenId
+            });
+
+            // Assert
+            Assert.Equal(error ?? OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
+            Assert.Equal(description, response.ErrorDescription);
+            Assert.Equal(uri, response.ErrorUri);
+        }
+
+        [Fact]
+        public async Task InvokeAuthorizationEndpointAsync_ValidateAuthorizationRequest_AllowsHandlingResponse() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnValidateAuthorizationRequest = context => {
+                    context.HandleResponse();
+
+                    context.Response.Headers["Content-Type"] = "application/json";
+
+                    return context.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                        name = "Bob le Magnifique"
+                    }));
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest {
+                ClientId = "Fabrikam",
+                RedirectUri = "http://www.fabrikam.com/path",
+                ResponseType = OpenIdConnectConstants.ResponseTypes.Code,
+                Scope = OpenIdConnectConstants.Scopes.OpenId
+            });
+
+            // Assert
+            Assert.Equal("Bob le Magnifique", (string) response["name"]);
+        }
+
+        [Fact]
+        public async Task InvokeAuthorizationEndpointAsync_ValidateAuthorizationRequest_AllowsSkippingToNextMiddleware() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnValidateAuthorizationRequest = context => {
+                    context.SkipToNextMiddleware();
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest {
+                ClientId = "Fabrikam",
+                RedirectUri = "http://www.fabrikam.com/path",
+                ResponseType = OpenIdConnectConstants.ResponseTypes.Code,
+                Scope = OpenIdConnectConstants.Scopes.OpenId
+            });
+
+            // Assert
+            Assert.Equal("Bob le Magnifique", (string) response["name"]);
+        }
+
+        [Fact]
+        public async Task InvokeAuthorizationEndpointAsync_ValidateAuthorizationRequest_SkippedRequestCausesAnError() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnValidateAuthorizationRequest = context => {
+                    context.Skip();
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest {
+                ClientId = "Fabrikam",
+                RedirectUri = "http://www.fabrikam.com/path",
+                ResponseType = OpenIdConnectConstants.ResponseTypes.Code,
+                Scope = OpenIdConnectConstants.Scopes.OpenId
+            });
+
+            // Assert
+            Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
+        }
+
+        [Theory]
+        [InlineData("custom_error", null, null)]
+        [InlineData("custom_error", "custom_description", null)]
+        [InlineData("custom_error", "custom_description", "custom_uri")]
+        [InlineData(null, "custom_description", null)]
+        [InlineData(null, "custom_description", "custom_uri")]
+        [InlineData(null, null, "custom_uri")]
+        [InlineData(null, null, null)]
+        public async Task InvokeAuthorizationEndpointAsync_HandleAuthorizationRequest_AllowsRejectingRequest(string error, string description, string uri) {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnValidateAuthorizationRequest = context => {
+                    context.Validate();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnHandleAuthorizationRequest = context => {
+                    context.Reject(error, description, uri);
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest {
+                ClientId = "Fabrikam",
+                RedirectUri = "http://www.fabrikam.com/path",
+                ResponseType = OpenIdConnectConstants.ResponseTypes.Code,
+                Scope = OpenIdConnectConstants.Scopes.OpenId
+            });
+
+            // Assert
+            Assert.Equal(error ?? OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
+            Assert.Equal(description, response.ErrorDescription);
+            Assert.Equal(uri, response.ErrorUri);
+        }
+
+        [Fact]
+        public async Task InvokeAuthorizationEndpointAsync_HandleAuthorizationRequest_AllowsHandlingResponse() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnValidateAuthorizationRequest = context => {
+                    context.Validate();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnHandleAuthorizationRequest = context => {
+                    context.HandleResponse();
+
+                    context.Response.Headers["Content-Type"] = "application/json";
+
+                    return context.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                        name = "Bob le Magnifique"
+                    }));
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest {
+                ClientId = "Fabrikam",
+                RedirectUri = "http://www.fabrikam.com/path",
+                ResponseType = OpenIdConnectConstants.ResponseTypes.Code,
+                Scope = OpenIdConnectConstants.Scopes.OpenId
+            });
+
+            // Assert
+            Assert.Equal("Bob le Magnifique", (string) response["name"]);
+        }
+
+        [Fact]
+        public async Task InvokeAuthorizationEndpointAsync_HandleAuthorizationRequest_AllowsSkippingToNextMiddleware() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnValidateAuthorizationRequest = context => {
+                    context.Validate();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnHandleAuthorizationRequest = context => {
+                    context.SkipToNextMiddleware();
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest {
+                ClientId = "Fabrikam",
+                RedirectUri = "http://www.fabrikam.com/path",
+                ResponseType = OpenIdConnectConstants.ResponseTypes.Code,
+                Scope = OpenIdConnectConstants.Scopes.OpenId
+            });
+
+            // Assert
+            Assert.Equal("Bob le Magnifique", (string) response["name"]);
+        }
+
+        [Fact]
+        public async Task SendAuthorizationResponseAsync_ApplyAuthorizationResponse_AllowsHandlingResponse() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnValidateAuthorizationRequest = context => {
+                    context.Validate();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnHandleAuthorizationRequest = context => {
+                    var identity = new ClaimsIdentity(context.Options.AuthenticationType);
+                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+
+                    context.Validate(identity);
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnApplyAuthorizationResponse = context => {
+                    context.HandleResponse();
+
+                    context.OwinContext.Response.Headers["Content-Type"] = "application/json";
+
+                    return context.OwinContext.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                        name = "Bob le Magnifique"
+                    }));
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest {
+                ClientId = "Fabrikam",
+                RedirectUri = "http://www.fabrikam.com/path",
+                ResponseType = OpenIdConnectConstants.ResponseTypes.Code,
+                Scope = OpenIdConnectConstants.Scopes.OpenId
+            });
+
+            // Assert
+            Assert.Equal("Bob le Magnifique", (string) response["name"]);
+        }
+
+        [Fact]
+        public async Task SendAuthorizationResponseAsync_ApplyAuthorizationResponse_ResponseContainsCustomParameters() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnValidateAuthorizationRequest = context => {
+                    context.Validate();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnHandleAuthorizationRequest = context => {
+                    var identity = new ClaimsIdentity(context.Options.AuthenticationType);
+                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+
+                    context.Validate(identity);
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnApplyAuthorizationResponse = context => {
+                    context.Response["custom_parameter"] = "custom_value";
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest {
+                ClientId = "Fabrikam",
+                RedirectUri = "http://www.fabrikam.com/path",
+                ResponseType = OpenIdConnectConstants.ResponseTypes.Code,
+                Scope = OpenIdConnectConstants.Scopes.OpenId
+            });
+
+            // Assert
+            Assert.Equal("custom_value", (string) response["custom_parameter"]);
+        }
+
+        [Fact]
+        public async Task SendAuthorizationResponseAsync_UnsupportedResponseModeCausesAnError() {
+            // Note: response_mode validation is deliberately delayed until an authorization response
+            // is returned to allow implementers to override the ApplyAuthorizationResponse event
+            // to support custom response modes. To test this scenario, the request is marked
+            // as validated and a signin grant is applied to return an authorization response.
+
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnValidateAuthorizationRequest = context => {
+                    context.Validate();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnHandleAuthorizationRequest = context => {
+                    var identity = new ClaimsIdentity(context.Options.AuthenticationType);
+                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+
+                    context.Validate(identity);
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest {
+                ClientId = "Fabrikam",
+                RedirectUri = "http://www.fabrikam.com/path",
+                ResponseMode = "unsupported_response_mode",
+                ResponseType = OpenIdConnectConstants.ResponseTypes.Code,
+                Scope = OpenIdConnectConstants.Scopes.OpenId
+            });
+
+            // Assert
+            Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
+            Assert.Equal("response_mode unsupported", response.ErrorDescription);
+        }
+    }
+}

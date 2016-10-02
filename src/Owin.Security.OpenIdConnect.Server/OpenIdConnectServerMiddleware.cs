@@ -61,8 +61,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
             }
 
-            if (Options.AccessTokenHandler != null && !(Options.AccessTokenHandler is ISecurityTokenValidator)) {
-                throw new ArgumentException("The access token handler must implement 'ISecurityTokenValidator'.", nameof(options));
+            if (Options.AccessTokenHandler != null && !(Options.AccessTokenHandler is JwtSecurityTokenHandler)) {
+                throw new ArgumentException("The access token handler must be derived from 'JwtSecurityTokenHandler'.", nameof(options));
             }
 
             if (Options.SigningCredentials.Count == 0) {

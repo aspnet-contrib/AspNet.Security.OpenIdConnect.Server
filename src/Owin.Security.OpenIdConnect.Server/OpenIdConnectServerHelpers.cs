@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.Owin;
+using Owin.Security.OpenIdConnect.Extensions;
 
 namespace Owin.Security.OpenIdConnect.Server {
     internal static class OpenIdConnectServerHelpers {
@@ -57,7 +58,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                     new X509IssuerSerialKeyIdentifierClause(x509SecurityKey.Certificate),
                     new X509RawDataKeyIdentifierClause(x509SecurityKey.Certificate),
                     new X509ThumbprintKeyIdentifierClause(x509SecurityKey.Certificate),
-                    new LocalIdKeyIdentifierClause(x509SecurityKey.Certificate.Thumbprint.ToUpperInvariant())
+                    new LocalIdKeyIdentifierClause(x509SecurityKey.Certificate.Thumbprint.ToUpperInvariant()),
+                    new NamedKeySecurityKeyIdentifierClause(JwtHeaderParameterNames.X5t, x509SecurityKey.Certificate.Thumbprint.ToUpperInvariant())
                 };
             }
 
@@ -87,6 +89,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                     identifier.Add(new RsaKeyIdentifierClause(algorithm));
                     identifier.Add(new LocalIdKeyIdentifierClause(kid));
+                    identifier.Add(new NamedKeySecurityKeyIdentifierClause(JwtHeaderParameterNames.Kid, kid));
                 }
             }
 
@@ -123,21 +126,27 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             switch (algorithm) {
+                case OpenIdConnectConstants.Algorithms.HmacSha256:
                 case SecurityAlgorithms.HmacSha256Signature:
                     return JwtAlgorithms.HMAC_SHA256;
 
+                case OpenIdConnectConstants.Algorithms.HmacSha384:
                 case "http://www.w3.org/2001/04/xmldsig-more#hmac-sha384":
                     return JwtAlgorithms.HMAC_SHA384;
 
+                case OpenIdConnectConstants.Algorithms.HmacSha512:
                 case "http://www.w3.org/2001/04/xmldsig-more#hmac-sha512":
                     return JwtAlgorithms.HMAC_SHA512;
 
+                case OpenIdConnectConstants.Algorithms.RsaSha256:
                 case SecurityAlgorithms.RsaSha256Signature:
                     return JwtAlgorithms.RSA_SHA256;
 
+                case OpenIdConnectConstants.Algorithms.RsaSha384:
                 case "http://www.w3.org/2001/04/xmldsig-more#rsa-sha384":
                     return JwtAlgorithms.RSA_SHA384;
 
+                case OpenIdConnectConstants.Algorithms.RsaSha512:
                 case "http://www.w3.org/2001/04/xmldsig-more#rsa-sha512":
                     return JwtAlgorithms.RSA_SHA512;
 

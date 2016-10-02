@@ -139,9 +139,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             // Store the "unique_id" property as a claim.
-            ticket.Identity.AddClaim(notification.SecurityTokenHandler is JwtSecurityTokenHandler ?
-                OpenIdConnectConstants.Claims.JwtId :
-                OpenIdConnectConstants.Claims.TokenId, ticket.GetTicketId());
+            ticket.Identity.AddClaim(OpenIdConnectConstants.Claims.JwtId, ticket.GetTicketId());
 
             // Store the "usage" property as a claim.
             ticket.Identity.AddClaim(OpenIdConnectConstants.Claims.Usage, ticket.GetUsage());
@@ -158,107 +156,69 @@ namespace Owin.Security.OpenIdConnect.Server {
                 ticket.Identity.AddClaim(OpenIdConnectConstants.Claims.Scope, scope);
             }
 
-            var handler = notification.SecurityTokenHandler as JwtSecurityTokenHandler;
-            if (handler != null) {
-                // Note: when used as an access token, a JWT token doesn't have to expose a "sub" claim
-                // but the name identifier claim is used as a substitute when it has been explicitly added.
-                // See https://tools.ietf.org/html/rfc7519#section-4.1.2
-                var subject = identity.FindFirst(OpenIdConnectConstants.Claims.Subject);
-                if (subject == null) {
-                    var identifier = identity.FindFirst(ClaimTypes.NameIdentifier);
-                    if (identifier != null) {
-                        identity.AddClaim(OpenIdConnectConstants.Claims.Subject, identifier.Value);
-                    }
+            // Note: when used as an access token, a JWT token doesn't have to expose a "sub" claim
+            // but the name identifier claim is used as a substitute when it has been explicitly added.
+            // See https://tools.ietf.org/html/rfc7519#section-4.1.2
+            var subject = ticket.Identity.FindFirst(OpenIdConnectConstants.Claims.Subject);
+            if (subject == null) {
+                var identifier = ticket.Identity.FindFirst(ClaimTypes.NameIdentifier);
+                if (identifier != null) {
+                    ticket.Identity.AddClaim(OpenIdConnectConstants.Claims.Subject, identifier.Value);
                 }
-
-                // Remove the ClaimTypes.NameIdentifier claims to avoid getting duplicate claims.
-                // Note: the "sub" claim is automatically mapped by JwtSecurityTokenHandler
-                // to ClaimTypes.NameIdentifier when validating a JWT token.
-                // Note: make sure to call ToArray() to avoid an InvalidOperationException
-                // on old versions of Mono, where FindAll() is implemented using an iterator.
-                foreach (var claim in ticket.Identity.FindAll(ClaimTypes.NameIdentifier).ToArray()) {
-                    ticket.Identity.RemoveClaim(claim);
-                }
-
-                // Store the audiences as claims.
-                foreach (var audience in notification.Audiences) {
-                    ticket.Identity.AddClaim(OpenIdConnectConstants.Claims.Audience, audience);
-                }
-
-                // Extract the presenters from the authentication ticket.
-                var presenters = notification.Presenters.ToArray();
-                switch (presenters.Length) {
-                    case 0: break;
-
-                    case 1:
-                        identity.AddClaim(OpenIdConnectConstants.Claims.AuthorizedParty, presenters[0]);
-                        break;
-
-                    default:
-                        Options.Logger.LogWarning("Multiple presenters have been associated with the access token " +
-                                                  "but the JWT format only accepts single values.");
-
-                        // Only add the first authorized party.
-                        identity.AddClaim(OpenIdConnectConstants.Claims.AuthorizedParty, presenters[0]);
-                        break;
-                }
-
-                var token = handler.CreateToken(
-                    subject: ticket.Identity,
-                    issuer: notification.Issuer,
-                    signingCredentials: notification.SigningCredentials,
-                    notBefore: ticket.Properties.IssuedUtc.Value.UtcDateTime,
-                    expires: ticket.Properties.ExpiresUtc.Value.UtcDateTime);
-
-                token.Payload[OpenIdConnectConstants.Claims.IssuedAt] =
-                    EpochTime.GetIntDate(ticket.Properties.IssuedUtc.Value.UtcDateTime);
-
-                // Try to extract a key identifier from the signing credentials
-                // and add the "kid" property to the JWT header if applicable.
-                LocalIdKeyIdentifierClause clause = null;
-                if (notification.SigningCredentials.SigningKeyIdentifier.TryFind(out clause)) {
-                    token.Header[JwtHeaderParameterNames.Kid] = clause.LocalId;
-                }
-
-                return handler.WriteToken(token);
             }
 
-            else {
-                var descriptor = new SecurityTokenDescriptor {
-                    Subject = ticket.Identity,
-                    AppliesToAddress = notification.Audiences.ElementAtOrDefault(0),
-                    TokenIssuerName = notification.Issuer,
-                    EncryptingCredentials = notification.EncryptingCredentials,
-                    SigningCredentials = notification.SigningCredentials,
-                    Lifetime = new Lifetime(
-                        notification.Ticket.Properties.IssuedUtc.Value.UtcDateTime,
-                        notification.Ticket.Properties.ExpiresUtc.Value.UtcDateTime)
-                };
-
-                // When the encrypting credentials use an asymmetric key, replace them by a
-                // EncryptedKeyEncryptingCredentials instance to generate a symmetric key.
-                if (descriptor.EncryptingCredentials?.SecurityKey is AsymmetricSecurityKey) {
-                    // Note: EncryptedKeyEncryptingCredentials automatically generates an in-memory key
-                    // that will be encrypted using the original credentials and added to the resulting token
-                    // if the security token handler fully supports token encryption (e.g SAML or SAML2).
-                    descriptor.EncryptingCredentials = new EncryptedKeyEncryptingCredentials(
-                        wrappingCredentials: notification.EncryptingCredentials, keySizeInBits: 256,
-                        encryptionAlgorithm: SecurityAlgorithms.Aes256Encryption);
-                }
-
-                var token = notification.SecurityTokenHandler.CreateToken(descriptor);
-
-                // Note: the security token is manually serialized to prevent
-                // an exception from being thrown if the handler doesn't implement
-                // the SecurityTokenHandler.WriteToken overload returning a string.
-                var builder = new StringBuilder();
-                using (var writer = XmlWriter.Create(builder, new XmlWriterSettings {
-                    Encoding = new UTF8Encoding(false), OmitXmlDeclaration = true })) {
-                    notification.SecurityTokenHandler.WriteToken(writer, token);
-                }
-
-                return builder.ToString();
+            // Remove the ClaimTypes.NameIdentifier claims to avoid getting duplicate claims.
+            // Note: the "sub" claim is automatically mapped by JwtSecurityTokenHandler
+            // to ClaimTypes.NameIdentifier when validating a JWT token.
+            // Note: make sure to call ToArray() to avoid an InvalidOperationException
+            // on old versions of Mono, where FindAll() is implemented using an iterator.
+            foreach (var claim in ticket.Identity.FindAll(ClaimTypes.NameIdentifier).ToArray()) {
+                ticket.Identity.RemoveClaim(claim);
             }
+
+            // Store the audiences as claims.
+            foreach (var audience in notification.Audiences) {
+                ticket.Identity.AddClaim(OpenIdConnectConstants.Claims.Audience, audience);
+            }
+
+            // Extract the presenters from the authentication ticket.
+            var presenters = notification.Presenters.ToArray();
+            switch (presenters.Length) {
+                case 0: break;
+
+                case 1:
+                    ticket.Identity.AddClaim(OpenIdConnectConstants.Claims.AuthorizedParty, presenters[0]);
+                    break;
+
+                default:
+                    Options.Logger.LogWarning("Multiple presenters have been associated with the access token " +
+                                              "but the JWT format only accepts single values.");
+
+                    // Only add the first authorized party.
+                    ticket.Identity.AddClaim(OpenIdConnectConstants.Claims.AuthorizedParty, presenters[0]);
+                    break;
+            }
+
+            if (ticket.Properties.IssuedUtc != null) {
+                ticket.Identity.AddClaim(new Claim(
+                    OpenIdConnectConstants.Claims.IssuedAt,
+                    EpochTime.GetIntDate(ticket.Properties.IssuedUtc.Value.UtcDateTime).ToString(),
+                    ClaimValueTypes.Integer64));
+            }
+
+            var descriptor = new SecurityTokenDescriptor {
+                Subject = ticket.Identity,
+                TokenIssuerName = notification.Issuer,
+                EncryptingCredentials = notification.EncryptingCredentials,
+                SigningCredentials = notification.SigningCredentials,
+                Lifetime = new Lifetime(
+                    notification.Ticket.Properties.IssuedUtc?.UtcDateTime,
+                    notification.Ticket.Properties.ExpiresUtc?.UtcDateTime)
+            };
+
+            var token = notification.SecurityTokenHandler.CreateToken(descriptor);
+
+            return notification.SecurityTokenHandler.WriteToken(token);
         }
 
         private async Task<string> SerializeIdentityTokenAsync(
@@ -414,22 +374,23 @@ namespace Owin.Security.OpenIdConnect.Server {
                     break;
             }
 
-            var token = notification.SecurityTokenHandler.CreateToken(
-                subject: ticket.Identity,
-                issuer: notification.Issuer,
-                signingCredentials: notification.SigningCredentials,
-                notBefore: ticket.Properties.IssuedUtc.Value.UtcDateTime,
-                expires: ticket.Properties.ExpiresUtc.Value.UtcDateTime);
-
-            token.Payload[OpenIdConnectConstants.Claims.IssuedAt] =
-                EpochTime.GetIntDate(ticket.Properties.IssuedUtc.Value.UtcDateTime);
-
-            // Try to extract a key identifier from the signing credentials
-            // and add the "kid" property to the JWT header if applicable.
-            LocalIdKeyIdentifierClause clause = null;
-            if (notification.SigningCredentials.SigningKeyIdentifier.TryFind(out clause)) {
-                token.Header[JwtHeaderParameterNames.Kid] = clause.LocalId;
+            if (ticket.Properties.IssuedUtc != null) {
+                ticket.Identity.AddClaim(new Claim(
+                    OpenIdConnectConstants.Claims.IssuedAt,
+                    EpochTime.GetIntDate(ticket.Properties.IssuedUtc.Value.UtcDateTime).ToString(),
+                    ClaimValueTypes.Integer64));
             }
+
+            var descriptor = new SecurityTokenDescriptor {
+                Subject = ticket.Identity,
+                TokenIssuerName = notification.Issuer,
+                SigningCredentials = notification.SigningCredentials,
+                Lifetime = new Lifetime(
+                    notification.Ticket.Properties.IssuedUtc?.UtcDateTime,
+                    notification.Ticket.Properties.ExpiresUtc?.UtcDateTime)
+            };
+
+            var token = notification.SecurityTokenHandler.CreateToken(descriptor);
 
             return notification.SecurityTokenHandler.WriteToken(token);
         }
@@ -487,6 +448,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             await Options.Provider.DeserializeAuthorizationCode(notification);
 
             if (notification.HandledResponse || notification.Ticket != null) {
+                notification.Ticket.SetUsage(OpenIdConnectConstants.Usages.AuthorizationCode);
+
                 return notification.Ticket;
             }
 
@@ -525,17 +488,11 @@ namespace Owin.Security.OpenIdConnect.Server {
                 ValidateLifetime = false
             };
 
-            if (notification.SecurityTokenHandler is JwtSecurityTokenHandler) {
-                notification.TokenValidationParameters.IssuerSigningTokens =
-                    from credentials in Options.SigningCredentials
-                    where credentials.SigningKeyIdentifier != null
-                    from clause in credentials.SigningKeyIdentifier.OfType<LocalIdKeyIdentifierClause>()
-                    select new NamedKeySecurityToken(OpenIdConnectConstants.Claims.KeyId, clause.LocalId, credentials.SigningKey);
-            }
-
             await Options.Provider.DeserializeAccessToken(notification);
 
             if (notification.HandledResponse || notification.Ticket != null) {
+                notification.Ticket.SetUsage(OpenIdConnectConstants.Usages.AccessToken);
+
                 return notification.Ticket;
             }
 
@@ -635,17 +592,11 @@ namespace Owin.Security.OpenIdConnect.Server {
                 ValidateLifetime = false
             };
 
-            if (notification.SecurityTokenHandler is JwtSecurityTokenHandler) {
-                notification.TokenValidationParameters.IssuerSigningTokens =
-                    from credentials in Options.SigningCredentials
-                    where credentials.SigningKeyIdentifier != null
-                    from clause in credentials.SigningKeyIdentifier.OfType<LocalIdKeyIdentifierClause>()
-                    select new NamedKeySecurityToken(OpenIdConnectConstants.Claims.KeyId, clause.LocalId, credentials.SigningKey);
-            }
-
             await Options.Provider.DeserializeIdentityToken(notification);
 
             if (notification.HandledResponse || notification.Ticket != null) {
+                notification.Ticket.SetUsage(OpenIdConnectConstants.Usages.IdentityToken);
+
                 return notification.Ticket;
             }
 
@@ -729,6 +680,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             await Options.Provider.DeserializeRefreshToken(notification);
 
             if (notification.HandledResponse || notification.Ticket != null) {
+                notification.Ticket.SetUsage(OpenIdConnectConstants.Usages.RefreshToken);
+
                 return notification.Ticket;
             }
 

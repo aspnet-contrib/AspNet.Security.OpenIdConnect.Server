@@ -266,55 +266,43 @@ namespace Owin.Security.OpenIdConnect.Server {
             // OpenIdConnectServerHandler is assumed to be the only middleware allowed to write
             // to the response stream when a response grant has been applied.
 
-            // Stop processing the request if no OpenID Connect
-            // message has been found in the current context.
-            var request = Context.GetOpenIdConnectRequest();
-            if (request == null) {
-                return;
+            // Determine whether a signin response should be
+            // returned and call HandleSignInAsync if necessary.
+            var signin = Helper.LookupSignIn(Options.AuthenticationType);
+            if (signin != null) {
+                // Create a new authentication ticket from the signin context.
+                var ticket = new AuthenticationTicket(signin.Identity, signin.Properties);
+
+                await HandleSignInAsync(ticket);
             }
 
-            if (Response.StatusCode == 200) {
-                // Determine whether a signin response should be
-                // returned and call HandleSignInAsync if necessary.
-                var signin = Helper.LookupSignIn(Options.AuthenticationType);
-                if (signin != null) {
-                    // Create a new authentication ticket from the signin context.
-                    var ticket = new AuthenticationTicket(signin.Identity, signin.Properties);
-
-                    await HandleSignInAsync(ticket);
-                }
-
-                // Determine whether a signin response should be
-                // returned and call HandleLogoutAsync if necessary.
-                var signout = Helper.LookupSignOut(Options.AuthenticationType, Options.AuthenticationMode);
-                if (signout != null) {
-                    await HandleLogoutAsync(signout.Properties);
-                }
+            // Determine whether a signin response should be
+            // returned and call HandleLogoutAsync if necessary.
+            var signout = Helper.LookupSignOut(Options.AuthenticationType, Options.AuthenticationMode);
+            if (signout != null) {
+                await HandleLogoutAsync(signout.Properties);
             }
 
-            if (Response.StatusCode == 403) {
-                // Determine whether a signin response should be returned and call HandleForbiddenAsync if necessary.
-                var challenge = Helper.LookupChallenge(Options.AuthenticationType, Options.AuthenticationMode);
-                if (challenge != null) {
-                    await HandleForbiddenAsync(challenge.Properties);
-                }
+            // Determine whether a signin response should be returned and call HandleForbiddenAsync if necessary.
+            var challenge = Helper.LookupChallenge(Options.AuthenticationType, Options.AuthenticationMode);
+            if (challenge != null) {
+                await HandleForbiddenAsync(challenge.Properties);
             }
         }
 
         private async Task<bool> HandleSignInAsync(AuthenticationTicket ticket) {
-            // Extract the OpenID Connect request from the OWIN context. If it cannot
-            // be found or doesn't correspond to an authorization or token request,
-            // return false to allow the other middleware to process the signin response.
+            // Extract the OpenID Connect request from the OWIN context.
+            // If it cannot be found or doesn't correspond to an authorization
+            // or a token request, throw an InvalidOperationException.
             var request = Context.GetOpenIdConnectRequest();
             if (request == null || (!request.IsAuthorizationRequest() && !request.IsTokenRequest())) {
-                return false;
+                throw new InvalidOperationException("An OpenID Connect response cannot be returned from this endpoint.");
             }
 
-            // Note: if an OpenID Connect response was already generated,
-            // return immediately to avoid overwriting it.
+            // Note: if an OpenID Connect response was already generated, throw an exception.
             var response = Context.GetOpenIdConnectResponse();
             if (response != null) {
-                return false;
+                throw new InvalidOperationException("An OpenID Connect response has already been sent.");
             }
 
             if (!ticket.Identity.HasClaim(claim => claim.Type == ClaimTypes.NameIdentifier)) {
@@ -395,22 +383,18 @@ namespace Owin.Security.OpenIdConnect.Server {
                     }
                 }
 
-                // Note: when the resource/scope parameters added to the OpenID Connect response
-                // are identical to the request parameters, returning them is not necessary.
-                if (request.IsAuthorizationRequest() || (request.IsTokenRequest() && request.IsAuthorizationCodeGrantType())) {
-                    var resources = properties.GetProperty(OpenIdConnectConstants.Properties.Resources);
-                    if (request.IsAuthorizationCodeGrantType() || (!string.IsNullOrEmpty(resources) &&
-                                                                   !string.IsNullOrEmpty(request.Resource) &&
-                                                                   !string.Equals(request.Resource, resources, StringComparison.Ordinal))) {
-                        response.Resource = resources;
-                    }
+                var resources = properties.GetProperty(OpenIdConnectConstants.Properties.Resources);
+                if (request.IsAuthorizationCodeGrantType() || (!string.IsNullOrEmpty(resources) &&
+                                                               !string.IsNullOrEmpty(request.Resource) &&
+                                                               !string.Equals(request.Resource, resources, StringComparison.Ordinal))) {
+                    response.Resource = resources;
+                }
 
-                    var scopes = properties.GetProperty(OpenIdConnectConstants.Properties.Scopes);
-                    if (request.IsAuthorizationCodeGrantType() || (!string.IsNullOrEmpty(scopes) &&
-                                                                   !string.IsNullOrEmpty(request.Scope) &&
-                                                                   !string.Equals(request.Scope, scopes, StringComparison.Ordinal))) {
-                        response.Scope = scopes;
-                    }
+                var scopes = properties.GetProperty(OpenIdConnectConstants.Properties.Scopes);
+                if (request.IsAuthorizationCodeGrantType() || (!string.IsNullOrEmpty(scopes) &&
+                                                               !string.IsNullOrEmpty(request.Scope) &&
+                                                               !string.Equals(request.Scope, scopes, StringComparison.Ordinal))) {
+                    response.Scope = scopes;
                 }
 
                 response.TokenType = OpenIdConnectConstants.TokenTypes.Bearer;
@@ -564,7 +548,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                         continue;
                     }
 
-                    writer.WriteLine("{0}: {1}", parameter.Key, (string) value);
+                    writer.WriteLine("{0}:{1}", parameter.Key, (string) value);
                 }
 
                 writer.Flush();

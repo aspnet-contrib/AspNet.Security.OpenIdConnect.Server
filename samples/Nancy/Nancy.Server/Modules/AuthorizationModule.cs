@@ -153,7 +153,7 @@ namespace Nancy.Server.Modules {
                 // Notify ASOS that the authorization grant has been denied by the resource owner.
                 // Note: OpenIdConnectServerHandler will automatically take care of redirecting
                 // the user agent to the client application using the appropriate response_mode.
-                OwinContext.Authentication.Forbid(OpenIdConnectServerDefaults.AuthenticationType);
+                OwinContext.Authentication.Challenge(OpenIdConnectServerDefaults.AuthenticationType);
 
                 return HttpStatusCode.Forbidden;
             };
