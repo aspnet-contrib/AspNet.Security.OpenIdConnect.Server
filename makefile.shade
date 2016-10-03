@@ -62,6 +62,18 @@ default BUILD_DIR_LOCAL='${Path.Combine(TARGET_DIR_LOCAL, "build")}'
     }
   }
 
+#xunit-test target='test' if='Directory.Exists("test")'
+  @{
+    var projectFiles = Files.Include("test/*/project.json").ToList();
+    if (IsLinux)
+    {
+        projectFiles.Remove("test/Owin.Security.OpenIdConnect.Extensions.Tests/project.json");
+        projectFiles.Remove("test/Owin.Security.OpenIdConnect.Server.Tests/project.json");
+    }
+
+    projectFiles.ForEach(projectFile => DotnetTest(projectFile, Configuration_Local, E("KOREBUILD_DOTNET_TEST_OPTIONS")));
+  }
+
 #build-samples target='compile' if='Directory.Exists("samples") && !BuildSrcOnly'
   @{
     var projectFiles = Files.Include("samples/*/*/project.json").ToList();
