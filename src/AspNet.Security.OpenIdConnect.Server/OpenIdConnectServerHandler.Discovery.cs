@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
@@ -215,83 +214,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 });
             }
 
-            var response = new OpenIdConnectResponse();
-
-            response[OpenIdConnectConstants.Metadata.Issuer] = notification.Issuer;
-
-            if (!string.IsNullOrEmpty(notification.AuthorizationEndpoint)) {
-                response[OpenIdConnectConstants.Metadata.AuthorizationEndpoint] = notification.AuthorizationEndpoint;
-            }
-
-            if (!string.IsNullOrEmpty(notification.CryptographyEndpoint)) {
-                response[OpenIdConnectConstants.Metadata.JwksUri] = notification.CryptographyEndpoint;
-            }
-
-            if (!string.IsNullOrEmpty(notification.IntrospectionEndpoint)) {
-                response[OpenIdConnectConstants.Metadata.IntrospectionEndpoint] = notification.IntrospectionEndpoint;
-            }
-
-            if (!string.IsNullOrEmpty(notification.LogoutEndpoint)) {
-                response[OpenIdConnectConstants.Metadata.EndSessionEndpoint] = notification.LogoutEndpoint;
-            }
-
-            if (!string.IsNullOrEmpty(notification.RevocationEndpoint)) {
-                response[OpenIdConnectConstants.Metadata.RevocationEndpoint] = notification.RevocationEndpoint;
-            }
-
-            if (!string.IsNullOrEmpty(notification.TokenEndpoint)) {
-                response[OpenIdConnectConstants.Metadata.TokenEndpoint] = notification.TokenEndpoint;
-            }
-
-            if (!string.IsNullOrEmpty(notification.UserinfoEndpoint)) {
-                response[OpenIdConnectConstants.Metadata.UserinfoEndpoint] = notification.UserinfoEndpoint;
-            }
-
-            if (notification.CodeChallengeMethods.Count != 0) {
-                response[OpenIdConnectConstants.Metadata.CodeChallengeMethodsSupported] =
-                    JArray.FromObject(notification.CodeChallengeMethods.Distinct());
-            }
-
-            if (notification.GrantTypes.Count != 0) {
-                response[OpenIdConnectConstants.Metadata.GrantTypesSupported] =
-                    JArray.FromObject(notification.GrantTypes.Distinct());
-            }
-
-            if (notification.ResponseModes.Count != 0) {
-                response[OpenIdConnectConstants.Metadata.ResponseModesSupported] =
-                    JArray.FromObject(notification.ResponseModes.Distinct());
-            }
-
-            if (notification.ResponseTypes.Count != 0) {
-                response[OpenIdConnectConstants.Metadata.ResponseTypesSupported] =
-                    JArray.FromObject(notification.ResponseTypes.Distinct());
-            }
-
-            if (notification.SubjectTypes.Count != 0) {
-                response[OpenIdConnectConstants.Metadata.SubjectTypesSupported] =
-                    JArray.FromObject(notification.SubjectTypes.Distinct());
-            }
-
-            if (notification.Scopes.Count != 0) {
-                response[OpenIdConnectConstants.Metadata.ScopesSupported] =
-                    JArray.FromObject(notification.Scopes.Distinct());
-            }
-
-            if (notification.SigningAlgorithms.Count != 0) {
-                response[OpenIdConnectConstants.Metadata.IdTokenSigningAlgValuesSupported] =
-                    JArray.FromObject(notification.SigningAlgorithms.Distinct());
-            }
-
-            foreach (var property in notification.Properties) {
-                // Ignore properties whose value is null.
-                if (property.Value == null) {
-                    continue;
-                }
-
-                response[property.Key] = property.Value;
-            }
-
-            return await SendConfigurationResponseAsync(request, response);
+            return await SendConfigurationResponseAsync(request, new OpenIdConnectResponse(notification.Metadata));
         }
 
         private async Task<bool> InvokeCryptographyEndpointAsync() {
@@ -526,7 +449,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 });
             }
 
-            var response = new OpenIdConnectResponse();
             var keys = new JArray();
 
             foreach (var key in notification.Keys) {
@@ -574,9 +496,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 keys.Add(item);
             }
 
-            response[OpenIdConnectConstants.Parameters.Keys] = keys;
-
-            return await SendCryptographyResponseAsync(request, response);
+            return await SendCryptographyResponseAsync(request, new OpenIdConnectResponse {
+                [OpenIdConnectConstants.Parameters.Keys] = keys
+            });
         }
 
         private async Task<bool> SendConfigurationResponseAsync(OpenIdConnectRequest request, OpenIdConnectResponse response) {

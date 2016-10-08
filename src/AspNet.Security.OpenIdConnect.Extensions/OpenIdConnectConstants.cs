@@ -59,7 +59,6 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
             public const string Scope = "scope";
             public const string StreetAddress = "street_address";
             public const string Subject = "sub";
-            public const string TokenId = "token_id";
             public const string TokenType = "token_type";
             public const string UpdatedAt = "updated_at";
             public const string Usage = "usage";

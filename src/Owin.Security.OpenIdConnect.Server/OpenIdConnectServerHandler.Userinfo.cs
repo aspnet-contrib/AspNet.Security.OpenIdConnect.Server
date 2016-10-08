@@ -9,7 +9,6 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Owin.Security.Infrastructure;
-using Newtonsoft.Json.Linq;
 using Owin.Security.OpenIdConnect.Extensions;
 
 namespace Owin.Security.OpenIdConnect.Server {
@@ -248,80 +247,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 });
             }
 
-            var response = new OpenIdConnectResponse();
-
-            response[OpenIdConnectConstants.Claims.Subject] = notification.Subject;
-
-            if (notification.Address != null) {
-                response[OpenIdConnectConstants.Claims.Address] = notification.Address;
-            }
-
-            if (!string.IsNullOrEmpty(notification.BirthDate)) {
-                response[OpenIdConnectConstants.Claims.Birthdate] = notification.BirthDate;
-            }
-
-            if (!string.IsNullOrEmpty(notification.Email)) {
-                response[OpenIdConnectConstants.Claims.Email] = notification.Email;
-            }
-
-            if (notification.EmailVerified.HasValue) {
-                response[OpenIdConnectConstants.Claims.EmailVerified] = notification.EmailVerified.Value;
-            }
-
-            if (!string.IsNullOrEmpty(notification.FamilyName)) {
-                response[OpenIdConnectConstants.Claims.FamilyName] = notification.FamilyName;
-            }
-
-            if (!string.IsNullOrEmpty(notification.GivenName)) {
-                response[OpenIdConnectConstants.Claims.GivenName] = notification.GivenName;
-            }
-
-            if (!string.IsNullOrEmpty(notification.Issuer)) {
-                response[OpenIdConnectConstants.Claims.Issuer] = notification.Issuer;
-            }
-
-            if (!string.IsNullOrEmpty(notification.PhoneNumber)) {
-                response[OpenIdConnectConstants.Claims.PhoneNumber] = notification.PhoneNumber;
-            }
-
-            if (notification.PhoneNumberVerified.HasValue) {
-                response[OpenIdConnectConstants.Claims.PhoneNumberVerified] = notification.PhoneNumberVerified.Value;
-            }
-
-            if (!string.IsNullOrEmpty(notification.PreferredUsername)) {
-                response[OpenIdConnectConstants.Claims.PreferredUsername] = notification.PreferredUsername;
-            }
-
-            if (!string.IsNullOrEmpty(notification.Profile)) {
-                response[OpenIdConnectConstants.Claims.Profile] = notification.Profile;
-            }
-
-            if (!string.IsNullOrEmpty(notification.Website)) {
-                response[OpenIdConnectConstants.Claims.Website] = notification.Website;
-            }
-
-            switch (notification.Audiences.Count) {
-                case 0: break;
-
-                case 1:
-                    response[OpenIdConnectConstants.Claims.Audience] = notification.Audiences[0];
-                    break;
-
-                default:
-                    response[OpenIdConnectConstants.Claims.Audience] = JArray.FromObject(notification.Audiences);
-                    break;
-            }
-
-            foreach (var claim in notification.Claims) {
-                // Ignore claims whose value is null.
-                if (claim.Value == null) {
-                    continue;
-                }
-
-                response[claim.Key] = claim.Value;
-            }
-
-            return await SendUserinfoResponseAsync(request, response);
+            return await SendUserinfoResponseAsync(request, new OpenIdConnectResponse(notification.Claims));
         }
 
         private async Task<bool> SendUserinfoResponseAsync(OpenIdConnectRequest request, OpenIdConnectResponse response) {

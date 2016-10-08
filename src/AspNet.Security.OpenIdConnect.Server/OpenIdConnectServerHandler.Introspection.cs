@@ -13,7 +13,6 @@ using AspNet.Security.OpenIdConnect.Extensions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json.Linq;
 
@@ -288,6 +287,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             notification.Subject = ticket.Principal.GetClaim(ClaimTypes.NameIdentifier);
 
             notification.IssuedAt = ticket.Properties.IssuedUtc;
+            notification.NotBefore = ticket.Properties.IssuedUtc;
             notification.ExpiresAt = ticket.Properties.ExpiresUtc;
 
             // Copy the audiences extracted from the "aud" claim.
@@ -331,7 +331,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                         // If there's no existing claim with the same type,
                         // simply add the claim as-is without converting it.
-                        if (!notification.Claims.ContainsKey(type)) {
+                        if (notification.Claims[type] == null) {
                             notification.Claims[type] = claim.Value;
 
                             continue;
@@ -378,75 +378,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 });
             }
 
-            var response = new OpenIdConnectResponse();
-
-            response[OpenIdConnectConstants.Claims.Active] = notification.Active;
-
-            // Only add the other properties if
-            // the token is considered as active.
-            if (notification.Active) {
-                if (!string.IsNullOrEmpty(notification.Issuer)) {
-                    response[OpenIdConnectConstants.Claims.Issuer] = notification.Issuer;
-                }
-
-                if (!string.IsNullOrEmpty(notification.Username)) {
-                    response[OpenIdConnectConstants.Claims.Username] = notification.Username;
-                }
-
-                if (!string.IsNullOrEmpty(notification.Subject)) {
-                    response[OpenIdConnectConstants.Claims.Subject] = notification.Subject;
-                }
-
-                if (!string.IsNullOrEmpty(notification.Scope)) {
-                    response[OpenIdConnectConstants.Claims.Scope] = notification.Scope;
-                }
-
-                if (notification.IssuedAt.HasValue) {
-                    response[OpenIdConnectConstants.Claims.IssuedAt] =
-                        EpochTime.GetIntDate(notification.IssuedAt.Value.UtcDateTime);
-
-                    response[OpenIdConnectConstants.Claims.NotBefore] =
-                        EpochTime.GetIntDate(notification.IssuedAt.Value.UtcDateTime);
-                }
-
-                if (notification.ExpiresAt.HasValue) {
-                    response[OpenIdConnectConstants.Claims.ExpiresAt] =
-                        EpochTime.GetIntDate(notification.ExpiresAt.Value.UtcDateTime);
-                }
-
-                if (!string.IsNullOrEmpty(notification.TokenId)) {
-                    response[OpenIdConnectConstants.Claims.JwtId] = notification.TokenId;
-                }
-
-                if (!string.IsNullOrEmpty(notification.TokenType)) {
-                    response[OpenIdConnectConstants.Claims.TokenType] = notification.TokenType;
-                }
-
-                switch (notification.Audiences.Count) {
-                    case 0: break;
-
-                    case 1:
-                        response[OpenIdConnectConstants.Claims.Audience] = notification.Audiences[0];
-                        break;
-
-                    default:
-                        response[OpenIdConnectConstants.Claims.Audience] = JArray.FromObject(notification.Audiences);
-                        break;
-                }
-
-                foreach (var claim in notification.Claims) {
-                    // Ignore claims whose value is null.
-                    if (claim.Value == null) {
-                        continue;
-                    }
-
-                    // Note: make sure to use the indexer
-                    // syntax to avoid duplicate properties.
-                    response[claim.Key] = claim.Value;
-                }
-            }
-
-            return await SendIntrospectionResponseAsync(request, response);
+            return await SendIntrospectionResponseAsync(request, new OpenIdConnectResponse(notification.Claims));
         }
 
         private async Task<bool> SendIntrospectionResponseAsync(OpenIdConnectRequest request, OpenIdConnectResponse response) {

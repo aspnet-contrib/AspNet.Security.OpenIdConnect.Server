@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Authentication;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Xunit;
 using static System.Net.Http.HttpMethod;
 
@@ -521,7 +522,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             Assert.Equal(1451606400, (long) response[OpenIdConnectConstants.Claims.IssuedAt]);
             Assert.Equal(1451606400, (long) response[OpenIdConnectConstants.Claims.NotBefore]);
             Assert.Equal(1483228800, (long) response[OpenIdConnectConstants.Claims.ExpiresAt]);
-            Assert.Equal("Fabrikam", (string) response[OpenIdConnectConstants.Claims.Audience]);
+            Assert.Contains("Fabrikam", (JArray) response[OpenIdConnectConstants.Claims.Audience]);
         }
 
         [Fact]

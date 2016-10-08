@@ -12,7 +12,6 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using System.Xml;
 using Microsoft.Extensions.Logging;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Infrastructure;
@@ -549,10 +548,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 ticket.SetScopes(scopes.Select(claim => claim.Value));
             }
 
-            // Note: the token identifier may be stored in either the token_id claim
-            // or in the jti claim, which is the standard name used by JWT tokens.
-            var identifier = principal.FindFirst(OpenIdConnectConstants.Claims.JwtId) ??
-                             principal.FindFirst(OpenIdConnectConstants.Claims.TokenId);
+            var identifier = principal.FindFirst(OpenIdConnectConstants.Claims.JwtId);
             if (identifier != null) {
                 ticket.SetTicketId(identifier.Value);
             }
