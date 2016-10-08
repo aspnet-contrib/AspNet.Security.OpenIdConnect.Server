@@ -22,16 +22,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
             OpenIdConnectServerOptions options,
             OpenIdConnectRequest request,
             AuthenticationTicket ticket)
-            : base(context, options) {
-            Request = request;
+            : base(context, options, request) {
             Ticket = ticket;
             Validate();
         }
-
-        /// <summary>
-        /// Gets the revocation request.
-        /// </summary>
-        public new OpenIdConnectRequest Request { get; }
 
         /// <summary>
         /// Gets or sets a boolean indicating whether

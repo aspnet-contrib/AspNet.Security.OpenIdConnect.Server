@@ -71,9 +71,9 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                 options.Provider.OnExtractConfigurationRequest = context => {
                     context.HandleResponse();
 
-                    context.Response.Headers[HeaderNames.ContentType] = "application/json";
+                    context.HttpContext.Response.Headers[HeaderNames.ContentType] = "application/json";
 
-                    return context.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                    return context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(new {
                         name = "Bob le Bricoleur"
                     }));
                 };
@@ -144,9 +144,9 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                 options.Provider.OnValidateConfigurationRequest = context => {
                     context.HandleResponse();
 
-                    context.Response.Headers[HeaderNames.ContentType] = "application/json";
+                    context.HttpContext.Response.Headers[HeaderNames.ContentType] = "application/json";
 
-                    return context.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                    return context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(new {
                         name = "Bob le Magnifique"
                     }));
                 };
@@ -472,9 +472,9 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                 options.Provider.OnHandleConfigurationRequest = context => {
                     context.HandleResponse();
 
-                    context.Response.Headers[HeaderNames.ContentType] = "application/json";
+                    context.HttpContext.Response.Headers[HeaderNames.ContentType] = "application/json";
 
-                    return context.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                    return context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(new {
                         name = "Bob le Magnifique"
                     }));
                 };
@@ -622,9 +622,9 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                 options.Provider.OnExtractCryptographyRequest = context => {
                     context.HandleResponse();
 
-                    context.Response.Headers[HeaderNames.ContentType] = "application/json";
+                    context.HttpContext.Response.Headers[HeaderNames.ContentType] = "application/json";
 
-                    return context.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                    return context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(new {
                         name = "Bob le Bricoleur"
                     }));
                 };
@@ -695,9 +695,9 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                 options.Provider.OnValidateCryptographyRequest = context => {
                     context.HandleResponse();
 
-                    context.Response.Headers[HeaderNames.ContentType] = "application/json";
+                    context.HttpContext.Response.Headers[HeaderNames.ContentType] = "application/json";
 
-                    return context.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                    return context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(new {
                         name = "Bob le Magnifique"
                     }));
                 };
@@ -913,9 +913,9 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                 options.Provider.OnHandleCryptographyRequest = context => {
                     context.HandleResponse();
 
-                    context.Response.Headers[HeaderNames.ContentType] = "application/json";
+                    context.HttpContext.Response.Headers[HeaderNames.ContentType] = "application/json";
 
-                    return context.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                    return context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(new {
                         name = "Bob le Magnifique"
                     }));
                 };

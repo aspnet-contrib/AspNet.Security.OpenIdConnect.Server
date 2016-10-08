@@ -5,6 +5,7 @@
  */
 
 using System.Security.Claims;
+using AspNet.Security.OpenIdConnect.Extensions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Authentication;
@@ -20,8 +21,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
         protected BaseValidatingTicketContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
+            OpenIdConnectRequest request,
             AuthenticationTicket ticket)
-            : base(context, options) {
+            : base(context, options, request) {
             Ticket = ticket;
         }
 

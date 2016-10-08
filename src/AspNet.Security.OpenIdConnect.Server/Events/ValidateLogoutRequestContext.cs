@@ -23,9 +23,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             HttpContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectRequest request)
-            : base(context, options) {
-            Request = request;
-
+            : base(context, options, request) {
             // Note: if the optional post_logout_redirect_uri parameter
             // is missing, mark the validation context as skipped.
             // See http://openid.net/specs/openid-connect-session-1_0.html#RPLogout
@@ -33,11 +31,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 Skip();
             }
         }
-
-        /// <summary>
-        /// Gets the authorization request.
-        /// </summary>
-        public new OpenIdConnectRequest Request { get; }
 
         /// <summary>
         /// Gets the post logout redirect URI.

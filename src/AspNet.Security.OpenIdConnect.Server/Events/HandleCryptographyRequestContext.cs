@@ -22,15 +22,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
             HttpContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectRequest request)
-            : base(context, options) {
-            Request = request;
+            : base(context, options, request) {
             Validate();
         }
-
-        /// <summary>
-        /// Gets the cryptography request.
-        /// </summary>
-        public new OpenIdConnectRequest Request { get; }
 
         /// <summary>
         /// Gets a list of the JSON Web Keys found by the authorization server.

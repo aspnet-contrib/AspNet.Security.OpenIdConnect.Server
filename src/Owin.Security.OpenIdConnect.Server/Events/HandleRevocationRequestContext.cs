@@ -22,8 +22,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             OpenIdConnectServerOptions options,
             OpenIdConnectRequest request,
             AuthenticationTicket ticket)
-            : base(context, options) {
-            Request = request;
+            : base(context, options, request) {
             Ticket = ticket;
             Validate();
         }
@@ -32,11 +31,6 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// Gets or sets the authentication ticket.
         /// </summary>
         public AuthenticationTicket Ticket { get; set; }
-
-        /// <summary>
-        /// Gets the revocation request.
-        /// </summary>
-        public new OpenIdConnectRequest Request { get; }
 
         /// <summary>
         /// Gets or sets a boolean indicating whether

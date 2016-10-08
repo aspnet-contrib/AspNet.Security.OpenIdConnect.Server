@@ -4,6 +4,7 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
+using System;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Notifications;
@@ -32,9 +33,16 @@ namespace Owin.Security.OpenIdConnect.Server {
         }
 
         /// <summary>
-        /// Gets the authorization request.
+        /// Gets the OpenID Connect request.
         /// </summary>
         public new OpenIdConnectRequest Request { get; }
+
+        /// <summary>
+        /// Gets the OpenID Connect response.
+        /// </summary>
+        public new OpenIdConnectResponse Response {
+            get { throw new InvalidOperationException("The OpenID Connect response is not available at this stage."); }
+        }
 
         /// <summary>
         /// Gets or sets the authentication ticket.

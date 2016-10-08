@@ -22,14 +22,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             HttpContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectRequest request)
-            : base(context, options) {
-            Request = request;
+            : base(context, options, request) {
             Validate();
         }
-
-        /// <summary>
-        /// Gets or sets the revocation request.
-        /// </summary>
-        public new OpenIdConnectRequest Request { get; set; }
     }
 }

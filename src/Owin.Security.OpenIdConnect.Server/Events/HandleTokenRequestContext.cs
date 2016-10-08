@@ -25,14 +25,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             OpenIdConnectServerOptions options,
             OpenIdConnectRequest request,
             AuthenticationTicket ticket)
-            : base(context, options, ticket) {
-            Request = request;
+            : base(context, options, request, ticket) {
             Validate();
         }
-
-        /// <summary>
-        /// Gets the token endpoint request.
-        /// </summary>
-        public new OpenIdConnectRequest Request { get; }
     }
 }

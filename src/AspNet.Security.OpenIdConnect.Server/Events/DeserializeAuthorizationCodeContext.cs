@@ -4,6 +4,7 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
+using System;
 using AspNet.Security.OpenIdConnect.Extensions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
@@ -37,9 +38,16 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public OpenIdConnectServerOptions Options { get; }
 
         /// <summary>
-        /// Gets the authorization request.
+        /// Gets the OpenID Connect request.
         /// </summary>
         public new OpenIdConnectRequest Request { get; }
+
+        /// <summary>
+        /// Gets the OpenID Connect response.
+        /// </summary>
+        public new OpenIdConnectResponse Response {
+            get { throw new InvalidOperationException("The OpenID Connect response is not available at this stage."); }
+        }
 
         /// <summary>
         /// Gets or sets the data format used to deserialize the authentication ticket.

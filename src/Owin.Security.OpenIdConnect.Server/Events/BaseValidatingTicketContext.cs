@@ -7,6 +7,7 @@
 using System.Security.Claims;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
+using Owin.Security.OpenIdConnect.Extensions;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
@@ -19,8 +20,9 @@ namespace Owin.Security.OpenIdConnect.Server {
         protected BaseValidatingTicketContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
+            OpenIdConnectRequest request,
             AuthenticationTicket ticket)
-            : base(context, options) {
+            : base(context, options, request) {
             Ticket = ticket;
         }
 

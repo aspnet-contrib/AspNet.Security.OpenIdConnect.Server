@@ -25,14 +25,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             OpenIdConnectServerOptions options,
             OpenIdConnectRequest request,
             AuthenticationTicket ticket)
-            : base(context, options, ticket) {
-            Request = request;
+            : base(context, options, request, ticket) {
             Validate();
         }
-
-        /// <summary>
-        /// Gets information about the token endpoint request.
-        /// </summary>
-        public new OpenIdConnectRequest Request { get; }
     }
 }

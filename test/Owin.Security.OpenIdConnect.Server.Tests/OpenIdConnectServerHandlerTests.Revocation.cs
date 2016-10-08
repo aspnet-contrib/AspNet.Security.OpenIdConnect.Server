@@ -66,9 +66,9 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                 options.Provider.OnExtractRevocationRequest = context => {
                     context.HandleResponse();
 
-                    context.Response.Headers["Content-Type"] = "application/json";
+                    context.OwinContext.Response.Headers["Content-Type"] = "application/json";
 
-                    return context.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                    return context.OwinContext.Response.WriteAsync(JsonConvert.SerializeObject(new {
                         name = "Bob le Bricoleur"
                     }));
                 };
@@ -159,9 +159,9 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                 options.Provider.OnValidateRevocationRequest = context => {
                     context.HandleResponse();
 
-                    context.Response.Headers["Content-Type"] = "application/json";
+                    context.OwinContext.Response.Headers["Content-Type"] = "application/json";
 
-                    return context.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                    return context.OwinContext.Response.WriteAsync(JsonConvert.SerializeObject(new {
                         name = "Bob le Magnifique"
                     }));
                 };
@@ -475,9 +475,9 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                 options.Provider.OnHandleRevocationRequest = context => {
                     context.HandleResponse();
 
-                    context.Response.Headers["Content-Type"] = "application/json";
+                    context.OwinContext.Response.Headers["Content-Type"] = "application/json";
 
-                    return context.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                    return context.OwinContext.Response.WriteAsync(JsonConvert.SerializeObject(new {
                         name = "Bob le Magnifique"
                     }));
                 };

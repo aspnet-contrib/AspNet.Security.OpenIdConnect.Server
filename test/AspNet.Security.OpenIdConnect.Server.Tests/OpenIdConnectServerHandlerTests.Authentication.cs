@@ -68,9 +68,9 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                 options.Provider.OnExtractAuthorizationRequest = context => {
                     context.HandleResponse();
 
-                    context.Response.Headers[HeaderNames.ContentType] = "application/json";
+                    context.HttpContext.Response.Headers[HeaderNames.ContentType] = "application/json";
 
-                    return context.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                    return context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(new {
                         name = "Bob le Magnifique"
                     }));
                 };
@@ -436,9 +436,9 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                 options.Provider.OnValidateAuthorizationRequest = context => {
                     context.HandleResponse();
 
-                    context.Response.Headers[HeaderNames.ContentType] = "application/json";
+                    context.HttpContext.Response.Headers[HeaderNames.ContentType] = "application/json";
 
-                    return context.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                    return context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(new {
                         name = "Bob le Magnifique"
                     }));
                 };
@@ -561,9 +561,9 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                 options.Provider.OnHandleAuthorizationRequest = context => {
                     context.HandleResponse();
 
-                    context.Response.Headers[HeaderNames.ContentType] = "application/json";
+                    context.HttpContext.Response.Headers[HeaderNames.ContentType] = "application/json";
 
-                    return context.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                    return context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(new {
                         name = "Bob le Magnifique"
                     }));
                 };

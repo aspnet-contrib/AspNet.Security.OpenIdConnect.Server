@@ -24,16 +24,10 @@ namespace Owin.Security.OpenIdConnect.Server {
             OpenIdConnectServerOptions options,
             OpenIdConnectRequest request,
             AuthenticationTicket ticket)
-            : base(context, options) {
-            Request = request;
+            : base(context, options, request) {
             Ticket = ticket;
             Validate();
         }
-
-        /// <summary>
-        /// Gets the userinfo request.
-        /// </summary>
-        public new OpenIdConnectRequest Request { get; }
 
         /// <summary>
         /// Gets the authentication ticket.

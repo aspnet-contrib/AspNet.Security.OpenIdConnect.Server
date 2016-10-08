@@ -36,12 +36,12 @@ namespace Owin.Security.OpenIdConnect.Server {
         }
 
         /// <summary>
-        /// Gets the authorization or token request.
+        /// Gets the OpenID Connect request.
         /// </summary>
         public new OpenIdConnectRequest Request { get; }
 
         /// <summary>
-        /// Gets the authorization or token response.
+        /// Gets the OpenID Connect response.
         /// </summary>
         public new OpenIdConnectResponse Response { get; }
 

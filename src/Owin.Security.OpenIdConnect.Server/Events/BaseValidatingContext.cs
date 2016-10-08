@@ -4,8 +4,10 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
+using System;
 using Microsoft.Owin;
 using Microsoft.Owin.Security.Notifications;
+using Owin.Security.OpenIdConnect.Extensions;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
@@ -17,9 +19,22 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         protected BaseValidatingContext(
             IOwinContext context,
-            OpenIdConnectServerOptions options)
+            OpenIdConnectServerOptions options,
+            OpenIdConnectRequest request)
             : base(context, options) {
-            IsRejected = true;
+            Request = request;
+        }
+
+        /// <summary>
+        /// Gets the OpenID Connect request.
+        /// </summary>
+        public new OpenIdConnectRequest Request { get; }
+
+        /// <summary>
+        /// Gets the OpenID Connect response.
+        /// </summary>
+        public new OpenIdConnectResponse Response {
+            get { throw new InvalidOperationException("The OpenID Connect response is not available at this stage."); }
         }
 
         /// <summary>
@@ -38,7 +53,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// Gets whether the <see cref="Reject()"/>
         /// method has been called or not.
         /// </summary>
-        public bool IsRejected { get; private set; }
+        public bool IsRejected { get; private set; } = true;
 
         /// <summary>
         /// The error argument provided when <see cref="Reject()"/> was called on this context.

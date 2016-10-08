@@ -41,12 +41,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public OpenIdConnectServerOptions Options { get; }
 
         /// <summary>
-        /// Gets the authorization request.
+        /// Gets the OpenID Connect request.
         /// </summary>
         public new OpenIdConnectRequest Request { get; }
 
         /// <summary>
-        /// Gets the authorization response.
+        /// Gets the OpenID Connect response.
         /// </summary>
         public new OpenIdConnectResponse Response { get; }
 
