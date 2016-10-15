@@ -207,17 +207,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
         }
 #endif
 
-        public static string GenerateKey(this RandomNumberGenerator generator, int length) {
-            if (generator == null) {
-                throw new ArgumentNullException(nameof(generator));
-            }
-
-            var bytes = new byte[length];
-            generator.GetBytes(bytes);
-
-            return Base64UrlEncoder.Encode(bytes);
-        }
-
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         public static bool AreEqual(string first, string second) {
             // Note: these null checks can be theoretically considered as early checks
