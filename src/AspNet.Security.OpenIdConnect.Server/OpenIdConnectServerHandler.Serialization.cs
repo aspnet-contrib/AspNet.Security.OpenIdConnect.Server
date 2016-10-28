@@ -338,7 +338,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             if (request.IsAuthorizationCodeGrantType()) {
                 // Restore the nonce stored in the authentication
                 // ticket extracted from the authorization code.
-                nonce = ticket.GetNonce();
+                nonce = ticket.GetProperty(OpenIdConnectConstants.Properties.Nonce);
             }
 
             if (!string.IsNullOrEmpty(nonce)) {

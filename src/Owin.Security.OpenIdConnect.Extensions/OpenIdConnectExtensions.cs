@@ -220,9 +220,11 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         }
 
         /// <summary>
-        /// True if the "response_type" parameter corresponds to the "none" response type.
-        /// See http://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#none
+        /// Determines whether the "response_type" parameter corresponds to the "none" response type.
+        /// See http://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#none for more information.
         /// </summary>
+        /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
+        /// <returns><c>true</c> if the request is a response_type=none request, <c>false</c> otherwise.</returns>
         public static bool IsNoneFlow([NotNull] this OpenIdConnectRequest request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -232,10 +234,11 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         }
 
         /// <summary>
-        /// True if the "response_type" parameter
-        /// corresponds to the authorization code flow.
-        /// See http://tools.ietf.org/html/rfc6749#section-4.1.1
+        /// Determines whether the "response_type" parameter corresponds to the authorization code flow.
+        /// See http://tools.ietf.org/html/rfc6749#section-4.1.1 for more information.
         /// </summary>
+        /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
+        /// <returns><c>true</c> if the request is a code flow request, <c>false</c> otherwise.</returns>
         public static bool IsAuthorizationCodeFlow([NotNull] this OpenIdConnectRequest request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -245,11 +248,12 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         }
 
         /// <summary>
-        /// True if the "response_type" parameter
-        /// corresponds to the implicit flow.
+        /// Determines whether the "response_type" parameter corresponds to the implicit flow.
         /// See http://tools.ietf.org/html/rfc6749#section-4.2.1 and
-        /// http://openid.net/specs/openid-connect-core-1_0.html
+        /// http://openid.net/specs/openid-connect-core-1_0.html for more information
         /// </summary>
+        /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
+        /// <returns><c>true</c> if the request is an implicit flow request, <c>false</c> otherwise.</returns>
         public static bool IsImplicitFlow([NotNull] this OpenIdConnectRequest request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -266,11 +270,12 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         }
 
         /// <summary>
-        /// True if the "response_type" parameter
-        /// corresponds to the hybrid flow.
+        /// Determines whether the "response_type" parameter corresponds to the hybrid flow.
         /// See http://tools.ietf.org/html/rfc6749#section-4.2.1 and
-        /// http://openid.net/specs/openid-connect-core-1_0.html
+        /// http://openid.net/specs/openid-connect-core-1_0.html for more information.
         /// </summary>
+        /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
+        /// <returns><c>true</c> if the request is an hybrid flow request, <c>false</c> otherwise.</returns>
         public static bool IsHybridFlow([NotNull] this OpenIdConnectRequest request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -288,10 +293,14 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         }
 
         /// <summary>
-        /// True if the "response_mode" parameter is "fragment" or if
-        /// fragment is the default mode for the response_type received.
-        /// See http://openid.net/specs/oauth-v2-multiple-response-types-1_0.html
+        /// Determines whether the "response_mode" parameter corresponds to the fragment response mode.
+        /// See http://openid.net/specs/oauth-v2-multiple-response-types-1_0.html for more information.
         /// </summary>
+        /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
+        /// <returns>
+        /// <c>true</c> if the request specified the fragment response mode or if
+        /// it's the default value for the requested flow, <c>false</c> otherwise.
+        /// </returns>
         public static bool IsFragmentResponseMode([NotNull] this OpenIdConnectRequest request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -313,10 +322,14 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         }
 
         /// <summary>
-        /// True if the "response_mode" parameter is "query" or if
-        /// query is the default mode for the response_type received.
-        /// See http://openid.net/specs/oauth-v2-multiple-response-types-1_0.html
+        /// Determines whether the "response_mode" parameter corresponds to the query response mode.
+        /// See http://openid.net/specs/oauth-v2-multiple-response-types-1_0.html for more information.
         /// </summary>
+        /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
+        /// <returns>
+        /// <c>true</c> if the request specified the query response mode or if
+        /// it's the default value for the requested flow, <c>false</c> otherwise.
+        /// </returns>
         public static bool IsQueryResponseMode([NotNull] this OpenIdConnectRequest request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -337,9 +350,14 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         }
 
         /// <summary>
-        /// True if the "response_mode" parameter is "form_post".
-        /// See http://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html
+        /// Determines whether the "response_mode" parameter corresponds to the form post response mode.
+        /// See http://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html for more information.
         /// </summary>
+        /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
+        /// <returns>
+        /// <c>true</c> if the request specified the form post response mode or if
+        /// it's the default value for the requested flow, <c>false</c> otherwise.
+        /// </returns>
         public static bool IsFormPostResponseMode([NotNull] this OpenIdConnectRequest request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -349,9 +367,11 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         }
 
         /// <summary>
-        /// True when the "grant_type" is "authorization_code".
-        /// See also http://tools.ietf.org/html/rfc6749#section-4.1.3
+        /// Determines whether the "grant_type" parameter corresponds to the authorization code grant.
+        /// See http://tools.ietf.org/html/rfc6749#section-4.1.3 for more information.
         /// </summary>
+        /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
+        /// <returns><c>true</c> if the request is a code grant request, <c>false</c> otherwise.</returns>
         public static bool IsAuthorizationCodeGrantType([NotNull] this OpenIdConnectRequest request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -361,9 +381,11 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         }
 
         /// <summary>
-        /// True when the "grant_type" is "client_credentials".
-        /// See also http://tools.ietf.org/html/rfc6749#section-4.4.2
+        /// Determines whether the "grant_type" parameter corresponds to the client credentials grant.
+        /// See http://tools.ietf.org/html/rfc6749#section-4.4.2 for more information.
         /// </summary>
+        /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
+        /// <returns><c>true</c> if the request is a client credentials grant request, <c>false</c> otherwise.</returns>
         public static bool IsClientCredentialsGrantType([NotNull] this OpenIdConnectRequest request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -373,9 +395,11 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         }
 
         /// <summary>
-        /// True when the "grant_type" is "refresh_token".
-        /// See also http://tools.ietf.org/html/rfc6749#section-6
+        /// Determines whether the "grant_type" parameter corresponds to the refresh token grant.
+        /// See http://tools.ietf.org/html/rfc6749#section-6 for more information.
         /// </summary>
+        /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
+        /// <returns><c>true</c> if the request is a refresh token grant request, <c>false</c> otherwise.</returns>
         public static bool IsRefreshTokenGrantType([NotNull] this OpenIdConnectRequest request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -385,9 +409,11 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         }
 
         /// <summary>
-        /// True when the "grant_type" is "password".
-        /// See also http://tools.ietf.org/html/rfc6749#section-4.3.2
+        /// Determines whether the "grant_type" parameter corresponds to the password grant.
+        /// See http://tools.ietf.org/html/rfc6749#section-4.3.2 for more information.
         /// </summary>
+        /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
+        /// <returns><c>true</c> if the request is a password grant request, <c>false</c> otherwise.</returns>
         public static bool IsPasswordGrantType([NotNull] this OpenIdConnectRequest request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -733,19 +759,6 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                         ?.Split(OpenIdConnectConstants.Separators.Space, StringSplitOptions.RemoveEmptyEntries)
                         ?.Distinct(StringComparer.Ordinal)
                    ?? Enumerable.Empty<string>();
-        }
-
-        /// <summary>
-        /// Gets the nonce stored in the authentication ticket.
-        /// </summary>
-        /// <param name="ticket">The authentication ticket.</param>
-        /// <returns>The nonce or <c>null</c> is the property cannot be found.</returns>
-        public static string GetNonce([NotNull] this AuthenticationTicket ticket) {
-            if (ticket == null) {
-                throw new ArgumentNullException(nameof(ticket));
-            }
-
-            return ticket.GetProperty(OpenIdConnectConstants.Properties.Nonce);
         }
 
         /// <summary>
