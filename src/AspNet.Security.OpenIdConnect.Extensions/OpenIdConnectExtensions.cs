@@ -448,6 +448,10 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
         /// <param name="claim">The <see cref="Claim"/> instance.</param>
         /// <param name="destination">The required destination.</param>
         public static bool HasDestination([NotNull] this Claim claim, string destination) {
+            if (claim == null) {
+                throw new ArgumentNullException(nameof(claim));
+            }
+
             string destinations;
             if (!claim.Properties.TryGetValue(OpenIdConnectConstants.Properties.Destinations, out destinations)) {
                 return false;
@@ -571,11 +575,11 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
             }
 
             if (string.IsNullOrEmpty(type)) {
-                throw new ArgumentException($"{nameof(type)} cannot be null or empty.", nameof(type));
+                throw new ArgumentException("The claim type cannot be null or empty.", nameof(type));
             }
 
             if (string.IsNullOrEmpty(value)) {
-                throw new ArgumentException($"{nameof(value)} cannot be null or empty.", nameof(value));
+                throw new ArgumentException("The claim value cannot be null or empty.", nameof(value));
             }
 
             identity.AddClaim(new Claim(type, value));
@@ -598,11 +602,11 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
             }
 
             if (string.IsNullOrEmpty(type)) {
-                throw new ArgumentException($"{nameof(type)} cannot be null or empty.", nameof(type));
+                throw new ArgumentException("The claim type cannot be null or empty.", nameof(type));
             }
 
             if (string.IsNullOrEmpty(value)) {
-                throw new ArgumentException($"{nameof(value)} cannot be null or empty.", nameof(value));
+                throw new ArgumentException("The claim value cannot be null or empty.", nameof(value));
             }
 
             if (destinations == null) {
@@ -641,7 +645,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
             }
 
             if (string.IsNullOrEmpty(type)) {
-                throw new ArgumentException($"{nameof(type)} cannot be null or empty.", nameof(type));
+                throw new ArgumentException("The claim type cannot be null or empty.", nameof(type));
             }
 
             return identity.FindFirst(type)?.Value;
@@ -659,7 +663,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
             }
 
             if (string.IsNullOrEmpty(type)) {
-                throw new ArgumentException($"{nameof(type)} cannot be null or empty.", nameof(type));
+                throw new ArgumentException("The claim type cannot be null or empty.", nameof(type));
             }
 
             return principal.FindFirst(type)?.Value;
@@ -703,7 +707,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
             }
 
             if (string.IsNullOrEmpty(property)) {
-                throw new ArgumentException($"{nameof(property)} cannot be null or empty.", nameof(property));
+                throw new ArgumentException("The property name cannot be null or empty.", nameof(property));
             }
 
             string value;
