@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Owin;
 using Microsoft.Owin.BuilderProperties;
+using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Infrastructure;
 using Microsoft.Owin.Security.Interop;
 
@@ -59,6 +60,11 @@ namespace Owin.Security.OpenIdConnect.Server {
                     throw new ArgumentException("The issuer registered in the options must be a HTTPS URI when " +
                                                 "AllowInsecureHttp is not set to true.", nameof(options));
                 }
+            }
+
+            if (Options.AuthenticationMode == AuthenticationMode.Active) {
+                throw new ArgumentException("Automatic authentication cannot be used with " +
+                                            "the OpenID Connect server middleware.", nameof(options));
             }
 
             if (Options.AccessTokenHandler != null && !(Options.AccessTokenHandler is JwtSecurityTokenHandler)) {

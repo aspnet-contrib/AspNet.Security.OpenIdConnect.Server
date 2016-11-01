@@ -18,124 +18,6 @@ using Owin.Security.OpenIdConnect.Extensions;
 
 namespace Owin.Security.OpenIdConnect.Server {
     internal partial class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions> {
-        protected override async Task<AuthenticationTicket> AuthenticateCoreAsync() {
-            var notification = new MatchEndpointContext(Context, Options);
-
-            if (Options.AuthorizationEndpointPath.HasValue &&
-                Options.AuthorizationEndpointPath == Request.Path) {
-                notification.MatchesAuthorizationEndpoint();
-            }
-
-            else if (Options.LogoutEndpointPath.HasValue &&
-                     Options.LogoutEndpointPath == Request.Path) {
-                notification.MatchesLogoutEndpoint();
-            }
-
-            else if (Options.UserinfoEndpointPath.HasValue &&
-                     Options.UserinfoEndpointPath == Request.Path) {
-                notification.MatchesUserinfoEndpoint();
-            }
-
-            await Options.Provider.MatchEndpoint(notification);
-
-            if (!notification.IsAuthorizationEndpoint &&
-                !notification.IsLogoutEndpoint &&
-                !notification.IsUserinfoEndpoint) {
-                return null;
-            }
-
-            // Try to retrieve the current OpenID Connect request from the OWIN context.
-            // If the request cannot be found, this means that this middleware was configured
-            // to use the automatic authentication mode and that AuthenticateCoreAsync
-            // was invoked before Invoke*EndpointAsync: in this case, the OpenID Connect
-            // request is directly extracted from the query string or the request form.
-            var request = Context.GetOpenIdConnectRequest();
-            if (request == null) {
-                if (string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
-                    request = new OpenIdConnectRequest(Request.Query);
-                }
-
-                else if (string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase)) {
-                    if (string.IsNullOrEmpty(Request.ContentType)) {
-                        return null;
-                    }
-
-                    else if (!Request.ContentType.StartsWith("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase)) {
-                        return null;
-                    }
-
-                    request = new OpenIdConnectRequest(await Request.ReadFormAsync());
-                }
-            }
-
-            // Missing or invalid requests are ignored in AuthenticateCoreAsync:
-            // in this case, null is returned to indicate that authentication failed.
-            if (request == null) {
-                return null;
-            }
-
-            if (notification.IsAuthorizationEndpoint || notification.IsLogoutEndpoint) {
-                if (string.IsNullOrEmpty(request.IdTokenHint)) {
-                    return null;
-                }
-
-                var ticket = await DeserializeIdentityTokenAsync(request.IdTokenHint, request);
-                if (ticket == null) {
-                    Options.Logger.LogWarning("The identity token extracted from the id_token_hint " +
-                                              "parameter was invalid and has been ignored.");
-
-                    return null;
-                }
-
-                // Tickets are returned even if they
-                // are considered invalid (e.g expired).
-                return ticket;
-            }
-
-            else if (notification.IsUserinfoEndpoint) {
-                string token;
-                if (!string.IsNullOrEmpty(request.AccessToken)) {
-                    token = request.AccessToken;
-                }
-
-                else {
-                    var header = Request.Headers.Get("Authorization");
-                    if (string.IsNullOrEmpty(header)) {
-                        return null;
-                    }
-
-                    if (!header.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)) {
-                        return null;
-                    }
-
-                    token = header.Substring("Bearer ".Length);
-                    if (string.IsNullOrWhiteSpace(token)) {
-                        return null;
-                    }
-                }
-
-                var ticket = await DeserializeAccessTokenAsync(token, request);
-                if (ticket == null) {
-                    Options.Logger.LogWarning("The access token extracted from the userinfo " +
-                                              "request was invalid and has been ignored.");
-
-                    return null;
-                }
-
-                if (!ticket.Properties.ExpiresUtc.HasValue ||
-                     ticket.Properties.ExpiresUtc < Options.SystemClock.UtcNow) {
-                    Options.Logger.LogWarning("The access token extracted from the userinfo " +
-                                              "request was expired and has been ignored.");
-
-                    return null;
-                }
-
-                return ticket;
-            }
-
-            return null;
-        }
-
         public override async Task<bool> InvokeAsync() {
             var notification = new MatchEndpointContext(Context, Options);
 
@@ -270,24 +152,52 @@ namespace Owin.Security.OpenIdConnect.Server {
             // returned and call HandleSignInAsync if necessary.
             var signin = Helper.LookupSignIn(Options.AuthenticationType);
             if (signin != null) {
-                // Create a new authentication ticket from the signin context.
-                var ticket = new AuthenticationTicket(signin.Identity, signin.Properties);
-
-                await HandleSignInAsync(ticket);
+                await HandleSignInAsync(signin);
             }
 
             // Determine whether a signin response should be
             // returned and call HandleLogoutAsync if necessary.
             var signout = Helper.LookupSignOut(Options.AuthenticationType, Options.AuthenticationMode);
             if (signout != null) {
-                await HandleLogoutAsync(signout.Properties);
+                await HandleLogoutAsync(signout);
             }
 
             // Determine whether a signin response should be returned and call HandleForbiddenAsync if necessary.
             var challenge = Helper.LookupChallenge(Options.AuthenticationType, Options.AuthenticationMode);
             if (challenge != null) {
-                await HandleForbiddenAsync(challenge.Properties);
+                await HandleChallengeAsync(challenge);
             }
+        }
+
+        protected override async Task<AuthenticationTicket> AuthenticateCoreAsync() {
+            var request = Context.GetOpenIdConnectRequest();
+            if (request == null) {
+                throw new InvalidOperationException("An identity cannot be extracted from this request.");
+            }
+
+            if (request.IsAuthorizationRequest() || request.IsLogoutRequest()) {
+                if (string.IsNullOrEmpty(request.IdTokenHint)) {
+                    return null;
+                }
+
+                var ticket = await DeserializeIdentityTokenAsync(request.IdTokenHint, request);
+                if (ticket == null) {
+                    Options.Logger.LogWarning("The identity token extracted from the id_token_hint " +
+                                              "parameter was invalid and has been ignored.");
+
+                    return null;
+                }
+
+                // Tickets are returned even if they
+                // are considered invalid (e.g expired).
+                return ticket;
+            }
+
+            throw new InvalidOperationException("An identity cannot be extracted from this request.");
+        }
+
+        private Task HandleSignInAsync(AuthenticationResponseGrant context) {
+            return HandleSignInAsync(new AuthenticationTicket(context.Identity, context.Properties));
         }
 
         private async Task<bool> HandleSignInAsync(AuthenticationTicket ticket) {
@@ -448,20 +358,19 @@ namespace Owin.Security.OpenIdConnect.Server {
             return await SendTokenResponseAsync(request, response, ticket);
         }
 
-        private Task<bool> HandleLogoutAsync(AuthenticationProperties properties) {
-            // Extract the OpenID Connect request from the OWIN context.
+        private Task<bool> HandleLogoutAsync(AuthenticationResponseRevoke context) {
+            // Extract the OpenID Connect request from the OWIN/Katana context.
             // If it cannot be found or doesn't correspond to a logout request,
-            // return false to allow the other middleware to process the challenge.
+            // throw an InvalidOperationException.
             var request = Context.GetOpenIdConnectRequest();
             if (request == null || !request.IsLogoutRequest()) {
-                return Task.FromResult(false);
+                throw new InvalidOperationException("An OpenID Connect response cannot be returned from this endpoint.");
             }
 
-            // Note: if an OpenID Connect response was already generated,
-            // return immediately to avoid overwriting it.
+            // Note: if an OpenID Connect response was already generated, throw an exception.
             var response = Context.GetOpenIdConnectResponse();
             if (response != null) {
-                return Task.FromResult(false);
+                throw new InvalidOperationException("An OpenID Connect response has already been sent.");
             }
 
             // Prepare a new a OpenID Connect response.
@@ -473,20 +382,19 @@ namespace Owin.Security.OpenIdConnect.Server {
             return SendLogoutResponseAsync(request, response);
         }
 
-        private Task<bool> HandleForbiddenAsync(AuthenticationProperties properties) {
-            // Extract the OpenID Connect request from the OWIN context. If it cannot
-            // be found or doesn't correspond to an authorization or token request,
-            // return false to allow the other middleware to process the challenge.
+        private Task<bool> HandleChallengeAsync(AuthenticationResponseChallenge context) {
+            // Extract the OpenID Connect request from the OWIN/Katana context.
+            // If it cannot be found or doesn't correspond to an authorization
+            // or a token request, throw an InvalidOperationException.
             var request = Context.GetOpenIdConnectRequest();
             if (request == null || (!request.IsAuthorizationRequest() && !request.IsTokenRequest())) {
-                return Task.FromResult(false);
+                throw new InvalidOperationException("An OpenID Connect response cannot be returned from this endpoint.");
             }
 
-            // Note: if an OpenID Connect response was already generated,
-            // return immediately to avoid overwriting it.
+            // Note: if an OpenID Connect response was already generated, throw an exception.
             var response = Context.GetOpenIdConnectResponse();
             if (response != null) {
-                return Task.FromResult(false);
+                throw new InvalidOperationException("An OpenID Connect response has already been sent.");
             }
 
             // Prepare a new a OpenID Connect response.
@@ -507,33 +415,13 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             // Create a new ticket containing an empty identity and
             // the authentication properties extracted from the challenge.
-            var ticket = new AuthenticationTicket(new ClaimsIdentity(), properties);
+            var ticket = new AuthenticationTicket(new ClaimsIdentity(), context.Properties);
 
             if (request.IsAuthorizationRequest()) {
                 return SendAuthorizationResponseAsync(request, response, ticket);
             }
 
             return SendTokenResponseAsync(request, response, ticket);
-        }
-
-        protected override Task ApplyResponseChallengeAsync() {
-            var context = Helper.LookupChallenge(Options.AuthenticationType, Options.AuthenticationMode);
-            if (context == null || Response.StatusCode != 401) {
-                return Task.FromResult(0);
-            }
-
-            // Extract the OpenID Connect request from the OWIN context. If it cannot
-            // be found or doesn't correspond to a userinfo request, don't alter
-            // the response to allow the other middleware to process the challenge.
-            var request = Context.GetOpenIdConnectRequest();
-            if (request == null || !request.IsUserinfoRequest()) {
-                return Task.FromResult(0);
-            }
-
-            Response.StatusCode = 401;
-            Response.Headers.Set("WWW-Authenticate", "error=" + OpenIdConnectConstants.Errors.InvalidGrant);
-
-            return Task.FromResult(0);
         }
 
         private async Task<bool> SendNativePageAsync(OpenIdConnectResponse response) {

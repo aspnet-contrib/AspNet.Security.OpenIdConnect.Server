@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Reflection;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.Owin.Security;
 using Microsoft.Owin.Testing;
 using Xunit;
 
@@ -69,6 +70,19 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             Assert.Equal("options", ((ArgumentException) exception.InnerException).ParamName);
             Assert.StartsWith("The issuer registered in the options must be a HTTPS URI when " +
                               "AllowInsecureHttp is not set to true.", exception.InnerException.Message);
+        }
+
+        [Fact]
+        public void Constructor_ActiveAuthenticationModeThrowsAnException() {
+            // Arrange, act, assert
+            var exception = Assert.Throws<TargetInvocationException>(() => CreateAuthorizationServer(options => {
+                options.AuthenticationMode = AuthenticationMode.Active;
+            }));
+
+            Assert.IsType<ArgumentException>(exception.InnerException);
+            Assert.Equal("options", ((ArgumentException) exception.InnerException).ParamName);
+            Assert.StartsWith("Automatic authentication cannot be used with " +
+                              "the OpenID Connect server middleware.", exception.InnerException.Message);
         }
 
         [Fact]

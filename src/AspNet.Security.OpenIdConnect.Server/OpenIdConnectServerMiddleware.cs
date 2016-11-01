@@ -66,6 +66,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 }
             }
 
+            if (Options.AutomaticAuthenticate || Options.AutomaticChallenge) {
+                throw new ArgumentException("Automatic authentication cannot be used with " +
+                                            "the OpenID Connect server middleware.", nameof(options));
+            }
+
             if (Options.SigningCredentials.Count == 0) {
                 throw new ArgumentException("At least one signing key must be registered. Consider registering " +
                                             "a X.509 certificate or call 'options.SigningCredentials.AddEphemeralKey()' " +

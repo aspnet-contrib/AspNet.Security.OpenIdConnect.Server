@@ -70,6 +70,30 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
+        public void Constructor_AutomaticAuthenticateThrowsAnException() {
+            // Arrange, act, assert
+            var exception = Assert.Throws<ArgumentException>(() => CreateAuthorizationServer(options => {
+                options.AutomaticAuthenticate = true;
+            }));
+
+            Assert.Equal("options", exception.ParamName);
+            Assert.StartsWith("Automatic authentication cannot be used with " +
+                              "the OpenID Connect server middleware.", exception.Message);
+        }
+
+        [Fact]
+        public void Constructor_AutomaticChallengeThrowsAnException() {
+            // Arrange, act, assert
+            var exception = Assert.Throws<ArgumentException>(() => CreateAuthorizationServer(options => {
+                options.AutomaticChallenge = true;
+            }));
+
+            Assert.Equal("options", exception.ParamName);
+            Assert.StartsWith("Automatic authentication cannot be used with " +
+                              "the OpenID Connect server middleware.", exception.Message);
+        }
+
+        [Fact]
         public void Constructor_MissingSigningCredentialsThrowAnException() {
             // Arrange, act, assert
             var exception = Assert.Throws<ArgumentException>(() => CreateAuthorizationServer(options => {

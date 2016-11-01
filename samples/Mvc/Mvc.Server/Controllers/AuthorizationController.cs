@@ -185,7 +185,7 @@ namespace Mvc.Server.Controllers {
             // Notify ASOS that the authorization grant has been denied by the resource owner.
             // Note: OpenIdConnectServerHandler will automatically take care of redirecting
             // the user agent to the client application using the appropriate response_mode.
-            return Forbid(OpenIdConnectServerDefaults.AuthenticationScheme);
+            return Challenge(OpenIdConnectServerDefaults.AuthenticationScheme);
         }
 
         [HttpGet("~/connect/logout")]

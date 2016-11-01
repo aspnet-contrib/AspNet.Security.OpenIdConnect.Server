@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Authentication;
+using Microsoft.AspNetCore.Http.Features.Authentication;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Net.Http.Headers;
@@ -214,6 +215,134 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
             Assert.Equal("This server only accepts HTTPS requests.", response.ErrorDescription);
+        }
+
+        [Fact]
+        public async Task HandleAuthenticateAsync_UnknownEndpointCausesAnException() {
+            // Arrange
+            var server = CreateAuthorizationServer();
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act and assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate {
+                return client.PostAsync("/invalid-authenticate", new OpenIdConnectRequest());
+            });
+
+            Assert.Equal("An identity cannot be extracted from this request.", exception.Message);
+        }
+
+        [Fact]
+        public async Task HandleAuthenticateAsync_InvalidEndpointCausesAnException() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.ConfigurationEndpointPath = "/invalid-authenticate";
+
+                options.Provider.OnHandleConfigurationRequest = context => {
+                    context.SkipToNextMiddleware();
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act and assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate {
+                return client.GetAsync("/invalid-authenticate");
+            });
+
+            Assert.Equal("An identity cannot be extracted from this request.", exception.Message);
+        }
+
+        [Fact]
+        public async Task HandleAuthenticateAsync_MissingIdTokenHintReturnsNull() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnHandleLogoutRequest = async context => {
+                    var principal = await context.HttpContext.Authentication.AuthenticateAsync(
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
+
+                    // Assert
+                    Assert.Null(principal);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.GetAsync(LogoutEndpoint, new OpenIdConnectRequest {
+                IdTokenHint = null
+            });
+
+            // Assert
+            Assert.Equal("Bob le Magnifique", (string) response["name"]);
+        }
+
+        [Fact]
+        public async Task HandleAuthenticateAsync_InvalidIdTokenHintReturnsNull() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnHandleLogoutRequest = async context => {
+                    var principal = await context.HttpContext.Authentication.AuthenticateAsync(
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
+
+                    // Assert
+                    Assert.Null(principal);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.GetAsync(LogoutEndpoint, new OpenIdConnectRequest {
+                IdTokenHint = "38323A4B-6CB2-41B8-B457-1951987CB383"
+            });
+
+            // Assert
+            Assert.Equal("Bob le Magnifique", (string) response["name"]);
+        }
+
+        [Fact]
+        public async Task HandleAuthenticateAsync_ValidIdTokenHintReturnsExpectedIdentity() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnDeserializeIdentityToken = context => {
+                    // Assert
+                    Assert.Equal("id_token", context.IdentityToken);
+
+                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+
+                    context.Ticket = new AuthenticationTicket(
+                        new ClaimsPrincipal(identity),
+                        new AuthenticationProperties(),
+                        context.Options.AuthenticationScheme);
+
+                    context.HandleResponse();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnHandleLogoutRequest = async context => {
+                    var principal = await context.HttpContext.Authentication.AuthenticateAsync(
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
+
+                    // Assert
+                    Assert.NotNull(principal);
+                    Assert.Equal("Bob le Magnifique", principal.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.GetAsync(LogoutEndpoint, new OpenIdConnectRequest {
+                IdTokenHint = "id_token"
+            });
+
+            // Assert
+            Assert.Equal("Bob le Magnifique", (string) response["name"]);
         }
 
         [Fact]
@@ -1554,6 +1683,54 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
+        public async Task HandleSignOutAsync_InvalidEndpointCausesAnException() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.ConfigurationEndpointPath = "/invalid-signout";
+
+                options.Provider.OnHandleConfigurationRequest = context => {
+                    context.SkipToNextMiddleware();
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act and assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate {
+                return client.GetAsync("/invalid-signout");
+            });
+
+            Assert.Equal("An OpenID Connect response cannot be returned from this endpoint.", exception.Message);
+        }
+
+        [Fact]
+        public async Task HandleSignOutAsync_DuplicateResponseCausesAnException() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnHandleLogoutRequest = async context => {
+                    await context.HttpContext.Authentication.SignOutAsync(
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
+
+                    await context.HttpContext.Authentication.SignOutAsync(
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
+
+                    context.HandleResponse();
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act and assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate {
+                return client.PostAsync(LogoutEndpoint, new OpenIdConnectRequest());
+            });
+
+            Assert.Equal("An OpenID Connect response has already been sent.", exception.Message);
+        }
+
+        [Fact]
         public async Task HandleSignOutAsync_LogoutResponseFlowsState() {
             // Arrange
             var server = CreateAuthorizationServer(options => {
@@ -1583,7 +1760,65 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleForbiddenAsync_AuthorizationResponseFlowsState() {
+        public async Task HandleUnauthorizedAsync_InvalidEndpointCausesAnException() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.ConfigurationEndpointPath = "/invalid-challenge";
+
+                options.Provider.OnHandleConfigurationRequest = context => {
+                    context.SkipToNextMiddleware();
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act and assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate {
+                return client.GetAsync("/invalid-challenge");
+            });
+
+            Assert.Equal("An OpenID Connect response cannot be returned from this endpoint.", exception.Message);
+        }
+
+        [Fact]
+        public async Task HandleUnauthorizedAsync_DuplicateResponseCausesAnException() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnValidateAuthorizationRequest = context => {
+                    context.Validate();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnHandleAuthorizationRequest = async context => {
+                    await context.HttpContext.Authentication.ForbidAsync(
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
+
+                    await context.HttpContext.Authentication.ChallengeAsync(
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
+
+                    context.HandleResponse();
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act and assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate {
+                return client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest {
+                    ClientId = "Fabrikam",
+                    RedirectUri = "http://www.fabrikam.com/path",
+                    ResponseType = OpenIdConnectConstants.ResponseTypes.Code
+                });
+            });
+
+            Assert.Equal("An OpenID Connect response has already been sent.", exception.Message);
+        }
+
+        [Fact]
+        public async Task HandleUnauthorizedAsync_AuthorizationResponseFlowsState() {
             // Arrange
             var server = CreateAuthorizationServer(options => {
                 options.Provider.OnValidateAuthorizationRequest = context => {
@@ -1595,7 +1830,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                 options.Provider.OnHandleAuthorizationRequest = context => {
                     context.HandleResponse();
 
-                    return context.HttpContext.Authentication.ForbidAsync(context.Options.AuthenticationScheme);
+                    return context.HttpContext.Authentication.ChallengeAsync(context.Options.AuthenticationScheme);
                 };
             });
 
@@ -1623,6 +1858,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             builder.ConfigureServices(services => services.AddAuthentication());
 
             builder.Configure(app => {
+                app.UseCookieAuthentication(new CookieAuthenticationOptions {
+                    AutomaticAuthenticate = true,
+                    AutomaticChallenge = true,
+                    LoginPath = "/login",
+                    LogoutPath = "/logout"
+                });
+
                 app.UseOpenIdConnectServer(options => {
                     options.AllowInsecureHttp = true;
 
@@ -1657,6 +1899,21 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                         var principal = new ClaimsPrincipal(identity);
 
                         return context.Authentication.SignInAsync(OpenIdConnectServerDefaults.AuthenticationScheme, principal);
+                    }
+
+                    else if (context.Request.Path == "/invalid-signout") {
+                        return context.Authentication.SignOutAsync(OpenIdConnectServerDefaults.AuthenticationScheme);
+                    }
+
+                    else if (context.Request.Path == "/invalid-challenge") {
+                        return context.Authentication.ChallengeAsync(
+                            OpenIdConnectServerDefaults.AuthenticationScheme,
+                            new AuthenticationProperties(),
+                            ChallengeBehavior.Unauthorized);
+                    }
+
+                    else if (context.Request.Path == "/invalid-authenticate") {
+                        return context.Authentication.AuthenticateAsync(OpenIdConnectServerDefaults.AuthenticationScheme);
                     }
 
                     return next(context);

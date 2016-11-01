@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
+using Microsoft.Owin.Security.Cookies;
 using Microsoft.Owin.Testing;
 using Newtonsoft.Json;
 using Owin.Security.OpenIdConnect.Extensions;
@@ -209,6 +210,131 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
             Assert.Equal("This server only accepts HTTPS requests.", response.ErrorDescription);
+        }
+
+        [Fact]
+        public async Task AuthenticateCoreAsync_UnknownEndpointCausesAnException() {
+            // Arrange
+            var server = CreateAuthorizationServer();
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act and assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate {
+                return client.PostAsync("/invalid-authenticate", new OpenIdConnectRequest());
+            });
+
+            Assert.Equal("An identity cannot be extracted from this request.", exception.Message);
+        }
+
+        [Fact]
+        public async Task AuthenticateCoreAsync_InvalidEndpointCausesAnException() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.ConfigurationEndpointPath = new PathString("/invalid-authenticate");
+
+                options.Provider.OnHandleConfigurationRequest = context => {
+                    context.SkipToNextMiddleware();
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act and assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate {
+                return client.GetAsync("/invalid-authenticate");
+            });
+
+            Assert.Equal("An identity cannot be extracted from this request.", exception.Message);
+        }
+
+        [Fact]
+        public async Task AuthenticateCoreAsync_MissingIdTokenHintReturnsNull() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnHandleLogoutRequest = async context => {
+                    var result = await context.OwinContext.Authentication.AuthenticateAsync(
+                        OpenIdConnectServerDefaults.AuthenticationType);
+
+                    // Assert
+                    Assert.Null(result);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.GetAsync(LogoutEndpoint, new OpenIdConnectRequest {
+                IdTokenHint = null
+            });
+
+            // Assert
+            Assert.Equal("Bob le Magnifique", (string) response["name"]);
+        }
+
+        [Fact]
+        public async Task AuthenticateCoreAsync_InvalidIdTokenHintReturnsNull() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnHandleLogoutRequest = async context => {
+                    var result = await context.OwinContext.Authentication.AuthenticateAsync(
+                        OpenIdConnectServerDefaults.AuthenticationType);
+
+                    // Assert
+                    Assert.Null(result);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.GetAsync(LogoutEndpoint, new OpenIdConnectRequest {
+                IdTokenHint = "38323A4B-6CB2-41B8-B457-1951987CB383"
+            });
+
+            // Assert
+            Assert.Equal("Bob le Magnifique", (string) response["name"]);
+        }
+
+        [Fact]
+        public async Task AuthenticateCoreAsync_ValidIdTokenHintReturnsExpectedIdentity() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnDeserializeIdentityToken = context => {
+                    // Assert
+                    Assert.Equal("id_token", context.IdentityToken);
+
+                    var identity = new ClaimsIdentity(context.Options.AuthenticationType);
+                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+
+                    context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
+
+                    context.HandleResponse();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnHandleLogoutRequest = async context => {
+                    var result = await context.OwinContext.Authentication.AuthenticateAsync(
+                        OpenIdConnectServerDefaults.AuthenticationType);
+
+                    // Assert
+                    Assert.NotNull(result.Identity);
+                    Assert.Equal("Bob le Magnifique", result.Identity.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.GetAsync(LogoutEndpoint, new OpenIdConnectRequest {
+                IdTokenHint = "id_token"
+            });
+
+            // Assert
+            Assert.Equal("Bob le Magnifique", (string) response["name"]);
         }
 
         [Fact]
@@ -1483,6 +1609,29 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
+        public async Task HandleSignOutAsync_InvalidEndpointCausesAnException() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.ConfigurationEndpointPath = new PathString("/invalid-signout");
+
+                options.Provider.OnHandleConfigurationRequest = context => {
+                    context.SkipToNextMiddleware();
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act and assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate {
+                return client.GetAsync("/invalid-signout");
+            });
+
+            Assert.Equal("An OpenID Connect response cannot be returned from this endpoint.", exception.Message);
+        }
+
+        [Fact]
         public async Task HandleSignOutAsync_LogoutResponseFlowsState() {
             // Arrange
             var server = CreateAuthorizationServer(options => {
@@ -1513,7 +1662,30 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleForbiddenAsync_AuthorizationResponseFlowsState() {
+        public async Task HandleChallengeAsync_InvalidEndpointCausesAnException() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.ConfigurationEndpointPath = new PathString("/invalid-challenge");
+
+                options.Provider.OnHandleConfigurationRequest = context => {
+                    context.SkipToNextMiddleware();
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act and assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate {
+                return client.GetAsync("/invalid-challenge");
+            });
+
+            Assert.Equal("An OpenID Connect response cannot be returned from this endpoint.", exception.Message);
+        }
+
+        [Fact]
+        public async Task HandleChallengeAsync_AuthorizationResponseFlowsState() {
             // Arrange
             var server = CreateAuthorizationServer(options => {
                 options.Provider.OnValidateAuthorizationRequest = context => {
@@ -1548,6 +1720,12 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
         private static TestServer CreateAuthorizationServer(Action<OpenIdConnectServerOptions> configuration = null) {
             return TestServer.Create(app => {
+                app.UseCookieAuthentication(new CookieAuthenticationOptions {
+                    AuthenticationMode = AuthenticationMode.Active,
+                    LoginPath = new PathString("/login"),
+                    LogoutPath = new PathString("/logout")
+                });
+
                 app.UseOpenIdConnectServer(options => {
                     options.AllowInsecureHttp = true;
 
@@ -1582,6 +1760,22 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                         context.Authentication.SignIn(identity);
 
                         return Task.FromResult(0);
+                    }
+
+                    else if (context.Request.Path == new PathString("/invalid-signout")) {
+                        context.Authentication.SignOut(OpenIdConnectServerDefaults.AuthenticationType);
+
+                        return Task.FromResult(0);
+                    }
+
+                    else if (context.Request.Path == new PathString("/invalid-challenge")) {
+                        context.Authentication.Challenge(OpenIdConnectServerDefaults.AuthenticationType);
+
+                        return Task.FromResult(0);
+                    }
+
+                    else if (context.Request.Path == new PathString("/invalid-authenticate")) {
+                        return context.Authentication.AuthenticateAsync(OpenIdConnectServerDefaults.AuthenticationType);
                     }
 
                     return next();
