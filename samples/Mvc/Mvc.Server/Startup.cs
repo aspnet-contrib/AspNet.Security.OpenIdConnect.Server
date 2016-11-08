@@ -25,10 +25,6 @@ namespace Mvc.Server {
             services.AddMvc();
 
             services.AddDistributedMemoryCache();
-
-            services.AddSession(options => {
-                options.IdleTimeout = TimeSpan.FromMinutes(30);
-            });
         }
 
         public void Configure(IApplicationBuilder app) {
@@ -76,8 +72,6 @@ namespace Mvc.Server {
                     ConsumerSecret = "Il2eFzGIrYhz6BWjYhVXBPQSfZuS4xoHpSSyD9PI"
                 });
             });
-
-            app.UseSession();
 
             app.UseOpenIdConnectServer(options => {
                 options.Provider = new AuthorizationProvider();

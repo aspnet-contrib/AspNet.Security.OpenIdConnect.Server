@@ -11,38 +11,6 @@ using Newtonsoft.Json;
 
 namespace Mvc.Server.Providers {
     public sealed class AuthorizationProvider : OpenIdConnectServerProvider {
-        public override Task MatchEndpoint(MatchEndpointContext context) {
-            // Note: by default, OpenIdConnectServerHandler only handles authorization requests made to the authorization endpoint.
-            // This context handler uses a more relaxed policy that allows extracting authorization requests received at
-            // /connect/authorize/accept and /connect/authorize/deny (see AuthorizationController.cs for more information).
-            if (context.Options.AuthorizationEndpointPath.HasValue &&
-                context.Request.Path.StartsWithSegments(context.Options.AuthorizationEndpointPath)) {
-                context.MatchesAuthorizationEndpoint();
-            }
-
-            return Task.FromResult(0);
-        }
-
-        public override Task ExtractAuthorizationRequest(ExtractAuthorizationRequestContext context) {
-            // If a request_id parameter can be found in the authorization request,
-            // restore the complete authorization request stored in the user session.
-            if (!string.IsNullOrEmpty(context.Request.RequestId)) {
-                var payload = context.HttpContext.Session.GetString("authorization-request:" + context.Request.RequestId);
-                if (payload == null) {
-                    context.Reject(
-                        error: OpenIdConnectConstants.Errors.InvalidRequest,
-                        description: "Invalid request: timeout expired.");
-
-                    return Task.FromResult(0);
-                }
-
-                // Restore the authorization request parameters.
-                JsonConvert.PopulateObject(payload, context.Request);
-            }
-
-            return Task.FromResult(0);
-        }
-
         public override async Task ValidateAuthorizationRequest(ValidateAuthorizationRequestContext context) {
             // Note: the OpenID Connect server middleware supports the authorization code, implicit and hybrid flows
             // but this authorization provider only accepts response_type=code authorization/authentication requests.

@@ -12,8 +12,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Mvc.Server.Helpers;
 using Mvc.Server.Models;
-using Newtonsoft.Json;
 
 namespace Mvc.Server.Controllers {
     public class AuthorizationController : Controller {
@@ -23,7 +23,7 @@ namespace Mvc.Server.Controllers {
             this.database = database;
         }
 
-        [HttpGet("~/connect/authorize"), HttpPost("~/connect/authorize")]
+        [Authorize, HttpGet("~/connect/authorize")]
         public async Task<IActionResult> Authorize(CancellationToken cancellationToken) {
             // Note: when a fatal error occurs during the request processing, an OpenID Connect response
             // is prematurely forged and added to the ASP.NET context by OpenIdConnectServerHandler.
@@ -43,26 +43,6 @@ namespace Mvc.Server.Controllers {
                 });
             }
 
-            // Note: authentication could be theorically enforced at the filter level via AuthorizeAttribute
-            // but this authorization endpoint accepts both GET and POST requests while the cookie middleware
-            // only uses 302 responses to redirect the user agent to the login page, making it incompatible with POST.
-            // To work around this limitation, the OpenID Connect request is automatically saved in the user session and will be
-            // restored by AuthorizationProvider.ExtractAuthorizationRequest after the external authentication process has been completed.
-            if (!User.Identities.Any(identity => identity.IsAuthenticated)) {
-                // Generate a unique identifier. Note: using a crypto-secure
-                // random number generator is not necessary in this case.
-                var identifier = Guid.NewGuid().ToString();
-
-                // Store the authorization request in the user session.
-                HttpContext.Session.SetString("authorization-request:" + identifier, JsonConvert.SerializeObject(request));
-
-                return Challenge(new AuthenticationProperties {
-                    RedirectUri = Url.Action(nameof(Authorize), new {
-                        request_id = identifier
-                    })
-                });
-            }
-
             // Note: ASOS automatically ensures that an application corresponds to the client_id specified
             // in the authorization request by calling OpenIdConnectServerProvider.ValidateAuthorizationRequest.
             // In theory, this null check shouldn't be needed, but a race condition could occur if you
@@ -79,7 +59,8 @@ namespace Mvc.Server.Controllers {
             return View("Authorize", Tuple.Create(request, application));
         }
 
-        [Authorize, HttpPost("~/connect/authorize/accept"), ValidateAntiForgeryToken]
+        [Authorize, FormValueRequired("submit.Accept")]
+        [HttpPost("~/connect/authorize"), ValidateAntiForgeryToken]
         public async Task<IActionResult> Accept(CancellationToken cancellationToken) {
             var response = HttpContext.GetOpenIdConnectResponse();
             if (response != null) {
@@ -92,11 +73,6 @@ namespace Mvc.Server.Controllers {
                     Error = OpenIdConnectConstants.Errors.ServerError,
                     ErrorDescription = "An internal error has occurred"
                 });
-            }
-
-            // Remove the authorization request from the user session.
-            if (!string.IsNullOrEmpty(request.RequestId)) {
-                HttpContext.Session.Remove("authorization-request:" + request.RequestId);
             }
 
             // Create a new ClaimsIdentity containing the claims that
@@ -162,7 +138,8 @@ namespace Mvc.Server.Controllers {
             return SignIn(ticket.Principal, ticket.Properties, ticket.AuthenticationScheme);
         }
 
-        [Authorize, HttpPost("~/connect/authorize/deny"), ValidateAntiForgeryToken]
+        [Authorize, FormValueRequired("submit.Deny")]
+        [HttpPost("~/connect/authorize"), ValidateAntiForgeryToken]
         public IActionResult Deny(CancellationToken cancellationToken) {
             var response = HttpContext.GetOpenIdConnectResponse();
             if (response != null) {
@@ -175,11 +152,6 @@ namespace Mvc.Server.Controllers {
                     Error = OpenIdConnectConstants.Errors.ServerError,
                     ErrorDescription = "An internal error has occurred"
                 });
-            }
-
-            // Remove the authorization request from the user session.
-            if (!string.IsNullOrEmpty(request.RequestId)) {
-                HttpContext.Session.Remove("authorization-request:" + request.RequestId);
             }
 
             // Notify ASOS that the authorization grant has been denied by the resource owner.
