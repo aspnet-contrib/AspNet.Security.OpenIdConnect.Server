@@ -21,10 +21,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             OpenIdConnectRequest request;
 
             if (string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
-                request = new OpenIdConnectRequest(Request.Query) {
-                    IsConfidential = false, // Note: authorization requests are never confidential.
-                    RequestType = OpenIdConnectConstants.RequestTypes.Authorization
-                };
+                request = new OpenIdConnectRequest(Request.Query);
             }
 
             else if (string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase)) {
@@ -33,7 +30,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     Options.Logger.LogError("The authorization request was rejected because " +
                                             "the mandatory 'Content-Type' header was missing.");
 
-                    return await SendAuthorizationResponseAsync(null, new OpenIdConnectResponse {
+                    return await SendAuthorizationResponseAsync(new OpenIdConnectResponse {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
                         ErrorDescription = "A malformed authorization request has been received: " +
                             "the mandatory 'Content-Type' header was missing from the POST request."
@@ -45,7 +42,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     Options.Logger.LogError("The authorization request was rejected because an invalid 'Content-Type' " +
                                             "header was received: {ContentType}.", Request.ContentType);
 
-                    return await SendAuthorizationResponseAsync(null, new OpenIdConnectResponse {
+                    return await SendAuthorizationResponseAsync(new OpenIdConnectResponse {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
                         ErrorDescription = "A malformed authorization request has been received: " +
                             "the 'Content-Type' header contained an unexcepted value. " +
@@ -53,28 +50,29 @@ namespace Owin.Security.OpenIdConnect.Server {
                     });
                 }
 
-                request = new OpenIdConnectRequest(await Request.ReadFormAsync()) {
-                    IsConfidential = false, // Note: authorization requests are never confidential.
-                    RequestType = OpenIdConnectConstants.RequestTypes.Authorization
-                };
+                request = new OpenIdConnectRequest(await Request.ReadFormAsync());
             }
 
             else {
                 Options.Logger.LogError("The authorization request was rejected because an invalid " +
                                         "HTTP method was received: {Method}.", Request.Method);
 
-                return await SendAuthorizationResponseAsync(null, new OpenIdConnectResponse {
+                return await SendAuthorizationResponseAsync(new OpenIdConnectResponse {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "A malformed authorization request has been received: " +
                                        "make sure to use either GET or POST."
                 });
             }
 
-            var @event = new ExtractAuthorizationRequestContext(Context, Options, request);
-            await Options.Provider.ExtractAuthorizationRequest(@event);
+            // Note: set the message type before invoking the ExtractAuthorizationRequest event.
+            request.SetProperty(OpenIdConnectConstants.Properties.MessageType,
+                                OpenIdConnectConstants.MessageTypes.Authorization);
 
             // Store the authorization request in the OWIN context.
             Context.SetOpenIdConnectRequest(request);
+
+            var @event = new ExtractAuthorizationRequestContext(Context, Options, request);
+            await Options.Provider.ExtractAuthorizationRequest(@event);
 
             if (@event.HandledResponse) {
                 return true;
@@ -89,7 +87,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                                         /* Error: */ @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                                         /* Description: */ @event.ErrorDescription);
 
-                return await SendAuthorizationResponseAsync(request, new OpenIdConnectResponse {
+                return await SendAuthorizationResponseAsync(new OpenIdConnectResponse {
                     Error = @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = @event.ErrorDescription,
                     ErrorUri = @event.ErrorUri
@@ -102,7 +100,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 Options.Logger.LogError("The authorization request was rejected because " +
                                         "the mandatory 'client_id' parameter was missing.");
 
-                return await SendAuthorizationResponseAsync(request, new OpenIdConnectResponse {
+                return await SendAuthorizationResponseAsync(new OpenIdConnectResponse {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "client_id was missing"
                 });
@@ -117,7 +115,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 Options.Logger.LogError("The authorization request was rejected because " +
                                         "the mandatory 'redirect_uri' parameter was missing.");
 
-                return await SendAuthorizationResponseAsync(request, new OpenIdConnectResponse {
+                return await SendAuthorizationResponseAsync(new OpenIdConnectResponse {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "redirect_uri must be included when making an OpenID Connect request"
                 });
@@ -132,7 +130,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     Options.Logger.LogError("The authorization request was rejected because the 'redirect_uri' parameter " +
                                             "didn't correspond to a valid absolute URL: {RedirectUri}.", request.RedirectUri);
 
-                    return await SendAuthorizationResponseAsync(request, new OpenIdConnectResponse {
+                    return await SendAuthorizationResponseAsync(new OpenIdConnectResponse {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
                         ErrorDescription = "redirect_uri must be absolute"
                     });
@@ -145,7 +143,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     Options.Logger.LogError("The authorization request was rejected because the 'redirect_uri' " +
                                             "contained a URL fragment: {RedirectUri}.", request.RedirectUri);
 
-                    return await SendAuthorizationResponseAsync(request, new OpenIdConnectResponse {
+                    return await SendAuthorizationResponseAsync(new OpenIdConnectResponse {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
                         ErrorDescription = "redirect_uri must not include a fragment"
                     });
@@ -157,7 +155,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 Options.Logger.LogError("The authorization request was rejected because " +
                                         "the mandatory 'response_type' parameter was missing.");
 
-                return await SendAuthorizationResponseAsync(request, new OpenIdConnectResponse {
+                return await SendAuthorizationResponseAsync(new OpenIdConnectResponse {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "response_type parameter missing"
                 });
@@ -171,7 +169,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 Options.Logger.LogError("The authorization request was rejected because the 'response_type'/'response_mode' combination " +
                                         "was unsafe: {ResponseType} ; {ResponseMode}.", request.ResponseType, request.ResponseMode);
 
-                return await SendAuthorizationResponseAsync(request, new OpenIdConnectResponse {
+                return await SendAuthorizationResponseAsync(new OpenIdConnectResponse {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "response_type/response_mode combination unsupported"
                 });
@@ -186,7 +184,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 Options.Logger.LogError("The authorization request was rejected because " +
                                         "the mandatory 'nonce' parameter was missing.");
 
-                return await SendAuthorizationResponseAsync(request, new OpenIdConnectResponse {
+                return await SendAuthorizationResponseAsync(new OpenIdConnectResponse {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "nonce parameter missing"
                 });
@@ -197,7 +195,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     !request.HasScope(OpenIdConnectConstants.Scopes.OpenId)) {
                 Options.Logger.LogError("The authorization request was rejected because the 'openid' scope was missing.");
 
-                return await SendAuthorizationResponseAsync(request, new OpenIdConnectResponse {
+                return await SendAuthorizationResponseAsync(new OpenIdConnectResponse {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "openid scope missing"
                 });
@@ -207,7 +205,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             else if (request.HasResponseType(OpenIdConnectConstants.ResponseTypes.Code) && !Options.TokenEndpointPath.HasValue) {
                 Options.Logger.LogError("The authorization request was rejected because the authorization code flow was disabled.");
 
-                return await SendAuthorizationResponseAsync(request, new OpenIdConnectResponse {
+                return await SendAuthorizationResponseAsync(new OpenIdConnectResponse {
                     Error = OpenIdConnectConstants.Errors.UnsupportedResponseType,
                     ErrorDescription = "response_type=code is not supported by this server"
                 });
@@ -219,7 +217,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     Options.Logger.LogError("The authorization request was rejected because the response type " +
                                             "was not compatible with 'code_challenge'/'code_challenge_method'.");
 
-                    return await SendAuthorizationResponseAsync(request, new OpenIdConnectResponse {
+                    return await SendAuthorizationResponseAsync(new OpenIdConnectResponse {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
                         ErrorDescription = "The 'code_challenge' and 'code_challenge_method' parameters " +
                                            "can only be used with a response type containing 'code'."
@@ -232,7 +230,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                         Options.Logger.LogError("The authorization request was rejected " +
                                                 "because the code_challenge was missing.");
 
-                        return await SendAuthorizationResponseAsync(request, new OpenIdConnectResponse {
+                        return await SendAuthorizationResponseAsync(new OpenIdConnectResponse {
                             Error = OpenIdConnectConstants.Errors.InvalidRequest,
                             ErrorDescription = "The 'code_challenge_method' parameter " +
                                                "cannot be used without 'code_challenge'."
@@ -245,7 +243,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                         Options.Logger.LogError("The authorization request was rejected because " +
                                                 "the specified code challenge was not supported.");
 
-                        return await SendAuthorizationResponseAsync(request, new OpenIdConnectResponse {
+                        return await SendAuthorizationResponseAsync(new OpenIdConnectResponse {
                             Error = OpenIdConnectConstants.Errors.InvalidRequest,
                             ErrorDescription = "The specified code_challenge_method is not supported."
                         });
@@ -269,7 +267,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                                         /* Error: */ context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                                         /* Description: */ context.ErrorDescription);
 
-                return await SendAuthorizationResponseAsync(request, new OpenIdConnectResponse {
+                return await SendAuthorizationResponseAsync(new OpenIdConnectResponse {
                     Error = context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = context.ErrorDescription,
                     ErrorUri = context.ErrorUri
@@ -292,7 +290,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                                         /* Error: */ notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                                         /* Description: */ notification.ErrorDescription);
 
-                return await SendAuthorizationResponseAsync(request, new OpenIdConnectResponse {
+                return await SendAuthorizationResponseAsync(new OpenIdConnectResponse {
                     Error = notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = notification.ErrorDescription,
                     ErrorUri = notification.ErrorUri
@@ -309,8 +307,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             return await HandleSignInAsync(ticket);
         }
 
-        private async Task<bool> SendAuthorizationResponseAsync(
-            OpenIdConnectRequest request, OpenIdConnectResponse response, AuthenticationTicket ticket = null) {
+        private async Task<bool> SendAuthorizationResponseAsync(OpenIdConnectResponse response, AuthenticationTicket ticket = null) {
+            var request = Context.GetOpenIdConnectRequest();
             if (request == null) {
                 request = new OpenIdConnectRequest();
             }

@@ -25,22 +25,23 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 Logger.LogError("The discovery request was rejected because an invalid " +
                                 "HTTP method was used: {Method}.", Request.Method);
 
-                return await SendConfigurationResponseAsync(null, new OpenIdConnectResponse {
+                return await SendConfigurationResponseAsync(new OpenIdConnectResponse {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "Invalid HTTP method: make sure to use GET."
                 });
             }
 
-            var request = new OpenIdConnectRequest(Request.Query) {
-                IsConfidential = false, // Note: discovery requests are never confidential.
-                RequestType = OpenIdConnectConstants.RequestTypes.Configuration
-            };
+            var request = new OpenIdConnectRequest(Request.Query);
 
-            var @event = new ExtractConfigurationRequestContext(Context, Options, request);
-            await Options.Provider.ExtractConfigurationRequest(@event);
+            // Note: set the message type before invoking the ExtractConfigurationRequest event.
+            request.SetProperty(OpenIdConnectConstants.Properties.MessageType,
+                                OpenIdConnectConstants.MessageTypes.Configuration);
 
             // Store the discovery request in the ASP.NET context.
             Context.SetOpenIdConnectRequest(request);
+
+            var @event = new ExtractConfigurationRequestContext(Context, Options, request);
+            await Options.Provider.ExtractConfigurationRequest(@event);
 
             if (@event.HandledResponse) {
                 return true;
@@ -55,7 +56,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                                 /* Error: */ @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                                 /* Description: */ @event.ErrorDescription);
 
-                return await SendConfigurationResponseAsync(request, new OpenIdConnectResponse {
+                return await SendConfigurationResponseAsync(new OpenIdConnectResponse {
                     Error = @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = @event.ErrorDescription,
                     ErrorUri = @event.ErrorUri
@@ -78,7 +79,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                                 /* Error: */ context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                                 /* Description: */ context.ErrorDescription);
 
-                return await SendConfigurationResponseAsync(request, new OpenIdConnectResponse {
+                return await SendConfigurationResponseAsync(new OpenIdConnectResponse {
                     Error = context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = context.ErrorDescription,
                     ErrorUri = context.ErrorUri
@@ -207,14 +208,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
                                 /* Error: */ notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                                 /* Description: */ notification.ErrorDescription);
 
-                return await SendConfigurationResponseAsync(request, new OpenIdConnectResponse {
+                return await SendConfigurationResponseAsync(new OpenIdConnectResponse {
                     Error = notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = notification.ErrorDescription,
                     ErrorUri = notification.ErrorUri
                 });
             }
 
-            return await SendConfigurationResponseAsync(request, new OpenIdConnectResponse(notification.Metadata));
+            return await SendConfigurationResponseAsync(new OpenIdConnectResponse(notification.Metadata));
         }
 
         private async Task<bool> InvokeCryptographyEndpointAsync() {
@@ -224,22 +225,23 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 Logger.LogError("The discovery request was rejected because an invalid " +
                                 "HTTP method was used: {Method}.", Request.Method);
 
-                return await SendCryptographyResponseAsync(null, new OpenIdConnectResponse {
+                return await SendCryptographyResponseAsync(new OpenIdConnectResponse {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "Invalid HTTP method: make sure to use GET."
                 });
             }
 
-            var request = new OpenIdConnectRequest(Request.Query) {
-                IsConfidential = false, // Note: discovery requests are never confidential.
-                RequestType = OpenIdConnectConstants.RequestTypes.Cryptography
-            };
+            var request = new OpenIdConnectRequest(Request.Query);
 
-            var @event = new ExtractCryptographyRequestContext(Context, Options, request);
-            await Options.Provider.ExtractCryptographyRequest(@event);
+            // Note: set the message type before invoking the ExtractCryptographyRequest event.
+            request.SetProperty(OpenIdConnectConstants.Properties.MessageType,
+                                OpenIdConnectConstants.MessageTypes.Cryptography);
 
             // Store the discovery request in the ASP.NET context.
             Context.SetOpenIdConnectRequest(request);
+
+            var @event = new ExtractCryptographyRequestContext(Context, Options, request);
+            await Options.Provider.ExtractCryptographyRequest(@event);
 
             if (@event.HandledResponse) {
                 return true;
@@ -254,7 +256,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                                 /* Error: */ @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                                 /* Description: */ @event.ErrorDescription);
 
-                return await SendCryptographyResponseAsync(request, new OpenIdConnectResponse {
+                return await SendCryptographyResponseAsync(new OpenIdConnectResponse {
                     Error = @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = @event.ErrorDescription,
                     ErrorUri = @event.ErrorUri
@@ -277,7 +279,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                                 /* Error: */ context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                                 /* Description: */ context.ErrorDescription);
 
-                return await SendCryptographyResponseAsync(request, new OpenIdConnectResponse {
+                return await SendCryptographyResponseAsync(new OpenIdConnectResponse {
                     Error = context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = context.ErrorDescription,
                     ErrorUri = context.ErrorUri
@@ -442,7 +444,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                                 /* Error: */ notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                                 /* Description: */ notification.ErrorDescription);
 
-                return await SendCryptographyResponseAsync(request, new OpenIdConnectResponse {
+                return await SendCryptographyResponseAsync(new OpenIdConnectResponse {
                     Error = notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = notification.ErrorDescription,
                     ErrorUri = notification.ErrorUri
@@ -496,12 +498,13 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 keys.Add(item);
             }
 
-            return await SendCryptographyResponseAsync(request, new OpenIdConnectResponse {
+            return await SendCryptographyResponseAsync(new OpenIdConnectResponse {
                 [OpenIdConnectConstants.Parameters.Keys] = keys
             });
         }
 
-        private async Task<bool> SendConfigurationResponseAsync(OpenIdConnectRequest request, OpenIdConnectResponse response) {
+        private async Task<bool> SendConfigurationResponseAsync(OpenIdConnectResponse response) {
+            var request = Context.GetOpenIdConnectRequest();
             if (request == null) {
                 request = new OpenIdConnectRequest();
             }
@@ -522,7 +525,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             return await SendPayloadAsync(response);
         }
 
-        private async Task<bool> SendCryptographyResponseAsync(OpenIdConnectRequest request, OpenIdConnectResponse response) {
+        private async Task<bool> SendCryptographyResponseAsync(OpenIdConnectResponse response) {
+            var request = Context.GetOpenIdConnectRequest();
             if (request == null) {
                 request = new OpenIdConnectRequest();
             }

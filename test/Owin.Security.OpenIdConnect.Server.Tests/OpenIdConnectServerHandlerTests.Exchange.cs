@@ -419,8 +419,9 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                         new ClaimsIdentity(context.Options.AuthenticationType),
                         new AuthenticationProperties());
 
-                    // Mark the refresh token as confidential.
-                    context.Ticket.SetProperty(OpenIdConnectConstants.Properties.Confidential, "true");
+                    // Mark the refresh token as private.
+                    context.Ticket.SetProperty(OpenIdConnectConstants.Properties.ConfidentialityLevel,
+                                               OpenIdConnectConstants.ConfidentialityLevels.Private);
 
                     return Task.FromResult(0);
                 };

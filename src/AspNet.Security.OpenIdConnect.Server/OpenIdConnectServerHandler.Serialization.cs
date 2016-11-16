@@ -154,10 +154,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // Store the "usage" property as a claim.
             identity.AddClaim(OpenIdConnectConstants.Claims.Usage, ticket.GetUsage());
 
-            // If the ticket is marked as confidential, add a new
-            // "confidential" claim in the security token.
-            if (ticket.IsConfidential()) {
-                identity.AddClaim(new Claim(OpenIdConnectConstants.Claims.Confidential, "true", ClaimValueTypes.Boolean));
+            // Store the "confidentiality_level" property as a claim.
+            var confidentiality = ticket.GetProperty(OpenIdConnectConstants.Properties.ConfidentialityLevel);
+            if (!string.IsNullOrEmpty(confidentiality)) {
+                identity.AddClaim(OpenIdConnectConstants.Claims.ConfidentialityLevel, confidentiality);
             }
 
             // Create a new claim per scope item, that will result
@@ -320,10 +320,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // Store the "usage" property as a claim.
             identity.AddClaim(OpenIdConnectConstants.Claims.Usage, ticket.GetUsage());
 
-            // If the ticket is marked as confidential, add a new
-            // "confidential" claim in the security token.
-            if (ticket.IsConfidential()) {
-                identity.AddClaim(new Claim(OpenIdConnectConstants.Claims.Confidential, "true", ClaimValueTypes.Boolean));
+            // Store the "confidentiality_level" property as a claim.
+            var confidentiality = ticket.GetProperty(OpenIdConnectConstants.Properties.ConfidentialityLevel);
+            if (!string.IsNullOrEmpty(confidentiality)) {
+                identity.AddClaim(OpenIdConnectConstants.Claims.ConfidentialityLevel, confidentiality);
             }
 
             // Store the audiences as claims.
@@ -563,9 +563,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 ticket.SetUsage(usage.Value);
             }
 
-            var confidential = principal.FindFirst(OpenIdConnectConstants.Claims.Confidential);
-            if (confidential != null && string.Equals(confidential.Value, "true", StringComparison.OrdinalIgnoreCase)) {
-                ticket.SetProperty(OpenIdConnectConstants.Properties.Confidential, "true");
+            var confidentiality = principal.FindFirst(OpenIdConnectConstants.Claims.ConfidentialityLevel);
+            if (confidentiality != null) {
+                ticket.SetProperty(OpenIdConnectConstants.Properties.ConfidentialityLevel, confidentiality.Value);
             }
 
             // Ensure that e received ticket is an access token.
@@ -658,9 +658,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 ticket.SetUsage(usage.Value);
             }
 
-            var confidential = principal.FindFirst(OpenIdConnectConstants.Claims.Confidential);
-            if (confidential != null && string.Equals(confidential.Value, "true", StringComparison.OrdinalIgnoreCase)) {
-                ticket.SetProperty(OpenIdConnectConstants.Properties.Confidential, "true");
+            var confidentiality = principal.FindFirst(OpenIdConnectConstants.Claims.ConfidentialityLevel);
+            if (confidentiality != null) {
+                ticket.SetProperty(OpenIdConnectConstants.Properties.ConfidentialityLevel, confidentiality.Value);
             }
 
             // Ensure the received ticket is an identity token.

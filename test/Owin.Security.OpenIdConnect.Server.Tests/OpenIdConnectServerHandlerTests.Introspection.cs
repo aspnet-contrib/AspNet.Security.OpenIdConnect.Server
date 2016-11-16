@@ -259,8 +259,9 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                         new ClaimsIdentity(context.Options.AuthenticationType),
                         new AuthenticationProperties());
 
-                    // Mark the refresh token as confidential.
-                    context.Ticket.SetProperty(OpenIdConnectConstants.Properties.Confidential, "true");
+                    // Mark the refresh token as private.
+                    context.Ticket.SetProperty(OpenIdConnectConstants.Properties.ConfidentialityLevel,
+                                               OpenIdConnectConstants.ConfidentialityLevels.Private);
 
                     return Task.FromResult(0);
                 };
@@ -505,7 +506,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             Assert.Equal("66B65AED-4033-4E9C-B975-A8CA7FB6FA79", (string) response[OpenIdConnectConstants.Claims.JwtId]);
             Assert.Equal(OpenIdConnectConstants.TokenTypes.Bearer, (string) response[OpenIdConnectConstants.Claims.TokenType]);
             Assert.Equal(server.BaseAddress.AbsoluteUri, (string) response[OpenIdConnectConstants.Claims.Issuer]);
-            Assert.Equal("Bob le Magnifique", response[OpenIdConnectConstants.Claims.Subject]);
+            Assert.Equal("Bob le Magnifique", (string) response[OpenIdConnectConstants.Claims.Subject]);
             Assert.Equal(1451606400, (long) response[OpenIdConnectConstants.Claims.IssuedAt]);
             Assert.Equal(1451606400, (long) response[OpenIdConnectConstants.Claims.NotBefore]);
             Assert.Equal(1483228800, (long) response[OpenIdConnectConstants.Claims.ExpiresAt]);

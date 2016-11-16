@@ -125,7 +125,31 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            return request.RequestType == OpenIdConnectConstants.RequestTypes.Authorization;
+            var value = request.GetProperty(OpenIdConnectConstants.Properties.MessageType);
+            if (string.IsNullOrEmpty(value)) {
+                return false;
+            }
+
+            return string.Equals(value, OpenIdConnectConstants.MessageTypes.Authorization, StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// Determines whether the request was transmitted using a confidential channel
+        /// (i.e if the transaction was only visible by the client and if client authentication was enforced).
+        /// </summary>
+        /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
+        /// <returns><c>true</c> if the request is a configuration request, <c>false</c> otherwise.</returns>
+        public static bool IsConfidential([NotNull] this OpenIdConnectRequest request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+
+            var value = request.GetProperty(OpenIdConnectConstants.Properties.ConfidentialityLevel);
+            if (string.IsNullOrEmpty(value)) {
+                return false;
+            }
+
+            return string.Equals(value, OpenIdConnectConstants.ConfidentialityLevels.Private, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -138,7 +162,12 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            return request.RequestType == OpenIdConnectConstants.RequestTypes.Configuration;
+            var value = request.GetProperty(OpenIdConnectConstants.Properties.MessageType);
+            if (string.IsNullOrEmpty(value)) {
+                return false;
+            }
+
+            return string.Equals(value, OpenIdConnectConstants.MessageTypes.Configuration, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -151,7 +180,12 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            return request.RequestType == OpenIdConnectConstants.RequestTypes.Cryptography;
+            var value = request.GetProperty(OpenIdConnectConstants.Properties.MessageType);
+            if (string.IsNullOrEmpty(value)) {
+                return false;
+            }
+
+            return string.Equals(value, OpenIdConnectConstants.MessageTypes.Cryptography, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -164,7 +198,12 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            return request.RequestType == OpenIdConnectConstants.RequestTypes.Introspection;
+            var value = request.GetProperty(OpenIdConnectConstants.Properties.MessageType);
+            if (string.IsNullOrEmpty(value)) {
+                return false;
+            }
+
+            return string.Equals(value, OpenIdConnectConstants.MessageTypes.Introspection, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -177,7 +216,12 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            return request.RequestType == OpenIdConnectConstants.RequestTypes.Logout;
+            var value = request.GetProperty(OpenIdConnectConstants.Properties.MessageType);
+            if (string.IsNullOrEmpty(value)) {
+                return false;
+            }
+
+            return string.Equals(value, OpenIdConnectConstants.MessageTypes.Logout, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -190,7 +234,12 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            return request.RequestType == OpenIdConnectConstants.RequestTypes.Revocation;
+            var value = request.GetProperty(OpenIdConnectConstants.Properties.MessageType);
+            if (string.IsNullOrEmpty(value)) {
+                return false;
+            }
+
+            return string.Equals(value, OpenIdConnectConstants.MessageTypes.Revocation, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -203,7 +252,12 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            return request.RequestType == OpenIdConnectConstants.RequestTypes.Token;
+            var value = request.GetProperty(OpenIdConnectConstants.Properties.MessageType);
+            if (string.IsNullOrEmpty(value)) {
+                return false;
+            }
+
+            return string.Equals(value, OpenIdConnectConstants.MessageTypes.Token, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -216,7 +270,12 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            return request.RequestType == OpenIdConnectConstants.RequestTypes.Userinfo;
+            var value = request.GetProperty(OpenIdConnectConstants.Properties.MessageType);
+            if (string.IsNullOrEmpty(value)) {
+                return false;
+            }
+
+            return string.Equals(value, OpenIdConnectConstants.MessageTypes.Userinfo, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -1009,12 +1068,12 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            var value = ticket.GetProperty(OpenIdConnectConstants.Properties.Confidential);
+            var value = ticket.GetProperty(OpenIdConnectConstants.Properties.ConfidentialityLevel);
             if (string.IsNullOrEmpty(value)) {
                 return false;
             }
 
-            return string.Equals(value, "true", StringComparison.OrdinalIgnoreCase);
+            return string.Equals(value, OpenIdConnectConstants.ConfidentialityLevels.Private, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>

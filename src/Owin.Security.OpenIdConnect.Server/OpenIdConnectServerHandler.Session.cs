@@ -22,10 +22,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             // are also accepted to allow flowing large logout payloads.
             // See https://openid.net/specs/openid-connect-session-1_0.html#RPLogout
             if (string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
-                request = new OpenIdConnectRequest(Request.Query) {
-                    IsConfidential = false, // Note: logout requests are never confidential.
-                    RequestType = OpenIdConnectConstants.RequestTypes.Logout
-                };
+                request = new OpenIdConnectRequest(Request.Query);
             }
 
             else if (string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase)) {
@@ -34,7 +31,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     Options.Logger.LogError("The logout request was rejected because " +
                                             "the mandatory 'Content-Type' header was missing.");
 
-                    return await SendLogoutResponseAsync(null, new OpenIdConnectResponse {
+                    return await SendLogoutResponseAsync(new OpenIdConnectResponse {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
                         ErrorDescription = "A malformed logout request has been received: " +
                             "the mandatory 'Content-Type' header was missing from the POST request."
@@ -46,7 +43,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     Options.Logger.LogError("The logout request was rejected because an invalid 'Content-Type' " +
                                             "header was received: {ContentType}.", Request.ContentType);
 
-                    return await SendLogoutResponseAsync(null, new OpenIdConnectResponse {
+                    return await SendLogoutResponseAsync(new OpenIdConnectResponse {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
                         ErrorDescription = "A malformed logout request has been received: " +
                             "the 'Content-Type' header contained an unexcepted value. " +
@@ -54,28 +51,29 @@ namespace Owin.Security.OpenIdConnect.Server {
                     });
                 }
 
-                request = new OpenIdConnectRequest(await Request.ReadFormAsync()) {
-                    IsConfidential = false, // Note: logout requests are never confidential.
-                    RequestType = OpenIdConnectConstants.RequestTypes.Logout
-                };
+                request = new OpenIdConnectRequest(await Request.ReadFormAsync());
             }
 
             else {
                 Options.Logger.LogError("The logout request was rejected because an invalid " +
                                         "HTTP method was received: {Method}.", Request.Method);
 
-                return await SendLogoutResponseAsync(null, new OpenIdConnectResponse {
+                return await SendLogoutResponseAsync(new OpenIdConnectResponse {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "A malformed logout request has been received: " +
                                        "make sure to use either GET or POST."
                 });
             }
 
-            var @event = new ExtractLogoutRequestContext(Context, Options, request);
-            await Options.Provider.ExtractLogoutRequest(@event);
+            // Note: set the message type before invoking the ExtractLogoutRequest event.
+            request.SetProperty(OpenIdConnectConstants.Properties.MessageType,
+                                OpenIdConnectConstants.MessageTypes.Logout);
 
             // Store the logout request in the OWIN context.
             Context.SetOpenIdConnectRequest(request);
+
+            var @event = new ExtractLogoutRequestContext(Context, Options, request);
+            await Options.Provider.ExtractLogoutRequest(@event);
 
             if (@event.HandledResponse) {
                 return true;
@@ -90,7 +88,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                                         /* Error: */ @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                                         /* Description: */ @event.ErrorDescription);
 
-                return await SendLogoutResponseAsync(request, new OpenIdConnectResponse {
+                return await SendLogoutResponseAsync(new OpenIdConnectResponse {
                     Error = @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = @event.ErrorDescription,
                     ErrorUri = @event.ErrorUri
@@ -113,7 +111,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                                         /* Error: */ context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                                         /* Description: */ context.ErrorDescription);
 
-                return await SendLogoutResponseAsync(request, new OpenIdConnectResponse {
+                return await SendLogoutResponseAsync(new OpenIdConnectResponse {
                     Error = context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = context.ErrorDescription,
                     ErrorUri = context.ErrorUri
@@ -136,7 +134,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                                         /* Error: */ notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                                         /* Description: */ notification.ErrorDescription);
 
-                return await SendLogoutResponseAsync(request, new OpenIdConnectResponse {
+                return await SendLogoutResponseAsync(new OpenIdConnectResponse {
                     Error = notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = notification.ErrorDescription,
                     ErrorUri = notification.ErrorUri
@@ -146,7 +144,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             return false;
         }
 
-        private async Task<bool> SendLogoutResponseAsync(OpenIdConnectRequest request, OpenIdConnectResponse response) {
+        private async Task<bool> SendLogoutResponseAsync(OpenIdConnectResponse response) {
+            var request = Context.GetOpenIdConnectRequest();
             if (request == null) {
                 request = new OpenIdConnectRequest();
             }

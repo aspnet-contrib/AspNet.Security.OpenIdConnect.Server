@@ -159,12 +159,6 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         }
 
         /// <summary>
-        /// Gets or sets a boolean indicating whether the request was transmitted using a confidential channel
-        /// (i.e if the transaction was only visible by the client and if client authentication was enforced).
-        /// </summary>
-        public bool IsConfidential { get; set; }
-
-        /// <summary>
         /// Gets or sets the "nonce" parameter.
         /// </summary>
         public string Nonce {
@@ -227,11 +221,6 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             get { return GetParameter<string>(OpenIdConnectConstants.Parameters.RequestId); }
             set { SetParameter(OpenIdConnectConstants.Parameters.RequestId, value); }
         }
-
-        /// <summary>
-        /// Gets or sets the type of the current request.
-        /// </summary>
-        public string RequestType { get; set; }
 
         /// <summary>
         /// Gets or sets the "request_uri" parameter.
@@ -322,6 +311,13 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             new Dictionary<string, JToken>(StringComparer.Ordinal);
 
         /// <summary>
+        /// Gets the dictionary containing the properties associated with this OpenID Connect request.
+        /// Note: these properties are not meant to be publicly shared and shouldn't be serialized.
+        /// </summary>
+        protected internal virtual Dictionary<string, string> Properties { get; } =
+            new Dictionary<string, string>(StringComparer.Ordinal);
+
+        /// <summary>
         /// Gets an enumerator allowing to iterate the parameter details.
         /// </summary>
         /// <returns>An enumerator.</returns>
@@ -376,6 +372,24 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         }
 
         /// <summary>
+        /// Gets the value corresponding to a given property associated with this request.
+        /// </summary>
+        /// <param name="name">The property name.</param>
+        /// <returns>The property value, or <c>null</c> if it cannot be found.</returns>
+        public virtual string GetProperty([NotNull] string name) {
+            if (string.IsNullOrEmpty(name)) {
+                throw new ArgumentException("The property name cannot be null or empty.", nameof(name));
+            }
+
+            string property;
+            if (Properties.TryGetValue(name, out property)) {
+                return property;
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// Adds, replaces or removes an OpenID Connect request parameter.
         /// </summary>
         /// <param name="name">The parameter name.</param>
@@ -397,6 +411,29 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             }
 
             Parameters[name] = value;
+
+            return this;
+        }
+
+        /// <summary>
+        /// Adds, replaces or removes a property.
+        /// </summary>
+        /// <param name="name">The property name.</param>
+        /// <param name="value">The property value.</param>
+        /// <returns>The current OpenID Connect request.</returns>
+        public virtual OpenIdConnectRequest SetProperty([NotNull] string name, string value) {
+            if (string.IsNullOrEmpty(name)) {
+                throw new ArgumentException("The property name cannot be null or empty.", nameof(name));
+            }
+
+            // If the property value is null, remove the corresponding entry in the collection.
+            if (value == null) {
+                Properties.Remove(name);
+
+                return this;
+            }
+
+            Properties[name] = value;
 
             return this;
         }

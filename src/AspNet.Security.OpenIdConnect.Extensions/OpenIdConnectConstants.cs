@@ -30,7 +30,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
             public const string Birthdate = "birthdate";
             public const string ClientId = "client_id";
             public const string CodeHash = "c_hash";
-            public const string Confidential = "confidential";
+            public const string ConfidentialityLevel = "cfd_lvl";
             public const string Email = "email";
             public const string EmailVerified = "email_verified";
             public const string ExpiresAt = "exp";
@@ -72,6 +72,11 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
             public const string Sha256 = "S256";
         }
 
+        public static class ConfidentialityLevels {
+            public const string Private = "private";
+            public const string Public = "public";
+        }
+
         public static class Destinations {
             public const string AccessToken = "access_token";
             public const string IdentityToken = "id_token";
@@ -101,6 +106,17 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
             public const string Implicit = "implicit";
             public const string Password = "password";
             public const string RefreshToken = "refresh_token";
+        }
+
+        public static class MessageTypes {
+            public const string Authorization = "authorization";
+            public const string Configuration = "configuration";
+            public const string Cryptography = "cryptography";
+            public const string Introspection = "introspection";
+            public const string Logout = "logout";
+            public const string Revocation = "revocation";
+            public const string Token = "token";
+            public const string Userinfo = "userinfo";
         }
 
         public static class Metadata {
@@ -188,8 +204,9 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
             public const string Audiences = ".audiences";
             public const string CodeChallenge = ".code_challenge";
             public const string CodeChallengeMethod = ".code_challenge_method";
-            public const string Confidential = ".confidential";
+            public const string ConfidentialityLevel = ".confidentiality_level";
             public const string Destinations = ".destinations";
+            public const string MessageType = ".message_type";
             public const string Nonce = ".nonce";
             public const string Presenters = ".presenters";
             public const string RedirectUri = ".redirect_uri";
@@ -197,17 +214,6 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
             public const string Scopes = ".scopes";
             public const string TicketId = ".ticket_id";
             public const string Usage = ".usage";
-        }
-
-        public static class RequestTypes {
-            public const string Authorization = "authorization";
-            public const string Configuration = "configuration";
-            public const string Cryptography = "cryptography";
-            public const string Introspection = "introspection";
-            public const string Logout = "logout";
-            public const string Revocation = "revocation";
-            public const string Token = "token";
-            public const string Userinfo = "userinfo";
         }
 
         public static class ResponseModes {

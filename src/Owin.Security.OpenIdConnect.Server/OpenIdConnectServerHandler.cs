@@ -234,9 +234,10 @@ namespace Owin.Security.OpenIdConnect.Server {
                 ticket.SetProperty(OpenIdConnectConstants.Properties.RedirectUri, request.RedirectUri);
             }
 
-            // Store a boolean indicating whether the ticket should be marked as confidential.
-            if (request.IsConfidential && request.IsTokenRequest()) {
-                ticket.SetProperty(OpenIdConnectConstants.Properties.Confidential, "true");
+            // Copy the confidentiality level associated with the request to the authentication ticket.
+            if (!ticket.HasProperty(OpenIdConnectConstants.Properties.ConfidentialityLevel)) {
+                ticket.SetProperty(OpenIdConnectConstants.Properties.ConfidentialityLevel,
+                    request.GetProperty(OpenIdConnectConstants.Properties.ConfidentialityLevel));
             }
 
             // Always include the "openid" scope when the developer doesn't explicitly call SetScopes.
@@ -248,9 +249,8 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             // When a "resources" property cannot be found in the ticket, infer it from the "audiences" property.
             if (!ticket.HasProperty(OpenIdConnectConstants.Properties.Resources)) {
-                var audiences = ticket.GetProperty(OpenIdConnectConstants.Properties.Audiences);
-
-                ticket.SetProperty(OpenIdConnectConstants.Properties.Resources, audiences);
+                ticket.SetProperty(OpenIdConnectConstants.Properties.Resources,
+                    ticket.GetProperty(OpenIdConnectConstants.Properties.Audiences));
             }
 
             // Only return an authorization code if the request is an authorization request and has response_type=code.
@@ -352,10 +352,10 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             if (request.IsAuthorizationRequest()) {
-                return await SendAuthorizationResponseAsync(request, response, ticket);
+                return await SendAuthorizationResponseAsync(response, ticket);
             }
 
-            return await SendTokenResponseAsync(request, response, ticket);
+            return await SendTokenResponseAsync(response, ticket);
         }
 
         private Task<bool> HandleLogoutAsync(AuthenticationResponseRevoke context) {
@@ -379,7 +379,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 State = request.State
             };
 
-            return SendLogoutResponseAsync(request, response);
+            return SendLogoutResponseAsync(response);
         }
 
         private Task<bool> HandleChallengeAsync(AuthenticationResponseChallenge context) {
@@ -418,10 +418,10 @@ namespace Owin.Security.OpenIdConnect.Server {
             var ticket = new AuthenticationTicket(new ClaimsIdentity(), context.Properties);
 
             if (request.IsAuthorizationRequest()) {
-                return SendAuthorizationResponseAsync(request, response, ticket);
+                return SendAuthorizationResponseAsync(response, ticket);
             }
 
-            return SendTokenResponseAsync(request, response, ticket);
+            return SendTokenResponseAsync(response, ticket);
         }
 
         private async Task<bool> SendNativePageAsync(OpenIdConnectResponse response) {

@@ -274,7 +274,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             // Assert
             Assert.Equal(3, response.Count());
             Assert.Equal(server.BaseAddress.AbsoluteUri, (string) response[OpenIdConnectConstants.Claims.Issuer]);
-            Assert.Equal("Bob le Magnifique", response[OpenIdConnectConstants.Claims.Subject]);
+            Assert.Equal("Bob le Magnifique", (string) response[OpenIdConnectConstants.Claims.Subject]);
             Assert.Contains("Fabrikam", (JArray) response[OpenIdConnectConstants.Claims.Audience]);
         }
 
@@ -310,7 +310,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             // Assert
             Assert.Equal(3, response.Count());
             Assert.Equal(server.BaseAddress.AbsoluteUri, (string) response[OpenIdConnectConstants.Claims.Issuer]);
-            Assert.Equal("Bob le Magnifique", response[OpenIdConnectConstants.Claims.Subject]);
+            Assert.Equal("Bob le Magnifique", (string) response[OpenIdConnectConstants.Claims.Subject]);
             Assert.Contains("Fabrikam", (JArray) response[OpenIdConnectConstants.Claims.Audience]);
         }
 

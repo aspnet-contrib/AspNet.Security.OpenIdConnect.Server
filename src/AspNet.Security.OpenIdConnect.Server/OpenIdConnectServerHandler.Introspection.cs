@@ -24,9 +24,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // See https://tools.ietf.org/html/rfc7662#section-2.1
             // and https://tools.ietf.org/html/rfc7662#section-4
             if (string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
-                request = new OpenIdConnectRequest(Request.Query) {
-                    RequestType = OpenIdConnectConstants.RequestTypes.Introspection
-                };
+                request = new OpenIdConnectRequest(Request.Query);
             }
 
             else if (string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase)) {
@@ -35,7 +33,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     Logger.LogError("The introspection request was rejected because " +
                                     "the mandatory 'Content-Type' header was missing.");
 
-                    return await SendIntrospectionResponseAsync(null, new OpenIdConnectResponse {
+                    return await SendIntrospectionResponseAsync(new OpenIdConnectResponse {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
                         ErrorDescription = "A malformed introspection request has been received: " +
                             "the mandatory 'Content-Type' header was missing from the POST request."
@@ -47,7 +45,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     Logger.LogError("The introspection request was rejected because an invalid 'Content-Type' " +
                                     "header was received: {ContentType}.", Request.ContentType);
 
-                    return await SendIntrospectionResponseAsync(null, new OpenIdConnectResponse {
+                    return await SendIntrospectionResponseAsync(new OpenIdConnectResponse {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
                         ErrorDescription = "A malformed introspection request has been received: " +
                             "the 'Content-Type' header contained an unexcepted value. " +
@@ -55,27 +53,29 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     });
                 }
 
-                request = new OpenIdConnectRequest(await Request.ReadFormAsync(Context.RequestAborted)) {
-                    RequestType = OpenIdConnectConstants.RequestTypes.Introspection
-                };
+                request = new OpenIdConnectRequest(await Request.ReadFormAsync(Context.RequestAborted));
             }
 
             else {
                 Logger.LogError("The introspection request was rejected because an invalid " +
                                 "HTTP method was received: {Method}.", Request.Method);
 
-                return await SendIntrospectionResponseAsync(null, new OpenIdConnectResponse {
+                return await SendIntrospectionResponseAsync(new OpenIdConnectResponse {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "A malformed introspection request has been received: " +
                                        "make sure to use either GET or POST."
                 });
             }
 
-            var @event = new ExtractIntrospectionRequestContext(Context, Options, request);
-            await Options.Provider.ExtractIntrospectionRequest(@event);
+            // Note: set the message type before invoking the ExtractIntrospectionRequest event.
+            request.SetProperty(OpenIdConnectConstants.Properties.MessageType,
+                                OpenIdConnectConstants.MessageTypes.Introspection);
 
             // Store the introspection request in the ASP.NET context.
             Context.SetOpenIdConnectRequest(request);
+
+            var @event = new ExtractIntrospectionRequestContext(Context, Options, request);
+            await Options.Provider.ExtractIntrospectionRequest(@event);
 
             if (@event.HandledResponse) {
                 return true;
@@ -90,7 +90,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                                 /* Error: */ @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                                 /* Description: */ @event.ErrorDescription);
 
-                return await SendIntrospectionResponseAsync(request, new OpenIdConnectResponse {
+                return await SendIntrospectionResponseAsync(new OpenIdConnectResponse {
                     Error = @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = @event.ErrorDescription,
                     ErrorUri = @event.ErrorUri
@@ -98,7 +98,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             if (string.IsNullOrWhiteSpace(request.Token)) {
-                return await SendIntrospectionResponseAsync(request, new OpenIdConnectResponse {
+                return await SendIntrospectionResponseAsync(new OpenIdConnectResponse {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "A malformed introspection request has been received: " +
                         "a 'token' parameter with an access, refresh, or identity token is required."
@@ -130,8 +130,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
             var context = new ValidateIntrospectionRequestContext(Context, Options, request);
             await Options.Provider.ValidateIntrospectionRequest(context);
 
-            // Infer the request confidentiality status from the validation context.
-            request.IsConfidential = context.IsValidated;
+            // If the validation context was set as fully validated,
+            // mark the OpenID Connect request as confidential.
+            if (context.IsValidated) {
+                request.SetProperty(OpenIdConnectConstants.Properties.ConfidentialityLevel,
+                                    OpenIdConnectConstants.ConfidentialityLevels.Private);
+            }
 
             if (context.HandledResponse) {
                 return true;
@@ -146,7 +150,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                                 /* Error: */ context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                                 /* Description: */ context.ErrorDescription);
 
-                return await SendIntrospectionResponseAsync(request, new OpenIdConnectResponse {
+                return await SendIntrospectionResponseAsync(new OpenIdConnectResponse {
                     Error = context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = context.ErrorDescription,
                     ErrorUri = context.ErrorUri
@@ -157,7 +161,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             else if (context.IsValidated && string.IsNullOrEmpty(request.ClientId)) {
                 Logger.LogError("The introspection request was validated but the client_id was not set.");
 
-                return await SendIntrospectionResponseAsync(request, new OpenIdConnectResponse {
+                return await SendIntrospectionResponseAsync(new OpenIdConnectResponse {
                     Error = OpenIdConnectConstants.Errors.ServerError,
                     ErrorDescription = "An internal server error occurred."
                 });
@@ -199,7 +203,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             if (ticket == null) {
                 Logger.LogInformation("The introspection request was rejected because the token was invalid.");
 
-                return await SendIntrospectionResponseAsync(request, new OpenIdConnectResponse {
+                return await SendIntrospectionResponseAsync(new OpenIdConnectResponse {
                     [OpenIdConnectConstants.Parameters.Active] = false
                 });
             }
@@ -210,7 +214,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             if (context.IsSkipped && ticket.IsConfidential()) {
                 Logger.LogError("The introspection request was rejected because the caller was not authenticated.");
 
-                return await SendIntrospectionResponseAsync(request, new OpenIdConnectResponse {
+                return await SendIntrospectionResponseAsync(new OpenIdConnectResponse {
                     [OpenIdConnectConstants.Parameters.Active] = false
                 });
             }
@@ -220,7 +224,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 ticket.Properties.ExpiresUtc < Options.SystemClock.UtcNow) {
                 Logger.LogInformation("The introspection request was rejected because the token was expired.");
 
-                return await SendIntrospectionResponseAsync(request, new OpenIdConnectResponse {
+                return await SendIntrospectionResponseAsync(new OpenIdConnectResponse {
                     [OpenIdConnectConstants.Parameters.Active] = false
                 });
             }
@@ -232,7 +236,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     Logger.LogError("The introspection request was rejected because the " +
                                     "authorization code was issued to a different client.");
 
-                    return await SendIntrospectionResponseAsync(request, new OpenIdConnectResponse {
+                    return await SendIntrospectionResponseAsync(new OpenIdConnectResponse {
                         [OpenIdConnectConstants.Parameters.Active] = false
                     });
                 }
@@ -243,7 +247,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     Logger.LogError("The introspection request was rejected because the access token " +
                                     "was issued to a different client or for another resource server.");
 
-                    return await SendIntrospectionResponseAsync(request, new OpenIdConnectResponse {
+                    return await SendIntrospectionResponseAsync(new OpenIdConnectResponse {
                         [OpenIdConnectConstants.Parameters.Active] = false
                     });
                 }
@@ -253,7 +257,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     Logger.LogError("The introspection request was rejected because the " +
                                     "identity token was issued to a different client.");
 
-                    return await SendIntrospectionResponseAsync(request, new OpenIdConnectResponse {
+                    return await SendIntrospectionResponseAsync(new OpenIdConnectResponse {
                         [OpenIdConnectConstants.Parameters.Active] = false
                     });
                 }
@@ -264,7 +268,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     Logger.LogError("The introspection request was rejected because the " +
                                     "refresh token was issued to a different client.");
 
-                    return await SendIntrospectionResponseAsync(request, new OpenIdConnectResponse {
+                    return await SendIntrospectionResponseAsync(new OpenIdConnectResponse {
                         [OpenIdConnectConstants.Parameters.Active] = false
                     });
                 }
@@ -371,17 +375,18 @@ namespace AspNet.Security.OpenIdConnect.Server {
                                 /* Error: */ notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                                 /* Description: */ notification.ErrorDescription);
 
-                return await SendIntrospectionResponseAsync(request, new OpenIdConnectResponse {
+                return await SendIntrospectionResponseAsync(new OpenIdConnectResponse {
                     Error = notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = notification.ErrorDescription,
                     ErrorUri = notification.ErrorUri
                 });
             }
 
-            return await SendIntrospectionResponseAsync(request, new OpenIdConnectResponse(notification.Claims));
+            return await SendIntrospectionResponseAsync(new OpenIdConnectResponse(notification.Claims));
         }
 
-        private async Task<bool> SendIntrospectionResponseAsync(OpenIdConnectRequest request, OpenIdConnectResponse response) {
+        private async Task<bool> SendIntrospectionResponseAsync(OpenIdConnectResponse response) {
+            var request = Context.GetOpenIdConnectRequest();
             if (request == null) {
                 request = new OpenIdConnectRequest();
             }
