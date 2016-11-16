@@ -129,7 +129,7 @@ namespace Mvc.Server {
                     ApplicationID = "myClient",
                     DisplayName = "My client application",
                     RedirectUri = "http://localhost:53507/signin-oidc",
-                    LogoutRedirectUri = "http://localhost:53507/",
+                    LogoutRedirectUri = "http://localhost:53507/signout-callback-oidc",
                     Secret = "secret_secret_secret"
                 });
 
