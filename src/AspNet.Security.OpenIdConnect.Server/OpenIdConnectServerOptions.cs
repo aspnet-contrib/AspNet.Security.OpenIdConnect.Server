@@ -183,12 +183,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
         public bool ApplicationCanDisplayErrors { get; set; }
 
         /// <summary>
-        /// Used to know what the current clock time is when calculating or validating token expiration. When not assigned default is based on
-        /// DateTimeOffset.UtcNow. This is typically needed only for unit testing.
-        /// </summary>
-        public ISystemClock SystemClock { get; set; } = new SystemClock();
-
-        /// <summary>
         /// Gets or sets a boolean indicating whether incoming requests arriving on non-HTTPS endpoints should be rejected.
         /// By default, this property is set to <c>false</c> to help mitigate man-in-the-middle attacks.
         /// </summary>

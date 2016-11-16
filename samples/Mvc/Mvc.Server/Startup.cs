@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
-using Mvc.Server.Extensions;
 using Mvc.Server.Models;
 using Mvc.Server.Providers;
 
