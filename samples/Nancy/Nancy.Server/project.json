@@ -29,7 +29,6 @@
     "Nancy.MSOwinSecurity": "1.0.1",
     "Nancy.Owin": "1.3.0",
     "Nancy.Viewengines.Razor": "1.3.0",
-    "NWebsec.Owin": "1.0.0",
     "Owin.Security.OAuth.Introspection": "1.0.0-alpha2-final",
     "Owin.Security.OAuth.Validation": "1.0.0-alpha2-final",
     "Owin.Security.OpenIdConnect.Server": { "target": "project" }

@@ -30,7 +30,7 @@ namespace Mvc.Server {
             app.UseDeveloperExceptionPage();
 
             // Create a new branch where the registered middleware will be executed only for API calls.
-            app.UseWhen(context => context.Request.Path.StartsWithSegments(new PathString("/api")), branch => {
+            app.UseWhen(context => context.Request.Path.StartsWithSegments("/api"), branch => {
                 branch.UseOAuthValidation();
 
                 // Alternatively, you can also use the introspection middleware.
@@ -48,7 +48,7 @@ namespace Mvc.Server {
             });
 
             // Create a new branch where the registered middleware will be executed only for non API calls.
-            app.UseWhen(context => !context.Request.Path.StartsWithSegments(new PathString("/api")), branch => {
+            app.UseWhen(context => !context.Request.Path.StartsWithSegments("/api"), branch => {
                 // Insert a new cookies middleware in the pipeline to store
                 // the user identity returned by the external identity provider.
                 branch.UseCookieAuthentication(new CookieAuthenticationOptions {
