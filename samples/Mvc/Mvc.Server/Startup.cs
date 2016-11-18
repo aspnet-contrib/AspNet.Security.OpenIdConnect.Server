@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
-using Mvc.Server.Extensions;
 using Mvc.Server.Models;
 using Mvc.Server.Providers;
 
@@ -31,7 +30,7 @@ namespace Mvc.Server {
             app.UseDeveloperExceptionPage();
 
             // Create a new branch where the registered middleware will be executed only for API calls.
-            app.UseWhen(context => context.Request.Path.StartsWithSegments(new PathString("/api")), branch => {
+            app.UseWhen(context => context.Request.Path.StartsWithSegments("/api"), branch => {
                 branch.UseOAuthValidation();
 
                 // Alternatively, you can also use the introspection middleware.
@@ -49,7 +48,7 @@ namespace Mvc.Server {
             });
 
             // Create a new branch where the registered middleware will be executed only for non API calls.
-            app.UseWhen(context => !context.Request.Path.StartsWithSegments(new PathString("/api")), branch => {
+            app.UseWhen(context => !context.Request.Path.StartsWithSegments("/api"), branch => {
                 // Insert a new cookies middleware in the pipeline to store
                 // the user identity returned by the external identity provider.
                 branch.UseCookieAuthentication(new CookieAuthenticationOptions {
@@ -130,7 +129,7 @@ namespace Mvc.Server {
                     ApplicationID = "myClient",
                     DisplayName = "My client application",
                     RedirectUri = "http://localhost:53507/signin-oidc",
-                    LogoutRedirectUri = "http://localhost:53507/",
+                    LogoutRedirectUri = "http://localhost:53507/signout-callback-oidc",
                     Secret = "secret_secret_secret"
                 });
 

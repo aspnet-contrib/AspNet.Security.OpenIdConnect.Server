@@ -6,7 +6,6 @@ using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
 using Nancy.Server.Extensions;
 using Nancy.Server.Providers;
-using NWebsec.Owin;
 using Owin;
 
 namespace Nancy.Server {
@@ -14,8 +13,8 @@ namespace Nancy.Server {
         public void Configuration(IAppBuilder app) {
             app.SetDefaultSignInAsAuthenticationType("ServerCookie");
 
-            app.UseWhen(context => context.Request.Path.StartsWithSegments(new PathString("/api")), map => {
-                map.UseOAuthValidation();
+            app.UseWhen(context => context.Request.Path.StartsWithSegments(new PathString("/api")), branch => {
+                branch.UseOAuthValidation();
 
                 // Alternatively, you can also use the introspection middleware.
                 // Using it is recommended if your resource server is in a
@@ -32,8 +31,8 @@ namespace Nancy.Server {
 
             // Insert a new cookies middleware in the pipeline to store
             // the user identity returned by the external identity provider.
-            app.UseWhen(context => !context.Request.Path.StartsWithSegments(new PathString("/api")), map => {
-                map.UseCookieAuthentication(new CookieAuthenticationOptions {
+            app.UseWhen(context => !context.Request.Path.StartsWithSegments(new PathString("/api")), branch => {
+                branch.UseCookieAuthentication(new CookieAuthenticationOptions {
                     AuthenticationMode = AuthenticationMode.Active,
                     AuthenticationType = "ServerCookie",
                     CookieName = CookieAuthenticationDefaults.CookiePrefix + "ServerCookie",
@@ -41,23 +40,6 @@ namespace Nancy.Server {
                     LoginPath = new PathString("/signin")
                 });
             });
-
-            // Insert a new middleware responsible of setting the Content-Security-Policy header.
-            // See https://nwebsec.codeplex.com/wikipage?title=Configuring%20Content%20Security%20Policy&referringTitle=NWebsec
-            app.UseCsp(options => options.DefaultSources(configuration => configuration.Self())
-                                         .ScriptSources(configuration => configuration.UnsafeInline()));
-
-            // Insert a new middleware responsible of setting the X-Content-Type-Options header.
-            // See https://nwebsec.codeplex.com/wikipage?title=Configuring%20security%20headers&referringTitle=NWebsec
-            app.UseXContentTypeOptions();
-
-            // Insert a new middleware responsible of setting the X-Frame-Options header.
-            // See https://nwebsec.codeplex.com/wikipage?title=Configuring%20security%20headers&referringTitle=NWebsec
-            app.UseXfo(options => options.Deny());
-
-            // Insert a new middleware responsible of setting the X-Xss-Protection header.
-            // See https://nwebsec.codeplex.com/wikipage?title=Configuring%20security%20headers&referringTitle=NWebsec
-            app.UseXXssProtection(options => options.EnabledWithBlockMode());
 
             app.Use(async (context, next) => {
                 // Keep the original stream in a separate

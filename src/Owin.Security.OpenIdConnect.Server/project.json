@@ -33,13 +33,14 @@
   },
 
   "dependencies": {
-    "JetBrains.Annotations": { "type": "build", "version": "10.1.4" },
-    "Microsoft.Extensions.Logging": "1.0.0",
+    "JetBrains.Annotations": { "type": "build", "version": "10.2.1" },
+    "Microsoft.Extensions.Logging": "1.1.0",
     "Microsoft.IdentityModel.Protocol.Extensions": "1.0.2.206221351",
-    "Microsoft.Owin.Security.Interop": "1.0.0",
+    "Microsoft.Owin.Security.Interop": "1.1.0",
+    "NETStandard.Library": "1.6.1",
     "Owin": "1.0.0",
     "Owin.Security.OpenIdConnect.Extensions": { "target": "project" },
-    "System.Text.Encodings.Web": "4.0.0"
+    "System.Text.Encodings.Web": "4.3.0"
   },
 
   "frameworks": {

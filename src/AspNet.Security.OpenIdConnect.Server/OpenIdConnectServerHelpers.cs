@@ -197,9 +197,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 }
 
                 else if (curve.Oid.FriendlyName == ECCurve.NamedCurves.nistP521.Oid.FriendlyName) {
-                    // Note: JsonWebKeyECTypes.P512 cannot be used as it doesn't represent a valid curve.
-                    // See https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet/issues/486
-                    return "P-521";
+                    return JsonWebKeyECTypes.P521;
                 }
             }
 

@@ -289,27 +289,8 @@ namespace Microsoft.AspNetCore.Builder {
                         throw new InvalidOperationException("The ephemeral key generation failed.");
                     }
 
-                    // Note: the RSA instance cannot be flowed as-is due to a bug in IdentityModel that disposes
-                    // the underlying algorithm when it can be cast to RSACryptoServiceProvider. To work around
-                    // this bug, the RSA public/private parameters are manually exported and re-imported when needed.
-                    SecurityKey key;
-#if NET451
-                    if (rsa is RSACryptoServiceProvider) {
-                        var parameters = rsa.ExportParameters(includePrivateParameters: true);
-                        key = new RsaSecurityKey(parameters);
-                        key.KeyId = key.GetKeyIdentifier();
-
-                        // Dispose the algorithm instance.
-                        rsa.Dispose();
-                    }
-
-                    else {
-#endif
-                        key = new RsaSecurityKey(rsa);
-                        key.KeyId = key.GetKeyIdentifier();
-#if NET451
-                    }
-#endif
+                    var key = new RsaSecurityKey(rsa);
+                    key.KeyId = key.GetKeyIdentifier();
 
                     credentials.Add(new SigningCredentials(key, algorithm));
 
