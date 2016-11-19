@@ -2,13 +2,13 @@
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
+using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
 using Moq;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Xunit;
 using static System.Net.Http.HttpMethod;
 

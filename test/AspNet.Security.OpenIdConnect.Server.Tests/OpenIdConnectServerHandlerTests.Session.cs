@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
+using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;

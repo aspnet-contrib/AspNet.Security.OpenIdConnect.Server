@@ -56,7 +56,7 @@
       "buildOptions": {
         "define": [ "SUPPORTS_ECDSA" ]
       },
-      
+
       "dependencies": {
         "System.Text.Encoding.Extensions": "4.0.11"
       },

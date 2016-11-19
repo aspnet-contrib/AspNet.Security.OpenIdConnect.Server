@@ -1,6 +1,6 @@
-﻿@using Microsoft.Owin.Security
+﻿@using AspNet.Security.OpenIdConnect.Primitives
+@using Microsoft.Owin.Security
 @using Nancy.ViewEngines.Razor
-@using Owin.Security.OpenIdConnect.Extensions
 
 @inherits NancyRazorViewBase<Tuple<OpenIdConnectRequest, AuthenticateResult>>
 
@@ -15,7 +15,7 @@
     <form action="/connect/logout" enctype="application/x-www-form-urlencoded" method="post">
         @Html.AntiForgeryToken()
 
-        @foreach (var parameter in Model.Item1) {
+        @foreach (var parameter in Model.Item1.GetParameters()) {
             <input type="hidden" name="@parameter.Key" value="@parameter.Value" />
         }
 

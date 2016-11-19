@@ -8,6 +8,7 @@ using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
+using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Logging;

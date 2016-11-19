@@ -6,12 +6,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-using AspNet.Security.OpenIdConnect.Extensions;
+using AspNet.Security.OpenIdConnect.Primitives;
 using AspNet.Security.OpenIdConnect.Server;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Http;

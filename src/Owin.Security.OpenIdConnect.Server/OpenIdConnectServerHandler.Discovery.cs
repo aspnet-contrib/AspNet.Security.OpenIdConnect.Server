@@ -12,11 +12,11 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin.Security.Infrastructure;
 using Newtonsoft.Json.Linq;
-using Owin.Security.OpenIdConnect.Extensions;
 
 namespace Owin.Security.OpenIdConnect.Server {
     internal partial class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions> {

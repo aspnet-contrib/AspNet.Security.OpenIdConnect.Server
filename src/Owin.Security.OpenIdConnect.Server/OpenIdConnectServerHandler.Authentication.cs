@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.Extensions.Logging;
 using Microsoft.Owin.Infrastructure;
 using Microsoft.Owin.Security;
@@ -346,7 +347,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             // Create a new parameters dictionary holding the name/value pairs.
             var parameters = new Dictionary<string, string>();
 
-            foreach (var parameter in response) {
+            foreach (var parameter in response.GetParameters()) {
                 // Don't include redirect_uri in the parameters dictionary.
                 if (string.Equals(parameter.Key, OpenIdConnectConstants.Parameters.RedirectUri, StringComparison.Ordinal)) {
                     continue;

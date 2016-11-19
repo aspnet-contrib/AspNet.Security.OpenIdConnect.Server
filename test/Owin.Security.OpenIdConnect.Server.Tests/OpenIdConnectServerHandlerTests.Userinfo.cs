@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.Owin.Security;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -272,7 +273,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             });
 
             // Assert
-            Assert.Equal(3, response.Count());
+            Assert.Equal(3, response.GetParameters().Count());
             Assert.Equal(server.BaseAddress.AbsoluteUri, (string) response[OpenIdConnectConstants.Claims.Issuer]);
             Assert.Equal("Bob le Magnifique", (string) response[OpenIdConnectConstants.Claims.Subject]);
             Assert.Contains("Fabrikam", (JArray) response[OpenIdConnectConstants.Claims.Audience]);
@@ -308,7 +309,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             });
 
             // Assert
-            Assert.Equal(3, response.Count());
+            Assert.Equal(3, response.GetParameters().Count());
             Assert.Equal(server.BaseAddress.AbsoluteUri, (string) response[OpenIdConnectConstants.Claims.Issuer]);
             Assert.Equal("Bob le Magnifique", (string) response[OpenIdConnectConstants.Claims.Subject]);
             Assert.Contains("Fabrikam", (JArray) response[OpenIdConnectConstants.Claims.Audience]);

@@ -2,6 +2,7 @@
 using System.Reflection;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
@@ -388,7 +389,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                 options.Provider.OnHandleAuthorizationRequest = context => {
                     var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationType);
                     identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Bricoleur");
-                    
+
                     context.OwinContext.Authentication.SignIn(identity);
 
                     context.Validate(identity);
@@ -894,7 +895,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                 options.Provider.OnHandleAuthorizationRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
                     identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
-                    
+
                     context.Validate(identity);
 
                     return Task.FromResult(0);

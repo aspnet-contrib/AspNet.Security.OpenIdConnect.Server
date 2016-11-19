@@ -5,6 +5,7 @@
  */
 
 using System.Collections.Generic;
+using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Notifications;

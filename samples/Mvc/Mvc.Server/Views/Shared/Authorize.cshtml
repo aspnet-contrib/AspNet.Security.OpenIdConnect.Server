@@ -1,4 +1,4 @@
-﻿@using AspNet.Security.OpenIdConnect.Extensions
+﻿@using AspNet.Security.OpenIdConnect.Primitives
 @using Mvc.Server.Models
 
 @model Tuple<OpenIdConnectRequest, Application>
@@ -11,7 +11,7 @@
     <form enctype="application/x-www-form-urlencoded" method="post">
         @Html.AntiForgeryToken()
 
-        @foreach (var parameter in Model.Item1) {
+        @foreach (var parameter in Model.Item1.GetParameters()) {
             <input type="hidden" name="@parameter.Key" value="@parameter.Value" />
         }
 

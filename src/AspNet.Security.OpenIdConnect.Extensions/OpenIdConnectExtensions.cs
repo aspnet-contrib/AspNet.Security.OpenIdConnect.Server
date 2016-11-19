@@ -8,480 +8,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using AspNet.Security.OpenIdConnect.Primitives;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http.Authentication;
 
 namespace AspNet.Security.OpenIdConnect.Extensions {
     /// <summary>
-    /// Provides extension methods to make <see cref="OpenIdConnectRequest"/>
-    /// easier to work with, specially in server-side scenarios.
+    /// Provides extension methods to make <see cref="AuthenticationTicket"/> easier to use.
     /// </summary>
     public static class OpenIdConnectExtensions {
-        /// <summary>
-        /// Extracts the resources from an <see cref="OpenIdConnectRequest"/>.
-        /// </summary>
-        /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
-        public static IEnumerable<string> GetResources([NotNull] this OpenIdConnectRequest request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            return request.Resource?.Split(OpenIdConnectConstants.Separators.Space, StringSplitOptions.RemoveEmptyEntries)
-                                   ?.Distinct(StringComparer.Ordinal)
-                   ?? Enumerable.Empty<string>();
-        }
-
-        /// <summary>
-        /// Extracts the scopes from an <see cref="OpenIdConnectRequest"/>.
-        /// </summary>
-        /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
-        public static IEnumerable<string> GetScopes([NotNull] this OpenIdConnectRequest request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            return request.Scope?.Split(OpenIdConnectConstants.Separators.Space, StringSplitOptions.RemoveEmptyEntries)
-                                ?.Distinct(StringComparer.Ordinal)
-                   ?? Enumerable.Empty<string>();
-        }
-
-        /// <summary>
-        /// Extracts the resources from an <see cref="OpenIdConnectResponse"/>.
-        /// </summary>
-        /// <param name="response">The <see cref="OpenIdConnectResponse"/> instance.</param>
-        public static IEnumerable<string> GetResources([NotNull] this OpenIdConnectResponse response) {
-            if (response == null) {
-                throw new ArgumentNullException(nameof(response));
-            }
-
-            return response.Resource?.Split(OpenIdConnectConstants.Separators.Space, StringSplitOptions.RemoveEmptyEntries)
-                                    ?.Distinct(StringComparer.Ordinal)
-                   ?? Enumerable.Empty<string>();
-        }
-
-        /// <summary>
-        /// Extracts the scopes from an <see cref="OpenIdConnectResponse"/>.
-        /// </summary>
-        /// <param name="response">The <see cref="OpenIdConnectResponse"/> instance.</param>
-        public static IEnumerable<string> GetScopes([NotNull] this OpenIdConnectResponse response) {
-            if (response == null) {
-                throw new ArgumentNullException(nameof(response));
-            }
-
-            return response.Scope?.Split(OpenIdConnectConstants.Separators.Space, StringSplitOptions.RemoveEmptyEntries)
-                                 ?.Distinct(StringComparer.Ordinal)
-                   ?? Enumerable.Empty<string>();
-        }
-
-        /// <summary>
-        /// Determines whether the response_type exposed by the
-        /// <paramref name="request"/> contains the given <paramref name="component"/> or not.
-        /// </summary>
-        /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
-        /// <param name="component">The component to look for in the parameter.</param>
-        public static bool HasResponseType([NotNull] this OpenIdConnectRequest request, string component) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            return HasValue(request.ResponseType, component);
-        }
-
-        /// <summary>
-        /// Determines whether the scope exposed by the <paramref name="request"/>
-        /// contains the given <paramref name="component"/> or not.
-        /// </summary>
-        /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
-        /// <param name="component">The component to look for in the parameter.</param>
-        public static bool HasScope([NotNull] this OpenIdConnectRequest request, string component) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            return HasValue(request.Scope, component);
-        }
-
-        /// <summary>
-        /// Determines whether the scope exposed by the <paramref name="response"/>
-        /// contains the given <paramref name="component"/> or not.
-        /// </summary>
-        /// <param name="response">The <see cref="OpenIdConnectResponse"/> instance.</param>
-        /// <param name="component">The component to look for in the parameter.</param>
-        public static bool HasScope([NotNull] this OpenIdConnectResponse response, string component) {
-            if (response == null) {
-                throw new ArgumentNullException(nameof(response));
-            }
-
-            return HasValue(response.Scope, component);
-        }
-
-        /// <summary>
-        /// Determines whether the given request is an authorization request.
-        /// </summary>
-        /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
-        /// <returns><c>true</c> if the request is an authorization request, <c>false</c> otherwise.</returns>
-        public static bool IsAuthorizationRequest([NotNull] this OpenIdConnectRequest request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            var value = request.GetProperty(OpenIdConnectConstants.Properties.MessageType);
-            if (string.IsNullOrEmpty(value)) {
-                return false;
-            }
-
-            return string.Equals(value, OpenIdConnectConstants.MessageTypes.Authorization, StringComparison.OrdinalIgnoreCase);
-        }
-
-        /// <summary>
-        /// Determines whether the request was transmitted using a confidential channel
-        /// (i.e if the transaction was only visible by the client and if client authentication was enforced).
-        /// </summary>
-        /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
-        /// <returns><c>true</c> if the request is a configuration request, <c>false</c> otherwise.</returns>
-        public static bool IsConfidential([NotNull] this OpenIdConnectRequest request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            var value = request.GetProperty(OpenIdConnectConstants.Properties.ConfidentialityLevel);
-            if (string.IsNullOrEmpty(value)) {
-                return false;
-            }
-
-            return string.Equals(value, OpenIdConnectConstants.ConfidentialityLevels.Private, StringComparison.OrdinalIgnoreCase);
-        }
-
-        /// <summary>
-        /// Determines whether the given request is a configuration request.
-        /// </summary>
-        /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
-        /// <returns><c>true</c> if the request is a configuration request, <c>false</c> otherwise.</returns>
-        public static bool IsConfigurationRequest([NotNull] this OpenIdConnectRequest request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            var value = request.GetProperty(OpenIdConnectConstants.Properties.MessageType);
-            if (string.IsNullOrEmpty(value)) {
-                return false;
-            }
-
-            return string.Equals(value, OpenIdConnectConstants.MessageTypes.Configuration, StringComparison.OrdinalIgnoreCase);
-        }
-
-        /// <summary>
-        /// Determines whether the given request is a cryptography request.
-        /// </summary>
-        /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
-        /// <returns><c>true</c> if the request is a cryptography request, <c>false</c> otherwise.</returns>
-        public static bool IsCryptographyRequest([NotNull] this OpenIdConnectRequest request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            var value = request.GetProperty(OpenIdConnectConstants.Properties.MessageType);
-            if (string.IsNullOrEmpty(value)) {
-                return false;
-            }
-
-            return string.Equals(value, OpenIdConnectConstants.MessageTypes.Cryptography, StringComparison.OrdinalIgnoreCase);
-        }
-
-        /// <summary>
-        /// Determines whether the given request is an introspection request.
-        /// </summary>
-        /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
-        /// <returns><c>true</c> if the request is an introspection request, <c>false</c> otherwise.</returns>
-        public static bool IsIntrospectionRequest([NotNull] this OpenIdConnectRequest request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            var value = request.GetProperty(OpenIdConnectConstants.Properties.MessageType);
-            if (string.IsNullOrEmpty(value)) {
-                return false;
-            }
-
-            return string.Equals(value, OpenIdConnectConstants.MessageTypes.Introspection, StringComparison.OrdinalIgnoreCase);
-        }
-
-        /// <summary>
-        /// Determines whether the given request is a logout request.
-        /// </summary>
-        /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
-        /// <returns><c>true</c> if the request is a logout request, <c>false</c> otherwise.</returns>
-        public static bool IsLogoutRequest([NotNull] this OpenIdConnectRequest request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            var value = request.GetProperty(OpenIdConnectConstants.Properties.MessageType);
-            if (string.IsNullOrEmpty(value)) {
-                return false;
-            }
-
-            return string.Equals(value, OpenIdConnectConstants.MessageTypes.Logout, StringComparison.OrdinalIgnoreCase);
-        }
-
-        /// <summary>
-        /// Determines whether the given request is a revocation request.
-        /// </summary>
-        /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
-        /// <returns><c>true</c> if the request is a revocation request, <c>false</c> otherwise.</returns>
-        public static bool IsRevocationRequest([NotNull] this OpenIdConnectRequest request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            var value = request.GetProperty(OpenIdConnectConstants.Properties.MessageType);
-            if (string.IsNullOrEmpty(value)) {
-                return false;
-            }
-
-            return string.Equals(value, OpenIdConnectConstants.MessageTypes.Revocation, StringComparison.OrdinalIgnoreCase);
-        }
-
-        /// <summary>
-        /// Determines whether the given request is a token request.
-        /// </summary>
-        /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
-        /// <returns><c>true</c> if the request is a token request, <c>false</c> otherwise.</returns>
-        public static bool IsTokenRequest([NotNull] this OpenIdConnectRequest request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            var value = request.GetProperty(OpenIdConnectConstants.Properties.MessageType);
-            if (string.IsNullOrEmpty(value)) {
-                return false;
-            }
-
-            return string.Equals(value, OpenIdConnectConstants.MessageTypes.Token, StringComparison.OrdinalIgnoreCase);
-        }
-
-        /// <summary>
-        /// Determines whether the given request is a userinfo request.
-        /// </summary>
-        /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
-        /// <returns><c>true</c> if the request is a userinfo request, <c>false</c> otherwise.</returns>
-        public static bool IsUserinfoRequest([NotNull] this OpenIdConnectRequest request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            var value = request.GetProperty(OpenIdConnectConstants.Properties.MessageType);
-            if (string.IsNullOrEmpty(value)) {
-                return false;
-            }
-
-            return string.Equals(value, OpenIdConnectConstants.MessageTypes.Userinfo, StringComparison.OrdinalIgnoreCase);
-        }
-
-        /// <summary>
-        /// Determines whether the "response_type" parameter corresponds to the "none" response type.
-        /// See http://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#none for more information.
-        /// </summary>
-        /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
-        /// <returns><c>true</c> if the request is a response_type=none request, <c>false</c> otherwise.</returns>
-        public static bool IsNoneFlow([NotNull] this OpenIdConnectRequest request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            return string.Equals(request.ResponseType, OpenIdConnectConstants.ResponseTypes.None, StringComparison.Ordinal);
-        }
-
-        /// <summary>
-        /// Determines whether the "response_type" parameter corresponds to the authorization code flow.
-        /// See http://tools.ietf.org/html/rfc6749#section-4.1.1 for more information.
-        /// </summary>
-        /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
-        /// <returns><c>true</c> if the request is a code flow request, <c>false</c> otherwise.</returns>
-        public static bool IsAuthorizationCodeFlow([NotNull] this OpenIdConnectRequest request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            return string.Equals(request.ResponseType, OpenIdConnectConstants.ResponseTypes.Code, StringComparison.Ordinal);
-        }
-
-        /// <summary>
-        /// Determines whether the "response_type" parameter corresponds to the implicit flow.
-        /// See http://tools.ietf.org/html/rfc6749#section-4.2.1 and
-        /// http://openid.net/specs/openid-connect-core-1_0.html for more information
-        /// </summary>
-        /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
-        /// <returns><c>true</c> if the request is an implicit flow request, <c>false</c> otherwise.</returns>
-        public static bool IsImplicitFlow([NotNull] this OpenIdConnectRequest request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            // Note: while the OIDC specs do not reuse the OAuth2-inherited response_type=token,
-            // it is considered as a valid response_type for the implicit flow, even for pure OIDC requests.
-            return SetEquals(request.ResponseType, OpenIdConnectConstants.ResponseTypes.IdToken) ||
-
-                   SetEquals(request.ResponseType, OpenIdConnectConstants.ResponseTypes.Token) ||
-
-                   SetEquals(request.ResponseType, OpenIdConnectConstants.ResponseTypes.IdToken,
-                                                   OpenIdConnectConstants.ResponseTypes.Token);
-        }
-
-        /// <summary>
-        /// Determines whether the "response_type" parameter corresponds to the hybrid flow.
-        /// See http://tools.ietf.org/html/rfc6749#section-4.2.1 and
-        /// http://openid.net/specs/openid-connect-core-1_0.html for more information.
-        /// </summary>
-        /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
-        /// <returns><c>true</c> if the request is an hybrid flow request, <c>false</c> otherwise.</returns>
-        public static bool IsHybridFlow([NotNull] this OpenIdConnectRequest request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            return SetEquals(request.ResponseType, OpenIdConnectConstants.ResponseTypes.Code,
-                                                   OpenIdConnectConstants.ResponseTypes.IdToken) ||
-
-                   SetEquals(request.ResponseType, OpenIdConnectConstants.ResponseTypes.Code,
-                                                   OpenIdConnectConstants.ResponseTypes.Token) ||
-
-                   SetEquals(request.ResponseType, OpenIdConnectConstants.ResponseTypes.Code,
-                                                   OpenIdConnectConstants.ResponseTypes.IdToken,
-                                                   OpenIdConnectConstants.ResponseTypes.Token);
-        }
-
-        /// <summary>
-        /// Determines whether the "response_mode" parameter corresponds to the fragment response mode.
-        /// See http://openid.net/specs/oauth-v2-multiple-response-types-1_0.html for more information.
-        /// </summary>
-        /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
-        /// <returns>
-        /// <c>true</c> if the request specified the fragment response mode or if
-        /// it's the default value for the requested flow, <c>false</c> otherwise.
-        /// </returns>
-        public static bool IsFragmentResponseMode([NotNull] this OpenIdConnectRequest request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            if (string.Equals(request.ResponseMode, OpenIdConnectConstants.ResponseModes.Fragment, StringComparison.Ordinal)) {
-                return true;
-            }
-
-            // Don't guess the response_mode value
-            // if an explicit value has ben provided.
-            if (!string.IsNullOrEmpty(request.ResponseMode)) {
-                return false;
-            }
-
-            // Both the implicit and the hybrid flows
-            // use response_mode=fragment by default.
-            return request.IsImplicitFlow() || request.IsHybridFlow();
-        }
-
-        /// <summary>
-        /// Determines whether the "response_mode" parameter corresponds to the query response mode.
-        /// See http://openid.net/specs/oauth-v2-multiple-response-types-1_0.html for more information.
-        /// </summary>
-        /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
-        /// <returns>
-        /// <c>true</c> if the request specified the query response mode or if
-        /// it's the default value for the requested flow, <c>false</c> otherwise.
-        /// </returns>
-        public static bool IsQueryResponseMode([NotNull] this OpenIdConnectRequest request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            if (string.Equals(request.ResponseMode, OpenIdConnectConstants.ResponseModes.Query, StringComparison.Ordinal)) {
-                return true;
-            }
-
-            // Don't guess the response_mode value
-            // if an explicit value has ben provided.
-            if (!string.IsNullOrEmpty(request.ResponseMode)) {
-                return false;
-            }
-
-            // Code flow and "response_type=none" use response_mode=query by default.
-            return request.IsAuthorizationCodeFlow() || request.IsNoneFlow();
-        }
-
-        /// <summary>
-        /// Determines whether the "response_mode" parameter corresponds to the form post response mode.
-        /// See http://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html for more information.
-        /// </summary>
-        /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
-        /// <returns>
-        /// <c>true</c> if the request specified the form post response mode or if
-        /// it's the default value for the requested flow, <c>false</c> otherwise.
-        /// </returns>
-        public static bool IsFormPostResponseMode([NotNull] this OpenIdConnectRequest request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            return string.Equals(request.ResponseMode, OpenIdConnectConstants.ResponseModes.FormPost, StringComparison.Ordinal);
-        }
-
-        /// <summary>
-        /// Determines whether the "grant_type" parameter corresponds to the authorization code grant.
-        /// See http://tools.ietf.org/html/rfc6749#section-4.1.3 for more information.
-        /// </summary>
-        /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
-        /// <returns><c>true</c> if the request is a code grant request, <c>false</c> otherwise.</returns>
-        public static bool IsAuthorizationCodeGrantType([NotNull] this OpenIdConnectRequest request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            return string.Equals(request.GrantType, OpenIdConnectConstants.GrantTypes.AuthorizationCode, StringComparison.Ordinal);
-        }
-
-        /// <summary>
-        /// Determines whether the "grant_type" parameter corresponds to the client credentials grant.
-        /// See http://tools.ietf.org/html/rfc6749#section-4.4.2 for more information.
-        /// </summary>
-        /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
-        /// <returns><c>true</c> if the request is a client credentials grant request, <c>false</c> otherwise.</returns>
-        public static bool IsClientCredentialsGrantType([NotNull] this OpenIdConnectRequest request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            return string.Equals(request.GrantType, OpenIdConnectConstants.GrantTypes.ClientCredentials, StringComparison.Ordinal);
-        }
-
-        /// <summary>
-        /// Determines whether the "grant_type" parameter corresponds to the refresh token grant.
-        /// See http://tools.ietf.org/html/rfc6749#section-6 for more information.
-        /// </summary>
-        /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
-        /// <returns><c>true</c> if the request is a refresh token grant request, <c>false</c> otherwise.</returns>
-        public static bool IsRefreshTokenGrantType([NotNull] this OpenIdConnectRequest request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            return string.Equals(request.GrantType, OpenIdConnectConstants.GrantTypes.RefreshToken, StringComparison.Ordinal);
-        }
-
-        /// <summary>
-        /// Determines whether the "grant_type" parameter corresponds to the password grant.
-        /// See http://tools.ietf.org/html/rfc6749#section-4.3.2 for more information.
-        /// </summary>
-        /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
-        /// <returns><c>true</c> if the request is a password grant request, <c>false</c> otherwise.</returns>
-        public static bool IsPasswordGrantType([NotNull] this OpenIdConnectRequest request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            return string.Equals(request.GrantType, OpenIdConnectConstants.GrantTypes.Password, StringComparison.Ordinal);
-        }
-
         /// <summary>
         /// Gets the destinations associated with a claim.
         /// </summary>
@@ -496,7 +32,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
             claim.Properties.TryGetValue(OpenIdConnectConstants.Properties.Destinations, out destinations);
 
             return destinations?.Split(OpenIdConnectConstants.Separators.Space, StringSplitOptions.RemoveEmptyEntries)
-                               ?.Distinct(StringComparer.Ordinal)
+                               ?.Distinct(StringComparer.OrdinalIgnoreCase)
                    ?? Enumerable.Empty<string>();
         }
 
@@ -516,7 +52,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 return false;
             }
 
-            return HasValue(destinations, destination);
+            return HasValue(destinations, destination, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -540,7 +76,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
             }
 
             claim.Properties[OpenIdConnectConstants.Properties.Destinations] =
-                string.Join(" ", destinations.Distinct(StringComparer.Ordinal));
+                string.Join(" ", destinations.Distinct(StringComparer.OrdinalIgnoreCase));
 
             return claim;
         }
@@ -751,7 +287,10 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            return new AuthenticationTicket(ticket.Principal, ticket.Properties.Copy(), ticket.AuthenticationScheme);
+            // Note: don't use ClaimsIdentity.Clone() as it doesn't work properly on <.NET 4.6.
+            var principal = new ClaimsPrincipal(ticket.Principal.Clone(claim => true));
+
+            return new AuthenticationTicket(principal, ticket.Properties.Copy(), ticket.AuthenticationScheme);
         }
 
         /// <summary>
@@ -1082,25 +621,6 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
         /// authentication ticket corresponds to an access token.
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
-        /// <returns><c>true</c> if the ticket corresponds to an authorization code.</returns>
-        public static bool IsAuthorizationCode([NotNull] this AuthenticationTicket ticket) {
-            if (ticket == null) {
-                throw new ArgumentNullException(nameof(ticket));
-            }
-
-            var value = ticket.GetProperty(OpenIdConnectConstants.Properties.Usage);
-            if (string.IsNullOrEmpty(value)) {
-                return false;
-            }
-
-            return string.Equals(value, OpenIdConnectConstants.Usages.AuthorizationCode, StringComparison.OrdinalIgnoreCase);
-        }
-
-        /// <summary>
-        /// Gets a boolean value indicating whether the
-        /// authentication ticket corresponds to an access token.
-        /// </summary>
-        /// <param name="ticket">The authentication ticket.</param>
         /// <returns><c>true</c> if the ticket corresponds to an access token.</returns>
         public static bool IsAccessToken([NotNull] this AuthenticationTicket ticket) {
             if (ticket == null) {
@@ -1113,6 +633,25 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
             }
 
             return string.Equals(value, OpenIdConnectConstants.Usages.AccessToken, StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// Gets a boolean value indicating whether the
+        /// authentication ticket corresponds to an access token.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <returns><c>true</c> if the ticket corresponds to an authorization code.</returns>
+        public static bool IsAuthorizationCode([NotNull] this AuthenticationTicket ticket) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            var value = ticket.GetProperty(OpenIdConnectConstants.Properties.Usage);
+            if (string.IsNullOrEmpty(value)) {
+                return false;
+            }
+
+            return string.Equals(value, OpenIdConnectConstants.Usages.AuthorizationCode, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -1189,14 +728,16 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
         /// <param name="property">The specific property to add, update or remove.</param>
         /// <param name="value">The value associated with the property.</param>
         /// <returns>The authentication ticket.</returns>
-        public static AuthenticationProperties SetProperty(
+        public static AuthenticationTicket SetProperty(
             [NotNull] this AuthenticationTicket ticket,
             [NotNull] string property, [CanBeNull] string value) {
             if (ticket == null) {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            return ticket.Properties.SetProperty(property, value);
+            ticket.Properties.SetProperty(property, value);
+
+            return ticket;
         }
 
         /// <summary>
@@ -1374,15 +915,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            if (string.IsNullOrEmpty(identifier)) {
-                ticket.Properties.Items.Remove(OpenIdConnectConstants.Properties.TicketId);
-
-                return ticket;
-            }
-
-            ticket.Properties.Items[OpenIdConnectConstants.Properties.TicketId] = identifier;
-
-            return ticket;
+            return ticket.SetProperty(OpenIdConnectConstants.Properties.TicketId, identifier);
         }
 
         /// <summary>
@@ -1396,41 +929,17 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            if (string.IsNullOrEmpty(usage)) {
-                ticket.Properties.Items.Remove(OpenIdConnectConstants.Properties.Usage);
-
-                return ticket;
-            }
-
-            ticket.Properties.Items[OpenIdConnectConstants.Properties.Usage] = usage;
-
-            return ticket;
+            return ticket.SetProperty(OpenIdConnectConstants.Properties.Usage, usage);
         }
 
-        private static bool HasValue(string source, string value) {
+        private static bool HasValue(string source, string value, StringComparison comparison = StringComparison.Ordinal) {
             if (string.IsNullOrEmpty(source)) {
                 return false;
             }
 
             return (from component in source.Split(OpenIdConnectConstants.Separators.Space, StringSplitOptions.RemoveEmptyEntries)
-                    where string.Equals(component, value, StringComparison.Ordinal)
+                    where string.Equals(component, value, comparison)
                     select component).Any();
-        }
-
-        private static bool SetEquals(string source, params string[] components) {
-            if (string.IsNullOrEmpty(source)) {
-                return false;
-            }
-
-            if (components == null || !components.Any()) {
-                return false;
-            }
-
-            var set = new HashSet<string>(
-                collection: source.Split(OpenIdConnectConstants.Separators.Space, StringSplitOptions.RemoveEmptyEntries),
-                comparer: StringComparer.Ordinal);
-
-            return set.SetEquals(components);
         }
     }
 }

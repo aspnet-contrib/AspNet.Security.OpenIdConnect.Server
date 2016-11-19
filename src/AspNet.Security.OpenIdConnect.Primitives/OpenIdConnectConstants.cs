@@ -4,7 +4,7 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
-namespace Owin.Security.OpenIdConnect.Extensions {
+namespace AspNet.Security.OpenIdConnect.Primitives {
     public static class OpenIdConnectConstants {
         public static class Algorithms {
             public const string EcdsaSha256 = "ES256";
@@ -80,11 +80,6 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         public static class Destinations {
             public const string AccessToken = "access_token";
             public const string IdentityToken = "id_token";
-        }
-
-        public static class Environment {
-            public const string Request = "OpenIdConnect.Request";
-            public const string Response = "OpenIdConnect.Response";
         }
 
         public static class Errors {

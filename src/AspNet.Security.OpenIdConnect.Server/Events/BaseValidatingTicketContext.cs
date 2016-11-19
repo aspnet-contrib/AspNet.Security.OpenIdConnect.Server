@@ -5,7 +5,7 @@
  */
 
 using System.Security.Claims;
-using AspNet.Security.OpenIdConnect.Extensions;
+using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Authentication;

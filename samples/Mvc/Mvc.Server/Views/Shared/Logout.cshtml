@@ -1,4 +1,4 @@
-﻿@using AspNet.Security.OpenIdConnect.Extensions
+﻿@using AspNet.Security.OpenIdConnect.Primitives
 @using System.Security.Claims
 
 @model Tuple<OpenIdConnectRequest, ClaimsPrincipal>
@@ -14,7 +14,7 @@
     <form action="/connect/logout" enctype="application/x-www-form-urlencoded" method="post">
         @Html.AntiForgeryToken()
 
-        @foreach (var parameter in Model.Item1) {
+        @foreach (var parameter in Model.Item1.GetParameters()) {
             <input type="hidden" name="@parameter.Key" value="@parameter.Value" />
         }
 

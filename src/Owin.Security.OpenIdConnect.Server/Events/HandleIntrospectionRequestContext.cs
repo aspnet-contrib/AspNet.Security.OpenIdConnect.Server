@@ -6,10 +6,10 @@
 
 using System;
 using System.IdentityModel.Tokens;
+using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Newtonsoft.Json.Linq;
-using Owin.Security.OpenIdConnect.Extensions;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>

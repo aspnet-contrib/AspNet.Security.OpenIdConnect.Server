@@ -11,10 +11,10 @@ using System.IO;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using AspNet.Security.OpenIdConnect.Primitives;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 using Microsoft.Owin;
-using Owin.Security.OpenIdConnect.Extensions;
 using Owin.Security.OpenIdConnect.Server;
 
 namespace Owin {
@@ -657,7 +657,7 @@ namespace Owin {
                 throw new ArgumentNullException(nameof(context));
             }
 
-            return context.Get<OpenIdConnectRequest>(OpenIdConnectConstants.Environment.Request);
+            return context.Get<OpenIdConnectRequest>(typeof(OpenIdConnectRequest).FullName);
         }
 
         /// <summary>
@@ -671,7 +671,7 @@ namespace Owin {
                 throw new ArgumentNullException(nameof(context));
             }
 
-            return context.Get<OpenIdConnectResponse>(OpenIdConnectConstants.Environment.Response);
+            return context.Get<OpenIdConnectResponse>(typeof(OpenIdConnectResponse).FullName);
         }
 
         /// <summary>
@@ -684,7 +684,7 @@ namespace Owin {
                 throw new ArgumentNullException(nameof(context));
             }
 
-            context.Set(OpenIdConnectConstants.Environment.Request, request);
+            context.Set(typeof(OpenIdConnectRequest).FullName, request);
         }
 
         /// <summary>
@@ -697,7 +697,7 @@ namespace Owin {
                 throw new ArgumentNullException(nameof(context));
             }
 
-            context.Set(OpenIdConnectConstants.Environment.Response, response);
+            context.Set(typeof(OpenIdConnectResponse).FullName, response);
         }
     }
 }

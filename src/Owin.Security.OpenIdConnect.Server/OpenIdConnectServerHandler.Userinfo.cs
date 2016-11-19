@@ -7,6 +7,7 @@
 using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.Extensions.Logging;
 using Microsoft.Owin.Security.Infrastructure;
 using Owin.Security.OpenIdConnect.Extensions;

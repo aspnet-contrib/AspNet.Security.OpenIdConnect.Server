@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
-using AspNet.Security.OpenIdConnect.Extensions;
+using AspNet.Security.OpenIdConnect.Primitives;
 using AspNet.Security.OpenIdConnect.Server;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Mvc.Server.Models;
-using Newtonsoft.Json;
 
 namespace Mvc.Server.Providers {
     public sealed class AuthorizationProvider : OpenIdConnectServerProvider {

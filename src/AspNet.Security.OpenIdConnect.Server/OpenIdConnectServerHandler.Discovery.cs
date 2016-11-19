@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
-using AspNet.Security.OpenIdConnect.Extensions;
+using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Logging;

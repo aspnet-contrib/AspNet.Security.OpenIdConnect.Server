@@ -6,8 +6,8 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.Owin;
-using Owin.Security.OpenIdConnect.Extensions;
 
 namespace Owin.Security.OpenIdConnect.Server {
     internal static class OpenIdConnectServerHelpers {

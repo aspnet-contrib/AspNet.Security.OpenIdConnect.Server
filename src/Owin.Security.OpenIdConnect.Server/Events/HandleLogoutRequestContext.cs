@@ -4,8 +4,8 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
+using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.Owin;
-using Owin.Security.OpenIdConnect.Extensions;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>

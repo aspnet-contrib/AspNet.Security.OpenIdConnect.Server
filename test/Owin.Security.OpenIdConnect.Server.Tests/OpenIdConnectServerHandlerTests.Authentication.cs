@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using System.Threading.Tasks;
+using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.Owin;
 using Newtonsoft.Json;
 using Owin.Security.OpenIdConnect.Extensions;

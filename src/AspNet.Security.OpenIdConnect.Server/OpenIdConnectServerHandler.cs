@@ -10,6 +10,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
+using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http.Authentication;
@@ -405,7 +406,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         private async Task<bool> SendNativePageAsync(OpenIdConnectResponse response) {
             using (var buffer = new MemoryStream())
             using (var writer = new StreamWriter(buffer)) {
-                foreach (var parameter in response) {
+                foreach (var parameter in response.GetParameters()) {
                     var value = parameter.Value as JValue;
                     if (value == null) {
                         Logger.LogWarning("A parameter whose type was incompatible was ignored " +

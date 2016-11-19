@@ -12,6 +12,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
+using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Logging;
@@ -355,7 +356,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     var method = ticket.GetProperty(OpenIdConnectConstants.Properties.CodeChallengeMethod);
                     ticket.SetProperty(OpenIdConnectConstants.Properties.CodeChallengeMethod, null);
 
-                    Debug.Assert(string.IsNullOrEmpty(method) || 
+                    Debug.Assert(string.IsNullOrEmpty(method) ||
                                  string.Equals(method, OpenIdConnectConstants.CodeChallengeMethods.Plain, StringComparison.Ordinal) ||
                                  string.Equals(method, OpenIdConnectConstants.CodeChallengeMethods.Sha256, StringComparison.Ordinal),
                         "The specified code challenge method should be supported.");

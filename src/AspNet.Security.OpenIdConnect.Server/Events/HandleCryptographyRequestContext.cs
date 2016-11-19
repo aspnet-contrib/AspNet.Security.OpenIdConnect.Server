@@ -5,7 +5,7 @@
  */
 
 using System.Collections.Generic;
-using AspNet.Security.OpenIdConnect.Extensions;
+using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
 

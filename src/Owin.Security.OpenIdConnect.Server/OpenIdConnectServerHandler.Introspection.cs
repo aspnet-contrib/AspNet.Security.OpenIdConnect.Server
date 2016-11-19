@@ -9,6 +9,7 @@ using System.IdentityModel.Tokens;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.Extensions.Logging;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Infrastructure;

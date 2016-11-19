@@ -2,6 +2,7 @@
 using System.IdentityModel.Tokens;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.Owin.Security;
 using Moq;
 using Owin.Security.OpenIdConnect.Extensions;
@@ -517,7 +518,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var server = CreateAuthorizationServer(options => {
                 var handler = new Mock<JwtSecurityTokenHandler>();
 
-                options.AccessTokenHandler = handler.Object; 
+                options.AccessTokenHandler = handler.Object;
 
                 options.Provider.OnSerializeAccessToken = context => {
                     context.SigningCredentials = null;

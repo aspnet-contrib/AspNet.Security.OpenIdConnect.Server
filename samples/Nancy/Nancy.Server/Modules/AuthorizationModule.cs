@@ -4,6 +4,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
+using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Nancy.Security;

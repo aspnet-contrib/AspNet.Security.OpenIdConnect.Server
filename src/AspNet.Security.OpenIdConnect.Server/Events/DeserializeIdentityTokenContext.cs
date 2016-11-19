@@ -6,7 +6,7 @@
 
 using System;
 using System.IdentityModel.Tokens.Jwt;
-using AspNet.Security.OpenIdConnect.Extensions;
+using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;

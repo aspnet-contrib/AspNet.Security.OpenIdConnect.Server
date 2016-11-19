@@ -5,9 +5,9 @@
  */
 
 using System.Collections.Generic;
+using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
-using Owin.Security.OpenIdConnect.Extensions;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>

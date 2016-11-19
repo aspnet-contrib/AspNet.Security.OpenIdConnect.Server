@@ -3,6 +3,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
+using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Authentication;
@@ -514,7 +515,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             });
 
             // Assert
-            Assert.Equal(9, response.Count());
+            Assert.Equal(9, response.GetParameters().Count());
             Assert.True((bool) response[OpenIdConnectConstants.Claims.Active]);
             Assert.Equal("66B65AED-4033-4E9C-B975-A8CA7FB6FA79", (string) response[OpenIdConnectConstants.Claims.JwtId]);
             Assert.Equal(OpenIdConnectConstants.TokenTypes.Bearer, (string) response[OpenIdConnectConstants.Claims.TokenType]);

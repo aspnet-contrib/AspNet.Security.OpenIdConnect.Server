@@ -2,8 +2,8 @@
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
+using AspNet.Security.OpenIdConnect.Primitives;
 using Nancy.Server.Models;
-using Owin.Security.OpenIdConnect.Extensions;
 using Owin.Security.OpenIdConnect.Server;
 
 namespace Nancy.Server.Providers {

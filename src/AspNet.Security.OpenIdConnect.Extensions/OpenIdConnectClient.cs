@@ -4,6 +4,7 @@ using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 using AngleSharp.Parser.Html;
+using AspNet.Security.OpenIdConnect.Primitives;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Primitives;
@@ -202,7 +203,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
 
             var parameters = new Dictionary<string, string>();
 
-            foreach (var parameter in request) {
+            foreach (var parameter in request.GetParameters()) {
                 var value = parameter.Value as JValue;
                 if (value == null) {
                     continue;

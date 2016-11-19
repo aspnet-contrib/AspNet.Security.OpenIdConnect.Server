@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Newtonsoft.Json;
@@ -452,7 +453,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var server = CreateAuthorizationServer(options => {
                 options.Provider.OnDeserializeAuthorizationCode = context => {
                     Assert.Equal("SplxlOBeZQQYbYS6WxSbIA", context.AuthorizationCode);
-                    
+
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsIdentity(context.Options.AuthenticationType),
                         new AuthenticationProperties());

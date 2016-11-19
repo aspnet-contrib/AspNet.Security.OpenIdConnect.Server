@@ -4,7 +4,7 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
-using AspNet.Security.OpenIdConnect.Extensions;
+using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json.Linq;
 
