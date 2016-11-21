@@ -2,16 +2,17 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
+using System.Text;
+using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using AngleSharp.Parser.Html;
 using AspNet.Security.OpenIdConnect.Primitives;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Primitives;
-using Microsoft.Owin.Infrastructure;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Owin.Security.OpenIdConnect.Extensions {
+namespace AspNet.Security.OpenIdConnect.Client {
     /// <summary>
     /// Exposes methods that allow sending OpenID Connect
     /// requests and extracting the corresponding responses.
@@ -46,84 +47,84 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// Sends an empty OpenID Connect request to the given endpoint using GET
         /// and converts the returned response to an OpenID Connect response.
         /// </summary>
-        /// <param name="address">The endpoint to which the request is sent.</param>
+        /// <param name="uri">The endpoint to which the request is sent.</param>
         /// <returns>The OpenID Connect response returned by the server.</returns>
-        public Task<OpenIdConnectResponse> GetAsync([NotNull] string address) {
-            return GetAsync(address, new OpenIdConnectRequest());
+        public Task<OpenIdConnectResponse> GetAsync([NotNull] string uri) {
+            return GetAsync(uri, new OpenIdConnectRequest());
         }
 
         /// <summary>
         /// Sends an empty OpenID Connect request to the given endpoint using GET
         /// and converts the returned response to an OpenID Connect response.
         /// </summary>
-        /// <param name="address">The endpoint to which the request is sent.</param>
+        /// <param name="uri">The endpoint to which the request is sent.</param>
         /// <returns>The OpenID Connect response returned by the server.</returns>
-        public Task<OpenIdConnectResponse> GetAsync([NotNull] Uri address) {
-            return GetAsync(address, new OpenIdConnectRequest());
+        public Task<OpenIdConnectResponse> GetAsync([NotNull] Uri uri) {
+            return GetAsync(uri, new OpenIdConnectRequest());
         }
 
         /// <summary>
         /// Sends a generic OpenID Connect request to the given endpoint using GET
         /// and converts the returned response to an OpenID Connect response.
         /// </summary>
-        /// <param name="address">The endpoint to which the request is sent.</param>
+        /// <param name="uri">The endpoint to which the request is sent.</param>
         /// <param name="request">The OpenID Connect request to send.</param>
         /// <returns>The OpenID Connect response returned by the server.</returns>
         public Task<OpenIdConnectResponse> GetAsync(
-            [NotNull] string address, [NotNull] OpenIdConnectRequest request) {
-            if (address == null) {
-                throw new ArgumentNullException(nameof(address));
-            }
-
+            [NotNull] string uri, [NotNull] OpenIdConnectRequest request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            return GetAsync(new Uri(address, UriKind.RelativeOrAbsolute), request);
+            if (string.IsNullOrEmpty(uri)) {
+                throw new ArgumentException("The URL cannot be null or empty.", nameof(uri));
+            }
+
+            return GetAsync(new Uri(uri, UriKind.RelativeOrAbsolute), request);
         }
 
         /// <summary>
         /// Sends a generic OpenID Connect request to the given endpoint using GET
         /// and converts the returned response to an OpenID Connect response.
         /// </summary>
-        /// <param name="address">The endpoint to which the request is sent.</param>
+        /// <param name="uri">The endpoint to which the request is sent.</param>
         /// <param name="request">The OpenID Connect request to send.</param>
         /// <returns>The OpenID Connect response returned by the server.</returns>
         public Task<OpenIdConnectResponse> GetAsync(
-            [NotNull] Uri address, [NotNull] OpenIdConnectRequest request) {
-            return SendAsync(HttpMethod.Get, address, request);
+            [NotNull] Uri uri, [NotNull] OpenIdConnectRequest request) {
+            return SendAsync(HttpMethod.Get, uri, request);
         }
 
         /// <summary>
         /// Sends a generic OpenID Connect request to the given endpoint using POST
         /// and converts the returned response to an OpenID Connect response.
         /// </summary>
-        /// <param name="address">The endpoint to which the request is sent.</param>
+        /// <param name="uri">The endpoint to which the request is sent.</param>
         /// <param name="request">The OpenID Connect request to send.</param>
         /// <returns>The OpenID Connect response returned by the server.</returns>
         public Task<OpenIdConnectResponse> PostAsync(
-            [NotNull] string address, [NotNull] OpenIdConnectRequest request) {
-            if (address == null) {
-                throw new ArgumentNullException(nameof(address));
-            }
-
+            [NotNull] string uri, [NotNull] OpenIdConnectRequest request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            return PostAsync(new Uri(address, UriKind.RelativeOrAbsolute), request);
+            if (string.IsNullOrEmpty(uri)) {
+                throw new ArgumentException("The URL cannot be null or empty.", nameof(uri));
+            }
+
+            return PostAsync(new Uri(uri, UriKind.RelativeOrAbsolute), request);
         }
 
         /// <summary>
         /// Sends a generic OpenID Connect request to the given endpoint using POST
         /// and converts the returned response to an OpenID Connect response.
         /// </summary>
-        /// <param name="address">The endpoint to which the request is sent.</param>
+        /// <param name="uri">The endpoint to which the request is sent.</param>
         /// <param name="request">The OpenID Connect request to send.</param>
         /// <returns>The OpenID Connect response returned by the server.</returns>
         public Task<OpenIdConnectResponse> PostAsync(
-            [NotNull] Uri address, [NotNull] OpenIdConnectRequest request) {
-            return SendAsync(HttpMethod.Post, address, request);
+            [NotNull] Uri uri, [NotNull] OpenIdConnectRequest request) {
+            return SendAsync(HttpMethod.Post, uri, request);
         }
 
         /// <summary>
@@ -131,25 +132,51 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// converts the returned response to an OpenID Connect response.
         /// </summary>
         /// <param name="method">The HTTP method used to send the OpenID Connect request.</param>
-        /// <param name="address">The endpoint to which the request is sent.</param>
+        /// <param name="uri">The endpoint to which the request is sent.</param>
         /// <param name="request">The OpenID Connect request to send.</param>
         /// <returns>The OpenID Connect response returned by the server.</returns>
         public Task<OpenIdConnectResponse> SendAsync(
-            [NotNull] string method, [NotNull] string address,
+            [NotNull] string method, [NotNull] string uri,
+            [NotNull] OpenIdConnectRequest request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+
+            if (string.IsNullOrEmpty(method)) {
+                throw new ArgumentException("The HTTP method cannot be null or empty.", nameof(method));
+            }
+
+            if (string.IsNullOrEmpty(uri)) {
+                throw new ArgumentException("The URL cannot be null or empty.", nameof(uri));
+            }
+
+            return SendAsync(new HttpMethod(method), uri, request);
+        }
+
+        /// <summary>
+        /// Sends a generic OpenID Connect request to the given endpoint and
+        /// converts the returned response to an OpenID Connect response.
+        /// </summary>
+        /// <param name="method">The HTTP method used to send the OpenID Connect request.</param>
+        /// <param name="uri">The endpoint to which the request is sent.</param>
+        /// <param name="request">The OpenID Connect request to send.</param>
+        /// <returns>The OpenID Connect response returned by the server.</returns>
+        public Task<OpenIdConnectResponse> SendAsync(
+            [NotNull] HttpMethod method, [NotNull] string uri,
             [NotNull] OpenIdConnectRequest request) {
             if (method == null) {
                 throw new ArgumentNullException(nameof(method));
-            }
-
-            if (address == null) {
-                throw new ArgumentNullException(nameof(address));
             }
 
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            return SendAsync(new HttpMethod(method), address, request);
+            if (string.IsNullOrEmpty(uri)) {
+                throw new ArgumentException("The URL cannot be null or empty.", nameof(uri));
+            }
+
+            return SendAsync(method, new Uri(uri, UriKind.RelativeOrAbsolute), request);
         }
 
         /// <summary>
@@ -157,48 +184,27 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// converts the returned response to an OpenID Connect response.
         /// </summary>
         /// <param name="method">The HTTP method used to send the OpenID Connect request.</param>
-        /// <param name="address">The endpoint to which the request is sent.</param>
-        /// <param name="request">The OpenID Connect request to send.</param>
-        /// <returns>The OpenID Connect response returned by the server.</returns>
-        public Task<OpenIdConnectResponse> SendAsync(
-            [NotNull] HttpMethod method, [NotNull] string address,
-            [NotNull] OpenIdConnectRequest request) {
-            if (method == null) {
-                throw new ArgumentNullException(nameof(method));
-            }
-
-            if (address == null) {
-                throw new ArgumentNullException(nameof(address));
-            }
-
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            return SendAsync(method, new Uri(address, UriKind.RelativeOrAbsolute), request);
-        }
-
-        /// <summary>
-        /// Sends a generic OpenID Connect request to the given endpoint and
-        /// converts the returned response to an OpenID Connect response.
-        /// </summary>
-        /// <param name="method">The HTTP method used to send the OpenID Connect request.</param>
-        /// <param name="address">The endpoint to which the request is sent.</param>
+        /// <param name="uri">The endpoint to which the request is sent.</param>
         /// <param name="request">The OpenID Connect request to send.</param>
         /// <returns>The OpenID Connect response returned by the server.</returns>
         public virtual async Task<OpenIdConnectResponse> SendAsync(
-            [NotNull] HttpMethod method, [NotNull] Uri address,
+            [NotNull] HttpMethod method, [NotNull] Uri uri,
             [NotNull] OpenIdConnectRequest request) {
             if (method == null) {
                 throw new ArgumentNullException(nameof(method));
             }
 
-            if (address == null) {
-                throw new ArgumentNullException(nameof(address));
+            if (uri == null) {
+                throw new ArgumentNullException(nameof(uri));
             }
 
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
+            }
+
+            if (HttpClient.BaseAddress == null && !uri.IsAbsoluteUri) {
+                throw new ArgumentException("The address cannot be a relative URI when no base address " +
+                                            "is associated with the HTTP client.", nameof(uri));
             }
 
             var parameters = new Dictionary<string, string>();
@@ -212,13 +218,27 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 parameters.Add(parameter.Key, (string) parameter.Value);
             }
 
-            if (method == HttpMethod.Get) {
-                var url = WebUtilities.AddQueryString(address.ToString(), parameters);
+            if (method == HttpMethod.Get && parameters.Count != 0) {
+                var builder = new StringBuilder();
 
-                address = new Uri(url, address.IsAbsoluteUri ? UriKind.Absolute : UriKind.RelativeOrAbsolute);
+                foreach (var parameter in parameters) {
+                    if (builder.Length != 0) {
+                        builder.Append('&');
+                    }
+
+                    builder.Append(UrlEncoder.Default.Encode(parameter.Key));
+                    builder.Append('=');
+                    builder.Append(UrlEncoder.Default.Encode(parameter.Value));
+                }
+
+                if (!uri.IsAbsoluteUri) {
+                    uri = new Uri(HttpClient.BaseAddress, uri);
+                }
+
+                uri = new UriBuilder(uri) { Query = builder.ToString() }.Uri;
             }
 
-            var message = new HttpRequestMessage(method, address);
+            var message = new HttpRequestMessage(method, uri);
 
             if (method != HttpMethod.Get) {
                 message.Content = new FormUrlEncodedContent(parameters);

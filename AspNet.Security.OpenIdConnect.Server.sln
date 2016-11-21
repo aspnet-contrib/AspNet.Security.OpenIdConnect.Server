@@ -41,6 +41,8 @@ Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "AspNet.Security.OpenIdConne
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "AspNet.Security.OpenIdConnect.Primitives.Tests", "test\AspNet.Security.OpenIdConnect.Primitives.Tests\AspNet.Security.OpenIdConnect.Primitives.Tests.xproj", "{7BDA3A43-9335-4004-977A-BFB2EC7683A1}"
 EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "AspNet.Security.OpenIdConnect.Client", "src\AspNet.Security.OpenIdConnect.Client\AspNet.Security.OpenIdConnect.Client.xproj", "{107D65D4-FA06-4B51-88B6-BFE1FDF8972D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -103,6 +105,10 @@ Global
 		{7BDA3A43-9335-4004-977A-BFB2EC7683A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7BDA3A43-9335-4004-977A-BFB2EC7683A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7BDA3A43-9335-4004-977A-BFB2EC7683A1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{107D65D4-FA06-4B51-88B6-BFE1FDF8972D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{107D65D4-FA06-4B51-88B6-BFE1FDF8972D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{107D65D4-FA06-4B51-88B6-BFE1FDF8972D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{107D65D4-FA06-4B51-88B6-BFE1FDF8972D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -124,5 +130,6 @@ Global
 		{5A12ABFF-FC41-43B6-8C57-97309198B6FF} = {96FF51F9-A2F3-4DBB-B825-A3FC16747697}
 		{EFC8FA3D-2361-4808-A52C-E1690D41A6D9} = {630C29B2-7346-47B1-A3AD-B2D8C0464A9A}
 		{7BDA3A43-9335-4004-977A-BFB2EC7683A1} = {96FF51F9-A2F3-4DBB-B825-A3FC16747697}
+		{107D65D4-FA06-4B51-88B6-BFE1FDF8972D} = {630C29B2-7346-47B1-A3AD-B2D8C0464A9A}
 	EndGlobalSection
 EndGlobal

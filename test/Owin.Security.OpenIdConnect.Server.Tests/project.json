@@ -8,6 +8,7 @@
   },
 
   "dependencies": {
+    "AspNet.Security.OpenIdConnect.Client": { "target": "project" },
     "dotnet-test-xunit": "2.2.0-preview2-build1029",
     "Microsoft.NETCore.Platforms": "1.0.1",
     "Microsoft.Owin.Security.Cookies": "3.0.1",

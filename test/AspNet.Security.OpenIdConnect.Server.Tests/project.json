@@ -8,6 +8,7 @@
   },
 
   "dependencies": {
+    "AspNet.Security.OpenIdConnect.Client": { "target": "project" },
     "AspNet.Security.OpenIdConnect.Server": { "target": "project" },
     "dotnet-test-xunit": "2.2.0-preview2-build1029",
     "Microsoft.AspNetCore.Authentication.Cookies": "1.0.0",

@@ -1,7 +1,7 @@
 ﻿{
   "version": "1.0.0-beta7-*",
 
-  "description": "OpenID Connect primitives for AspNet.Security.OpenIdConnect.Server.",
+  "description": "OpenID Connect primitives for the OpenID Connect server middleware.",
   "authors": [ "Kévin Chalet" ],
 
   "packOptions": {
