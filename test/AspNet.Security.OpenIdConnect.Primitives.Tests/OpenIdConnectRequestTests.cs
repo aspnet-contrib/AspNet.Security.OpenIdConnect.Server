@@ -1,4 +1,10 @@
-﻿using System.Collections.Generic;
+﻿/*
+ * Licensed under the Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ * See https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server
+ * for more information concerning the license and the contributors participating to this project.
+ */
+
+using System.Collections.Generic;
 using System.Reflection;
 using Newtonsoft.Json.Linq;
 using Xunit;
