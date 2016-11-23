@@ -182,6 +182,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// Gets all the properties associated with this instance.
         /// </summary>
         /// <returns>The properties associated with this instance.</returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public virtual IEnumerable<KeyValuePair<string, string>> GetProperties() {
             foreach (var property in Properties) {
                 yield return property;
