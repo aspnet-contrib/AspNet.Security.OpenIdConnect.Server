@@ -76,7 +76,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Sets the endpoint type to the authorization endpoint.
         /// </summary>
-        public void MatchesAuthorizationEndpoint() {
+        public void MatchAuthorizationEndpoint() {
             IsAuthorizationEndpoint = true;
             IsConfigurationEndpoint = false;
             IsCryptographyEndpoint = false;
@@ -90,7 +90,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Sets the endpoint type to the configuration endpoint.
         /// </summary>
-        public void MatchesConfigurationEndpoint() {
+        public void MatchConfigurationEndpoint() {
             IsAuthorizationEndpoint = false;
             IsConfigurationEndpoint = true;
             IsCryptographyEndpoint = false;
@@ -104,7 +104,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Sets the endpoint type to the JWKS endpoint.
         /// </summary>
-        public void MatchesCryptographyEndpoint() {
+        public void MatchCryptographyEndpoint() {
             IsAuthorizationEndpoint = false;
             IsConfigurationEndpoint = false;
             IsCryptographyEndpoint = true;
@@ -118,7 +118,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Sets the endpoint type to introspection endpoint.
         /// </summary>
-        public void MatchesIntrospectionEndpoint() {
+        public void MatchIntrospectionEndpoint() {
             IsAuthorizationEndpoint = false;
             IsConfigurationEndpoint = false;
             IsCryptographyEndpoint = false;
@@ -132,7 +132,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Sets the endpoint type to logout endpoint.
         /// </summary>
-        public void MatchesLogoutEndpoint() {
+        public void MatchLogoutEndpoint() {
             IsAuthorizationEndpoint = false;
             IsConfigurationEndpoint = false;
             IsCryptographyEndpoint = false;
@@ -146,7 +146,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Sets the endpoint type to revocation endpoint.
         /// </summary>
-        public void MatchesRevocationEndpoint() {
+        public void MatchRevocationEndpoint() {
             IsAuthorizationEndpoint = false;
             IsConfigurationEndpoint = false;
             IsCryptographyEndpoint = false;
@@ -160,7 +160,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Sets the endpoint type to token endpoint.
         /// </summary>
-        public void MatchesTokenEndpoint() {
+        public void MatchTokenEndpoint() {
             IsAuthorizationEndpoint = false;
             IsConfigurationEndpoint = false;
             IsCryptographyEndpoint = false;
@@ -174,7 +174,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Sets the endpoint type to userinfo endpoint.
         /// </summary>
-        public void MatchesUserinfoEndpoint() {
+        public void MatchUserinfoEndpoint() {
             IsAuthorizationEndpoint = false;
             IsConfigurationEndpoint = false;
             IsCryptographyEndpoint = false;
@@ -188,7 +188,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Sets the endpoint type to unknown.
         /// </summary>
-        public void MatchesNothing() {
+        public void MatchNothing() {
             IsAuthorizationEndpoint = false;
             IsConfigurationEndpoint = false;
             IsCryptographyEndpoint = false;

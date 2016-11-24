@@ -24,42 +24,42 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             if (Options.AuthorizationEndpointPath.HasValue &&
                 Options.AuthorizationEndpointPath == Request.Path) {
-                notification.MatchesAuthorizationEndpoint();
+                notification.MatchAuthorizationEndpoint();
             }
 
             else if (Options.ConfigurationEndpointPath.HasValue &&
                      Options.ConfigurationEndpointPath == Request.Path) {
-                notification.MatchesConfigurationEndpoint();
+                notification.MatchConfigurationEndpoint();
             }
 
             else if (Options.CryptographyEndpointPath.HasValue &&
                      Options.CryptographyEndpointPath == Request.Path) {
-                notification.MatchesCryptographyEndpoint();
+                notification.MatchCryptographyEndpoint();
             }
 
             else if (Options.IntrospectionEndpointPath.HasValue &&
                      Options.IntrospectionEndpointPath == Request.Path) {
-                notification.MatchesIntrospectionEndpoint();
+                notification.MatchIntrospectionEndpoint();
             }
 
             else if (Options.LogoutEndpointPath.HasValue &&
                      Options.LogoutEndpointPath == Request.Path) {
-                notification.MatchesLogoutEndpoint();
+                notification.MatchLogoutEndpoint();
             }
 
             else if (Options.RevocationEndpointPath.HasValue &&
                      Options.RevocationEndpointPath == Request.Path) {
-                notification.MatchesRevocationEndpoint();
+                notification.MatchRevocationEndpoint();
             }
 
             else if (Options.TokenEndpointPath.HasValue &&
                      Options.TokenEndpointPath == Request.Path) {
-                notification.MatchesTokenEndpoint();
+                notification.MatchTokenEndpoint();
             }
 
             else if (Options.UserinfoEndpointPath.HasValue &&
                      Options.UserinfoEndpointPath == Request.Path) {
-                notification.MatchesUserinfoEndpoint();
+                notification.MatchUserinfoEndpoint();
             }
 
             await Options.Provider.MatchEndpoint(notification);

@@ -81,35 +81,35 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                 options.Provider.OnMatchEndpoint = context => {
                     switch (address) {
                         case "/custom/connect/authorize":
-                            context.MatchesAuthorizationEndpoint();
+                            context.MatchAuthorizationEndpoint();
                             break;
 
                         case "/custom/.well-known/openid-configuration":
-                            context.MatchesConfigurationEndpoint();
+                            context.MatchConfigurationEndpoint();
                             break;
 
                         case "/custom/.well-known/jwks":
-                            context.MatchesCryptographyEndpoint();
+                            context.MatchCryptographyEndpoint();
                             break;
 
                         case "/custom/connect/introspect":
-                            context.MatchesIntrospectionEndpoint();
+                            context.MatchIntrospectionEndpoint();
                             break;
 
                         case "/custom/connect/logout":
-                            context.MatchesLogoutEndpoint();
+                            context.MatchLogoutEndpoint();
                             break;
 
                         case "/custom/connect/revoke":
-                            context.MatchesRevocationEndpoint();
+                            context.MatchRevocationEndpoint();
                             break;
 
                         case "/custom/connect/token":
-                            context.MatchesTokenEndpoint();
+                            context.MatchTokenEndpoint();
                             break;
 
                         case "/custom/connect/userinfo":
-                            context.MatchesUserinfoEndpoint();
+                            context.MatchUserinfoEndpoint();
                             break;
                     }
 

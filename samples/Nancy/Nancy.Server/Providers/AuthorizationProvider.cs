@@ -14,7 +14,7 @@ namespace Nancy.Server.Providers {
             // /connect/authorize/accept and /connect/authorize/deny (see AuthorizationModule.cs for more information).
             if (context.Options.AuthorizationEndpointPath.HasValue &&
                 context.Request.Path.StartsWithSegments(context.Options.AuthorizationEndpointPath)) {
-                context.MatchesAuthorizationEndpoint();
+                context.MatchAuthorizationEndpoint();
             }
 
             return Task.FromResult<object>(null);
