@@ -23,20 +23,16 @@ namespace Owin.Security.OpenIdConnect.Server {
         private async Task<string> SerializeAuthorizationCodeAsync(
             ClaimsIdentity identity, AuthenticationProperties properties,
             OpenIdConnectRequest request, OpenIdConnectResponse response) {
-            // properties.IssuedUtc and properties.ExpiresUtc
-            // should always be preferred when explicitly set.
-            if (properties.IssuedUtc == null) {
-                properties.IssuedUtc = Options.SystemClock.UtcNow;
-            }
-
-            if (properties.ExpiresUtc == null) {
-                properties.ExpiresUtc = properties.IssuedUtc + Options.AuthorizationCodeLifetime;
-            }
-
-            // Claims in authorization codes are never filtered as they are supposed to be opaque:
+            // Note: claims in authorization codes are never filtered as they are supposed to be opaque:
             // SerializeAccessTokenAsync and SerializeIdentityTokenAsync are responsible of ensuring
             // that subsequent access and identity tokens are correctly filtered.
+
+            // Create a new ticket containing the updated properties.
             var ticket = new AuthenticationTicket(identity, properties);
+            ticket.Properties.IssuedUtc = Options.SystemClock.UtcNow;
+            ticket.Properties.ExpiresUtc = ticket.Properties.IssuedUtc +
+                (ticket.GetAuthorizationCodeLifetime() ?? Options.AuthorizationCodeLifetime);
+
             ticket.SetUsage(OpenIdConnectConstants.Usages.AuthorizationCode);
 
             // Associate a random identifier with the authorization code.
@@ -72,16 +68,6 @@ namespace Owin.Security.OpenIdConnect.Server {
         private async Task<string> SerializeAccessTokenAsync(
             ClaimsIdentity identity, AuthenticationProperties properties,
             OpenIdConnectRequest request, OpenIdConnectResponse response) {
-            // properties.IssuedUtc and properties.ExpiresUtc
-            // should always be preferred when explicitly set.
-            if (properties.IssuedUtc == null) {
-                properties.IssuedUtc = Options.SystemClock.UtcNow;
-            }
-
-            if (properties.ExpiresUtc == null) {
-                properties.ExpiresUtc = properties.IssuedUtc + Options.AccessTokenLifetime;
-            }
-
             // Create a new identity containing only the filtered claims.
             // Actors identities are also filtered (delegation scenarios).
             identity = identity.Clone(claim => {
@@ -97,6 +83,10 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             // Create a new ticket containing the updated properties and the filtered identity.
             var ticket = new AuthenticationTicket(identity, properties);
+            ticket.Properties.IssuedUtc = Options.SystemClock.UtcNow;
+            ticket.Properties.ExpiresUtc = ticket.Properties.IssuedUtc +
+                (ticket.GetAccessTokenLifetime() ?? Options.AccessTokenLifetime);
+
             ticket.SetUsage(OpenIdConnectConstants.Usages.AccessToken);
             ticket.SetAudiences(ticket.GetResources());
 
@@ -224,16 +214,6 @@ namespace Owin.Security.OpenIdConnect.Server {
         private async Task<string> SerializeIdentityTokenAsync(
             ClaimsIdentity identity, AuthenticationProperties properties,
             OpenIdConnectRequest request, OpenIdConnectResponse response) {
-            // properties.IssuedUtc and properties.ExpiresUtc
-            // should always be preferred when explicitly set.
-            if (properties.IssuedUtc == null) {
-                properties.IssuedUtc = Options.SystemClock.UtcNow;
-            }
-
-            if (properties.ExpiresUtc == null) {
-                properties.ExpiresUtc = properties.IssuedUtc + Options.IdentityTokenLifetime;
-            }
-
             // Replace the identity by a new one containing only the filtered claims.
             // Actors identities are also filtered (delegation scenarios).
             identity = identity.Clone(claim => {
@@ -249,6 +229,10 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             // Create a new ticket containing the updated properties and the filtered identity.
             var ticket = new AuthenticationTicket(identity, properties);
+            ticket.Properties.IssuedUtc = Options.SystemClock.UtcNow;
+            ticket.Properties.ExpiresUtc = ticket.Properties.IssuedUtc +
+                (ticket.GetIdentityTokenLifetime() ?? Options.IdentityTokenLifetime);
+
             ticket.SetUsage(OpenIdConnectConstants.Usages.IdentityToken);
 
             // Associate a random identifier with the identity token.
@@ -398,20 +382,16 @@ namespace Owin.Security.OpenIdConnect.Server {
         private async Task<string> SerializeRefreshTokenAsync(
             ClaimsIdentity identity, AuthenticationProperties properties,
             OpenIdConnectRequest request, OpenIdConnectResponse response) {
-            // properties.IssuedUtc and properties.ExpiresUtc
-            // should always be preferred when explicitly set.
-            if (properties.IssuedUtc == null) {
-                properties.IssuedUtc = Options.SystemClock.UtcNow;
-            }
-
-            if (properties.ExpiresUtc == null) {
-                properties.ExpiresUtc = properties.IssuedUtc + Options.RefreshTokenLifetime;
-            }
-
-            // Claims in refresh tokens are never filtered as they are supposed to be opaque:
+            // Note: claims in refresh tokens are never filtered as they are supposed to be opaque:
             // SerializeAccessTokenAsync and SerializeIdentityTokenAsync are responsible of ensuring
             // that subsequent access and identity tokens are correctly filtered.
+
+            // Create a new ticket containing the updated properties.
             var ticket = new AuthenticationTicket(identity, properties);
+            ticket.Properties.IssuedUtc = Options.SystemClock.UtcNow;
+            ticket.Properties.ExpiresUtc = ticket.Properties.IssuedUtc +
+                (ticket.GetRefreshTokenLifetime() ?? Options.RefreshTokenLifetime);
+
             ticket.SetUsage(OpenIdConnectConstants.Usages.RefreshToken);
 
             // Associate a random identifier with the refresh token.

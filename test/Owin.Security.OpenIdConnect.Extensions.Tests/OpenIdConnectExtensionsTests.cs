@@ -5,6 +5,7 @@
  */
 
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Security.Claims;
 using AspNet.Security.OpenIdConnect.Primitives;
@@ -395,6 +396,66 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
 
             // Act and assert
             Assert.Equal(scopes, ticket.GetScopes());
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("42.00:00:00")]
+        public void GetAccessTokenLifetime_ReturnsExpectedResult(string lifetime) {
+            // Arrange
+            var ticket = new AuthenticationTicket(
+                new ClaimsIdentity(),
+                new AuthenticationProperties());
+
+            ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.AccessTokenLifetime] = lifetime;
+
+            // Act and assert
+            Assert.Equal(lifetime, ticket.GetAccessTokenLifetime()?.ToString("c", CultureInfo.InvariantCulture));
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("42.00:00:00")]
+        public void GetAuthorizationCodeLifetime_ReturnsExpectedResult(string lifetime) {
+            // Arrange
+            var ticket = new AuthenticationTicket(
+                new ClaimsIdentity(),
+                new AuthenticationProperties());
+
+            ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.AuthorizationCodeLifetime] = lifetime;
+
+            // Act and assert
+            Assert.Equal(lifetime, ticket.GetAuthorizationCodeLifetime()?.ToString("c", CultureInfo.InvariantCulture));
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("42.00:00:00")]
+        public void GetIdentityTokenLifetime_ReturnsExpectedResult(string lifetime) {
+            // Arrange
+            var ticket = new AuthenticationTicket(
+                new ClaimsIdentity(),
+                new AuthenticationProperties());
+
+            ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.IdentityTokenLifetime] = lifetime;
+
+            // Act and assert
+            Assert.Equal(lifetime, ticket.GetIdentityTokenLifetime()?.ToString("c", CultureInfo.InvariantCulture));
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("42.00:00:00")]
+        public void GetRefreshTokenLifetime_ReturnsExpectedResult(string lifetime) {
+            // Arrange
+            var ticket = new AuthenticationTicket(
+                new ClaimsIdentity(),
+                new AuthenticationProperties());
+
+            ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.RefreshTokenLifetime] = lifetime;
+
+            // Act and assert
+            Assert.Equal(lifetime, ticket.GetRefreshTokenLifetime()?.ToString("c", CultureInfo.InvariantCulture));
         }
 
         [Theory]
@@ -848,6 +909,70 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
 
             // Assert
             Assert.Equal(scope, ticket.GetProperty(OpenIdConnectConstants.Properties.Scopes));
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("42.00:00:00")]
+        public void SetAccessTokenLifetime_AddsLifetime(string lifetime) {
+            // Arrange
+            var ticket = new AuthenticationTicket(
+                new ClaimsIdentity(),
+                new AuthenticationProperties());
+
+            // Act
+            ticket.SetAccessTokenLifetime(lifetime != null ? (TimeSpan?) TimeSpan.ParseExact(lifetime, "c", CultureInfo.InvariantCulture) : null);
+
+            // Assert
+            Assert.Equal(lifetime, ticket.GetProperty(OpenIdConnectConstants.Properties.AccessTokenLifetime));
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("42.00:00:00")]
+        public void SetAuthorizationCodeLifetime_AddsLifetime(string lifetime) {
+            // Arrange
+            var ticket = new AuthenticationTicket(
+                new ClaimsIdentity(),
+                new AuthenticationProperties());
+
+            // Act
+            ticket.SetAuthorizationCodeLifetime(lifetime != null ? (TimeSpan?) TimeSpan.ParseExact(lifetime, "c", CultureInfo.InvariantCulture) : null);
+
+            // Assert
+            Assert.Equal(lifetime, ticket.GetProperty(OpenIdConnectConstants.Properties.AuthorizationCodeLifetime));
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("42.00:00:00")]
+        public void SetIdentityTokenLifetime_AddsLifetime(string lifetime) {
+            // Arrange
+            var ticket = new AuthenticationTicket(
+                new ClaimsIdentity(),
+                new AuthenticationProperties());
+
+            // Act
+            ticket.SetIdentityTokenLifetime(lifetime != null ? (TimeSpan?) TimeSpan.ParseExact(lifetime, "c", CultureInfo.InvariantCulture) : null);
+
+            // Assert
+            Assert.Equal(lifetime, ticket.GetProperty(OpenIdConnectConstants.Properties.IdentityTokenLifetime));
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("42.00:00:00")]
+        public void SetRefreshTokenLifetime_AddsLifetime(string lifetime) {
+            // Arrange
+            var ticket = new AuthenticationTicket(
+                new ClaimsIdentity(),
+                new AuthenticationProperties());
+
+            // Act
+            ticket.SetRefreshTokenLifetime(lifetime != null ? (TimeSpan?) TimeSpan.ParseExact(lifetime, "c", CultureInfo.InvariantCulture) : null);
+
+            // Assert
+            Assert.Equal(lifetime, ticket.GetProperty(OpenIdConnectConstants.Properties.RefreshTokenLifetime));
         }
 
         [Theory]

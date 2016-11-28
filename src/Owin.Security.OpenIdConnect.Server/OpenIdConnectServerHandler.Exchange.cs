@@ -443,19 +443,6 @@ namespace Owin.Security.OpenIdConnect.Server {
             var notification = new HandleTokenRequestContext(Context, Options, request, ticket);
             await Options.Provider.HandleTokenRequest(notification);
 
-            // By default, when using the authorization code/refresh token grant, the authentication ticket extracted from the
-            // authorization code/refresh token is used as-is. To avoid aligning the expiration date of the generated tokens
-            // with the lifetime of the authorization code/refresh token, the ticket properties are automatically reset to null.
-            if (notification.Ticket != null && (request.IsAuthorizationCodeGrantType() || request.IsRefreshTokenGrantType())) {
-                if (notification.Ticket.Properties.IssuedUtc == ticket.Properties.IssuedUtc) {
-                    notification.Ticket.Properties.IssuedUtc = null;
-                }
-
-                if (notification.Ticket.Properties.ExpiresUtc == ticket.Properties.ExpiresUtc) {
-                    notification.Ticket.Properties.ExpiresUtc = null;
-                }
-            }
-
             if (notification.HandledResponse) {
                 return true;
             }

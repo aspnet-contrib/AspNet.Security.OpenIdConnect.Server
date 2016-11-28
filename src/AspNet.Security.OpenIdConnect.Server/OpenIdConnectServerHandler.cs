@@ -269,11 +269,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 // to avoid modifying the properties set on the original ticket.
                 var properties = ticket.Properties.Copy();
 
-                // properties.IssuedUtc and properties.ExpiresUtc are always
-                // explicitly set to null to avoid aligning the expiration date
-                // of the authorization code with the lifetime of the other tokens.
-                properties.IssuedUtc = properties.ExpiresUtc = null;
-
                 response.Code = await SerializeAuthorizationCodeAsync(ticket.Principal, properties, request, response);
             }
 
@@ -351,11 +346,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     // Make sure to create a copy of the authentication properties
                     // to avoid modifying the properties set on the original ticket.
                     var properties = ticket.Properties.Copy();
-
-                    // properties.IssuedUtc and properties.ExpiresUtc are always
-                    // explicitly set to null to avoid aligning the expiration date
-                    // of the identity token with the lifetime of the other tokens.
-                    properties.IssuedUtc = properties.ExpiresUtc = null;
 
                     response.IdToken = await SerializeIdentityTokenAsync(ticket.Principal, properties, request, response);
                 }

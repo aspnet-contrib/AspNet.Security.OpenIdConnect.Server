@@ -66,6 +66,58 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
+        public async Task SerializeAuthorizationCodeAsync_ExpirationDateCanBeOverridenFromUserCode() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnSerializeAuthorizationCode = context => {
+                    // Assert
+                    Assert.NotNull(context.Ticket.Properties.IssuedUtc);
+                    Assert.NotNull(context.Ticket.Properties.ExpiresUtc);
+
+                    Assert.Equal(context.Ticket.Properties.IssuedUtc + TimeSpan.FromDays(42),
+                                 context.Ticket.Properties.ExpiresUtc);
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnValidateAuthorizationRequest = context => {
+                    context.Validate();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnHandleAuthorizationRequest = context => {
+                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+
+                    var ticket = new AuthenticationTicket(
+                        new ClaimsPrincipal(identity),
+                        new AuthenticationProperties(),
+                        context.Options.AuthenticationScheme);
+
+                    ticket.SetAuthorizationCodeLifetime(TimeSpan.FromDays(42));
+
+                    context.Validate(ticket);
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest {
+                ClientId = "Fabrikam",
+                RedirectUri = "http://www.fabrikam.com/path",
+                ResponseType = OpenIdConnectConstants.ResponseTypes.Code,
+                Scope = OpenIdConnectConstants.Scopes.OpenId
+            });
+
+            // Assert
+            Assert.NotNull(response.Code);
+        }
+
+        [Fact]
         public async Task SerializeAuthorizationCodeAsync_BasicPropertiesAreAutomaticallyAdded() {
             // Arrange
             var server = CreateAuthorizationServer(options => {
@@ -302,6 +354,57 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
 
                     context.Validate(new ClaimsPrincipal(identity));
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+                GrantType = OpenIdConnectConstants.GrantTypes.Password,
+                Username = "johndoe",
+                Password = "A3ddj3w"
+            });
+
+            // Assert
+            Assert.NotNull(response.AccessToken);
+        }
+
+        [Fact]
+        public async Task SerializeAccessTokenAsync_ExpirationDateCanBeOverridenFromUserCode() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnSerializeAccessToken = context => {
+                    // Assert
+                    Assert.NotNull(context.Ticket.Properties.IssuedUtc);
+                    Assert.NotNull(context.Ticket.Properties.ExpiresUtc);
+
+                    Assert.Equal(context.Ticket.Properties.IssuedUtc + TimeSpan.FromDays(42),
+                                 context.Ticket.Properties.ExpiresUtc);
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnValidateTokenRequest = context => {
+                    context.Skip();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnHandleTokenRequest = context => {
+                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+
+                    var ticket = new AuthenticationTicket(
+                        new ClaimsPrincipal(identity),
+                        new AuthenticationProperties(),
+                        context.Options.AuthenticationScheme);
+
+                    ticket.SetAccessTokenLifetime(TimeSpan.FromDays(42));
+
+                    context.Validate(ticket);
 
                     return Task.FromResult(0);
                 };
@@ -745,6 +848,58 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
+        public async Task SerializeIdentityTokenAsync_ExpirationDateCanBeOverridenFromUserCode() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnSerializeIdentityToken = context => {
+                    // Assert
+                    Assert.NotNull(context.Ticket.Properties.IssuedUtc);
+                    Assert.NotNull(context.Ticket.Properties.ExpiresUtc);
+
+                    Assert.Equal(context.Ticket.Properties.IssuedUtc + TimeSpan.FromDays(42),
+                                 context.Ticket.Properties.ExpiresUtc);
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnValidateTokenRequest = context => {
+                    context.Skip();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnHandleTokenRequest = context => {
+                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+
+                    var ticket = new AuthenticationTicket(
+                        new ClaimsPrincipal(identity),
+                        new AuthenticationProperties(),
+                        context.Options.AuthenticationScheme);
+
+                    ticket.SetIdentityTokenLifetime(TimeSpan.FromDays(42));
+
+                    context.Validate(ticket);
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+                GrantType = OpenIdConnectConstants.GrantTypes.Password,
+                Username = "johndoe",
+                Password = "A3ddj3w",
+                Scope = OpenIdConnectConstants.Scopes.OpenId
+            });
+
+            // Assert
+            Assert.NotNull(response.IdToken);
+        }
+
+        [Fact]
         public async Task SerializeIdentityTokenAsync_ClaimsWithoutAppropriateDestinationAreIgnored() {
             // Arrange
             var server = CreateAuthorizationServer(options => {
@@ -1119,6 +1274,59 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                         context.Options.AuthenticationScheme);
 
                     ticket.SetScopes(OpenIdConnectConstants.Scopes.OfflineAccess);
+
+                    context.Validate(ticket);
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+                GrantType = OpenIdConnectConstants.GrantTypes.Password,
+                Username = "johndoe",
+                Password = "A3ddj3w",
+                Scope = OpenIdConnectConstants.Scopes.OfflineAccess
+            });
+
+            // Assert
+            Assert.NotNull(response.RefreshToken);
+        }
+
+        [Fact]
+        public async Task SerializeRefreshTokenAsync_ExpirationDateCanBeOverridenFromUserCode() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnSerializeRefreshToken = context => {
+                    // Assert
+                    Assert.NotNull(context.Ticket.Properties.IssuedUtc);
+                    Assert.NotNull(context.Ticket.Properties.ExpiresUtc);
+
+                    Assert.Equal(context.Ticket.Properties.IssuedUtc + TimeSpan.FromDays(42),
+                                 context.Ticket.Properties.ExpiresUtc);
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnValidateTokenRequest = context => {
+                    context.Skip();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnHandleTokenRequest = context => {
+                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+
+                    var ticket = new AuthenticationTicket(
+                        new ClaimsPrincipal(identity),
+                        new AuthenticationProperties(),
+                        context.Options.AuthenticationScheme);
+
+                    ticket.SetScopes(OpenIdConnectConstants.Scopes.OfflineAccess);
+                    ticket.SetRefreshTokenLifetime(TimeSpan.FromDays(42));
 
                     context.Validate(ticket);
 

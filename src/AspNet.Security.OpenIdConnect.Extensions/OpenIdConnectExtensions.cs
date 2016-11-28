@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Security.Claims;
 using AspNet.Security.OpenIdConnect.Primitives;
@@ -396,6 +397,102 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
                         ?.Split(OpenIdConnectConstants.Separators.Space, StringSplitOptions.RemoveEmptyEntries)
                         ?.Distinct(StringComparer.Ordinal)
                    ?? Enumerable.Empty<string>();
+        }
+
+        /// <summary>
+        /// Gets the access token lifetime associated with the authentication ticket.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <returns>The access token lifetime or <c>null</c> is the property cannot be found.</returns>
+
+        public static TimeSpan? GetAccessTokenLifetime([NotNull] this AuthenticationTicket ticket) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            var value = ticket.GetProperty(OpenIdConnectConstants.Properties.AccessTokenLifetime);
+            if (string.IsNullOrEmpty(value)) {
+                return null;
+            }
+
+            TimeSpan result;
+            if (TimeSpan.TryParseExact(value, "c", CultureInfo.InvariantCulture, out result)) {
+                return result;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Gets the authorization code lifetime associated with the authentication ticket.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <returns>The authorization code lifetime or <c>null</c> is the property cannot be found.</returns>
+
+        public static TimeSpan? GetAuthorizationCodeLifetime([NotNull] this AuthenticationTicket ticket) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            var value = ticket.GetProperty(OpenIdConnectConstants.Properties.AuthorizationCodeLifetime);
+            if (string.IsNullOrEmpty(value)) {
+                return null;
+            }
+
+            TimeSpan result;
+            if (TimeSpan.TryParseExact(value, "c", CultureInfo.InvariantCulture, out result)) {
+                return result;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Gets the identity token lifetime associated with the authentication ticket.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <returns>The identity token lifetime or <c>null</c> is the property cannot be found.</returns>
+
+        public static TimeSpan? GetIdentityTokenLifetime([NotNull] this AuthenticationTicket ticket) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            var value = ticket.GetProperty(OpenIdConnectConstants.Properties.IdentityTokenLifetime);
+            if (string.IsNullOrEmpty(value)) {
+                return null;
+            }
+
+            TimeSpan result;
+            if (TimeSpan.TryParseExact(value, "c", CultureInfo.InvariantCulture, out result)) {
+                return result;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Gets the refresh token lifetime associated with the authentication ticket.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <returns>The refresh token lifetime or <c>null</c> is the property cannot be found.</returns>
+
+        public static TimeSpan? GetRefreshTokenLifetime([NotNull] this AuthenticationTicket ticket) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            var value = ticket.GetProperty(OpenIdConnectConstants.Properties.RefreshTokenLifetime);
+            if (string.IsNullOrEmpty(value)) {
+                return null;
+            }
+
+            TimeSpan result;
+            if (TimeSpan.TryParseExact(value, "c", CultureInfo.InvariantCulture, out result)) {
+                return result;
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -902,6 +999,70 @@ namespace AspNet.Security.OpenIdConnect.Extensions {
             // Note: guarding the scopes parameter against null values
             // is not necessary as AsEnumerable() doesn't throw on null values.
             return ticket.SetScopes(scopes.AsEnumerable());
+        }
+
+        /// <summary>
+        /// Sets the access token lifetime associated with the authentication ticket.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <param name="lifetime">The access token lifetime to store.</param>
+        /// <returns>The authentication ticket.</returns>
+        public static AuthenticationTicket SetAccessTokenLifetime([NotNull] this AuthenticationTicket ticket, TimeSpan? lifetime) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            var value = lifetime?.ToString("c", CultureInfo.InvariantCulture);
+
+            return ticket.SetProperty(OpenIdConnectConstants.Properties.AccessTokenLifetime, value);
+        }
+
+        /// <summary>
+        /// Sets the authorization code lifetime associated with the authentication ticket.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <param name="lifetime">The authorization code lifetime to store.</param>
+        /// <returns>The authentication ticket.</returns>
+        public static AuthenticationTicket SetAuthorizationCodeLifetime([NotNull] this AuthenticationTicket ticket, TimeSpan? lifetime) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            var value = lifetime?.ToString("c", CultureInfo.InvariantCulture);
+
+            return ticket.SetProperty(OpenIdConnectConstants.Properties.AuthorizationCodeLifetime, value);
+        }
+
+        /// <summary>
+        /// Sets the identity token lifetime associated with the authentication ticket.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <param name="lifetime">The identity token lifetime to store.</param>
+        /// <returns>The authentication ticket.</returns>
+        public static AuthenticationTicket SetIdentityTokenLifetime([NotNull] this AuthenticationTicket ticket, TimeSpan? lifetime) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            var value = lifetime?.ToString("c", CultureInfo.InvariantCulture);
+
+            return ticket.SetProperty(OpenIdConnectConstants.Properties.IdentityTokenLifetime, value);
+        }
+
+        /// <summary>
+        /// Sets the refresh token lifetime associated with the authentication ticket.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <param name="lifetime">The refresh token lifetime to store.</param>
+        /// <returns>The authentication ticket.</returns>
+        public static AuthenticationTicket SetRefreshTokenLifetime([NotNull] this AuthenticationTicket ticket, TimeSpan? lifetime) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            var value = lifetime?.ToString("c", CultureInfo.InvariantCulture);
+
+            return ticket.SetProperty(OpenIdConnectConstants.Properties.RefreshTokenLifetime, value);
         }
 
         /// <summary>
