@@ -346,6 +346,226 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
+        public async Task AuthenticateCoreAsync_MissingAuthorizationCodeReturnsNull() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnApplyTokenResponse = async context => {
+                    var result = await context.OwinContext.Authentication.AuthenticateAsync(
+                        OpenIdConnectServerDefaults.AuthenticationType);
+
+                    // Assert
+                    Assert.Null(result);
+
+                    context.SkipToNextMiddleware();
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+                ClientId = "Fabrikam",
+                Code = null,
+                GrantType = OpenIdConnectConstants.GrantTypes.AuthorizationCode
+            });
+
+            // Assert
+            Assert.Equal("Bob le Magnifique", (string) response["name"]);
+        }
+
+        [Fact]
+        public async Task AuthenticateCoreAsync_InvalidAuthorizationCodeReturnsNull() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnValidateTokenRequest = context => {
+                    context.Skip();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnApplyTokenResponse = async context => {
+                    var result = await context.OwinContext.Authentication.AuthenticateAsync(
+                        OpenIdConnectServerDefaults.AuthenticationType);
+
+                    // Assert
+                    Assert.Null(result);
+
+                    context.SkipToNextMiddleware();
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+                ClientId = "Fabrikam",
+                Code = "38323A4B-6CB2-41B8-B457-1951987CB383",
+                GrantType = OpenIdConnectConstants.GrantTypes.AuthorizationCode
+            });
+
+            // Assert
+            Assert.Equal("Bob le Magnifique", (string) response["name"]);
+        }
+
+        [Fact]
+        public async Task AuthenticateCoreAsync_ValidAuthorizationCodeReturnsExpectedIdentity() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnDeserializeAuthorizationCode = context => {
+                    // Assert
+                    Assert.Equal("authorization_code", context.AuthorizationCode);
+
+                    var identity = new ClaimsIdentity(context.Options.AuthenticationType);
+                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+
+                    context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
+                    context.Ticket.SetPresenters("Fabrikam");
+
+                    context.HandleResponse();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnValidateTokenRequest = context => {
+                    context.Skip();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnHandleTokenRequest = async context => {
+                    var result = await context.OwinContext.Authentication.AuthenticateAsync(
+                        OpenIdConnectServerDefaults.AuthenticationType);
+
+                    // Assert
+                    Assert.NotNull(result);
+                    Assert.Equal("Bob le Magnifique", result.Identity.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+
+                    context.SkipToNextMiddleware();
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+                ClientId = "Fabrikam",
+                Code = "authorization_code",
+                GrantType = OpenIdConnectConstants.GrantTypes.AuthorizationCode
+            });
+
+            // Assert
+            Assert.Equal("Bob le Magnifique", (string) response["name"]);
+        }
+
+        [Fact]
+        public async Task AuthenticateCoreAsync_MissingRefreshTokenReturnsNull() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnApplyTokenResponse = async context => {
+                    var result = await context.OwinContext.Authentication.AuthenticateAsync(
+                        OpenIdConnectServerDefaults.AuthenticationType);
+
+                    // Assert
+                    Assert.Null(result);
+
+                    context.SkipToNextMiddleware();
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+                GrantType = OpenIdConnectConstants.GrantTypes.RefreshToken,
+                RefreshToken = null
+            });
+
+            // Assert
+            Assert.Equal("Bob le Magnifique", (string) response["name"]);
+        }
+
+        [Fact]
+        public async Task AuthenticateCoreAsync_InvalidRefreshTokenReturnsNull() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnValidateTokenRequest = context => {
+                    context.Skip();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnApplyTokenResponse = async context => {
+                    var result = await context.OwinContext.Authentication.AuthenticateAsync(
+                        OpenIdConnectServerDefaults.AuthenticationType);
+
+                    // Assert
+                    Assert.Null(result);
+
+                    context.SkipToNextMiddleware();
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+                GrantType = OpenIdConnectConstants.GrantTypes.RefreshToken,
+                RefreshToken = "38323A4B-6CB2-41B8-B457-1951987CB383"
+            });
+
+            // Assert
+            Assert.Equal("Bob le Magnifique", (string) response["name"]);
+        }
+
+        [Fact]
+        public async Task AuthenticateCoreAsync_ValidRefreshTokenReturnsExpectedIdentity() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnDeserializeRefreshToken = context => {
+                    // Assert
+                    Assert.Equal("refresh_token", context.RefreshToken);
+
+                    var identity = new ClaimsIdentity(context.Options.AuthenticationType);
+                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+
+                    context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
+
+                    context.HandleResponse();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnValidateTokenRequest = context => {
+                    context.Skip();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnHandleTokenRequest = async context => {
+                    var result = await context.OwinContext.Authentication.AuthenticateAsync(
+                        OpenIdConnectServerDefaults.AuthenticationType);
+
+                    // Assert
+                    Assert.NotNull(result);
+                    Assert.Equal("Bob le Magnifique", result.Identity.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+
+                    context.SkipToNextMiddleware();
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+                GrantType = OpenIdConnectConstants.GrantTypes.RefreshToken,
+                RefreshToken = "refresh_token"
+            });
+
+            // Assert
+            Assert.Equal("Bob le Magnifique", (string) response["name"]);
+        }
+
+        [Fact]
         public async Task HandleSignInAsync_UnknownEndpointCausesAnException() {
             // Arrange
             var server = CreateAuthorizationServer();

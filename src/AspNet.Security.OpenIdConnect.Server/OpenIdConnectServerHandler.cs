@@ -163,6 +163,42 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return AuthenticateResult.Success(ticket);
             }
 
+            else if (request.IsTokenRequest()) {
+                // Note: this method can be called from the ApplyTokenResponse event,
+                // which may be invoked for a missing authorization code/refresh token.
+                if (request.IsAuthorizationCodeGrantType()) {
+                    if (string.IsNullOrEmpty(request.Code)) {
+                        return AuthenticateResult.Skip();
+                    }
+
+                    var ticket = await DeserializeAuthorizationCodeAsync(request.Code, request);
+                    if (ticket == null) {
+                        Logger.LogWarning("The authorization code extracted from the " +
+                                          "token request was invalid and has been ignored.");
+
+                        return AuthenticateResult.Skip();
+                    }
+
+                    return AuthenticateResult.Success(ticket);
+                }
+
+                else if (request.IsRefreshTokenGrantType()) {
+                    if (string.IsNullOrEmpty(request.RefreshToken)) {
+                        return AuthenticateResult.Skip();
+                    }
+
+                    var ticket = await DeserializeRefreshTokenAsync(request.RefreshToken, request);
+                    if (ticket == null) {
+                        Logger.LogWarning("The refresh token extracted from the " +
+                                          "token request was invalid and has been ignored.");
+
+                        return AuthenticateResult.Skip();
+                    }
+
+                    return AuthenticateResult.Success(ticket);
+                }
+            }
+
             throw new InvalidOperationException("An identity cannot be extracted from this request.");
         }
 

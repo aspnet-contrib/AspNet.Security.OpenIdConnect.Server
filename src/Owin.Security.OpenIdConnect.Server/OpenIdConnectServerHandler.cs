@@ -194,6 +194,42 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return ticket;
             }
 
+            else if (request.IsTokenRequest()) {
+                // Note: this method can be called from the ApplyTokenResponse event,
+                // which may be invoked for a missing authorization code/refresh token.
+                if (request.IsAuthorizationCodeGrantType()) {
+                    if (string.IsNullOrEmpty(request.Code)) {
+                        return null;
+                    }
+
+                    var ticket = await DeserializeAuthorizationCodeAsync(request.Code, request);
+                    if (ticket == null) {
+                        Options.Logger.LogWarning("The authorization code extracted from the " +
+                                                  "token request was invalid and has been ignored.");
+
+                        return null;
+                    }
+
+                    return ticket;
+                }
+
+                else if (request.IsRefreshTokenGrantType()) {
+                    if (string.IsNullOrEmpty(request.RefreshToken)) {
+                        return null;
+                    }
+
+                    var ticket = await DeserializeRefreshTokenAsync(request.RefreshToken, request);
+                    if (ticket == null) {
+                        Options.Logger.LogWarning("The refresh token extracted from the " +
+                                                  "token request was invalid and has been ignored.");
+
+                        return null;
+                    }
+
+                    return ticket;
+                }
+            }
+
             throw new InvalidOperationException("An identity cannot be extracted from this request.");
         }
 
