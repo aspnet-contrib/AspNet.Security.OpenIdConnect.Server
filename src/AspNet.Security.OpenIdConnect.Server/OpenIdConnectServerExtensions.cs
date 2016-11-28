@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Reflection;
 using System.Security.Cryptography;
@@ -465,6 +466,7 @@ namespace Microsoft.AspNetCore.Builder {
         /// </summary>
         /// <param name="context">The ASP.NET context.</param>
         /// <param name="request">The ambient <see cref="OpenIdConnectRequest"/>.</param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public static void SetOpenIdConnectRequest([NotNull] this HttpContext context, OpenIdConnectRequest request) {
             if (context == null) {
                 throw new ArgumentNullException(nameof(context));
@@ -485,6 +487,7 @@ namespace Microsoft.AspNetCore.Builder {
         /// </summary>
         /// <param name="context">The ASP.NET context.</param>
         /// <param name="response">The ambient <see cref="OpenIdConnectResponse"/>.</param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public static void SetOpenIdConnectResponse([NotNull] this HttpContext context, OpenIdConnectResponse response) {
             if (context == null) {
                 throw new ArgumentNullException(nameof(context));

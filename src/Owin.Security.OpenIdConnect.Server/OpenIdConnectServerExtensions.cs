@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IdentityModel.Tokens;
 using System.IO;
 using System.Reflection;
@@ -679,6 +680,7 @@ namespace Owin {
         /// </summary>
         /// <param name="context">The OWIN context.</param>
         /// <param name="request">The ambient <see cref="OpenIdConnectRequest"/>.</param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public static void SetOpenIdConnectRequest([NotNull] this IOwinContext context, OpenIdConnectRequest request) {
             if (context == null) {
                 throw new ArgumentNullException(nameof(context));
@@ -692,6 +694,7 @@ namespace Owin {
         /// </summary>
         /// <param name="context">The OWIN context.</param>
         /// <param name="response">The ambient <see cref="OpenIdConnectResponse"/>.</param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public static void SetOpenIdConnectResponse([NotNull] this IOwinContext context, OpenIdConnectResponse response) {
             if (context == null) {
                 throw new ArgumentNullException(nameof(context));

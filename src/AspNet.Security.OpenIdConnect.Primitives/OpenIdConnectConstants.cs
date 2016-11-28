@@ -261,8 +261,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
 
         public static class Usages {
             public const string AccessToken = "access_token";
-            public const string AuthorizationCode = "code";
-            public const string IdentityToken = "id_token";
+            public const string AuthorizationCode = "authorization_code";
+            public const string IdentityToken = "identity_token";
             public const string RefreshToken = "refresh_token";
         }
     }
