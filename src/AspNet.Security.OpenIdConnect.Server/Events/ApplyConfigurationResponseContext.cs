@@ -36,10 +36,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the configuration request.
         /// </summary>
+        /// <remarks>
+        /// Note: this property may be null if an error occurred when
+        /// extracting the configuration request from the HTTP request.
+        /// </remarks>
         public new OpenIdConnectRequest Request { get; }
 
         /// <summary>
-        /// Gets the response returned to the client application.
+        /// Gets the configuration response.
         /// </summary>
         public new OpenIdConnectResponse Response { get; }
 

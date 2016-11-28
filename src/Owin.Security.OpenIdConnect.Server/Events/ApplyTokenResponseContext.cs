@@ -43,11 +43,14 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the token request.
         /// </summary>
+        /// <remarks>
+        /// Note: this property may be null if an error occurred when
+        /// extracting the token request from the HTTP request.
+        /// </remarks>
         public new OpenIdConnectRequest Request { get; }
 
         /// <summary>
-        /// Gets the JSON payload returned to the client
-        /// application as part of the token response.
+        /// Gets the token response.
         /// </summary>
         public new OpenIdConnectResponse Response { get; }
 

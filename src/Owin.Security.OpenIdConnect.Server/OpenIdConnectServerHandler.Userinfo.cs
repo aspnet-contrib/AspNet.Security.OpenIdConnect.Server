@@ -251,10 +251,6 @@ namespace Owin.Security.OpenIdConnect.Server {
 
         private async Task<bool> SendUserinfoResponseAsync(OpenIdConnectResponse response) {
             var request = Context.GetOpenIdConnectRequest();
-            if (request == null) {
-                request = new OpenIdConnectRequest();
-            }
-
             Context.SetOpenIdConnectResponse(response);
 
             var notification = new ApplyUserinfoResponseContext(Context, Options, request, response);

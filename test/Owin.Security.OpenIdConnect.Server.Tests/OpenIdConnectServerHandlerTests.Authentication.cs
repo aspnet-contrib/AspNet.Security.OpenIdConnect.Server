@@ -4,6 +4,7 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
+using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Client;
@@ -696,6 +697,31 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
             // Assert
             Assert.Equal("custom_value", (string) response["custom_parameter"]);
+        }
+
+        [Fact]
+        public async Task SendAuthorizationResponseAsync_ThrowsAnExceptionWhenRequestIsMissing() {
+            // Note: an exception is only thrown if the request was not properly extracted
+            // AND if the developer decided to override the error to return a custom response.
+            // To emulate this behavior, the error property is manually set to null.
+
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnApplyAuthorizationResponse = context => {
+                    context.Response.Error = null;
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act and assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate {
+                return client.SendAsync(Put, AuthorizationEndpoint, new OpenIdConnectRequest());
+            });
+
+            Assert.Equal("The authorization response cannot be returned.", exception.Message);
         }
 
         [Fact]

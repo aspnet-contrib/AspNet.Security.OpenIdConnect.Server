@@ -496,10 +496,6 @@ namespace Owin.Security.OpenIdConnect.Server {
 
         private async Task<bool> SendTokenResponseAsync(OpenIdConnectResponse response, AuthenticationTicket ticket = null) {
             var request = Context.GetOpenIdConnectRequest();
-            if (request == null) {
-                request = new OpenIdConnectRequest();
-            }
-
             Context.SetOpenIdConnectResponse(response);
 
             var notification = new ApplyTokenResponseContext(Context, Options, ticket, request, response);

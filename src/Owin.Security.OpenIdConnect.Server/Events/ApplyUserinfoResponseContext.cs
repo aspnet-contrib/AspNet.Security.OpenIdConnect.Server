@@ -31,12 +31,16 @@ namespace Owin.Security.OpenIdConnect.Server {
         }
 
         /// <summary>
-        /// Gets the token request.
+        /// Gets the userinfo request.
         /// </summary>
+        /// <remarks>
+        /// Note: this property may be null if an error occurred when
+        /// extracting the userinfo request from the HTTP request.
+        /// </remarks>
         public new OpenIdConnectRequest Request { get; }
 
         /// <summary>
-        /// Gets the JSON payload returned to the client application.
+        /// Gets the userinfo response.
         /// </summary>
         public new OpenIdConnectResponse Response { get; }
 

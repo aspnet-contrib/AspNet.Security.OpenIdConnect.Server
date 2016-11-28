@@ -505,10 +505,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
         private async Task<bool> SendConfigurationResponseAsync(OpenIdConnectResponse response) {
             var request = Context.GetOpenIdConnectRequest();
-            if (request == null) {
-                request = new OpenIdConnectRequest();
-            }
-
             Context.SetOpenIdConnectResponse(response);
 
             var notification = new ApplyConfigurationResponseContext(Context, Options, request, response);
@@ -527,10 +523,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
         private async Task<bool> SendCryptographyResponseAsync(OpenIdConnectResponse response) {
             var request = Context.GetOpenIdConnectRequest();
-            if (request == null) {
-                request = new OpenIdConnectRequest();
-            }
-
             Context.SetOpenIdConnectResponse(response);
 
             var notification = new ApplyCryptographyResponseContext(Context, Options, request, response);

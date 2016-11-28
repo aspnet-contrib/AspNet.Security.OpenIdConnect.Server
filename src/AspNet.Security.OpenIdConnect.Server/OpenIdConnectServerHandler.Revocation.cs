@@ -293,10 +293,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
         private async Task<bool> SendRevocationResponseAsync(OpenIdConnectResponse response) {
             var request = Context.GetOpenIdConnectRequest();
-            if (request == null) {
-                request = new OpenIdConnectRequest();
-            }
-
             Context.SetOpenIdConnectResponse(response);
 
             var notification = new ApplyRevocationResponseContext(Context, Options, request, response);

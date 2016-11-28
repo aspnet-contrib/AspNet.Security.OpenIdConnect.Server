@@ -388,10 +388,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
         private async Task<bool> SendIntrospectionResponseAsync(OpenIdConnectResponse response) {
             var request = Context.GetOpenIdConnectRequest();
-            if (request == null) {
-                request = new OpenIdConnectRequest();
-            }
-
             Context.SetOpenIdConnectResponse(response);
 
             var notification = new ApplyIntrospectionResponseContext(Context, Options, request, response);

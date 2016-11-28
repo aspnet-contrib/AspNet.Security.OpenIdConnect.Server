@@ -39,6 +39,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the logout request.
         /// </summary>
+        /// <remarks>
+        /// Note: this property may be null if an error occurred when
+        /// extracting the logout request from the HTTP request.
+        /// </remarks>
         public new OpenIdConnectRequest Request { get; }
 
         /// <summary>

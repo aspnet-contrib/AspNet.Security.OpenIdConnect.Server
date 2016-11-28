@@ -307,10 +307,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
         private async Task<bool> SendAuthorizationResponseAsync(OpenIdConnectResponse response, AuthenticationTicket ticket = null) {
             var request = Context.GetOpenIdConnectRequest();
-            if (request == null) {
-                request = new OpenIdConnectRequest();
-            }
-
             Context.SetOpenIdConnectResponse(response);
 
             var notification = new ApplyAuthorizationResponseContext(Context, Options, ticket, request, response);
@@ -339,6 +335,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                     return await SendNativePageAsync(response);
                 }
+            }
+
+            // At this stage, throw an exception if the request was not properly extracted,
+            // as the rest of this method depends on the request to determine the response mode.
+            if (request == null) {
+                throw new InvalidOperationException("The authorization response cannot be returned.");
             }
 
             // Create a new parameters dictionary holding the name/value pairs.

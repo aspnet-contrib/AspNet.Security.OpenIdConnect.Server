@@ -43,6 +43,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the authorization request.
         /// </summary>
+        /// <remarks>
+        /// Note: this property may be null if an error occurred when
+        /// extracting the authorization request from the HTTP request.
+        /// </remarks>
         public new OpenIdConnectRequest Request { get; }
 
         /// <summary>
