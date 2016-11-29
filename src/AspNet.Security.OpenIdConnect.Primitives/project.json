@@ -1,5 +1,5 @@
 ﻿{
-  "version": "1.0.0-beta7-*",
+  "version": "1.0.0-rc1-*",
 
   "description": "OpenID Connect primitives for the OpenID Connect server middleware.",
   "authors": [ "Kévin Chalet" ],
