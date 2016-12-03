@@ -17,16 +17,12 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests {
     public class OpenIdConnectExtensionsTests {
         [Theory]
         [InlineData(null, new string[0])]
-        [InlineData("id_token", new[] { "id_token" })]
-        [InlineData("id_token ", new[] { "id_token" })]
-        [InlineData(" id_token", new[] { "id_token" })]
-        [InlineData(" id_token ", new[] { "id_token" })]
-        [InlineData("access_token id_token", new[] { "access_token", "id_token" })]
-        [InlineData("access_token id_token ", new[] { "access_token", "id_token" })]
-        [InlineData(" access_token id_token", new[] { "access_token", "id_token" })]
-        [InlineData(" access_token id_token ", new[] { "access_token", "id_token" })]
-        [InlineData("access_token access_token id_token", new[] { "access_token", "id_token" })]
-        [InlineData("access_token ACCESS_TOKEN id_token", new[] { "access_token", "id_token" })]
+        [InlineData("", new string[0])]
+        [InlineData("[]", new string[0])]
+        [InlineData(@"[""id_token""]", new[] { "id_token" })]
+        [InlineData(@"[""access_token"",""id_token""]", new[] { "access_token", "id_token" })]
+        [InlineData(@"[""access_token"",""access_token"",""id_token""]", new[] { "access_token", "id_token" })]
+        [InlineData(@"[""access_token"",""ACCESS_TOKEN"",""id_token""]", new[] { "access_token", "id_token" })]
         public void GetDestinations_ReturnsExpectedDestinations(string destination, string[] destinations) {
             // Arrange
             var claim = new Claim(OpenIdConnectConstants.Claims.Name, "Bob le Bricoleur");
@@ -51,9 +47,8 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests {
         }
 
         [Theory]
-        [InlineData("destination ")]
-        [InlineData(" destination")]
-        [InlineData(" destination ")]
+        [InlineData(null)]
+        [InlineData("")]
         public void SetDestinations_ThrowsForInvalidDestinations(string destination) {
             // Arrange
             var claim = new Claim(OpenIdConnectConstants.Claims.Name, "Bob le Bricoleur");
@@ -62,14 +57,14 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests {
             var exception = Assert.Throws<ArgumentException>(() => claim.SetDestinations(destination));
 
             Assert.Equal(exception.ParamName, "destinations");
-            Assert.StartsWith("Destinations cannot contain spaces.", exception.Message);
+            Assert.StartsWith("Destinations cannot be null or empty.", exception.Message);
         }
 
         [Theory]
-        [InlineData(new[] { "access_token" }, "access_token")]
-        [InlineData(new[] { "access_token", "id_token" }, "access_token id_token")]
-        [InlineData(new[] { "access_token", "access_token", "id_token" }, "access_token id_token")]
-        [InlineData(new[] { "access_token", "ACCESS_TOKEN", "id_token" }, "access_token id_token")]
+        [InlineData(new[] { "access_token" }, @"[""access_token""]")]
+        [InlineData(new[] { "access_token", "id_token" }, @"[""access_token"",""id_token""]")]
+        [InlineData(new[] { "access_token", "access_token", "id_token" }, @"[""access_token"",""id_token""]")]
+        [InlineData(new[] { "access_token", "ACCESS_TOKEN", "id_token" }, @"[""access_token"",""id_token""]")]
         public void SetDestinations_SetsAppropriateDestinations(string[] destinations, string destination) {
             // Arrange
             var claim = new Claim(OpenIdConnectConstants.Claims.Name, "Bob le Bricoleur");
@@ -160,10 +155,10 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests {
         }
 
         [Theory]
-        [InlineData(new[] { "access_token" }, "access_token")]
-        [InlineData(new[] { "access_token", "id_token" }, "access_token id_token")]
-        [InlineData(new[] { "access_token", "access_token", "id_token" }, "access_token id_token")]
-        [InlineData(new[] { "access_token", "ACCESS_TOKEN", "id_token" }, "access_token id_token")]
+        [InlineData(new[] { "access_token" }, @"[""access_token""]")]
+        [InlineData(new[] { "access_token", "id_token" }, @"[""access_token"",""id_token""]")]
+        [InlineData(new[] { "access_token", "access_token", "id_token" }, @"[""access_token"",""id_token""]")]
+        [InlineData(new[] { "access_token", "ACCESS_TOKEN", "id_token" }, @"[""access_token"",""id_token""]")]
         public void AddClaim_SetsAppropriateDestinations(string[] destinations, string destination) {
             // Arrange
             var identity = new ClaimsIdentity();
@@ -321,15 +316,12 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests {
 
         [Theory]
         [InlineData(null, new string[0])]
-        [InlineData("fabrikam", new[] { "fabrikam" })]
-        [InlineData("fabrikam ", new[] { "fabrikam" })]
-        [InlineData(" fabrikam ", new[] { "fabrikam" })]
-        [InlineData("fabrikam contoso", new[] { "fabrikam", "contoso" })]
-        [InlineData("fabrikam     contoso", new[] { "fabrikam", "contoso" })]
-        [InlineData("fabrikam contoso ", new[] { "fabrikam", "contoso" })]
-        [InlineData(" fabrikam contoso", new[] { "fabrikam", "contoso" })]
-        [InlineData("fabrikam fabrikam contoso", new[] { "fabrikam", "contoso" })]
-        [InlineData("fabrikam FABRIKAM contoso", new[] { "fabrikam", "FABRIKAM", "contoso" })]
+        [InlineData("", new string[0])]
+        [InlineData("[]", new string[0])]
+        [InlineData(@"[""fabrikam""]", new[] { "fabrikam" })]
+        [InlineData(@"[""fabrikam"",""contoso""]", new[] { "fabrikam", "contoso" })]
+        [InlineData(@"[""fabrikam"",""fabrikam"",""contoso""]", new[] { "fabrikam", "contoso" })]
+        [InlineData(@"[""fabrikam"",""FABRIKAM"",""contoso""]", new[] { "fabrikam", "FABRIKAM", "contoso" })]
         public void GetAudiences_ReturnsExpectedAudiences(string audience, string[] audiences) {
             // Arrange
             var ticket = new AuthenticationTicket(
@@ -345,15 +337,12 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests {
 
         [Theory]
         [InlineData(null, new string[0])]
-        [InlineData("fabrikam", new[] { "fabrikam" })]
-        [InlineData("fabrikam ", new[] { "fabrikam" })]
-        [InlineData(" fabrikam ", new[] { "fabrikam" })]
-        [InlineData("fabrikam contoso", new[] { "fabrikam", "contoso" })]
-        [InlineData("fabrikam     contoso", new[] { "fabrikam", "contoso" })]
-        [InlineData("fabrikam contoso ", new[] { "fabrikam", "contoso" })]
-        [InlineData(" fabrikam contoso", new[] { "fabrikam", "contoso" })]
-        [InlineData("fabrikam fabrikam contoso", new[] { "fabrikam", "contoso" })]
-        [InlineData("fabrikam FABRIKAM contoso", new[] { "fabrikam", "FABRIKAM", "contoso" })]
+        [InlineData("", new string[0])]
+        [InlineData("[]", new string[0])]
+        [InlineData(@"[""fabrikam""]", new[] { "fabrikam" })]
+        [InlineData(@"[""fabrikam"",""contoso""]", new[] { "fabrikam", "contoso" })]
+        [InlineData(@"[""fabrikam"",""fabrikam"",""contoso""]", new[] { "fabrikam", "contoso" })]
+        [InlineData(@"[""fabrikam"",""FABRIKAM"",""contoso""]", new[] { "fabrikam", "FABRIKAM", "contoso" })]
         public void GetPresenters_ReturnsExpectedPresenters(string presenter, string[] presenters) {
             // Arrange
             var ticket = new AuthenticationTicket(
@@ -369,15 +358,12 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests {
 
         [Theory]
         [InlineData(null, new string[0])]
-        [InlineData("fabrikam", new[] { "fabrikam" })]
-        [InlineData("fabrikam ", new[] { "fabrikam" })]
-        [InlineData(" fabrikam ", new[] { "fabrikam" })]
-        [InlineData("fabrikam contoso", new[] { "fabrikam", "contoso" })]
-        [InlineData("fabrikam     contoso", new[] { "fabrikam", "contoso" })]
-        [InlineData("fabrikam contoso ", new[] { "fabrikam", "contoso" })]
-        [InlineData(" fabrikam contoso", new[] { "fabrikam", "contoso" })]
-        [InlineData("fabrikam fabrikam contoso", new[] { "fabrikam", "contoso" })]
-        [InlineData("fabrikam FABRIKAM contoso", new[] { "fabrikam", "FABRIKAM", "contoso" })]
+        [InlineData("", new string[0])]
+        [InlineData("[]", new string[0])]
+        [InlineData(@"[""fabrikam""]", new[] { "fabrikam" })]
+        [InlineData(@"[""fabrikam"",""contoso""]", new[] { "fabrikam", "contoso" })]
+        [InlineData(@"[""fabrikam"",""fabrikam"",""contoso""]", new[] { "fabrikam", "contoso" })]
+        [InlineData(@"[""fabrikam"",""FABRIKAM"",""contoso""]", new[] { "fabrikam", "FABRIKAM", "contoso" })]
         public void GetResources_ReturnsExpectedResources(string resource, string[] resources) {
             // Arrange
             var ticket = new AuthenticationTicket(
@@ -393,15 +379,12 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests {
 
         [Theory]
         [InlineData(null, new string[0])]
-        [InlineData("openid", new[] { "openid" })]
-        [InlineData("openid ", new[] { "openid" })]
-        [InlineData(" openid ", new[] { "openid" })]
-        [InlineData("openid profile", new[] { "openid", "profile" })]
-        [InlineData("openid     profile", new[] { "openid", "profile" })]
-        [InlineData("openid profile ", new[] { "openid", "profile" })]
-        [InlineData(" openid profile", new[] { "openid", "profile" })]
-        [InlineData("openid openid profile", new[] { "openid", "profile" })]
-        [InlineData("openid OPENID profile", new[] { "openid", "OPENID", "profile" })]
+        [InlineData("", new string[0])]
+        [InlineData("[]", new string[0])]
+        [InlineData(@"[""openid""]", new[] { "openid" })]
+        [InlineData(@"[""openid"",""profile""]", new[] { "openid", "profile" })]
+        [InlineData(@"[""openid"",""openid"",""profile""]", new[] { "openid", "profile" })]
+        [InlineData(@"[""openid"",""OPENID"",""profile""]", new[] { "openid", "OPENID", "profile" })]
         public void GetScopes_ReturnsExpectedScopes(string scope, string[] scopes) {
             // Arrange
             var ticket = new AuthenticationTicket(
@@ -530,7 +513,9 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests {
 
         [Theory]
         [InlineData(null, false)]
-        [InlineData("fabrikam", true)]
+        [InlineData("", false)]
+        [InlineData("[]", false)]
+        [InlineData(@"[""fabrikam""]", true)]
         public void HasAudience_ReturnsExpectedResult(string audience, bool result) {
             // Arrange
             var ticket = new AuthenticationTicket(
@@ -546,26 +531,14 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests {
 
         [Theory]
         [InlineData(null, false)]
-        [InlineData("contoso", false)]
-        [InlineData("fabrikam", true)]
-        [InlineData("fabrikam ", true)]
-        [InlineData(" fabrikam", true)]
-        [InlineData(" fabrikam ", true)]
-        [InlineData("fabrikam contoso", true)]
-        [InlineData("fabrikam contoso ", true)]
-        [InlineData(" fabrikam contoso", true)]
-        [InlineData(" fabrikam contoso ", true)]
-        [InlineData(" fabrikam  contoso ", true)]
-        [InlineData("CONTOSO", false)]
-        [InlineData("FABRIKAM", false)]
-        [InlineData("FABRIKAM ", false)]
-        [InlineData(" FABRIKAM", false)]
-        [InlineData(" FABRIKAM ", false)]
-        [InlineData("FABRIKAM CONTOSO", false)]
-        [InlineData("FABRIKAM CONTOSO ", false)]
-        [InlineData(" FABRIKAM CONTOSO", false)]
-        [InlineData(" FABRIKAM CONTOSO ", false)]
-        [InlineData(" FABRIKAM  CONTOSO ", false)]
+        [InlineData("", false)]
+        [InlineData("[]", false)]
+        [InlineData(@"[""contoso""]", false)]
+        [InlineData(@"[""fabrikam""]", true)]
+        [InlineData(@"[""fabrikam"",""contoso""]", true)]
+        [InlineData(@"[""CONTOSO""]", false)]
+        [InlineData(@"[""FABRIKAM""]", false)]
+        [InlineData(@"[""FABRIKAM"",""CONTOSO""]", false)]
         public void HasAudience_ReturnsAppropriateResult(string audience, bool result) {
             // Arrange
             var ticket = new AuthenticationTicket(
@@ -581,7 +554,9 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests {
 
         [Theory]
         [InlineData(null, false)]
-        [InlineData("fabrikam", true)]
+        [InlineData("", false)]
+        [InlineData("[]", false)]
+        [InlineData(@"[""fabrikam""]", true)]
         public void HasPresenter_ReturnsExpectedResult(string presenter, bool result) {
             // Arrange
             var ticket = new AuthenticationTicket(
@@ -597,26 +572,14 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests {
 
         [Theory]
         [InlineData(null, false)]
-        [InlineData("contoso", false)]
-        [InlineData("fabrikam", true)]
-        [InlineData("fabrikam ", true)]
-        [InlineData(" fabrikam", true)]
-        [InlineData(" fabrikam ", true)]
-        [InlineData("fabrikam contoso", true)]
-        [InlineData("fabrikam contoso ", true)]
-        [InlineData(" fabrikam contoso", true)]
-        [InlineData(" fabrikam contoso ", true)]
-        [InlineData(" fabrikam  contoso ", true)]
-        [InlineData("CONTOSO", false)]
-        [InlineData("FABRIKAM", false)]
-        [InlineData("FABRIKAM ", false)]
-        [InlineData(" FABRIKAM", false)]
-        [InlineData(" FABRIKAM ", false)]
-        [InlineData("FABRIKAM CONTOSO", false)]
-        [InlineData("FABRIKAM CONTOSO ", false)]
-        [InlineData(" FABRIKAM CONTOSO", false)]
-        [InlineData(" FABRIKAM CONTOSO ", false)]
-        [InlineData(" FABRIKAM  CONTOSO ", false)]
+        [InlineData("", false)]
+        [InlineData("[]", false)]
+        [InlineData(@"[""contoso""]", false)]
+        [InlineData(@"[""fabrikam""]", true)]
+        [InlineData(@"[""fabrikam"",""contoso""]", true)]
+        [InlineData(@"[""CONTOSO""]", false)]
+        [InlineData(@"[""FABRIKAM""]", false)]
+        [InlineData(@"[""FABRIKAM"",""CONTOSO""]", false)]
         public void HasPresenter_ReturnsAppropriateResult(string presenter, bool result) {
             // Arrange
             var ticket = new AuthenticationTicket(
@@ -632,7 +595,9 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests {
 
         [Theory]
         [InlineData(null, false)]
-        [InlineData("fabrikam", true)]
+        [InlineData("", false)]
+        [InlineData("[]", false)]
+        [InlineData(@"[""fabrikam""]", true)]
         public void HasResource_ReturnsExpectedResult(string resource, bool result) {
             // Arrange
             var ticket = new AuthenticationTicket(
@@ -648,26 +613,14 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests {
 
         [Theory]
         [InlineData(null, false)]
-        [InlineData("contoso", false)]
-        [InlineData("fabrikam", true)]
-        [InlineData("fabrikam ", true)]
-        [InlineData(" fabrikam", true)]
-        [InlineData(" fabrikam ", true)]
-        [InlineData("fabrikam contoso", true)]
-        [InlineData("fabrikam contoso ", true)]
-        [InlineData(" fabrikam contoso", true)]
-        [InlineData(" fabrikam contoso ", true)]
-        [InlineData(" fabrikam  contoso ", true)]
-        [InlineData("CONTOSO", false)]
-        [InlineData("FABRIKAM", false)]
-        [InlineData("FABRIKAM ", false)]
-        [InlineData(" FABRIKAM", false)]
-        [InlineData(" FABRIKAM ", false)]
-        [InlineData("FABRIKAM CONTOSO", false)]
-        [InlineData("FABRIKAM CONTOSO ", false)]
-        [InlineData(" FABRIKAM CONTOSO", false)]
-        [InlineData(" FABRIKAM CONTOSO ", false)]
-        [InlineData(" FABRIKAM  CONTOSO ", false)]
+        [InlineData("", false)]
+        [InlineData("[]", false)]
+        [InlineData(@"[""contoso""]", false)]
+        [InlineData(@"[""fabrikam""]", true)]
+        [InlineData(@"[""fabrikam"",""contoso""]", true)]
+        [InlineData(@"[""CONTOSO""]", false)]
+        [InlineData(@"[""FABRIKAM""]", false)]
+        [InlineData(@"[""FABRIKAM"",""CONTOSO""]", false)]
         public void HasResource_ReturnsAppropriateResult(string resource, bool result) {
             // Arrange
             var ticket = new AuthenticationTicket(
@@ -683,7 +636,9 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests {
 
         [Theory]
         [InlineData(null, false)]
-        [InlineData("fabrikam", true)]
+        [InlineData("", false)]
+        [InlineData("[]", false)]
+        [InlineData(@"[""openid""]", true)]
         public void HasScope_ReturnsExpectedResult(string scope, bool result) {
             // Arrange
             var ticket = new AuthenticationTicket(
@@ -699,26 +654,14 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests {
 
         [Theory]
         [InlineData(null, false)]
-        [InlineData("profile", false)]
-        [InlineData("openid", true)]
-        [InlineData("openid ", true)]
-        [InlineData(" openid", true)]
-        [InlineData(" openid ", true)]
-        [InlineData("openid profile", true)]
-        [InlineData("openid profile ", true)]
-        [InlineData(" openid profile", true)]
-        [InlineData(" openid profile ", true)]
-        [InlineData(" openid  profile ", true)]
-        [InlineData("PROFILE", false)]
-        [InlineData("OPENID", false)]
-        [InlineData("OPENID ", false)]
-        [InlineData(" OPENID", false)]
-        [InlineData(" OPENID ", false)]
-        [InlineData("OPENID PROFILE", false)]
-        [InlineData("OPENID PROFILE ", false)]
-        [InlineData(" OPENID PROFILE", false)]
-        [InlineData(" OPENID PROFILE ", false)]
-        [InlineData(" OPENID  PROFILE ", false)]
+        [InlineData("", false)]
+        [InlineData("[]", false)]
+        [InlineData(@"[""profile""]", false)]
+        [InlineData(@"[""openid""]", true)]
+        [InlineData(@"[""openid"",""profile""]", true)]
+        [InlineData(@"[""PROFILE""]", false)]
+        [InlineData(@"[""OPENID""]", false)]
+        [InlineData(@"[""OPENID"",""PROFILE""]", false)]
         public void HasScope_ReturnsAppropriateResult(string scope, bool result) {
             // Arrange
             var ticket = new AuthenticationTicket(
@@ -831,6 +774,38 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests {
         }
 
         [Fact]
+        public void AddProperty_AddsExpectedProperty() {
+            // Arrange
+            var ticket = new AuthenticationTicket(
+                new ClaimsPrincipal(),
+                new AuthenticationProperties(),
+                nameof(AuthenticationTicket));
+
+            // Act
+            ticket.AddProperty("property", "value");
+
+            // Assert
+            Assert.Equal("value", ticket.GetProperty("property"));
+        }
+
+        [Fact]
+        public void RemoveProperty_RemovesProperty() {
+            // Arrange
+            var ticket = new AuthenticationTicket(
+                new ClaimsPrincipal(),
+                new AuthenticationProperties(),
+                nameof(AuthenticationTicket));
+
+            ticket.AddProperty("property", "value");
+
+            // Act
+            ticket.RemoveProperty("property");
+
+            // Assert
+            Assert.Null(ticket.GetProperty("property"));
+        }
+
+        [Fact]
         public void SetProperty_AddsExpectedProperty() {
             // Arrange
             var ticket = new AuthenticationTicket(
@@ -875,12 +850,42 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests {
             Assert.Null(ticket.GetProperty("property"));
         }
 
+        [Fact]
+        public void SetProperty_SupportsMultipleStrings() {
+            // Arrange
+            var ticket = new AuthenticationTicket(
+                new ClaimsPrincipal(),
+                new AuthenticationProperties(),
+                nameof(AuthenticationTicket));
+
+            // Act
+            ticket.SetProperty("property", new[] { "value-1", "value-2" });
+
+            // Assert
+            Assert.Equal(@"[""value-1"",""value-2""]", ticket.GetProperty("property"));
+        }
+
+        [Fact]
+        public void SetProperty_IgnoreEmptyEnumerations() {
+            // Arrange
+            var ticket = new AuthenticationTicket(
+                new ClaimsPrincipal(),
+                new AuthenticationProperties(),
+                nameof(AuthenticationTicket));
+
+            // Act
+            ticket.SetProperty("property", new string[0]);
+
+            // Assert
+            Assert.Null(ticket.GetProperty("property"));
+        }
+
         [Theory]
         [InlineData(new string[0], null)]
-        [InlineData(new[] { "fabrikam" }, "fabrikam")]
-        [InlineData(new[] { "fabrikam", "contoso" }, "fabrikam contoso")]
-        [InlineData(new[] { "fabrikam", "fabrikam", "contoso" }, "fabrikam contoso")]
-        [InlineData(new[] { "fabrikam", "FABRIKAM", "contoso" }, "fabrikam FABRIKAM contoso")]
+        [InlineData(new[] { "fabrikam" }, @"[""fabrikam""]")]
+        [InlineData(new[] { "fabrikam", "contoso" }, @"[""fabrikam"",""contoso""]")]
+        [InlineData(new[] { "fabrikam", "fabrikam", "contoso" }, @"[""fabrikam"",""contoso""]")]
+        [InlineData(new[] { "fabrikam", "FABRIKAM", "contoso" }, @"[""fabrikam"",""FABRIKAM"",""contoso""]")]
         public void SetAudiences_AddsAudiences(string[] audiences, string audience) {
             // Arrange
             var ticket = new AuthenticationTicket(
@@ -897,10 +902,10 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests {
 
         [Theory]
         [InlineData(new string[0], null)]
-        [InlineData(new[] { "fabrikam" }, "fabrikam")]
-        [InlineData(new[] { "fabrikam", "contoso" }, "fabrikam contoso")]
-        [InlineData(new[] { "fabrikam", "fabrikam", "contoso" }, "fabrikam contoso")]
-        [InlineData(new[] { "fabrikam", "FABRIKAM", "contoso" }, "fabrikam FABRIKAM contoso")]
+        [InlineData(new[] { "fabrikam" }, @"[""fabrikam""]")]
+        [InlineData(new[] { "fabrikam", "contoso" }, @"[""fabrikam"",""contoso""]")]
+        [InlineData(new[] { "fabrikam", "fabrikam", "contoso" }, @"[""fabrikam"",""contoso""]")]
+        [InlineData(new[] { "fabrikam", "FABRIKAM", "contoso" }, @"[""fabrikam"",""FABRIKAM"",""contoso""]")]
         public void SetPresenters_AddsPresenters(string[] presenters, string presenter) {
             // Arrange
             var ticket = new AuthenticationTicket(
@@ -917,10 +922,10 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests {
 
         [Theory]
         [InlineData(new string[0], null)]
-        [InlineData(new[] { "fabrikam" }, "fabrikam")]
-        [InlineData(new[] { "fabrikam", "contoso" }, "fabrikam contoso")]
-        [InlineData(new[] { "fabrikam", "fabrikam", "contoso" }, "fabrikam contoso")]
-        [InlineData(new[] { "fabrikam", "FABRIKAM", "contoso" }, "fabrikam FABRIKAM contoso")]
+        [InlineData(new[] { "fabrikam" }, @"[""fabrikam""]")]
+        [InlineData(new[] { "fabrikam", "contoso" }, @"[""fabrikam"",""contoso""]")]
+        [InlineData(new[] { "fabrikam", "fabrikam", "contoso" }, @"[""fabrikam"",""contoso""]")]
+        [InlineData(new[] { "fabrikam", "FABRIKAM", "contoso" }, @"[""fabrikam"",""FABRIKAM"",""contoso""]")]
         public void SetResources_AddsResources(string[] resources, string resource) {
             // Arrange
             var ticket = new AuthenticationTicket(
@@ -937,10 +942,10 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests {
 
         [Theory]
         [InlineData(new string[0], null)]
-        [InlineData(new[] { "openid" }, "openid")]
-        [InlineData(new[] { "openid", "profile" }, "openid profile")]
-        [InlineData(new[] { "openid", "openid", "profile" }, "openid profile")]
-        [InlineData(new[] { "openid", "OPENID", "profile" }, "openid OPENID profile")]
+        [InlineData(new[] { "openid" }, @"[""openid""]")]
+        [InlineData(new[] { "openid", "profile" }, @"[""openid"",""profile""]")]
+        [InlineData(new[] { "openid", "openid", "profile" }, @"[""openid"",""profile""]")]
+        [InlineData(new[] { "openid", "OPENID", "profile" }, @"[""openid"",""OPENID"",""profile""]")]
         public void SetScopes_AddsScopes(string[] scopes, string scope) {
             // Arrange
             var ticket = new AuthenticationTicket(

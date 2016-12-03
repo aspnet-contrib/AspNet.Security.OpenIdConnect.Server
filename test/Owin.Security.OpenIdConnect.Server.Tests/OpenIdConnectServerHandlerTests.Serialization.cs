@@ -118,7 +118,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                 options.Provider.OnSerializeAuthorizationCode = context => {
                     // Assert
                     Assert.Equal(OpenIdConnectConstants.Usages.AuthorizationCode, context.Ticket.GetUsage());
-                    Assert.Equal("Fabrikam", context.Ticket.GetProperty(OpenIdConnectConstants.Properties.Presenters));
+                    Assert.Equal(new[] { "Fabrikam" }, context.Ticket.GetPresenters());
                     Assert.NotNull(context.Ticket.GetTicketId());
 
                     return Task.FromResult(0);
@@ -458,7 +458,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                 options.Provider.OnSerializeAccessToken = context => {
                     // Assert
                     Assert.Equal(OpenIdConnectConstants.Usages.AccessToken, context.Ticket.GetUsage());
-                    Assert.Equal("Fabrikam", context.Ticket.GetProperty(OpenIdConnectConstants.Properties.Presenters));
+                    Assert.Equal(new[] { "Fabrikam" }, context.Ticket.GetPresenters());
                     Assert.NotNull(context.Ticket.GetTicketId());
 
                     return Task.FromResult(0);
@@ -983,7 +983,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                 options.Provider.OnSerializeIdentityToken = context => {
                     // Assert
                     Assert.Equal(OpenIdConnectConstants.Usages.IdentityToken, context.Ticket.GetUsage());
-                    Assert.Equal("Fabrikam", context.Ticket.GetProperty(OpenIdConnectConstants.Properties.Presenters));
+                    Assert.Equal(new[] { "Fabrikam" }, context.Ticket.GetPresenters());
                     Assert.NotNull(context.Ticket.GetTicketId());
 
                     return Task.FromResult(0);
@@ -1395,7 +1395,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                 options.Provider.OnSerializeRefreshToken = context => {
                     // Assert
                     Assert.Equal(OpenIdConnectConstants.Usages.RefreshToken, context.Ticket.GetUsage());
-                    Assert.Equal("Fabrikam", context.Ticket.GetProperty(OpenIdConnectConstants.Properties.Presenters));
+                    Assert.Equal(new[] { "Fabrikam" }, context.Ticket.GetPresenters());
                     Assert.NotNull(context.Ticket.GetTicketId());
 
                     return Task.FromResult(0);

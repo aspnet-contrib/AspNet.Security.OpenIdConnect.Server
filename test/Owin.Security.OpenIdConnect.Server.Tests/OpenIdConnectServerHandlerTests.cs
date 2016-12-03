@@ -947,16 +947,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var server = CreateAuthorizationServer(options => {
                 options.Provider.OnSerializeAccessToken = context => {
                     // Assert
-                    Assert.Equal("http://www.fabrikam.com/",
-                        context.Ticket.GetProperty(OpenIdConnectConstants.Properties.Resources));
+                    Assert.Equal(new[] { "http://www.fabrikam.com/" }, context.Ticket.GetResources());
 
                     return Task.FromResult(0);
                 };
 
                 options.Provider.OnSerializeRefreshToken = context => {
                     // Assert
-                    Assert.Equal("http://www.fabrikam.com/",
-                        context.Ticket.GetProperty(OpenIdConnectConstants.Properties.Resources));
+                    Assert.Equal(new[] { "http://www.fabrikam.com/" }, context.Ticket.GetResources());
 
                     return Task.FromResult(0);
                 };
@@ -1052,8 +1050,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnSerializeAccessToken = context => {
                     // Assert
-                    Assert.Equal("http://www.fabrikam.com/",
-                        context.Ticket.GetProperty(OpenIdConnectConstants.Properties.Resources));
+                    Assert.Equal(new[] { "http://www.fabrikam.com/" }, context.Ticket.GetResources());
 
                     return Task.FromResult(0);
                 };
@@ -1100,8 +1097,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnSerializeAccessToken = context => {
                     // Assert
-                    Assert.Equal(OpenIdConnectConstants.Scopes.Profile,
-                        context.Ticket.GetProperty(OpenIdConnectConstants.Properties.Scopes));
+                    Assert.Equal(new[] { OpenIdConnectConstants.Scopes.Profile }, context.Ticket.GetScopes());
 
                     return Task.FromResult(0);
                 };

@@ -322,7 +322,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 // and http://openid.net/specs/openid-connect-core-1_0.html#TokenRequestValidation
                 var address = ticket.GetProperty(OpenIdConnectConstants.Properties.RedirectUri);
                 if (request.IsAuthorizationCodeGrantType() && !string.IsNullOrEmpty(address)) {
-                    ticket.SetProperty(OpenIdConnectConstants.Properties.RedirectUri, null);
+                    ticket.RemoveProperty(OpenIdConnectConstants.Properties.RedirectUri);
 
                     if (string.IsNullOrEmpty(request.RedirectUri)) {
                         Options.Logger.LogError("The token request was rejected because the mandatory 'redirect_uri' " +
@@ -349,7 +349,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 // code, validate the code verifier to ensure the token request is sent by a legit caller.
                 var challenge = ticket.GetProperty(OpenIdConnectConstants.Properties.CodeChallenge);
                 if (request.IsAuthorizationCodeGrantType() && !string.IsNullOrEmpty(challenge)) {
-                    ticket.SetProperty(OpenIdConnectConstants.Properties.CodeChallenge, null);
+                    ticket.RemoveProperty(OpenIdConnectConstants.Properties.CodeChallenge);
 
                     // Get the code verifier from the token request.
                     // If it cannot be found, return an invalid_grant error.
@@ -366,7 +366,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                     // Note: the code challenge method is always validated when receiving the authorization request.
                     var method = ticket.GetProperty(OpenIdConnectConstants.Properties.CodeChallengeMethod);
-                    ticket.SetProperty(OpenIdConnectConstants.Properties.CodeChallengeMethod, null);
+                    ticket.RemoveProperty(OpenIdConnectConstants.Properties.CodeChallengeMethod);
 
                     Debug.Assert(string.IsNullOrEmpty(method) ||
                                  string.Equals(method, OpenIdConnectConstants.CodeChallengeMethods.Plain, StringComparison.Ordinal) ||

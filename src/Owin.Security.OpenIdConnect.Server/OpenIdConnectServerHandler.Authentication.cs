@@ -211,7 +211,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 });
             }
 
-            // Reject requests containing the id_token response_type if no asymmetric signing key have been registered.
+            // Reject requests containing the id_token response_type if no asymmetric signing key has been registered.
             if (request.HasResponseType(OpenIdConnectConstants.ResponseTypes.IdToken) &&
                !Options.SigningCredentials.Any(credentials => credentials.SigningKey is AsymmetricSecurityKey)) {
                 Options.Logger.LogError("The authorization request was rejected because the 'id_token' response type could not be honored. " +

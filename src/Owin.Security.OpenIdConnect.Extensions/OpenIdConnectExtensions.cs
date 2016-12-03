@@ -6,12 +6,17 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using AspNet.Security.OpenIdConnect.Primitives;
 using JetBrains.Annotations;
+using Microsoft.Extensions.Primitives;
 using Microsoft.Owin.Security;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Owin.Security.OpenIdConnect.Extensions {
     /// <summary>
@@ -31,9 +36,11 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             string destinations;
             claim.Properties.TryGetValue(OpenIdConnectConstants.Properties.Destinations, out destinations);
 
-            return destinations?.Split(OpenIdConnectConstants.Separators.Space, StringSplitOptions.RemoveEmptyEntries)
-                               ?.Distinct(StringComparer.OrdinalIgnoreCase)
-                   ?? Enumerable.Empty<string>();
+            if (string.IsNullOrEmpty(destinations)) {
+                return Enumerable.Empty<string>();
+            }
+
+            return GetValues(destinations).Distinct(StringComparer.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -48,11 +55,13 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             }
 
             string destinations;
-            if (!claim.Properties.TryGetValue(OpenIdConnectConstants.Properties.Destinations, out destinations)) {
+            claim.Properties.TryGetValue(OpenIdConnectConstants.Properties.Destinations, out destinations);
+
+            if (string.IsNullOrEmpty(destinations)) {
                 return false;
             }
 
-            return HasValue(destinations, destination);
+            return HasValue(destinations, destination, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -71,12 +80,12 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 return claim;
             }
 
-            if (destinations.Any(destination => destination.Contains(" "))) {
-                throw new ArgumentException("Destinations cannot contain spaces.", nameof(destinations));
+            if (destinations.Any(destination => string.IsNullOrEmpty(destination))) {
+                throw new ArgumentException("Destinations cannot be null or empty.", nameof(destinations));
             }
 
             claim.Properties[OpenIdConnectConstants.Properties.Destinations] =
-                string.Join(" ", destinations.Distinct(StringComparer.OrdinalIgnoreCase));
+                new JArray(destinations.Distinct(StringComparer.OrdinalIgnoreCase)).ToString(Formatting.None);
 
             return claim;
         }
@@ -265,6 +274,98 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         }
 
         /// <summary>
+        /// Adds a given property in the authentication properties.
+        /// </summary>
+        /// <param name="properties">The authentication properties.</param>
+        /// <param name="property">The specific property to add.</param>
+        /// <param name="value">The value associated with the property.</param>
+        /// <returns>The authentication properties.</returns>
+        public static AuthenticationProperties AddProperty(
+            [NotNull] this AuthenticationProperties properties,
+            [NotNull] string property, [CanBeNull] string value) {
+            if (properties == null) {
+                throw new ArgumentNullException(nameof(properties));
+            }
+
+            if (string.IsNullOrEmpty(property)) {
+                throw new ArgumentException("The property name cannot be null or empty.", nameof(property));
+            }
+
+            properties.Dictionary[property] = value;
+
+            return properties;
+        }
+
+        /// <summary>
+        /// Adds a given property in the authentication properties.
+        /// </summary>
+        /// <param name="properties">The authentication properties.</param>
+        /// <param name="property">The specific property to add.</param>
+        /// <param name="values">The values associated with the property.</param>
+        /// <returns>The authentication properties.</returns>
+        public static AuthenticationProperties AddProperty(
+            [NotNull] this AuthenticationProperties properties,
+            [NotNull] string property, [NotNull] IEnumerable<string> values) {
+            if (properties == null) {
+                throw new ArgumentNullException(nameof(properties));
+            }
+
+            if (values == null) {
+                throw new ArgumentNullException(nameof(values));
+            }
+
+            if (string.IsNullOrEmpty(property)) {
+                throw new ArgumentException("The property name cannot be null or empty.", nameof(property));
+            }
+
+            properties.Dictionary[property] = new JArray(values).ToString(Formatting.None);
+
+            return properties;
+        }
+
+        /// <summary>
+        /// Adds a given property in the authentication ticket.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <param name="property">The specific property to add.</param>
+        /// <param name="value">The value associated with the property.</param>
+        /// <returns>The authentication ticket.</returns>
+        public static AuthenticationTicket AddProperty(
+            [NotNull] this AuthenticationTicket ticket,
+            [NotNull] string property, [CanBeNull] string value) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            ticket.Properties.AddProperty(property, value);
+
+            return ticket;
+        }
+
+        /// <summary>
+        /// Adds a given property in the authentication ticket.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <param name="property">The specific property to add.</param>
+        /// <param name="values">The values associated with the property.</param>
+        /// <returns>The authentication ticket.</returns>
+        public static AuthenticationTicket AddProperty(
+            [NotNull] this AuthenticationTicket ticket,
+            [NotNull] string property, [NotNull] IEnumerable<string> values) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            if (values == null) {
+                throw new ArgumentNullException(nameof(values));
+            }
+
+            ticket.Properties.AddProperty(property, values);
+
+            return ticket;
+        }
+
+        /// <summary>
         /// Copies the authentication properties in a new instance.
         /// </summary>
         /// <param name="properties">The authentication properties to copy.</param>
@@ -339,10 +440,12 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            return ticket.GetProperty(OpenIdConnectConstants.Properties.Audiences)
-                        ?.Split(OpenIdConnectConstants.Separators.Space, StringSplitOptions.RemoveEmptyEntries)
-                        ?.Distinct(StringComparer.Ordinal)
-                   ?? Enumerable.Empty<string>();
+            var audiences = ticket.GetProperty(OpenIdConnectConstants.Properties.Audiences);
+            if (string.IsNullOrEmpty(audiences)) {
+                return Enumerable.Empty<string>();
+            }
+
+            return GetValues(audiences).Distinct(StringComparer.Ordinal);
         }
 
         /// <summary>
@@ -356,10 +459,12 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            return ticket.GetProperty(OpenIdConnectConstants.Properties.Presenters)
-                        ?.Split(OpenIdConnectConstants.Separators.Space, StringSplitOptions.RemoveEmptyEntries)
-                        ?.Distinct(StringComparer.Ordinal)
-                   ?? Enumerable.Empty<string>();
+            var presenters = ticket.GetProperty(OpenIdConnectConstants.Properties.Presenters);
+            if (string.IsNullOrEmpty(presenters)) {
+                return Enumerable.Empty<string>();
+            }
+
+            return GetValues(presenters).Distinct(StringComparer.Ordinal);
         }
 
         /// <summary>
@@ -373,10 +478,12 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            return ticket.GetProperty(OpenIdConnectConstants.Properties.Resources)
-                        ?.Split(OpenIdConnectConstants.Separators.Space, StringSplitOptions.RemoveEmptyEntries)
-                        ?.Distinct(StringComparer.Ordinal)
-                   ?? Enumerable.Empty<string>();
+            var resources = ticket.GetProperty(OpenIdConnectConstants.Properties.Resources);
+            if (string.IsNullOrEmpty(resources)) {
+                return Enumerable.Empty<string>();
+            }
+
+            return GetValues(resources).Distinct(StringComparer.Ordinal);
         }
 
         /// <summary>
@@ -390,10 +497,12 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            return ticket.GetProperty(OpenIdConnectConstants.Properties.Scopes)
-                        ?.Split(OpenIdConnectConstants.Separators.Space, StringSplitOptions.RemoveEmptyEntries)
-                        ?.Distinct(StringComparer.Ordinal)
-                   ?? Enumerable.Empty<string>();
+            var scopes = ticket.GetProperty(OpenIdConnectConstants.Properties.Scopes);
+            if (string.IsNullOrEmpty(scopes)) {
+                return Enumerable.Empty<string>();
+            }
+
+            return GetValues(scopes).Distinct(StringComparer.Ordinal);
         }
 
         /// <summary>
@@ -565,7 +674,12 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            return ticket.HasProperty(OpenIdConnectConstants.Properties.Audiences);
+            var audiences = ticket.GetProperty(OpenIdConnectConstants.Properties.Audiences);
+            if (string.IsNullOrEmpty(audiences)) {
+                return false;
+            }
+
+            return GetValues(audiences).Any();
         }
 
         /// <summary>
@@ -579,14 +693,12 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            var audiences = ticket.GetProperty(OpenIdConnectConstants.Properties.Audiences)
-                                 ?.Split(OpenIdConnectConstants.Separators.Space, StringSplitOptions.RemoveEmptyEntries);
-
-            if (audiences == null) {
+            var audiences = ticket.GetProperty(OpenIdConnectConstants.Properties.Audiences);
+            if (string.IsNullOrEmpty(audiences)) {
                 return false;
             }
 
-            return audiences.Contains(audience, StringComparer.Ordinal);
+            return HasValue(audiences, audience, StringComparison.Ordinal);
         }
 
         /// <summary>
@@ -599,7 +711,12 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            return ticket.HasProperty(OpenIdConnectConstants.Properties.Presenters);
+            var presenters = ticket.GetProperty(OpenIdConnectConstants.Properties.Presenters);
+            if (string.IsNullOrEmpty(presenters)) {
+                return false;
+            }
+
+            return GetValues(presenters).Any();
         }
 
         /// <summary>
@@ -613,14 +730,12 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            var presenters = ticket.GetProperty(OpenIdConnectConstants.Properties.Presenters)
-                                  ?.Split(OpenIdConnectConstants.Separators.Space, StringSplitOptions.RemoveEmptyEntries);
-
-            if (presenters == null) {
+            var presenters = ticket.GetProperty(OpenIdConnectConstants.Properties.Presenters);
+            if (string.IsNullOrEmpty(presenters)) {
                 return false;
             }
 
-            return presenters.Contains(presenter, StringComparer.Ordinal);
+            return HasValue(presenters, presenter, StringComparison.Ordinal);
         }
 
         /// <summary>
@@ -633,7 +748,12 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            return ticket.HasProperty(OpenIdConnectConstants.Properties.Resources);
+            var resources = ticket.GetProperty(OpenIdConnectConstants.Properties.Resources);
+            if (string.IsNullOrEmpty(resources)) {
+                return false;
+            }
+
+            return GetValues(resources).Any();
         }
 
         /// <summary>
@@ -647,14 +767,12 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            var resources = ticket.GetProperty(OpenIdConnectConstants.Properties.Resources)
-                                 ?.Split(OpenIdConnectConstants.Separators.Space, StringSplitOptions.RemoveEmptyEntries);
-
-            if (resources == null) {
+            var resources = ticket.GetProperty(OpenIdConnectConstants.Properties.Resources);
+            if (string.IsNullOrEmpty(resources)) {
                 return false;
             }
 
-            return resources.Contains(resource, StringComparer.Ordinal);
+            return HasValue(resources, resource, StringComparison.Ordinal);
         }
 
         /// <summary>
@@ -667,7 +785,12 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            return ticket.HasProperty(OpenIdConnectConstants.Properties.Scopes);
+            var scopes = ticket.GetProperty(OpenIdConnectConstants.Properties.Scopes);
+            if (string.IsNullOrEmpty(scopes)) {
+                return false;
+            }
+
+            return GetValues(scopes).Any();
         }
 
         /// <summary>
@@ -681,14 +804,12 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            var scopes = ticket.GetProperty(OpenIdConnectConstants.Properties.Scopes)
-                              ?.Split(OpenIdConnectConstants.Separators.Space, StringSplitOptions.RemoveEmptyEntries);
-
-            if (scopes == null) {
+            var scopes = ticket.GetProperty(OpenIdConnectConstants.Properties.Scopes);
+            if (string.IsNullOrEmpty(scopes)) {
                 return false;
             }
 
-            return scopes.Contains(scope, StringComparer.Ordinal);
+            return HasValue(scopes, scope, StringComparison.Ordinal);
         }
 
         /// <summary>
@@ -787,6 +908,44 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         }
 
         /// <summary>
+        /// Removes a given property in the authentication properties.
+        /// </summary>
+        /// <param name="properties">The authentication properties.</param>
+        /// <param name="property">The specific property to remove.</param>
+        /// <returns>The authentication properties.</returns>
+        public static AuthenticationProperties RemoveProperty(
+            [NotNull] this AuthenticationProperties properties, [NotNull] string property) {
+            if (properties == null) {
+                throw new ArgumentNullException(nameof(properties));
+            }
+
+            if (string.IsNullOrEmpty(property)) {
+                throw new ArgumentException("The property name cannot be null or empty.", nameof(property));
+            }
+            
+            properties.Dictionary.Remove(property);
+
+            return properties;
+        }
+
+        /// <summary>
+        /// Removes a given property in the authentication ticket.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <param name="property">The specific property to remove.</param>
+        /// <returns>The authentication ticket.</returns>
+        public static AuthenticationTicket RemoveProperty(
+            [NotNull] this AuthenticationTicket ticket, [NotNull] string property) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            ticket.Properties.RemoveProperty(property);
+
+            return ticket;
+        }
+
+        /// <summary>
         /// Adds, updates or removes a given property in the authentication properties.
         /// </summary>
         /// <param name="properties">The authentication properties.</param>
@@ -816,6 +975,50 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         }
 
         /// <summary>
+        /// Adds, updates or removes a given property in the authentication properties.
+        /// </summary>
+        /// <param name="properties">The authentication properties.</param>
+        /// <param name="property">The specific property to add, update or remove.</param>
+        /// <param name="values">The values associated with the property.</param>
+        /// <returns>The authentication properties.</returns>
+        public static AuthenticationProperties SetProperty(
+            [NotNull] this AuthenticationProperties properties,
+            [NotNull] string property, [CanBeNull] IEnumerable<string> values) {
+            if (properties == null) {
+                throw new ArgumentNullException(nameof(properties));
+            }
+
+            if (string.IsNullOrEmpty(property)) {
+                throw new ArgumentException("The property name cannot be null or empty.", nameof(property));
+            }
+
+            if (values == null || !values.Any()) {
+                properties.Dictionary.Remove(property);
+
+                return properties;
+            }
+
+            properties.Dictionary[property] = new JArray(values).ToString(Formatting.None);
+
+            return properties;
+        }
+
+        /// <summary>
+        /// Adds, updates or removes a given property in the authentication properties.
+        /// </summary>
+        /// <param name="properties">The authentication properties.</param>
+        /// <param name="property">The specific property to add, update or remove.</param>
+        /// <param name="values">The values associated with the property.</param>
+        /// <returns>The authentication properties.</returns>
+        public static AuthenticationProperties SetProperty(
+            [NotNull] this AuthenticationProperties properties,
+            [NotNull] string property, [CanBeNull] params string[] values) {
+            // Note: guarding the values parameter against null values
+            // is not necessary as AsEnumerable() doesn't throw on null values.
+            return properties.SetProperty(property, values.AsEnumerable());
+        }
+
+        /// <summary>
         /// Adds, updates or removes a given property in the authentication ticket.
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
@@ -835,13 +1038,49 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         }
 
         /// <summary>
+        /// Adds, updates or removes a given property in the authentication ticket.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <param name="property">The specific property to add, update or remove.</param>
+        /// <param name="values">The values associated with the property.</param>
+        /// <returns>The authentication ticket.</returns>
+        public static AuthenticationTicket SetProperty(
+            [NotNull] this AuthenticationTicket ticket,
+            [NotNull] string property, [CanBeNull] IEnumerable<string> values) {
+            if (ticket == null) {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            ticket.Properties.SetProperty(property, values);
+
+            return ticket;
+        }
+
+        /// <summary>
+        /// Adds, updates or removes a given property in the authentication ticket.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <param name="property">The specific property to add, update or remove.</param>
+        /// <param name="values">The values associated with the property.</param>
+        /// <returns>The authentication ticket.</returns>
+        public static AuthenticationTicket SetProperty(
+            [NotNull] this AuthenticationTicket ticket,
+            [NotNull] string property, [CanBeNull] params string[] values) {
+            // Note: guarding the values parameter against null values
+            // is not necessary as AsEnumerable() doesn't throw on null values.
+            return ticket.SetProperty(property, values.AsEnumerable());
+        }
+
+        /// <summary>
         /// Sets the audiences list in the authentication ticket.
         /// Note: this method automatically excludes duplicate audiences.
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
         /// <param name="audiences">The audiences to store.</param>
         /// <returns>The authentication ticket.</returns>
-        public static AuthenticationTicket SetAudiences([NotNull] this AuthenticationTicket ticket, IEnumerable<string> audiences) {
+        public static AuthenticationTicket SetAudiences(
+            [NotNull] this AuthenticationTicket ticket,
+            [CanBeNull] IEnumerable<string> audiences) {
             if (ticket == null) {
                 throw new ArgumentNullException(nameof(ticket));
             }
@@ -852,14 +1091,11 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 return ticket;
             }
 
-            if (audiences.Any(audience => string.IsNullOrEmpty(audience) || audience.Contains(" "))) {
-                throw new ArgumentException("The audiences cannot be null, empty or contain spaces.", nameof(audiences));
+            if (audiences.Any(audience => string.IsNullOrEmpty(audience))) {
+                throw new ArgumentException("Audiences cannot be null or empty.", nameof(audiences));
             }
 
-            ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.Audiences] =
-                string.Join(" ", audiences.Distinct(StringComparer.Ordinal));
-
-            return ticket;
+            return ticket.SetProperty(OpenIdConnectConstants.Properties.Audiences, audiences.Distinct(StringComparer.Ordinal));
         }
 
         /// <summary>
@@ -869,7 +1105,8 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="ticket">The authentication ticket.</param>
         /// <param name="audiences">The audiences to store.</param>
         /// <returns>The authentication ticket.</returns>
-        public static AuthenticationTicket SetAudiences([NotNull] this AuthenticationTicket ticket, params string[] audiences) {
+        public static AuthenticationTicket SetAudiences(
+            [NotNull] this AuthenticationTicket ticket, [CanBeNull] params string[] audiences) {
             // Note: guarding the audiences parameter against null values
             // is not necessary as AsEnumerable() doesn't throw on null values.
             return ticket.SetAudiences(audiences.AsEnumerable());
@@ -882,7 +1119,9 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="ticket">The authentication ticket.</param>
         /// <param name="presenters">The presenters to store.</param>
         /// <returns>The authentication ticket.</returns>
-        public static AuthenticationTicket SetPresenters([NotNull] this AuthenticationTicket ticket, IEnumerable<string> presenters) {
+        public static AuthenticationTicket SetPresenters(
+            [NotNull] this AuthenticationTicket ticket,
+            [CanBeNull] IEnumerable<string> presenters) {
             if (ticket == null) {
                 throw new ArgumentNullException(nameof(ticket));
             }
@@ -893,14 +1132,11 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 return ticket;
             }
 
-            if (presenters.Any(presenter => string.IsNullOrEmpty(presenter) || presenter.Contains(" "))) {
-                throw new ArgumentException("The presenters cannot be null, empty or contain spaces.", nameof(presenters));
+            if (presenters.Any(presenter => string.IsNullOrEmpty(presenter))) {
+                throw new ArgumentException("Presenters cannot be null or empty.", nameof(presenters));
             }
 
-            ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.Presenters] =
-                string.Join(" ", presenters.Distinct(StringComparer.Ordinal));
-
-            return ticket;
+            return ticket.SetProperty(OpenIdConnectConstants.Properties.Presenters, presenters.Distinct(StringComparer.Ordinal));
         }
 
         /// <summary>
@@ -910,7 +1146,8 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="ticket">The authentication ticket.</param>
         /// <param name="presenters">The presenters to store.</param>
         /// <returns>The authentication ticket.</returns>
-        public static AuthenticationTicket SetPresenters([NotNull] this AuthenticationTicket ticket, params string[] presenters) {
+        public static AuthenticationTicket SetPresenters(
+            [NotNull] this AuthenticationTicket ticket, [CanBeNull] params string[] presenters) {
             // Note: guarding the presenters parameter against null values
             // is not necessary as AsEnumerable() doesn't throw on null values.
             return ticket.SetPresenters(presenters.AsEnumerable());
@@ -923,7 +1160,9 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="ticket">The authentication ticket.</param>
         /// <param name="resources">The resources to store.</param>
         /// <returns>The authentication ticket.</returns>
-        public static AuthenticationTicket SetResources([NotNull] this AuthenticationTicket ticket, IEnumerable<string> resources) {
+        public static AuthenticationTicket SetResources(
+            [NotNull] this AuthenticationTicket ticket,
+            [CanBeNull] IEnumerable<string> resources) {
             if (ticket == null) {
                 throw new ArgumentNullException(nameof(ticket));
             }
@@ -934,14 +1173,11 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 return ticket;
             }
 
-            if (resources.Any(resource => string.IsNullOrEmpty(resource) || resource.Contains(" "))) {
-                throw new ArgumentException("The resources cannot be null, empty or contain spaces.", nameof(resources));
+            if (resources.Any(resource => string.IsNullOrEmpty(resource))) {
+                throw new ArgumentException("Resources cannot be null or empty.", nameof(resources));
             }
 
-            ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.Resources] =
-                string.Join(" ", resources.Distinct(StringComparer.Ordinal));
-
-            return ticket;
+            return ticket.SetProperty(OpenIdConnectConstants.Properties.Resources, resources.Distinct(StringComparer.Ordinal));
         }
 
         /// <summary>
@@ -951,7 +1187,8 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="ticket">The authentication ticket.</param>
         /// <param name="resources">The resources to store.</param>
         /// <returns>The authentication ticket.</returns>
-        public static AuthenticationTicket SetResources([NotNull] this AuthenticationTicket ticket, params string[] resources) {
+        public static AuthenticationTicket SetResources(
+            [NotNull] this AuthenticationTicket ticket, [CanBeNull] params string[] resources) {
             // Note: guarding the resources parameter against null values
             // is not necessary as AsEnumerable() doesn't throw on null values.
             return ticket.SetResources(resources.AsEnumerable());
@@ -964,7 +1201,9 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="ticket">The authentication ticket.</param>
         /// <param name="scopes">The scopes to store.</param>
         /// <returns>The authentication ticket.</returns>
-        public static AuthenticationTicket SetScopes([NotNull] this AuthenticationTicket ticket, IEnumerable<string> scopes) {
+        public static AuthenticationTicket SetScopes(
+            [NotNull] this AuthenticationTicket ticket,
+            [CanBeNull] IEnumerable<string> scopes) {
             if (ticket == null) {
                 throw new ArgumentNullException(nameof(ticket));
             }
@@ -975,14 +1214,11 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                 return ticket;
             }
 
-            if (scopes.Any(scope => string.IsNullOrEmpty(scope) || scope.Contains(" "))) {
-                throw new ArgumentException("The scopes cannot be null, empty or contain spaces.", nameof(scopes));
+            if (scopes.Any(scope => string.IsNullOrEmpty(scope))) {
+                throw new ArgumentException("Scopes cannot be null or empty.", nameof(scopes));
             }
 
-            ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.Scopes] =
-                string.Join(" ", scopes.Distinct(StringComparer.Ordinal));
-
-            return ticket;
+            return ticket.SetProperty(OpenIdConnectConstants.Properties.Scopes, scopes.Distinct(StringComparer.Ordinal));
         }
 
         /// <summary>
@@ -992,7 +1228,8 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="ticket">The authentication ticket.</param>
         /// <param name="scopes">The scopes to store.</param>
         /// <returns>The authentication ticket.</returns>
-        public static AuthenticationTicket SetScopes([NotNull] this AuthenticationTicket ticket, params string[] scopes) {
+        public static AuthenticationTicket SetScopes(
+            [NotNull] this AuthenticationTicket ticket, [CanBeNull] params string[] scopes) {
             // Note: guarding the scopes parameter against null values
             // is not necessary as AsEnumerable() doesn't throw on null values.
             return ticket.SetScopes(scopes.AsEnumerable());
@@ -1090,14 +1327,43 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             return ticket.SetProperty(OpenIdConnectConstants.Properties.Usage, usage);
         }
 
-        private static bool HasValue(string source, string value, StringComparison comparison = StringComparison.Ordinal) {
-            if (string.IsNullOrEmpty(source)) {
-                return false;
+        private static IEnumerable<string> GetValues(string source) {
+            Debug.Assert(!string.IsNullOrEmpty(source), "The source string shouldn't be null or empty.");
+
+            using (var reader = new JsonTextReader(new StringReader(source))) {
+                var array = JArray.Load(reader);
+
+                for (var index = 0; index < array.Count; index++) {
+                    var element = array[index] as JValue;
+                    if (element?.Type != JTokenType.String) {
+                        continue;
+                    }
+
+                    yield return (string) element.Value;
+                }
             }
 
-            return (from component in source.Split(OpenIdConnectConstants.Separators.Space, StringSplitOptions.RemoveEmptyEntries)
-                    where string.Equals(component, value, comparison)
-                    select component).Any();
+            yield break;
+        }
+
+        private static bool HasValue(string source, string value, StringComparison comparison) {
+            Debug.Assert(!string.IsNullOrEmpty(source), "The source string shouldn't be null or empty.");
+            Debug.Assert(!string.IsNullOrEmpty(value), "The value string shouldn't be null or empty.");
+
+            using (var reader = new JsonTextReader(new StringReader(source))) {
+                var array = JArray.Load(reader);
+
+                for (var index = 0; index < array.Count; index++) {
+                    var element = array[index] as JValue;
+                    if (element?.Type != JTokenType.String) {
+                        continue;
+                    }
+
+                    return string.Equals((string) element.Value, value, comparison);
+                }
+            }
+
+            return false;
         }
     }
 }

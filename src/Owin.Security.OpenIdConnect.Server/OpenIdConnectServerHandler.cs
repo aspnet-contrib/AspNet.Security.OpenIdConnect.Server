@@ -5,6 +5,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Security.Claims;
 using System.Text;
@@ -287,14 +288,14 @@ namespace Owin.Security.OpenIdConnect.Server {
             // Always include the "openid" scope when the developer doesn't explicitly call SetScopes.
             // Note: the application is allowed to specify a different "scopes": in this case,
             // don't replace the "scopes" property stored in the authentication ticket.
-            if (!ticket.HasProperty(OpenIdConnectConstants.Properties.Scopes) && request.HasScope(OpenIdConnectConstants.Scopes.OpenId)) {
-                ticket.SetProperty(OpenIdConnectConstants.Properties.Scopes, OpenIdConnectConstants.Scopes.OpenId);
+            if (request.HasScope(OpenIdConnectConstants.Scopes.OpenId) && !ticket.HasScope()) {
+                ticket.SetScopes(OpenIdConnectConstants.Scopes.OpenId);
             }
 
-            // When a "resources" property cannot be found in the ticket, infer it from the "audiences" property.
-            if (!ticket.HasProperty(OpenIdConnectConstants.Properties.Resources)) {
-                ticket.SetProperty(OpenIdConnectConstants.Properties.Resources,
-                    ticket.GetProperty(OpenIdConnectConstants.Properties.Audiences));
+            // When a "resources" property cannot be found in the ticket,
+            // infer it from the "audiences" property.
+            if (ticket.HasAudience() && !ticket.HasResource()) {
+                ticket.SetResources(ticket.GetAudiences());
             }
 
             // Only return an authorization code if the request is an authorization request and has response_type=code.
@@ -320,30 +321,32 @@ namespace Owin.Security.OpenIdConnect.Server {
                 // by the resource owner as the "resources" parameter is always validated when receiving the token request.
                 if (request.IsTokenRequest() && request.IsRefreshTokenGrantType()) {
                     if (!string.IsNullOrEmpty(request.Resource)) {
+                        Options.Logger.LogDebug("The access token resources will be limited to the resources " +
+                                                "requested by the client application: {Resources}.", request.GetResources());
+
                         // Replace the resources initially granted by the resources listed by the client application in the token request.
                         // Note: request.GetResources() automatically removes duplicate entries, so additional filtering is not necessary.
-                        properties.SetProperty(OpenIdConnectConstants.Properties.Resources, string.Join(" ", request.GetResources()));
+                        properties.SetProperty(OpenIdConnectConstants.Properties.Resources, request.GetResources());
                     }
 
                     if (!string.IsNullOrEmpty(request.Scope)) {
+                        Options.Logger.LogDebug("The access token scopes will be limited to the scopes " +
+                                                "requested by the client application: {Scopes}.", request.GetScopes());
+
                         // Replace the scopes initially granted by the scopes listed by the client application in the token request.
                         // Note: request.GetScopes() automatically removes duplicate entries, so additional filtering is not necessary.
-                        properties.SetProperty(OpenIdConnectConstants.Properties.Scopes, string.Join(" ", request.GetScopes()));
+                        properties.SetProperty(OpenIdConnectConstants.Properties.Scopes, request.GetScopes());
                     }
                 }
 
-                var resources = properties.GetProperty(OpenIdConnectConstants.Properties.Resources);
-                if (request.IsAuthorizationCodeGrantType() || (!string.IsNullOrEmpty(resources) &&
-                                                               !string.IsNullOrEmpty(request.Resource) &&
-                                                               !string.Equals(request.Resource, resources, StringComparison.Ordinal))) {
-                    response.Resource = resources;
+                var resources = ticket.GetResources();
+                if (request.IsAuthorizationCodeGrantType() || !new HashSet<string>(resources).SetEquals(request.GetResources())) {
+                    response.Resource = string.Join(" ", resources);
                 }
 
-                var scopes = properties.GetProperty(OpenIdConnectConstants.Properties.Scopes);
-                if (request.IsAuthorizationCodeGrantType() || (!string.IsNullOrEmpty(scopes) &&
-                                                               !string.IsNullOrEmpty(request.Scope) &&
-                                                               !string.Equals(request.Scope, scopes, StringComparison.Ordinal))) {
-                    response.Scope = scopes;
+                var scopes = ticket.GetScopes();
+                if (request.IsAuthorizationCodeGrantType() || !new HashSet<string>(scopes).SetEquals(request.GetScopes())) {
+                    response.Scope = string.Join(" ", scopes);
                 }
 
                 response.TokenType = OpenIdConnectConstants.TokenTypes.Bearer;
@@ -392,7 +395,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             return await SendTokenResponseAsync(response, ticket);
         }
 
-        private Task<bool> HandleLogoutAsync(AuthenticationResponseRevoke context) {
+        private async Task<bool> HandleLogoutAsync(AuthenticationResponseRevoke context) {
             // Extract the OpenID Connect request from the OWIN/Katana context.
             // If it cannot be found or doesn't correspond to a logout request,
             // throw an InvalidOperationException.
@@ -413,10 +416,10 @@ namespace Owin.Security.OpenIdConnect.Server {
                 State = request.State
             };
 
-            return SendLogoutResponseAsync(response);
+            return await SendLogoutResponseAsync(response);
         }
 
-        private Task<bool> HandleChallengeAsync(AuthenticationResponseChallenge context) {
+        private async Task<bool> HandleChallengeAsync(AuthenticationResponseChallenge context) {
             // Extract the OpenID Connect request from the OWIN/Katana context.
             // If it cannot be found or doesn't correspond to an authorization
             // or a token request, throw an InvalidOperationException.
@@ -443,9 +446,9 @@ namespace Owin.Security.OpenIdConnect.Server {
             };
 
             // Remove the error/error_description/error_uri properties from the ticket.
-            ticket.SetProperty(OpenIdConnectConstants.Properties.Error, null)
-                  .SetProperty(OpenIdConnectConstants.Properties.ErrorDescription, null)
-                  .SetProperty(OpenIdConnectConstants.Properties.ErrorUri, null);
+            ticket.RemoveProperty(OpenIdConnectConstants.Properties.Error)
+                  .RemoveProperty(OpenIdConnectConstants.Properties.ErrorDescription)
+                  .RemoveProperty(OpenIdConnectConstants.Properties.ErrorUri);
 
             // If the request is an authorization request, attach the
             // redirect_uri and the state to the OpenID Connect response.
@@ -467,10 +470,10 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             if (request.IsAuthorizationRequest()) {
-                return SendAuthorizationResponseAsync(response, ticket);
+                return await SendAuthorizationResponseAsync(response, ticket);
             }
 
-            return SendTokenResponseAsync(response, ticket);
+            return await SendTokenResponseAsync(response, ticket);
         }
 
         private async Task<bool> SendNativePageAsync(OpenIdConnectResponse response) {
