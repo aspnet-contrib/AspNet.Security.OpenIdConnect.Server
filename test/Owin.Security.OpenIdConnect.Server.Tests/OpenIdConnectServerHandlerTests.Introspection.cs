@@ -10,7 +10,9 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Client;
 using AspNet.Security.OpenIdConnect.Primitives;
+using Microsoft.Owin.Infrastructure;
 using Microsoft.Owin.Security;
+using Moq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Owin.Security.OpenIdConnect.Extensions;
@@ -476,7 +478,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         [Fact]
         public async Task InvokeIntrospectionEndpointAsync_BasicClaimsAreCorrectlyReturned() {
             // Arrange
+            var clock = new Mock<ISystemClock>();
+            clock.SetupGet(mock => mock.UtcNow)
+                 .Returns(new DateTimeOffset(2016, 1, 1, 0, 0, 0, TimeSpan.Zero));
+
             var server = CreateAuthorizationServer(options => {
+                options.SystemClock = clock.Object;
+
                 options.Provider.OnDeserializeAccessToken = context => {
                     Assert.Equal("2YotnFZFEjr1zCsicMWpAA", context.AccessToken);
 

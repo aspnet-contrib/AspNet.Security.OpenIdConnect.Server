@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Authentication;
 using Microsoft.Net.Http.Headers;
+using Moq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -485,7 +486,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         [Fact]
         public async Task InvokeIntrospectionEndpointAsync_BasicClaimsAreCorrectlyReturned() {
             // Arrange
+            var clock = new Mock<ISystemClock>();
+            clock.SetupGet(mock => mock.UtcNow)
+                 .Returns(new DateTimeOffset(2016, 1, 1, 0, 0, 0, TimeSpan.Zero));
+
             var server = CreateAuthorizationServer(options => {
+                options.SystemClock = clock.Object;
+
                 options.Provider.OnDeserializeAccessToken = context => {
                     Assert.Equal("2YotnFZFEjr1zCsicMWpAA", context.AccessToken);
 
