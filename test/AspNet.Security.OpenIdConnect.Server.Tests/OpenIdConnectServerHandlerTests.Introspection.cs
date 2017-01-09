@@ -497,7 +497,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     Assert.Equal("2YotnFZFEjr1zCsicMWpAA", context.AccessToken);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),

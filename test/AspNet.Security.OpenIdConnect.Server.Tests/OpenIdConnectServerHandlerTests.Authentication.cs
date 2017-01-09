@@ -376,7 +376,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleAuthorizationRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     var ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
@@ -635,7 +635,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleAuthorizationRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(new ClaimsPrincipal(identity));
 
@@ -679,7 +679,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleAuthorizationRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(new ClaimsPrincipal(identity));
 
@@ -749,7 +749,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleAuthorizationRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(new ClaimsPrincipal(identity));
 

@@ -609,7 +609,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     Assert.Equal("8xLOxBtZp8", context.RefreshToken);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsIdentity(context.Options.AuthenticationType),
@@ -828,7 +828,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                 options.Provider.OnDeserializeAuthorizationCode = context => {
                     Assert.Equal("SplxlOBeZQQYbYS6WxSbIA", context.AuthorizationCode);
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
                     context.Ticket.SetProperty(OpenIdConnectConstants.Properties.CodeChallenge, challenge);
@@ -1124,7 +1124,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleTokenRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(identity);
 
@@ -1167,7 +1167,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleTokenRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(identity);
 

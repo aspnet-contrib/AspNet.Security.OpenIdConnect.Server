@@ -225,9 +225,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 throw new InvalidOperationException("An OpenID Connect response has already been sent.");
             }
 
-            if (!ticket.Principal.HasClaim(claim => claim.Type == ClaimTypes.NameIdentifier)) {
-                throw new InvalidOperationException("The authentication ticket was rejected because it didn't " +
-                                                    "contain the mandatory ClaimTypes.NameIdentifier claim.");
+            if (string.IsNullOrEmpty(ticket.Principal.GetClaim(OpenIdConnectConstants.Claims.Subject)) &&
+                string.IsNullOrEmpty(ticket.Principal.GetClaim(ClaimTypes.NameIdentifier)) &&
+                string.IsNullOrEmpty(ticket.Principal.GetClaim(ClaimTypes.Upn))) {
+                throw new InvalidOperationException("The authentication ticket was rejected because " +
+                                                    "it doesn't contain the mandatory subject claim.");
             }
 
             // Prepare a new OpenID Connect response.

@@ -276,6 +276,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             var notification = new HandleIntrospectionRequestContext(Context, Options, request, ticket);
             notification.Active = true;
+            notification.Issuer = Context.GetIssuer(Options);
 
             // Use the unique ticket identifier to populate the "jti" claim.
             notification.TokenId = ticket.GetTicketId();
@@ -287,8 +288,10 @@ namespace Owin.Security.OpenIdConnect.Server {
                 notification.TokenType = OpenIdConnectConstants.TokenTypes.Bearer;
             }
 
-            notification.Issuer = Context.GetIssuer(Options);
-            notification.Subject = ticket.Identity.GetClaim(ClaimTypes.NameIdentifier);
+            // Try to resolve the subject using one of the well-known sub/name identifier/upn claims.
+            notification.Subject = ticket.Identity.GetClaim(OpenIdConnectConstants.Claims.Subject) ??
+                                   ticket.Identity.GetClaim(ClaimTypes.NameIdentifier) ??
+                                   ticket.Identity.GetClaim(ClaimTypes.Upn);
 
             notification.IssuedAt = ticket.Properties.IssuedUtc;
             notification.NotBefore = ticket.Properties.IssuedUtc;

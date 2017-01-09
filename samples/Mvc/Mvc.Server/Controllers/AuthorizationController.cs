@@ -103,16 +103,6 @@ namespace Mvc.Server.Controllers {
                 });
             }
 
-            // Create a new ClaimsIdentity containing the claims associated with the application.
-            // Note: setting identity.Actor is not mandatory but can be useful to access
-            // the whole delegation chain from the resource server (see ResourceController.cs).
-            identity.Actor = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
-            identity.Actor.AddClaim(ClaimTypes.NameIdentifier, application.ApplicationID);
-
-            identity.Actor.AddClaim(ClaimTypes.Name, application.DisplayName,
-                OpenIdConnectConstants.Destinations.AccessToken,
-                OpenIdConnectConstants.Destinations.IdentityToken);
-
             // Create a new authentication ticket holding the user identity.
             var ticket = new AuthenticationTicket(
                 new ClaimsPrincipal(identity),

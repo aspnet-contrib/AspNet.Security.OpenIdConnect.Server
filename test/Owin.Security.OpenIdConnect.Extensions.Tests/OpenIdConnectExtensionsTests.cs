@@ -28,7 +28,7 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         [InlineData("access_token ACCESS_TOKEN id_token", new[] { "access_token", "id_token" })]
         public void GetDestinations_ReturnsExpectedDestinations(string destination, string[] destinations) {
             // Arrange
-            var claim = new Claim(ClaimTypes.Name, "Bob le Bricoleur");
+            var claim = new Claim(OpenIdConnectConstants.Claims.Name, "Bob le Bricoleur");
             claim.Properties[OpenIdConnectConstants.Properties.Destinations] = destination;
 
             // Act and assert
@@ -40,7 +40,7 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         [InlineData(new object[] { new string[0] })]
         public void SetDestinations_RemovesPropertyForEmptyArray(string[] destinations) {
             // Arrange
-            var claim = new Claim(ClaimTypes.Name, "Bob le Bricoleur");
+            var claim = new Claim(OpenIdConnectConstants.Claims.Name, "Bob le Bricoleur");
 
             // Act
             claim.SetDestinations(destinations);
@@ -55,7 +55,7 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         [InlineData(" destination ")]
         public void SetDestinations_ThrowsForInvalidDestinations(string destination) {
             // Arrange
-            var claim = new Claim(ClaimTypes.Name, "Bob le Bricoleur");
+            var claim = new Claim(OpenIdConnectConstants.Claims.Name, "Bob le Bricoleur");
 
             // Act and assert
             var exception = Assert.Throws<ArgumentException>(() => claim.SetDestinations(destination));
@@ -71,7 +71,7 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         [InlineData(new[] { "access_token", "ACCESS_TOKEN", "id_token" }, "access_token id_token")]
         public void SetDestinations_SetsAppropriateDestinations(string[] destinations, string destination) {
             // Arrange
-            var claim = new Claim(ClaimTypes.Name, "Bob le Bricoleur");
+            var claim = new Claim(OpenIdConnectConstants.Claims.Name, "Bob le Bricoleur");
 
             // Act
             claim.SetDestinations(destinations);
@@ -84,10 +84,10 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         public void Clone_ReturnsDifferentInstance() {
             // Arrange
             var identity = new ClaimsIdentity();
-            identity.AddClaim(new Claim(ClaimTypes.Name, "Bob le Bricoleur"));
+            identity.AddClaim(new Claim(OpenIdConnectConstants.Claims.Name, "Bob le Bricoleur"));
 
             // Act
-            var clone = identity.Clone(claim => claim.Type == ClaimTypes.Name);
+            var clone = identity.Clone(claim => claim.Type == OpenIdConnectConstants.Claims.Name);
             clone.AddClaim(new Claim("clone_claim", "value"));
 
             // Assert
@@ -99,16 +99,16 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         public void Clone_ExcludesUnwantedClaims() {
             // Arrange
             var identity = new ClaimsIdentity();
-            identity.AddClaim(new Claim(ClaimTypes.Name, "Bob le Bricoleur"));
-            identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, "D8F1A010-BD46-4F8F-AD4E-05582307F8F4"));
+            identity.AddClaim(new Claim(OpenIdConnectConstants.Claims.Name, "Bob le Bricoleur"));
+            identity.AddClaim(new Claim(OpenIdConnectConstants.Claims.Subject, "D8F1A010-BD46-4F8F-AD4E-05582307F8F4"));
 
             // Act
-            var clone = identity.Clone(claim => claim.Type == ClaimTypes.Name);
+            var clone = identity.Clone(claim => claim.Type == OpenIdConnectConstants.Claims.Name);
 
             // Assert
             Assert.Equal(1, clone.Claims.Count());
-            Assert.Null(clone.FindFirst(ClaimTypes.NameIdentifier));
-            Assert.Equal("Bob le Bricoleur", clone.FindFirst(ClaimTypes.Name).Value);
+            Assert.Null(clone.FindFirst(OpenIdConnectConstants.Claims.Subject));
+            Assert.Equal("Bob le Bricoleur", clone.FindFirst(OpenIdConnectConstants.Claims.Name).Value);
         }
 
         [Fact]
@@ -116,34 +116,34 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
             // Arrange
             var identity = new ClaimsIdentity();
             identity.Actor = new ClaimsIdentity();
-            identity.Actor.AddClaim(new Claim(ClaimTypes.Name, "Bob le Bricoleur"));
-            identity.Actor.AddClaim(new Claim(ClaimTypes.NameIdentifier, "D8F1A010-BD46-4F8F-AD4E-05582307F8F4"));
+            identity.Actor.AddClaim(new Claim(OpenIdConnectConstants.Claims.Name, "Bob le Bricoleur"));
+            identity.Actor.AddClaim(new Claim(OpenIdConnectConstants.Claims.Subject, "D8F1A010-BD46-4F8F-AD4E-05582307F8F4"));
 
             // Act
-            var clone = identity.Clone(claim => claim.Type == ClaimTypes.Name);
+            var clone = identity.Clone(claim => claim.Type == OpenIdConnectConstants.Claims.Name);
 
             // Assert
             Assert.Equal(1, clone.Actor.Claims.Count());
-            Assert.Null(clone.Actor.FindFirst(ClaimTypes.NameIdentifier));
-            Assert.Equal("Bob le Bricoleur", clone.Actor.FindFirst(ClaimTypes.Name).Value);
+            Assert.Null(clone.Actor.FindFirst(OpenIdConnectConstants.Claims.Subject));
+            Assert.Equal("Bob le Bricoleur", clone.Actor.FindFirst(OpenIdConnectConstants.Claims.Name).Value);
         }
 
         [Fact]
         public void Clone_ExcludesUnwantedClaimsFromIdentities() {
             // Arrange
             var identity = new ClaimsIdentity();
-            identity.AddClaim(new Claim(ClaimTypes.Name, "Bob le Bricoleur"));
-            identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, "D8F1A010-BD46-4F8F-AD4E-05582307F8F4"));
+            identity.AddClaim(new Claim(OpenIdConnectConstants.Claims.Name, "Bob le Bricoleur"));
+            identity.AddClaim(new Claim(OpenIdConnectConstants.Claims.Subject, "D8F1A010-BD46-4F8F-AD4E-05582307F8F4"));
 
             var principal = new ClaimsPrincipal(identity);
 
             // Act
-            var clone = principal.Clone(claim => claim.Type == ClaimTypes.Name);
+            var clone = principal.Clone(claim => claim.Type == OpenIdConnectConstants.Claims.Name);
 
             // Assert
             Assert.Equal(1, clone.Claims.Count());
-            Assert.Null(clone.FindFirst(ClaimTypes.NameIdentifier));
-            Assert.Equal("Bob le Bricoleur", clone.FindFirst(ClaimTypes.Name).Value);
+            Assert.Null(clone.FindFirst(OpenIdConnectConstants.Claims.Subject));
+            Assert.Equal("Bob le Bricoleur", clone.FindFirst(OpenIdConnectConstants.Claims.Name).Value);
         }
 
         [Fact]
@@ -152,10 +152,10 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
             var identity = new ClaimsIdentity();
 
             // Act
-            identity.AddClaim(ClaimTypes.Name, "Bob le Bricoleur");
+            identity.AddClaim(OpenIdConnectConstants.Claims.Name, "Bob le Bricoleur");
 
             // Assert
-            Assert.Equal("Bob le Bricoleur", identity.FindFirst(ClaimTypes.Name).Value);
+            Assert.Equal("Bob le Bricoleur", identity.FindFirst(OpenIdConnectConstants.Claims.Name).Value);
         }
 
         [Theory]
@@ -168,9 +168,9 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
             var identity = new ClaimsIdentity();
 
             // Act
-            identity.AddClaim(ClaimTypes.Name, "Bob le Bricoleur", destinations);
+            identity.AddClaim(OpenIdConnectConstants.Claims.Name, "Bob le Bricoleur", destinations);
 
-            var claim = identity.FindFirst(ClaimTypes.Name);
+            var claim = identity.FindFirst(OpenIdConnectConstants.Claims.Name);
 
             // Assert
             Assert.Equal("Bob le Bricoleur", claim.Value);
@@ -184,8 +184,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
             var principal = new ClaimsPrincipal();
 
             // Act and assert
-            Assert.Null(identity.GetClaim(ClaimTypes.Name));
-            Assert.Null(principal.GetClaim(ClaimTypes.Name));
+            Assert.Null(identity.GetClaim(OpenIdConnectConstants.Claims.Name));
+            Assert.Null(principal.GetClaim(OpenIdConnectConstants.Claims.Name));
         }
 
         [Fact]
@@ -194,11 +194,11 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
             var identity = new ClaimsIdentity();
             var principal = new ClaimsPrincipal(identity);
 
-            identity.AddClaim(ClaimTypes.Name, "Bob le Bricoleur");
+            identity.AddClaim(OpenIdConnectConstants.Claims.Name, "Bob le Bricoleur");
 
             // Act and assert
-            Assert.Equal("Bob le Bricoleur", identity.GetClaim(ClaimTypes.Name));
-            Assert.Equal("Bob le Bricoleur", principal.GetClaim(ClaimTypes.Name));
+            Assert.Equal("Bob le Bricoleur", identity.GetClaim(OpenIdConnectConstants.Claims.Name));
+            Assert.Equal("Bob le Bricoleur", principal.GetClaim(OpenIdConnectConstants.Claims.Name));
         }
 
         [Fact]
@@ -218,7 +218,7 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         public void Copy_ReturnsIdenticalTicket() {
             // Arrange
             var identity = new ClaimsIdentity();
-            identity.AddClaim(new Claim(ClaimTypes.Name, "Bob le Bricoleur"));
+            identity.AddClaim(new Claim(OpenIdConnectConstants.Claims.Name, "Bob le Bricoleur"));
 
             var ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
             ticket.SetProperty("property", "value");
@@ -227,7 +227,7 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
             var copy = ticket.Copy();
 
             // Assert
-            Assert.Equal("Bob le Bricoleur", copy.Identity.FindFirst(ClaimTypes.Name).Value);
+            Assert.Equal("Bob le Bricoleur", copy.Identity.FindFirst(OpenIdConnectConstants.Claims.Name).Value);
             Assert.Equal(ticket.Properties.Dictionary, copy.Properties.Dictionary);
         }
 
@@ -250,7 +250,7 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         public void Copy_ReturnsDifferentTicketInstance() {
             // Arrange
             var identity = new ClaimsIdentity();
-            identity.AddClaim(new Claim(ClaimTypes.Name, "Bob le Bricoleur"));
+            identity.AddClaim(new Claim(OpenIdConnectConstants.Claims.Name, "Bob le Bricoleur"));
 
             var ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
             ticket.SetProperty("property", "value");

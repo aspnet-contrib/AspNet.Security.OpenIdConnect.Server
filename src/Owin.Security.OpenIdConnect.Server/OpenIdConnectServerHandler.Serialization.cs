@@ -71,8 +71,10 @@ namespace Owin.Security.OpenIdConnect.Server {
             // Create a new identity containing only the filtered claims.
             // Actors identities are also filtered (delegation scenarios).
             identity = identity.Clone(claim => {
-                // Never exclude ClaimTypes.NameIdentifier.
-                if (string.Equals(claim.Type, ClaimTypes.NameIdentifier, StringComparison.OrdinalIgnoreCase)) {
+                // Never exclude the subject claims.
+                if (string.Equals(claim.Type, OpenIdConnectConstants.Claims.Subject, StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(claim.Type, ClaimTypes.NameIdentifier, StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(claim.Type, ClaimTypes.Upn, StringComparison.OrdinalIgnoreCase)) {
                     return true;
                 }
 
@@ -149,11 +151,13 @@ namespace Owin.Security.OpenIdConnect.Server {
             // Note: when used as an access token, a JWT token doesn't have to expose a "sub" claim
             // but the name identifier claim is used as a substitute when it has been explicitly added.
             // See https://tools.ietf.org/html/rfc7519#section-4.1.2
-            var subject = ticket.Identity.FindFirst(OpenIdConnectConstants.Claims.Subject);
-            if (subject == null) {
-                var identifier = ticket.Identity.FindFirst(ClaimTypes.NameIdentifier);
-                if (identifier != null) {
-                    ticket.Identity.AddClaim(OpenIdConnectConstants.Claims.Subject, identifier.Value);
+            var subject = identity.GetClaim(OpenIdConnectConstants.Claims.Subject);
+            if (string.IsNullOrEmpty(subject)) {
+                subject = identity.GetClaim(ClaimTypes.NameIdentifier) ??
+                          identity.GetClaim(ClaimTypes.Upn);
+
+                if (!string.IsNullOrEmpty(subject)) {
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, subject);
                 }
             }
 
@@ -217,8 +221,10 @@ namespace Owin.Security.OpenIdConnect.Server {
             // Replace the identity by a new one containing only the filtered claims.
             // Actors identities are also filtered (delegation scenarios).
             identity = identity.Clone(claim => {
-                // Never exclude ClaimTypes.NameIdentifier.
-                if (string.Equals(claim.Type, ClaimTypes.NameIdentifier, StringComparison.OrdinalIgnoreCase)) {
+                // Never exclude the subject claims.
+                if (string.Equals(claim.Type, OpenIdConnectConstants.Claims.Subject, StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(claim.Type, ClaimTypes.NameIdentifier, StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(claim.Type, ClaimTypes.Upn, StringComparison.OrdinalIgnoreCase)) {
                     return true;
                 }
 
@@ -265,19 +271,27 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return null;
             }
 
-            if (!identity.HasClaim(claim => claim.Type == OpenIdConnectConstants.Claims.Subject) &&
-                !identity.HasClaim(claim => claim.Type == ClaimTypes.NameIdentifier)) {
-                throw new InvalidOperationException("A unique identifier cannot be found to generate a 'sub' claim: " +
-                                                    "make sure to add a 'ClaimTypes.NameIdentifier' claim.");
+            if (string.IsNullOrEmpty(identity.GetClaim(OpenIdConnectConstants.Claims.Subject)) &&
+                string.IsNullOrEmpty(identity.GetClaim(ClaimTypes.NameIdentifier)) &&
+                string.IsNullOrEmpty(identity.GetClaim(ClaimTypes.Upn))) {
+                throw new InvalidOperationException("The authentication ticket was rejected because " +
+                                                    "it doesn't contain the mandatory subject claim.");
             }
 
             if (notification.SigningCredentials == null) {
                 throw new InvalidOperationException("A signing key must be provided.");
             }
 
-            // Store the unique subject identifier as a claim.
-            if (!identity.HasClaim(claim => claim.Type == OpenIdConnectConstants.Claims.Subject)) {
-                identity.AddClaim(OpenIdConnectConstants.Claims.Subject, identity.GetClaim(ClaimTypes.NameIdentifier));
+            // Note: if the "sub" claim was not explicitly added, try to use
+            // one of the other well-known name identifier/upn claims.
+            var subject = identity.GetClaim(OpenIdConnectConstants.Claims.Subject);
+            if (string.IsNullOrEmpty(subject)) {
+                subject = identity.GetClaim(ClaimTypes.NameIdentifier) ??
+                          identity.GetClaim(ClaimTypes.Upn);
+
+                if (!string.IsNullOrEmpty(subject)) {
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, subject);
+                }
             }
 
             // Remove the ClaimTypes.NameIdentifier claims to avoid getting duplicate claims.

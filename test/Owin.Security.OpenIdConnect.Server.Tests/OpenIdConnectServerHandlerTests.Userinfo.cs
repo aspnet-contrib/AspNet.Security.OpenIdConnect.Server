@@ -263,7 +263,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     Assert.Equal("SlAV32hkKG", context.AccessToken);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
                     context.Ticket.SetPresenters("Fabrikam");
@@ -294,12 +294,12 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     Assert.Equal("SlAV32hkKG", context.AccessToken);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
-                    identity.AddClaim(ClaimTypes.GivenName, "Bob");
-                    identity.AddClaim(ClaimTypes.Surname, "Saint-Clar");
-                    identity.AddClaim(ClaimTypes.DateOfBirth, "04/09/1933");
-                    identity.AddClaim(ClaimTypes.Email, "bob@le-magnifique.com");
-                    identity.AddClaim(ClaimTypes.HomePhone, "0148962355");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.GivenName, "Bob");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.FamilyName, "Saint-Clar");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Birthdate, "04/09/1933");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Email, "bob@le-magnifique.com");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.PhoneNumber, "0148962355");
 
                     context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
                     context.Ticket.SetPresenters("Fabrikam");
@@ -330,10 +330,10 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     Assert.Equal("SlAV32hkKG", context.AccessToken);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
-                    identity.AddClaim(ClaimTypes.GivenName, "Bob");
-                    identity.AddClaim(ClaimTypes.Surname, "Saint-Clar");
-                    identity.AddClaim(ClaimTypes.DateOfBirth, "04/09/1933");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.GivenName, "Bob");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.FamilyName, "Saint-Clar");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Birthdate, "04/09/1933");
 
                     context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
                     context.Ticket.SetPresenters("Fabrikam");
@@ -364,8 +364,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     Assert.Equal("SlAV32hkKG", context.AccessToken);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
-                    identity.AddClaim(ClaimTypes.Email, "bob@le-magnifique.com");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Email, "bob@le-magnifique.com");
 
                     context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
                     context.Ticket.SetPresenters("Fabrikam");
@@ -394,8 +394,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     Assert.Equal("SlAV32hkKG", context.AccessToken);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
-                    identity.AddClaim(ClaimTypes.HomePhone, "0148962355");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.PhoneNumber, "0148962355");
 
                     context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
                     context.Ticket.SetPresenters("Fabrikam");

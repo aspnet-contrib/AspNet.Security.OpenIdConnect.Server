@@ -320,7 +320,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     Assert.Equal("id_token", context.IdentityToken);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
@@ -338,7 +338,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
 
                     // Assert
                     Assert.NotNull(principal);
-                    Assert.Equal("Bob le Magnifique", principal.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+                    Assert.Equal("Bob le Magnifique", principal.FindFirst(OpenIdConnectConstants.Claims.Subject)?.Value);
                 };
             });
 
@@ -424,7 +424,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     Assert.Equal("authorization_code", context.AuthorizationCode);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
@@ -450,7 +450,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
 
                     // Assert
                     Assert.NotNull(principal);
-                    Assert.Equal("Bob le Magnifique", principal.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+                    Assert.Equal("Bob le Magnifique", principal.FindFirst(OpenIdConnectConstants.Claims.Subject)?.Value);
 
                     context.SkipToNextMiddleware();
                 };
@@ -538,7 +538,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     Assert.Equal("refresh_token", context.RefreshToken);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
@@ -564,7 +564,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
 
                     // Assert
                     Assert.NotNull(principal);
-                    Assert.Equal("Bob le Magnifique", principal.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+                    Assert.Equal("Bob le Magnifique", principal.FindFirst(OpenIdConnectConstants.Claims.Subject)?.Value);
 
                     context.SkipToNextMiddleware();
                 };
@@ -632,7 +632,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleAuthorizationRequest = async context => {
                     var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Bricoleur");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Bricoleur");
 
                     var principal = new ClaimsPrincipal(identity);
 
@@ -690,8 +690,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                 });
             });
 
-            Assert.Equal("The authentication ticket was rejected because it didn't " +
-                         "contain the mandatory ClaimTypes.NameIdentifier claim.", exception.Message);
+            Assert.Equal("The authentication ticket was rejected because " +
+                         "it doesn't contain the mandatory subject claim.", exception.Message);
         }
 
         [Fact]
@@ -706,7 +706,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleAuthorizationRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     var principal = new ClaimsPrincipal(identity);
 
@@ -759,7 +759,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleAuthorizationRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(new ClaimsPrincipal(identity));
 
@@ -803,7 +803,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleTokenRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     var ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
@@ -853,7 +853,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleTokenRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(new ClaimsPrincipal(identity));
 
@@ -899,7 +899,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleTokenRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     var ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
@@ -945,7 +945,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleAuthorizationRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(new ClaimsPrincipal(identity));
 
@@ -976,7 +976,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     Assert.Equal("8xLOxBtZp8", context.RefreshToken);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
@@ -1024,7 +1024,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     Assert.Equal("8xLOxBtZp8", context.RefreshToken);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
@@ -1079,7 +1079,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleTokenRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     var ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
@@ -1120,7 +1120,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleTokenRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     var ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
@@ -1165,7 +1165,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleAuthorizationRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(new ClaimsPrincipal(identity));
 
@@ -1196,7 +1196,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     Assert.Equal("SplxlOBeZQQYbYS6WxSbIA", context.AuthorizationCode);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
@@ -1236,7 +1236,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     Assert.Equal("8xLOxBtZp8", context.RefreshToken);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
@@ -1277,7 +1277,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleTokenRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(new ClaimsPrincipal(identity));
 
@@ -1310,7 +1310,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleTokenRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Fabrikam");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Fabrikam");
 
                     context.Validate(new ClaimsPrincipal(identity));
 
@@ -1343,7 +1343,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleTokenRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(new ClaimsPrincipal(identity));
 
@@ -1374,7 +1374,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleTokenRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(new ClaimsPrincipal(identity));
 
@@ -1407,7 +1407,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleTokenRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(new ClaimsPrincipal(identity));
 
@@ -1436,7 +1436,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     Assert.Equal("SplxlOBeZQQYbYS6WxSbIA", context.AuthorizationCode);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
@@ -1477,7 +1477,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     Assert.Equal("8xLOxBtZp8", context.RefreshToken);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
@@ -1518,7 +1518,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     Assert.Equal("8xLOxBtZp8", context.RefreshToken);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
@@ -1561,7 +1561,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleTokenRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     var ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
@@ -1601,7 +1601,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleTokenRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Fabrikam");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Fabrikam");
 
                     var ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
@@ -1641,7 +1641,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleTokenRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     var ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
@@ -1679,7 +1679,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleTokenRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(new ClaimsPrincipal(identity));
 
@@ -1716,7 +1716,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleAuthorizationRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(new ClaimsPrincipal(identity));
 
@@ -1747,7 +1747,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     Assert.Equal("SplxlOBeZQQYbYS6WxSbIA", context.AuthorizationCode);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
@@ -1788,7 +1788,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     Assert.Equal("8xLOxBtZp8", context.RefreshToken);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
@@ -1831,7 +1831,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleTokenRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(new ClaimsPrincipal(identity));
 
@@ -1865,7 +1865,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleTokenRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Fabrikam");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Fabrikam");
 
                     context.Validate(new ClaimsPrincipal(identity));
 
@@ -1899,7 +1899,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleTokenRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(new ClaimsPrincipal(identity));
 
@@ -2131,7 +2131,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                 app.Use(next => context => {
                     if (context.Request.Path == "/invalid-signin") {
                         var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
-                        identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Bricoleur");
+                        identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Bricoleur");
 
                         var principal = new ClaimsPrincipal(identity);
 

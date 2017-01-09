@@ -185,9 +185,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             var notification = new HandleUserinfoRequestContext(Context, Options, request, ticket);
-
-            notification.Subject = ticket.Principal.GetClaim(ClaimTypes.NameIdentifier);
             notification.Issuer = Context.GetIssuer(Options);
+
+            // Try to resolve the subject using one of the well-known sub/name identifier/upn claims.
+            notification.Subject = ticket.Principal.GetClaim(OpenIdConnectConstants.Claims.Subject) ??
+                                   ticket.Principal.GetClaim(ClaimTypes.NameIdentifier) ??
+                                   ticket.Principal.GetClaim(ClaimTypes.Upn);
 
             // Note: when receiving an access token, its audiences list cannot be used for the "aud" claim
             // as the client application is not the intented audience but only an authorized presenter.
@@ -199,20 +202,27 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // The following claims are all optional and should be excluded when
             // no corresponding value has been found in the authentication ticket.
             if (ticket.HasScope(OpenIdConnectConstants.Scopes.Profile)) {
-                notification.FamilyName = ticket.Principal.GetClaim(ClaimTypes.Surname);
-                notification.GivenName = ticket.Principal.GetClaim(ClaimTypes.GivenName);
-                notification.BirthDate = ticket.Principal.GetClaim(ClaimTypes.DateOfBirth);
+                notification.FamilyName = ticket.Principal.GetClaim(OpenIdConnectConstants.Claims.FamilyName) ??
+                                          ticket.Principal.GetClaim(ClaimTypes.Surname);
+
+                notification.GivenName = ticket.Principal.GetClaim(OpenIdConnectConstants.Claims.GivenName) ??
+                                         ticket.Principal.GetClaim(ClaimTypes.GivenName);
+
+                notification.BirthDate = ticket.Principal.GetClaim(OpenIdConnectConstants.Claims.Birthdate) ??
+                                         ticket.Principal.GetClaim(ClaimTypes.DateOfBirth);
             }
 
             if (ticket.HasScope(OpenIdConnectConstants.Scopes.Email)) {
-                notification.Email = ticket.Principal.GetClaim(ClaimTypes.Email);
-            };
+                notification.Email = ticket.Principal.GetClaim(OpenIdConnectConstants.Claims.Email) ??
+                                     ticket.Principal.GetClaim(ClaimTypes.Email);
+            }
 
             if (ticket.HasScope(OpenIdConnectConstants.Scopes.Phone)) {
-                notification.PhoneNumber = ticket.Principal.GetClaim(ClaimTypes.HomePhone) ??
+                notification.PhoneNumber = ticket.Principal.GetClaim(OpenIdConnectConstants.Claims.PhoneNumber) ??
+                                           ticket.Principal.GetClaim(ClaimTypes.HomePhone) ??
                                            ticket.Principal.GetClaim(ClaimTypes.MobilePhone) ??
                                            ticket.Principal.GetClaim(ClaimTypes.OtherPhone);
-            };
+            }
 
             await Options.Provider.HandleUserinfoRequest(notification);
 

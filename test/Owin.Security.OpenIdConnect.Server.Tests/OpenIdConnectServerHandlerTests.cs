@@ -315,7 +315,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     Assert.Equal("id_token", context.IdentityToken);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
 
@@ -330,7 +330,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
                     // Assert
                     Assert.NotNull(result.Identity);
-                    Assert.Equal("Bob le Magnifique", result.Identity.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+                    Assert.Equal("Bob le Magnifique", result.Identity.FindFirst(OpenIdConnectConstants.Claims.Subject)?.Value);
                 };
             });
 
@@ -416,7 +416,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     Assert.Equal("authorization_code", context.AuthorizationCode);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
                     context.Ticket.SetPresenters("Fabrikam");
@@ -438,7 +438,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
                     // Assert
                     Assert.NotNull(result);
-                    Assert.Equal("Bob le Magnifique", result.Identity.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+                    Assert.Equal("Bob le Magnifique", result.Identity.FindFirst(OpenIdConnectConstants.Claims.Subject)?.Value);
 
                     context.SkipToNextMiddleware();
                 };
@@ -526,7 +526,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     Assert.Equal("refresh_token", context.RefreshToken);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
 
@@ -547,7 +547,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
                     // Assert
                     Assert.NotNull(result);
-                    Assert.Equal("Bob le Magnifique", result.Identity.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+                    Assert.Equal("Bob le Magnifique", result.Identity.FindFirst(OpenIdConnectConstants.Claims.Subject)?.Value);
 
                     context.SkipToNextMiddleware();
                 };
@@ -615,7 +615,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleAuthorizationRequest = context => {
                     var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Bricoleur");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Bricoleur");
 
                     context.OwinContext.Authentication.SignIn(identity);
 
@@ -671,8 +671,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                 });
             });
 
-            Assert.Equal("The authentication ticket was rejected because it didn't " +
-                         "contain the mandatory ClaimTypes.NameIdentifier claim.", exception.Message);
+            Assert.Equal("The authentication ticket was rejected because " +
+                         "it doesn't contain the mandatory subject claim.", exception.Message);
         }
 
         [Fact]
@@ -687,7 +687,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleAuthorizationRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.OwinContext.Authentication.SignIn(identity);
                     context.HandleResponse();
@@ -738,7 +738,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleAuthorizationRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(identity);
 
@@ -782,7 +782,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleTokenRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     var ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
                     ticket.SetScopes(OpenIdConnectConstants.Scopes.OfflineAccess);
@@ -828,7 +828,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleTokenRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(identity);
 
@@ -874,7 +874,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleTokenRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     var ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
                     ticket.SetAudiences("http://www.fabrikam.com/");
@@ -916,7 +916,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleAuthorizationRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(identity);
 
@@ -947,7 +947,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     Assert.Equal("8xLOxBtZp8", context.RefreshToken);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
                     context.Ticket.SetResources("http://www.fabrikam.com/", "http://www.contoso.com/");
@@ -991,7 +991,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     Assert.Equal("8xLOxBtZp8", context.RefreshToken);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
 
@@ -1043,7 +1043,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleTokenRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     var ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
                     ticket.SetResources("http://www.fabrikam.com/");
@@ -1080,7 +1080,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleTokenRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     var ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
                     ticket.SetScopes(OpenIdConnectConstants.Scopes.Profile);
@@ -1121,7 +1121,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleAuthorizationRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(identity);
 
@@ -1152,7 +1152,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     Assert.Equal("SplxlOBeZQQYbYS6WxSbIA", context.AuthorizationCode);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
                     context.Ticket.SetPresenters("Fabrikam");
@@ -1188,7 +1188,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     Assert.Equal("8xLOxBtZp8", context.RefreshToken);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
 
@@ -1226,7 +1226,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleTokenRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(identity);
 
@@ -1259,7 +1259,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleTokenRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Fabrikam");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Fabrikam");
 
                     context.Validate(identity);
 
@@ -1292,7 +1292,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleTokenRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(identity);
 
@@ -1323,7 +1323,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleTokenRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(identity);
 
@@ -1356,7 +1356,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleTokenRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(identity);
 
@@ -1385,7 +1385,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     Assert.Equal("SplxlOBeZQQYbYS6WxSbIA", context.AuthorizationCode);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
                     context.Ticket.SetPresenters("Fabrikam");
@@ -1422,7 +1422,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     Assert.Equal("8xLOxBtZp8", context.RefreshToken);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
                     context.Ticket.SetScopes(OpenIdConnectConstants.Scopes.OfflineAccess);
@@ -1459,7 +1459,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     Assert.Equal("8xLOxBtZp8", context.RefreshToken);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
                     context.Ticket.SetScopes(OpenIdConnectConstants.Scopes.OfflineAccess);
@@ -1498,7 +1498,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleTokenRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     var ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
                     ticket.SetScopes(OpenIdConnectConstants.Scopes.OfflineAccess);
@@ -1534,7 +1534,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleTokenRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Fabrikam");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Fabrikam");
 
                     var ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
                     ticket.SetScopes(OpenIdConnectConstants.Scopes.OfflineAccess);
@@ -1570,7 +1570,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleTokenRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     var ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
                     ticket.SetScopes(OpenIdConnectConstants.Scopes.OfflineAccess);
@@ -1604,7 +1604,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleTokenRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(identity);
 
@@ -1641,7 +1641,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleAuthorizationRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(identity);
 
@@ -1672,7 +1672,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     Assert.Equal("SplxlOBeZQQYbYS6WxSbIA", context.AuthorizationCode);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
                     context.Ticket.SetPresenters("Fabrikam");
@@ -1709,7 +1709,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     Assert.Equal("8xLOxBtZp8", context.RefreshToken);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
                     context.Ticket.SetScopes(OpenIdConnectConstants.Scopes.OpenId);
@@ -1748,7 +1748,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleTokenRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(identity);
 
@@ -1782,7 +1782,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleTokenRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Fabrikam");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Fabrikam");
 
                     context.Validate(identity);
 
@@ -1816,7 +1816,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
                 options.Provider.OnHandleTokenRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Magnifique");
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(identity);
 
@@ -1983,7 +1983,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                 app.Use((context, next) => {
                     if (context.Request.Path == new PathString("/invalid-signin")) {
                         var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationType);
-                        identity.AddClaim(ClaimTypes.NameIdentifier, "Bob le Bricoleur");
+                        identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Bricoleur");
 
                         context.Authentication.SignIn(identity);
 

@@ -252,9 +252,11 @@ namespace Owin.Security.OpenIdConnect.Server {
                 throw new InvalidOperationException("An OpenID Connect response has already been sent.");
             }
 
-            if (!ticket.Identity.HasClaim(claim => claim.Type == ClaimTypes.NameIdentifier)) {
-                throw new InvalidOperationException("The authentication ticket was rejected because it didn't " +
-                                                    "contain the mandatory ClaimTypes.NameIdentifier claim.");
+            if (string.IsNullOrEmpty(ticket.Identity.GetClaim(OpenIdConnectConstants.Claims.Subject)) &&
+                string.IsNullOrEmpty(ticket.Identity.GetClaim(ClaimTypes.NameIdentifier)) &&
+                string.IsNullOrEmpty(ticket.Identity.GetClaim(ClaimTypes.Upn))) {
+                throw new InvalidOperationException("The authentication ticket was rejected because " +
+                                                    "it doesn't contain the mandatory subject claim.");
             }
 
             // Prepare a new OpenID Connect response.
