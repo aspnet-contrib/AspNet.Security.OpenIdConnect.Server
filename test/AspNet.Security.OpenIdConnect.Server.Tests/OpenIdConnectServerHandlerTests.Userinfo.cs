@@ -16,7 +16,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Authentication;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Xunit;
 using static System.Net.Http.HttpMethod;
 
@@ -274,7 +273,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                         new AuthenticationProperties(),
                         context.Options.AuthenticationScheme);
 
-                    context.Ticket.SetPresenters("Fabrikam");
+                    context.Ticket.SetPresenters("Fabrikam", "Contoso");
 
                     return Task.FromResult(0);
                 };
@@ -290,8 +289,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             // Assert
             Assert.Equal(3, response.GetParameters().Count());
             Assert.Equal(server.BaseAddress.AbsoluteUri, (string) response[OpenIdConnectConstants.Claims.Issuer]);
-            Assert.Equal("Bob le Magnifique", (string) response[OpenIdConnectConstants.Claims.Subject]);
-            Assert.Contains("Fabrikam", (JArray) response[OpenIdConnectConstants.Claims.Audience]);
+            Assert.Equal("Bob le Magnifique", response[OpenIdConnectConstants.Claims.Subject]);
+            Assert.Equal(new[] { "Fabrikam", "Contoso" }, response[OpenIdConnectConstants.Claims.Audience].Values<string>());
         }
 
         [Fact]
@@ -330,8 +329,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             // Assert
             Assert.Equal(3, response.GetParameters().Count());
             Assert.Equal(server.BaseAddress.AbsoluteUri, (string) response[OpenIdConnectConstants.Claims.Issuer]);
-            Assert.Equal("Bob le Magnifique", (string) response[OpenIdConnectConstants.Claims.Subject]);
-            Assert.Contains("Fabrikam", (JArray) response[OpenIdConnectConstants.Claims.Audience]);
+            Assert.Equal("Bob le Magnifique", response[OpenIdConnectConstants.Claims.Subject]);
+            Assert.Equal("Fabrikam", (string) response[OpenIdConnectConstants.Claims.Audience]);
         }
 
         [Fact]

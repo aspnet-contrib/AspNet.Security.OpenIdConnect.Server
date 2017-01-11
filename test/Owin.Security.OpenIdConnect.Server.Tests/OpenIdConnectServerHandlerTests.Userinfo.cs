@@ -12,7 +12,6 @@ using AspNet.Security.OpenIdConnect.Client;
 using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.Owin.Security;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Owin.Security.OpenIdConnect.Extensions;
 using Xunit;
 using static System.Net.Http.HttpMethod;
@@ -266,7 +265,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
-                    context.Ticket.SetPresenters("Fabrikam");
+                    context.Ticket.SetPresenters("Fabrikam", "Contoso");
 
                     return Task.FromResult(0);
                 };
@@ -282,8 +281,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             // Assert
             Assert.Equal(3, response.GetParameters().Count());
             Assert.Equal(server.BaseAddress.AbsoluteUri, (string) response[OpenIdConnectConstants.Claims.Issuer]);
-            Assert.Equal("Bob le Magnifique", (string) response[OpenIdConnectConstants.Claims.Subject]);
-            Assert.Contains("Fabrikam", (JArray) response[OpenIdConnectConstants.Claims.Audience]);
+            Assert.Equal("Bob le Magnifique", response[OpenIdConnectConstants.Claims.Subject]);
+            Assert.Equal(new[] { "Fabrikam", "Contoso" }, response[OpenIdConnectConstants.Claims.Audience].Values<string>());
         }
 
         [Fact]
@@ -318,8 +317,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             // Assert
             Assert.Equal(3, response.GetParameters().Count());
             Assert.Equal(server.BaseAddress.AbsoluteUri, (string) response[OpenIdConnectConstants.Claims.Issuer]);
-            Assert.Equal("Bob le Magnifique", (string) response[OpenIdConnectConstants.Claims.Subject]);
-            Assert.Contains("Fabrikam", (JArray) response[OpenIdConnectConstants.Claims.Audience]);
+            Assert.Equal("Bob le Magnifique", response[OpenIdConnectConstants.Claims.Subject]);
+            Assert.Equal("Fabrikam", (string) response[OpenIdConnectConstants.Claims.Audience]);
         }
 
         [Fact]

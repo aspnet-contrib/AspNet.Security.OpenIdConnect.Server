@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Primitives;
@@ -185,11 +186,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     continue;
                 }
 
-                // If the algorithm is already listed, ignore it.
-                if (notification.SigningAlgorithms.Contains(algorithm)) {
-                    continue;
-                }
-
                 notification.SigningAlgorithms.Add(algorithm);
             }
 
@@ -215,7 +211,34 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 });
             }
 
-            return await SendConfigurationResponseAsync(new OpenIdConnectResponse(notification.Metadata));
+            var response = new OpenIdConnectResponse {
+                [OpenIdConnectConstants.Metadata.Issuer] = notification.Issuer,
+                [OpenIdConnectConstants.Metadata.AuthorizationEndpoint] = notification.AuthorizationEndpoint,
+                [OpenIdConnectConstants.Metadata.JwksUri] = notification.CryptographyEndpoint,
+                [OpenIdConnectConstants.Metadata.IntrospectionEndpoint] = notification.IntrospectionEndpoint,
+                [OpenIdConnectConstants.Metadata.EndSessionEndpoint] = notification.LogoutEndpoint,
+                [OpenIdConnectConstants.Metadata.RevocationEndpoint] = notification.RevocationEndpoint,
+                [OpenIdConnectConstants.Metadata.TokenEndpoint] = notification.TokenEndpoint,
+                [OpenIdConnectConstants.Metadata.UserinfoEndpoint] = notification.UserinfoEndpoint,
+                [OpenIdConnectConstants.Metadata.CodeChallengeMethodsSupported] = new JArray(notification.CodeChallengeMethods),
+                [OpenIdConnectConstants.Metadata.GrantTypesSupported] = new JArray(notification.GrantTypes),
+                [OpenIdConnectConstants.Metadata.ResponseModesSupported] = new JArray(notification.ResponseModes),
+                [OpenIdConnectConstants.Metadata.ResponseTypesSupported] = new JArray(notification.ResponseTypes),
+                [OpenIdConnectConstants.Metadata.SubjectTypesSupported] = new JArray(notification.SubjectTypes),
+                [OpenIdConnectConstants.Metadata.ScopesSupported] = new JArray(notification.Scopes),
+                [OpenIdConnectConstants.Metadata.IdTokenSigningAlgValuesSupported] = new JArray(notification.SigningAlgorithms)
+            };
+
+            foreach (var property in notification.Properties) {
+                // Ignore properties whose value is null.
+                if (property.Value == null) {
+                    continue;
+                }
+
+                response.SetParameter(property.Key, property.Value);
+            }
+
+            return await SendConfigurationResponseAsync(response);
         }
 
         private async Task<bool> InvokeCryptographyEndpointAsync() {
@@ -488,11 +511,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 }
 
                 if (key.KeyOps.Count != 0) {
-                    item.Add(JsonWebKeyParameterNames.KeyOps, JArray.FromObject(key.KeyOps));
+                    item.Add(JsonWebKeyParameterNames.KeyOps, new JArray(key.KeyOps));
                 }
 
                 if (key.X5c.Count != 0) {
-                    item.Add(JsonWebKeyParameterNames.X5c, JArray.FromObject(key.X5c));
+                    item.Add(JsonWebKeyParameterNames.X5c, new JArray(key.X5c));
                 }
 
                 keys.Add(item);

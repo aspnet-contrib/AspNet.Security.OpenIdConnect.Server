@@ -5,6 +5,7 @@
  */
 
 using System;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
@@ -13,6 +14,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
+using Newtonsoft.Json.Linq;
 
 namespace AspNet.Security.OpenIdConnect.Server {
     internal partial class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions> {
@@ -258,7 +260,44 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 });
             }
 
-            return await SendUserinfoResponseAsync(new OpenIdConnectResponse(notification.Claims));
+            var response = new OpenIdConnectResponse {
+                [OpenIdConnectConstants.Claims.Subject] = notification.Subject,
+                [OpenIdConnectConstants.Claims.Address] = notification.Address,
+                [OpenIdConnectConstants.Claims.Birthdate] = notification.BirthDate,
+                [OpenIdConnectConstants.Claims.Email] = notification.Email,
+                [OpenIdConnectConstants.Claims.EmailVerified] = notification.EmailVerified,
+                [OpenIdConnectConstants.Claims.FamilyName] = notification.FamilyName,
+                [OpenIdConnectConstants.Claims.GivenName] = notification.GivenName,
+                [OpenIdConnectConstants.Claims.Issuer] = notification.Issuer,
+                [OpenIdConnectConstants.Claims.PhoneNumber] = notification.PhoneNumber,
+                [OpenIdConnectConstants.Claims.PhoneNumberVerified] = notification.PhoneNumberVerified,
+                [OpenIdConnectConstants.Claims.PreferredUsername] = notification.PreferredUsername,
+                [OpenIdConnectConstants.Claims.Profile] = notification.Profile,
+                [OpenIdConnectConstants.Claims.Website] = notification.Website
+            };
+
+            switch (notification.Audiences.Count) {
+                case 0: break;
+
+                case 1:
+                    response[OpenIdConnectConstants.Claims.Audience] = notification.Audiences.ElementAt(0);
+                    break;
+
+                default:
+                    response[OpenIdConnectConstants.Claims.Audience] = new JArray(notification.Audiences);
+                    break;
+            }
+
+            foreach (var claim in notification.Claims) {
+                // Ignore claims whose value is null.
+                if (claim.Value == null) {
+                    continue;
+                }
+
+                response.SetParameter(claim.Key, claim.Value);
+            }
+
+            return await SendUserinfoResponseAsync(response);
         }
 
         private async Task<bool> SendUserinfoResponseAsync(OpenIdConnectResponse response) {

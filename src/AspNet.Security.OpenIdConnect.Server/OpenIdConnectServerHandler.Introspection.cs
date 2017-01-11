@@ -6,6 +6,7 @@
 
 using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,6 +15,7 @@ using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json.Linq;
 
@@ -339,7 +341,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                         // If there's no existing claim with the same type,
                         // simply add the claim as-is without converting it.
-                        if (notification.Claims[type] == null) {
+                        if (!notification.Claims.ContainsKey(type)) {
                             notification.Claims[type] = claim.Value;
 
                             continue;
@@ -386,7 +388,58 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 });
             }
 
-            return await SendIntrospectionResponseAsync(new OpenIdConnectResponse(notification.Claims));
+            var response = new OpenIdConnectResponse {
+                [OpenIdConnectConstants.Claims.Active] = notification.Active
+            };
+
+            // Only add the other properties if
+            // the token is considered as active.
+            if (notification.Active) {
+                response[OpenIdConnectConstants.Claims.Issuer] = notification.Issuer;
+                response[OpenIdConnectConstants.Claims.Username] = notification.Username;
+                response[OpenIdConnectConstants.Claims.Subject] = notification.Subject;
+                response[OpenIdConnectConstants.Claims.Scope] = notification.Scope;
+                response[OpenIdConnectConstants.Claims.JwtId] = notification.TokenId;
+                response[OpenIdConnectConstants.Claims.TokenType] = notification.TokenType;
+
+                if (notification.IssuedAt.HasValue) {
+                    response[OpenIdConnectConstants.Claims.IssuedAt] =
+                        EpochTime.GetIntDate(notification.IssuedAt.Value.UtcDateTime);
+                }
+
+                if (notification.NotBefore.HasValue) {
+                    response[OpenIdConnectConstants.Claims.NotBefore] =
+                        EpochTime.GetIntDate(notification.NotBefore.Value.UtcDateTime);
+                }
+
+                if (notification.ExpiresAt.HasValue) {
+                    response[OpenIdConnectConstants.Claims.ExpiresAt] =
+                        EpochTime.GetIntDate(notification.ExpiresAt.Value.UtcDateTime);
+                }
+
+                switch (notification.Audiences.Count) {
+                    case 0: break;
+
+                    case 1:
+                        response[OpenIdConnectConstants.Claims.Audience] = notification.Audiences.ElementAt(0);
+                        break;
+
+                    default:
+                        response[OpenIdConnectConstants.Claims.Audience] = new JArray(notification.Audiences);
+                        break;
+                }
+
+                foreach (var claim in notification.Claims) {
+                    // Ignore claims whose value is null.
+                    if (claim.Value == null) {
+                        continue;
+                    }
+
+                    response.SetParameter(claim.Key, claim.Value);
+                }
+            }
+
+            return await SendIntrospectionResponseAsync(response);
         }
 
         private async Task<bool> SendIntrospectionResponseAsync(OpenIdConnectResponse response) {
