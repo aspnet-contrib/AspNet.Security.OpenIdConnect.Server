@@ -61,7 +61,7 @@ app.UseOpenIdConnectServer(options => {
             // Implement context.Request.Username/context.Request.Password validation here.
             // Note: you can call context Reject() to indicate that authentication failed.
             // Using password derivation and time-constant comparer is STRONGLY recommended.
-            if (!string.Equals(context.Request.Username, "Bob", StringComparison.Ordinal) &&
+            if (!string.Equals(context.Request.Username, "Bob", StringComparison.Ordinal) ||
                 !string.Equals(context.Request.Password, "P@ssw0rd", StringComparison.Ordinal)) {
                 context.Reject(
                     error: OpenIdConnectConstants.Errors.InvalidGrant,
