@@ -15,6 +15,7 @@ using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Moq;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Owin.Security.OpenIdConnect.Extensions;
 using Xunit;
 using static System.Net.Http.HttpMethod;
@@ -267,7 +268,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
             // Act
             var response = await client.GetAsync(ConfigurationEndpoint);
-            var types = response[OpenIdConnectConstants.Metadata.GrantTypesSupported].Values<string>();
+            var types = ((JArray) response[OpenIdConnectConstants.Metadata.GrantTypesSupported]).Values<string>();
 
             // Assert
             Assert.Contains(OpenIdConnectConstants.GrantTypes.Implicit, types);
@@ -282,7 +283,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
             // Act
             var response = await client.GetAsync(ConfigurationEndpoint);
-            var types = response[OpenIdConnectConstants.Metadata.GrantTypesSupported].Values<string>();
+            var types = ((JArray) response[OpenIdConnectConstants.Metadata.GrantTypesSupported]).Values<string>();
 
             // Assert
             Assert.Contains(OpenIdConnectConstants.GrantTypes.ClientCredentials, types);
@@ -299,7 +300,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
             // Act
             var response = await client.GetAsync(ConfigurationEndpoint);
-            var modes = response[OpenIdConnectConstants.Metadata.ResponseModesSupported].Values<string>();
+            var modes = ((JArray) response[OpenIdConnectConstants.Metadata.ResponseModesSupported]).Values<string>();
 
             // Assert
             Assert.Contains(OpenIdConnectConstants.ResponseModes.FormPost, modes);
@@ -316,7 +317,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
             // Act
             var response = await client.GetAsync(ConfigurationEndpoint);
-            var types = response[OpenIdConnectConstants.Metadata.ResponseTypesSupported].Values<string>();
+            var types = ((JArray) response[OpenIdConnectConstants.Metadata.ResponseTypesSupported]).Values<string>();
 
             // Assert
             Assert.Contains(OpenIdConnectConstants.ResponseTypes.Token, types);
@@ -334,7 +335,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
             // Act
             var response = await client.GetAsync(ConfigurationEndpoint);
-            var types = response[OpenIdConnectConstants.Metadata.ResponseTypesSupported].Values<string>();
+            var types = ((JArray) response[OpenIdConnectConstants.Metadata.ResponseTypesSupported]).Values<string>();
 
             // Assert
             Assert.Contains(
@@ -360,7 +361,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
             // Act
             var response = await client.GetAsync(ConfigurationEndpoint);
-            var scopes = response[OpenIdConnectConstants.Metadata.ScopesSupported].Values<string>();
+            var scopes = ((JArray) response[OpenIdConnectConstants.Metadata.ScopesSupported]).Values<string>();
 
             // Assert
             Assert.Contains(OpenIdConnectConstants.Scopes.OpenId, scopes);
@@ -375,7 +376,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
             // Act
             var response = await client.GetAsync(ConfigurationEndpoint);
-            var types = response[OpenIdConnectConstants.Metadata.SubjectTypesSupported].Values<string>();
+            var types = ((JArray) response[OpenIdConnectConstants.Metadata.SubjectTypesSupported]).Values<string>();
 
             // Assert
             Assert.Contains(OpenIdConnectConstants.SubjectTypes.Public, types);
@@ -387,21 +388,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         [InlineData(OpenIdConnectConstants.Algorithms.RsaSha512, "http://www.w3.org/2001/04/xmlenc#sha512")]
         public async Task InvokeConfigurationEndpointAsync_SigningAlgorithmsAreCorrectlyReturned(string algorithm, string digest) {
             // Arrange
-            var parameters = new RSAParameters {
-                D = Convert.FromBase64String("Uj6NrYBnyddhlJefYEP2nleCntAKlWyIttJC4cJnNxNN+OT2fQXhpTXRwW4R5YIS3HDqK/Fg2yoYm+OTVntAAgRFKveRx/WKwFo6UpnJc5u3lElhFa7IfosO9qXjErpX9ruAVqipekDLwQ++KmVVdgH4PK/o//nEx5zklGCdlEJURZYJPs9/7g1cx3UwvPp8jM7LgZL5OZRNyI3Jz4efrwiI2/vd8P28lAbpv/Ao4NwUDq/WKEnZ8JYSjLEKnZCfbX1ZEwf0Ic48jEKHmi1WEwpru1fMPoYfakrsY/VEfatPiDs8a5HABP/KaXcM4AZsr7HbzqAaNycV2xgdZimGcQ=="),
-                DP = Convert.FromBase64String("hi1e+0eQ/iYrfT4zpZVbx3dyfA7Ch/aujMt6nGMF+1LGaut86vDHM2JI0Gc2BKc+uPEu2bNAorhSmuSyGpfGYl0MYFQoVF/jyiGpzYPmhYpL5yLuN9jWAqNwjfstuRDLU9zTEfZnr3OSN85rZcgT7NUxlY8im1Y2TWYxGiEXw9E="),
-                DQ = Convert.FromBase64String("laVNkWIbnSuGo7nAxyUSdL2sXU3GZWwItwzTG0IK/0woFjArtCxGgNXW+V+GhxT7iHGAVJJSBvJ65TXrUYuBmoWj2CsoUs2mzK8ax4zg3CXrU61esCsGUoS2owR4FXlhYPmoVnglGu89bH72eXKixZsuF7vKW19nG703BXYEaEU="),
-                Exponent = Convert.FromBase64String("AQAB"),
-                InverseQ = Convert.FromBase64String("dhzLDS4F5WYHX+vH4+uL3Ei/K5lxw2A/dBHGtbS2X54gm7vARl+FrptOFFwIjjmsLuTjttAq9K1EP/XZIq8bjW6dXJ/IytnobIPSFkclEeQlMi4/2VDMG5915J0DwnKO9M+B8F3JViUyMv0pvb+ub+HHDVFkIr7zooCmY25i77Q="),
-                Modulus = Convert.FromBase64String("kXv7Pxf6mSf7mu6mPAOAoKAXl5kU7Q3h9zevC5i4Mm5bMk17XCh7ZvVxDzGA+1JmyxOX6sw3gMUl31FtIFlDhis8VnXKAPn8i1zrmebq+7QKzpE2GpoIpXjXbkPaHG/DbC67M1bux7/dE7lSUSifHRRLsbMUC2D4UahJ6miH2iPFNFyoa6CLtwosD8tIJKwmZ9r9zfqc9BrVGu24lZySjTSRttpLaTkgkBjxHmYhinKNEtj9wUfi1S1wPJUvf+roc6o+7jeBBV3EXJCsb6XCCXI7/e3umWp19odeRShXLQNQbNuuVC7yre4iidUDrWJ1jiaB06svUG+fVEi4FCMvEQ=="),
-                P = Convert.FromBase64String("xQGczmp4qD7Sez/ZqgW+O4cciTHvSqJqJUSdDd2l1Pd/szQ8avvzorrbSWOIULyv6eJb32+HuyLgy6rTSJ6THFobAnUv4ZTR7EGK26AJmP/BhD+3G+n21+4fzfbAxpHihkCYmO8aEl8fm/r4qPVXmCzFoXDZLMNIxFsdEXiFRS0="),
-                Q = Convert.FromBase64String("vQy5C++AzF+TRh6qwbKzOqt87ZHEHidIAh6ivRNewjzIgCWXpseVl7DimY1YdViOnw1VI7xY+EyiyTanq5caTqqB3KcDm2t40bJfrZuUcn/5puRIh1bKNDwIMLsuNCrjHmDlNbocqpYMOh0Pgw7ARNbqrnPjWsYGJPuMNFpax/U=")
-            };
-
-            var rsa = RSA.Create();
-            rsa.ImportParameters(parameters);
-
-            var credentials = new SigningCredentials(new RsaSecurityKey(rsa), algorithm, digest);
+            var credentials = new SigningCredentials(Mock.Of<SecurityKey>(), algorithm, digest);
 
             var server = CreateAuthorizationServer(options => {
                 options.SigningCredentials.Clear();
@@ -412,7 +399,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
             // Act
             var response = await client.GetAsync(ConfigurationEndpoint);
-            var algorithms = response[OpenIdConnectConstants.Metadata.IdTokenSigningAlgValuesSupported].Values<string>();
+            var algorithms = ((JArray) response[OpenIdConnectConstants.Metadata.IdTokenSigningAlgValuesSupported]).Values<string>();
 
             // Assert
             Assert.Contains(algorithm, algorithms);
@@ -421,21 +408,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         [Fact]
         public async Task InvokeConfigurationEndpointAsync_DuplicateSigningAlgorithmsAreIgnored() {
             // Arrange
-            var parameters = new RSAParameters {
-                D = Convert.FromBase64String("Uj6NrYBnyddhlJefYEP2nleCntAKlWyIttJC4cJnNxNN+OT2fQXhpTXRwW4R5YIS3HDqK/Fg2yoYm+OTVntAAgRFKveRx/WKwFo6UpnJc5u3lElhFa7IfosO9qXjErpX9ruAVqipekDLwQ++KmVVdgH4PK/o//nEx5zklGCdlEJURZYJPs9/7g1cx3UwvPp8jM7LgZL5OZRNyI3Jz4efrwiI2/vd8P28lAbpv/Ao4NwUDq/WKEnZ8JYSjLEKnZCfbX1ZEwf0Ic48jEKHmi1WEwpru1fMPoYfakrsY/VEfatPiDs8a5HABP/KaXcM4AZsr7HbzqAaNycV2xgdZimGcQ=="),
-                DP = Convert.FromBase64String("hi1e+0eQ/iYrfT4zpZVbx3dyfA7Ch/aujMt6nGMF+1LGaut86vDHM2JI0Gc2BKc+uPEu2bNAorhSmuSyGpfGYl0MYFQoVF/jyiGpzYPmhYpL5yLuN9jWAqNwjfstuRDLU9zTEfZnr3OSN85rZcgT7NUxlY8im1Y2TWYxGiEXw9E="),
-                DQ = Convert.FromBase64String("laVNkWIbnSuGo7nAxyUSdL2sXU3GZWwItwzTG0IK/0woFjArtCxGgNXW+V+GhxT7iHGAVJJSBvJ65TXrUYuBmoWj2CsoUs2mzK8ax4zg3CXrU61esCsGUoS2owR4FXlhYPmoVnglGu89bH72eXKixZsuF7vKW19nG703BXYEaEU="),
-                Exponent = Convert.FromBase64String("AQAB"),
-                InverseQ = Convert.FromBase64String("dhzLDS4F5WYHX+vH4+uL3Ei/K5lxw2A/dBHGtbS2X54gm7vARl+FrptOFFwIjjmsLuTjttAq9K1EP/XZIq8bjW6dXJ/IytnobIPSFkclEeQlMi4/2VDMG5915J0DwnKO9M+B8F3JViUyMv0pvb+ub+HHDVFkIr7zooCmY25i77Q="),
-                Modulus = Convert.FromBase64String("kXv7Pxf6mSf7mu6mPAOAoKAXl5kU7Q3h9zevC5i4Mm5bMk17XCh7ZvVxDzGA+1JmyxOX6sw3gMUl31FtIFlDhis8VnXKAPn8i1zrmebq+7QKzpE2GpoIpXjXbkPaHG/DbC67M1bux7/dE7lSUSifHRRLsbMUC2D4UahJ6miH2iPFNFyoa6CLtwosD8tIJKwmZ9r9zfqc9BrVGu24lZySjTSRttpLaTkgkBjxHmYhinKNEtj9wUfi1S1wPJUvf+roc6o+7jeBBV3EXJCsb6XCCXI7/e3umWp19odeRShXLQNQbNuuVC7yre4iidUDrWJ1jiaB06svUG+fVEi4FCMvEQ=="),
-                P = Convert.FromBase64String("xQGczmp4qD7Sez/ZqgW+O4cciTHvSqJqJUSdDd2l1Pd/szQ8avvzorrbSWOIULyv6eJb32+HuyLgy6rTSJ6THFobAnUv4ZTR7EGK26AJmP/BhD+3G+n21+4fzfbAxpHihkCYmO8aEl8fm/r4qPVXmCzFoXDZLMNIxFsdEXiFRS0="),
-                Q = Convert.FromBase64String("vQy5C++AzF+TRh6qwbKzOqt87ZHEHidIAh6ivRNewjzIgCWXpseVl7DimY1YdViOnw1VI7xY+EyiyTanq5caTqqB3KcDm2t40bJfrZuUcn/5puRIh1bKNDwIMLsuNCrjHmDlNbocqpYMOh0Pgw7ARNbqrnPjWsYGJPuMNFpax/U=")
-            };
-
-            var rsa = RSA.Create();
-            rsa.ImportParameters(parameters);
-
-            var credentials = new SigningCredentials(new RsaSecurityKey(rsa),
+            var credentials = new SigningCredentials(
+                Mock.Of<SecurityKey>(),
                 SecurityAlgorithms.RsaSha256Signature,
                 SecurityAlgorithms.Sha256Digest);
 
@@ -450,7 +424,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
             // Act
             var response = await client.GetAsync(ConfigurationEndpoint);
-            var algorithms = response[OpenIdConnectConstants.Metadata.IdTokenSigningAlgValuesSupported].Values<string>();
+            var algorithms = ((JArray) response[OpenIdConnectConstants.Metadata.IdTokenSigningAlgValuesSupported]).Values<string>();
 
             // Assert
             Assert.Equal(1, algorithms.Count());
@@ -465,7 +439,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
             // Act
             var response = await client.GetAsync(ConfigurationEndpoint);
-            var methods = response[OpenIdConnectConstants.Metadata.CodeChallengeMethodsSupported].Values<string>();
+            var methods = ((JArray) response[OpenIdConnectConstants.Metadata.CodeChallengeMethodsSupported]).Values<string>();
 
             // Assert
             Assert.Contains(OpenIdConnectConstants.CodeChallengeMethods.Plain, methods);
@@ -828,11 +802,11 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
             // Act
             var response = await client.GetAsync(CryptographyEndpoint);
-            var key = response[OpenIdConnectConstants.Parameters.Keys].First;
+            var key = response[OpenIdConnectConstants.Parameters.Keys]?[0];
 
             // Assert
-            Assert.Equal(parameters.Exponent, Base64UrlEncoder.DecodeBytes((string) key[JsonWebKeyParameterNames.E]));
-            Assert.Equal(parameters.Modulus, Base64UrlEncoder.DecodeBytes((string) key[JsonWebKeyParameterNames.N]));
+            Assert.Equal(parameters.Exponent, Base64UrlEncoder.DecodeBytes((string) key?[JsonWebKeyParameterNames.E]));
+            Assert.Equal(parameters.Modulus, Base64UrlEncoder.DecodeBytes((string) key?[JsonWebKeyParameterNames.N]));
         }
 
         [Fact]
@@ -844,11 +818,11 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
             // Act
             var response = await client.GetAsync(CryptographyEndpoint);
-            var key = response[OpenIdConnectConstants.Parameters.Keys].First;
+            var key = response[OpenIdConnectConstants.Parameters.Keys]?[0];
 
             // Assert
-            Assert.Equal("BSxeQhXNDB4VBeCOavOtvvv9eCI", (string) key[JsonWebKeyParameterNames.X5t]);
-            Assert.Equal("MIIDPjCCAiqgAwIBAgIQlLEp+P+WKYtEAemhSKSUTTAJBgUrDgMCHQUAMC0xKzApBgNVBAMTIk93aW4uU2VjdXJpdHkuT3BlbklkQ29ubmVjdC5TZXJ2ZXIwHhcNOTkxMjMxMjIwMDAwWhcNNDkxMjMxMjIwMDAwWjAtMSswKQYDVQQDEyJPd2luLlNlY3VyaXR5Lk9wZW5JZENvbm5lY3QuU2VydmVyMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwD/4uMNSIu+JlPRrtFR8Tm2LAwSOmglvJai6edFrdvDvk6xWzxYkMoIt4v13lFiIAUfI1vyZ1M0hWQfrifyweuzZu06DyWTUZkp9ervhTxK27HFN7XTuaRxHaXLR4KnhA+Nk8bBXN895OZh9g9Hf5+zsHpe17zgikwcyZtF+9OEG16oz7lKRgXGCIeeVZuSZ5Qf4yePwKMZqsx+lTOiZJ3JMs+gytvIpdZ1NWzcMX0XTcVTgvnBeU0O3NR6DQ41+SrGsojk11bd6kP6mVmDkA0K9kc2eh7q1wyJOeTNuCKRqLthwJ5m46/KRsxgY7ND6qHc1L60SqsFlYCJNEy7EdwIDAQABo2IwYDBeBgNVHQEEVzBVgBDQX+HKPiztLNvT3jQeBXqToS8wLTErMCkGA1UEAxMiT3dpbi5TZWN1cml0eS5PcGVuSWRDb25uZWN0LlNlcnZlcoIQlLEp+P+WKYtEAemhSKSUTTAJBgUrDgMCHQUAA4IBAQCxbCF5thB+ypGpudLAjv+l3M2VhNITJeR9j7jMlCSMVHvW7iMOL5W++zKvHMMAWuITLgPXTZ4ktsjeVQxWdnS2IcU7SwB9SeLbOMk4lLizoUevkiNaf6v+Hskm5LiH6+k8Zsl0INHyIjF9XlALTh91EqQ820cotDXaQIhHabQy892+dBmGWhSE1kP56IvOPzlLdSTkrcfcOu9gzwPVfuTDWH8Hrmo3FXz/fADmE7ea+yE1ZBeKhaN8kaFTs5zrprJ1BnmegnrjDY3RFgqcTTetahv0VBS0/jHSTIsAXflEPGW7LbHimzcgMytFU4fFtPVbek5eunakhu/JdENbbVmT", (string) key[JsonWebKeyParameterNames.X5c].First);
+            Assert.Equal("BSxeQhXNDB4VBeCOavOtvvv9eCI", (string) key?[JsonWebKeyParameterNames.X5t]);
+            Assert.Equal("MIIDPjCCAiqgAwIBAgIQlLEp+P+WKYtEAemhSKSUTTAJBgUrDgMCHQUAMC0xKzApBgNVBAMTIk93aW4uU2VjdXJpdHkuT3BlbklkQ29ubmVjdC5TZXJ2ZXIwHhcNOTkxMjMxMjIwMDAwWhcNNDkxMjMxMjIwMDAwWjAtMSswKQYDVQQDEyJPd2luLlNlY3VyaXR5Lk9wZW5JZENvbm5lY3QuU2VydmVyMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwD/4uMNSIu+JlPRrtFR8Tm2LAwSOmglvJai6edFrdvDvk6xWzxYkMoIt4v13lFiIAUfI1vyZ1M0hWQfrifyweuzZu06DyWTUZkp9ervhTxK27HFN7XTuaRxHaXLR4KnhA+Nk8bBXN895OZh9g9Hf5+zsHpe17zgikwcyZtF+9OEG16oz7lKRgXGCIeeVZuSZ5Qf4yePwKMZqsx+lTOiZJ3JMs+gytvIpdZ1NWzcMX0XTcVTgvnBeU0O3NR6DQ41+SrGsojk11bd6kP6mVmDkA0K9kc2eh7q1wyJOeTNuCKRqLthwJ5m46/KRsxgY7ND6qHc1L60SqsFlYCJNEy7EdwIDAQABo2IwYDBeBgNVHQEEVzBVgBDQX+HKPiztLNvT3jQeBXqToS8wLTErMCkGA1UEAxMiT3dpbi5TZWN1cml0eS5PcGVuSWRDb25uZWN0LlNlcnZlcoIQlLEp+P+WKYtEAemhSKSUTTAJBgUrDgMCHQUAA4IBAQCxbCF5thB+ypGpudLAjv+l3M2VhNITJeR9j7jMlCSMVHvW7iMOL5W++zKvHMMAWuITLgPXTZ4ktsjeVQxWdnS2IcU7SwB9SeLbOMk4lLizoUevkiNaf6v+Hskm5LiH6+k8Zsl0INHyIjF9XlALTh91EqQ820cotDXaQIhHabQy892+dBmGWhSE1kP56IvOPzlLdSTkrcfcOu9gzwPVfuTDWH8Hrmo3FXz/fADmE7ea+yE1ZBeKhaN8kaFTs5zrprJ1BnmegnrjDY3RFgqcTTetahv0VBS0/jHSTIsAXflEPGW7LbHimzcgMytFU4fFtPVbek5eunakhu/JdENbbVmT", (string) key?[JsonWebKeyParameterNames.X5c]?[0]);
         }
 
         [Theory]

@@ -187,15 +187,14 @@ namespace Owin.Security.OpenIdConnect.Server {
                     continue;
                 }
 
-                var value = parameter.Value as JValue;
-                if (value == null) {
-                    Options.Logger.LogWarning("A parameter whose type was incompatible was ignored and excluded " +
-                                              "from the logout response: '{Parameter}'.", parameter.Key);
-
+                // Ignore null or empty parameters, including JSON
+                // objects that can't be represented as strings.
+                var value = (string) parameter.Value;
+                if (string.IsNullOrEmpty(value)) {
                     continue;
                 }
 
-                parameters.Add(parameter.Key, (string) value);
+                parameters.Add(parameter.Key, value);
             }
 
             var location = WebUtilities.AddQueryString(response.PostLogoutRedirectUri, parameters);

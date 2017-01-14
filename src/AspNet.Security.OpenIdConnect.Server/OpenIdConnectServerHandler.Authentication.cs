@@ -352,15 +352,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     continue;
                 }
 
-                var value = parameter.Value as JValue;
-                if (value == null) {
-                    Logger.LogWarning("A parameter whose type was incompatible was ignored and excluded "+
-                                      "from the authorization response: '{Parameter}'.", parameter.Key);
-
+                // Ignore null or empty parameters, including JSON
+                // objects that can't be represented as strings.
+                var value = (string) parameter.Value;
+                if (string.IsNullOrEmpty(value)) {
                     continue;
                 }
 
-                parameters.Add(parameter.Key, (string) value);
+                parameters.Add(parameter.Key, value);
             }
 
             // Note: at this stage, the redirect_uri parameter MUST be trusted.

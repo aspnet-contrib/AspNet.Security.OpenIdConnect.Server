@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Authentication;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Xunit;
 using static System.Net.Http.HttpMethod;
 
@@ -289,8 +290,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             // Assert
             Assert.Equal(3, response.GetParameters().Count());
             Assert.Equal(server.BaseAddress.AbsoluteUri, (string) response[OpenIdConnectConstants.Claims.Issuer]);
-            Assert.Equal("Bob le Magnifique", response[OpenIdConnectConstants.Claims.Subject]);
-            Assert.Equal(new[] { "Fabrikam", "Contoso" }, response[OpenIdConnectConstants.Claims.Audience].Values<string>());
+            Assert.Equal("Bob le Magnifique", (string) response[OpenIdConnectConstants.Claims.Subject]);
+            Assert.Equal(new[] { "Fabrikam", "Contoso" }, ((JArray) response[OpenIdConnectConstants.Claims.Audience]).Values<string>());
         }
 
         [Fact]
@@ -329,7 +330,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             // Assert
             Assert.Equal(3, response.GetParameters().Count());
             Assert.Equal(server.BaseAddress.AbsoluteUri, (string) response[OpenIdConnectConstants.Claims.Issuer]);
-            Assert.Equal("Bob le Magnifique", response[OpenIdConnectConstants.Claims.Subject]);
+            Assert.Equal("Bob le Magnifique", (string) response[OpenIdConnectConstants.Claims.Subject]);
             Assert.Equal("Fabrikam", (string) response[OpenIdConnectConstants.Claims.Audience]);
         }
 

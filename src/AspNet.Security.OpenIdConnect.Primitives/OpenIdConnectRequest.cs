@@ -16,7 +16,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
     /// Represents a generic OpenID Connect request.
     /// </summary>
     [DebuggerDisplay("Parameters: {Parameters.Count}")]
-    [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
+    [JsonConverter(typeof(OpenIdConnectConverter))]
     public class OpenIdConnectRequest : OpenIdConnectMessage {
         /// <summary>
         /// Initializes a new OpenID Connect request.
@@ -27,22 +27,22 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// <summary>
         /// Initializes a new OpenID Connect request.
         /// </summary>
-        /// <param name="payload">The request payload.</param>
-        public OpenIdConnectRequest([NotNull] JObject payload)
-            : base(payload) { }
-
-        /// <summary>
-        /// Initializes a new OpenID Connect request.
-        /// </summary>
         /// <param name="parameters">The request parameters.</param>
-        public OpenIdConnectRequest([NotNull] IDictionary<string, string> parameters)
+        public OpenIdConnectRequest([NotNull] IEnumerable<KeyValuePair<string, JToken>> parameters)
             : base(parameters) { }
 
         /// <summary>
         /// Initializes a new OpenID Connect request.
         /// </summary>
         /// <param name="parameters">The request parameters.</param>
-        public OpenIdConnectRequest([NotNull] IDictionary<string, JToken> parameters)
+        public OpenIdConnectRequest([NotNull] IEnumerable<KeyValuePair<string, OpenIdConnectParameter>> parameters)
+            : base(parameters) { }
+
+        /// <summary>
+        /// Initializes a new OpenID Connect request.
+        /// </summary>
+        /// <param name="parameters">The request parameters.</param>
+        public OpenIdConnectRequest([NotNull] IEnumerable<KeyValuePair<string, string>> parameters)
             : base(parameters) { }
 
         /// <summary>
@@ -63,7 +63,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// Gets or sets the "access_token" parameter.
         /// </summary>
         public string AccessToken {
-            get { return GetParameter<string>(OpenIdConnectConstants.Parameters.AccessToken); }
+            get { return (string) GetParameter(OpenIdConnectConstants.Parameters.AccessToken); }
             set { SetParameter(OpenIdConnectConstants.Parameters.AccessToken, value); }
         }
 
@@ -71,7 +71,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// Gets or sets the "assertion" parameter.
         /// </summary>
         public string Assertion {
-            get { return GetParameter<string>(OpenIdConnectConstants.Parameters.Assertion); }
+            get { return (string) GetParameter(OpenIdConnectConstants.Parameters.Assertion); }
             set { SetParameter(OpenIdConnectConstants.Parameters.Assertion, value); }
         }
 
@@ -79,7 +79,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// Gets or sets the "client_assertion" parameter.
         /// </summary>
         public string ClientAssertion {
-            get { return GetParameter<string>(OpenIdConnectConstants.Parameters.ClientAssertion); }
+            get { return (string) GetParameter(OpenIdConnectConstants.Parameters.ClientAssertion); }
             set { SetParameter(OpenIdConnectConstants.Parameters.ClientAssertion, value); }
         }
 
@@ -87,7 +87,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// Gets or sets the "client_assertion_type" parameter.
         /// </summary>
         public string ClientAssertionType {
-            get { return GetParameter<string>(OpenIdConnectConstants.Parameters.ClientAssertionType); }
+            get { return (string) GetParameter(OpenIdConnectConstants.Parameters.ClientAssertionType); }
             set { SetParameter(OpenIdConnectConstants.Parameters.ClientAssertionType, value); }
         }
 
@@ -95,7 +95,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// Gets or sets the "client_id" parameter.
         /// </summary>
         public string ClientId {
-            get { return GetParameter<string>(OpenIdConnectConstants.Parameters.ClientId); }
+            get { return (string) GetParameter(OpenIdConnectConstants.Parameters.ClientId); }
             set { SetParameter(OpenIdConnectConstants.Parameters.ClientId, value); }
         }
 
@@ -103,7 +103,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// Gets or sets the "client_secret" parameter.
         /// </summary>
         public string ClientSecret {
-            get { return GetParameter<string>(OpenIdConnectConstants.Parameters.ClientSecret); }
+            get { return (string) GetParameter(OpenIdConnectConstants.Parameters.ClientSecret); }
             set { SetParameter(OpenIdConnectConstants.Parameters.ClientSecret, value); }
         }
 
@@ -111,7 +111,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// Gets or sets the "code" parameter.
         /// </summary>
         public string Code {
-            get { return GetParameter<string>(OpenIdConnectConstants.Parameters.Code); }
+            get { return (string) GetParameter(OpenIdConnectConstants.Parameters.Code); }
             set { SetParameter(OpenIdConnectConstants.Parameters.Code, value); }
         }
 
@@ -119,7 +119,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// Gets or sets the "code_challenge" parameter.
         /// </summary>
         public string CodeChallenge {
-            get { return GetParameter<string>(OpenIdConnectConstants.Parameters.CodeChallenge); }
+            get { return (string) GetParameter(OpenIdConnectConstants.Parameters.CodeChallenge); }
             set { SetParameter(OpenIdConnectConstants.Parameters.CodeChallenge, value); }
         }
 
@@ -127,7 +127,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// Gets or sets the "code_challenge_method" parameter.
         /// </summary>
         public string CodeChallengeMethod {
-            get { return GetParameter<string>(OpenIdConnectConstants.Parameters.CodeChallengeMethod); }
+            get { return (string) GetParameter(OpenIdConnectConstants.Parameters.CodeChallengeMethod); }
             set { SetParameter(OpenIdConnectConstants.Parameters.CodeChallengeMethod, value); }
         }
 
@@ -135,7 +135,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// Gets or sets the "code_verifier" parameter.
         /// </summary>
         public string CodeVerifier {
-            get { return GetParameter<string>(OpenIdConnectConstants.Parameters.CodeVerifier); }
+            get { return (string) GetParameter(OpenIdConnectConstants.Parameters.CodeVerifier); }
             set { SetParameter(OpenIdConnectConstants.Parameters.CodeVerifier, value); }
         }
 
@@ -143,7 +143,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// Gets or sets the "grant_type" parameter.
         /// </summary>
         public string GrantType {
-            get { return GetParameter<string>(OpenIdConnectConstants.Parameters.GrantType); }
+            get { return (string) GetParameter(OpenIdConnectConstants.Parameters.GrantType); }
             set { SetParameter(OpenIdConnectConstants.Parameters.GrantType, value); }
         }
 
@@ -151,7 +151,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// Gets or sets the "id_token_hint" parameter.
         /// </summary>
         public string IdTokenHint {
-            get { return GetParameter<string>(OpenIdConnectConstants.Parameters.IdTokenHint); }
+            get { return (string) GetParameter(OpenIdConnectConstants.Parameters.IdTokenHint); }
             set { SetParameter(OpenIdConnectConstants.Parameters.IdTokenHint, value); }
         }
 
@@ -159,7 +159,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// Gets or sets the "nonce" parameter.
         /// </summary>
         public string Nonce {
-            get { return GetParameter<string>(OpenIdConnectConstants.Parameters.Nonce); }
+            get { return (string) GetParameter(OpenIdConnectConstants.Parameters.Nonce); }
             set { SetParameter(OpenIdConnectConstants.Parameters.Nonce, value); }
         }
 
@@ -167,7 +167,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// Gets or sets the "password" parameter.
         /// </summary>
         public string Password {
-            get { return GetParameter<string>(OpenIdConnectConstants.Parameters.Password); }
+            get { return (string) GetParameter(OpenIdConnectConstants.Parameters.Password); }
             set { SetParameter(OpenIdConnectConstants.Parameters.Password, value); }
         }
 
@@ -175,7 +175,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// Gets or sets the "post_logout_redirect_uri" parameter.
         /// </summary>
         public string PostLogoutRedirectUri {
-            get { return GetParameter<string>(OpenIdConnectConstants.Parameters.PostLogoutRedirectUri); }
+            get { return (string) GetParameter(OpenIdConnectConstants.Parameters.PostLogoutRedirectUri); }
             set { SetParameter(OpenIdConnectConstants.Parameters.PostLogoutRedirectUri, value); }
         }
 
@@ -183,7 +183,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// Gets or sets the "prompt" parameter.
         /// </summary>
         public string Prompt {
-            get { return GetParameter<string>(OpenIdConnectConstants.Parameters.Prompt); }
+            get { return (string) GetParameter(OpenIdConnectConstants.Parameters.Prompt); }
             set { SetParameter(OpenIdConnectConstants.Parameters.Prompt, value); }
         }
 
@@ -191,7 +191,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// Gets or sets the "redirect_uri" parameter.
         /// </summary>
         public string RedirectUri {
-            get { return GetParameter<string>(OpenIdConnectConstants.Parameters.RedirectUri); }
+            get { return (string) GetParameter(OpenIdConnectConstants.Parameters.RedirectUri); }
             set { SetParameter(OpenIdConnectConstants.Parameters.RedirectUri, value); }
         }
 
@@ -199,7 +199,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// Gets or sets the "refresh_token" parameter.
         /// </summary>
         public string RefreshToken {
-            get { return GetParameter<string>(OpenIdConnectConstants.Parameters.RefreshToken); }
+            get { return (string) GetParameter(OpenIdConnectConstants.Parameters.RefreshToken); }
             set { SetParameter(OpenIdConnectConstants.Parameters.RefreshToken, value); }
         }
 
@@ -207,7 +207,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// Gets or sets the "request" parameter.
         /// </summary>
         public string Request {
-            get { return GetParameter<string>(OpenIdConnectConstants.Parameters.Request); }
+            get { return (string) GetParameter(OpenIdConnectConstants.Parameters.Request); }
             set { SetParameter(OpenIdConnectConstants.Parameters.Request, value); }
         }
 
@@ -215,7 +215,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// Gets or sets the "request_id" parameter.
         /// </summary>
         public string RequestId {
-            get { return GetParameter<string>(OpenIdConnectConstants.Parameters.RequestId); }
+            get { return (string) GetParameter(OpenIdConnectConstants.Parameters.RequestId); }
             set { SetParameter(OpenIdConnectConstants.Parameters.RequestId, value); }
         }
 
@@ -223,7 +223,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// Gets or sets the "request_uri" parameter.
         /// </summary>
         public string RequestUri {
-            get { return GetParameter<string>(OpenIdConnectConstants.Parameters.RequestUri); }
+            get { return (string) GetParameter(OpenIdConnectConstants.Parameters.RequestUri); }
             set { SetParameter(OpenIdConnectConstants.Parameters.RequestUri, value); }
         }
 
@@ -231,7 +231,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// Gets or sets the "resource" parameter.
         /// </summary>
         public string Resource {
-            get { return GetParameter<string>(OpenIdConnectConstants.Parameters.Resource); }
+            get { return (string) GetParameter(OpenIdConnectConstants.Parameters.Resource); }
             set { SetParameter(OpenIdConnectConstants.Parameters.Resource, value); }
         }
 
@@ -239,7 +239,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// Gets or sets the "response_mode" parameter.
         /// </summary>
         public string ResponseMode {
-            get { return GetParameter<string>(OpenIdConnectConstants.Parameters.ResponseMode); }
+            get { return (string) GetParameter(OpenIdConnectConstants.Parameters.ResponseMode); }
             set { SetParameter(OpenIdConnectConstants.Parameters.ResponseMode, value); }
         }
 
@@ -247,7 +247,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// Gets or sets the "response_type" parameter.
         /// </summary>
         public string ResponseType {
-            get { return GetParameter<string>(OpenIdConnectConstants.Parameters.ResponseType); }
+            get { return (string) GetParameter(OpenIdConnectConstants.Parameters.ResponseType); }
             set { SetParameter(OpenIdConnectConstants.Parameters.ResponseType, value); }
         }
 
@@ -255,7 +255,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// Gets or sets the "scope" parameter.
         /// </summary>
         public string Scope {
-            get { return GetParameter<string>(OpenIdConnectConstants.Parameters.Scope); }
+            get { return (string) GetParameter(OpenIdConnectConstants.Parameters.Scope); }
             set { SetParameter(OpenIdConnectConstants.Parameters.Scope, value); }
         }
 
@@ -263,7 +263,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// Gets or sets the "state" parameter.
         /// </summary>
         public string State {
-            get { return GetParameter<string>(OpenIdConnectConstants.Parameters.State); }
+            get { return (string) GetParameter(OpenIdConnectConstants.Parameters.State); }
             set { SetParameter(OpenIdConnectConstants.Parameters.State, value); }
         }
 
@@ -271,7 +271,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// Gets or sets the "token" parameter.
         /// </summary>
         public string Token {
-            get { return GetParameter<string>(OpenIdConnectConstants.Parameters.Token); }
+            get { return (string) GetParameter(OpenIdConnectConstants.Parameters.Token); }
             set { SetParameter(OpenIdConnectConstants.Parameters.Token, value); }
         }
 
@@ -279,7 +279,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// Gets or sets the "token_type_hint" parameter.
         /// </summary>
         public string TokenTypeHint {
-            get { return GetParameter<string>(OpenIdConnectConstants.Parameters.TokenTypeHint); }
+            get { return (string) GetParameter(OpenIdConnectConstants.Parameters.TokenTypeHint); }
             set { SetParameter(OpenIdConnectConstants.Parameters.TokenTypeHint, value); }
         }
 
@@ -287,7 +287,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// Gets or sets the "username" parameter.
         /// </summary>
         public string Username {
-            get { return GetParameter<string>(OpenIdConnectConstants.Parameters.Username); }
+            get { return (string) GetParameter(OpenIdConnectConstants.Parameters.Username); }
             set { SetParameter(OpenIdConnectConstants.Parameters.Username, value); }
         }
     }

@@ -5,7 +5,6 @@
  */
 
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using Moq;
 using Newtonsoft.Json.Linq;
@@ -14,28 +13,171 @@ using Xunit;
 namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
     public class OpenIdConnectMessageTests {
         [Fact]
-        public void GetParameter_ReturnsExpectedParameter() {
+        public void Constructor_ImportsParameters() {
             // Arrange
-            var value = new JValue(42);
+            var parameters = new[] {
+                new KeyValuePair<string, OpenIdConnectParameter>("parameter", 42)
+            };
 
+            // Act
+            var message = new Mock<OpenIdConnectMessage>(parameters);
+            message.CallBase = true;
+
+            // Assert
+            Assert.Equal(42, (long) message.Object.GetParameter("parameter"));
+        }
+
+        [Fact]
+        public void Constructor_IgnoresNamelessParameters() {
+            // Arrange
+            var parameters = new[] {
+                new KeyValuePair<string, OpenIdConnectParameter>(null, new OpenIdConnectParameter()),
+                new KeyValuePair<string, OpenIdConnectParameter>(string.Empty, new OpenIdConnectParameter())
+            };
+
+            // Act
+            var message = new Mock<OpenIdConnectMessage>(parameters);
+            message.CallBase = true;
+
+            // Assert
+            Assert.Equal(0, message.Object.GetParameters().Count());
+        }
+
+        [Fact]
+        public void Constructor_PreservesEmptyParameters() {
+            // Arrange
+            var parameters = new[] {
+                new KeyValuePair<string, OpenIdConnectParameter>("parameter", (string) null)
+            };
+
+            // Act
+            var message = new Mock<OpenIdConnectMessage>(parameters);
+            message.CallBase = true;
+
+            // Assert
+            Assert.Equal(1, message.Object.GetParameters().Count());
+        }
+
+        [Fact]
+        public void Constructor_IgnoresDuplicateParameters() {
+            // Arrange
+            var parameters = new[] {
+                new KeyValuePair<string, OpenIdConnectParameter>("parameter", "Fabrikam"),
+                new KeyValuePair<string, OpenIdConnectParameter>("parameter", "Contoso")
+            };
+
+            // Act
+            var message = new Mock<OpenIdConnectMessage>(parameters);
+            message.CallBase = true;
+
+            // Assert
+            Assert.Equal(1, message.Object.GetParameters().Count());
+            Assert.Equal("Fabrikam", message.Object.GetParameter("parameter"));
+        }
+
+        [Fact]
+        public void AddParameter_AddsExpectedParameter() {
+            // Arrange
             var message = Mock.Of<OpenIdConnectMessage>();
             Mock.Get(message).CallBase = true;
 
-            message.SetParameter("parameter", value);
+            // Act
+            message.AddParameter("parameter", 42);
+
+            // Assert
+            Assert.Equal(42, message.GetParameter("parameter"));
+        }
+
+        [Fact]
+        public void AddParameter_IsCaseSensitive() {
+            // Arrange
+            var message = Mock.Of<OpenIdConnectMessage>();
+            Mock.Get(message).CallBase = true;
+
+            // Act
+            message.AddParameter("PARAMETER", 42);
+
+            // Assert
+            Assert.Null(message.GetParameter("parameter"));
+        }
+
+        [Fact]
+        public void AddParameter_PreservesEmptyParameters() {
+            // Arrange
+            var message = Mock.Of<OpenIdConnectMessage>();
+            Mock.Get(message).CallBase = true;
+
+            // Act
+            message.AddParameter("string", string.Empty);
+            message.AddParameter("array", new JArray());
+            message.AddParameter("object", new JObject());
+            message.AddParameter("value", new JValue(string.Empty));
+
+            // Assert
+            Assert.Empty((string) message.GetParameter("string"));
+            Assert.Equal(new JArray(), (JArray) message.GetParameter("array"));
+            Assert.Equal(new JObject(), (JObject) message.GetParameter("object"));
+            Assert.Equal(new JValue(string.Empty), (JValue) message.GetParameter("value"));
+        }
+
+        [Fact]
+        public void AddProperty_AddsExpectedProperty() {
+            // Arrange
+            var message = Mock.Of<OpenIdConnectMessage>();
+            Mock.Get(message).CallBase = true;
+
+            // Act
+            message.AddProperty("property", "value");
+
+            // Assert
+            Assert.Equal("value", message.GetProperty("property"));
+        }
+
+        [Fact]
+        public void AddProperty_IsCaseSensitive() {
+            // Arrange
+            var message = Mock.Of<OpenIdConnectMessage>();
+            Mock.Get(message).CallBase = true;
+
+            // Act
+            message.AddProperty("PROPERTY", "value");
+
+            // Assert
+            Assert.Null(message.GetProperty("property"));
+        }
+
+        [Fact]
+        public void AddProperty_PreservesEmptyProperties() {
+            // Arrange
+            var message = Mock.Of<OpenIdConnectMessage>();
+            Mock.Get(message).CallBase = true;
+
+            // Act
+            message.AddProperty("property", string.Empty);
+
+            // Assert
+            Assert.Empty(message.GetProperty<string>("property"));
+        }
+
+        [Fact]
+        public void GetParameter_ReturnsExpectedParameter() {
+            // Arrange
+            var message = Mock.Of<OpenIdConnectMessage>();
+            Mock.Get(message).CallBase = true;
+
+            message.SetParameter("parameter", 42);
 
             // Act and assert
-            Assert.Same(value, message.GetParameter("parameter"));
+            Assert.Equal(42, (int) message.GetParameter("parameter"));
         }
 
         [Fact]
         public void GetParameter_IsCaseSensitive() {
             // Arrange
-            var value = new JValue(42);
-
             var message = Mock.Of<OpenIdConnectMessage>();
             Mock.Get(message).CallBase = true;
 
-            message.SetParameter("parameter", value);
+            message.SetParameter("parameter", 42);
 
             // Act and assert
             Assert.Null(message.GetParameter("PARAMETER"));
@@ -52,74 +194,9 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
-        public void GetParameter_CanConvertArrayValues() {
-            // Arrange
-            var message = Mock.Of<OpenIdConnectMessage>();
-            Mock.Get(message).CallBase = true;
-
-            message.SetParameter("decimal", new JArray(decimal.MaxValue));
-            message.SetParameter("double", new JArray(double.MaxValue));
-            message.SetParameter("float", new JArray(float.MaxValue));
-            message.SetParameter("int", new JArray(int.MaxValue));
-            message.SetParameter("long", new JArray(long.MaxValue));
-            message.SetParameter("string", new JArray("value"));
-
-            // Act and assert
-            Assert.Equal(new[] { decimal.MaxValue }, message.GetParameter<decimal[]>("decimal"));
-            Assert.Equal(new[] { double.MaxValue }, message.GetParameter<double[]>("double"));
-            Assert.Equal(new[] { float.MaxValue }, message.GetParameter<float[]>("float"));
-            Assert.Equal(new[] { int.MaxValue }, message.GetParameter<int[]>("int"));
-            Assert.Equal(new[] { long.MaxValue }, message.GetParameter<long[]>("long"));
-            Assert.Equal(new[] { "value" }, message.GetParameter<string[]>("string"));
-        }
-
-        [Fact]
-        public void GetParameter_CanConvertIntegerValues() {
-            // Arrange
-            var message = Mock.Of<OpenIdConnectMessage>();
-            Mock.Get(message).CallBase = true;
-
-            message.SetParameter("decimal", decimal.MaxValue);
-            message.SetParameter("double", double.MaxValue);
-            message.SetParameter("float", float.MaxValue);
-            message.SetParameter("int", int.MaxValue);
-            message.SetParameter("long", long.MaxValue);
-
-            // Act and assert
-            Assert.Equal(decimal.MaxValue.ToString(CultureInfo.InvariantCulture), message.GetParameter<string>("decimal"));
-            Assert.Equal(double.MaxValue.ToString(CultureInfo.InvariantCulture), message.GetParameter<string>("double"));
-            Assert.Equal(float.MaxValue.ToString(CultureInfo.InvariantCulture), message.GetParameter<string>("float"));
-            Assert.Equal(int.MaxValue.ToString(CultureInfo.InvariantCulture), message.GetParameter<string>("int"));
-            Assert.Equal(long.MaxValue.ToString(CultureInfo.InvariantCulture), message.GetParameter<string>("long"));
-        }
-
-        [Fact]
-        public void GetParameter_CanConvertStringValues() {
-            // Arrange
-            var message = Mock.Of<OpenIdConnectMessage>();
-            Mock.Get(message).CallBase = true;
-
-            message.SetParameter("decimal", decimal.MaxValue.ToString(CultureInfo.InvariantCulture));
-            message.SetParameter("double", double.MaxValue.ToString("R", CultureInfo.InvariantCulture));
-            message.SetParameter("float", float.MaxValue.ToString("R", CultureInfo.InvariantCulture));
-            message.SetParameter("int", int.MaxValue.ToString(CultureInfo.InvariantCulture));
-            message.SetParameter("long", long.MaxValue.ToString(CultureInfo.InvariantCulture));
-
-            // Act and assert
-            Assert.Equal(decimal.MaxValue, message.GetParameter<decimal>("decimal"));
-            Assert.Equal(double.MaxValue, message.GetParameter<double>("double"));
-            Assert.Equal(float.MaxValue, message.GetParameter<float>("float"));
-            Assert.Equal(int.MaxValue, message.GetParameter<int>("int"));
-            Assert.Equal(long.MaxValue, message.GetParameter<long>("long"));
-        }
-
-        [Fact]
         public void GetParameters_EnumeratesParameters() {
             // Arrange
-            var parameters = new Dictionary<string, JToken> {
-                ["decimal"] = decimal.MaxValue,
-                ["double"] = double.MaxValue,
-                ["float"] = float.MaxValue,
+            var parameters = new Dictionary<string, OpenIdConnectParameter> {
                 ["int"] = int.MaxValue,
                 ["long"] = long.MaxValue,
                 ["string"] = "value"
@@ -135,19 +212,44 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [Fact]
         public void GetProperties_EnumeratesProperties() {
             // Arrange
+            var properties = new Dictionary<string, object> {
+                ["int"] = int.MaxValue,
+                ["long"] = long.MaxValue,
+                ["object"] = new object(),
+                ["string"] = "value"
+            };
+
             var message = Mock.Of<OpenIdConnectMessage>();
             Mock.Get(message).CallBase = true;
 
-            message.SetProperty("property_1", "value_1");
-            message.SetProperty("property_2", "value_2");
+            foreach (var property in properties) {
+                message.SetProperty(property.Key, property.Value);
+            }
 
-            // Act
-            var properties = message.GetProperties();
+            // Act and assert
+            Assert.Equal(properties, message.GetProperties());
+        }
 
-            // Assert
-            Assert.Equal(2, properties.Count());
-            Assert.Contains(properties, item => item.Key == "property_1" && item.Value == "value_1");
-            Assert.Contains(properties, item => item.Key == "property_2" && item.Value == "value_2");
+        [Fact]
+        public void GetProperty_ReturnsDefaultInstanceForMissingProperty() {
+            // Arrange
+            var message = Mock.Of<OpenIdConnectMessage>();
+            Mock.Get(message).CallBase = true;
+
+            // Act and assert
+            Assert.Equal(0, message.GetProperty<long>("property"));
+        }
+
+        [Fact]
+        public void GetProperty_ReturnsDefaultInstanceForInvalidType() {
+            // Arrange
+            var message = Mock.Of<OpenIdConnectMessage>();
+            Mock.Get(message).CallBase = true;
+
+            message.SetProperty("property", "value");
+
+            // Act and assert
+            Assert.Equal(0, message.GetProperty<long>("property"));
         }
 
         [Theory]
@@ -198,28 +300,24 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [Fact]
         public void SetParameter_AddsExpectedParameter() {
             // Arrange
-            var value = new JValue(42);
-
             var message = Mock.Of<OpenIdConnectMessage>();
             Mock.Get(message).CallBase = true;
 
             // Act
-            message.SetParameter("parameter", value);
+            message.SetParameter("parameter", 42);
 
             // Assert
-            Assert.Same(value, message.GetParameter("parameter"));
+            Assert.Equal(42, message.GetParameter("parameter"));
         }
 
         [Fact]
         public void SetParameter_IsCaseSensitive() {
             // Arrange
-            var value = new JValue(42);
-
             var message = Mock.Of<OpenIdConnectMessage>();
             Mock.Get(message).CallBase = true;
 
             // Act
-            message.SetParameter("PARAMETER", value);
+            message.SetParameter("PARAMETER", 42);
 
             // Assert
             Assert.Null(message.GetParameter("parameter"));
@@ -232,9 +330,10 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
             Mock.Get(message).CallBase = true;
 
             // Act
+            message.SetParameter("string", string.Empty);
             message.SetParameter("array", new JArray());
             message.SetParameter("object", new JObject());
-            message.SetParameter("string", string.Empty);
+            message.SetParameter("value", new JValue(string.Empty));
 
             // Assert
             Assert.Equal(0, message.GetParameters().Count());
@@ -267,13 +366,43 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
-        public void SetProperty_RemovesEmptyProperty() {
+        public void SetProperty_RemovesEmptyProperties() {
             // Arrange
             var message = Mock.Of<OpenIdConnectMessage>();
             Mock.Get(message).CallBase = true;
 
             // Act
             message.SetProperty("property", string.Empty);
+
+            // Assert
+            Assert.Null(message.GetProperty("property"));
+        }
+
+        [Fact]
+        public void RemoveParameter_RemovesExpectedParameter() {
+            // Arrange
+            var message = Mock.Of<OpenIdConnectMessage>();
+            Mock.Get(message).CallBase = true;
+
+            message.AddParameter("parameter", 42);
+
+            // Act
+            message.RemoveParameter("parameter");
+
+            // Assert
+            Assert.Null(message.GetParameter("parameter"));
+        }
+
+        [Fact]
+        public void RemoveProperty_RemovesExpectedProperty() {
+            // Arrange
+            var message = Mock.Of<OpenIdConnectMessage>();
+            Mock.Get(message).CallBase = true;
+
+            message.AddProperty("property", 42);
+
+            // Act
+            message.RemoveProperty("property");
 
             // Assert
             Assert.Null(message.GetProperty("property"));

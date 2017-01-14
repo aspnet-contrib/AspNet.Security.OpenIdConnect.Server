@@ -81,7 +81,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            var value = request.GetProperty(OpenIdConnectConstants.Properties.MessageType);
+            var value = request.GetProperty<string>(OpenIdConnectConstants.Properties.MessageType);
             if (string.IsNullOrEmpty(value)) {
                 return false;
             }
@@ -100,7 +100,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            var value = request.GetProperty(OpenIdConnectConstants.Properties.ConfidentialityLevel);
+            var value = request.GetProperty<string>(OpenIdConnectConstants.Properties.ConfidentialityLevel);
             if (string.IsNullOrEmpty(value)) {
                 return false;
             }
@@ -118,7 +118,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            var value = request.GetProperty(OpenIdConnectConstants.Properties.MessageType);
+            var value = request.GetProperty<string>(OpenIdConnectConstants.Properties.MessageType);
             if (string.IsNullOrEmpty(value)) {
                 return false;
             }
@@ -136,7 +136,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            var value = request.GetProperty(OpenIdConnectConstants.Properties.MessageType);
+            var value = request.GetProperty<string>(OpenIdConnectConstants.Properties.MessageType);
             if (string.IsNullOrEmpty(value)) {
                 return false;
             }
@@ -154,7 +154,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            var value = request.GetProperty(OpenIdConnectConstants.Properties.MessageType);
+            var value = request.GetProperty<string>(OpenIdConnectConstants.Properties.MessageType);
             if (string.IsNullOrEmpty(value)) {
                 return false;
             }
@@ -172,7 +172,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            var value = request.GetProperty(OpenIdConnectConstants.Properties.MessageType);
+            var value = request.GetProperty<string>(OpenIdConnectConstants.Properties.MessageType);
             if (string.IsNullOrEmpty(value)) {
                 return false;
             }
@@ -190,7 +190,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            var value = request.GetProperty(OpenIdConnectConstants.Properties.MessageType);
+            var value = request.GetProperty<string>(OpenIdConnectConstants.Properties.MessageType);
             if (string.IsNullOrEmpty(value)) {
                 return false;
             }
@@ -208,7 +208,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            var value = request.GetProperty(OpenIdConnectConstants.Properties.MessageType);
+            var value = request.GetProperty<string>(OpenIdConnectConstants.Properties.MessageType);
             if (string.IsNullOrEmpty(value)) {
                 return false;
             }
@@ -226,7 +226,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            var value = request.GetProperty(OpenIdConnectConstants.Properties.MessageType);
+            var value = request.GetProperty<string>(OpenIdConnectConstants.Properties.MessageType);
             if (string.IsNullOrEmpty(value)) {
                 return false;
             }

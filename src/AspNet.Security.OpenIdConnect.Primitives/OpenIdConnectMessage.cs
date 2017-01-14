@@ -18,7 +18,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
     /// Represents an abstract OpenID Connect message.
     /// </summary>
     [DebuggerDisplay("Parameters: {Parameters.Count}")]
-    [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
+    [JsonConverter(typeof(OpenIdConnectConverter))]
     public abstract class OpenIdConnectMessage {
         /// <summary>
         /// Initializes a new OpenID Connect message.
@@ -28,14 +28,18 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// <summary>
         /// Initializes a new OpenID Connect message.
         /// </summary>
-        /// <param name="payload">The message payload.</param>
-        protected OpenIdConnectMessage([NotNull] JObject payload) {
-            if (payload == null) {
-                throw new ArgumentNullException(nameof(payload));
+        /// <param name="parameters">The message parameters.</param>
+        protected OpenIdConnectMessage([NotNull] IEnumerable<KeyValuePair<string, JToken>> parameters) {
+            if (parameters == null) {
+                throw new ArgumentNullException(nameof(parameters));
             }
 
-            foreach (var parameter in payload.Properties()) {
-                SetParameter(parameter.Name, parameter.Value);
+            foreach (var parameter in parameters) {
+                if (string.IsNullOrEmpty(parameter.Key)) {
+                    continue;
+                }
+
+                AddParameter(parameter.Key, parameter.Value);
             }
         }
 
@@ -43,13 +47,17 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// Initializes a new OpenID Connect message.
         /// </summary>
         /// <param name="parameters">The message parameters.</param>
-        protected OpenIdConnectMessage([NotNull] IDictionary<string, string> parameters) {
+        protected OpenIdConnectMessage([NotNull] IEnumerable<KeyValuePair<string, OpenIdConnectParameter>> parameters) {
             if (parameters == null) {
                 throw new ArgumentNullException(nameof(parameters));
             }
 
             foreach (var parameter in parameters) {
-                SetParameter(parameter.Key, parameter.Value);
+                if (string.IsNullOrEmpty(parameter.Key)) {
+                    continue;
+                }
+
+                AddParameter(parameter.Key, parameter.Value);
             }
         }
 
@@ -57,13 +65,17 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// Initializes a new OpenID Connect message.
         /// </summary>
         /// <param name="parameters">The message parameters.</param>
-        protected OpenIdConnectMessage([NotNull] IDictionary<string, JToken> parameters) {
+        protected OpenIdConnectMessage([NotNull] IEnumerable<KeyValuePair<string, string>> parameters) {
             if (parameters == null) {
                 throw new ArgumentNullException(nameof(parameters));
             }
 
             foreach (var parameter in parameters) {
-                SetParameter(parameter.Key, parameter.Value);
+                if (string.IsNullOrEmpty(parameter.Key)) {
+                    continue;
+                }
+
+                AddParameter(parameter.Key, parameter.Value);
             }
         }
 
@@ -77,7 +89,11 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
             }
 
             foreach (var parameter in parameters) {
-                SetParameter(parameter.Key, string.Join(",", parameter.Value));
+                if (string.IsNullOrEmpty(parameter.Key)) {
+                    continue;
+                }
+
+                AddParameter(parameter.Key, string.Join(",", parameter.Value));
             }
         }
 
@@ -91,7 +107,11 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
             }
 
             foreach (var parameter in parameters) {
-                SetParameter(parameter.Key, (string) parameter.Value);
+                if (string.IsNullOrEmpty(parameter.Key)) {
+                    continue;
+                }
+
+                AddParameter(parameter.Key, (string) parameter.Value);
             }
         }
 
@@ -100,7 +120,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// </summary>
         /// <param name="name">The parameter name.</param>
         /// <returns>The parameter value.</returns>
-        public JToken this[string name] {
+        public OpenIdConnectParameter? this[string name] {
             get { return GetParameter(name); }
             set { SetParameter(name, value); }
         }
@@ -108,29 +128,65 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// <summary>
         /// Gets the dictionary containing the parameters.
         /// </summary>
-        [JsonExtensionData]
-        protected virtual Dictionary<string, JToken> Parameters { get; } =
-            new Dictionary<string, JToken>(StringComparer.Ordinal);
+        protected Dictionary<string, OpenIdConnectParameter> Parameters { get; } =
+            new Dictionary<string, OpenIdConnectParameter>(StringComparer.Ordinal);
 
         /// <summary>
         /// Gets the dictionary containing the properties associated with this OpenID Connect message.
         /// Note: these properties are not meant to be publicly shared and shouldn't be serialized.
         /// </summary>
-        [EditorBrowsable(EditorBrowsableState.Advanced)]
-        protected virtual Dictionary<string, string> Properties { get; } =
-            new Dictionary<string, string>(StringComparer.Ordinal);
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        protected Dictionary<string, object> Properties { get; } =
+            new Dictionary<string, object>(StringComparer.Ordinal);
+
+        /// <summary>
+        /// Adds a parameter.
+        /// </summary>
+        /// <param name="name">The parameter name.</param>
+        /// <param name="value">The parameter value.</param>
+        /// <returns>The current instance, which allows chaining calls.</returns>
+        public OpenIdConnectMessage AddParameter([NotNull] string name, OpenIdConnectParameter value) {
+            if (string.IsNullOrEmpty(name)) {
+                throw new ArgumentException("The parameter name cannot be null or empty.", nameof(name));
+            }
+
+            if (!Parameters.ContainsKey(name)) {
+                Parameters.Add(name, value);
+            }
+
+            return this;
+        }
+
+        /// <summary>
+        /// Adds a property.
+        /// </summary>
+        /// <param name="name">The property name.</param>
+        /// <param name="value">The property value.</param>
+        /// <returns>The current instance, which allows chaining calls.</returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public OpenIdConnectMessage AddProperty([NotNull] string name, [CanBeNull] object value) {
+            if (string.IsNullOrEmpty(name)) {
+                throw new ArgumentException("The property name cannot be null or empty.", nameof(name));
+            }
+
+            if (!Properties.ContainsKey(name)) {
+                Properties.Add(name, value);
+            }
+
+            return this;
+        }
 
         /// <summary>
         /// Gets the value corresponding to a given parameter.
         /// </summary>
         /// <param name="name">The parameter name.</param>
         /// <returns>The parameter value, or <c>null</c> if it cannot be found.</returns>
-        public virtual JToken GetParameter([NotNull] string name) {
+        public OpenIdConnectParameter? GetParameter([NotNull] string name) {
             if (string.IsNullOrEmpty(name)) {
                 throw new ArgumentException("The parameter name cannot be null or empty.", nameof(name));
             }
 
-            JToken value;
+            OpenIdConnectParameter value;
             if (Parameters.TryGetValue(name, out value)) {
                 return value;
             }
@@ -139,38 +195,10 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         }
 
         /// <summary>
-        /// Gets the value corresponding to a given parameter.
-        /// </summary>
-        /// <param name="name">The parameter name.</param>
-        /// <returns>The parameter value, or the default value for the
-        /// <typeparamref name="T"/> type if it cannot be found.</returns>
-        public virtual T GetParameter<T>([NotNull] string name) {
-            if (string.IsNullOrEmpty(name)) {
-                throw new ArgumentException("The parameter name cannot be null or empty.", nameof(name));
-            }
-
-            var parameter = GetParameter(name);
-            if (parameter == null) {
-                return default(T);
-            }
-
-            if (typeof(T) == typeof(string)) {
-                var value = parameter as JValue;
-                if (value == null) {
-                    return default(T);
-                }
-
-                return (T) (object) (string) value;
-            }
-
-            return parameter.ToObject<T>();
-        }
-
-        /// <summary>
         /// Gets all the parameters associated with this instance.
         /// </summary>
         /// <returns>The parameters associated with this instance.</returns>
-        public virtual IEnumerable<KeyValuePair<string, JToken>> GetParameters() {
+        public IEnumerable<KeyValuePair<string, OpenIdConnectParameter>> GetParameters() {
             foreach (var parameter in Parameters) {
                 yield return parameter;
             }
@@ -183,7 +211,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// </summary>
         /// <returns>The properties associated with this instance.</returns>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public virtual IEnumerable<KeyValuePair<string, string>> GetProperties() {
+        public IEnumerable<KeyValuePair<string, object>> GetProperties() {
             foreach (var property in Properties) {
                 yield return property;
             }
@@ -197,12 +225,12 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// <param name="name">The property name.</param>
         /// <returns>The property value, or <c>null</c> if it cannot be found.</returns>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public virtual string GetProperty([NotNull] string name) {
+        public object GetProperty([NotNull] string name) {
             if (string.IsNullOrEmpty(name)) {
                 throw new ArgumentException("The property name cannot be null or empty.", nameof(name));
             }
 
-            string property;
+            object property;
             if (Properties.TryGetValue(name, out property)) {
                 return property;
             }
@@ -211,11 +239,31 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         }
 
         /// <summary>
+        /// Gets the value corresponding to a given property associated with this message.
+        /// </summary>
+        /// <typeparam name="T">The type of the property.</typeparam>
+        /// <param name="name">The property name.</param>
+        /// <returns>The property value, or <c>null</c> if it cannot be found.</returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public T GetProperty<T>([NotNull] string name) {
+            if (string.IsNullOrEmpty(name)) {
+                throw new ArgumentException("The property name cannot be null or empty.", nameof(name));
+            }
+
+            object property;
+            if (Properties.TryGetValue(name, out property) && property is T) {
+                return (T) property;
+            }
+
+            return default(T);
+        }
+
+        /// <summary>
         /// Determines whether the current message contains the specified parameter.
         /// </summary>
         /// <param name="name">The parameter name.</param>
         /// <returns><c>true</c> if the parameter is present, <c>false</c> otherwise.</returns>
-        public virtual bool HasParameter([NotNull] string name) {
+        public bool HasParameter([NotNull] string name) {
             if (string.IsNullOrEmpty(name)) {
                 throw new ArgumentException("The parameter name cannot be null or empty.", nameof(name));
             }
@@ -229,7 +277,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// <param name="name">The property name.</param>
         /// <returns><c>true</c> if the property is present, <c>false</c> otherwise.</returns>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public virtual bool HasProperty([NotNull] string name) {
+        public bool HasProperty([NotNull] string name) {
             if (string.IsNullOrEmpty(name)) {
                 throw new ArgumentException("The property name cannot be null or empty.", nameof(name));
             }
@@ -239,46 +287,84 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
 
         /// <summary>
         /// Adds, replaces or removes a parameter.
+        /// Note: this method automatically removes empty parameters.
         /// </summary>
         /// <param name="name">The parameter name.</param>
         /// <param name="value">The parameter value.</param>
-        public virtual void SetParameter([NotNull] string name, JToken value) {
+        /// <returns>The current instance, which allows chaining calls.</returns>
+        public OpenIdConnectMessage SetParameter([NotNull] string name, [CanBeNull] OpenIdConnectParameter? value) {
             if (string.IsNullOrEmpty(name)) {
                 throw new ArgumentException("The parameter name cannot be null or empty.", nameof(name));
             }
 
-            // If the parameter value is null, remove the corresponding entry in the collection.
-            if (value == null || (value.Type == JTokenType.Array && !value.HasValues) ||
-                                 (value.Type == JTokenType.Object && !value.HasValues) ||
-                                 (value.Type == JTokenType.String && string.IsNullOrEmpty((string) value)) ||
-                                 (value.Type == JTokenType.Null)) {
+            // If the parameter value is null or empty,
+            // remove the corresponding entry from the collection.
+            if (OpenIdConnectParameter.IsNullOrEmpty(value)) {
                 Parameters.Remove(name);
-
-                return;
             }
 
-            Parameters[name] = value;
+            else {
+                Parameters[name] = value.Value;
+            }
+
+            return this;
         }
 
         /// <summary>
         /// Adds, replaces or removes a property.
+        /// Note: this method automatically removes empty parameters.
         /// </summary>
         /// <param name="name">The property name.</param>
         /// <param name="value">The property value.</param>
+        /// <returns>The current instance, which allows chaining calls.</returns>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public virtual void SetProperty([NotNull] string name, string value) {
+        public OpenIdConnectMessage SetProperty([NotNull] string name, [CanBeNull] object value) {
             if (string.IsNullOrEmpty(name)) {
                 throw new ArgumentException("The property name cannot be null or empty.", nameof(name));
             }
 
-            // If the property value is null, remove the corresponding entry in the collection.
-            if (value == null || string.IsNullOrEmpty(value)) {
+            // If the property value is null, remove the
+            // corresponding entry from the collection.
+            if (value == null || (value is string && string.IsNullOrEmpty((string) value))) {
                 Properties.Remove(name);
-
-                return;
             }
 
-            Properties[name] = value;
+            else {
+                Properties[name] = value;
+            }
+
+            return this;
+        }
+
+        /// <summary>
+        /// Removes a parameter.
+        /// </summary>
+        /// <param name="name">The parameter name.</param>
+        /// <returns>The current instance, which allows chaining calls.</returns>
+        public OpenIdConnectMessage RemoveParameter([NotNull] string name) {
+            if (string.IsNullOrEmpty(name)) {
+                throw new ArgumentException("The parameter name cannot be null or empty.", nameof(name));
+            }
+
+            Parameters.Remove(name);
+
+            return this;
+        }
+
+        /// <summary>
+        /// Removes a property.
+        /// </summary>
+        /// <param name="name">The property name.</param>
+        /// <returns>The current instance, which allows chaining calls.</returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public OpenIdConnectMessage RemoveProperty([NotNull] string name) {
+            if (string.IsNullOrEmpty(name)) {
+                throw new ArgumentException("The property name cannot be null or empty.", nameof(name));
+            }
+
+            Properties.Remove(name);
+
+            return this;
         }
     }
 }

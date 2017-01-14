@@ -216,12 +216,12 @@ namespace AspNet.Security.OpenIdConnect.Client {
             var parameters = new Dictionary<string, string>();
 
             foreach (var parameter in request.GetParameters()) {
-                var value = parameter.Value as JValue;
-                if (value == null) {
+                var value = (string) parameter.Value;
+                if (string.IsNullOrEmpty(value)) {
                     continue;
                 }
 
-                parameters.Add(parameter.Key, (string) parameter.Value);
+                parameters.Add(parameter.Key, value);
             }
 
             if (method == HttpMethod.Get && parameters.Count != 0) {
@@ -291,7 +291,7 @@ namespace AspNet.Security.OpenIdConnect.Client {
                             continue;
                         }
 
-                        result.SetParameter(
+                        result.AddParameter(
                             Uri.UnescapeDataString(name.Replace('+', ' ')),
                             Uri.UnescapeDataString(value.Replace('+', ' ')));
                     }
@@ -303,12 +303,9 @@ namespace AspNet.Security.OpenIdConnect.Client {
             else if (string.Equals(response.Content?.Headers?.ContentType?.MediaType, "application/json", StringComparison.OrdinalIgnoreCase)) {
                 using (var stream = await response.Content.ReadAsStreamAsync())
                 using (var reader = new JsonTextReader(new StreamReader(stream))) {
-                    var payload = JToken.ReadFrom(reader) as JObject;
-                    if (payload == null) {
-                        throw new InvalidOperationException("The JSON payload returned by the server was invalid.");
-                    }
+                    var serializer = JsonSerializer.CreateDefault();
 
-                    return new OpenIdConnectResponse(payload);
+                    return serializer.Deserialize<OpenIdConnectResponse>(reader);
                 }
             }
 
@@ -329,7 +326,7 @@ namespace AspNet.Security.OpenIdConnect.Client {
                             continue;
                         }
 
-                        result.SetParameter(name, value);
+                        result.AddParameter(name, value);
                     }
 
                     return result;
@@ -347,7 +344,7 @@ namespace AspNet.Security.OpenIdConnect.Client {
                             continue;
                         }
 
-                        result.SetParameter(line.Substring(0, index), line.Substring(index + 1));
+                        result.AddParameter(line.Substring(0, index), line.Substring(index + 1));
                     }
 
                     return result;

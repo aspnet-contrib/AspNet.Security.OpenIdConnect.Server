@@ -249,7 +249,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // Copy the confidentiality level associated with the request to the authentication ticket.
             if (!ticket.HasProperty(OpenIdConnectConstants.Properties.ConfidentialityLevel)) {
                 ticket.SetProperty(OpenIdConnectConstants.Properties.ConfidentialityLevel,
-                    request.GetProperty(OpenIdConnectConstants.Properties.ConfidentialityLevel));
+                    request.GetProperty<string>(OpenIdConnectConstants.Properties.ConfidentialityLevel));
             }
 
             // Always include the "openid" scope when the developer doesn't explicitly call SetScopes.
@@ -435,15 +435,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
             using (var buffer = new MemoryStream())
             using (var writer = new StreamWriter(buffer)) {
                 foreach (var parameter in response.GetParameters()) {
-                    var value = parameter.Value as JValue;
-                    if (value == null) {
-                        Logger.LogWarning("A parameter whose type was incompatible was ignored " +
-                                          "and excluded from the response: '{Parameter}'.", parameter.Key);
-
+                    // Ignore null or empty parameters, including JSON
+                    // objects that can't be represented as strings.
+                    var value = (string) parameter.Value;
+                    if (string.IsNullOrEmpty(value)) {
                         continue;
                     }
 
-                    writer.WriteLine("{0}:{1}", parameter.Key, (string) value);
+                    writer.WriteLine("{0}:{1}", parameter.Key, value);
                 }
 
                 writer.Flush();
