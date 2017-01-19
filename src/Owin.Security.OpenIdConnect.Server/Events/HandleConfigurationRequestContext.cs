@@ -4,8 +4,9 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
-using AspNet.Security.OpenIdConnect.Primitives;
+using System;
 using System.Collections.Generic;
+using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.Owin;
 using Newtonsoft.Json.Linq;
 
@@ -27,9 +28,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         }
 
         /// <summary>
-        /// Gets the additional properties returned to the client application.
+        /// Gets the additional claims returned to the client application.
         /// </summary>
-        public IDictionary<string, JToken> Properties { get; } = new Dictionary<string, JToken>();
+        public IDictionary<string, JToken> Claims { get; } =
+            new Dictionary<string, JToken>(StringComparer.Ordinal);
 
         /// <summary>
         /// Gets or sets the authorization endpoint address.
@@ -75,42 +77,49 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// Gets a list of the code challenge methods
         /// supported by the authorization server.
         /// </summary>
-        public ICollection<string> CodeChallengeMethods { get; } = new HashSet<string>();
+        public ISet<string> CodeChallengeMethods { get; } =
+            new HashSet<string>(StringComparer.Ordinal);
 
         /// <summary>
         /// Gets a HashSet of the grant types
         /// supported by the authorization server.
         /// </summary>
-        public ICollection<string> GrantTypes { get; } = new HashSet<string>();
+        public ISet<string> GrantTypes { get; } =
+            new HashSet<string>(StringComparer.Ordinal);
 
         /// <summary>
         /// Gets a HashSet of the response modes
         /// supported by the authorization server.
         /// </summary>
-        public ICollection<string> ResponseModes { get; } = new HashSet<string>();
+        public ISet<string> ResponseModes { get; } =
+            new HashSet<string>(StringComparer.Ordinal);
 
         /// <summary>
         /// Gets a HashSet of the response types
         /// supported by the authorization server.
         /// </summary>
-        public ICollection<string> ResponseTypes { get; } = new HashSet<string>();
+        public ISet<string> ResponseTypes { get; } =
+            new HashSet<string>(StringComparer.Ordinal);
 
         /// <summary>
         /// Gets a HashSet of the scope values
         /// supported by the authorization server.
         /// </summary>
-        public ICollection<string> Scopes { get; } = new HashSet<string>();
+        public ISet<string> Scopes { get; } =
+            new HashSet<string>(StringComparer.Ordinal);
 
         /// <summary>
         /// Gets a HashSet of the signing algorithms
         /// supported by the authorization server.
         /// </summary>
-        public ICollection<string> SigningAlgorithms { get; } = new HashSet<string>();
+        public ISet<string> SigningAlgorithms { get; } =
+            new HashSet<string>(StringComparer.Ordinal);
 
         /// <summary>
         /// Gets a HashSet of the subject types
         /// supported by the authorization server.
         /// </summary>
-        public ICollection<string> SubjectTypes { get; } = new HashSet<string>();
+        public ISet<string> SubjectTypes { get; } =
+            new HashSet<string>(StringComparer.Ordinal);
     }
 }

@@ -231,13 +231,13 @@ namespace Owin.Security.OpenIdConnect.Server {
                 [OpenIdConnectConstants.Metadata.IdTokenSigningAlgValuesSupported] = new JArray(notification.SigningAlgorithms)
             };
 
-            foreach (var property in notification.Properties) {
-                // Ignore properties whose value is null.
-                if (property.Value == null) {
+            foreach (var claim in notification.Claims) {
+                // Ignore claims whose value is null.
+                if (claim.Value == null) {
                     continue;
                 }
 
-                response.SetParameter(property.Key, property.Value);
+                response.SetParameter(claim.Key, claim.Value);
             }
 
             return await SendConfigurationResponseAsync(response);

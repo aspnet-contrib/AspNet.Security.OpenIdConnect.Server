@@ -4,6 +4,7 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
+using System;
 using System.Collections.Generic;
 using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.AspNetCore.Authentication;
@@ -32,7 +33,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the additional claims returned to the client application.
         /// </summary>
-        public IDictionary<string, JToken> Claims { get; } = new Dictionary<string, JToken>();
+        public IDictionary<string, JToken> Claims { get; } =
+            new Dictionary<string, JToken>(StringComparer.Ordinal);
 
         /// <summary>
         /// Gets or sets the value used for the "address" claim.
@@ -44,7 +46,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets or sets the values used for the "aud" claim.
         /// </summary>
-        public ICollection<string> Audiences { get; } = new HashSet<string>();
+        public ISet<string> Audiences { get; } =
+            new HashSet<string>(StringComparer.Ordinal);
 
         /// <summary>
         /// Gets or sets the value used for the "birthdate" claim.

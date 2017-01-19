@@ -33,7 +33,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the additional claims returned to the caller.
         /// </summary>
-        public IDictionary<string, JToken> Claims { get; } = new Dictionary<string, JToken>();
+        public IDictionary<string, JToken> Claims { get; } =
+            new Dictionary<string, JToken>(StringComparer.Ordinal);
 
         /// <summary>
         /// Gets or sets the flag indicating
@@ -45,7 +46,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// Gets the list of audiences returned to the caller
         /// as part of the "aud" claim, if applicable.
         /// </summary>
-        public ICollection<string> Audiences { get; } = new HashSet<string>();
+        public ISet<string> Audiences { get; } =
+            new HashSet<string>(StringComparer.Ordinal);
 
         /// <summary>
         /// Gets or sets the "exp" claim
