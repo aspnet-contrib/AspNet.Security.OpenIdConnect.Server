@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Primitives;
@@ -214,28 +213,23 @@ namespace AspNet.Security.OpenIdConnect.Server {
             var response = new OpenIdConnectResponse {
                 [OpenIdConnectConstants.Metadata.Issuer] = notification.Issuer,
                 [OpenIdConnectConstants.Metadata.AuthorizationEndpoint] = notification.AuthorizationEndpoint,
-                [OpenIdConnectConstants.Metadata.JwksUri] = notification.CryptographyEndpoint,
+                [OpenIdConnectConstants.Metadata.TokenEndpoint] = notification.TokenEndpoint,
                 [OpenIdConnectConstants.Metadata.IntrospectionEndpoint] = notification.IntrospectionEndpoint,
                 [OpenIdConnectConstants.Metadata.EndSessionEndpoint] = notification.LogoutEndpoint,
                 [OpenIdConnectConstants.Metadata.RevocationEndpoint] = notification.RevocationEndpoint,
-                [OpenIdConnectConstants.Metadata.TokenEndpoint] = notification.TokenEndpoint,
                 [OpenIdConnectConstants.Metadata.UserinfoEndpoint] = notification.UserinfoEndpoint,
-                [OpenIdConnectConstants.Metadata.CodeChallengeMethodsSupported] = new JArray(notification.CodeChallengeMethods),
+                [OpenIdConnectConstants.Metadata.JwksUri] = notification.CryptographyEndpoint,
                 [OpenIdConnectConstants.Metadata.GrantTypesSupported] = new JArray(notification.GrantTypes),
-                [OpenIdConnectConstants.Metadata.ResponseModesSupported] = new JArray(notification.ResponseModes),
                 [OpenIdConnectConstants.Metadata.ResponseTypesSupported] = new JArray(notification.ResponseTypes),
-                [OpenIdConnectConstants.Metadata.SubjectTypesSupported] = new JArray(notification.SubjectTypes),
+                [OpenIdConnectConstants.Metadata.ResponseModesSupported] = new JArray(notification.ResponseModes),
                 [OpenIdConnectConstants.Metadata.ScopesSupported] = new JArray(notification.Scopes),
-                [OpenIdConnectConstants.Metadata.IdTokenSigningAlgValuesSupported] = new JArray(notification.SigningAlgorithms)
+                [OpenIdConnectConstants.Metadata.IdTokenSigningAlgValuesSupported] = new JArray(notification.SigningAlgorithms),
+                [OpenIdConnectConstants.Metadata.CodeChallengeMethodsSupported] = new JArray(notification.CodeChallengeMethods),
+                [OpenIdConnectConstants.Metadata.SubjectTypesSupported] = new JArray(notification.SubjectTypes)
             };
 
-            foreach (var claim in notification.Claims) {
-                // Ignore claims whose value is null.
-                if (claim.Value == null) {
-                    continue;
-                }
-
-                response.SetParameter(claim.Key, claim.Value);
+            foreach (var metadata in notification.Metadata) {
+                response.AddParameter(metadata.Key, metadata.Value);
             }
 
             return await SendConfigurationResponseAsync(response);

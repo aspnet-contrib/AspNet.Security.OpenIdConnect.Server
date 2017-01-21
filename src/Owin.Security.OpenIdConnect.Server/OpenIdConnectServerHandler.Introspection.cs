@@ -347,7 +347,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                         // When multiple claims with the same name exist, convert the existing entry
                         // to a new JArray to allow returning multiple claim values to the caller.
-                        var array = notification.Claims[type] as JArray;
+                        var array = notification.Claims[type].Value as JArray;
                         if (array == null) {
                             array = new JArray();
 
@@ -400,17 +400,17 @@ namespace Owin.Security.OpenIdConnect.Server {
                 response[OpenIdConnectConstants.Claims.JwtId] = notification.TokenId;
                 response[OpenIdConnectConstants.Claims.TokenType] = notification.TokenType;
 
-                if (notification.IssuedAt.HasValue) {
+                if (notification.IssuedAt != null) {
                     response[OpenIdConnectConstants.Claims.IssuedAt] =
                         EpochTime.GetIntDate(notification.IssuedAt.Value.UtcDateTime);
                 }
 
-                if (notification.NotBefore.HasValue) {
+                if (notification.NotBefore != null) {
                     response[OpenIdConnectConstants.Claims.NotBefore] =
                         EpochTime.GetIntDate(notification.NotBefore.Value.UtcDateTime);
                 }
 
-                if (notification.ExpiresAt.HasValue) {
+                if (notification.ExpiresAt != null) {
                     response[OpenIdConnectConstants.Claims.ExpiresAt] =
                         EpochTime.GetIntDate(notification.ExpiresAt.Value.UtcDateTime);
                 }
@@ -428,12 +428,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
 
                 foreach (var claim in notification.Claims) {
-                    // Ignore claims whose value is null.
-                    if (claim.Value == null) {
-                        continue;
-                    }
-
-                    response.SetParameter(claim.Key, claim.Value);
+                    response.AddParameter(claim.Key, claim.Value);
                 }
             }
 

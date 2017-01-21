@@ -33,8 +33,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the additional claims returned to the client application.
         /// </summary>
-        public IDictionary<string, JToken> Claims { get; } =
-            new Dictionary<string, JToken>(StringComparer.Ordinal);
+        public IDictionary<string, OpenIdConnectParameter> Claims { get; } =
+            new Dictionary<string, OpenIdConnectParameter>(StringComparer.Ordinal);
 
         /// <summary>
         /// Gets or sets the value used for the "address" claim.

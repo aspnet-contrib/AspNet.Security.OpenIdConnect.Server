@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.Owin;
-using Newtonsoft.Json.Linq;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
@@ -28,10 +27,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         }
 
         /// <summary>
-        /// Gets the additional claims returned to the client application.
+        /// Gets the additional parameters returned to the client application.
         /// </summary>
-        public IDictionary<string, JToken> Claims { get; } =
-            new Dictionary<string, JToken>(StringComparer.Ordinal);
+        public IDictionary<string, OpenIdConnectParameter> Metadata { get; } =
+            new Dictionary<string, OpenIdConnectParameter>(StringComparer.Ordinal);
 
         /// <summary>
         /// Gets or sets the authorization endpoint address.

@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
-using Newtonsoft.Json.Linq;
 
 namespace Owin.Security.OpenIdConnect.Server {
     /// <summary>
@@ -38,8 +37,8 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the additional claims returned to the caller.
         /// </summary>
-        public IDictionary<string, JToken> Claims { get; } =
-            new Dictionary<string, JToken>(StringComparer.Ordinal);
+        public IDictionary<string, OpenIdConnectParameter> Claims { get; } =
+            new Dictionary<string, OpenIdConnectParameter>(StringComparer.Ordinal);
 
         /// <summary>
         /// Gets or sets the flag indicating

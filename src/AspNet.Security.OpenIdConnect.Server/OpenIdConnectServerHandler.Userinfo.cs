@@ -289,12 +289,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             foreach (var claim in notification.Claims) {
-                // Ignore claims whose value is null.
-                if (claim.Value == null) {
-                    continue;
-                }
-
-                response.SetParameter(claim.Key, claim.Value);
+                response.AddParameter(claim.Key, claim.Value);
             }
 
             return await SendUserinfoResponseAsync(response);
