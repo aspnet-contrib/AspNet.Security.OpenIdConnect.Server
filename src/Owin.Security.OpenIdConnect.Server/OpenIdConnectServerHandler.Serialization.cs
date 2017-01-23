@@ -105,7 +105,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                 DataFormat = Options.AccessTokenFormat,
                 Issuer = Context.GetIssuer(Options),
                 SecurityTokenHandler = Options.AccessTokenHandler,
-                SigningCredentials = Options.SigningCredentials.FirstOrDefault()
+                SigningCredentials = Options.SigningCredentials.FirstOrDefault(key => key.SigningKey is SymmetricSecurityKey) ??
+                                     Options.SigningCredentials.FirstOrDefault()
             };
 
             await Options.Provider.SerializeAccessToken(notification);
@@ -116,10 +117,6 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             else if (notification.Skipped) {
                 return null;
-            }
-
-            if (!notification.Audiences.Any()) {
-                Options.Logger.LogInformation("No explicit audience was associated with the access token.");
             }
 
             if (notification.SecurityTokenHandler == null) {
@@ -200,7 +197,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                     ClaimValueTypes.Integer64));
             }
 
-            var descriptor = new SecurityTokenDescriptor {
+            var token = notification.SecurityTokenHandler.CreateToken(new SecurityTokenDescriptor {
                 Subject = ticket.Identity,
                 TokenIssuerName = notification.Issuer,
                 EncryptingCredentials = notification.EncryptingCredentials,
@@ -208,9 +205,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 Lifetime = new Lifetime(
                     notification.Ticket.Properties.IssuedUtc?.UtcDateTime,
                     notification.Ticket.Properties.ExpiresUtc?.UtcDateTime)
-            };
-
-            var token = notification.SecurityTokenHandler.CreateToken(descriptor);
+            });
 
             return notification.SecurityTokenHandler.WriteToken(token);
         }
@@ -254,7 +249,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             var notification = new SerializeIdentityTokenContext(Context, Options, request, response, ticket) {
                 Issuer = Context.GetIssuer(Options),
                 SecurityTokenHandler = Options.IdentityTokenHandler,
-                SigningCredentials = Options.SigningCredentials.FirstOrDefault()
+                SigningCredentials = Options.SigningCredentials.FirstOrDefault(key => key.SigningKey is AsymmetricSecurityKey)
             };
 
             await Options.Provider.SerializeIdentityToken(notification);
@@ -379,16 +374,14 @@ namespace Owin.Security.OpenIdConnect.Server {
                     ClaimValueTypes.Integer64));
             }
 
-            var descriptor = new SecurityTokenDescriptor {
+            var token = notification.SecurityTokenHandler.CreateToken(new SecurityTokenDescriptor {
                 Subject = ticket.Identity,
                 TokenIssuerName = notification.Issuer,
                 SigningCredentials = notification.SigningCredentials,
                 Lifetime = new Lifetime(
                     notification.Ticket.Properties.IssuedUtc?.UtcDateTime,
                     notification.Ticket.Properties.ExpiresUtc?.UtcDateTime)
-            };
-
-            var token = notification.SecurityTokenHandler.CreateToken(descriptor);
+            });
 
             return notification.SecurityTokenHandler.WriteToken(token);
         }

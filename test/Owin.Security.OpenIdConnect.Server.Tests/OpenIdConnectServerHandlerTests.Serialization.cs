@@ -495,6 +495,97 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
+        public async Task SerializeAccessTokenAsync_PrefersSymmetricSigningKeyWhenAvailable() {
+            // Arrange
+            var credentials = new SigningCredentials(
+                new InMemorySymmetricSecurityKey(new byte[256 / 8]),
+                SecurityAlgorithms.HmacSha256Signature,
+                SecurityAlgorithms.Sha256Digest);
+
+            var server = CreateAuthorizationServer(options => {
+                options.SigningCredentials.Add(credentials);
+
+                options.Provider.OnSerializeAccessToken = context => {
+                    // Assert
+                    Assert.Same(credentials, context.SigningCredentials);
+                    Assert.IsAssignableFrom(typeof(SymmetricSecurityKey), context.SigningCredentials.SigningKey);
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnValidateTokenRequest = context => {
+                    context.Skip();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnHandleTokenRequest = context => {
+                    var identity = new ClaimsIdentity(context.Options.AuthenticationType);
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
+
+                    context.Validate(identity);
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+                ClientId = "Fabrikam",
+                GrantType = OpenIdConnectConstants.GrantTypes.Password,
+                Username = "johndoe",
+                Password = "A3ddj3w"
+            });
+
+            // Assert
+            Assert.NotNull(response.AccessToken);
+        }
+
+        [Fact]
+        public async Task SerializeAccessTokenAsync_UsesAsymmetricSigningKey() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnSerializeAccessToken = context => {
+                    // Assert
+                    Assert.Same(context.Options.SigningCredentials[0], context.SigningCredentials);
+                    Assert.IsAssignableFrom(typeof(AsymmetricSecurityKey), context.SigningCredentials.SigningKey);
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnValidateTokenRequest = context => {
+                    context.Skip();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnHandleTokenRequest = context => {
+                    var identity = new ClaimsIdentity(context.Options.AuthenticationType);
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
+
+                    context.Validate(identity);
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+                ClientId = "Fabrikam",
+                GrantType = OpenIdConnectConstants.GrantTypes.Password,
+                Username = "johndoe",
+                Password = "A3ddj3w"
+            });
+
+            // Assert
+            Assert.NotNull(response.AccessToken);
+        }
+
+        [Fact]
         public async Task SerializeAccessTokenAsync_AllowsHandlingSerialization() {
             // Arrange
             var server = CreateAuthorizationServer(options => {
@@ -894,6 +985,100 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     Assert.Equal(OpenIdConnectConstants.Usages.IdentityToken, context.Ticket.GetUsage());
                     Assert.Equal("Fabrikam", context.Ticket.GetProperty(OpenIdConnectConstants.Properties.Presenters));
                     Assert.NotNull(context.Ticket.GetTicketId());
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnValidateTokenRequest = context => {
+                    context.Skip();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnHandleTokenRequest = context => {
+                    var identity = new ClaimsIdentity(context.Options.AuthenticationType);
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
+
+                    context.Validate(identity);
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+                ClientId = "Fabrikam",
+                GrantType = OpenIdConnectConstants.GrantTypes.Password,
+                Username = "johndoe",
+                Password = "A3ddj3w",
+                Scope = OpenIdConnectConstants.Scopes.OpenId
+            });
+
+            // Assert
+            Assert.NotNull(response.IdToken);
+        }
+
+        [Fact]
+        public async Task SerializeIdentityTokenAsync_IgnoresSymmetricSigningKeys() {
+            // Arrange
+            var credentials = new SigningCredentials(
+                new InMemorySymmetricSecurityKey(new byte[256 / 8]),
+                SecurityAlgorithms.HmacSha256Signature,
+                SecurityAlgorithms.Sha256Digest);
+
+            var server = CreateAuthorizationServer(options => {
+                options.SigningCredentials.Insert(0, credentials);
+
+                options.Provider.OnSerializeIdentityToken = context => {
+                    // Assert
+                    Assert.NotSame(credentials, context.SigningCredentials);
+                    Assert.Same(context.Options.SigningCredentials[1], context.SigningCredentials);
+                    Assert.IsAssignableFrom(typeof(AsymmetricSecurityKey), context.SigningCredentials.SigningKey);
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnValidateTokenRequest = context => {
+                    context.Skip();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnHandleTokenRequest = context => {
+                    var identity = new ClaimsIdentity(context.Options.AuthenticationType);
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
+
+                    context.Validate(identity);
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+                ClientId = "Fabrikam",
+                GrantType = OpenIdConnectConstants.GrantTypes.Password,
+                Username = "johndoe",
+                Password = "A3ddj3w",
+                Scope = OpenIdConnectConstants.Scopes.OpenId
+            });
+
+            // Assert
+            Assert.NotNull(response.IdToken);
+        }
+
+        [Fact]
+        public async Task SerializeIdentityTokenAsync_UsesAsymmetricSigningKey() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnSerializeIdentityToken = context => {
+                    // Assert
+                    Assert.Same(context.Options.SigningCredentials[0], context.SigningCredentials);
+                    Assert.IsAssignableFrom(typeof(AsymmetricSecurityKey), context.SigningCredentials.SigningKey);
 
                     return Task.FromResult(0);
                 };

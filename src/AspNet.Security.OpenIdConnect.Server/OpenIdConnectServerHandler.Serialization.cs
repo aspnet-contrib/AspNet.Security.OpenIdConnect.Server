@@ -109,7 +109,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 DataFormat = Options.AccessTokenFormat,
                 Issuer = Context.GetIssuer(Options),
                 SecurityTokenHandler = Options.AccessTokenHandler,
-                SigningCredentials = Options.SigningCredentials.FirstOrDefault()
+                SigningCredentials = Options.SigningCredentials.FirstOrDefault(key => key.Key is SymmetricSecurityKey) ??
+                                     Options.SigningCredentials.FirstOrDefault()
             };
 
             await Options.Provider.SerializeAccessToken(notification);
@@ -124,10 +125,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             if (!ReferenceEquals(ticket, notification.Ticket)) {
                 throw new InvalidOperationException("The authentication ticket cannot be replaced.");
-            }
-
-            if (!notification.Audiences.Any()) {
-                Logger.LogInformation("No explicit audience was associated with the access token.");
             }
 
             if (notification.SecurityTokenHandler == null) {
@@ -257,7 +254,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
             var notification = new SerializeIdentityTokenContext(Context, Options, request, response, ticket) {
                 Issuer = Context.GetIssuer(Options),
                 SecurityTokenHandler = Options.IdentityTokenHandler,
-                SigningCredentials = Options.SigningCredentials.FirstOrDefault()
+                SigningCredentials = Options.SigningCredentials.FirstOrDefault(key => key.Key is AsymmetricSecurityKey)
             };
 
             await Options.Provider.SerializeIdentityToken(notification);
