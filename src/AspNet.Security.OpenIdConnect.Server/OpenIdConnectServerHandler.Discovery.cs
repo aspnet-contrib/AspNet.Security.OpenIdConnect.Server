@@ -36,7 +36,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             // Note: set the message type before invoking the ExtractConfigurationRequest event.
             request.SetProperty(OpenIdConnectConstants.Properties.MessageType,
-                                OpenIdConnectConstants.MessageTypes.Configuration);
+                                OpenIdConnectConstants.MessageTypes.ConfigurationRequest);
 
             // Store the discovery request in the ASP.NET context.
             Context.SetOpenIdConnectRequest(request);
@@ -264,7 +264,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             // Note: set the message type before invoking the ExtractCryptographyRequest event.
             request.SetProperty(OpenIdConnectConstants.Properties.MessageType,
-                                OpenIdConnectConstants.MessageTypes.Cryptography);
+                                OpenIdConnectConstants.MessageTypes.CryptographyRequest);
 
             // Store the discovery request in the ASP.NET context.
             Context.SetOpenIdConnectRequest(request);

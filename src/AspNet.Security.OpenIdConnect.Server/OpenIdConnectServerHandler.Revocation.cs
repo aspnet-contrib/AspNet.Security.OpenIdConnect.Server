@@ -57,7 +57,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             // Note: set the message type before invoking the ExtractRevocationRequest event.
             request.SetProperty(OpenIdConnectConstants.Properties.MessageType,
-                                OpenIdConnectConstants.MessageTypes.Revocation);
+                                OpenIdConnectConstants.MessageTypes.RevocationRequest);
 
             // Insert the revocation request in the ASP.NET context.
             Context.SetOpenIdConnectRequest(request);

@@ -60,7 +60,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             // Note: set the message type before invoking the ExtractTokenRequest event.
             request.SetProperty(OpenIdConnectConstants.Properties.MessageType,
-                                OpenIdConnectConstants.MessageTypes.Token);
+                                OpenIdConnectConstants.MessageTypes.TokenRequest);
 
             // Store the token request in the OWIN context.
             Context.SetOpenIdConnectRequest(request);

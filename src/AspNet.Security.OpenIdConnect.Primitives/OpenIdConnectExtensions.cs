@@ -86,7 +86,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
                 return false;
             }
 
-            return string.Equals(value, OpenIdConnectConstants.MessageTypes.Authorization, StringComparison.OrdinalIgnoreCase);
+            return string.Equals(value, OpenIdConnectConstants.MessageTypes.AuthorizationRequest, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -123,7 +123,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
                 return false;
             }
 
-            return string.Equals(value, OpenIdConnectConstants.MessageTypes.Configuration, StringComparison.OrdinalIgnoreCase);
+            return string.Equals(value, OpenIdConnectConstants.MessageTypes.ConfigurationRequest, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -141,7 +141,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
                 return false;
             }
 
-            return string.Equals(value, OpenIdConnectConstants.MessageTypes.Cryptography, StringComparison.OrdinalIgnoreCase);
+            return string.Equals(value, OpenIdConnectConstants.MessageTypes.CryptographyRequest, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -159,7 +159,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
                 return false;
             }
 
-            return string.Equals(value, OpenIdConnectConstants.MessageTypes.Introspection, StringComparison.OrdinalIgnoreCase);
+            return string.Equals(value, OpenIdConnectConstants.MessageTypes.IntrospectionRequest, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -177,7 +177,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
                 return false;
             }
 
-            return string.Equals(value, OpenIdConnectConstants.MessageTypes.Logout, StringComparison.OrdinalIgnoreCase);
+            return string.Equals(value, OpenIdConnectConstants.MessageTypes.LogoutRequest, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -195,7 +195,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
                 return false;
             }
 
-            return string.Equals(value, OpenIdConnectConstants.MessageTypes.Revocation, StringComparison.OrdinalIgnoreCase);
+            return string.Equals(value, OpenIdConnectConstants.MessageTypes.RevocationRequest, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -213,7 +213,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
                 return false;
             }
 
-            return string.Equals(value, OpenIdConnectConstants.MessageTypes.Token, StringComparison.OrdinalIgnoreCase);
+            return string.Equals(value, OpenIdConnectConstants.MessageTypes.TokenRequest, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -231,7 +231,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
                 return false;
             }
 
-            return string.Equals(value, OpenIdConnectConstants.MessageTypes.Userinfo, StringComparison.OrdinalIgnoreCase);
+            return string.Equals(value, OpenIdConnectConstants.MessageTypes.UserinfoRequest, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>

@@ -109,14 +109,14 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         }
 
         public static class MessageTypes {
-            public const string Authorization = "authorization";
-            public const string Configuration = "configuration";
-            public const string Cryptography = "cryptography";
-            public const string Introspection = "introspection";
-            public const string Logout = "logout";
-            public const string Revocation = "revocation";
-            public const string Token = "token";
-            public const string Userinfo = "userinfo";
+            public const string AuthorizationRequest = "authorization_request";
+            public const string ConfigurationRequest = "configuration_request";
+            public const string CryptographyRequest = "cryptography_request";
+            public const string IntrospectionRequest = "introspection_request";
+            public const string LogoutRequest = "logout_request";
+            public const string RevocationRequest = "revocation_request";
+            public const string TokenRequest = "token_request";
+            public const string UserinfoRequest = "userinfo_request";
         }
 
         public static class Metadata {

@@ -65,7 +65,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             // Note: set the message type before invoking the ExtractUserinfoRequest event.
             request.SetProperty(OpenIdConnectConstants.Properties.MessageType,
-                                OpenIdConnectConstants.MessageTypes.Userinfo);
+                                OpenIdConnectConstants.MessageTypes.UserinfoRequest);
 
             // Insert the userinfo request in the OWIN context.
             Context.SetOpenIdConnectRequest(request);

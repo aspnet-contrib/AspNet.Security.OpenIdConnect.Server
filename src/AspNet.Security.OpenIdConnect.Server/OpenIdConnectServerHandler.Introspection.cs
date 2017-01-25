@@ -72,7 +72,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             // Note: set the message type before invoking the ExtractIntrospectionRequest event.
             request.SetProperty(OpenIdConnectConstants.Properties.MessageType,
-                                OpenIdConnectConstants.MessageTypes.Introspection);
+                                OpenIdConnectConstants.MessageTypes.IntrospectionRequest);
 
             // Store the introspection request in the ASP.NET context.
             Context.SetOpenIdConnectRequest(request);

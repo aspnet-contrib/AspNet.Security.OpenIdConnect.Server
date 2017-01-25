@@ -68,7 +68,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             // Note: set the message type before invoking the ExtractAuthorizationRequest event.
             request.SetProperty(OpenIdConnectConstants.Properties.MessageType,
-                                OpenIdConnectConstants.MessageTypes.Authorization);
+                                OpenIdConnectConstants.MessageTypes.AuthorizationRequest);
 
             // Store the authorization request in the ASP.NET context.
             Context.SetOpenIdConnectRequest(request);

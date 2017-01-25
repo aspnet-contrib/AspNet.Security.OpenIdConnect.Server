@@ -107,7 +107,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [Theory]
         [InlineData(null, false)]
         [InlineData("unknown", false)]
-        [InlineData(OpenIdConnectConstants.MessageTypes.Authorization, true)]
+        [InlineData(OpenIdConnectConstants.MessageTypes.AuthorizationRequest, true)]
         public void IsAuthorizationRequest_ReturnsExpectedResult(string type, bool result) {
             // Arrange
             var request = new OpenIdConnectRequest();
@@ -134,7 +134,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [Theory]
         [InlineData(null, false)]
         [InlineData("unknown", false)]
-        [InlineData(OpenIdConnectConstants.MessageTypes.Configuration, true)]
+        [InlineData(OpenIdConnectConstants.MessageTypes.ConfigurationRequest, true)]
         public void IsConfigurationRequest_ReturnsExpectedResult(string type, bool result) {
             // Arrange
             var request = new OpenIdConnectRequest();
@@ -147,7 +147,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [Theory]
         [InlineData(null, false)]
         [InlineData("unknown", false)]
-        [InlineData(OpenIdConnectConstants.MessageTypes.Cryptography, true)]
+        [InlineData(OpenIdConnectConstants.MessageTypes.CryptographyRequest, true)]
         public void IsCryptographyRequest_ReturnsExpectedResult(string type, bool result) {
             // Arrange
             var request = new OpenIdConnectRequest();
@@ -160,7 +160,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [Theory]
         [InlineData(null, false)]
         [InlineData("unknown", false)]
-        [InlineData(OpenIdConnectConstants.MessageTypes.Introspection, true)]
+        [InlineData(OpenIdConnectConstants.MessageTypes.IntrospectionRequest, true)]
         public void IsIntrospectionRequest_ReturnsExpectedResult(string type, bool result) {
             // Arrange
             var request = new OpenIdConnectRequest();
@@ -173,7 +173,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [Theory]
         [InlineData(null, false)]
         [InlineData("unknown", false)]
-        [InlineData(OpenIdConnectConstants.MessageTypes.Logout, true)]
+        [InlineData(OpenIdConnectConstants.MessageTypes.LogoutRequest, true)]
         public void IsLogoutRequest_ReturnsExpectedResult(string type, bool result) {
             // Arrange
             var request = new OpenIdConnectRequest();
@@ -186,7 +186,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [Theory]
         [InlineData(null, false)]
         [InlineData("unknown", false)]
-        [InlineData(OpenIdConnectConstants.MessageTypes.Revocation, true)]
+        [InlineData(OpenIdConnectConstants.MessageTypes.RevocationRequest, true)]
         public void IsRevocationRequest_ReturnsExpectedResult(string type, bool result) {
             // Arrange
             var request = new OpenIdConnectRequest();
@@ -199,7 +199,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [Theory]
         [InlineData(null, false)]
         [InlineData("unknown", false)]
-        [InlineData(OpenIdConnectConstants.MessageTypes.Token, true)]
+        [InlineData(OpenIdConnectConstants.MessageTypes.TokenRequest, true)]
         public void IsTokenRequest_ReturnsExpectedResult(string type, bool result) {
             // Arrange
             var request = new OpenIdConnectRequest();
@@ -212,7 +212,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [Theory]
         [InlineData(null, false)]
         [InlineData("unknown", false)]
-        [InlineData(OpenIdConnectConstants.MessageTypes.Userinfo, true)]
+        [InlineData(OpenIdConnectConstants.MessageTypes.UserinfoRequest, true)]
         public void IsUserinfoRequest_ReturnsExpectedResult(string type, bool result) {
             // Arrange
             var request = new OpenIdConnectRequest();

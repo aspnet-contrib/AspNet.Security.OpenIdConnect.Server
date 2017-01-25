@@ -68,7 +68,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             // Note: set the message type before invoking the ExtractLogoutRequest event.
             request.SetProperty(OpenIdConnectConstants.Properties.MessageType,
-                                OpenIdConnectConstants.MessageTypes.Logout);
+                                OpenIdConnectConstants.MessageTypes.LogoutRequest);
 
             // Store the logout request in the ASP.NET context.
             Context.SetOpenIdConnectRequest(request);

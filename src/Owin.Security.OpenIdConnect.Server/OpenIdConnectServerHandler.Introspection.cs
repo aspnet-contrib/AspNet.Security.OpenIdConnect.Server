@@ -70,7 +70,7 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             // Note: set the message type before invoking the ExtractIntrospectionRequest event.
             request.SetProperty(OpenIdConnectConstants.Properties.MessageType,
-                                OpenIdConnectConstants.MessageTypes.Introspection);
+                                OpenIdConnectConstants.MessageTypes.IntrospectionRequest);
 
             // Insert the introspection request in the OWIN context.
             Context.SetOpenIdConnectRequest(request);
