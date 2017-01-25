@@ -131,6 +131,7 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return notification.DataFormat?.Protect(ticket);
             }
 
+            // At this stage, throw an exception if no signing credentials were provided.
             if (notification.SigningCredentials == null) {
                 throw new InvalidOperationException("A signing key must be provided.");
             }
@@ -275,10 +276,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return null;
             }
 
-            if (notification.SigningCredentials == null) {
-                throw new InvalidOperationException("A signing key must be provided.");
-            }
-
             // Extract the main identity from the principal.
             identity = (ClaimsIdentity) ticket.Principal.Identity;
 
@@ -287,6 +284,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 string.IsNullOrEmpty(identity.GetClaim(ClaimTypes.Upn))) {
                 throw new InvalidOperationException("The authentication ticket was rejected because " +
                                                     "it doesn't contain the mandatory subject claim.");
+            }
+
+            // Note: identity tokens must be signed but an exception is made by the OpenID Connect specification
+            // when they are returned from the token endpoint: in this case, signing is not mandatory, as the TLS
+            // server validation can be used as a way to ensure an identity token was issued by a trusted party.
+            // See http://openid.net/specs/openid-connect-core-1_0.html#IDTokenValidation for more information.
+            if (notification.SigningCredentials == null && request.IsAuthorizationRequest()) {
+                throw new InvalidOperationException("A signing key must be provided.");
             }
 
             // Note: if the "sub" claim was not explicitly added, try to use
@@ -341,23 +346,26 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 identity.AddClaim(OpenIdConnectConstants.Claims.Nonce, nonce);
             }
 
-            using (var algorithm = OpenIdConnectServerHelpers.GetHashAlgorithm(notification.SigningCredentials.Algorithm)) {
-                // Create an authorization code hash if necessary.
-                if (!string.IsNullOrEmpty(response.Code)) {
-                    var hash = algorithm.ComputeHash(Encoding.ASCII.GetBytes(response.Code));
+            if (notification.SigningCredentials != null && (!string.IsNullOrEmpty(response.Code) ||
+                                                            !string.IsNullOrEmpty(response.AccessToken))) {
+                using (var algorithm = OpenIdConnectServerHelpers.GetHashAlgorithm(notification.SigningCredentials.Algorithm)) {
+                    // Create an authorization code hash if necessary.
+                    if (!string.IsNullOrEmpty(response.Code)) {
+                        var hash = algorithm.ComputeHash(Encoding.ASCII.GetBytes(response.Code));
 
-                    // Note: only the left-most half of the hash of the octets is used.
-                    // See http://openid.net/specs/openid-connect-core-1_0.html#HybridIDToken
-                    identity.AddClaim(OpenIdConnectConstants.Claims.CodeHash, Base64UrlEncoder.Encode(hash, 0, hash.Length / 2));
-                }
+                        // Note: only the left-most half of the hash of the octets is used.
+                        // See http://openid.net/specs/openid-connect-core-1_0.html#HybridIDToken
+                        identity.AddClaim(OpenIdConnectConstants.Claims.CodeHash, Base64UrlEncoder.Encode(hash, 0, hash.Length / 2));
+                    }
 
-                // Create an access token hash if necessary.
-                if (!string.IsNullOrEmpty(response.AccessToken)) {
-                    var hash = algorithm.ComputeHash(Encoding.ASCII.GetBytes(response.AccessToken));
+                    // Create an access token hash if necessary.
+                    if (!string.IsNullOrEmpty(response.AccessToken)) {
+                        var hash = algorithm.ComputeHash(Encoding.ASCII.GetBytes(response.AccessToken));
 
-                    // Note: only the left-most half of the hash of the octets is used.
-                    // See http://openid.net/specs/openid-connect-core-1_0.html#CodeIDToken
-                    identity.AddClaim(OpenIdConnectConstants.Claims.AccessTokenHash, Base64UrlEncoder.Encode(hash, 0, hash.Length / 2));
+                        // Note: only the left-most half of the hash of the octets is used.
+                        // See http://openid.net/specs/openid-connect-core-1_0.html#CodeIDToken
+                        identity.AddClaim(OpenIdConnectConstants.Claims.AccessTokenHash, Base64UrlEncoder.Encode(hash, 0, hash.Length / 2));
+                    }
                 }
             }
 

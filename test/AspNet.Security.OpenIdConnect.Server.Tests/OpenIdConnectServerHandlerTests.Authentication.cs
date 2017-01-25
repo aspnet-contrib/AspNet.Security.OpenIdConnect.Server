@@ -11,8 +11,10 @@ using AspNet.Security.OpenIdConnect.Client;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Authentication;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 using Xunit;
@@ -265,6 +267,34 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
             Assert.Equal("openid scope missing", response.ErrorDescription);
+        }
+
+        [Theory]
+        [InlineData("code id_token")]
+        [InlineData("code id_token token")]
+        [InlineData("id_token")]
+        [InlineData("id_token token")]
+        public async Task InvokeAuthorizationEndpointAsync_IdTokenResponseTypeCausesAnErrorWhenNoAsymmetricSigningKeyIsRegistered(string type) {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.SigningCredentials.Clear();
+                options.SigningCredentials.AddKey(new SymmetricSecurityKey(new byte[256 / 8]));
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest {
+                ClientId = "Fabrikam",
+                Nonce = "n-0S6_WzA2Mj",
+                RedirectUri = "http://www.fabrikam.com/path",
+                ResponseType = type,
+                Scope = OpenIdConnectConstants.Scopes.OpenId
+            });
+
+            // Assert
+            Assert.Equal(OpenIdConnectConstants.Errors.UnsupportedResponseType, response.Error);
+            Assert.Equal("The specified response type is not supported by this server.", response.ErrorDescription);
         }
 
         [Theory]

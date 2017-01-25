@@ -6,7 +6,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.Extensions.Logging;
@@ -140,7 +142,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 // Note: when specified, redirect_uri MUST NOT include a fragment component.
                 // See http://tools.ietf.org/html/rfc6749#section-3.1.2
                 // and http://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
-                else if (!string.IsNullOrEmpty(uri.Fragment)) {
+                if (!string.IsNullOrEmpty(uri.Fragment)) {
                     Options.Logger.LogError("The authorization request was rejected because the 'redirect_uri' " +
                                             "contained a URL fragment: {RedirectUri}.", request.RedirectUri);
 
@@ -165,8 +167,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             // response_mode=query (explicit or not) and a response_type containing id_token
             // or token are not considered as a safe combination and MUST be rejected.
             // See http://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#Security
-            else if (request.IsQueryResponseMode() && (request.HasResponseType(OpenIdConnectConstants.ResponseTypes.IdToken) ||
-                                                       request.HasResponseType(OpenIdConnectConstants.ResponseTypes.Token))) {
+            if (request.IsQueryResponseMode() && (request.HasResponseType(OpenIdConnectConstants.ResponseTypes.IdToken) ||
+                                                  request.HasResponseType(OpenIdConnectConstants.ResponseTypes.Token))) {
                 Options.Logger.LogError("The authorization request was rejected because the 'response_type'/'response_mode' combination " +
                                         "was unsafe: {ResponseType} ; {ResponseMode}.", request.ResponseType, request.ResponseMode);
 
@@ -180,8 +182,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             // See http://openid.net/specs/openid-connect-core-1_0.html#AuthRequest,
             // http://openid.net/specs/openid-connect-implicit-1_0.html#RequestParameters
             // and http://openid.net/specs/openid-connect-core-1_0.html#HybridIDToken.
-            else if (string.IsNullOrEmpty(request.Nonce) && request.HasScope(OpenIdConnectConstants.Scopes.OpenId) &&
-                                                           (request.IsImplicitFlow() || request.IsHybridFlow())) {
+            if (string.IsNullOrEmpty(request.Nonce) && request.HasScope(OpenIdConnectConstants.Scopes.OpenId) &&
+                                                      (request.IsImplicitFlow() || request.IsHybridFlow())) {
                 Options.Logger.LogError("The authorization request was rejected because " +
                                         "the mandatory 'nonce' parameter was missing.");
 
@@ -192,8 +194,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             // Reject requests containing the id_token response_type if no openid scope has been received.
-            else if (request.HasResponseType(OpenIdConnectConstants.ResponseTypes.IdToken) &&
-                    !request.HasScope(OpenIdConnectConstants.Scopes.OpenId)) {
+            if (request.HasResponseType(OpenIdConnectConstants.ResponseTypes.IdToken) &&
+               !request.HasScope(OpenIdConnectConstants.Scopes.OpenId)) {
                 Options.Logger.LogError("The authorization request was rejected because the 'openid' scope was missing.");
 
                 return await SendAuthorizationResponseAsync(new OpenIdConnectResponse {
@@ -202,8 +204,20 @@ namespace Owin.Security.OpenIdConnect.Server {
                 });
             }
 
+            // Reject requests containing the id_token response_type if no asymmetric signing key have been registered.
+            if (request.HasResponseType(OpenIdConnectConstants.ResponseTypes.IdToken) &&
+               !Options.SigningCredentials.Any(credentials => credentials.SigningKey is AsymmetricSecurityKey)) {
+                Options.Logger.LogError("The authorization request was rejected because the 'id_token' response type could not be honored. " +
+                                        "To fix this error, consider registering a X.509 signing certificate or an ephemeral signing key.");
+
+                return await SendAuthorizationResponseAsync(new OpenIdConnectResponse {
+                    Error = OpenIdConnectConstants.Errors.UnsupportedResponseType,
+                    ErrorDescription = "The specified response type is not supported by this server."
+                });
+            }
+
             // Reject requests containing the code response_type if the token endpoint has been disabled.
-            else if (request.HasResponseType(OpenIdConnectConstants.ResponseTypes.Code) && !Options.TokenEndpointPath.HasValue) {
+            if (request.HasResponseType(OpenIdConnectConstants.ResponseTypes.Code) && !Options.TokenEndpointPath.HasValue) {
                 Options.Logger.LogError("The authorization request was rejected because the authorization code flow was disabled.");
 
                 return await SendAuthorizationResponseAsync(new OpenIdConnectResponse {

@@ -71,14 +71,15 @@ namespace AspNet.Security.OpenIdConnect.Server {
                                             "the OpenID Connect server middleware.", nameof(options));
             }
 
-            if (Options.SigningCredentials.Count == 0) {
-                throw new ArgumentException("At least one signing key must be registered. Consider registering " +
-                                            "a X.509 certificate or call 'options.SigningCredentials.AddEphemeralKey()' " +
-                                            "to generate and register an ephemeral signing key.", nameof(options));
-            }
-
             if (Options.AccessTokenHandler != null && !(Options.AccessTokenHandler is JwtSecurityTokenHandler)) {
                 throw new ArgumentException("The access token handler must be derived from 'JwtSecurityTokenHandler'.", nameof(options));
+            }
+
+            // Ensure at least one signing certificate/key was registered if an access token handler was registered.
+            if (Options.AccessTokenHandler != null && Options.SigningCredentials.Count == 0) {
+                throw new ArgumentException("At least one signing key must be registered when using JWT as the access token format. " +
+                                            "Consider registering a X.509 certificate using 'services.AddOpenIddict().AddSigningCertificate()' " +
+                                            "or call 'services.AddOpenIddict().AddEphemeralSigningKey()' to use an ephemeral key.", nameof(options));
             }
 
             if (Options.DataProtectionProvider == null) {

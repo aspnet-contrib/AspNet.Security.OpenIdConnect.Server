@@ -5,7 +5,7 @@
  */
 
 using System;
-using System.Reflection;
+using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
@@ -103,13 +103,14 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         public void Constructor_MissingSigningCredentialsThrowAnException() {
             // Arrange, act, assert
             var exception = Assert.Throws<ArgumentException>(() => CreateAuthorizationServer(options => {
+                options.AccessTokenHandler = new JwtSecurityTokenHandler();
                 options.SigningCredentials.Clear();
             }));
 
             Assert.Equal("options", exception.ParamName);
-            Assert.StartsWith("At least one signing key must be registered. Consider registering " +
-                              "a X.509 certificate or call 'options.SigningCredentials.AddEphemeralKey()' " +
-                              "to generate and register an ephemeral signing key.", exception.Message);
+            Assert.StartsWith("At least one signing key must be registered when using JWT as the access token format. " +
+                              "Consider registering a X.509 certificate using 'services.AddOpenIddict().AddSigningCertificate()' " +
+                              "or call 'services.AddOpenIddict().AddEphemeralSigningKey()' to use an ephemeral key.", exception.Message);
         }
 
         private static TestServer CreateAuthorizationServer(Action<OpenIdConnectServerOptions> configuration = null) {
@@ -122,11 +123,6 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             builder.Configure(app => {
                 app.UseOpenIdConnectServer(options => {
                     options.AllowInsecureHttp = true;
-
-                    options.SigningCredentials.AddCertificate(
-                        assembly: typeof(OpenIdConnectServerMiddlewareTests).GetTypeInfo().Assembly,
-                        resource: "AspNet.Security.OpenIdConnect.Server.Tests.Certificate.pfx",
-                        password: "Owin.Security.OpenIdConnect.Server");
 
                     // Note: overriding the default data protection provider is not necessary for the tests to pass,
                     // but is useful to ensure unnecessary keys are not persisted in testing environments, which also

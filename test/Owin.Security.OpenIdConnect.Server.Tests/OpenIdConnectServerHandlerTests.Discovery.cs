@@ -260,6 +260,21 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
+        public async Task InvokeConfigurationEndpointAsync_GrantTypesIncludeCodeWhenAuthorizationEndpointIsEnabled() {
+            // Arrange
+            var server = CreateAuthorizationServer();
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.GetAsync(ConfigurationEndpoint);
+            var types = ((JArray) response[OpenIdConnectConstants.Metadata.GrantTypesSupported]).Values<string>();
+
+            // Assert
+            Assert.Contains(OpenIdConnectConstants.GrantTypes.AuthorizationCode, types);
+        }
+
+        [Fact]
         public async Task InvokeConfigurationEndpointAsync_GrantTypesIncludeImplicitWhenAuthorizationEndpointIsEnabled() {
             // Arrange
             var server = CreateAuthorizationServer();
@@ -353,6 +368,37 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
+        public async Task InvokeConfigurationEndpointAsync_IdTokenResponseTypesAreExcludedWhenNoAsymmetricSigningKeyIsRegistered() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.SigningCredentials.Clear();
+                options.SigningCredentials.AddKey(new InMemorySymmetricSecurityKey(new byte[256 / 8]));
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.GetAsync(ConfigurationEndpoint);
+            var types = ((JArray) response[OpenIdConnectConstants.Metadata.ResponseTypesSupported]).Values<string>();
+
+            // Assert
+            Assert.DoesNotContain(OpenIdConnectConstants.ResponseTypes.IdToken, types);
+
+            Assert.DoesNotContain(
+                OpenIdConnectConstants.ResponseTypes.IdToken + ' ' +
+                OpenIdConnectConstants.ResponseTypes.Token, types);
+
+            Assert.DoesNotContain(
+                OpenIdConnectConstants.ResponseTypes.Code + ' ' +
+                OpenIdConnectConstants.ResponseTypes.IdToken, types);
+
+            Assert.DoesNotContain(
+                OpenIdConnectConstants.ResponseTypes.Code + ' ' +
+                OpenIdConnectConstants.ResponseTypes.IdToken + ' ' +
+                OpenIdConnectConstants.ResponseTypes.Token, types);
+        }
+
+        [Fact]
         public async Task InvokeConfigurationEndpointAsync_DefaultScopesAreCorrectlyReturned() {
             // Arrange
             var server = CreateAuthorizationServer();
@@ -388,7 +434,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         [InlineData(OpenIdConnectConstants.Algorithms.RsaSha512, "http://www.w3.org/2001/04/xmlenc#sha512")]
         public async Task InvokeConfigurationEndpointAsync_SigningAlgorithmsAreCorrectlyReturned(string algorithm, string digest) {
             // Arrange
-            var credentials = new SigningCredentials(Mock.Of<SecurityKey>(), algorithm, digest);
+            var credentials = new SigningCredentials(Mock.Of<AsymmetricSecurityKey>(), algorithm, digest);
 
             var server = CreateAuthorizationServer(options => {
                 options.SigningCredentials.Clear();
@@ -406,10 +452,27 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
+        public async Task InvokeConfigurationEndpointAsync_SymmetricSigningKeysAreIgnored() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.SigningCredentials.Clear();
+                options.SigningCredentials.AddKey(new InMemorySymmetricSecurityKey(new byte[256 / 8]));
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.GetAsync(ConfigurationEndpoint);
+
+            // Assert
+            Assert.Null(response[OpenIdConnectConstants.Metadata.IdTokenSigningAlgValuesSupported]);
+        }
+
+        [Fact]
         public async Task InvokeConfigurationEndpointAsync_DuplicateSigningAlgorithmsAreIgnored() {
             // Arrange
             var credentials = new SigningCredentials(
-                Mock.Of<SecurityKey>(),
+                Mock.Of<AsymmetricSecurityKey>(),
                 SecurityAlgorithms.RsaSha256Signature,
                 SecurityAlgorithms.Sha256Digest);
 

@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Primitives;
@@ -118,8 +119,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             if (Options.AuthorizationEndpointPath.HasValue) {
-                // Only expose the implicit grant type if the token
-                // endpoint has not been explicitly disabled.
                 notification.GrantTypes.Add(OpenIdConnectConstants.GrantTypes.Implicit);
 
                 if (Options.TokenEndpointPath.HasValue) {
@@ -143,11 +142,6 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 notification.ResponseModes.Add(OpenIdConnectConstants.ResponseModes.Query);
 
                 notification.ResponseTypes.Add(OpenIdConnectConstants.ResponseTypes.Token);
-                notification.ResponseTypes.Add(OpenIdConnectConstants.ResponseTypes.IdToken);
-
-                notification.ResponseTypes.Add(
-                    OpenIdConnectConstants.ResponseTypes.IdToken + ' ' +
-                    OpenIdConnectConstants.ResponseTypes.Token);
 
                 // Only expose response types containing code when
                 // the token endpoint has not been explicitly disabled.
@@ -157,15 +151,28 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     notification.ResponseTypes.Add(
                         OpenIdConnectConstants.ResponseTypes.Code + ' ' +
                         OpenIdConnectConstants.ResponseTypes.Token);
+                }
+
+                // Only expose the response types containing id_token if an asymmetric signing key is available.
+                if (Options.SigningCredentials.Any(credentials => credentials.Key is AsymmetricSecurityKey)) {
+                    notification.ResponseTypes.Add(OpenIdConnectConstants.ResponseTypes.IdToken);
 
                     notification.ResponseTypes.Add(
-                        OpenIdConnectConstants.ResponseTypes.Code + ' ' +
-                        OpenIdConnectConstants.ResponseTypes.IdToken);
-
-                    notification.ResponseTypes.Add(
-                        OpenIdConnectConstants.ResponseTypes.Code + ' ' +
                         OpenIdConnectConstants.ResponseTypes.IdToken + ' ' +
                         OpenIdConnectConstants.ResponseTypes.Token);
+
+                    // Only expose response types containing code when
+                    // the token endpoint has not been explicitly disabled.
+                    if (Options.TokenEndpointPath.HasValue) {
+                        notification.ResponseTypes.Add(
+                            OpenIdConnectConstants.ResponseTypes.Code + ' ' +
+                            OpenIdConnectConstants.ResponseTypes.IdToken);
+
+                        notification.ResponseTypes.Add(
+                            OpenIdConnectConstants.ResponseTypes.Code + ' ' +
+                            OpenIdConnectConstants.ResponseTypes.IdToken + ' ' +
+                            OpenIdConnectConstants.ResponseTypes.Token);
+                    }
                 }
             }
 
@@ -179,6 +186,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
             notification.CodeChallengeMethods.Add(OpenIdConnectConstants.CodeChallengeMethods.Sha256);
 
             foreach (var credentials in Options.SigningCredentials) {
+                // If the signing key is not an asymmetric key, ignore it.
+                if (!(credentials.Key is AsymmetricSecurityKey)) {
+                    continue;
+                }
+
                 // Try to resolve the JWA algorithm short name. If a null value is returned, ignore it.
                 var algorithm = OpenIdConnectServerHelpers.GetJwtAlgorithm(credentials.Algorithm);
                 if (string.IsNullOrEmpty(algorithm)) {
@@ -306,7 +318,11 @@ namespace AspNet.Security.OpenIdConnect.Server {
             var notification = new HandleCryptographyRequestContext(Context, Options, request);
 
             foreach (var credentials in Options.SigningCredentials) {
-                // Ignore the key if it's not supported.
+                // If the signing key is not an asymmetric key, ignore it.
+                if (!(credentials.Key is AsymmetricSecurityKey)) {
+                    continue;
+                }
+
 #if SUPPORTS_ECDSA
                 if (!credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature) &&
                     !credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha256Signature) &&

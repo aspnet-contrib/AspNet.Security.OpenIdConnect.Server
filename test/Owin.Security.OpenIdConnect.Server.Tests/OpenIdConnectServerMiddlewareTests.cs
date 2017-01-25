@@ -5,6 +5,7 @@
  */
 
 using System;
+using System.IdentityModel.Tokens;
 using System.Reflection;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Owin.Security;
@@ -95,14 +96,15 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         public void Constructor_MissingSigningCredentialsThrowAnException() {
             // Arrange, act, assert
             var exception = Assert.Throws<TargetInvocationException>(() => CreateAuthorizationServer(options => {
+                options.AccessTokenHandler = new JwtSecurityTokenHandler();
                 options.SigningCredentials.Clear();
             }));
 
             Assert.IsType<ArgumentException>(exception.InnerException);
             Assert.Equal("options", ((ArgumentException) exception.InnerException).ParamName);
-            Assert.StartsWith("At least one signing key must be registered. Consider registering " +
-                              "a X.509 certificate or call 'options.SigningCredentials.AddEphemeralKey()' " +
-                              "to generate and register an ephemeral signing key.", exception.InnerException.Message);
+            Assert.StartsWith("At least one signing key must be registered when using JWT as the access token format. " +
+                              "Consider registering a X.509 certificate using 'services.AddOpenIddict().AddSigningCertificate()' " +
+                              "or call 'services.AddOpenIddict().AddEphemeralSigningKey()' to use an ephemeral key.", exception.InnerException.Message);
         }
 
         private static TestServer CreateAuthorizationServer(Action<OpenIdConnectServerOptions> configuration = null) {

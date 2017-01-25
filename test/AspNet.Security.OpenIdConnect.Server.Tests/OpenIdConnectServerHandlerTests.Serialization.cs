@@ -1335,8 +1335,12 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             Assert.Equal("The authentication ticket cannot be replaced.", exception.Message);
         }
 
-        [Fact]
-        public async Task SerializeIdentityTokenAsync_MissingSigningCredentialsCauseAnException() {
+        [Theory]
+        [InlineData("code id_token")]
+        [InlineData("code id_token token")]
+        [InlineData("id_token")]
+        [InlineData("id_token token")]
+        public async Task SerializeIdentityTokenAsync_MissingSigningCredentialsCauseAnException(string type) {
             // Arrange
             var server = CreateAuthorizationServer(options => {
                 options.IdentityTokenHandler = Mock.Of<JwtSecurityTokenHandler>();
@@ -1347,13 +1351,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateTokenRequest = context => {
-                    context.Skip();
+                options.Provider.OnValidateAuthorizationRequest = context => {
+                    context.Validate();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleTokenRequest = context => {
+                options.Provider.OnHandleAuthorizationRequest = context => {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
@@ -1367,10 +1371,11 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
 
             // Act and assert
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate {
-                return client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
-                    GrantType = OpenIdConnectConstants.GrantTypes.Password,
-                    Username = "johndoe",
-                    Password = "A3ddj3w",
+                return client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest {
+                    ClientId = "Fabrikam",
+                    Nonce = "n-0S6_WzA2Mj",
+                    RedirectUri = "http://www.fabrikam.com/path",
+                    ResponseType = type,
                     Scope = OpenIdConnectConstants.Scopes.OpenId
                 });
             });

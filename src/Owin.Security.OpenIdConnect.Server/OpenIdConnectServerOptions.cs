@@ -36,7 +36,7 @@ namespace Owin.Security.OpenIdConnect.Server {
         public Uri Issuer { get; set; }
 
         /// <summary>
-        /// Gets the list of the credentials used to sign tokens. You can provide any symmetric (e.g <see cref="InMemorySymmetricSecurityKey"/>)
+        /// Gets the list of the credentials used to sign JWT tokens. You can provide any symmetric (e.g <see cref="InMemorySymmetricSecurityKey"/>)
         /// or asymmetric (e.g <see cref="RsaSecurityKey"/>, <see cref="X509AsymmetricSecurityKey"/> or <see cref="X509SecurityKey"/>)
         /// security key, but you're strongly encouraged to use a 2048 or 4096-bits RSA asymmetric key in production.
         /// Note that only keys supporting the <see cref="SecurityAlgorithms.RsaSha256Signature"/> algorithm can be exposed
