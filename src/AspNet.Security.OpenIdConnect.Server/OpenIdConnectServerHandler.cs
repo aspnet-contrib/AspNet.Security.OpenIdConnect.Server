@@ -197,6 +197,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                     return AuthenticateResult.Success(ticket);
                 }
+
+                return AuthenticateResult.Skip();
             }
 
             throw new InvalidOperationException("An identity cannot be extracted from this request.");
@@ -401,28 +403,43 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 throw new InvalidOperationException("An OpenID Connect response has already been sent.");
             }
 
-            // Prepare a new OpenID Connect response.
-            response = new OpenIdConnectResponse();
-
-            if (request.IsAuthorizationRequest()) {
-                response.RedirectUri = request.RedirectUri;
-                response.State = request.State;
-
-                response.Error = OpenIdConnectConstants.Errors.AccessDenied;
-                response.ErrorDescription = "The authorization grant has been denied by the resource owner.";
-            }
-
-            else {
-                response.Error = OpenIdConnectConstants.Errors.InvalidGrant;
-                response.ErrorDescription = "The token request was rejected by the authorization server.";
-            }
-
             // Create a new ticket containing an empty identity and
             // the authentication properties extracted from the challenge.
             var ticket = new AuthenticationTicket(
-                new ClaimsPrincipal(),
+                new ClaimsPrincipal(new ClaimsIdentity()),
                 new AuthenticationProperties(context.Properties),
                 context.AuthenticationScheme);
+
+            // Prepare a new OpenID Connect response.
+            response = new OpenIdConnectResponse {
+                Error = ticket.GetProperty(OpenIdConnectConstants.Properties.Error),
+                ErrorDescription = ticket.GetProperty(OpenIdConnectConstants.Properties.ErrorDescription),
+                ErrorUri = ticket.GetProperty(OpenIdConnectConstants.Properties.ErrorUri)
+            };
+
+            // Remove the error/error_description/error_uri properties from the ticket.
+            ticket.SetProperty(OpenIdConnectConstants.Properties.Error, null)
+                  .SetProperty(OpenIdConnectConstants.Properties.ErrorDescription, null)
+                  .SetProperty(OpenIdConnectConstants.Properties.ErrorUri, null);
+
+            // If the request is an authorization request, attach the
+            // redirect_uri and the state to the OpenID Connect response.
+            if (request.IsAuthorizationRequest()) {
+                response.RedirectUri = request.RedirectUri;
+                response.State = request.State;
+            }
+
+            if (string.IsNullOrEmpty(response.Error)) {
+                response.Error = request.IsAuthorizationRequest() ?
+                    OpenIdConnectConstants.Errors.AccessDenied :
+                    OpenIdConnectConstants.Errors.InvalidGrant;
+            }
+
+            if (string.IsNullOrEmpty(response.ErrorDescription)) {
+                response.ErrorDescription = request.IsAuthorizationRequest() ?
+                    "The authorization grant has been denied by the resource owner." :
+                    "The token request was rejected by the authorization server.";
+            }
 
             if (request.IsAuthorizationRequest()) {
                 return SendAuthorizationResponseAsync(response, ticket);

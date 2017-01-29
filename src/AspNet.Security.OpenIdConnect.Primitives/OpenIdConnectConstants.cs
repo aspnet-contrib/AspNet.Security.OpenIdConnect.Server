@@ -208,6 +208,9 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
             public const string CodeChallengeMethod = ".code_challenge_method";
             public const string ConfidentialityLevel = ".confidentiality_level";
             public const string Destinations = ".destinations";
+            public const string Error = ".error";
+            public const string ErrorDescription = ".error_description";
+            public const string ErrorUri = ".error_uri";
             public const string IdentityTokenLifetime = ".identity_token_lifetime";
             public const string MessageType = ".message_type";
             public const string Nonce = ".nonce";

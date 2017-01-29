@@ -5,6 +5,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -559,6 +560,40 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
                 GrantType = OpenIdConnectConstants.GrantTypes.RefreshToken,
                 RefreshToken = "refresh_token"
+            });
+
+            // Assert
+            Assert.Equal("Bob le Magnifique", (string) response["name"]);
+        }
+
+        [Fact]
+        public async Task AuthenticateCoreAsync_UnsupportedGrantTypeReturnsNull() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnValidateTokenRequest = context => {
+                    context.Skip();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnApplyTokenResponse = async context => {
+                    var result = await context.OwinContext.Authentication.AuthenticateAsync(
+                        OpenIdConnectServerDefaults.AuthenticationType);
+
+                    // Assert
+                    Assert.Null(result);
+
+                    context.SkipToNextMiddleware();
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+                GrantType = OpenIdConnectConstants.GrantTypes.Password,
+                Username = "johndoe",
+                Password = "A3ddj3w"
             });
 
             // Assert
@@ -1944,6 +1979,78 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             Assert.Equal("af0ifjsldkj", response.State);
             Assert.Equal(OpenIdConnectConstants.Errors.AccessDenied, response.Error);
             Assert.Equal("The authorization grant has been denied by the resource owner.", response.ErrorDescription);
+        }
+
+        [Fact]
+        public async Task HandleChallengeAsync_ReturnsSpecifiedError() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnValidateTokenRequest = context => {
+                    context.Skip();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnHandleTokenRequest = context => {
+                    var properties = new AuthenticationProperties(new Dictionary<string, string> {
+                        [OpenIdConnectConstants.Properties.Error] = "custom_error",
+                        [OpenIdConnectConstants.Properties.ErrorDescription] = "custom_error_description",
+                        [OpenIdConnectConstants.Properties.ErrorUri] = "custom_error_uri"
+                    });
+
+                    context.OwinContext.Authentication.Challenge(properties, context.Options.AuthenticationType);
+                    context.HandleResponse();
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+                GrantType = OpenIdConnectConstants.GrantTypes.Password,
+                Username = "johndoe",
+                Password = "A3ddj3w"
+            });
+
+            // Assert
+            Assert.Equal("custom_error", response.Error);
+            Assert.Equal("custom_error_description", response.ErrorDescription);
+            Assert.Equal("custom_error_uri", response.ErrorUri);
+        }
+
+        [Fact]
+        public async Task HandleChallengeAsync_ReturnsDefaultErrorWhenNoneIsSpecified() {
+            // Arrange
+            var server = CreateAuthorizationServer(options => {
+                options.Provider.OnValidateTokenRequest = context => {
+                    context.Skip();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnHandleTokenRequest = context => {
+                    context.OwinContext.Authentication.Challenge(context.Options.AuthenticationType);
+                    context.HandleResponse();
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+                GrantType = OpenIdConnectConstants.GrantTypes.Password,
+                Username = "johndoe",
+                Password = "A3ddj3w"
+            });
+
+            // Assert
+            Assert.Equal(OpenIdConnectConstants.Errors.InvalidGrant, response.Error);
+            Assert.Equal("The token request was rejected by the authorization server.", response.ErrorDescription);
+            Assert.Null(response.ErrorUri);
         }
 
         private static TestServer CreateAuthorizationServer(Action<OpenIdConnectServerOptions> configuration = null) {
