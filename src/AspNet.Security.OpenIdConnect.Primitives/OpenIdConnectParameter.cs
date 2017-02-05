@@ -197,7 +197,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// <returns>An <see cref="OpenIdConnectParameter"/> instance containing the item value.</returns>
         public OpenIdConnectParameter? GetParameter([NotNull] string name) {
             if (string.IsNullOrEmpty(name)) {
-                throw new ArgumentException("The item name cannot be null or empty.");
+                throw new ArgumentException("The item name cannot be null or empty.", nameof(name));
             }
 
             // If the parameter is not a JSON.NET object, return null.
@@ -443,12 +443,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// </summary>
         /// <param name="parameter">The OpenID Connect parameter.</param>
         /// <returns><c>true</c> if the parameter is null or empty, <c>false</c> otherwise.</returns>
-        internal static bool IsNullOrEmpty(OpenIdConnectParameter? parameter) {
-            if (parameter == null) {
-                return true;
-            }
-
-            var value = parameter.Value.Value;
+        public static bool IsNullOrEmpty(OpenIdConnectParameter parameter) {
+            var value = parameter.Value;
             if (value == null) {
                 return true;
             }

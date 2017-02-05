@@ -230,9 +230,9 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
                 throw new ArgumentException("The property name cannot be null or empty.", nameof(name));
             }
 
-            object property;
-            if (Properties.TryGetValue(name, out property)) {
-                return property;
+            object value;
+            if (Properties.TryGetValue(name, out value)) {
+                return value;
             }
 
             return null;
@@ -250,9 +250,9 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
                 throw new ArgumentException("The property name cannot be null or empty.", nameof(name));
             }
 
-            object property;
-            if (Properties.TryGetValue(name, out property) && property is T) {
-                return (T) property;
+            object value;
+            if (Properties.TryGetValue(name, out value) && value is T) {
+                return (T) value;
             }
 
             return default(T);
@@ -286,6 +286,37 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         }
 
         /// <summary>
+        /// Removes a parameter.
+        /// </summary>
+        /// <param name="name">The parameter name.</param>
+        /// <returns>The current instance, which allows chaining calls.</returns>
+        public OpenIdConnectMessage RemoveParameter([NotNull] string name) {
+            if (string.IsNullOrEmpty(name)) {
+                throw new ArgumentException("The parameter name cannot be null or empty.", nameof(name));
+            }
+
+            Parameters.Remove(name);
+
+            return this;
+        }
+
+        /// <summary>
+        /// Removes a property.
+        /// </summary>
+        /// <param name="name">The property name.</param>
+        /// <returns>The current instance, which allows chaining calls.</returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public OpenIdConnectMessage RemoveProperty([NotNull] string name) {
+            if (string.IsNullOrEmpty(name)) {
+                throw new ArgumentException("The property name cannot be null or empty.", nameof(name));
+            }
+
+            Properties.Remove(name);
+
+            return this;
+        }
+
+        /// <summary>
         /// Adds, replaces or removes a parameter.
         /// Note: this method automatically removes empty parameters.
         /// </summary>
@@ -299,12 +330,12 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
 
             // If the parameter value is null or empty,
             // remove the corresponding entry from the collection.
-            if (OpenIdConnectParameter.IsNullOrEmpty(value)) {
+            if (value == null || OpenIdConnectParameter.IsNullOrEmpty(value.GetValueOrDefault())) {
                 Parameters.Remove(name);
             }
 
             else {
-                Parameters[name] = value.Value;
+                Parameters[name] = value.GetValueOrDefault();
             }
 
             return this;
@@ -332,37 +363,6 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
             else {
                 Properties[name] = value;
             }
-
-            return this;
-        }
-
-        /// <summary>
-        /// Removes a parameter.
-        /// </summary>
-        /// <param name="name">The parameter name.</param>
-        /// <returns>The current instance, which allows chaining calls.</returns>
-        public OpenIdConnectMessage RemoveParameter([NotNull] string name) {
-            if (string.IsNullOrEmpty(name)) {
-                throw new ArgumentException("The parameter name cannot be null or empty.", nameof(name));
-            }
-
-            Parameters.Remove(name);
-
-            return this;
-        }
-
-        /// <summary>
-        /// Removes a property.
-        /// </summary>
-        /// <param name="name">The property name.</param>
-        /// <returns>The current instance, which allows chaining calls.</returns>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public OpenIdConnectMessage RemoveProperty([NotNull] string name) {
-            if (string.IsNullOrEmpty(name)) {
-                throw new ArgumentException("The property name cannot be null or empty.", nameof(name));
-            }
-
-            Properties.Remove(name);
 
             return this;
         }

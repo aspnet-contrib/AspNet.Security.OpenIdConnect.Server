@@ -152,6 +152,23 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
             Assert.StartsWith("The item index cannot be negative.", exception.Message);
         }
 
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public void GetParameter_ThrowsAnExceptionForNullOrEmptyName(string name) {
+            // Arrange
+            var parameter = new OpenIdConnectParameter();
+
+            // Act
+            var exception = Assert.Throws<ArgumentException>(delegate {
+                parameter.GetParameter(name);
+            });
+
+            // Assert
+            Assert.Equal("name", exception.ParamName);
+            Assert.StartsWith("The item name cannot be null or empty.", exception.Message);
+        }
+
         [Fact]
         public void GetParameter_ReturnsNullForPrimitiveValues() {
             // Arrange
@@ -300,6 +317,39 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
 
             // Act and assert
             Assert.Equal(parameters, parameter.GetParameters().ToDictionary(pair => pair.Key, pair => (string) pair.Value));
+        }
+
+        [Fact]
+        public void IsNullOrEmpty_ReturnsTrueForNullValues() {
+            // Arrange, act and assert
+            Assert.True(OpenIdConnectParameter.IsNullOrEmpty(new OpenIdConnectParameter((bool?) null)));
+            Assert.True(OpenIdConnectParameter.IsNullOrEmpty(new OpenIdConnectParameter((long?) null)));
+            Assert.True(OpenIdConnectParameter.IsNullOrEmpty(new OpenIdConnectParameter((string) null)));
+            Assert.True(OpenIdConnectParameter.IsNullOrEmpty(new OpenIdConnectParameter((JArray) null)));
+            Assert.True(OpenIdConnectParameter.IsNullOrEmpty(new OpenIdConnectParameter((JObject) null)));
+            Assert.True(OpenIdConnectParameter.IsNullOrEmpty(new OpenIdConnectParameter((JValue) null)));
+        }
+
+        [Fact]
+        public void IsNullOrEmpty_ReturnsTrueForEmptyValues() {
+            // Arrange, act and assert
+            Assert.True(OpenIdConnectParameter.IsNullOrEmpty(new OpenIdConnectParameter(string.Empty)));
+            Assert.True(OpenIdConnectParameter.IsNullOrEmpty(new OpenIdConnectParameter(new JArray())));
+            Assert.True(OpenIdConnectParameter.IsNullOrEmpty(new OpenIdConnectParameter(new JObject())));
+            Assert.True(OpenIdConnectParameter.IsNullOrEmpty(new OpenIdConnectParameter(new JValue(string.Empty))));
+        }
+
+        [Fact]
+        public void IsNullOrEmpty_ReturnsFalseForNonEmptyValues() {
+            // Arrange, act and assert
+            Assert.False(OpenIdConnectParameter.IsNullOrEmpty(new OpenIdConnectParameter(true)));
+            Assert.False(OpenIdConnectParameter.IsNullOrEmpty(new OpenIdConnectParameter((bool?) true)));
+            Assert.False(OpenIdConnectParameter.IsNullOrEmpty(new OpenIdConnectParameter(42)));
+            Assert.False(OpenIdConnectParameter.IsNullOrEmpty(new OpenIdConnectParameter((long?) 42)));
+            Assert.False(OpenIdConnectParameter.IsNullOrEmpty(new OpenIdConnectParameter("Fabrikam")));
+            Assert.False(OpenIdConnectParameter.IsNullOrEmpty(new OpenIdConnectParameter(new JArray("Fabrikam"))));
+            Assert.False(OpenIdConnectParameter.IsNullOrEmpty(new OpenIdConnectParameter(new JObject { ["property"] = "value" })));
+            Assert.False(OpenIdConnectParameter.IsNullOrEmpty(new OpenIdConnectParameter(new JValue("Fabrikam"))));
         }
 
         [Fact]

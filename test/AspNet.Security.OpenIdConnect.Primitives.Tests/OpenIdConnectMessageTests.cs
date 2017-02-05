@@ -4,6 +4,7 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Moq;
@@ -75,6 +76,23 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
             Assert.Equal("Fabrikam", message.Object.GetParameter("parameter"));
         }
 
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public void AddParameter_ThrowsAnExceptionForNullOrEmptyName(string name) {
+            // Arrange
+            var message = Mock.Of<OpenIdConnectMessage>();
+            Mock.Get(message).CallBase = true;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentException>(delegate {
+                message.AddParameter(name, new OpenIdConnectParameter());
+            });
+
+            Assert.Equal("name", exception.ParamName);
+            Assert.StartsWith("The parameter name cannot be null or empty.", exception.Message);
+        }
+
         [Fact]
         public void AddParameter_AddsExpectedParameter() {
             // Arrange
@@ -120,6 +138,23 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
             Assert.Equal(new JValue(string.Empty), (JValue) message.GetParameter("value"));
         }
 
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public void AddProperty_ThrowsAnExceptionForNullOrEmptyName(string name) {
+            // Arrange
+            var message = Mock.Of<OpenIdConnectMessage>();
+            Mock.Get(message).CallBase = true;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentException>(delegate {
+                message.AddProperty(name, null);
+            });
+
+            Assert.Equal("name", exception.ParamName);
+            Assert.StartsWith("The property name cannot be null or empty.", exception.Message);
+        }
+
         [Fact]
         public void AddProperty_AddsExpectedProperty() {
             // Arrange
@@ -157,6 +192,23 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
 
             // Assert
             Assert.Empty(message.GetProperty<string>("property"));
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public void GetParameter_ThrowsAnExceptionForNullOrEmptyName(string name) {
+            // Arrange
+            var message = Mock.Of<OpenIdConnectMessage>();
+            Mock.Get(message).CallBase = true;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentException>(delegate {
+                message.GetParameter(name);
+            });
+
+            Assert.Equal("name", exception.ParamName);
+            Assert.StartsWith("The parameter name cannot be null or empty.", exception.Message);
         }
 
         [Fact]
@@ -230,6 +282,23 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
             Assert.Equal(properties, message.GetProperties());
         }
 
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public void GetProperty_ThrowsAnExceptionForNullOrEmptyName(string name) {
+            // Arrange
+            var message = Mock.Of<OpenIdConnectMessage>();
+            Mock.Get(message).CallBase = true;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentException>(delegate {
+                message.GetProperty(name);
+            });
+
+            Assert.Equal("name", exception.ParamName);
+            Assert.StartsWith("The property name cannot be null or empty.", exception.Message);
+        }
+
         [Fact]
         public void GetProperty_ReturnsDefaultInstanceForMissingProperty() {
             // Arrange
@@ -268,6 +337,23 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public void HasParameter_ThrowsAnExceptionForNullOrEmptyName(string name) {
+            // Arrange
+            var message = Mock.Of<OpenIdConnectMessage>();
+            Mock.Get(message).CallBase = true;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentException>(delegate {
+                message.HasParameter(name);
+            });
+
+            Assert.Equal("name", exception.ParamName);
+            Assert.StartsWith("The parameter name cannot be null or empty.", exception.Message);
+        }
+
+        [Theory]
         [InlineData("parameter", true)]
         [InlineData("PARAMETER", false)]
         [InlineData("missing_parameter", false)]
@@ -283,6 +369,23 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public void HasProperty_ThrowsAnExceptionForNullOrEmptyName(string name) {
+            // Arrange
+            var message = Mock.Of<OpenIdConnectMessage>();
+            Mock.Get(message).CallBase = true;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentException>(delegate {
+                message.HasProperty(name);
+            });
+
+            Assert.Equal("name", exception.ParamName);
+            Assert.StartsWith("The property name cannot be null or empty.", exception.Message);
+        }
+
+        [Theory]
         [InlineData("property", true)]
         [InlineData("PROPERTY", false)]
         [InlineData("missing_property", false)]
@@ -295,6 +398,23 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
 
             // Act and assert
             Assert.Equal(result, message.HasProperty(property));
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public void SetParameter_ThrowsAnExceptionForNullOrEmptyName(string name) {
+            // Arrange
+            var message = Mock.Of<OpenIdConnectMessage>();
+            Mock.Get(message).CallBase = true;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentException>(delegate {
+                message.SetParameter(name, null);
+            });
+
+            Assert.Equal("name", exception.ParamName);
+            Assert.StartsWith("The parameter name cannot be null or empty.", exception.Message);
         }
 
         [Fact]
@@ -324,6 +444,19 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
+        public void SetParameter_RemovesNullParameters() {
+            // Arrange
+            var message = Mock.Of<OpenIdConnectMessage>();
+            Mock.Get(message).CallBase = true;
+
+            // Act
+            message.SetParameter("null", null);
+
+            // Assert
+            Assert.Equal(0, message.GetParameters().Count());
+        }
+
+        [Fact]
         public void SetParameter_RemovesEmptyParameters() {
             // Arrange
             var message = Mock.Of<OpenIdConnectMessage>();
@@ -337,6 +470,23 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
 
             // Assert
             Assert.Equal(0, message.GetParameters().Count());
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public void SetProperty_ThrowsAnExceptionForNullOrEmptyName(string name) {
+            // Arrange
+            var message = Mock.Of<OpenIdConnectMessage>();
+            Mock.Get(message).CallBase = true;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentException>(delegate {
+                message.SetProperty(name, null);
+            });
+
+            Assert.Equal("name", exception.ParamName);
+            Assert.StartsWith("The property name cannot be null or empty.", exception.Message);
         }
 
         [Fact]
@@ -378,6 +528,23 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
             Assert.Null(message.GetProperty("property"));
         }
 
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public void RemoveParameter_ThrowsAnExceptionForNullOrEmptyName(string name) {
+            // Arrange
+            var message = Mock.Of<OpenIdConnectMessage>();
+            Mock.Get(message).CallBase = true;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentException>(delegate {
+                message.RemoveParameter(name);
+            });
+
+            Assert.Equal("name", exception.ParamName);
+            Assert.StartsWith("The parameter name cannot be null or empty.", exception.Message);
+        }
+
         [Fact]
         public void RemoveParameter_RemovesExpectedParameter() {
             // Arrange
@@ -391,6 +558,23 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
 
             // Assert
             Assert.Null(message.GetParameter("parameter"));
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public void RemoveProperty_ThrowsAnExceptionForNullOrEmptyName(string name) {
+            // Arrange
+            var message = Mock.Of<OpenIdConnectMessage>();
+            Mock.Get(message).CallBase = true;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentException>(delegate {
+                message.RemoveProperty(name);
+            });
+
+            Assert.Equal("name", exception.ParamName);
+            Assert.StartsWith("The property name cannot be null or empty.", exception.Message);
         }
 
         [Fact]
