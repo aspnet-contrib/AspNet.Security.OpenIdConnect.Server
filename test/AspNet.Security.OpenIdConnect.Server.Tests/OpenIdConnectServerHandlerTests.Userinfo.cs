@@ -291,7 +291,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             Assert.Equal(3, response.GetParameters().Count());
             Assert.Equal(server.BaseAddress.AbsoluteUri, (string) response[OpenIdConnectConstants.Claims.Issuer]);
             Assert.Equal("Bob le Magnifique", (string) response[OpenIdConnectConstants.Claims.Subject]);
-            Assert.Equal(new[] { "Fabrikam", "Contoso" }, ((JArray) response[OpenIdConnectConstants.Claims.Audience]).Values<string>());
+            Assert.Equal(new[] { "Fabrikam", "Contoso" }, (string[]) response[OpenIdConnectConstants.Claims.Audience]);
         }
 
         [Fact]

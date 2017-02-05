@@ -65,6 +65,15 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         }
 
         /// <summary>
+        /// Initializes a new OpenID Connect
+        /// parameter using the specified value.
+        /// </summary>
+        /// <param name="value">The parameter value.</param>
+        public OpenIdConnectParameter(string[] value) {
+            Value = new JArray(value);
+        }
+
+        /// <summary>
         /// Gets the child item corresponding to the specified index.
         /// </summary>
         /// <param name="index">The index of the child item.</param>
@@ -332,6 +341,13 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         public static explicit operator string(OpenIdConnectParameter? parameter) => Convert<string>(parameter);
 
         /// <summary>
+        /// Converts an <see cref="OpenIdConnectParameter"/> instance to an array of strings.
+        /// </summary>
+        /// <param name="parameter">The parameter to convert.</param>
+        /// <returns>The converted value.</returns>
+        public static explicit operator string[](OpenIdConnectParameter? parameter) => Convert<string[]>(parameter);
+
+        /// <summary>
         /// Converts a boolean to an <see cref="OpenIdConnectParameter"/> instance.
         /// </summary>
         /// <param name="value">The value to convert</param>
@@ -374,6 +390,13 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         public static implicit operator OpenIdConnectParameter(string value) => new OpenIdConnectParameter(value);
 
         /// <summary>
+        /// Converts an array of strings to an <see cref="OpenIdConnectParameter"/> instance.
+        /// </summary>
+        /// <param name="value">The value to convert</param>
+        /// <returns>An <see cref="OpenIdConnectParameter"/> instance.</returns>
+        public static implicit operator OpenIdConnectParameter(string[] value) => new OpenIdConnectParameter(value);
+
+        /// <summary>
         /// Converts the parameter to the specified generic type.
         /// </summary>
         /// <typeparam name="T">The type the parameter will be converted to.</typeparam>
@@ -404,10 +427,11 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
                 return token.ToObject<T>();
             }
 
-            // Swallow the argument/format/invalid cast exceptions.
+            // Swallow the conversion exceptions thrown by JSON.NET.
             catch (Exception exception) when (exception is ArgumentException ||
                                               exception is FormatException ||
-                                              exception is InvalidCastException) {
+                                              exception is InvalidCastException ||
+                                              exception is JsonSerializationException) {
                 return default(T);
             }
 

@@ -268,7 +268,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
             // Act
             var response = await client.GetAsync(ConfigurationEndpoint);
-            var types = ((JArray) response[OpenIdConnectConstants.Metadata.GrantTypesSupported]).Values<string>();
+            var types = (string[]) response[OpenIdConnectConstants.Metadata.GrantTypesSupported];
 
             // Assert
             Assert.Contains(OpenIdConnectConstants.GrantTypes.AuthorizationCode, types);
@@ -283,7 +283,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
             // Act
             var response = await client.GetAsync(ConfigurationEndpoint);
-            var types = ((JArray) response[OpenIdConnectConstants.Metadata.GrantTypesSupported]).Values<string>();
+            var types = (string[]) response[OpenIdConnectConstants.Metadata.GrantTypesSupported];
 
             // Assert
             Assert.Contains(OpenIdConnectConstants.GrantTypes.Implicit, types);
@@ -298,7 +298,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
             // Act
             var response = await client.GetAsync(ConfigurationEndpoint);
-            var types = ((JArray) response[OpenIdConnectConstants.Metadata.GrantTypesSupported]).Values<string>();
+            var types = (string[]) response[OpenIdConnectConstants.Metadata.GrantTypesSupported];
 
             // Assert
             Assert.Contains(OpenIdConnectConstants.GrantTypes.ClientCredentials, types);
@@ -315,7 +315,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
             // Act
             var response = await client.GetAsync(ConfigurationEndpoint);
-            var modes = ((JArray) response[OpenIdConnectConstants.Metadata.ResponseModesSupported]).Values<string>();
+            var modes = (string[]) response[OpenIdConnectConstants.Metadata.ResponseModesSupported];
 
             // Assert
             Assert.Contains(OpenIdConnectConstants.ResponseModes.FormPost, modes);
@@ -332,7 +332,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
             // Act
             var response = await client.GetAsync(ConfigurationEndpoint);
-            var types = ((JArray) response[OpenIdConnectConstants.Metadata.ResponseTypesSupported]).Values<string>();
+            var types = (string[]) response[OpenIdConnectConstants.Metadata.ResponseTypesSupported];
 
             // Assert
             Assert.Contains(OpenIdConnectConstants.ResponseTypes.Token, types);
@@ -350,7 +350,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
             // Act
             var response = await client.GetAsync(ConfigurationEndpoint);
-            var types = ((JArray) response[OpenIdConnectConstants.Metadata.ResponseTypesSupported]).Values<string>();
+            var types = (string[]) response[OpenIdConnectConstants.Metadata.ResponseTypesSupported];
 
             // Assert
             Assert.Contains(
@@ -379,7 +379,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
             // Act
             var response = await client.GetAsync(ConfigurationEndpoint);
-            var types = ((JArray) response[OpenIdConnectConstants.Metadata.ResponseTypesSupported]).Values<string>();
+            var types = (string[]) response[OpenIdConnectConstants.Metadata.ResponseTypesSupported];
 
             // Assert
             Assert.DoesNotContain(OpenIdConnectConstants.ResponseTypes.IdToken, types);
@@ -407,7 +407,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
             // Act
             var response = await client.GetAsync(ConfigurationEndpoint);
-            var scopes = ((JArray) response[OpenIdConnectConstants.Metadata.ScopesSupported]).Values<string>();
+            var scopes = (string[]) response[OpenIdConnectConstants.Metadata.ScopesSupported];
 
             // Assert
             Assert.Contains(OpenIdConnectConstants.Scopes.OpenId, scopes);
@@ -422,7 +422,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
             // Act
             var response = await client.GetAsync(ConfigurationEndpoint);
-            var types = ((JArray) response[OpenIdConnectConstants.Metadata.SubjectTypesSupported]).Values<string>();
+            var types = (string[]) response[OpenIdConnectConstants.Metadata.SubjectTypesSupported];
 
             // Assert
             Assert.Contains(OpenIdConnectConstants.SubjectTypes.Public, types);
@@ -445,7 +445,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
             // Act
             var response = await client.GetAsync(ConfigurationEndpoint);
-            var algorithms = ((JArray) response[OpenIdConnectConstants.Metadata.IdTokenSigningAlgValuesSupported]).Values<string>();
+            var algorithms = (string[]) response[OpenIdConnectConstants.Metadata.IdTokenSigningAlgValuesSupported];
 
             // Assert
             Assert.Contains(algorithm, algorithms);
@@ -487,7 +487,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
             // Act
             var response = await client.GetAsync(ConfigurationEndpoint);
-            var algorithms = ((JArray) response[OpenIdConnectConstants.Metadata.IdTokenSigningAlgValuesSupported]).Values<string>();
+            var algorithms = (string[]) response[OpenIdConnectConstants.Metadata.IdTokenSigningAlgValuesSupported];
 
             // Assert
             Assert.Equal(1, algorithms.Count());
@@ -502,7 +502,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
 
             // Act
             var response = await client.GetAsync(ConfigurationEndpoint);
-            var methods = ((JArray) response[OpenIdConnectConstants.Metadata.CodeChallengeMethodsSupported]).Values<string>();
+            var methods = (string[]) response[OpenIdConnectConstants.Metadata.CodeChallengeMethodsSupported];
 
             // Assert
             Assert.Contains(OpenIdConnectConstants.CodeChallengeMethods.Plain, methods);
