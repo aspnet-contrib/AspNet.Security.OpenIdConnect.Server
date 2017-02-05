@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
@@ -15,65 +14,49 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
     public class OpenIdConnectMessageTests {
         [Fact]
         public void Constructor_ImportsParameters() {
-            // Arrange
-            var parameters = new[] {
+            // Arrange and act
+            var message = new OpenIdConnectMessage(new[] {
                 new KeyValuePair<string, OpenIdConnectParameter>("parameter", 42)
-            };
-
-            // Act
-            var message = new Mock<OpenIdConnectMessage>(parameters);
-            message.CallBase = true;
+            });
 
             // Assert
-            Assert.Equal(42, (long) message.Object.GetParameter("parameter"));
+            Assert.Equal(42, (long) message.GetParameter("parameter"));
         }
 
         [Fact]
         public void Constructor_IgnoresNamelessParameters() {
-            // Arrange
-            var parameters = new[] {
+            // Arrange and act
+            var message = new OpenIdConnectMessage(new[] {
                 new KeyValuePair<string, OpenIdConnectParameter>(null, new OpenIdConnectParameter()),
                 new KeyValuePair<string, OpenIdConnectParameter>(string.Empty, new OpenIdConnectParameter())
-            };
-
-            // Act
-            var message = new Mock<OpenIdConnectMessage>(parameters);
-            message.CallBase = true;
+            });
 
             // Assert
-            Assert.Equal(0, message.Object.GetParameters().Count());
+            Assert.Equal(0, message.GetParameters().Count());
         }
 
         [Fact]
         public void Constructor_PreservesEmptyParameters() {
-            // Arrange
-            var parameters = new[] {
+            // Arrange and act
+            var message = new OpenIdConnectMessage(new[] {
                 new KeyValuePair<string, OpenIdConnectParameter>("parameter", (string) null)
-            };
-
-            // Act
-            var message = new Mock<OpenIdConnectMessage>(parameters);
-            message.CallBase = true;
+            });
 
             // Assert
-            Assert.Equal(1, message.Object.GetParameters().Count());
+            Assert.Equal(1, message.GetParameters().Count());
         }
 
         [Fact]
         public void Constructor_IgnoresDuplicateParameters() {
-            // Arrange
-            var parameters = new[] {
+            // Arrange and act
+            var message = new OpenIdConnectMessage(new[] {
                 new KeyValuePair<string, OpenIdConnectParameter>("parameter", "Fabrikam"),
                 new KeyValuePair<string, OpenIdConnectParameter>("parameter", "Contoso")
-            };
-
-            // Act
-            var message = new Mock<OpenIdConnectMessage>(parameters);
-            message.CallBase = true;
+            });
 
             // Assert
-            Assert.Equal(1, message.Object.GetParameters().Count());
-            Assert.Equal("Fabrikam", message.Object.GetParameter("parameter"));
+            Assert.Equal(1, message.GetParameters().Count());
+            Assert.Equal("Fabrikam", message.GetParameter("parameter"));
         }
 
         [Theory]
@@ -81,8 +64,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData("")]
         public void AddParameter_ThrowsAnExceptionForNullOrEmptyName(string name) {
             // Arrange
-            var message = Mock.Of<OpenIdConnectMessage>();
-            Mock.Get(message).CallBase = true;
+            var message = new OpenIdConnectMessage();
 
             // Act and assert
             var exception = Assert.Throws<ArgumentException>(delegate {
@@ -96,8 +78,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [Fact]
         public void AddParameter_AddsExpectedParameter() {
             // Arrange
-            var message = Mock.Of<OpenIdConnectMessage>();
-            Mock.Get(message).CallBase = true;
+            var message = new OpenIdConnectMessage();
 
             // Act
             message.AddParameter("parameter", 42);
@@ -109,8 +90,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [Fact]
         public void AddParameter_IsCaseSensitive() {
             // Arrange
-            var message = Mock.Of<OpenIdConnectMessage>();
-            Mock.Get(message).CallBase = true;
+            var message = new OpenIdConnectMessage();
 
             // Act
             message.AddParameter("PARAMETER", 42);
@@ -122,8 +102,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [Fact]
         public void AddParameter_PreservesEmptyParameters() {
             // Arrange
-            var message = Mock.Of<OpenIdConnectMessage>();
-            Mock.Get(message).CallBase = true;
+            var message = new OpenIdConnectMessage();
 
             // Act
             message.AddParameter("string", string.Empty);
@@ -143,8 +122,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData("")]
         public void AddProperty_ThrowsAnExceptionForNullOrEmptyName(string name) {
             // Arrange
-            var message = Mock.Of<OpenIdConnectMessage>();
-            Mock.Get(message).CallBase = true;
+            var message = new OpenIdConnectMessage();
 
             // Act and assert
             var exception = Assert.Throws<ArgumentException>(delegate {
@@ -158,8 +136,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [Fact]
         public void AddProperty_AddsExpectedProperty() {
             // Arrange
-            var message = Mock.Of<OpenIdConnectMessage>();
-            Mock.Get(message).CallBase = true;
+            var message = new OpenIdConnectMessage();
 
             // Act
             message.AddProperty("property", "value");
@@ -171,8 +148,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [Fact]
         public void AddProperty_IsCaseSensitive() {
             // Arrange
-            var message = Mock.Of<OpenIdConnectMessage>();
-            Mock.Get(message).CallBase = true;
+            var message = new OpenIdConnectMessage();
 
             // Act
             message.AddProperty("PROPERTY", "value");
@@ -184,8 +160,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [Fact]
         public void AddProperty_PreservesEmptyProperties() {
             // Arrange
-            var message = Mock.Of<OpenIdConnectMessage>();
-            Mock.Get(message).CallBase = true;
+            var message = new OpenIdConnectMessage();
 
             // Act
             message.AddProperty("property", string.Empty);
@@ -199,8 +174,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData("")]
         public void GetParameter_ThrowsAnExceptionForNullOrEmptyName(string name) {
             // Arrange
-            var message = Mock.Of<OpenIdConnectMessage>();
-            Mock.Get(message).CallBase = true;
+            var message = new OpenIdConnectMessage();
 
             // Act and assert
             var exception = Assert.Throws<ArgumentException>(delegate {
@@ -214,8 +188,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [Fact]
         public void GetParameter_ReturnsExpectedParameter() {
             // Arrange
-            var message = Mock.Of<OpenIdConnectMessage>();
-            Mock.Get(message).CallBase = true;
+            var message = new OpenIdConnectMessage();
 
             message.SetParameter("parameter", 42);
 
@@ -226,8 +199,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [Fact]
         public void GetParameter_IsCaseSensitive() {
             // Arrange
-            var message = Mock.Of<OpenIdConnectMessage>();
-            Mock.Get(message).CallBase = true;
+            var message = new OpenIdConnectMessage();
 
             message.SetParameter("parameter", 42);
 
@@ -238,8 +210,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [Fact]
         public void GetParameter_ReturnsNullForUnsetParameter() {
             // Arrange
-            var message = Mock.Of<OpenIdConnectMessage>();
-            Mock.Get(message).CallBase = true;
+            var message = new OpenIdConnectMessage();
 
             // Act and assert
             Assert.Null(message.GetParameter("parameter"));
@@ -254,11 +225,10 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
                 ["string"] = "value"
             };
 
-            var message = new Mock<OpenIdConnectMessage>(parameters);
-            message.CallBase = true;
+            var message = new OpenIdConnectMessage(parameters);
 
             // Act and assert
-            Assert.Equal(parameters, message.Object.GetParameters());
+            Assert.Equal(parameters, message.GetParameters());
         }
 
         [Fact]
@@ -271,8 +241,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
                 ["string"] = "value"
             };
 
-            var message = Mock.Of<OpenIdConnectMessage>();
-            Mock.Get(message).CallBase = true;
+            var message = new OpenIdConnectMessage();
 
             foreach (var property in properties) {
                 message.SetProperty(property.Key, property.Value);
@@ -287,8 +256,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData("")]
         public void GetProperty_ThrowsAnExceptionForNullOrEmptyName(string name) {
             // Arrange
-            var message = Mock.Of<OpenIdConnectMessage>();
-            Mock.Get(message).CallBase = true;
+            var message = new OpenIdConnectMessage();
 
             // Act and assert
             var exception = Assert.Throws<ArgumentException>(delegate {
@@ -302,8 +270,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [Fact]
         public void GetProperty_ReturnsDefaultInstanceForMissingProperty() {
             // Arrange
-            var message = Mock.Of<OpenIdConnectMessage>();
-            Mock.Get(message).CallBase = true;
+            var message = new OpenIdConnectMessage();
 
             // Act and assert
             Assert.Equal(0, message.GetProperty<long>("property"));
@@ -312,8 +279,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [Fact]
         public void GetProperty_ReturnsDefaultInstanceForInvalidType() {
             // Arrange
-            var message = Mock.Of<OpenIdConnectMessage>();
-            Mock.Get(message).CallBase = true;
+            var message = new OpenIdConnectMessage();
 
             message.SetProperty("property", "value");
 
@@ -327,8 +293,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData("missing_property", null)]
         public void GetProperty_ReturnsExpectedResult(string property, object result) {
             // Arrange
-            var message = Mock.Of<OpenIdConnectMessage>();
-            Mock.Get(message).CallBase = true;
+            var message = new OpenIdConnectMessage();
 
             message.SetProperty("property", "value");
 
@@ -341,8 +306,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData("")]
         public void HasParameter_ThrowsAnExceptionForNullOrEmptyName(string name) {
             // Arrange
-            var message = Mock.Of<OpenIdConnectMessage>();
-            Mock.Get(message).CallBase = true;
+            var message = new OpenIdConnectMessage();
 
             // Act and assert
             var exception = Assert.Throws<ArgumentException>(delegate {
@@ -359,8 +323,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData("missing_parameter", false)]
         public void HasParameter_ReturnsExpectedResult(string parameter, bool result) {
             // Arrange
-            var message = Mock.Of<OpenIdConnectMessage>();
-            Mock.Get(message).CallBase = true;
+            var message = new OpenIdConnectMessage();
 
             message.SetParameter("parameter", "value");
 
@@ -373,8 +336,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData("")]
         public void HasProperty_ThrowsAnExceptionForNullOrEmptyName(string name) {
             // Arrange
-            var message = Mock.Of<OpenIdConnectMessage>();
-            Mock.Get(message).CallBase = true;
+            var message = new OpenIdConnectMessage();
 
             // Act and assert
             var exception = Assert.Throws<ArgumentException>(delegate {
@@ -391,9 +353,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData("missing_property", false)]
         public void HasProperty_ReturnsExpectedResult(string property, bool result) {
             // Arrange
-            var message = Mock.Of<OpenIdConnectMessage>();
-            Mock.Get(message).CallBase = true;
-
+            var message = new OpenIdConnectMessage();
             message.SetProperty("property", "value");
 
             // Act and assert
@@ -405,8 +365,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData("")]
         public void SetParameter_ThrowsAnExceptionForNullOrEmptyName(string name) {
             // Arrange
-            var message = Mock.Of<OpenIdConnectMessage>();
-            Mock.Get(message).CallBase = true;
+            var message = new OpenIdConnectMessage();
 
             // Act and assert
             var exception = Assert.Throws<ArgumentException>(delegate {
@@ -420,8 +379,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [Fact]
         public void SetParameter_AddsExpectedParameter() {
             // Arrange
-            var message = Mock.Of<OpenIdConnectMessage>();
-            Mock.Get(message).CallBase = true;
+            var message = new OpenIdConnectMessage();
 
             // Act
             message.SetParameter("parameter", 42);
@@ -433,8 +391,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [Fact]
         public void SetParameter_IsCaseSensitive() {
             // Arrange
-            var message = Mock.Of<OpenIdConnectMessage>();
-            Mock.Get(message).CallBase = true;
+            var message = new OpenIdConnectMessage();
 
             // Act
             message.SetParameter("PARAMETER", 42);
@@ -446,8 +403,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [Fact]
         public void SetParameter_RemovesNullParameters() {
             // Arrange
-            var message = Mock.Of<OpenIdConnectMessage>();
-            Mock.Get(message).CallBase = true;
+            var message = new OpenIdConnectMessage();
 
             // Act
             message.SetParameter("null", null);
@@ -459,8 +415,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [Fact]
         public void SetParameter_RemovesEmptyParameters() {
             // Arrange
-            var message = Mock.Of<OpenIdConnectMessage>();
-            Mock.Get(message).CallBase = true;
+            var message = new OpenIdConnectMessage();
 
             // Act
             message.SetParameter("string", string.Empty);
@@ -477,8 +432,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData("")]
         public void SetProperty_ThrowsAnExceptionForNullOrEmptyName(string name) {
             // Arrange
-            var message = Mock.Of<OpenIdConnectMessage>();
-            Mock.Get(message).CallBase = true;
+            var message = new OpenIdConnectMessage();
 
             // Act and assert
             var exception = Assert.Throws<ArgumentException>(delegate {
@@ -492,8 +446,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [Fact]
         public void SetProperty_AddsExpectedProperty() {
             // Arrange
-            var message = Mock.Of<OpenIdConnectMessage>();
-            Mock.Get(message).CallBase = true;
+            var message = new OpenIdConnectMessage();
 
             // Act
             message.SetProperty("property", "value");
@@ -505,8 +458,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [Fact]
         public void SetProperty_IsCaseSensitive() {
             // Arrange
-            var message = Mock.Of<OpenIdConnectMessage>();
-            Mock.Get(message).CallBase = true;
+            var message = new OpenIdConnectMessage();
 
             // Act
             message.SetProperty("PROPERTY", "value");
@@ -518,8 +470,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [Fact]
         public void SetProperty_RemovesEmptyProperties() {
             // Arrange
-            var message = Mock.Of<OpenIdConnectMessage>();
-            Mock.Get(message).CallBase = true;
+            var message = new OpenIdConnectMessage();
 
             // Act
             message.SetProperty("property", string.Empty);
@@ -533,8 +484,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData("")]
         public void RemoveParameter_ThrowsAnExceptionForNullOrEmptyName(string name) {
             // Arrange
-            var message = Mock.Of<OpenIdConnectMessage>();
-            Mock.Get(message).CallBase = true;
+            var message = new OpenIdConnectMessage();
 
             // Act and assert
             var exception = Assert.Throws<ArgumentException>(delegate {
@@ -548,9 +498,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [Fact]
         public void RemoveParameter_RemovesExpectedParameter() {
             // Arrange
-            var message = Mock.Of<OpenIdConnectMessage>();
-            Mock.Get(message).CallBase = true;
-
+            var message = new OpenIdConnectMessage();
             message.AddParameter("parameter", 42);
 
             // Act
@@ -565,8 +513,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData("")]
         public void RemoveProperty_ThrowsAnExceptionForNullOrEmptyName(string name) {
             // Arrange
-            var message = Mock.Of<OpenIdConnectMessage>();
-            Mock.Get(message).CallBase = true;
+            var message = new OpenIdConnectMessage();
 
             // Act and assert
             var exception = Assert.Throws<ArgumentException>(delegate {
@@ -580,9 +527,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [Fact]
         public void RemoveProperty_RemovesExpectedProperty() {
             // Arrange
-            var message = Mock.Of<OpenIdConnectMessage>();
-            Mock.Get(message).CallBase = true;
-
+            var message = new OpenIdConnectMessage();
             message.AddProperty("property", 42);
 
             // Act

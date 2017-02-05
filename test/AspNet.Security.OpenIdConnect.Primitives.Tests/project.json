@@ -9,7 +9,6 @@
     "Microsoft.AspNetCore.TestHost": "1.0.0",
     "Microsoft.Extensions.Caching.Memory": "1.0.0",
     "Microsoft.Extensions.Logging.Debug": "1.0.0",
-    "Moq": "4.6.38-alpha",
     "xunit": "2.2.0-beta2-build3300"
   },
 

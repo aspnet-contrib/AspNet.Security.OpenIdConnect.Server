@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using Moq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -84,7 +83,6 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Theory]
-        [InlineData(typeof(OpenIdConnectMessage))]
         [InlineData(typeof(OpenIdConnectMessage[]))]
         [InlineData(typeof(OpenIdConnectRequest[]))]
         [InlineData(typeof(OpenIdConnectResponse[]))]
@@ -111,11 +109,9 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [Fact]
         public void ReadJson_PopulatesExistingInstance() {
             // Arrange
+            var message = new OpenIdConnectMessage();
             var converter = new OpenIdConnectConverter();
             var reader = new JsonTextReader(new StringReader(@"{""name"":""value""}"));
-
-            var message = Mock.Of<OpenIdConnectMessage>();
-            Mock.Get(message).CallBase = true;
 
             // Act
             var result = converter.ReadJson(reader: reader, type: typeof(OpenIdConnectMessage),
@@ -127,6 +123,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Theory]
+        [InlineData(typeof(OpenIdConnectMessage))]
         [InlineData(typeof(OpenIdConnectRequest))]
         [InlineData(typeof(OpenIdConnectResponse))]
         public void ReadJson_ReturnsRequestedType(Type type) {
@@ -185,11 +182,9 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [Fact]
         public void WriteJson_WritesEmptyPayloadForEmptyMessages() {
             // Arrange
+            var message = new OpenIdConnectMessage();
             var converter = new OpenIdConnectConverter();
             var writer = new StringWriter();
-
-            var message = Mock.Of<OpenIdConnectMessage>();
-            Mock.Get(message).CallBase = true;
 
             // Act
             converter.WriteJson(writer: new JsonTextWriter(writer), value: message, serializer: null);
@@ -203,9 +198,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
             var converter = new OpenIdConnectConverter();
             var writer = new StringWriter();
 
-            var message = Mock.Of<OpenIdConnectMessage>();
-            Mock.Get(message).CallBase = true;
-
+            var message = new OpenIdConnectMessage();
             message.SetParameter("string", "value");
             message.SetParameter("array", new JArray("value"));
 
@@ -222,9 +215,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
             var converter = new OpenIdConnectConverter();
             var writer = new StringWriter();
 
-            var message = Mock.Of<OpenIdConnectMessage>();
-            Mock.Get(message).CallBase = true;
-
+            var message = new OpenIdConnectMessage();
             message.SetParameter("string", new OpenIdConnectParameter((string) null));
             message.SetParameter("array", new OpenIdConnectParameter((JArray) null));
             message.SetParameter("object", new OpenIdConnectParameter((JObject) null));

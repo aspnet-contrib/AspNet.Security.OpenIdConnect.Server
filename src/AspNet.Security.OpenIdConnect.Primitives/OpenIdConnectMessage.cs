@@ -17,19 +17,24 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
     /// <summary>
     /// Represents an abstract OpenID Connect message.
     /// </summary>
+    /// <remarks>
+    /// Security notice: developers instantiating this type are responsible of ensuring that the
+    /// imported parameters are safe and won't cause the resulting message to grow abnormally,
+    /// which may result in an excessive memory consumption and a potential denial of service.
+    /// </remarks>
     [DebuggerDisplay("Parameters: {Parameters.Count}")]
     [JsonConverter(typeof(OpenIdConnectConverter))]
-    public abstract class OpenIdConnectMessage {
+    public class OpenIdConnectMessage {
         /// <summary>
         /// Initializes a new OpenID Connect message.
         /// </summary>
-        protected OpenIdConnectMessage() { }
+        public OpenIdConnectMessage() { }
 
         /// <summary>
         /// Initializes a new OpenID Connect message.
         /// </summary>
         /// <param name="parameters">The message parameters.</param>
-        protected OpenIdConnectMessage([NotNull] IEnumerable<KeyValuePair<string, JToken>> parameters) {
+        public OpenIdConnectMessage([NotNull] IEnumerable<KeyValuePair<string, JToken>> parameters) {
             if (parameters == null) {
                 throw new ArgumentNullException(nameof(parameters));
             }
@@ -47,7 +52,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// Initializes a new OpenID Connect message.
         /// </summary>
         /// <param name="parameters">The message parameters.</param>
-        protected OpenIdConnectMessage([NotNull] IEnumerable<KeyValuePair<string, OpenIdConnectParameter>> parameters) {
+        public OpenIdConnectMessage([NotNull] IEnumerable<KeyValuePair<string, OpenIdConnectParameter>> parameters) {
             if (parameters == null) {
                 throw new ArgumentNullException(nameof(parameters));
             }
@@ -65,7 +70,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// Initializes a new OpenID Connect message.
         /// </summary>
         /// <param name="parameters">The message parameters.</param>
-        protected OpenIdConnectMessage([NotNull] IEnumerable<KeyValuePair<string, string>> parameters) {
+        public OpenIdConnectMessage([NotNull] IEnumerable<KeyValuePair<string, string>> parameters) {
             if (parameters == null) {
                 throw new ArgumentNullException(nameof(parameters));
             }
@@ -83,7 +88,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// Initializes a new OpenID Connect message.
         /// </summary>
         /// <param name="parameters">The message parameters.</param>
-        protected OpenIdConnectMessage([NotNull] IEnumerable<KeyValuePair<string, string[]>> parameters) {
+        public OpenIdConnectMessage([NotNull] IEnumerable<KeyValuePair<string, string[]>> parameters) {
             if (parameters == null) {
                 throw new ArgumentNullException(nameof(parameters));
             }
@@ -101,7 +106,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
         /// Initializes a new OpenID Connect message.
         /// </summary>
         /// <param name="parameters">The message parameters.</param>
-        protected OpenIdConnectMessage([NotNull] IEnumerable<KeyValuePair<string, StringValues>> parameters) {
+        public OpenIdConnectMessage([NotNull] IEnumerable<KeyValuePair<string, StringValues>> parameters) {
             if (parameters == null) {
                 throw new ArgumentNullException(nameof(parameters));
             }

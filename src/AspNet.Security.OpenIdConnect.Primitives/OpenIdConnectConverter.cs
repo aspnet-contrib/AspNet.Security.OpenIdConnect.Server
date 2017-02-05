@@ -52,7 +52,11 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
             // new request/response depending on the requested type.
             var message = value as OpenIdConnectMessage;
             if (message == null) {
-                if (type == typeof(OpenIdConnectRequest)) {
+                if (type == typeof(OpenIdConnectMessage)) {
+                    message = new OpenIdConnectMessage();
+                }
+
+                else if (type == typeof(OpenIdConnectRequest)) {
                     message = new OpenIdConnectRequest();
                 }
 
