@@ -90,6 +90,15 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
+        public void Equals_SupportsNullJsonValues() {
+            // Arrange
+            var parameter = new OpenIdConnectParameter(42);
+
+            // Act and assert
+            Assert.False(parameter.Equals(new OpenIdConnectParameter(new JValue((long?) null))));
+        }
+
+        [Fact]
         public void Equals_SupportsJsonValues() {
             // Arrange
             var parameter = new OpenIdConnectParameter(42);
@@ -379,6 +388,15 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
 
             // Act and assert
             Assert.Equal(@"{""parameter"":""value""}", parameter.ToString());
+        }
+
+        [Fact]
+        public void ToString_ReturnsEmptyStringForNullJsonValues() {
+            // Arrange
+            var parameter = new OpenIdConnectParameter(new JValue((object) null));
+
+            // Act and assert
+            Assert.Empty(parameter.ToString());
         }
 
         [Fact]

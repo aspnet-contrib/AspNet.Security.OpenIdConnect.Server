@@ -119,13 +119,15 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
             // If the current instance is a JValue, compare the
             // underlying value to the other parameter value.
             if (Value is JValue) {
-                return ((JValue) Value).Value.Equals(parameter.Value);
+                return ((JValue) Value).Value != null &&
+                       ((JValue) Value).Value.Equals(parameter.Value);
             }
 
             // If the other parameter is a JValue, compare the
             // underlying value to the current parameter value.
             if (parameter.Value is JValue) {
-                return ((JValue) parameter.Value).Value.Equals(Value);
+                return ((JValue) parameter.Value).Value != null &&
+                       ((JValue) parameter.Value).Value.Equals(Value);
             }
 
             return Value.Equals(parameter.Value);
@@ -256,6 +258,10 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
             var value = token as JValue;
             if (value == null) {
                 return token.ToString(Formatting.None);
+            }
+
+            if (value.Value == null) {
+                return string.Empty;
             }
 
             return value.Value.ToString();

@@ -287,7 +287,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             foreach (var claim in notification.Claims) {
-                response.AddParameter(claim.Key, claim.Value);
+                response.SetParameter(claim.Key, claim.Value);
             }
 
             return await SendUserinfoResponseAsync(response);

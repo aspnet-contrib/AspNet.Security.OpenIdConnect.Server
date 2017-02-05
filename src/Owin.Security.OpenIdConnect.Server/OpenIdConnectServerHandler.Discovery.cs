@@ -243,7 +243,7 @@ namespace Owin.Security.OpenIdConnect.Server {
             };
 
             foreach (var metadata in notification.Metadata) {
-                response.AddParameter(metadata.Key, metadata.Value);
+                response.SetParameter(metadata.Key, metadata.Value);
             }
 
             return await SendConfigurationResponseAsync(response);

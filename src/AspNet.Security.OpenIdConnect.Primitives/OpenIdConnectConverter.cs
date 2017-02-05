@@ -104,6 +104,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
 
                 var token = (JToken) parameter.Value;
                 if (token == null) {
+                    writer.WriteNull();
+
                     continue;
                 }
 

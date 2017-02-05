@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Globalization;
 using System.IO;
+using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -140,6 +142,50 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
+        public void ReadJson_PreservesNullParameters() {
+            // Arrange
+            var converter = new OpenIdConnectConverter();
+            var reader = new JsonTextReader(new StringReader(@"{""string"":null,""bool"":null,""long"":null,""array"":null,""object"":null}"));
+
+            // Act
+            var result = (OpenIdConnectMessage) converter.ReadJson(reader, typeof(OpenIdConnectMessage),
+                                                                   value: null, serializer: null);
+
+            // Assert
+            Assert.Equal(5, result.GetParameters().Count());
+            Assert.NotNull(result.GetParameter("string"));
+            Assert.NotNull(result.GetParameter("bool"));
+            Assert.NotNull(result.GetParameter("long"));
+            Assert.NotNull(result.GetParameter("array"));
+            Assert.NotNull(result.GetParameter("object"));
+            Assert.Null((string) result.GetParameter("string"));
+            Assert.Null((bool?) result.GetParameter("bool"));
+            Assert.Null((long?) result.GetParameter("long"));
+            Assert.Null((JArray) result.GetParameter("array"));
+            Assert.Null((JObject) result.GetParameter("object"));
+        }
+
+        [Fact]
+        public void ReadJson_PreservesEmptyParameters() {
+            // Arrange
+            var converter = new OpenIdConnectConverter();
+            var reader = new JsonTextReader(new StringReader(@"{""string"":"""",""array"":[],""object"":{}}"));
+
+            // Act
+            var result = (OpenIdConnectMessage) converter.ReadJson(reader, typeof(OpenIdConnectMessage),
+                                                                   value: null, serializer: null);
+
+            // Assert
+            Assert.Equal(3, result.GetParameters().Count());
+            Assert.NotNull(result.GetParameter("string"));
+            Assert.NotNull(result.GetParameter("array"));
+            Assert.NotNull(result.GetParameter("object"));
+            Assert.Empty((string) result.GetParameter("string"));
+            Assert.Empty((JArray) result.GetParameter("array"));
+            Assert.Empty((JObject) result.GetParameter("object"));
+        }
+
+        [Fact]
         public void WriteJson_ThrowsAnExceptionForNullWriter() {
             // Arrange
             var converter = new OpenIdConnectConverter();
@@ -184,7 +230,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
             // Arrange
             var message = new OpenIdConnectMessage();
             var converter = new OpenIdConnectConverter();
-            var writer = new StringWriter();
+            var writer = new StringWriter(CultureInfo.InvariantCulture);
 
             // Act
             converter.WriteJson(writer: new JsonTextWriter(writer), value: message, serializer: null);
@@ -193,38 +239,58 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
+        public void WriteJson_PreservesNullParameters() {
+            // Arrange
+            var converter = new OpenIdConnectConverter();
+            var writer = new StringWriter(CultureInfo.InvariantCulture);
+
+            var message = new OpenIdConnectMessage();
+            message.AddParameter("string", new OpenIdConnectParameter((string) null));
+            message.AddParameter("bool", new OpenIdConnectParameter((bool?) null));
+            message.AddParameter("long", new OpenIdConnectParameter((long?) null));
+            message.AddParameter("array", new OpenIdConnectParameter((JArray) null));
+            message.AddParameter("object", new OpenIdConnectParameter((JObject) null));
+
+            // Act
+            converter.WriteJson(writer: new JsonTextWriter(writer), value: message, serializer: null);
+
+            // Assert
+            Assert.Equal(@"{""string"":null,""bool"":null,""long"":null,""array"":null,""object"":null}", writer.ToString());
+        }
+
+        [Fact]
+        public void WriteJson_PreservesEmptyParameters() {
+            // Arrange
+            var converter = new OpenIdConnectConverter();
+            var writer = new StringWriter(CultureInfo.InvariantCulture);
+
+            var message = new OpenIdConnectMessage();
+            message.AddParameter("string", new OpenIdConnectParameter(string.Empty));
+            message.AddParameter("array", new OpenIdConnectParameter(new JArray()));
+            message.AddParameter("object", new OpenIdConnectParameter(new JObject()));
+
+            // Act
+            converter.WriteJson(writer: new JsonTextWriter(writer), value: message, serializer: null);
+
+            // Assert
+            Assert.Equal(@"{""string"":"""",""array"":[],""object"":{}}", writer.ToString());
+        }
+
+        [Fact]
         public void WriteJson_WritesExpectedPayload() {
             // Arrange
             var converter = new OpenIdConnectConverter();
-            var writer = new StringWriter();
+            var writer = new StringWriter(CultureInfo.InvariantCulture);
 
             var message = new OpenIdConnectMessage();
-            message.SetParameter("string", "value");
-            message.SetParameter("array", new JArray("value"));
+            message.AddParameter("string", "value");
+            message.AddParameter("array", new JArray("value"));
 
             // Act
             converter.WriteJson(writer: new JsonTextWriter(writer), value: message, serializer: null);
 
             // Assert
             Assert.Equal(@"{""string"":""value"",""array"":[""value""]}", writer.ToString());
-        }
-
-        [Fact]
-        public void WriteJson_IgnoresNullParameters() {
-            // Arrange
-            var converter = new OpenIdConnectConverter();
-            var writer = new StringWriter();
-
-            var message = new OpenIdConnectMessage();
-            message.SetParameter("string", new OpenIdConnectParameter((string) null));
-            message.SetParameter("array", new OpenIdConnectParameter((JArray) null));
-            message.SetParameter("object", new OpenIdConnectParameter((JObject) null));
-
-            // Act
-            converter.WriteJson(writer: new JsonTextWriter(writer), value: message, serializer: null);
-
-            // Assert
-            Assert.Equal(@"{}", writer.ToString());
         }
     }
 }
