@@ -94,6 +94,22 @@ namespace AspNet.Security.OpenIdConnect.Server {
             return address + path;
         }
 
+        public static bool IsEquivalentTo(this PathString path, PathString other) {
+            if (path.Equals(other)) {
+                return true;
+            }
+
+            if (path.Equals(other + "/")) {
+                return true;
+            }
+
+            if (other.Equals(path + "/")) {
+                return true;
+            }
+
+            return false;
+        }
+
         public static bool IsSupportedAlgorithm(this SecurityKey key, string algorithm) {
             return key.CryptoProviderFactory.IsSupportedAlgorithm(algorithm, key);
         }

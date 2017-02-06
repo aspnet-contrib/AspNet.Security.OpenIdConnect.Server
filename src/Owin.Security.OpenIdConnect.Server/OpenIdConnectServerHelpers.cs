@@ -120,6 +120,22 @@ namespace Owin.Security.OpenIdConnect.Server {
             return address + path;
         }
 
+        public static bool IsEquivalentTo(this PathString path, PathString other) {
+            if (path.Equals(other)) {
+                return true;
+            }
+
+            if (path.Equals(other + new PathString("/"))) {
+                return true;
+            }
+            
+            if (other.Equals(path + new PathString("/"))) {
+                return true;
+            }
+
+            return false;
+        }
+
         public static string GetJwtAlgorithm(string algorithm) {
             if (string.IsNullOrEmpty(algorithm)) {
                 throw new ArgumentNullException(nameof(algorithm));

@@ -38,28 +38,88 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         public const string UserinfoEndpoint = "/connect/userinfo";
 
         [Theory]
-        [InlineData(ConfigurationEndpoint)]
-        [InlineData(CryptographyEndpoint)]
-        [InlineData(CustomEndpoint)]
-        [InlineData(AuthorizationEndpoint)]
-        [InlineData(IntrospectionEndpoint)]
-        [InlineData(LogoutEndpoint)]
-        [InlineData(RevocationEndpoint)]
-        [InlineData(TokenEndpoint)]
-        [InlineData(UserinfoEndpoint)]
-        public Task HandleRequestAsync_MatchEndpoint_MatchesCorrespondingEndpoint(string address) {
+        [InlineData("/", null)]
+        [InlineData("/connect", null)]
+        [InlineData("/CONNECT", null)]
+        [InlineData("/connect/", null)]
+        [InlineData("/CONNECT/", null)]
+        [InlineData("/connect/authorize", AuthorizationEndpoint)]
+        [InlineData("/CONNECT/AUTHORIZE", AuthorizationEndpoint)]
+        [InlineData("/connect/authorize/", AuthorizationEndpoint)]
+        [InlineData("/CONNECT/AUTHORIZE/", AuthorizationEndpoint)]
+        [InlineData("/connect/authorize/subpath", null)]
+        [InlineData("/CONNECT/AUTHORIZE/SUBPATH", null)]
+        [InlineData("/connect/authorize/subpath/", null)]
+        [InlineData("/CONNECT/AUTHORIZE/SUBPATH/", null)]
+        [InlineData("/connect/introspect", IntrospectionEndpoint)]
+        [InlineData("/CONNECT/INTROSPECT", IntrospectionEndpoint)]
+        [InlineData("/connect/introspect/", IntrospectionEndpoint)]
+        [InlineData("/CONNECT/INTROSPECT/", IntrospectionEndpoint)]
+        [InlineData("/connect/introspect/subpath", null)]
+        [InlineData("/CONNECT/INTROSPECT/SUBPATH", null)]
+        [InlineData("/connect/introspect/subpath/", null)]
+        [InlineData("/CONNECT/INTROSPECT/SUBPATH/", null)]
+        [InlineData("/connect/logout", LogoutEndpoint)]
+        [InlineData("/CONNECT/LOGOUT", LogoutEndpoint)]
+        [InlineData("/connect/logout/", LogoutEndpoint)]
+        [InlineData("/CONNECT/LOGOUT/", LogoutEndpoint)]
+        [InlineData("/connect/logout/subpath", null)]
+        [InlineData("/CONNECT/LOGOUT/SUBPATH", null)]
+        [InlineData("/connect/logout/subpath/", null)]
+        [InlineData("/CONNECT/LOGOUT/SUBPATH/", null)]
+        [InlineData("/connect/revoke", RevocationEndpoint)]
+        [InlineData("/CONNECT/REVOKE", RevocationEndpoint)]
+        [InlineData("/connect/revoke/", RevocationEndpoint)]
+        [InlineData("/CONNECT/REVOKE/", RevocationEndpoint)]
+        [InlineData("/connect/revoke/subpath", null)]
+        [InlineData("/CONNECT/REVOKE/SUBPATH", null)]
+        [InlineData("/connect/revoke/subpath/", null)]
+        [InlineData("/CONNECT/REVOKE/SUBPATH/", null)]
+        [InlineData("/connect/token", TokenEndpoint)]
+        [InlineData("/CONNECT/TOKEN", TokenEndpoint)]
+        [InlineData("/connect/token/", TokenEndpoint)]
+        [InlineData("/CONNECT/TOKEN/", TokenEndpoint)]
+        [InlineData("/connect/token/subpath", null)]
+        [InlineData("/CONNECT/TOKEN/SUBPATH", null)]
+        [InlineData("/connect/token/subpath/", null)]
+        [InlineData("/CONNECT/TOKEN/SUBPATH/", null)]
+        [InlineData("/connect/userinfo", UserinfoEndpoint)]
+        [InlineData("/CONNECT/USERINFO", UserinfoEndpoint)]
+        [InlineData("/connect/userinfo/", UserinfoEndpoint)]
+        [InlineData("/CONNECT/USERINFO/", UserinfoEndpoint)]
+        [InlineData("/connect/userinfo/subpath", null)]
+        [InlineData("/CONNECT/USERINFO/SUBPATH", null)]
+        [InlineData("/connect/userinfo/subpath/", null)]
+        [InlineData("/CONNECT/USERINFO/SUBPATH/", null)]
+        [InlineData("/.well-known/openid-configuration", ConfigurationEndpoint)]
+        [InlineData("/.WELL-KNOWN/OPENID-CONFIGURATION", ConfigurationEndpoint)]
+        [InlineData("/.well-known/openid-configuration/", ConfigurationEndpoint)]
+        [InlineData("/.WELL-KNOWN/OPENID-CONFIGURATION/", ConfigurationEndpoint)]
+        [InlineData("/.well-known/openid-configuration/subpath", null)]
+        [InlineData("/.WELL-KNOWN/OPENID-CONFIGURATION/SUBPATH", null)]
+        [InlineData("/.well-known/openid-configuration/subpath/", null)]
+        [InlineData("/.WELL-KNOWN/OPENID-CONFIGURATION/SUBPATH/", null)]
+        [InlineData("/.well-known/jwks", CryptographyEndpoint)]
+        [InlineData("/.WELL-KNOWN/JWKS", CryptographyEndpoint)]
+        [InlineData("/.well-known/jwks/", CryptographyEndpoint)]
+        [InlineData("/.WELL-KNOWN/JWKS/", CryptographyEndpoint)]
+        [InlineData("/.well-known/jwks/subpath", null)]
+        [InlineData("/.WELL-KNOWN/JWKS/SUBPATH", null)]
+        [InlineData("/.well-known/jwks/subpath/", null)]
+        [InlineData("/.WELL-KNOWN/JWKS/SUBPATH/", null)]
+        public Task HandleRequestAsync_MatchEndpoint_MatchesCorrespondingEndpoint(string path, string endpoint) {
             // Arrange
             var server = CreateAuthorizationServer(options => {
                 options.Provider.OnMatchEndpoint = context => {
                     // Assert
-                    Assert.Equal(context.IsAuthorizationEndpoint, address == AuthorizationEndpoint);
-                    Assert.Equal(context.IsConfigurationEndpoint, address == ConfigurationEndpoint);
-                    Assert.Equal(context.IsCryptographyEndpoint, address == CryptographyEndpoint);
-                    Assert.Equal(context.IsIntrospectionEndpoint, address == IntrospectionEndpoint);
-                    Assert.Equal(context.IsLogoutEndpoint, address == LogoutEndpoint);
-                    Assert.Equal(context.IsRevocationEndpoint, address == RevocationEndpoint);
-                    Assert.Equal(context.IsTokenEndpoint, address == TokenEndpoint);
-                    Assert.Equal(context.IsUserinfoEndpoint, address == UserinfoEndpoint);
+                    Assert.Equal(context.IsAuthorizationEndpoint, endpoint == AuthorizationEndpoint);
+                    Assert.Equal(context.IsConfigurationEndpoint, endpoint == ConfigurationEndpoint);
+                    Assert.Equal(context.IsCryptographyEndpoint, endpoint == CryptographyEndpoint);
+                    Assert.Equal(context.IsIntrospectionEndpoint, endpoint == IntrospectionEndpoint);
+                    Assert.Equal(context.IsLogoutEndpoint, endpoint == LogoutEndpoint);
+                    Assert.Equal(context.IsRevocationEndpoint, endpoint == RevocationEndpoint);
+                    Assert.Equal(context.IsTokenEndpoint, endpoint == TokenEndpoint);
+                    Assert.Equal(context.IsUserinfoEndpoint, endpoint == UserinfoEndpoint);
 
                     return Task.FromResult(0);
                 };
@@ -68,12 +128,10 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            return client.PostAsync(address, new OpenIdConnectRequest());
+            return client.PostAsync(path, new OpenIdConnectRequest());
         }
 
         [Theory]
-        [InlineData("/custom/.well-known/openid-configuration")]
-        [InlineData("/custom/.well-known/jwks")]
         [InlineData("/custom/connect/authorize")]
         [InlineData("/custom/connect/custom")]
         [InlineData("/custom/connect/introspect")]
@@ -81,6 +139,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         [InlineData("/custom/connect/revoke")]
         [InlineData("/custom/connect/token")]
         [InlineData("/custom/connect/userinfo")]
+        [InlineData("/custom/.well-known/openid-configuration")]
+        [InlineData("/custom/.well-known/jwks")]
         public Task HandleRequestAsync_MatchEndpoint_AllowsOverridingEndpoint(string address) {
             // Arrange
             var server = CreateAuthorizationServer(options => {

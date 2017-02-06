@@ -14,7 +14,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Infrastructure;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Owin.Security.OpenIdConnect.Extensions;
 
 namespace Owin.Security.OpenIdConnect.Server {
@@ -23,42 +22,42 @@ namespace Owin.Security.OpenIdConnect.Server {
             var notification = new MatchEndpointContext(Context, Options);
 
             if (Options.AuthorizationEndpointPath.HasValue &&
-                Options.AuthorizationEndpointPath == Request.Path) {
+                Options.AuthorizationEndpointPath.IsEquivalentTo(Request.Path)) {
                 notification.MatchAuthorizationEndpoint();
             }
 
             else if (Options.ConfigurationEndpointPath.HasValue &&
-                     Options.ConfigurationEndpointPath == Request.Path) {
+                     Options.ConfigurationEndpointPath.IsEquivalentTo(Request.Path)) {
                 notification.MatchConfigurationEndpoint();
             }
 
             else if (Options.CryptographyEndpointPath.HasValue &&
-                     Options.CryptographyEndpointPath == Request.Path) {
+                     Options.CryptographyEndpointPath.IsEquivalentTo(Request.Path)) {
                 notification.MatchCryptographyEndpoint();
             }
 
             else if (Options.IntrospectionEndpointPath.HasValue &&
-                     Options.IntrospectionEndpointPath == Request.Path) {
+                     Options.IntrospectionEndpointPath.IsEquivalentTo(Request.Path)) {
                 notification.MatchIntrospectionEndpoint();
             }
 
             else if (Options.LogoutEndpointPath.HasValue &&
-                     Options.LogoutEndpointPath == Request.Path) {
+                     Options.LogoutEndpointPath.IsEquivalentTo(Request.Path)) {
                 notification.MatchLogoutEndpoint();
             }
 
             else if (Options.RevocationEndpointPath.HasValue &&
-                     Options.RevocationEndpointPath == Request.Path) {
+                     Options.RevocationEndpointPath.IsEquivalentTo(Request.Path)) {
                 notification.MatchRevocationEndpoint();
             }
 
             else if (Options.TokenEndpointPath.HasValue &&
-                     Options.TokenEndpointPath == Request.Path) {
+                     Options.TokenEndpointPath.IsEquivalentTo(Request.Path)) {
                 notification.MatchTokenEndpoint();
             }
 
             else if (Options.UserinfoEndpointPath.HasValue &&
-                     Options.UserinfoEndpointPath == Request.Path) {
+                     Options.UserinfoEndpointPath.IsEquivalentTo(Request.Path)) {
                 notification.MatchUserinfoEndpoint();
             }
 
