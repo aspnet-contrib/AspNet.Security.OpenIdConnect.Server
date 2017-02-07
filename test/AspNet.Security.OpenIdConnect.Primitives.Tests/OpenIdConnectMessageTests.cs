@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
@@ -363,6 +364,64 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [Theory]
         [InlineData(null)]
         [InlineData("")]
+        public void RemoveParameter_ThrowsAnExceptionForNullOrEmptyName(string name) {
+            // Arrange
+            var message = new OpenIdConnectMessage();
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentException>(delegate {
+                message.RemoveParameter(name);
+            });
+
+            Assert.Equal("name", exception.ParamName);
+            Assert.StartsWith("The parameter name cannot be null or empty.", exception.Message);
+        }
+
+        [Fact]
+        public void RemoveParameter_RemovesExpectedParameter() {
+            // Arrange
+            var message = new OpenIdConnectMessage();
+            message.AddParameter("parameter", 42);
+
+            // Act
+            message.RemoveParameter("parameter");
+
+            // Assert
+            Assert.Null(message.GetParameter("parameter"));
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public void RemoveProperty_ThrowsAnExceptionForNullOrEmptyName(string name) {
+            // Arrange
+            var message = new OpenIdConnectMessage();
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentException>(delegate {
+                message.RemoveProperty(name);
+            });
+
+            Assert.Equal("name", exception.ParamName);
+            Assert.StartsWith("The property name cannot be null or empty.", exception.Message);
+        }
+
+        [Fact]
+        public void RemoveProperty_RemovesExpectedProperty() {
+            // Arrange
+            var message = new OpenIdConnectMessage();
+            message.AddProperty("property", 42);
+
+            // Act
+            message.RemoveProperty("property");
+
+            // Assert
+            Assert.Null(message.GetProperty("property"));
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
         public void SetParameter_ThrowsAnExceptionForNullOrEmptyName(string name) {
             // Arrange
             var message = new OpenIdConnectMessage();
@@ -479,62 +538,54 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
             Assert.Null(message.GetProperty("property"));
         }
 
-        [Theory]
-        [InlineData(null)]
-        [InlineData("")]
-        public void RemoveParameter_ThrowsAnExceptionForNullOrEmptyName(string name) {
+        [Fact]
+        public void ToString_ReturnsJsonRepresentation() {
             // Arrange
-            var message = new OpenIdConnectMessage();
+            var message = JsonConvert.DeserializeObject<OpenIdConnectMessage>(@"{
+  ""redirect_uris"": [
+    ""https://client.example.org/callback"",
+    ""https://client.example.org/callback2""
+  ],
+  ""client_name"": ""My Example Client"",
+  ""token_endpoint_auth_method"": ""client_secret_basic"",
+  ""logo_uri"": ""https://client.example.org/logo.png"",
+  ""jwks_uri"": ""https://client.example.org/my_public_keys.jwks"",
+  ""example_extension_parameter"": ""example_value""
+}");
 
             // Act and assert
-            var exception = Assert.Throws<ArgumentException>(delegate {
-                message.RemoveParameter(name);
-            });
-
-            Assert.Equal("name", exception.ParamName);
-            Assert.StartsWith("The parameter name cannot be null or empty.", exception.Message);
+            Assert.Equal(JsonConvert.SerializeObject(message, Formatting.Indented), message.ToString());
         }
 
         [Fact]
-        public void RemoveParameter_RemovesExpectedParameter() {
+        public void ToString_IgnoresProperties() {
             // Arrange
             var message = new OpenIdConnectMessage();
-            message.AddParameter("parameter", 42);
+            message.SetProperty("property", "value");
 
-            // Act
-            message.RemoveParameter("parameter");
-
-            // Assert
-            Assert.Null(message.GetParameter("parameter"));
+            // Act and assert
+            Assert.Equal("{}", message.ToString());
         }
 
         [Theory]
-        [InlineData(null)]
-        [InlineData("")]
-        public void RemoveProperty_ThrowsAnExceptionForNullOrEmptyName(string name) {
+        [InlineData(OpenIdConnectConstants.Parameters.AccessToken)]
+        [InlineData(OpenIdConnectConstants.Parameters.Assertion)]
+        [InlineData(OpenIdConnectConstants.Parameters.ClientAssertion)]
+        [InlineData(OpenIdConnectConstants.Parameters.ClientSecret)]
+        [InlineData(OpenIdConnectConstants.Parameters.Code)]
+        [InlineData(OpenIdConnectConstants.Parameters.IdToken)]
+        [InlineData(OpenIdConnectConstants.Parameters.IdTokenHint)]
+        [InlineData(OpenIdConnectConstants.Parameters.Password)]
+        [InlineData(OpenIdConnectConstants.Parameters.RefreshToken)]
+        [InlineData(OpenIdConnectConstants.Parameters.Token)]
+        public void ToString_ExcludesSentitiveParameters(string parameter) {
             // Arrange
             var message = new OpenIdConnectMessage();
+            message.AddParameter(parameter, "secret value");
 
             // Act and assert
-            var exception = Assert.Throws<ArgumentException>(delegate {
-                message.RemoveProperty(name);
-            });
-
-            Assert.Equal("name", exception.ParamName);
-            Assert.StartsWith("The property name cannot be null or empty.", exception.Message);
-        }
-
-        [Fact]
-        public void RemoveProperty_RemovesExpectedProperty() {
-            // Arrange
-            var message = new OpenIdConnectMessage();
-            message.AddProperty("property", 42);
-
-            // Act
-            message.RemoveProperty("property");
-
-            // Assert
-            Assert.Null(message.GetProperty("property"));
+            Assert.DoesNotContain("secret value", message.ToString());
+            Assert.Equal("[removed for security reasons]", JObject.Parse(message.ToString())[parameter]);
         }
     }
 }

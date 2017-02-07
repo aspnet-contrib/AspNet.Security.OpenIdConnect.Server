@@ -8,6 +8,9 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
+using System.IO;
+using System.Text;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
@@ -370,6 +373,56 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
             }
 
             return this;
+        }
+
+        /// <summary>
+        /// Returns a <see cref="string"/> representation of the current instance that can be used in logs.
+        /// Note: sensitive parameters like client secrets are automatically removed for security reasons.
+        /// </summary>
+        /// <returns>The indented JSON representation corresponding to this message.</returns>
+        public override string ToString() {
+            var builder = new StringBuilder();
+
+            using (var writer = new JsonTextWriter(new StringWriter(builder, CultureInfo.InvariantCulture))) {
+                writer.Formatting = Formatting.Indented;
+
+                writer.WriteStartObject();
+
+                foreach (var parameter in Parameters) {
+                    writer.WritePropertyName(parameter.Key);
+
+                    // Remove sensitive parameters from the generated payload.
+                    switch (parameter.Key) {
+                        case OpenIdConnectConstants.Parameters.AccessToken:
+                        case OpenIdConnectConstants.Parameters.Assertion:
+                        case OpenIdConnectConstants.Parameters.ClientAssertion:
+                        case OpenIdConnectConstants.Parameters.ClientSecret:
+                        case OpenIdConnectConstants.Parameters.Code:
+                        case OpenIdConnectConstants.Parameters.IdToken:
+                        case OpenIdConnectConstants.Parameters.IdTokenHint:
+                        case OpenIdConnectConstants.Parameters.Password:
+                        case OpenIdConnectConstants.Parameters.RefreshToken:
+                        case OpenIdConnectConstants.Parameters.Token: {
+                            writer.WriteValue("[removed for security reasons]");
+
+                            continue;
+                        }
+                    }
+
+                    var token = (JToken) parameter.Value;
+                    if (token == null) {
+                        writer.WriteNull();
+
+                        continue;
+                    }
+
+                    token.WriteTo(writer);
+                }
+
+                writer.WriteEndObject();
+            }
+
+            return builder.ToString();
         }
     }
 }
