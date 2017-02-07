@@ -289,7 +289,7 @@ namespace Owin {
                         rsa.KeySize = 2048;
                     }
 
-                    // Note: RSACng cannot be used as it's not available on Mono.
+                    // Note: RSACng cannot be used as it's not available on <.NET 4.6.
                     if (rsa.KeySize < 2048 && rsa is RSACryptoServiceProvider) {
                         rsa.Dispose();
                         rsa = new RSACryptoServiceProvider(2048);

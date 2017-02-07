@@ -278,7 +278,7 @@ namespace Microsoft.AspNetCore.Builder {
                     }
 
 #if NET451
-                    // Note: RSACng cannot be used as it's not available on Mono.
+                    // Note: RSACng cannot be used as it's not available on <.NET 4.6.
                     if (rsa.KeySize < 2048 && rsa is RSACryptoServiceProvider) {
                         rsa.Dispose();
                         rsa = new RSACryptoServiceProvider(2048);
@@ -352,6 +352,11 @@ namespace Microsoft.AspNetCore.Builder {
 
                     return credentials;
                 }
+#else
+                case SecurityAlgorithms.EcdsaSha256Signature:
+                case SecurityAlgorithms.EcdsaSha384Signature:
+                case SecurityAlgorithms.EcdsaSha512Signature:
+                    throw new InvalidOperationException("ECDSA signing keys are not supported on this platform.");
 #endif
 
                 default:
@@ -412,6 +417,12 @@ namespace Microsoft.AspNetCore.Builder {
                 credentials.Add(new SigningCredentials(key, SecurityAlgorithms.EcdsaSha512Signature));
 
                 return credentials;
+            }
+#else
+            else if (key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha256Signature) ||
+                     key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha384Signature) ||
+                     key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha512Signature)) {
+                throw new InvalidOperationException("ECDSA signing keys are not supported on this platform.");
             }
 #endif
 
