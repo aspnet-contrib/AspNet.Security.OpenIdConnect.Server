@@ -77,10 +77,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
             await Options.Provider.ExtractLogoutRequest(@event);
 
             if (@event.HandledResponse) {
+                Logger.LogDebug("The logout request was handled in user code.");
+
                 return true;
             }
 
             else if (@event.Skipped) {
+                Logger.LogDebug("The default logout request handling was skipped from user code.");
+
                 return false;
             }
 
@@ -96,14 +100,21 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 });
             }
 
+            Logger.LogInformation("The logout request was successfully extracted " +
+                                  "from the HTTP request: {Request}", request);
+
             var context = new ValidateLogoutRequestContext(Context, Options, request);
             await Options.Provider.ValidateLogoutRequest(context);
 
             if (context.HandledResponse) {
+                Logger.LogDebug("The logout request was handled in user code.");
+
                 return true;
             }
 
             else if (context.Skipped) {
+                Logger.LogDebug("The default logout request handling was skipped from user code.");
+
                 return false;
             }
 
@@ -123,10 +134,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
             await Options.Provider.HandleLogoutRequest(notification);
 
             if (notification.HandledResponse) {
+                Logger.LogDebug("The logout request was handled in user code.");
+
                 return true;
             }
 
             else if (notification.Skipped) {
+                Logger.LogDebug("The default logout request handling was skipped from user code.");
+
                 return false;
             }
 
@@ -153,10 +168,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
             await Options.Provider.ApplyLogoutResponse(notification);
 
             if (notification.HandledResponse) {
+                Logger.LogDebug("The logout request was handled in user code.");
+
                 return true;
             }
 
             else if (notification.Skipped) {
+                Logger.LogDebug("The default logout request handling was skipped from user code.");
+
                 return false;
             }
 
@@ -172,6 +191,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 return await SendNativePageAsync(response);
             }
+
+            Logger.LogInformation("The logout response was successfully returned: {Response}", response);
 
             // Don't redirect the user agent if no explicit post_logout_redirect_uri was
             // provided or if the URI was not fully validated by the application code.

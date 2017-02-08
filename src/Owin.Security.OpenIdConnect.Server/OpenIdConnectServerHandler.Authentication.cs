@@ -78,10 +78,14 @@ namespace Owin.Security.OpenIdConnect.Server {
             await Options.Provider.ExtractAuthorizationRequest(@event);
 
             if (@event.HandledResponse) {
+                Options.Logger.LogDebug("The authorization request was handled in user code.");
+
                 return true;
             }
 
             else if (@event.Skipped) {
+                Options.Logger.LogDebug("The default authorization request handling was skipped from user code.");
+
                 return false;
             }
 
@@ -96,6 +100,9 @@ namespace Owin.Security.OpenIdConnect.Server {
                     ErrorUri = @event.ErrorUri
                 });
             }
+
+            Options.Logger.LogInformation("The authorization request was successfully extracted " +
+                                          "from the HTTP request: {Request}", request);
 
             // client_id is mandatory parameter and MUST cause an error when missing.
             // See http://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
@@ -270,10 +277,14 @@ namespace Owin.Security.OpenIdConnect.Server {
             await Options.Provider.ValidateAuthorizationRequest(context);
 
             if (context.HandledResponse) {
+                Options.Logger.LogDebug("The authorization request was handled in user code.");
+
                 return true;
             }
 
             else if (context.Skipped) {
+                Options.Logger.LogDebug("The default authorization request handling was skipped from user code.");
+
                 return false;
             }
 
@@ -289,14 +300,20 @@ namespace Owin.Security.OpenIdConnect.Server {
                 });
             }
 
+            Options.Logger.LogInformation("The authorization request was successfully validated.");
+
             var notification = new HandleAuthorizationRequestContext(Context, Options, request);
             await Options.Provider.HandleAuthorizationRequest(notification);
 
             if (notification.HandledResponse) {
+                Options.Logger.LogDebug("The authorization request was handled in user code.");
+
                 return true;
             }
 
             else if (notification.Skipped) {
+                Options.Logger.LogDebug("The default authorization request handling was skipped from user code.");
+
                 return false;
             }
 
@@ -330,10 +347,14 @@ namespace Owin.Security.OpenIdConnect.Server {
             await Options.Provider.ApplyAuthorizationResponse(notification);
 
             if (notification.HandledResponse) {
+                Options.Logger.LogDebug("The authorization request was handled in user code.");
+
                 return true;
             }
 
             else if (notification.Skipped) {
+                Options.Logger.LogDebug("The default authorization request handling was skipped from user code.");
+
                 return false;
             }
 
@@ -360,6 +381,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                 throw new InvalidOperationException("The authorization response cannot be returned.");
             }
 
+            Options.Logger.LogInformation("The authorization response was successfully returned: {Response}", response);
+
             // Create a new parameters dictionary holding the name/value pairs.
             var parameters = new Dictionary<string, string>();
 
@@ -381,6 +404,9 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             // Note: at this stage, the redirect_uri parameter MUST be trusted.
             if (request.IsFormPostResponseMode()) {
+                Options.Logger.LogInformation("The authorization response was successfully returned " +
+                                              "using the form post response mode: {Response}", response);
+
                 using (var buffer = new MemoryStream())
                 using (var writer = new StreamWriter(buffer)) {
                     writer.WriteLine("<!doctype html>");
@@ -419,6 +445,9 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             else if (request.IsFragmentResponseMode()) {
+                Options.Logger.LogInformation("The authorization response was successfully returned " +
+                                              "using the fragment response mode: {Response}", response);
+
                 var location = response.RedirectUri;
                 var appender = new Appender(location, '#');
 
@@ -431,6 +460,9 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             else if (request.IsQueryResponseMode()) {
+                Options.Logger.LogInformation("The authorization response was successfully returned " +
+                                              "using the query response mode: {Response}", response);
+
                 var location = WebUtilities.AddQueryString(response.RedirectUri, parameters);
 
                 Response.Redirect(location);

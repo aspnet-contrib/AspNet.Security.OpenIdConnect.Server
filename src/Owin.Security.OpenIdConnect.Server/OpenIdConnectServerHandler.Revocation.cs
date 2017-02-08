@@ -65,10 +65,14 @@ namespace Owin.Security.OpenIdConnect.Server {
             await Options.Provider.ExtractRevocationRequest(@event);
 
             if (@event.HandledResponse) {
+                Options.Logger.LogDebug("The revocation request was handled in user code.");
+
                 return true;
             }
 
             else if (@event.Skipped) {
+                Options.Logger.LogDebug("The default revocation request handling was skipped from user code.");
+
                 return false;
             }
 
@@ -83,6 +87,9 @@ namespace Owin.Security.OpenIdConnect.Server {
                     ErrorUri = @event.ErrorUri
                 });
             }
+
+            Options.Logger.LogInformation("The revocation request was successfully extracted " +
+                                          "from the HTTP request: {Request}", request);
 
             if (string.IsNullOrWhiteSpace(request.Token)) {
                 return await SendRevocationResponseAsync(new OpenIdConnectResponse {
@@ -125,10 +132,14 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             if (context.HandledResponse) {
+                Options.Logger.LogDebug("The revocation request was handled in user code.");
+
                 return true;
             }
 
             else if (context.Skipped) {
+                Options.Logger.LogDebug("The default revocation request handling was skipped from user code.");
+
                 return false;
             }
 
@@ -153,6 +164,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                     ErrorDescription = "An internal server error occurred."
                 });
             }
+
+            Options.Logger.LogInformation("The revocation request was successfully validated.");
 
             AuthenticationTicket ticket = null;
 
@@ -261,10 +274,14 @@ namespace Owin.Security.OpenIdConnect.Server {
             await Options.Provider.HandleRevocationRequest(notification);
 
             if (notification.HandledResponse) {
+                Options.Logger.LogDebug("The revocation request was handled in user code.");
+
                 return true;
             }
 
             else if (notification.Skipped) {
+                Options.Logger.LogDebug("The default revocation request handling was skipped from user code.");
+
                 return false;
             }
 
@@ -304,6 +321,20 @@ namespace Owin.Security.OpenIdConnect.Server {
             else if (notification.Skipped) {
                 return false;
             }
+
+            if (notification.HandledResponse) {
+                Options.Logger.LogDebug("The revocation request was handled in user code.");
+
+                return true;
+            }
+
+            else if (notification.Skipped) {
+                Options.Logger.LogDebug("The default revocation request handling was skipped from user code.");
+
+                return false;
+            }
+
+            Options.Logger.LogInformation("The revocation response was successfully returned: {Response}", response);
 
             return await SendPayloadAsync(response);
         }

@@ -1,4 +1,5 @@
 using System;
+using System.Net.Http;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -13,6 +14,8 @@ namespace Mvc.Client {
             });
 
             services.AddMvc();
+
+            services.AddSingleton<HttpClient>();
         }
 
         public void Configure(IApplicationBuilder app) {
@@ -33,6 +36,7 @@ namespace Mvc.Client {
             app.UseOpenIdConnectAuthentication(new OpenIdConnectOptions {
                 RequireHttpsMetadata = false,
                 SaveTokens = true,
+                GetClaimsFromUserInfoEndpoint = true,
 
                 // Note: these settings must match the application details
                 // inserted in the database at the server level.

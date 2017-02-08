@@ -47,10 +47,14 @@ namespace Owin.Security.OpenIdConnect.Server {
             await Options.Provider.ExtractConfigurationRequest(@event);
 
             if (@event.HandledResponse) {
+                Options.Logger.LogDebug("The discovery request was handled in user code.");
+
                 return true;
             }
 
             else if (@event.Skipped) {
+                Options.Logger.LogDebug("The default discovery request handling was skipped from user code.");
+
                 return false;
             }
 
@@ -66,14 +70,21 @@ namespace Owin.Security.OpenIdConnect.Server {
                 });
             }
 
+            Options.Logger.LogInformation("The discovery request was successfully extracted " +
+                                          "from the HTTP request: {Request}", request);
+
             var context = new ValidateConfigurationRequestContext(Context, Options, request);
             await Options.Provider.ValidateConfigurationRequest(context);
 
             if (context.HandledResponse) {
+                Options.Logger.LogDebug("The discovery request was handled in user code.");
+
                 return true;
             }
 
             else if (context.Skipped) {
+                Options.Logger.LogDebug("The default discovery request handling was skipped from user code.");
+
                 return false;
             }
 
@@ -88,6 +99,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                     ErrorUri = context.ErrorUri
                 });
             }
+
+            Options.Logger.LogInformation("The discovery request was successfully validated.");
 
             var notification = new HandleConfigurationRequestContext(Context, Options, request);
             notification.Issuer = Context.GetIssuer(Options);
@@ -205,10 +218,14 @@ namespace Owin.Security.OpenIdConnect.Server {
             await Options.Provider.HandleConfigurationRequest(notification);
 
             if (notification.HandledResponse) {
+                Options.Logger.LogDebug("The discovery request was handled in user code.");
+
                 return true;
             }
 
             else if (notification.Skipped) {
+                Options.Logger.LogDebug("The default discovery request handling was skipped from user code.");
+
                 return false;
             }
 
@@ -275,10 +292,14 @@ namespace Owin.Security.OpenIdConnect.Server {
             await Options.Provider.ExtractCryptographyRequest(@event);
 
             if (@event.HandledResponse) {
+                Options.Logger.LogDebug("The discovery request was handled in user code.");
+
                 return true;
             }
 
             else if (@event.Skipped) {
+                Options.Logger.LogDebug("The default discovery request handling was skipped from user code.");
+
                 return false;
             }
 
@@ -294,14 +315,21 @@ namespace Owin.Security.OpenIdConnect.Server {
                 });
             }
 
+            Options.Logger.LogInformation("The discovery request was successfully extracted " +
+                                          "from the HTTP request: {Request}", request);
+
             var context = new ValidateCryptographyRequestContext(Context, Options, request);
             await Options.Provider.ValidateCryptographyRequest(context);
 
             if (context.HandledResponse) {
+                Options.Logger.LogDebug("The discovery request was handled in user code.");
+
                 return true;
             }
 
             else if (context.Skipped) {
+                Options.Logger.LogDebug("The default discovery request handling was skipped from user code.");
+
                 return false;
             }
 
@@ -430,10 +458,14 @@ namespace Owin.Security.OpenIdConnect.Server {
             await Options.Provider.HandleCryptographyRequest(notification);
 
             if (notification.HandledResponse) {
+                Options.Logger.LogDebug("The discovery request was handled in user code.");
+
                 return true;
             }
 
             else if (notification.Skipped) {
+                Options.Logger.LogDebug("The default discovery request handling was skipped from user code.");
+
                 return false;
             }
 
@@ -503,12 +535,18 @@ namespace Owin.Security.OpenIdConnect.Server {
             await Options.Provider.ApplyConfigurationResponse(notification);
 
             if (notification.HandledResponse) {
+                Options.Logger.LogDebug("The discovery request was handled in user code.");
+
                 return true;
             }
 
             else if (notification.Skipped) {
+                Options.Logger.LogDebug("The default discovery request handling was skipped from user code.");
+
                 return false;
             }
+
+            Options.Logger.LogInformation("The discovery response was successfully returned: {Response}", response);
 
             return await SendPayloadAsync(response);
         }
@@ -521,12 +559,18 @@ namespace Owin.Security.OpenIdConnect.Server {
             await Options.Provider.ApplyCryptographyResponse(notification);
 
             if (notification.HandledResponse) {
+                Options.Logger.LogDebug("The discovery request was handled in user code.");
+
                 return true;
             }
 
             else if (notification.Skipped) {
+                Options.Logger.LogDebug("The default discovery request handling was skipped from user code.");
+
                 return false;
             }
+
+            Options.Logger.LogInformation("The discovery response was successfully returned: {Response}", response);
 
             return await SendPayloadAsync(response);
         }

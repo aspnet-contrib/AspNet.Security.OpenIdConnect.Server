@@ -70,10 +70,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
             await Options.Provider.ExtractTokenRequest(@event);
 
             if (@event.HandledResponse) {
+                Logger.LogDebug("The token request was handled in user code.");
+
                 return true;
             }
 
             else if (@event.Skipped) {
+                Logger.LogDebug("The default token request handling was skipped from user code.");
+
                 return false;
             }
 
@@ -88,6 +92,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     ErrorUri = @event.ErrorUri
                 });
             }
+
+            Logger.LogInformation("The token request was successfully extracted " +
+                                  "from the HTTP request: {Request}", request);
 
             // Reject token requests missing the mandatory grant_type parameter.
             if (string.IsNullOrEmpty(request.GrantType)) {
@@ -177,10 +184,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             if (context.HandledResponse) {
+                Logger.LogDebug("The token request was handled in user code.");
+
                 return true;
             }
 
             else if (context.Skipped) {
+                Logger.LogDebug("The default token request handling was skipped from user code.");
+
                 return false;
             }
 
@@ -228,6 +239,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     ErrorDescription = "client_id was missing from the token request"
                 });
             }
+
+            Logger.LogInformation("The token request was successfully validated.");
 
             AuthenticationTicket ticket = null;
 
@@ -445,10 +458,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
             await Options.Provider.HandleTokenRequest(notification);
 
             if (notification.HandledResponse) {
+                Logger.LogDebug("The token request was handled in user code.");
+
                 return true;
             }
 
             else if (notification.Skipped) {
+                Logger.LogDebug("The default token request handling was skipped from user code.");
+
                 return false;
             }
 
@@ -491,12 +508,18 @@ namespace AspNet.Security.OpenIdConnect.Server {
             await Options.Provider.ApplyTokenResponse(notification);
 
             if (notification.HandledResponse) {
+                Logger.LogDebug("The token request was handled in user code.");
+
                 return true;
             }
 
             else if (notification.Skipped) {
+                Logger.LogDebug("The default token request handling was skipped from user code.");
+
                 return false;
             }
+
+            Logger.LogInformation("The token response was successfully returned: {Response}", response);
 
             return await SendPayloadAsync(response);
         }

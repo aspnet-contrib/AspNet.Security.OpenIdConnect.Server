@@ -74,10 +74,14 @@ namespace Owin.Security.OpenIdConnect.Server {
             await Options.Provider.ExtractUserinfoRequest(@event);
 
             if (@event.HandledResponse) {
+                Options.Logger.LogDebug("The userinfo request was handled in user code.");
+
                 return true;
             }
 
             else if (@event.Skipped) {
+                Options.Logger.LogDebug("The default userinfo request handling was skipped from user code.");
+
                 return false;
             }
 
@@ -92,6 +96,9 @@ namespace Owin.Security.OpenIdConnect.Server {
                     ErrorUri = @event.ErrorUri
                 });
             }
+
+            Options.Logger.LogInformation("The userinfo request was successfully extracted " +
+                                          "from the HTTP request: {Request}", request);
 
             string token;
             if (!string.IsNullOrEmpty(request.AccessToken)) {
@@ -135,10 +142,14 @@ namespace Owin.Security.OpenIdConnect.Server {
             await Options.Provider.ValidateUserinfoRequest(context);
 
             if (context.HandledResponse) {
+                Options.Logger.LogDebug("The userinfo request was handled in user code.");
+
                 return true;
             }
 
             else if (context.Skipped) {
+                Options.Logger.LogDebug("The default userinfo request handling was skipped from user code.");
+
                 return false;
             }
 
@@ -153,6 +164,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                     ErrorUri = context.ErrorUri
                 });
             }
+
+            Options.Logger.LogInformation("The userinfo request was successfully validated.");
 
             var ticket = await DeserializeAccessTokenAsync(token, request);
             if (ticket == null) {
@@ -227,10 +240,14 @@ namespace Owin.Security.OpenIdConnect.Server {
             await Options.Provider.HandleUserinfoRequest(notification);
 
             if (notification.HandledResponse) {
+                Options.Logger.LogDebug("The userinfo request was handled in user code.");
+
                 return true;
             }
 
             else if (notification.Skipped) {
+                Options.Logger.LogDebug("The default userinfo request handling was skipped from user code.");
+
                 return false;
             }
 
@@ -301,12 +318,18 @@ namespace Owin.Security.OpenIdConnect.Server {
             await Options.Provider.ApplyUserinfoResponse(notification);
 
             if (notification.HandledResponse) {
+                Options.Logger.LogDebug("The userinfo request was handled in user code.");
+
                 return true;
             }
 
             else if (notification.Skipped) {
+                Options.Logger.LogDebug("The default userinfo request handling was skipped from user code.");
+
                 return false;
             }
+
+            Options.Logger.LogInformation("The userinfo response was successfully returned: {Response}", response);
 
             return await SendPayloadAsync(response);
         }

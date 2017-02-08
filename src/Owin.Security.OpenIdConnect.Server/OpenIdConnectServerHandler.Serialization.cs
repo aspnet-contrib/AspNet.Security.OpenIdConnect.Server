@@ -80,7 +80,13 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                 // Claims whose destination is not explicitly referenced or doesn't
                 // contain "access_token" are not included in the access token.
-                return claim.HasDestination(OpenIdConnectConstants.Destinations.AccessToken);
+                if (!claim.HasDestination(OpenIdConnectConstants.Destinations.AccessToken)) {
+                    Options.Logger.LogDebug("'{Claim}' was excluded from the access token claims.", claim.Type);
+
+                    return false;
+                }
+
+                return true;
             });
 
             // Create a new ticket containing the updated properties and the filtered identity.
@@ -226,7 +232,13 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                 // Claims whose destination is not explicitly referenced or doesn't
                 // contain "id_token" are not included in the identity token.
-                return claim.HasDestination(OpenIdConnectConstants.Destinations.IdentityToken);
+                if (!claim.HasDestination(OpenIdConnectConstants.Destinations.IdentityToken)) {
+                    Options.Logger.LogDebug("'{Claim}' was excluded from the identity token claims.", claim.Type);
+
+                    return false;
+                }
+
+                return true;
             });
 
             // Create a new ticket containing the updated properties and the filtered identity.

@@ -76,10 +76,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
             await Options.Provider.ExtractUserinfoRequest(@event);
 
             if (@event.HandledResponse) {
+                Logger.LogDebug("The userinfo request was handled in user code.");
+
                 return true;
             }
 
             else if (@event.Skipped) {
+                Logger.LogDebug("The default userinfo request handling was skipped from user code.");
+
                 return false;
             }
 
@@ -94,6 +98,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     ErrorUri = @event.ErrorUri
                 });
             }
+
+            Logger.LogInformation("The userinfo request was successfully extracted " +
+                                  "from the HTTP request: {Request}", request);
 
             string token;
             if (!string.IsNullOrEmpty(request.AccessToken)) {
@@ -137,10 +144,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
             await Options.Provider.ValidateUserinfoRequest(context);
 
             if (context.HandledResponse) {
+                Logger.LogDebug("The userinfo request was handled in user code.");
+
                 return true;
             }
 
             else if (context.Skipped) {
+                Logger.LogDebug("The default userinfo request handling was skipped from user code.");
+
                 return false;
             }
 
@@ -155,6 +166,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     ErrorUri = context.ErrorUri
                 });
             }
+
+            Logger.LogInformation("The userinfo request was successfully validated.");
 
             var ticket = await DeserializeAccessTokenAsync(token, request);
             if (ticket == null) {
@@ -229,10 +242,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
             await Options.Provider.HandleUserinfoRequest(notification);
 
             if (notification.HandledResponse) {
+                Logger.LogDebug("The userinfo request was handled in user code.");
+
                 return true;
             }
 
             else if (notification.Skipped) {
+                Logger.LogDebug("The default userinfo request handling was skipped from user code.");
+
                 return false;
             }
 
@@ -303,12 +320,18 @@ namespace AspNet.Security.OpenIdConnect.Server {
             await Options.Provider.ApplyUserinfoResponse(notification);
 
             if (notification.HandledResponse) {
+                Logger.LogDebug("The userinfo request was handled in user code.");
+
                 return true;
             }
 
             else if (notification.Skipped) {
+                Logger.LogDebug("The default userinfo request handling was skipped from user code.");
+
                 return false;
             }
+
+            Logger.LogInformation("The userinfo response was successfully returned: {Response}", response);
 
             return await SendPayloadAsync(response);
         }

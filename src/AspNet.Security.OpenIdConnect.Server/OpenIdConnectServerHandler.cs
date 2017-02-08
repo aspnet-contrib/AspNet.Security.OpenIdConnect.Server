@@ -67,10 +67,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
             await Options.Provider.MatchEndpoint(notification);
 
             if (notification.HandledResponse) {
+                Logger.LogDebug("The request was handled in user code.");
+
                 return true;
             }
 
             else if (notification.Skipped) {
+                Logger.LogDebug("The default request handling was skipped from user code.");
+
                 return false;
             }
 

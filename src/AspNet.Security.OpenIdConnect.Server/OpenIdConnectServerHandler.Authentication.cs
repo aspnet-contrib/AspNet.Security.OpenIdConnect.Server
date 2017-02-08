@@ -77,10 +77,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
             await Options.Provider.ExtractAuthorizationRequest(@event);
 
             if (@event.HandledResponse) {
+                Logger.LogDebug("The authorization request was handled in user code.");
+
                 return true;
             }
 
             else if (@event.Skipped) {
+                Logger.LogDebug("The default authorization request handling was skipped from user code.");
+
                 return false;
             }
 
@@ -95,6 +99,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     ErrorUri = @event.ErrorUri
                 });
             }
+
+            Logger.LogInformation("The authorization request was successfully extracted " +
+                                  "from the HTTP request: {Request}", request);
 
             // client_id is mandatory parameter and MUST cause an error when missing.
             // See http://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
@@ -267,10 +274,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
             await Options.Provider.ValidateAuthorizationRequest(context);
 
             if (context.HandledResponse) {
+                Logger.LogDebug("The authorization request was handled in user code.");
+
                 return true;
             }
 
             else if (context.Skipped) {
+                Logger.LogDebug("The default authorization request handling was skipped from user code.");
+
                 return false;
             }
 
@@ -286,14 +297,20 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 });
             }
 
+            Logger.LogInformation("The authorization request was successfully validated.");
+
             var notification = new HandleAuthorizationRequestContext(Context, Options, request);
             await Options.Provider.HandleAuthorizationRequest(notification);
 
             if (notification.HandledResponse) {
+                Logger.LogDebug("The authorization request was handled in user code.");
+
                 return true;
             }
 
             else if (notification.Skipped) {
+                Logger.LogDebug("The default authorization request handling was skipped from user code.");
+
                 return false;
             }
 
@@ -327,10 +344,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
             await Options.Provider.ApplyAuthorizationResponse(notification);
 
             if (notification.HandledResponse) {
+                Logger.LogDebug("The authorization request was handled in user code.");
+
                 return true;
             }
 
             else if (notification.Skipped) {
+                Logger.LogDebug("The default authorization request handling was skipped from user code.");
+
                 return false;
             }
 
@@ -378,6 +399,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             // Note: at this stage, the redirect_uri parameter MUST be trusted.
             if (request.IsFormPostResponseMode()) {
+                Logger.LogInformation("The authorization response was successfully returned " +
+                                      "using the form post response mode: {Response}", response);
+
                 using (var buffer = new MemoryStream())
                 using (var writer = new StreamWriter(buffer)) {
                     writer.WriteLine("<!doctype html>");
@@ -416,6 +440,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             else if (request.IsFragmentResponseMode()) {
+                Logger.LogInformation("The authorization response was successfully returned " +
+                                      "using the fragment response mode: {Response}", response);
+
                 var location = response.RedirectUri;
                 var appender = new Appender(location, '#');
 
@@ -428,6 +455,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             else if (request.IsQueryResponseMode()) {
+                Logger.LogInformation("The authorization response was successfully returned " +
+                                      "using the query response mode: {Response}", response);
+
                 var location = QueryHelpers.AddQueryString(response.RedirectUri, parameters);
 
                 Response.Redirect(location);

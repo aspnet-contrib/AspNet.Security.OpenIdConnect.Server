@@ -64,10 +64,14 @@ namespace Owin.Security.OpenIdConnect.Server {
             await Options.Provider.MatchEndpoint(notification);
 
             if (notification.HandledResponse) {
+                Options.Logger.LogDebug("The request was handled in user code.");
+
                 return true;
             }
 
             else if (notification.Skipped) {
+                Options.Logger.LogDebug("The default request handling was skipped from user code.");
+
                 return false;
             }
 

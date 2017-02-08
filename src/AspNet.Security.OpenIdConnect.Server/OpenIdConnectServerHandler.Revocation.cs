@@ -66,10 +66,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
             await Options.Provider.ExtractRevocationRequest(@event);
 
             if (@event.HandledResponse) {
+                Logger.LogDebug("The revocation request was handled in user code.");
+
                 return true;
             }
 
             else if (@event.Skipped) {
+                Logger.LogDebug("The default revocation request handling was skipped from user code.");
+
                 return false;
             }
 
@@ -84,6 +88,9 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     ErrorUri = @event.ErrorUri
                 });
             }
+
+            Logger.LogInformation("The revocation request was successfully extracted " +
+                                  "from the HTTP request: {Request}", request);
 
             if (string.IsNullOrWhiteSpace(request.Token)) {
                 return await SendRevocationResponseAsync(new OpenIdConnectResponse {
@@ -126,10 +133,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             if (context.HandledResponse) {
+                Logger.LogDebug("The revocation request was handled in user code.");
+
                 return true;
             }
 
             else if (context.Skipped) {
+                Logger.LogDebug("The default revocation request handling was skipped from user code.");
+
                 return false;
             }
 
@@ -154,6 +165,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     ErrorDescription = "An internal server error occurred."
                 });
             }
+
+            Logger.LogInformation("The revocation request was successfully validated.");
 
             AuthenticationTicket ticket = null;
 
@@ -262,10 +275,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
             await Options.Provider.HandleRevocationRequest(notification);
 
             if (notification.HandledResponse) {
+                Logger.LogDebug("The revocation request was handled in user code.");
+
                 return true;
             }
 
             else if (notification.Skipped) {
+                Logger.LogDebug("The default revocation request handling was skipped from user code.");
+
                 return false;
             }
 
@@ -299,12 +316,18 @@ namespace AspNet.Security.OpenIdConnect.Server {
             await Options.Provider.ApplyRevocationResponse(notification);
 
             if (notification.HandledResponse) {
+                Logger.LogDebug("The revocation request was handled in user code.");
+
                 return true;
             }
 
             else if (notification.Skipped) {
+                Logger.LogDebug("The default revocation request handling was skipped from user code.");
+
                 return false;
             }
+
+            Logger.LogInformation("The revocation response was successfully returned: {Response}", response);
 
             return await SendPayloadAsync(response);
         }

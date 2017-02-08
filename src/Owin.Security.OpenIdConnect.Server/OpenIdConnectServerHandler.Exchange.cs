@@ -69,10 +69,14 @@ namespace Owin.Security.OpenIdConnect.Server {
             await Options.Provider.ExtractTokenRequest(@event);
 
             if (@event.HandledResponse) {
+                Options.Logger.LogDebug("The token request was handled in user code.");
+
                 return true;
             }
 
             else if (@event.Skipped) {
+                Options.Logger.LogDebug("The default token request handling was skipped from user code.");
+
                 return false;
             }
 
@@ -87,6 +91,9 @@ namespace Owin.Security.OpenIdConnect.Server {
                     ErrorUri = @event.ErrorUri
                 });
             }
+
+            Options.Logger.LogInformation("The token request was successfully extracted " +
+                                          "from the HTTP request: {Request}", request);
 
             // Reject token requests missing the mandatory grant_type parameter.
             if (string.IsNullOrEmpty(request.GrantType)) {
@@ -176,10 +183,14 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             if (context.HandledResponse) {
+                Options.Logger.LogDebug("The token request was handled in user code.");
+
                 return true;
             }
 
             else if (context.Skipped) {
+                Options.Logger.LogDebug("The default token request handling was skipped from user code.");
+
                 return false;
             }
 
@@ -227,6 +238,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                     ErrorDescription = "client_id was missing from the token request"
                 });
             }
+
+            Options.Logger.LogInformation("The token request was successfully validated.");
 
             AuthenticationTicket ticket = null;
 
@@ -444,10 +457,14 @@ namespace Owin.Security.OpenIdConnect.Server {
             await Options.Provider.HandleTokenRequest(notification);
 
             if (notification.HandledResponse) {
+                Options.Logger.LogDebug("The token request was handled in user code.");
+
                 return true;
             }
 
             else if (notification.Skipped) {
+                Options.Logger.LogDebug("The default token request handling was skipped from user code.");
+
                 return false;
             }
 
@@ -489,12 +506,18 @@ namespace Owin.Security.OpenIdConnect.Server {
             await Options.Provider.ApplyTokenResponse(notification);
 
             if (notification.HandledResponse) {
+                Options.Logger.LogDebug("The token request was handled in user code.");
+
                 return true;
             }
 
             else if (notification.Skipped) {
+                Options.Logger.LogDebug("The default token request handling was skipped from user code.");
+
                 return false;
             }
+
+            Options.Logger.LogInformation("The token response was successfully returned: {Response}", response);
 
             return await SendPayloadAsync(response);
         }
