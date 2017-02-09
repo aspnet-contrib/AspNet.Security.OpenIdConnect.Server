@@ -5,7 +5,9 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens;
+using JetBrains.Annotations;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Owin;
@@ -26,7 +28,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// called by application code directly, instead it is added by calling the the IAppBuilder UseOpenIdConnectServer
         /// extension method.
         /// </summary>
-        public OpenIdConnectServerMiddleware(OwinMiddleware next, IAppBuilder app, OpenIdConnectServerOptions options)
+        public OpenIdConnectServerMiddleware(
+            [NotNull] OwinMiddleware next,
+            [NotNull] IDictionary<string, object> properties,
+            [NotNull] OpenIdConnectServerOptions options)
             : base(next, options) {
             if (Options.HtmlEncoder == null) {
                 throw new ArgumentException("The HTML encoder registered in the options cannot be null.", nameof(options));
@@ -83,14 +88,13 @@ namespace Owin.Security.OpenIdConnect.Server {
             }
 
             if (Options.DataProtectionProvider == null) {
-                // Try to use the application name provided by
-                // the OWIN host as the application discriminator.
-                var discriminator = new AppProperties(app.Properties).AppName;
-
-                // When an application discriminator cannot be resolved from
-                // the OWIN host properties, generate a temporary identifier.
+                // Use the application name provided by the OWIN host as the Data Protection discriminator.
+                // If the application name cannot be resolved, throw an invalid operation exception.
+                var discriminator = new AppProperties(properties).AppName;
                 if (string.IsNullOrEmpty(discriminator)) {
-                    discriminator = Guid.NewGuid().ToString();
+                    throw new InvalidOperationException("The application name cannot be resolved from the OWIN application builder. " +
+                                                        "Consider manually setting the 'DataProtectionProvider' property in the " +
+                                                        "options using 'DataProtectionProvider.Create([unique application name])'.");
                 }
 
                 Options.DataProtectionProvider = DataProtectionProvider.Create(discriminator);
@@ -120,7 +124,7 @@ namespace Owin.Security.OpenIdConnect.Server {
                 Options.RefreshTokenFormat = new AspNetTicketDataFormat(new DataProtectorShim(protector));
             }
 
-            var environment = new AppProperties(app.Properties).Get<string>("host.AppMode");
+            var environment = new AppProperties(properties).Get<string>("host.AppMode");
             if (Options.AllowInsecureHttp && !string.Equals(environment, "Development", StringComparison.OrdinalIgnoreCase)) {
                 Options.Logger.LogWarning("Disabling the transport security requirement is not recommended in production. " +
                                           "Consider setting 'OpenIdConnectServerOptions.AllowInsecureHttp' to 'false' " +

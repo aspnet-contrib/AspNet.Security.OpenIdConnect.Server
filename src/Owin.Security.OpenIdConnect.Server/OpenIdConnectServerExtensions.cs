@@ -48,7 +48,7 @@ namespace Owin {
             var options = new OpenIdConnectServerOptions();
             configuration(options);
 
-            return app.Use(typeof(OpenIdConnectServerMiddleware), app, options);
+            return app.Use<OpenIdConnectServerMiddleware>(app.Properties, options);
         }
 
         /// <summary>
@@ -68,7 +68,7 @@ namespace Owin {
                 throw new ArgumentNullException(nameof(options));
             }
 
-            return app.Use(typeof(OpenIdConnectServerMiddleware), app, options);
+            return app.Use<OpenIdConnectServerMiddleware>(app.Properties, options);
         }
 
         /// <summary>

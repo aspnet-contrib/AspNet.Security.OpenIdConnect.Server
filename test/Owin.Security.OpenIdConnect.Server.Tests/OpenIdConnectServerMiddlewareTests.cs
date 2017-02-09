@@ -8,6 +8,7 @@ using System;
 using System.IdentityModel.Tokens;
 using System.Reflection;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.Owin.BuilderProperties;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Testing;
 using Xunit;
@@ -105,6 +106,25 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             Assert.StartsWith("At least one signing key must be registered when using JWT as the access token format. " +
                               "Consider registering a X.509 certificate using 'services.AddOpenIddict().AddSigningCertificate()' " +
                               "or call 'services.AddOpenIddict().AddEphemeralSigningKey()' to use an ephemeral key.", exception.InnerException.Message);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public void Constructor_ThrowsAnExceptionForMissingAppName(string name) {
+            // Arrange, act, assert
+            var exception = Assert.Throws<TargetInvocationException>(() => TestServer.Create(app => {
+                var properties = new AppProperties(app.Properties);
+                properties.AppName = name;
+
+                app.UseOpenIdConnectServer(new OpenIdConnectServerOptions());
+            }));
+
+            Assert.IsType<InvalidOperationException>(exception.InnerException);
+            Assert.StartsWith("The application name cannot be resolved from the OWIN application builder. " +
+                              "Consider manually setting the 'DataProtectionProvider' property in the " +
+                              "options using 'DataProtectionProvider.Create([unique application name])'.",
+                              exception.InnerException.Message);
         }
 
         private static TestServer CreateAuthorizationServer(Action<OpenIdConnectServerOptions> configuration = null) {
