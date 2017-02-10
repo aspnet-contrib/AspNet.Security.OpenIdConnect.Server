@@ -40,11 +40,12 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         public void Constructor_PreservesEmptyParameters() {
             // Arrange and act
             var message = new OpenIdConnectMessage(new[] {
-                new KeyValuePair<string, OpenIdConnectParameter>("parameter", (string) null)
+                new KeyValuePair<string, OpenIdConnectParameter>("null-parameter", (string) null),
+                new KeyValuePair<string, OpenIdConnectParameter>("empty-parameter", string.Empty)
             });
 
             // Assert
-            Assert.Equal(1, message.GetParameters().Count());
+            Assert.Equal(2, message.GetParameters().Count());
         }
 
         [Fact]
@@ -578,7 +579,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData(OpenIdConnectConstants.Parameters.Password)]
         [InlineData(OpenIdConnectConstants.Parameters.RefreshToken)]
         [InlineData(OpenIdConnectConstants.Parameters.Token)]
-        public void ToString_ExcludesSentitiveParameters(string parameter) {
+        public void ToString_ExcludesSensitiveParameters(string parameter) {
             // Arrange
             var message = new OpenIdConnectMessage();
             message.AddParameter(parameter, "secret value");

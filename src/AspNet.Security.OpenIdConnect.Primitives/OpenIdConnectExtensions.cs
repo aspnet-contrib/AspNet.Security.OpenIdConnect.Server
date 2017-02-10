@@ -6,8 +6,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using JetBrains.Annotations;
+using Microsoft.Extensions.Primitives;
 
 namespace AspNet.Security.OpenIdConnect.Primitives {
     /// <summary>
@@ -24,9 +26,11 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            return request.Resource?.Split(OpenIdConnectConstants.Separators.Space, StringSplitOptions.RemoveEmptyEntries)
-                                   ?.Distinct(StringComparer.Ordinal)
-                   ?? Enumerable.Empty<string>();
+            if (string.IsNullOrEmpty(request.Resource)) {
+                return Enumerable.Empty<string>();
+            }
+
+            return GetValues(request.Resource, OpenIdConnectConstants.Separators.Space);
         }
 
         /// <summary>
@@ -38,9 +42,11 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            return request.Scope?.Split(OpenIdConnectConstants.Separators.Space, StringSplitOptions.RemoveEmptyEntries)
-                                ?.Distinct(StringComparer.Ordinal)
-                   ?? Enumerable.Empty<string>();
+            if (string.IsNullOrEmpty(request.Scope)) {
+                return Enumerable.Empty<string>();
+            }
+
+            return GetValues(request.Scope, OpenIdConnectConstants.Separators.Space);
         }
 
         /// <summary>
@@ -54,7 +60,11 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            return HasValue(request.ResponseType, component);
+            if (string.IsNullOrEmpty(request.ResponseType)) {
+                return false;
+            }
+
+            return HasValue(request.ResponseType, component, OpenIdConnectConstants.Separators.Space);
         }
 
         /// <summary>
@@ -68,7 +78,11 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            return HasValue(request.Scope, component);
+            if (string.IsNullOrEmpty(request.Scope)) {
+                return false;
+            }
+
+            return HasValue(request.Scope, component, OpenIdConnectConstants.Separators.Space);
         }
 
         /// <summary>
@@ -245,7 +259,16 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            return string.Equals(request.ResponseType?.Trim(), OpenIdConnectConstants.ResponseTypes.None, StringComparison.Ordinal);
+            if (string.IsNullOrEmpty(request.ResponseType)) {
+                return false;
+            }
+
+            var segment = Trim(new StringSegment(request.ResponseType), OpenIdConnectConstants.Separators.Space);
+            if (segment.Length == 0) {
+                return false;
+            }
+
+            return segment.Equals(OpenIdConnectConstants.ResponseTypes.None, StringComparison.Ordinal);
         }
 
         /// <summary>
@@ -259,7 +282,16 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            return string.Equals(request.ResponseType?.Trim(), OpenIdConnectConstants.ResponseTypes.Code, StringComparison.Ordinal);
+            if (string.IsNullOrEmpty(request.ResponseType)) {
+                return false;
+            }
+
+            var segment = Trim(new StringSegment(request.ResponseType), OpenIdConnectConstants.Separators.Space);
+            if (segment.Length == 0) {
+                return false;
+            }
+
+            return segment.Equals(OpenIdConnectConstants.ResponseTypes.Code, StringComparison.Ordinal);
         }
 
         /// <summary>
@@ -274,14 +306,39 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            // Note: while the OIDC specs do not reuse the OAuth2-inherited response_type=token,
-            // it is considered as a valid response_type for the implicit flow, even for pure OIDC requests.
-            return SetEquals(request.ResponseType, OpenIdConnectConstants.ResponseTypes.IdToken) ||
+            if (string.IsNullOrEmpty(request.ResponseType)) {
+                return false;
+            }
 
-                   SetEquals(request.ResponseType, OpenIdConnectConstants.ResponseTypes.Token) ||
+            var flags = /* none: */ 0x00;
 
-                   SetEquals(request.ResponseType, OpenIdConnectConstants.ResponseTypes.IdToken,
-                                                   OpenIdConnectConstants.ResponseTypes.Token);
+            foreach (var element in new StringTokenizer(request.ResponseType, OpenIdConnectConstants.Separators.Space)) {
+                var segment = Trim(element, OpenIdConnectConstants.Separators.Space);
+                if (segment.Length == 0) {
+                    continue;
+                }
+
+                if (segment.Equals(OpenIdConnectConstants.ResponseTypes.IdToken, StringComparison.Ordinal)) {
+                    flags |= /* id_token: */ 0x01;
+
+                    continue;
+                }
+
+                // Note: though the OIDC core specs does not include the OAuth2-inherited response_type=token,
+                // it is considered as a valid response_type for the implicit flow for backward compatibility.
+                else if (segment.Equals(OpenIdConnectConstants.ResponseTypes.Token, StringComparison.Ordinal)) {
+                    flags |= /* token */ 0x02;
+
+                    continue;
+                }
+
+                // Always return false if the response_type item
+                // is not a valid component for the implicit flow.
+                return false;
+            }
+
+            // Return true if the response_type parameter contains "id_token" or "token".
+            return (flags & /* id_token: */ 0x01) == 0x01 || (flags & /* token: */ 0x02) == 0x02;
         }
 
         /// <summary>
@@ -296,15 +353,48 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            return SetEquals(request.ResponseType, OpenIdConnectConstants.ResponseTypes.Code,
-                                                   OpenIdConnectConstants.ResponseTypes.IdToken) ||
+            if (string.IsNullOrEmpty(request.ResponseType)) {
+                return false;
+            }
 
-                   SetEquals(request.ResponseType, OpenIdConnectConstants.ResponseTypes.Code,
-                                                   OpenIdConnectConstants.ResponseTypes.Token) ||
+            var flags = /* none */ 0x00;
 
-                   SetEquals(request.ResponseType, OpenIdConnectConstants.ResponseTypes.Code,
-                                                   OpenIdConnectConstants.ResponseTypes.IdToken,
-                                                   OpenIdConnectConstants.ResponseTypes.Token);
+            foreach (var element in new StringTokenizer(request.ResponseType, OpenIdConnectConstants.Separators.Space)) {
+                var segment = Trim(element, OpenIdConnectConstants.Separators.Space);
+                if (segment.Length == 0) {
+                    continue;
+                }
+
+                if (segment.Equals(OpenIdConnectConstants.ResponseTypes.Code, StringComparison.Ordinal)) {
+                    flags |= /* code: */ 0x01;
+
+                    continue;
+                }
+
+                else if (segment.Equals(OpenIdConnectConstants.ResponseTypes.IdToken, StringComparison.Ordinal)) {
+                    flags |= /* id_token: */ 0x02;
+
+                    continue;
+                }
+
+                else if (segment.Equals(OpenIdConnectConstants.ResponseTypes.Token, StringComparison.Ordinal)) {
+                    flags |= /* token: */ 0x04;
+
+                    continue;
+                }
+
+                // Always return false if the response_type item
+                // is not a valid component for the hybrid flow.
+                return false;
+            }
+
+            // Return false if the response_type parameter doesn't contain "code".
+            if ((flags & /* code: */ 0x01) != 0x01) {
+                return false;
+            }
+
+            // Return true if the response_type parameter contains "id_token" or "token".
+            return (flags & /* id_token: */ 0x02) == 0x02 || (flags & /* token: */ 0x04) == 0x04;
         }
 
         /// <summary>
@@ -437,30 +527,89 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
             return string.Equals(request.GrantType, OpenIdConnectConstants.GrantTypes.RefreshToken, StringComparison.Ordinal);
         }
 
-        private static bool HasValue(string source, string value) {
-            if (string.IsNullOrEmpty(source)) {
-                return false;
+        private static IEnumerable<string> GetValues(string source, char[] separators) {
+            Debug.Assert(!string.IsNullOrEmpty(source), "The source string shouldn't be null or empty.");
+            Debug.Assert(separators?.Length != 0, "The separators collection shouldn't be null or empty.");
+
+            foreach (var element in new StringTokenizer(source, separators)) {
+                var segment = Trim(element, separators);
+                if (segment.Length == 0) {
+                    continue;
+                }
+
+                yield return segment.Value;
             }
 
-            return (from component in source.Split(OpenIdConnectConstants.Separators.Space, StringSplitOptions.RemoveEmptyEntries)
-                    where string.Equals(component, value, StringComparison.Ordinal)
-                    select component).Any();
+            yield break;
         }
 
-        private static bool SetEquals(string source, params string[] components) {
-            if (string.IsNullOrEmpty(source)) {
-                return false;
+        private static bool HasValue(string source, string value, char[] separators) {
+            Debug.Assert(!string.IsNullOrEmpty(source), "The source string shouldn't be null or empty.");
+            Debug.Assert(!string.IsNullOrEmpty(value), "The value string shouldn't be null or empty.");
+            Debug.Assert(separators?.Length != 0, "The separators collection shouldn't be null or empty.");
+
+            foreach (var element in new StringTokenizer(source, separators)) {
+                var segment = Trim(element, separators);
+                if (segment.Length == 0) {
+                    continue;
+                }
+
+                if (segment.Equals(value, StringComparison.Ordinal)) {
+                    return true;
+                }
             }
 
-            if (components == null || !components.Any()) {
-                return false;
+            return false;
+        }
+
+        private static StringSegment TrimStart(StringSegment segment, char[] separators) {
+            Debug.Assert(separators?.Length != 0, "The separators collection shouldn't be null or empty.");
+
+            var index = segment.Offset;
+
+            while (index < segment.Offset + segment.Length) {
+                if (!IsSeparator(segment.Buffer[index], separators)) {
+                    break;
+                }
+
+                index++;
             }
 
-            var set = new HashSet<string>(
-                collection: source.Split(OpenIdConnectConstants.Separators.Space, StringSplitOptions.RemoveEmptyEntries),
-                comparer: StringComparer.Ordinal);
+            return new StringSegment(segment.Buffer, index, segment.Offset + segment.Length - index);
+        }
 
-            return set.SetEquals(components);
+        private static StringSegment TrimEnd(StringSegment segment, char[] separators) {
+            Debug.Assert(separators?.Length != 0, "The separators collection shouldn't be null or empty.");
+
+            var index = segment.Offset + segment.Length - 1;
+
+            while (index >= segment.Offset) {
+                if (!IsSeparator(segment.Buffer[index], separators)) {
+                    break;
+                }
+
+                index--;
+            }
+
+            return new StringSegment(segment.Buffer, segment.Offset, index - segment.Offset + 1);
+        }
+
+        private static StringSegment Trim(StringSegment segment, char[] separators) {
+            Debug.Assert(separators?.Length != 0, "The separators collection shouldn't be null or empty.");
+
+            return TrimEnd(TrimStart(segment, separators), separators);
+        }
+
+        private static bool IsSeparator(char character, char[] separators) {
+            Debug.Assert(separators?.Length != 0, "The separators collection shouldn't be null or empty.");
+
+            for (var index = 0; index < separators.Length; index++) {
+                if (character == separators[index]) {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }
