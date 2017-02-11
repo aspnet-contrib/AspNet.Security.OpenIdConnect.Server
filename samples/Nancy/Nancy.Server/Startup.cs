@@ -103,6 +103,11 @@ namespace Nancy.Server {
                 options.TokenEndpointPath = new PathString("/connect/token");
                 options.UserinfoEndpointPath = new PathString("/connect/userinfo");
 
+                // Note: see AuthorizationModule.cs for more
+                // information concerning ApplicationCanDisplayErrors.
+                options.ApplicationCanDisplayErrors = true;
+                options.AllowInsecureHttp = true;
+
                 // Register a new ephemeral key, that is discarded when the application
                 // shuts down. Tokens signed using this key are automatically invalidated.
                 // This method should only be used during development.
@@ -121,11 +126,6 @@ namespace Nancy.Server {
                 //     assembly: typeof(Startup).GetTypeInfo().Assembly,
                 //     resource: "Nancy.Server.Certificate.pfx",
                 //     password: "Owin.Security.OpenIdConnect.Server");
-
-                // Note: see AuthorizationModule.cs for more
-                // information concerning ApplicationCanDisplayErrors.
-                options.ApplicationCanDisplayErrors = true;
-                options.AllowInsecureHttp = true;
 
                 // Note: to override the default access token format and use JWT, assign AccessTokenHandler:
                 // options.AccessTokenHandler = new JwtSecurityTokenHandler();
