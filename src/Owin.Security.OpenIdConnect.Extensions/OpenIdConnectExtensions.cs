@@ -1359,7 +1359,9 @@ namespace Owin.Security.OpenIdConnect.Extensions {
                         continue;
                     }
 
-                    return string.Equals((string) element.Value, value, comparison);
+                    if (string.Equals((string) element.Value, value, comparison)) {
+                        return true;
+                    }
                 }
             }
 
