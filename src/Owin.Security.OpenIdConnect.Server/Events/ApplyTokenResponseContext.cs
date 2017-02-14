@@ -9,11 +9,13 @@ using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Notifications;
 
-namespace Owin.Security.OpenIdConnect.Server {
+namespace Owin.Security.OpenIdConnect.Server
+{
     /// <summary>
     /// Provides context information used at the end of a token-endpoint-request.
     /// </summary>
-    public class ApplyTokenResponseContext : BaseNotification<OpenIdConnectServerOptions> {
+    public class ApplyTokenResponseContext : BaseNotification<OpenIdConnectServerOptions>
+    {
         /// <summary>
         /// Initializes a new instance of the <see cref="ApplyTokenResponseContext"/> class
         /// </summary>
@@ -28,7 +30,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             AuthenticationTicket ticket,
             OpenIdConnectRequest request,
             OpenIdConnectResponse response)
-            : base(context, options) {
+            : base(context, options)
+        {
             Ticket = ticket;
             Request = request;
             Response = response;

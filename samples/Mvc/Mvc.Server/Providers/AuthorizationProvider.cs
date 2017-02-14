@@ -7,14 +7,20 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Mvc.Server.Models;
 
-namespace Mvc.Server.Providers {
-    public sealed class AuthorizationProvider : OpenIdConnectServerProvider {
-        public override async Task ValidateAuthorizationRequest(ValidateAuthorizationRequestContext context) {
+namespace Mvc.Server.Providers
+{
+    public sealed class AuthorizationProvider : OpenIdConnectServerProvider
+    {
+        public override async Task ValidateAuthorizationRequest(ValidateAuthorizationRequestContext context)
+        {
+            var database = context.HttpContext.RequestServices.GetRequiredService<ApplicationContext>();
+
             // Note: the OpenID Connect server middleware supports the authorization code, implicit and hybrid flows
             // but this authorization provider only accepts response_type=code authorization/authentication requests.
             // You may consider relaxing it to support the implicit or hybrid flows. In this case, consider adding
             // checks rejecting implicit/hybrid authorization requests when the client is a confidential application.
-            if (!context.Request.IsAuthorizationCodeFlow()) {
+            if (!context.Request.IsAuthorizationCodeFlow())
+            {
                 context.Reject(
                     error: OpenIdConnectConstants.Errors.UnsupportedResponseType,
                     description: "Only the authorization code flow is supported by this authorization server");
@@ -27,7 +33,8 @@ namespace Mvc.Server.Providers {
             // To ensure invalid modes are rejected early enough, a check is made here.
             if (!string.IsNullOrEmpty(context.Request.ResponseMode) && !context.Request.IsFormPostResponseMode() &&
                                                                        !context.Request.IsFragmentResponseMode() &&
-                                                                       !context.Request.IsQueryResponseMode()) {
+                                                                       !context.Request.IsQueryResponseMode())
+            {
                 context.Reject(
                     error: OpenIdConnectConstants.Errors.InvalidRequest,
                     description: "The specified response_mode is unsupported.");
@@ -35,14 +42,13 @@ namespace Mvc.Server.Providers {
                 return;
             }
 
-            var database = context.HttpContext.RequestServices.GetRequiredService<ApplicationContext>();
-
             // Retrieve the application details corresponding to the requested client_id.
             var application = await (from entity in database.Applications
                                      where entity.ApplicationID == context.ClientId
                                      select entity).SingleOrDefaultAsync(context.HttpContext.RequestAborted);
 
-            if (application == null) {
+            if (application == null)
+            {
                 context.Reject(
                     error: OpenIdConnectConstants.Errors.InvalidClient,
                     description: "Application not found in the database: ensure that your client_id is correct");
@@ -51,7 +57,8 @@ namespace Mvc.Server.Providers {
             }
 
             if (!string.IsNullOrEmpty(context.RedirectUri) &&
-                !string.Equals(context.RedirectUri, application.RedirectUri, StringComparison.Ordinal)) {
+                !string.Equals(context.RedirectUri, application.RedirectUri, StringComparison.Ordinal))
+            {
                 context.Reject(
                     error: OpenIdConnectConstants.Errors.InvalidClient,
                     description: "Invalid redirect_uri");
@@ -62,11 +69,15 @@ namespace Mvc.Server.Providers {
             context.Validate(application.RedirectUri);
         }
 
-        public override async Task ValidateTokenRequest(ValidateTokenRequestContext context) {
+        public override async Task ValidateTokenRequest(ValidateTokenRequestContext context)
+        {
+            var database = context.HttpContext.RequestServices.GetRequiredService<ApplicationContext>();
+
             // Note: the OpenID Connect server middleware supports authorization code, refresh token, client credentials
             // and resource owner password credentials grant types but this authorization provider uses a safer policy
             // rejecting the last two ones. You may consider relaxing it to support the ROPC or client credentials grant types.
-            if (!context.Request.IsAuthorizationCodeGrantType() && !context.Request.IsRefreshTokenGrantType()) {
+            if (!context.Request.IsAuthorizationCodeGrantType() && !context.Request.IsRefreshTokenGrantType())
+            {
                 context.Reject(
                     error: OpenIdConnectConstants.Errors.UnsupportedGrantType,
                     description: "Only authorization code and refresh token grant types " +
@@ -81,7 +92,8 @@ namespace Mvc.Server.Providers {
             // You may consider relaxing it to support the resource owner password credentials grant type
             // with JavaScript or desktop applications, where client credentials cannot be safely stored.
             // In this case, call context.Skip() to inform the server middleware the client is not trusted.
-            if (string.IsNullOrEmpty(context.ClientId) || string.IsNullOrEmpty(context.ClientSecret)) {
+            if (string.IsNullOrEmpty(context.ClientId) || string.IsNullOrEmpty(context.ClientSecret))
+            {
                 context.Reject(
                     error: OpenIdConnectConstants.Errors.InvalidRequest,
                     description: "Missing credentials: ensure that your credentials were correctly " +
@@ -90,14 +102,13 @@ namespace Mvc.Server.Providers {
                 return;
             }
 
-            var database = context.HttpContext.RequestServices.GetRequiredService<ApplicationContext>();
-
             // Retrieve the application details corresponding to the requested client_id.
             var application = await (from entity in database.Applications
                                      where entity.ApplicationID == context.ClientId
                                      select entity).SingleOrDefaultAsync(context.HttpContext.RequestAborted);
 
-            if (application == null) {
+            if (application == null)
+            {
                 context.Reject(
                     error: OpenIdConnectConstants.Errors.InvalidClient,
                     description: "Application not found in the database: ensure that your client_id is correct");
@@ -111,7 +122,8 @@ namespace Mvc.Server.Providers {
             // For that, you can use the CryptoHelper library developed by @henkmollema:
             // https://github.com/henkmollema/CryptoHelper. If you don't need .NET Core support,
             // SecurityDriven.NET/inferno is a rock-solid alternative: http://securitydriven.net/inferno/
-            if (!string.Equals(context.ClientSecret, application.Secret, StringComparison.Ordinal)) {
+            if (!string.Equals(context.ClientSecret, application.Secret, StringComparison.Ordinal))
+            {
                 context.Reject(
                     error: OpenIdConnectConstants.Errors.InvalidClient,
                     description: "Invalid credentials: ensure that you specified a correct client_secret");
@@ -122,18 +134,21 @@ namespace Mvc.Server.Providers {
             context.Validate();
         }
 
-        public override async Task ValidateLogoutRequest(ValidateLogoutRequestContext context) {
+        public override async Task ValidateLogoutRequest(ValidateLogoutRequestContext context)
+        {
             var database = context.HttpContext.RequestServices.GetRequiredService<ApplicationContext>();
 
             // Skip validation if the post_logout_redirect_uri parameter was missing.
-            if (string.IsNullOrEmpty(context.PostLogoutRedirectUri)) {
+            if (string.IsNullOrEmpty(context.PostLogoutRedirectUri))
+            {
                 context.Skip();
 
                 return;
             }
 
             // When provided, post_logout_redirect_uri must exactly match the address registered by the client application.
-            if (!await database.Applications.AnyAsync(application => application.LogoutRedirectUri == context.PostLogoutRedirectUri)) {
+            if (!await database.Applications.AnyAsync(application => application.LogoutRedirectUri == context.PostLogoutRedirectUri))
+            {
                 context.Reject(
                     error: OpenIdConnectConstants.Errors.InvalidClient,
                     description: "Invalid post_logout_redirect_uri");

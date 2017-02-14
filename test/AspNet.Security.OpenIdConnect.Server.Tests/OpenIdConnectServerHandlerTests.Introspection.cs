@@ -20,15 +20,18 @@ using Newtonsoft.Json;
 using Xunit;
 using static System.Net.Http.HttpMethod;
 
-namespace AspNet.Security.OpenIdConnect.Server.Tests {
-    public partial class OpenIdConnectServerHandlerTests {
+namespace AspNet.Security.OpenIdConnect.Server.Tests
+{
+    public partial class OpenIdConnectServerHandlerTests
+    {
         [Theory]
         [InlineData(nameof(Delete))]
         [InlineData(nameof(Head))]
         [InlineData(nameof(Options))]
         [InlineData(nameof(Put))]
         [InlineData(nameof(Trace))]
-        public async Task InvokeIntrospectionEndpointAsync_UnexpectedMethodReturnsAnError(string method) {
+        public async Task InvokeIntrospectionEndpointAsync_UnexpectedMethodReturnsAnError(string method)
+        {
             // Arrange
             var server = CreateAuthorizationServer();
 
@@ -51,10 +54,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         [InlineData(null, "custom_description", "custom_uri")]
         [InlineData(null, null, "custom_uri")]
         [InlineData(null, null, null)]
-        public async Task InvokeIntrospectionEndpointAsync_ExtractIntrospectionRequest_AllowsRejectingRequest(string error, string description, string uri) {
+        public async Task InvokeIntrospectionEndpointAsync_ExtractIntrospectionRequest_AllowsRejectingRequest(string error, string description, string uri)
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnExtractIntrospectionRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnExtractIntrospectionRequest = context =>
+                {
                     context.Reject(error, description, uri);
 
                     return Task.FromResult(0);
@@ -73,15 +79,19 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeIntrospectionEndpointAsync_ExtractIntrospectionRequest_AllowsHandlingResponse() {
+        public async Task InvokeIntrospectionEndpointAsync_ExtractIntrospectionRequest_AllowsHandlingResponse()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnExtractIntrospectionRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnExtractIntrospectionRequest = context =>
+                {
                     context.HandleResponse();
 
                     context.HttpContext.Response.Headers[HeaderNames.ContentType] = "application/json";
 
-                    return context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                    return context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(new
+                    {
                         name = "Bob le Bricoleur"
                     }));
                 };
@@ -97,10 +107,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeIntrospectionEndpointAsync_ExtractIntrospectionRequest_AllowsSkippingToNextMiddleware() {
+        public async Task InvokeIntrospectionEndpointAsync_ExtractIntrospectionRequest_AllowsSkippingToNextMiddleware()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnExtractIntrospectionRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnExtractIntrospectionRequest = context =>
+                {
                     context.SkipToNextMiddleware();
 
                     return Task.FromResult(0);
@@ -117,14 +130,16 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeIntrospectionEndpointAsync_MissingTokenCausesAnError() {
+        public async Task InvokeIntrospectionEndpointAsync_MissingTokenCausesAnError()
+        {
             // Arrange
             var server = CreateAuthorizationServer();
 
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+            {
                 Token = null
             });
 
@@ -142,10 +157,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         [InlineData(null, "custom_description", "custom_uri")]
         [InlineData(null, null, "custom_uri")]
         [InlineData(null, null, null)]
-        public async Task InvokeIntrospectionEndpointAsync_ValidateIntrospectionRequest_AllowsRejectingRequest(string error, string description, string uri) {
+        public async Task InvokeIntrospectionEndpointAsync_ValidateIntrospectionRequest_AllowsRejectingRequest(string error, string description, string uri)
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateIntrospectionRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateIntrospectionRequest = context =>
+                {
                     context.Reject(error, description, uri);
 
                     return Task.FromResult(0);
@@ -155,7 +173,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+            {
                 Token = "2YotnFZFEjr1zCsicMWpAA"
             });
 
@@ -166,15 +185,19 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeIntrospectionEndpointAsync_ValidateIntrospectionRequest_AllowsHandlingResponse() {
+        public async Task InvokeIntrospectionEndpointAsync_ValidateIntrospectionRequest_AllowsHandlingResponse()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateIntrospectionRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateIntrospectionRequest = context =>
+                {
                     context.HandleResponse();
 
                     context.HttpContext.Response.Headers[HeaderNames.ContentType] = "application/json";
 
-                    return context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                    return context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(new
+                    {
                         name = "Bob le Magnifique"
                     }));
                 };
@@ -183,7 +206,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+            {
                 Token = "2YotnFZFEjr1zCsicMWpAA"
             });
 
@@ -192,10 +216,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeIntrospectionEndpointAsync_ValidateIntrospectionRequest_AllowsSkippingToNextMiddleware() {
+        public async Task InvokeIntrospectionEndpointAsync_ValidateIntrospectionRequest_AllowsSkippingToNextMiddleware()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateIntrospectionRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateIntrospectionRequest = context =>
+                {
                     context.SkipToNextMiddleware();
 
                     return Task.FromResult(0);
@@ -205,7 +232,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+            {
                 Token = "2YotnFZFEjr1zCsicMWpAA"
             });
 
@@ -214,10 +242,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeIntrospectionEndpointAsync_MissingClientIdCausesAnErrorForValidatedRequests() {
+        public async Task InvokeIntrospectionEndpointAsync_MissingClientIdCausesAnErrorForValidatedRequests()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateIntrospectionRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateIntrospectionRequest = context =>
+                {
                     context.Validate();
 
                     return Task.FromResult(0);
@@ -227,7 +258,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+            {
                 ClientId = null,
                 Token = "2YotnFZFEjr1zCsicMWpAA"
             });
@@ -238,10 +270,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeIntrospectionEndpointAsync_InvalidTokenCausesAnError() {
+        public async Task InvokeIntrospectionEndpointAsync_InvalidTokenCausesAnError()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateIntrospectionRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateIntrospectionRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
@@ -251,7 +286,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+            {
                 Token = "SlAV32hkKG"
             });
 
@@ -260,10 +296,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeIntrospectionEndpointAsync_ConfidentialTokenCausesAnErrorWhenValidationIsSkipped() {
+        public async Task InvokeIntrospectionEndpointAsync_ConfidentialTokenCausesAnErrorWhenValidationIsSkipped()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeRefreshToken = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeRefreshToken = context =>
+                {
                     Assert.Equal("SlAV32hkKG", context.RefreshToken);
 
                     context.Ticket = new AuthenticationTicket(
@@ -278,7 +317,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateIntrospectionRequest = context => {
+                options.Provider.OnValidateIntrospectionRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
@@ -288,7 +328,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+            {
                 Token = "SlAV32hkKG",
                 TokenTypeHint = OpenIdConnectConstants.TokenTypeHints.RefreshToken
             });
@@ -298,10 +339,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeIntrospectionEndpointAsync_ExpiredTokenCausesAnError() {
+        public async Task InvokeIntrospectionEndpointAsync_ExpiredTokenCausesAnError()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeRefreshToken = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeRefreshToken = context =>
+                {
                     Assert.Equal("SlAV32hkKG", context.RefreshToken);
 
                     context.Ticket = new AuthenticationTicket(
@@ -314,7 +358,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateIntrospectionRequest = context => {
+                options.Provider.OnValidateIntrospectionRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
@@ -324,7 +369,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+            {
                 Token = "SlAV32hkKG",
                 TokenTypeHint = OpenIdConnectConstants.TokenTypeHints.RefreshToken
             });
@@ -334,10 +380,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeIntrospectionEndpointAsync_AuthorizationCodeCausesAnErrorWhenCallerIsNotAValidPresenter() {
+        public async Task InvokeIntrospectionEndpointAsync_AuthorizationCodeCausesAnErrorWhenCallerIsNotAValidPresenter()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeAuthorizationCode = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAuthorizationCode = context =>
+                {
                     Assert.Equal("SlAV32hkKG", context.AuthorizationCode);
 
                     context.Ticket = new AuthenticationTicket(
@@ -350,7 +399,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateIntrospectionRequest = context => {
+                options.Provider.OnValidateIntrospectionRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
@@ -360,7 +410,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+            {
                 ClientId = "Fabrikam",
                 Token = "SlAV32hkKG",
                 TokenTypeHint = OpenIdConnectConstants.TokenTypeHints.AuthorizationCode
@@ -371,10 +422,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeIntrospectionEndpointAsync_AccessTokenCausesAnErrorWhenCallerIsNotAValidAudienceOrPresenter() {
+        public async Task InvokeIntrospectionEndpointAsync_AccessTokenCausesAnErrorWhenCallerIsNotAValidAudienceOrPresenter()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeAccessToken = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAccessToken = context =>
+                {
                     Assert.Equal("2YotnFZFEjr1zCsicMWpAA", context.AccessToken);
 
                     context.Ticket = new AuthenticationTicket(
@@ -388,7 +442,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateIntrospectionRequest = context => {
+                options.Provider.OnValidateIntrospectionRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
@@ -398,7 +453,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+            {
                 ClientId = "Fabrikam",
                 Token = "2YotnFZFEjr1zCsicMWpAA",
                 TokenTypeHint = OpenIdConnectConstants.TokenTypeHints.AccessToken
@@ -409,10 +465,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeIntrospectionEndpointAsync_IdentityTokenCausesAnErrorWhenCallerIsNotAValidAudience() {
+        public async Task InvokeIntrospectionEndpointAsync_IdentityTokenCausesAnErrorWhenCallerIsNotAValidAudience()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeIdentityToken = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeIdentityToken = context =>
+                {
                     Assert.Equal("2YotnFZFEjr1zCsicMWpAA", context.IdentityToken);
 
                     context.Ticket = new AuthenticationTicket(
@@ -425,7 +484,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateIntrospectionRequest = context => {
+                options.Provider.OnValidateIntrospectionRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
@@ -435,7 +495,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+            {
                 ClientId = "Fabrikam",
                 Token = "2YotnFZFEjr1zCsicMWpAA",
                 TokenTypeHint = OpenIdConnectConstants.TokenTypeHints.IdToken
@@ -446,10 +507,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeIntrospectionEndpointAsync_RefreshTokenCausesAnErrorWhenCallerIsNotAValidPresenter() {
+        public async Task InvokeIntrospectionEndpointAsync_RefreshTokenCausesAnErrorWhenCallerIsNotAValidPresenter()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeRefreshToken = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeRefreshToken = context =>
+                {
                     Assert.Equal("8xLOxBtZp8", context.RefreshToken);
 
                     context.Ticket = new AuthenticationTicket(
@@ -462,7 +526,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateIntrospectionRequest = context => {
+                options.Provider.OnValidateIntrospectionRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
@@ -472,7 +537,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+            {
                 ClientId = "Fabrikam",
                 Token = "8xLOxBtZp8",
                 TokenTypeHint = OpenIdConnectConstants.TokenTypeHints.RefreshToken
@@ -483,16 +549,19 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeIntrospectionEndpointAsync_BasicClaimsAreCorrectlyReturned() {
+        public async Task InvokeIntrospectionEndpointAsync_BasicClaimsAreCorrectlyReturned()
+        {
             // Arrange
             var clock = new Mock<ISystemClock>();
             clock.SetupGet(mock => mock.UtcNow)
                  .Returns(new DateTimeOffset(2016, 1, 1, 0, 0, 0, TimeSpan.Zero));
 
-            var server = CreateAuthorizationServer(options => {
+            var server = CreateAuthorizationServer(options =>
+            {
                 options.SystemClock = clock.Object;
 
-                options.Provider.OnDeserializeAccessToken = context => {
+                options.Provider.OnDeserializeAccessToken = context =>
+                {
                     Assert.Equal("2YotnFZFEjr1zCsicMWpAA", context.AccessToken);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
@@ -512,7 +581,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateIntrospectionRequest = context => {
+                options.Provider.OnValidateIntrospectionRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
@@ -522,7 +592,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+            {
                 Token = "2YotnFZFEjr1zCsicMWpAA",
                 TokenTypeHint = OpenIdConnectConstants.TokenTypeHints.AccessToken
             });
@@ -541,10 +612,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeIntrospectionEndpointAsync_NonBasicClaimsAreNotReturnedToUntrustedCallers() {
+        public async Task InvokeIntrospectionEndpointAsync_NonBasicClaimsAreNotReturnedToUntrustedCallers()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeAccessToken = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAccessToken = context =>
+                {
                     Assert.Equal("2YotnFZFEjr1zCsicMWpAA", context.AccessToken);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
@@ -560,7 +634,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateIntrospectionRequest = context => {
+                options.Provider.OnValidateIntrospectionRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
@@ -570,7 +645,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+            {
                 ClientId = "Fabrikam",
                 Token = "2YotnFZFEjr1zCsicMWpAA",
                 TokenTypeHint = OpenIdConnectConstants.TokenTypeHints.AccessToken
@@ -581,10 +657,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeIntrospectionEndpointAsync_NonBasicClaimsAreReturnedToTrustedCallers() {
+        public async Task InvokeIntrospectionEndpointAsync_NonBasicClaimsAreReturnedToTrustedCallers()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeAccessToken = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAccessToken = context =>
+                {
                     Assert.Equal("2YotnFZFEjr1zCsicMWpAA", context.AccessToken);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
@@ -600,7 +679,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateIntrospectionRequest = context => {
+                options.Provider.OnValidateIntrospectionRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
@@ -610,7 +690,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+            {
                 ClientId = "Fabrikam",
                 Token = "2YotnFZFEjr1zCsicMWpAA",
                 TokenTypeHint = OpenIdConnectConstants.TokenTypeHints.AccessToken
@@ -628,10 +709,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         [InlineData(null, "custom_description", "custom_uri")]
         [InlineData(null, null, "custom_uri")]
         [InlineData(null, null, null)]
-        public async Task InvokeIntrospectionEndpointAsync_HandleIntrospectionRequest_AllowsRejectingRequest(string error, string description, string uri) {
+        public async Task InvokeIntrospectionEndpointAsync_HandleIntrospectionRequest_AllowsRejectingRequest(string error, string description, string uri)
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeAuthorizationCode = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAuthorizationCode = context =>
+                {
                     Assert.Equal("SlAV32hkKG", context.AuthorizationCode);
 
                     context.Ticket = new AuthenticationTicket(
@@ -642,13 +726,15 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateIntrospectionRequest = context => {
+                options.Provider.OnValidateIntrospectionRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleIntrospectionRequest = context => {
+                options.Provider.OnHandleIntrospectionRequest = context =>
+                {
                     context.Reject(error, description, uri);
 
                     return Task.FromResult(0);
@@ -658,7 +744,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+            {
                 Token = "SlAV32hkKG"
             });
 
@@ -669,10 +756,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeIntrospectionEndpointAsync_HandleIntrospectionRequest_AllowsHandlingResponse() {
+        public async Task InvokeIntrospectionEndpointAsync_HandleIntrospectionRequest_AllowsHandlingResponse()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeAuthorizationCode = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAuthorizationCode = context =>
+                {
                     Assert.Equal("SlAV32hkKG", context.AuthorizationCode);
 
                     context.Ticket = new AuthenticationTicket(
@@ -683,18 +773,21 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateIntrospectionRequest = context => {
+                options.Provider.OnValidateIntrospectionRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleIntrospectionRequest = context => {
+                options.Provider.OnHandleIntrospectionRequest = context =>
+                {
                     context.HandleResponse();
 
                     context.HttpContext.Response.Headers[HeaderNames.ContentType] = "application/json";
 
-                    return context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                    return context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(new
+                    {
                         name = "Bob le Magnifique"
                     }));
                 };
@@ -703,7 +796,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+            {
                 Token = "SlAV32hkKG"
             });
 
@@ -712,10 +806,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeIntrospectionEndpointAsync_HandleIntrospectionRequest_AllowsSkippingToNextMiddleware() {
+        public async Task InvokeIntrospectionEndpointAsync_HandleIntrospectionRequest_AllowsSkippingToNextMiddleware()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeAuthorizationCode = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAuthorizationCode = context =>
+                {
                     Assert.Equal("SlAV32hkKG", context.AuthorizationCode);
 
                     context.Ticket = new AuthenticationTicket(
@@ -726,13 +823,15 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateIntrospectionRequest = context => {
+                options.Provider.OnValidateIntrospectionRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleIntrospectionRequest = context => {
+                options.Provider.OnHandleIntrospectionRequest = context =>
+                {
                     context.SkipToNextMiddleware();
 
                     return Task.FromResult(0);
@@ -742,7 +841,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+            {
                 Token = "SlAV32hkKG"
             });
 
@@ -751,10 +851,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task SendIntrospectionResponseAsync_ApplyIntrospectionResponse_AllowsHandlingResponse() {
+        public async Task SendIntrospectionResponseAsync_ApplyIntrospectionResponse_AllowsHandlingResponse()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeAuthorizationCode = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAuthorizationCode = context =>
+                {
                     Assert.Equal("SlAV32hkKG", context.AuthorizationCode);
 
                     context.Ticket = new AuthenticationTicket(
@@ -765,18 +868,21 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateIntrospectionRequest = context => {
+                options.Provider.OnValidateIntrospectionRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnApplyIntrospectionResponse = context => {
+                options.Provider.OnApplyIntrospectionResponse = context =>
+                {
                     context.HandleResponse();
 
                     context.HttpContext.Response.Headers[HeaderNames.ContentType] = "application/json";
 
-                    return context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                    return context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(new
+                    {
                         name = "Bob le Magnifique"
                     }));
                 };
@@ -785,7 +891,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+            {
                 Token = "SlAV32hkKG"
             });
 
@@ -794,10 +901,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task SendIntrospectionResponseAsync_ApplyIntrospectionResponse_ResponseContainsCustomParameters() {
+        public async Task SendIntrospectionResponseAsync_ApplyIntrospectionResponse_ResponseContainsCustomParameters()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeAuthorizationCode = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAuthorizationCode = context =>
+                {
                     Assert.Equal("SlAV32hkKG", context.AuthorizationCode);
 
                     context.Ticket = new AuthenticationTicket(
@@ -808,13 +918,15 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateIntrospectionRequest = context => {
+                options.Provider.OnValidateIntrospectionRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnApplyIntrospectionResponse = context => {
+                options.Provider.OnApplyIntrospectionResponse = context =>
+                {
                     context.Response["custom_parameter"] = "custom_value";
 
                     return Task.FromResult(0);
@@ -824,7 +936,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+            {
                 Token = "SlAV32hkKG"
             });
 

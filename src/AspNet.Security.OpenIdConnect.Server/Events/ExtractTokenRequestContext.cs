@@ -7,11 +7,13 @@
 using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.AspNetCore.Http;
 
-namespace AspNet.Security.OpenIdConnect.Server {
+namespace AspNet.Security.OpenIdConnect.Server
+{
     /// <summary>
     /// Provides context information used when extracting a token request.
     /// </summary>
-    public class ExtractTokenRequestContext : BaseValidatingContext {
+    public class ExtractTokenRequestContext : BaseValidatingContext
+    {
         /// <summary>
         /// Initializes a new instance of the <see cref="ExtractTokenRequestContext"/> class.
         /// </summary>
@@ -22,7 +24,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             HttpContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectRequest request)
-            : base(context, options, request) {
+            : base(context, options, request)
+        {
             Validate();
         }
     }

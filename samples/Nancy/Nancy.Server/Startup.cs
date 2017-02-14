@@ -9,19 +9,24 @@ using Nancy.Server.Providers;
 using NWebsec.Owin;
 using Owin;
 
-namespace Nancy.Server {
-    public class Startup {
-        public void Configuration(IAppBuilder app) {
+namespace Nancy.Server
+{
+    public class Startup
+    {
+        public void Configuration(IAppBuilder app)
+        {
             app.SetDefaultSignInAsAuthenticationType("ServerCookie");
 
-            app.UseWhen(context => context.Request.Path.StartsWithSegments(new PathString("/api")), map => {
+            app.UseWhen(context => context.Request.Path.StartsWithSegments(new PathString("/api")), map =>
+            {
                 map.UseOAuthValidation();
 
                 // Alternatively, you can also use the introspection middleware.
                 // Using it is recommended if your resource server is in a
                 // different application/separated from the authorization server.
                 //
-                // map.UseOAuthIntrospection(options => {
+                // map.UseOAuthIntrospection(options =>
+                // {
                 //     options.AuthenticationMode = AuthenticationMode.Active;
                 //     options.Authority = "http://localhost:54540/";
                 //     options.Audiences.Add("resource_server");
@@ -32,8 +37,10 @@ namespace Nancy.Server {
 
             // Insert a new cookies middleware in the pipeline to store
             // the user identity returned by the external identity provider.
-            app.UseWhen(context => !context.Request.Path.StartsWithSegments(new PathString("/api")), map => {
-                map.UseCookieAuthentication(new CookieAuthenticationOptions {
+            app.UseWhen(context => !context.Request.Path.StartsWithSegments(new PathString("/api")), map =>
+            {
+                map.UseCookieAuthentication(new CookieAuthenticationOptions
+                {
                     AuthenticationMode = AuthenticationMode.Active,
                     AuthenticationType = "ServerCookie",
                     CookieName = CookieAuthenticationDefaults.CookiePrefix + "ServerCookie",
@@ -59,21 +66,25 @@ namespace Nancy.Server {
             // See https://nwebsec.codeplex.com/wikipage?title=Configuring%20security%20headers&referringTitle=NWebsec
             app.UseXXssProtection(options => options.EnabledWithBlockMode());
 
-            app.Use(async (context, next) => {
+            app.Use(async (context, next) =>
+            {
                 // Keep the original stream in a separate
                 // variable to restore it later if necessary.
                 var stream = context.Request.Body;
 
                 // Optimization: don't buffer the request if
                 // there was no stream or if it is rewindable.
-                if (stream == Stream.Null || stream.CanSeek) {
+                if (stream == Stream.Null || stream.CanSeek)
+                {
                     await next();
 
                     return;
                 }
 
-                try {
-                    using (var buffer = new MemoryStream()) {
+                try
+                {
+                    using (var buffer = new MemoryStream())
+                    {
                         // Copy the request stream to the memory stream.
                         await stream.CopyToAsync(buffer);
 
@@ -88,13 +99,15 @@ namespace Nancy.Server {
                     }
                 }
 
-                finally {
+                finally
+                {
                     // Restore the original stream.
                     context.Request.Body = stream;
                 }
             });
 
-            app.UseOpenIdConnectServer(options => {
+            app.UseOpenIdConnectServer(options =>
+            {
                 options.Provider = new AuthorizationProvider();
 
                 // Enable the authorization, logout, token and userinfo endpoints.
@@ -134,8 +147,10 @@ namespace Nancy.Server {
                 options.UseLogging(logger => logger.AddConsole().AddDebug());
             });
 
-            app.Use((context, next) => {
-                if (context.Request.Body.CanSeek) {
+            app.Use((context, next) =>
+            {
+                if (context.Request.Body.CanSeek)
+                {
                     context.Request.Body.Position = 0L;
                 }
 

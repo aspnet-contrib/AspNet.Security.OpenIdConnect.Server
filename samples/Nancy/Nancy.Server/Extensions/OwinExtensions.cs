@@ -6,10 +6,14 @@ using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Owin;
 
-namespace Nancy.Server.Extensions {
-    public static class OwinExtensions {
-        public static IEnumerable<AuthenticationDescription> GetExternalProviders(this IAuthenticationManager manager) {
-            if (manager == null) {
+namespace Nancy.Server.Extensions
+{
+    public static class OwinExtensions
+    {
+        public static IEnumerable<AuthenticationDescription> GetExternalProviders(this IAuthenticationManager manager)
+        {
+            if (manager == null)
+            {
                 throw new ArgumentNullException("manager");
             }
 
@@ -18,8 +22,10 @@ namespace Nancy.Server.Extensions {
                    select description;
         }
 
-        public static bool IsProviderSupported(this IAuthenticationManager manager, string provider) {
-            if (manager == null) {
+        public static bool IsProviderSupported(this IAuthenticationManager manager, string provider)
+        {
+            if (manager == null)
+            {
                 throw new ArgumentNullException("manager");
             }
 
@@ -28,8 +34,10 @@ namespace Nancy.Server.Extensions {
                     select description).Any();
         }
 
-        public static T Build<T>(this IAppBuilder app) {
-            if (app == null) {
+        public static T Build<T>(this IAppBuilder app)
+        {
+            if (app == null)
+            {
                 throw new ArgumentNullException("app");
             }
 
@@ -37,21 +45,27 @@ namespace Nancy.Server.Extensions {
         }
 
         public static IAppBuilder UseWhen(this IAppBuilder app,
-            Func<IOwinContext, bool> condition, Action<IAppBuilder> configuration) {
-            if (app == null) {
+            Func<IOwinContext, bool> condition, Action<IAppBuilder> configuration)
+        {
+            if (app == null)
+            {
                 throw new ArgumentNullException("app");
             }
 
-            if (condition == null) {
+            if (condition == null)
+            {
                 throw new ArgumentNullException("condition");
             }
 
-            if (configuration == null) {
+            if (configuration == null)
+            {
                 throw new ArgumentNullException("configuration");
             }
 
-            return app.Use((context, next) => {
-                if (condition(context)) {
+            return app.Use((context, next) =>
+            {
+                if (condition(context))
+                {
                     var builder = app.New();
                     configuration(builder);
                     builder.Run(_ => next());

@@ -8,11 +8,13 @@ using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 
-namespace Owin.Security.OpenIdConnect.Server {
+namespace Owin.Security.OpenIdConnect.Server
+{
     /// <summary>
     /// Provides context information used when processing an OpenIdConnect token request.
     /// </summary>
-    public class HandleTokenRequestContext : BaseValidatingTicketContext {
+    public class HandleTokenRequestContext : BaseValidatingTicketContext
+    {
         /// <summary>
         /// Initializes a new instance of the <see cref="HandleTokenRequestContext"/> class
         /// </summary>
@@ -25,7 +27,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             OpenIdConnectServerOptions options,
             OpenIdConnectRequest request,
             AuthenticationTicket ticket)
-            : base(context, options, request, ticket) {
+            : base(context, options, request, ticket)
+        {
             Validate();
         }
     }

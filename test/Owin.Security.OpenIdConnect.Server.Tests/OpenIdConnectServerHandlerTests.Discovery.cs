@@ -15,13 +15,13 @@ using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Moq;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Owin.Security.OpenIdConnect.Extensions;
 using Xunit;
 using static System.Net.Http.HttpMethod;
 
-namespace Owin.Security.OpenIdConnect.Server.Tests {
-    public partial class OpenIdConnectServerHandlerTests {
+namespace Owin.Security.OpenIdConnect.Server.Tests
+{
+    public partial class OpenIdConnectServerHandlerTests
+    {
         [Theory]
         [InlineData(nameof(Delete))]
         [InlineData(nameof(Head))]
@@ -29,7 +29,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         [InlineData(nameof(Post))]
         [InlineData(nameof(Put))]
         [InlineData(nameof(Trace))]
-        public async Task InvokeConfigurationEndpointAsync_UnexpectedMethodReturnsAnError(string method) {
+        public async Task InvokeConfigurationEndpointAsync_UnexpectedMethodReturnsAnError(string method)
+        {
             // Arrange
             var server = CreateAuthorizationServer();
 
@@ -51,10 +52,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         [InlineData(null, "custom_description", "custom_uri")]
         [InlineData(null, null, "custom_uri")]
         [InlineData(null, null, null)]
-        public async Task InvokeConfigurationEndpointAsync_ExtractConfigurationRequest_AllowsRejectingRequest(string error, string description, string uri) {
+        public async Task InvokeConfigurationEndpointAsync_ExtractConfigurationRequest_AllowsRejectingRequest(string error, string description, string uri)
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnExtractConfigurationRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnExtractConfigurationRequest = context =>
+                {
                     context.Reject(error, description, uri);
 
                     return Task.FromResult(0);
@@ -73,15 +77,19 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeConfigurationEndpointAsync_ExtractConfigurationRequest_AllowsHandlingResponse() {
+        public async Task InvokeConfigurationEndpointAsync_ExtractConfigurationRequest_AllowsHandlingResponse()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnExtractConfigurationRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnExtractConfigurationRequest = context =>
+                {
                     context.HandleResponse();
 
                     context.OwinContext.Response.Headers["Content-Type"] = "application/json";
 
-                    return context.OwinContext.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                    return context.OwinContext.Response.WriteAsync(JsonConvert.SerializeObject(new
+                    {
                         name = "Bob le Bricoleur"
                     }));
                 };
@@ -97,10 +105,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeConfigurationEndpointAsync_ExtractConfigurationRequest_AllowsSkippingToNextMiddleware() {
+        public async Task InvokeConfigurationEndpointAsync_ExtractConfigurationRequest_AllowsSkippingToNextMiddleware()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnExtractConfigurationRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnExtractConfigurationRequest = context =>
+                {
                     context.SkipToNextMiddleware();
 
                     return Task.FromResult(0);
@@ -124,10 +135,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         [InlineData(null, "custom_description", "custom_uri")]
         [InlineData(null, null, "custom_uri")]
         [InlineData(null, null, null)]
-        public async Task InvokeConfigurationEndpointAsync_ValidateConfigurationRequest_AllowsRejectingRequest(string error, string description, string uri) {
+        public async Task InvokeConfigurationEndpointAsync_ValidateConfigurationRequest_AllowsRejectingRequest(string error, string description, string uri)
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateConfigurationRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateConfigurationRequest = context =>
+                {
                     context.Reject(error, description, uri);
 
                     return Task.FromResult(0);
@@ -146,15 +160,19 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeConfigurationEndpointAsync_ValidateConfigurationRequest_AllowsHandlingResponse() {
+        public async Task InvokeConfigurationEndpointAsync_ValidateConfigurationRequest_AllowsHandlingResponse()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateConfigurationRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateConfigurationRequest = context =>
+                {
                     context.HandleResponse();
 
                     context.OwinContext.Response.Headers["Content-Type"] = "application/json";
 
-                    return context.OwinContext.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                    return context.OwinContext.Response.WriteAsync(JsonConvert.SerializeObject(new
+                    {
                         name = "Bob le Magnifique"
                     }));
                 };
@@ -170,10 +188,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeConfigurationEndpointAsync_ValidateConfigurationRequest_AllowsSkippingToNextMiddleware() {
+        public async Task InvokeConfigurationEndpointAsync_ValidateConfigurationRequest_AllowsSkippingToNextMiddleware()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateConfigurationRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateConfigurationRequest = context =>
+                {
                     context.SkipToNextMiddleware();
 
                     return Task.FromResult(0);
@@ -190,7 +211,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeConfigurationEndpointAsync_IssuerIsAutomaticallyInferred() {
+        public async Task InvokeConfigurationEndpointAsync_IssuerIsAutomaticallyInferred()
+        {
             // Arrange
             var server = CreateAuthorizationServer();
 
@@ -205,9 +227,11 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeConfigurationEndpointAsync_RegisteredIssuerIsAlwaysPreferred() {
+        public async Task InvokeConfigurationEndpointAsync_RegisteredIssuerIsAlwaysPreferred()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
+            var server = CreateAuthorizationServer(options =>
+            {
                 options.Issuer = new Uri("https://www.fabrikam.com/");
             });
 
@@ -222,9 +246,11 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeConfigurationEndpointAsync_EnabledEndpointsAreExposed() {
+        public async Task InvokeConfigurationEndpointAsync_EnabledEndpointsAreExposed()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
+            var server = CreateAuthorizationServer(options =>
+            {
                 options.Issuer = new Uri("https://www.fabrikam.com/");
                 options.AuthorizationEndpointPath = new PathString("/path/authorization_endpoint");
                 options.IntrospectionEndpointPath = new PathString("/path/introspection_endpoint");
@@ -260,7 +286,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeConfigurationEndpointAsync_GrantTypesIncludeCodeWhenAuthorizationEndpointIsEnabled() {
+        public async Task InvokeConfigurationEndpointAsync_GrantTypesIncludeCodeWhenAuthorizationEndpointIsEnabled()
+        {
             // Arrange
             var server = CreateAuthorizationServer();
 
@@ -275,7 +302,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeConfigurationEndpointAsync_GrantTypesIncludeImplicitWhenAuthorizationEndpointIsEnabled() {
+        public async Task InvokeConfigurationEndpointAsync_GrantTypesIncludeImplicitWhenAuthorizationEndpointIsEnabled()
+        {
             // Arrange
             var server = CreateAuthorizationServer();
 
@@ -290,7 +318,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeConfigurationEndpointAsync_DefaultGrantTypesAreIncludedWhenTokenEndpointIsEnabled() {
+        public async Task InvokeConfigurationEndpointAsync_DefaultGrantTypesAreIncludedWhenTokenEndpointIsEnabled()
+        {
             // Arrange
             var server = CreateAuthorizationServer();
 
@@ -307,7 +336,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeConfigurationEndpointAsync_DefaultResponseModesAreIncludedWhenAuthorizationEndpointIsEnabled() {
+        public async Task InvokeConfigurationEndpointAsync_DefaultResponseModesAreIncludedWhenAuthorizationEndpointIsEnabled()
+        {
             // Arrange
             var server = CreateAuthorizationServer();
 
@@ -324,7 +354,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeConfigurationEndpointAsync_DefaultResponseTypesAreIncludedWhenAuthorizationEndpointIsEnabled() {
+        public async Task InvokeConfigurationEndpointAsync_DefaultResponseTypesAreIncludedWhenAuthorizationEndpointIsEnabled()
+        {
             // Arrange
             var server = CreateAuthorizationServer();
 
@@ -342,7 +373,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeConfigurationEndpointAsync_DefaultResponseTypesAreIncludedWhenTokenEndpointIsEnabled() {
+        public async Task InvokeConfigurationEndpointAsync_DefaultResponseTypesAreIncludedWhenTokenEndpointIsEnabled()
+        {
             // Arrange
             var server = CreateAuthorizationServer();
 
@@ -368,9 +400,11 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeConfigurationEndpointAsync_IdTokenResponseTypesAreExcludedWhenNoAsymmetricSigningKeyIsRegistered() {
+        public async Task InvokeConfigurationEndpointAsync_IdTokenResponseTypesAreExcludedWhenNoAsymmetricSigningKeyIsRegistered()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
+            var server = CreateAuthorizationServer(options =>
+            {
                 options.SigningCredentials.Clear();
                 options.SigningCredentials.AddKey(new InMemorySymmetricSecurityKey(new byte[256 / 8]));
             });
@@ -399,7 +433,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeConfigurationEndpointAsync_DefaultScopesAreCorrectlyReturned() {
+        public async Task InvokeConfigurationEndpointAsync_DefaultScopesAreCorrectlyReturned()
+        {
             // Arrange
             var server = CreateAuthorizationServer();
 
@@ -414,7 +449,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeConfigurationEndpointAsync_DefaultSubjectTypesAreCorrectlyReturned() {
+        public async Task InvokeConfigurationEndpointAsync_DefaultSubjectTypesAreCorrectlyReturned()
+        {
             // Arrange
             var server = CreateAuthorizationServer();
 
@@ -432,11 +468,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         [InlineData(OpenIdConnectConstants.Algorithms.RsaSha256, "http://www.w3.org/2001/04/xmlenc#sha256")]
         [InlineData(OpenIdConnectConstants.Algorithms.RsaSha384, "http://www.w3.org/2001/04/xmlenc#sha384")]
         [InlineData(OpenIdConnectConstants.Algorithms.RsaSha512, "http://www.w3.org/2001/04/xmlenc#sha512")]
-        public async Task InvokeConfigurationEndpointAsync_SigningAlgorithmsAreCorrectlyReturned(string algorithm, string digest) {
+        public async Task InvokeConfigurationEndpointAsync_SigningAlgorithmsAreCorrectlyReturned(string algorithm, string digest)
+        {
             // Arrange
             var credentials = new SigningCredentials(Mock.Of<AsymmetricSecurityKey>(), algorithm, digest);
 
-            var server = CreateAuthorizationServer(options => {
+            var server = CreateAuthorizationServer(options =>
+            {
                 options.SigningCredentials.Clear();
                 options.SigningCredentials.Add(credentials);
             });
@@ -452,9 +490,11 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeConfigurationEndpointAsync_SymmetricSigningKeysAreIgnored() {
+        public async Task InvokeConfigurationEndpointAsync_SymmetricSigningKeysAreIgnored()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
+            var server = CreateAuthorizationServer(options =>
+            {
                 options.SigningCredentials.Clear();
                 options.SigningCredentials.AddKey(new InMemorySymmetricSecurityKey(new byte[256 / 8]));
             });
@@ -469,14 +509,16 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeConfigurationEndpointAsync_DuplicateSigningAlgorithmsAreIgnored() {
+        public async Task InvokeConfigurationEndpointAsync_DuplicateSigningAlgorithmsAreIgnored()
+        {
             // Arrange
             var credentials = new SigningCredentials(
                 Mock.Of<AsymmetricSecurityKey>(),
                 SecurityAlgorithms.RsaSha256Signature,
                 SecurityAlgorithms.Sha256Digest);
 
-            var server = CreateAuthorizationServer(options => {
+            var server = CreateAuthorizationServer(options =>
+            {
                 options.SigningCredentials.Clear();
                 options.SigningCredentials.Add(credentials);
                 options.SigningCredentials.Add(credentials);
@@ -494,7 +536,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeConfigurationEndpointAsync_DefaultCodeChallengeMethodsAreCorrectlyReturned() {
+        public async Task InvokeConfigurationEndpointAsync_DefaultCodeChallengeMethodsAreCorrectlyReturned()
+        {
             // Arrange
             var server = CreateAuthorizationServer();
 
@@ -517,16 +560,20 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         [InlineData(null, "custom_description", "custom_uri")]
         [InlineData(null, null, "custom_uri")]
         [InlineData(null, null, null)]
-        public async Task InvokeConfigurationEndpointAsync_HandleConfigurationRequest_AllowsRejectingRequest(string error, string description, string uri) {
+        public async Task InvokeConfigurationEndpointAsync_HandleConfigurationRequest_AllowsRejectingRequest(string error, string description, string uri)
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateConfigurationRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateConfigurationRequest = context =>
+                {
                     context.Validate();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleConfigurationRequest = context => {
+                options.Provider.OnHandleConfigurationRequest = context =>
+                {
                     context.Reject(error, description, uri);
 
                     return Task.FromResult(0);
@@ -545,21 +592,26 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeConfigurationEndpointAsync_HandleConfigurationRequest_AllowsHandlingResponse() {
+        public async Task InvokeConfigurationEndpointAsync_HandleConfigurationRequest_AllowsHandlingResponse()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateConfigurationRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateConfigurationRequest = context =>
+                {
                     context.Validate();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleConfigurationRequest = context => {
+                options.Provider.OnHandleConfigurationRequest = context =>
+                {
                     context.HandleResponse();
 
                     context.OwinContext.Response.Headers["Content-Type"] = "application/json";
 
-                    return context.OwinContext.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                    return context.OwinContext.Response.WriteAsync(JsonConvert.SerializeObject(new
+                    {
                         name = "Bob le Magnifique"
                     }));
                 };
@@ -575,16 +627,20 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeConfigurationEndpointAsync_HandleConfigurationRequest_AllowsSkippingToNextMiddleware() {
+        public async Task InvokeConfigurationEndpointAsync_HandleConfigurationRequest_AllowsSkippingToNextMiddleware()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateConfigurationRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateConfigurationRequest = context =>
+                {
                     context.Validate();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleConfigurationRequest = context => {
+                options.Provider.OnHandleConfigurationRequest = context =>
+                {
                     context.SkipToNextMiddleware();
 
                     return Task.FromResult(0);
@@ -601,21 +657,26 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task SendConfigurationResponseAsync_ApplyConfigurationResponse_AllowsHandlingResponse() {
+        public async Task SendConfigurationResponseAsync_ApplyConfigurationResponse_AllowsHandlingResponse()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateConfigurationRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateConfigurationRequest = context =>
+                {
                     context.Validate();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnApplyConfigurationResponse = context => {
+                options.Provider.OnApplyConfigurationResponse = context =>
+                {
                     context.HandleResponse();
 
                     context.OwinContext.Response.Headers["Content-Type"] = "application/json";
 
-                    return context.OwinContext.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                    return context.OwinContext.Response.WriteAsync(JsonConvert.SerializeObject(new
+                    {
                         name = "Bob le Magnifique"
                     }));
                 };
@@ -631,10 +692,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task SendConfigurationResponseAsync_ApplyConfigurationResponse_ResponseContainsCustomParameters() {
+        public async Task SendConfigurationResponseAsync_ApplyConfigurationResponse_ResponseContainsCustomParameters()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnApplyConfigurationResponse = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnApplyConfigurationResponse = context =>
+                {
                     context.Response["custom_parameter"] = "custom_value";
 
                     return Task.FromResult(0);
@@ -657,7 +721,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         [InlineData(nameof(Post))]
         [InlineData(nameof(Put))]
         [InlineData(nameof(Trace))]
-        public async Task InvokeCryptographyEndpointAsync_UnexpectedMethodReturnsAnError(string method) {
+        public async Task InvokeCryptographyEndpointAsync_UnexpectedMethodReturnsAnError(string method)
+        {
             // Arrange
             var server = CreateAuthorizationServer();
 
@@ -679,10 +744,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         [InlineData(null, "custom_description", "custom_uri")]
         [InlineData(null, null, "custom_uri")]
         [InlineData(null, null, null)]
-        public async Task InvokeCryptographyEndpointAsync_ExtractCryptographyRequest_AllowsRejectingRequest(string error, string description, string uri) {
+        public async Task InvokeCryptographyEndpointAsync_ExtractCryptographyRequest_AllowsRejectingRequest(string error, string description, string uri)
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnExtractCryptographyRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnExtractCryptographyRequest = context =>
+                {
                     context.Reject(error, description, uri);
 
                     return Task.FromResult(0);
@@ -701,15 +769,19 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeCryptographyEndpointAsync_ExtractCryptographyRequest_AllowsHandlingResponse() {
+        public async Task InvokeCryptographyEndpointAsync_ExtractCryptographyRequest_AllowsHandlingResponse()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnExtractCryptographyRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnExtractCryptographyRequest = context =>
+                {
                     context.HandleResponse();
 
                     context.OwinContext.Response.Headers["Content-Type"] = "application/json";
 
-                    return context.OwinContext.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                    return context.OwinContext.Response.WriteAsync(JsonConvert.SerializeObject(new
+                    {
                         name = "Bob le Bricoleur"
                     }));
                 };
@@ -725,10 +797,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeCryptographyEndpointAsync_ExtractCryptographyRequest_AllowsSkippingToNextMiddleware() {
+        public async Task InvokeCryptographyEndpointAsync_ExtractCryptographyRequest_AllowsSkippingToNextMiddleware()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnExtractCryptographyRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnExtractCryptographyRequest = context =>
+                {
                     context.SkipToNextMiddleware();
 
                     return Task.FromResult(0);
@@ -752,10 +827,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         [InlineData(null, "custom_description", "custom_uri")]
         [InlineData(null, null, "custom_uri")]
         [InlineData(null, null, null)]
-        public async Task InvokeCryptographyEndpointAsync_ValidateCryptographyRequest_AllowsRejectingRequest(string error, string description, string uri) {
+        public async Task InvokeCryptographyEndpointAsync_ValidateCryptographyRequest_AllowsRejectingRequest(string error, string description, string uri)
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateCryptographyRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateCryptographyRequest = context =>
+                {
                     context.Reject(error, description, uri);
 
                     return Task.FromResult(0);
@@ -774,15 +852,19 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeCryptographyEndpointAsync_ValidateCryptographyRequest_AllowsHandlingResponse() {
+        public async Task InvokeCryptographyEndpointAsync_ValidateCryptographyRequest_AllowsHandlingResponse()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateCryptographyRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateCryptographyRequest = context =>
+                {
                     context.HandleResponse();
 
                     context.OwinContext.Response.Headers["Content-Type"] = "application/json";
 
-                    return context.OwinContext.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                    return context.OwinContext.Response.WriteAsync(JsonConvert.SerializeObject(new
+                    {
                         name = "Bob le Magnifique"
                     }));
                 };
@@ -798,10 +880,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeCryptographyEndpointAsync_ValidateCryptographyRequest_AllowsSkippingToNextMiddleware() {
+        public async Task InvokeCryptographyEndpointAsync_ValidateCryptographyRequest_AllowsSkippingToNextMiddleware()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateCryptographyRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateCryptographyRequest = context =>
+                {
                     context.SkipToNextMiddleware();
 
                     return Task.FromResult(0);
@@ -821,11 +906,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         [InlineData("http://www.w3.org/2001/04/xmldsig-more#hmac-sha256", "http://www.w3.org/2001/04/xmlenc#sha256")]
         [InlineData("http://www.w3.org/2001/04/xmldsig-more#hmac-sha384", "http://www.w3.org/2001/04/xmlenc#sha384")]
         [InlineData("http://www.w3.org/2001/04/xmldsig-more#hmac-sha512", "http://www.w3.org/2001/04/xmlenc#sha512")]
-        public async Task InvokeCryptographyEndpointAsync_UnsupportedSecurityKeysAreIgnored(string algorithm, string digest) {
+        public async Task InvokeCryptographyEndpointAsync_UnsupportedSecurityKeysAreIgnored(string algorithm, string digest)
+        {
             // Arrange
             var key = Mock.Of<SecurityKey>(mock => !mock.IsSupportedAlgorithm(algorithm));
 
-            var server = CreateAuthorizationServer(options => {
+            var server = CreateAuthorizationServer(options =>
+            {
                 options.SigningCredentials.Clear();
                 options.SigningCredentials.Add(new SigningCredentials(key, algorithm, algorithm));
             });
@@ -840,9 +927,11 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeCryptographyEndpointAsync_RsaSecurityKeysAreCorrectlyExposed() {
+        public async Task InvokeCryptographyEndpointAsync_RsaSecurityKeysAreCorrectlyExposed()
+        {
             // Arrange
-            var parameters = new RSAParameters {
+            var parameters = new RSAParameters
+            {
                 D = Convert.FromBase64String("Uj6NrYBnyddhlJefYEP2nleCntAKlWyIttJC4cJnNxNN+OT2fQXhpTXRwW4R5YIS3HDqK/Fg2yoYm+OTVntAAgRFKveRx/WKwFo6UpnJc5u3lElhFa7IfosO9qXjErpX9ruAVqipekDLwQ++KmVVdgH4PK/o//nEx5zklGCdlEJURZYJPs9/7g1cx3UwvPp8jM7LgZL5OZRNyI3Jz4efrwiI2/vd8P28lAbpv/Ao4NwUDq/WKEnZ8JYSjLEKnZCfbX1ZEwf0Ic48jEKHmi1WEwpru1fMPoYfakrsY/VEfatPiDs8a5HABP/KaXcM4AZsr7HbzqAaNycV2xgdZimGcQ=="),
                 DP = Convert.FromBase64String("hi1e+0eQ/iYrfT4zpZVbx3dyfA7Ch/aujMt6nGMF+1LGaut86vDHM2JI0Gc2BKc+uPEu2bNAorhSmuSyGpfGYl0MYFQoVF/jyiGpzYPmhYpL5yLuN9jWAqNwjfstuRDLU9zTEfZnr3OSN85rZcgT7NUxlY8im1Y2TWYxGiEXw9E="),
                 DQ = Convert.FromBase64String("laVNkWIbnSuGo7nAxyUSdL2sXU3GZWwItwzTG0IK/0woFjArtCxGgNXW+V+GhxT7iHGAVJJSBvJ65TXrUYuBmoWj2CsoUs2mzK8ax4zg3CXrU61esCsGUoS2owR4FXlhYPmoVnglGu89bH72eXKixZsuF7vKW19nG703BXYEaEU="),
@@ -856,7 +945,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var rsa = RSA.Create();
             rsa.ImportParameters(parameters);
 
-            var server = CreateAuthorizationServer(options => {
+            var server = CreateAuthorizationServer(options =>
+            {
                 options.SigningCredentials.Clear();
                 options.SigningCredentials.AddKey(new RsaSecurityKey(rsa));
             });
@@ -873,7 +963,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeCryptographyEndpointAsync_X509CertificatesAreCorrectlyExposed() {
+        public async Task InvokeCryptographyEndpointAsync_X509CertificatesAreCorrectlyExposed()
+        {
             // Arrange
             var server = CreateAuthorizationServer();
 
@@ -896,16 +987,20 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         [InlineData(null, "custom_description", "custom_uri")]
         [InlineData(null, null, "custom_uri")]
         [InlineData(null, null, null)]
-        public async Task InvokeCryptographyEndpointAsync_HandleCryptographyRequest_AllowsRejectingRequest(string error, string description, string uri) {
+        public async Task InvokeCryptographyEndpointAsync_HandleCryptographyRequest_AllowsRejectingRequest(string error, string description, string uri)
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateCryptographyRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateCryptographyRequest = context =>
+                {
                     context.Validate();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleCryptographyRequest = context => {
+                options.Provider.OnHandleCryptographyRequest = context =>
+                {
                     context.Reject(error, description, uri);
 
                     return Task.FromResult(0);
@@ -924,21 +1019,26 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeCryptographyEndpointAsync_HandleCryptographyRequest_AllowsHandlingResponse() {
+        public async Task InvokeCryptographyEndpointAsync_HandleCryptographyRequest_AllowsHandlingResponse()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateCryptographyRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateCryptographyRequest = context =>
+                {
                     context.Validate();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleCryptographyRequest = context => {
+                options.Provider.OnHandleCryptographyRequest = context =>
+                {
                     context.HandleResponse();
 
                     context.OwinContext.Response.Headers["Content-Type"] = "application/json";
 
-                    return context.OwinContext.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                    return context.OwinContext.Response.WriteAsync(JsonConvert.SerializeObject(new
+                    {
                         name = "Bob le Magnifique"
                     }));
                 };
@@ -954,16 +1054,20 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeCryptographyEndpointAsync_HandleCryptographyRequest_AllowsSkippingToNextMiddleware() {
+        public async Task InvokeCryptographyEndpointAsync_HandleCryptographyRequest_AllowsSkippingToNextMiddleware()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateCryptographyRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateCryptographyRequest = context =>
+                {
                     context.Validate();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleCryptographyRequest = context => {
+                options.Provider.OnHandleCryptographyRequest = context =>
+                {
                     context.SkipToNextMiddleware();
 
                     return Task.FromResult(0);
@@ -980,21 +1084,26 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task SendCryptographyResponseAsync_ApplyCryptographyResponse_AllowsHandlingResponse() {
+        public async Task SendCryptographyResponseAsync_ApplyCryptographyResponse_AllowsHandlingResponse()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateCryptographyRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateCryptographyRequest = context =>
+                {
                     context.Validate();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnApplyCryptographyResponse = context => {
+                options.Provider.OnApplyCryptographyResponse = context =>
+                {
                     context.HandleResponse();
 
                     context.OwinContext.Response.Headers["Content-Type"] = "application/json";
 
-                    return context.OwinContext.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                    return context.OwinContext.Response.WriteAsync(JsonConvert.SerializeObject(new
+                    {
                         name = "Bob le Magnifique"
                     }));
                 };
@@ -1010,10 +1119,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task SendCryptographyResponseAsync_ApplyCryptographyResponse_ResponseContainsCustomParameters() {
+        public async Task SendCryptographyResponseAsync_ApplyCryptographyResponse_ResponseContainsCustomParameters()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnApplyCryptographyResponse = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnApplyCryptographyResponse = context =>
+                {
                     context.Response["custom_parameter"] = "custom_value";
 
                     return Task.FromResult(0);

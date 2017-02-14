@@ -11,12 +11,14 @@ using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Newtonsoft.Json.Linq;
 
-namespace Owin.Security.OpenIdConnect.Server {
+namespace Owin.Security.OpenIdConnect.Server
+{
     /// <summary>
     /// An event raised after the Authorization Server has processed the request, but before it is passed on to the web application.
     /// Calling RequestCompleted will prevent the request from passing on to the web application.
     /// </summary>
-    public class HandleUserinfoRequestContext : BaseValidatingContext {
+    public class HandleUserinfoRequestContext : BaseValidatingContext
+    {
         /// <summary>
         /// Creates an instance of this context
         /// </summary>
@@ -25,7 +27,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             OpenIdConnectServerOptions options,
             OpenIdConnectRequest request,
             AuthenticationTicket ticket)
-            : base(context, options, request) {
+            : base(context, options, request)
+        {
             Ticket = ticket;
             Validate();
         }

@@ -7,11 +7,13 @@
 using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.Owin;
 
-namespace Owin.Security.OpenIdConnect.Server {
+namespace Owin.Security.OpenIdConnect.Server
+{
     /// <summary>
     /// Provides context information used when extracting a configuration request.
     /// </summary>
-    public class ExtractConfigurationRequestContext : BaseValidatingContext {
+    public class ExtractConfigurationRequestContext : BaseValidatingContext
+    {
         /// <summary>
         /// Initializes a new instance of the <see cref="ExtractConfigurationRequestContext"/> class.
         /// </summary>
@@ -22,7 +24,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             IOwinContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectRequest request)
-            : base(context, options, request) {
+            : base(context, options, request)
+        {
             Validate();
         }
     }

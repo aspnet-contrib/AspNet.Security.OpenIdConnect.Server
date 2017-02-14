@@ -8,11 +8,13 @@ using System;
 using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.Owin;
 
-namespace Owin.Security.OpenIdConnect.Server {
+namespace Owin.Security.OpenIdConnect.Server
+{
     /// <summary>
     /// Provides context information used when validating a logout request.
     /// </summary>
-    public class ValidateLogoutRequestContext : BaseValidatingContext {
+    public class ValidateLogoutRequestContext : BaseValidatingContext
+    {
         /// <summary>
         /// Initializes a new instance of the <see cref="ValidateLogoutRequestContext"/> class.
         /// </summary>
@@ -23,11 +25,13 @@ namespace Owin.Security.OpenIdConnect.Server {
             IOwinContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectRequest request)
-            : base(context, options, request) {
+            : base(context, options, request)
+        {
             // Note: if the optional post_logout_redirect_uri parameter
             // is missing, mark the validation context as skipped.
             // See http://openid.net/specs/openid-connect-session-1_0.html#RPLogout
-            if (string.IsNullOrEmpty(request.PostLogoutRedirectUri)) {
+            if (string.IsNullOrEmpty(request.PostLogoutRedirectUri))
+            {
                 Skip();
             }
         }
@@ -35,7 +39,8 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the post logout redirect URI.
         /// </summary>
-        public string PostLogoutRedirectUri {
+        public string PostLogoutRedirectUri
+        {
             get { return Request.PostLogoutRedirectUri; }
             set { Request.PostLogoutRedirectUri = value; }
         }
@@ -45,8 +50,10 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// IsValidated becomes true and HasError becomes false as a result of calling.
         /// </summary>
         /// <returns></returns>
-        public override bool Validate() {
-            if (string.IsNullOrEmpty(PostLogoutRedirectUri)) {
+        public override bool Validate()
+        {
+            if (string.IsNullOrEmpty(PostLogoutRedirectUri))
+            {
                 // Don't allow default validation when
                 // the redirect_uri is not provided.
                 return false;
@@ -60,13 +67,16 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="address"></param>
         /// <returns></returns>
-        public bool Validate(string address) {
-            if (string.IsNullOrEmpty(address)) {
+        public bool Validate(string address)
+        {
+            if (string.IsNullOrEmpty(address))
+            {
                 throw new ArgumentException("The post_logout_redirect_uri cannot be null or empty.", nameof(address));
             }
 
             if (!string.IsNullOrEmpty(PostLogoutRedirectUri) &&
-                !string.Equals(PostLogoutRedirectUri, address, StringComparison.Ordinal)) {
+                !string.Equals(PostLogoutRedirectUri, address, StringComparison.Ordinal))
+            {
                 // Don't allow validation to alter the redirect_uri
                 // parameter extracted from the request.
                 return false;

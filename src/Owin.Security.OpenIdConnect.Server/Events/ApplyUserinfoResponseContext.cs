@@ -8,11 +8,13 @@ using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.Owin;
 using Microsoft.Owin.Security.Notifications;
 
-namespace Owin.Security.OpenIdConnect.Server {
+namespace Owin.Security.OpenIdConnect.Server
+{
     /// <summary>
     /// Provides context information used at the end of a userinfo request.
     /// </summary>
-    public class ApplyUserinfoResponseContext : BaseNotification<OpenIdConnectServerOptions> {
+    public class ApplyUserinfoResponseContext : BaseNotification<OpenIdConnectServerOptions>
+    {
         /// <summary>
         /// Initializes a new instance of the <see cref="ApplyUserinfoResponseContext"/> class
         /// </summary>
@@ -25,7 +27,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             OpenIdConnectServerOptions options,
             OpenIdConnectRequest request,
             OpenIdConnectResponse response)
-            : base(context, options) {
+            : base(context, options)
+        {
             Request = request;
             Response = response;
         }

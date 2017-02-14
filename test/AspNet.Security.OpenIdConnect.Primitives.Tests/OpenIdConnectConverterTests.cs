@@ -6,15 +6,19 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
-namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
-    public class OpenIdConnectConverterTests {
+namespace AspNet.Security.OpenIdConnect.Primitives.Tests
+{
+    public class OpenIdConnectConverterTests
+    {
         [Fact]
-        public void CanConvert_ThrowsAnExceptionForNullType() {
+        public void CanConvert_ThrowsAnExceptionForNullType()
+        {
             // Arrange
             var converter = new OpenIdConnectConverter();
 
             // Act and assert
-            var exception = Assert.Throws<ArgumentNullException>(delegate {
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
                 converter.CanConvert(type: null);
             });
 
@@ -34,7 +38,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData(typeof(OpenIdConnectParameter?[]), false)]
         [InlineData(typeof(object), false)]
         [InlineData(typeof(long), false)]
-        public void CanConvert_ReturnsExpectedResult(Type type, bool result) {
+        public void CanConvert_ReturnsExpectedResult(Type type, bool result)
+        {
             // Arrange
             var converter = new OpenIdConnectConverter();
 
@@ -43,12 +48,14 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
-        public void ReadJson_ThrowsAnExceptionForNullReader() {
+        public void ReadJson_ThrowsAnExceptionForNullReader()
+        {
             // Arrange
             var converter = new OpenIdConnectConverter();
 
             // Act and assert
-            var exception = Assert.Throws<ArgumentNullException>(delegate {
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
                 converter.ReadJson(reader: null, type: null, value: null, serializer: null);
             });
 
@@ -56,12 +63,14 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
-        public void ReadJson_ThrowsAnExceptionForNullType() {
+        public void ReadJson_ThrowsAnExceptionForNullType()
+        {
             // Arrange
             var converter = new OpenIdConnectConverter();
 
             // Act and assert
-            var exception = Assert.Throws<ArgumentNullException>(delegate {
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
                 converter.ReadJson(reader: new JsonTextReader(TextReader.Null),
                                    type: null, value: null, serializer: null);
             });
@@ -70,13 +79,15 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
-        public void ReadJson_ThrowsAnExceptionForUnexpectedJsonToken() {
+        public void ReadJson_ThrowsAnExceptionForUnexpectedJsonToken()
+        {
             // Arrange
             var converter = new OpenIdConnectConverter();
             var reader = new JsonTextReader(new StringReader("[0,1,2,3]"));
 
             // Act and assert
-            var exception = Assert.Throws<JsonSerializationException>(delegate {
+            var exception = Assert.Throws<JsonSerializationException>(delegate
+            {
                 converter.ReadJson(reader: reader, type: typeof(OpenIdConnectRequest),
                                    value: null, serializer: null);
             });
@@ -94,13 +105,15 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData(typeof(OpenIdConnectParameter?[]))]
         [InlineData(typeof(object))]
         [InlineData(typeof(long))]
-        public void ReadJson_ThrowsAnExceptionForUnsupportedType(Type type) {
+        public void ReadJson_ThrowsAnExceptionForUnsupportedType(Type type)
+        {
             // Arrange
             var converter = new OpenIdConnectConverter();
             var reader = new JsonTextReader(new StringReader(@"{""name"":""value""}"));
 
             // Act and assert
-            var exception = Assert.Throws<ArgumentException>(delegate {
+            var exception = Assert.Throws<ArgumentException>(delegate
+            {
                 converter.ReadJson(reader, type, value: null, serializer: null);
             });
 
@@ -109,7 +122,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
-        public void ReadJson_PopulatesExistingInstance() {
+        public void ReadJson_PopulatesExistingInstance()
+        {
             // Arrange
             var message = new OpenIdConnectMessage();
             var converter = new OpenIdConnectConverter();
@@ -128,7 +142,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData(typeof(OpenIdConnectMessage))]
         [InlineData(typeof(OpenIdConnectRequest))]
         [InlineData(typeof(OpenIdConnectResponse))]
-        public void ReadJson_ReturnsRequestedType(Type type) {
+        public void ReadJson_ReturnsRequestedType(Type type)
+        {
             // Arrange
             var converter = new OpenIdConnectConverter();
             var reader = new JsonTextReader(new StringReader(@"{""name"":""value""}"));
@@ -142,7 +157,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
-        public void ReadJson_PreservesNullParameters() {
+        public void ReadJson_PreservesNullParameters()
+        {
             // Arrange
             var converter = new OpenIdConnectConverter();
             var reader = new JsonTextReader(new StringReader(@"{""string"":null,""bool"":null,""long"":null,""array"":null,""object"":null}"));
@@ -166,7 +182,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
-        public void ReadJson_PreservesEmptyParameters() {
+        public void ReadJson_PreservesEmptyParameters()
+        {
             // Arrange
             var converter = new OpenIdConnectConverter();
             var reader = new JsonTextReader(new StringReader(@"{""string"":"""",""array"":[],""object"":{}}"));
@@ -186,12 +203,14 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
-        public void WriteJson_ThrowsAnExceptionForNullWriter() {
+        public void WriteJson_ThrowsAnExceptionForNullWriter()
+        {
             // Arrange
             var converter = new OpenIdConnectConverter();
 
             // Act and assert
-            var exception = Assert.Throws<ArgumentNullException>(delegate {
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
                 converter.WriteJson(writer: null, value: null, serializer: null);
             });
 
@@ -199,12 +218,14 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
-        public void WriteJson_ThrowsAnExceptionForNullValue() {
+        public void WriteJson_ThrowsAnExceptionForNullValue()
+        {
             // Arrange
             var converter = new OpenIdConnectConverter();
 
             // Act and assert
-            var exception = Assert.Throws<ArgumentNullException>(delegate {
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
                 converter.WriteJson(writer: new JsonTextWriter(TextWriter.Null), value: null, serializer: null);
             });
 
@@ -212,12 +233,14 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
-        public void WriteJson_ThrowsAnExceptionForInvalidValue() {
+        public void WriteJson_ThrowsAnExceptionForInvalidValue()
+        {
             // Arrange
             var converter = new OpenIdConnectConverter();
 
             // Act and assert
-            var exception = Assert.Throws<ArgumentException>(delegate {
+            var exception = Assert.Throws<ArgumentException>(delegate
+            {
                 converter.WriteJson(writer: new JsonTextWriter(TextWriter.Null), value: new object(), serializer: null);
             });
 
@@ -226,7 +249,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
-        public void WriteJson_WritesEmptyPayloadForEmptyMessages() {
+        public void WriteJson_WritesEmptyPayloadForEmptyMessages()
+        {
             // Arrange
             var message = new OpenIdConnectMessage();
             var converter = new OpenIdConnectConverter();
@@ -239,7 +263,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
-        public void WriteJson_PreservesNullParameters() {
+        public void WriteJson_PreservesNullParameters()
+        {
             // Arrange
             var converter = new OpenIdConnectConverter();
             var writer = new StringWriter(CultureInfo.InvariantCulture);
@@ -259,7 +284,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
-        public void WriteJson_PreservesEmptyParameters() {
+        public void WriteJson_PreservesEmptyParameters()
+        {
             // Arrange
             var converter = new OpenIdConnectConverter();
             var writer = new StringWriter(CultureInfo.InvariantCulture);
@@ -277,7 +303,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
-        public void WriteJson_WritesExpectedPayload() {
+        public void WriteJson_WritesExpectedPayload()
+        {
             // Arrange
             var converter = new OpenIdConnectConverter();
             var writer = new StringWriter(CultureInfo.InvariantCulture);

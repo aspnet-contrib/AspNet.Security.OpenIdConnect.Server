@@ -25,8 +25,10 @@ using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 using Xunit;
 
-namespace AspNet.Security.OpenIdConnect.Server.Tests {
-    public partial class OpenIdConnectServerHandlerTests {
+namespace AspNet.Security.OpenIdConnect.Server.Tests
+{
+    public partial class OpenIdConnectServerHandlerTests
+    {
         public const string AuthorizationEndpoint = "/connect/authorize";
         public const string ConfigurationEndpoint = "/.well-known/openid-configuration";
         public const string CryptographyEndpoint = "/.well-known/jwks";
@@ -107,10 +109,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         [InlineData("/.WELL-KNOWN/JWKS/SUBPATH", null)]
         [InlineData("/.well-known/jwks/subpath/", null)]
         [InlineData("/.WELL-KNOWN/JWKS/SUBPATH/", null)]
-        public Task HandleRequestAsync_MatchEndpoint_MatchesCorrespondingEndpoint(string path, string endpoint) {
+        public Task HandleRequestAsync_MatchEndpoint_MatchesCorrespondingEndpoint(string path, string endpoint)
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnMatchEndpoint = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnMatchEndpoint = context =>
+                {
                     // Assert
                     Assert.Equal(context.IsAuthorizationEndpoint, endpoint == AuthorizationEndpoint);
                     Assert.Equal(context.IsConfigurationEndpoint, endpoint == ConfigurationEndpoint);
@@ -141,11 +146,15 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         [InlineData("/custom/connect/userinfo")]
         [InlineData("/custom/.well-known/openid-configuration")]
         [InlineData("/custom/.well-known/jwks")]
-        public Task HandleRequestAsync_MatchEndpoint_AllowsOverridingEndpoint(string address) {
+        public Task HandleRequestAsync_MatchEndpoint_AllowsOverridingEndpoint(string address)
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnMatchEndpoint = context => {
-                    switch (address) {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnMatchEndpoint = context =>
+                {
+                    switch (address)
+                    {
                         case "/custom/connect/authorize":
                             context.MatchAuthorizationEndpoint();
                             break;
@@ -209,15 +218,19 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         [InlineData(RevocationEndpoint)]
         [InlineData(TokenEndpoint)]
         [InlineData(UserinfoEndpoint)]
-        public async Task HandleRequestAsync_MatchEndpoint_AllowsHandlingResponse(string address) {
+        public async Task HandleRequestAsync_MatchEndpoint_AllowsHandlingResponse(string address)
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnMatchEndpoint = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnMatchEndpoint = context =>
+                {
                     context.HandleResponse();
 
                     context.HttpContext.Response.Headers[HeaderNames.ContentType] = "application/json";
 
-                    return context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                    return context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(new
+                    {
                         name = "Bob le Magnifique"
                     }));
                 };
@@ -242,10 +255,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         [InlineData(RevocationEndpoint)]
         [InlineData(TokenEndpoint)]
         [InlineData(UserinfoEndpoint)]
-        public async Task HandleRequestAsync_MatchEndpoint_AllowsSkippingToNextMiddleware(string address) {
+        public async Task HandleRequestAsync_MatchEndpoint_AllowsSkippingToNextMiddleware(string address)
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnMatchEndpoint = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnMatchEndpoint = context =>
+                {
                     context.SkipToNextMiddleware();
 
                     return Task.FromResult(0);
@@ -270,9 +286,11 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         [InlineData(RevocationEndpoint)]
         [InlineData(TokenEndpoint)]
         [InlineData(UserinfoEndpoint)]
-        public async Task HandleRequestAsync_RejectsInsecureHttpRequests(string address) {
+        public async Task HandleRequestAsync_RejectsInsecureHttpRequests(string address)
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
+            var server = CreateAuthorizationServer(options =>
+            {
                 options.AllowInsecureHttp = false;
             });
 
@@ -287,14 +305,16 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleAuthenticateAsync_UnknownEndpointCausesAnException() {
+        public async Task HandleAuthenticateAsync_UnknownEndpointCausesAnException()
+        {
             // Arrange
             var server = CreateAuthorizationServer();
 
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act and assert
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate {
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate
+            {
                 return client.PostAsync("/invalid-authenticate", new OpenIdConnectRequest());
             });
 
@@ -302,12 +322,15 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleAuthenticateAsync_InvalidEndpointCausesAnException() {
+        public async Task HandleAuthenticateAsync_InvalidEndpointCausesAnException()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
+            var server = CreateAuthorizationServer(options =>
+            {
                 options.ConfigurationEndpointPath = "/invalid-authenticate";
 
-                options.Provider.OnHandleConfigurationRequest = context => {
+                options.Provider.OnHandleConfigurationRequest = context =>
+                {
                     context.SkipToNextMiddleware();
 
                     return Task.FromResult(0);
@@ -317,7 +340,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act and assert
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate {
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate
+            {
                 return client.GetAsync("/invalid-authenticate");
             });
 
@@ -325,10 +349,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleAuthenticateAsync_MissingIdTokenHintReturnsNull() {
+        public async Task HandleAuthenticateAsync_MissingIdTokenHintReturnsNull()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnHandleLogoutRequest = async context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnHandleLogoutRequest = async context =>
+                {
                     var principal = await context.HttpContext.Authentication.AuthenticateAsync(
                         OpenIdConnectServerDefaults.AuthenticationScheme);
 
@@ -340,7 +367,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.GetAsync(LogoutEndpoint, new OpenIdConnectRequest {
+            var response = await client.GetAsync(LogoutEndpoint, new OpenIdConnectRequest
+            {
                 IdTokenHint = null
             });
 
@@ -349,10 +377,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleAuthenticateAsync_InvalidIdTokenHintReturnsNull() {
+        public async Task HandleAuthenticateAsync_InvalidIdTokenHintReturnsNull()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnHandleLogoutRequest = async context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnHandleLogoutRequest = async context =>
+                {
                     var principal = await context.HttpContext.Authentication.AuthenticateAsync(
                         OpenIdConnectServerDefaults.AuthenticationScheme);
 
@@ -364,7 +395,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.GetAsync(LogoutEndpoint, new OpenIdConnectRequest {
+            var response = await client.GetAsync(LogoutEndpoint, new OpenIdConnectRequest
+            {
                 IdTokenHint = "38323A4B-6CB2-41B8-B457-1951987CB383"
             });
 
@@ -373,10 +405,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleAuthenticateAsync_ValidIdTokenHintReturnsExpectedIdentity() {
+        public async Task HandleAuthenticateAsync_ValidIdTokenHintReturnsExpectedIdentity()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeIdentityToken = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeIdentityToken = context =>
+                {
                     // Assert
                     Assert.Equal("id_token", context.IdentityToken);
 
@@ -393,7 +428,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleLogoutRequest = async context => {
+                options.Provider.OnHandleLogoutRequest = async context =>
+                {
                     var principal = await context.HttpContext.Authentication.AuthenticateAsync(
                         OpenIdConnectServerDefaults.AuthenticationScheme);
 
@@ -406,7 +442,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.GetAsync(LogoutEndpoint, new OpenIdConnectRequest {
+            var response = await client.GetAsync(LogoutEndpoint, new OpenIdConnectRequest
+            {
                 IdTokenHint = "id_token"
             });
 
@@ -415,10 +452,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleAuthenticateAsync_MissingAuthorizationCodeReturnsNull() {
+        public async Task HandleAuthenticateAsync_MissingAuthorizationCodeReturnsNull()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnApplyTokenResponse = async context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnApplyTokenResponse = async context =>
+                {
                     var principal = await context.HttpContext.Authentication.AuthenticateAsync(
                         OpenIdConnectServerDefaults.AuthenticationScheme);
 
@@ -432,7 +472,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 ClientId = "Fabrikam",
                 Code = null,
                 GrantType = OpenIdConnectConstants.GrantTypes.AuthorizationCode
@@ -443,16 +484,20 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleAuthenticateAsync_InvalidAuthorizationCodeReturnsNull() {
+        public async Task HandleAuthenticateAsync_InvalidAuthorizationCodeReturnsNull()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateTokenRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnApplyTokenResponse = async context => {
+                options.Provider.OnApplyTokenResponse = async context =>
+                {
                     var principal = await context.HttpContext.Authentication.AuthenticateAsync(
                         OpenIdConnectServerDefaults.AuthenticationScheme);
 
@@ -466,7 +511,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 ClientId = "Fabrikam",
                 Code = "38323A4B-6CB2-41B8-B457-1951987CB383",
                 GrantType = OpenIdConnectConstants.GrantTypes.AuthorizationCode
@@ -477,10 +523,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleAuthenticateAsync_ValidAuthorizationCodeReturnsExpectedIdentity() {
+        public async Task HandleAuthenticateAsync_ValidAuthorizationCodeReturnsExpectedIdentity()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeAuthorizationCode = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAuthorizationCode = context =>
+                {
                     // Assert
                     Assert.Equal("authorization_code", context.AuthorizationCode);
 
@@ -499,13 +548,15 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateTokenRequest = context => {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleTokenRequest = async context => {
+                options.Provider.OnHandleTokenRequest = async context =>
+                {
                     var principal = await context.HttpContext.Authentication.AuthenticateAsync(
                         OpenIdConnectServerDefaults.AuthenticationScheme);
 
@@ -520,7 +571,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 ClientId = "Fabrikam",
                 Code = "authorization_code",
                 GrantType = OpenIdConnectConstants.GrantTypes.AuthorizationCode
@@ -531,10 +583,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleAuthenticateAsync_MissingRefreshTokenReturnsNull() {
+        public async Task HandleAuthenticateAsync_MissingRefreshTokenReturnsNull()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnApplyTokenResponse = async context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnApplyTokenResponse = async context =>
+                {
                     var principal = await context.HttpContext.Authentication.AuthenticateAsync(
                         OpenIdConnectServerDefaults.AuthenticationScheme);
 
@@ -548,7 +603,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = OpenIdConnectConstants.GrantTypes.RefreshToken,
                 RefreshToken = null
             });
@@ -558,16 +614,20 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleAuthenticateAsync_InvalidRefreshTokenReturnsNull() {
+        public async Task HandleAuthenticateAsync_InvalidRefreshTokenReturnsNull()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateTokenRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnApplyTokenResponse = async context => {
+                options.Provider.OnApplyTokenResponse = async context =>
+                {
                     var principal = await context.HttpContext.Authentication.AuthenticateAsync(
                         OpenIdConnectServerDefaults.AuthenticationScheme);
 
@@ -581,7 +641,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = OpenIdConnectConstants.GrantTypes.RefreshToken,
                 RefreshToken = "38323A4B-6CB2-41B8-B457-1951987CB383"
             });
@@ -591,10 +652,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleAuthenticateAsync_ValidRefreshTokenReturnsExpectedIdentity() {
+        public async Task HandleAuthenticateAsync_ValidRefreshTokenReturnsExpectedIdentity()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeRefreshToken = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeRefreshToken = context =>
+                {
                     // Assert
                     Assert.Equal("refresh_token", context.RefreshToken);
 
@@ -613,13 +677,15 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateTokenRequest = context => {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleTokenRequest = async context => {
+                options.Provider.OnHandleTokenRequest = async context =>
+                {
                     var principal = await context.HttpContext.Authentication.AuthenticateAsync(
                         OpenIdConnectServerDefaults.AuthenticationScheme);
 
@@ -634,7 +700,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = OpenIdConnectConstants.GrantTypes.RefreshToken,
                 RefreshToken = "refresh_token"
             });
@@ -644,16 +711,20 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleAuthenticateAsync_UnsupportedGrantTypeReturnsNull() {
+        public async Task HandleAuthenticateAsync_UnsupportedGrantTypeReturnsNull()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateTokenRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnApplyTokenResponse = async context => {
+                options.Provider.OnApplyTokenResponse = async context =>
+                {
                     var principal = await context.HttpContext.Authentication.AuthenticateAsync(
                         OpenIdConnectServerDefaults.AuthenticationScheme);
 
@@ -667,7 +738,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = OpenIdConnectConstants.GrantTypes.Password,
                 Username = "johndoe",
                 Password = "A3ddj3w"
@@ -678,14 +750,16 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleSignInAsync_UnknownEndpointCausesAnException() {
+        public async Task HandleSignInAsync_UnknownEndpointCausesAnException()
+        {
             // Arrange
             var server = CreateAuthorizationServer();
 
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act and assert
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate {
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate
+            {
                 return client.PostAsync("/invalid-signin", new OpenIdConnectRequest());
             });
 
@@ -693,12 +767,15 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleSignInAsync_InvalidEndpointCausesAnException() {
+        public async Task HandleSignInAsync_InvalidEndpointCausesAnException()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
+            var server = CreateAuthorizationServer(options =>
+            {
                 options.ConfigurationEndpointPath = "/invalid-signin";
 
-                options.Provider.OnHandleConfigurationRequest = context => {
+                options.Provider.OnHandleConfigurationRequest = context =>
+                {
                     context.SkipToNextMiddleware();
 
                     return Task.FromResult(0);
@@ -708,7 +785,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act and assert
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate {
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate
+            {
                 return client.GetAsync("/invalid-signin");
             });
 
@@ -716,16 +794,20 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleSignInAsync_DuplicateResponseCausesAnException() {
+        public async Task HandleSignInAsync_DuplicateResponseCausesAnException()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateAuthorizationRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateAuthorizationRequest = context =>
+                {
                     context.Validate();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleAuthorizationRequest = async context => {
+                options.Provider.OnHandleAuthorizationRequest = async context =>
+                {
                     var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Bricoleur");
 
@@ -741,8 +823,10 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act and assert
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate {
-                return client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest {
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate
+            {
+                return client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest
+                {
                     ClientId = "Fabrikam",
                     RedirectUri = "http://www.fabrikam.com/path",
                     ResponseType = OpenIdConnectConstants.ResponseTypes.Code
@@ -753,16 +837,20 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleSignInAsync_MissingNameIdentifierCausesAnException() {
+        public async Task HandleSignInAsync_MissingNameIdentifierCausesAnException()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateAuthorizationRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateAuthorizationRequest = context =>
+                {
                     context.Validate();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleAuthorizationRequest = context => {
+                options.Provider.OnHandleAuthorizationRequest = context =>
+                {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
                     var principal = new ClaimsPrincipal(identity);
 
@@ -776,8 +864,10 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act and assert
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate {
-                return client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest {
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate
+            {
+                return client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest
+                {
                     ClientId = "Fabrikam",
                     RedirectUri = "http://www.fabrikam.com/path",
                     ResponseType = OpenIdConnectConstants.ResponseTypes.Code,
@@ -790,16 +880,20 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleSignInAsync_AuthorizationResponseFlowsState() {
+        public async Task HandleSignInAsync_AuthorizationResponseFlowsState()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateAuthorizationRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateAuthorizationRequest = context =>
+                {
                     context.Validate();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleAuthorizationRequest = context => {
+                options.Provider.OnHandleAuthorizationRequest = context =>
+                {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
@@ -815,7 +909,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest
+            {
                 ClientId = "Fabrikam",
                 RedirectUri = "http://www.fabrikam.com/path",
                 ResponseType = OpenIdConnectConstants.ResponseTypes.Code,
@@ -827,10 +922,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleSignInAsync_ParametersAreCopiedToAuthorizationCode() {
+        public async Task HandleSignInAsync_ParametersAreCopiedToAuthorizationCode()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnSerializeAuthorizationCode = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnSerializeAuthorizationCode = context =>
+                {
                     // Assert
                     Assert.Equal("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
                         context.Ticket.GetProperty(OpenIdConnectConstants.Properties.CodeChallenge));
@@ -846,13 +944,15 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateAuthorizationRequest = context => {
+                options.Provider.OnValidateAuthorizationRequest = context =>
+                {
                     context.Validate();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleAuthorizationRequest = context => {
+                options.Provider.OnHandleAuthorizationRequest = context =>
+                {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
@@ -865,7 +965,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest
+            {
                 ClientId = "Fabrikam",
                 CodeChallenge = "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
                 CodeChallengeMethod = OpenIdConnectConstants.CodeChallengeMethods.Sha256,
@@ -880,23 +981,28 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleSignInAsync_RefreshTokenIsConfidentialForValidatedRequests() {
+        public async Task HandleSignInAsync_RefreshTokenIsConfidentialForValidatedRequests()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnSerializeRefreshToken = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnSerializeRefreshToken = context =>
+                {
                     // Assert
                     Assert.True(context.Ticket.IsConfidential());
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateTokenRequest = context => {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Validate();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleTokenRequest = context => {
+                options.Provider.OnHandleTokenRequest = context =>
+                {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
@@ -916,7 +1022,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 ClientId = "Fabrikam",
                 ClientSecret = "7Fjfp0ZBr1KtDRbnfVdmIw",
                 GrantType = OpenIdConnectConstants.GrantTypes.Password,
@@ -930,23 +1037,28 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleSignInAsync_ScopeDefaultsToOpenId() {
+        public async Task HandleSignInAsync_ScopeDefaultsToOpenId()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnSerializeRefreshToken = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnSerializeRefreshToken = context =>
+                {
                     // Assert
                     Assert.Equal("openid", context.Ticket.GetProperty(OpenIdConnectConstants.Properties.Scopes));
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateTokenRequest = context => {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleTokenRequest = context => {
+                options.Provider.OnHandleTokenRequest = context =>
+                {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
@@ -959,7 +1071,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = OpenIdConnectConstants.GrantTypes.Password,
                 Username = "johndoe",
                 Password = "A3ddj3w"
@@ -967,30 +1080,36 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleSignInAsync_ResourcesAreInferredFromAudiences() {
+        public async Task HandleSignInAsync_ResourcesAreInferredFromAudiences()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnSerializeAccessToken = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnSerializeAccessToken = context =>
+                {
                     // Assert
                     Assert.Equal(new[] { "http://www.fabrikam.com/" }, context.Ticket.GetResources());
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnSerializeRefreshToken = context => {
+                options.Provider.OnSerializeRefreshToken = context =>
+                {
                     // Assert
                     Assert.Equal(new[] { "http://www.fabrikam.com/" }, context.Ticket.GetResources());
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateTokenRequest = context => {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleTokenRequest = context => {
+                options.Provider.OnHandleTokenRequest = context =>
+                {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
@@ -1011,7 +1130,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = OpenIdConnectConstants.GrantTypes.Password,
                 Username = "johndoe",
                 Password = "A3ddj3w"
@@ -1027,16 +1147,20 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         [InlineData("code id_token")]
         [InlineData("code id_token token")]
         [InlineData("code token")]
-        public async Task HandleSignInAsync_AnAuthorizationCodeIsReturnedForCodeAndHybridFlowRequests(string type) {
+        public async Task HandleSignInAsync_AnAuthorizationCodeIsReturnedForCodeAndHybridFlowRequests(string type)
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateAuthorizationRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateAuthorizationRequest = context =>
+                {
                     context.Validate();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleAuthorizationRequest = context => {
+                options.Provider.OnHandleAuthorizationRequest = context =>
+                {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
@@ -1049,7 +1173,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest
+            {
                 ClientId = "Fabrikam",
                 Nonce = "n-0S6_WzA2Mj",
                 RedirectUri = "http://www.fabrikam.com/path",
@@ -1062,10 +1187,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleSignInAsync_ResourcesCanBeOverridenForRefreshTokenRequests() {
+        public async Task HandleSignInAsync_ResourcesCanBeOverridenForRefreshTokenRequests()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeRefreshToken = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeRefreshToken = context =>
+                {
                     Assert.Equal("8xLOxBtZp8", context.RefreshToken);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
@@ -1081,14 +1209,16 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnSerializeAccessToken = context => {
+                options.Provider.OnSerializeAccessToken = context =>
+                {
                     // Assert
                     Assert.Equal(new[] { "http://www.fabrikam.com/" }, context.Ticket.GetResources());
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateTokenRequest = context => {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
@@ -1098,7 +1228,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = OpenIdConnectConstants.GrantTypes.RefreshToken,
                 RefreshToken = "8xLOxBtZp8",
                 Resource = "http://www.fabrikam.com/"
@@ -1109,10 +1240,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleSignInAsync_ScopesCanBeOverridenForRefreshTokenRequests() {
+        public async Task HandleSignInAsync_ScopesCanBeOverridenForRefreshTokenRequests()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeRefreshToken = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeRefreshToken = context =>
+                {
                     Assert.Equal("8xLOxBtZp8", context.RefreshToken);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
@@ -1131,14 +1265,16 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnSerializeAccessToken = context => {
+                options.Provider.OnSerializeAccessToken = context =>
+                {
                     // Assert
                     Assert.Equal(new[] { OpenIdConnectConstants.Scopes.Profile }, context.Ticket.GetScopes());
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateTokenRequest = context => {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
@@ -1148,7 +1284,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = OpenIdConnectConstants.GrantTypes.RefreshToken,
                 RefreshToken = "8xLOxBtZp8",
                 Scope = OpenIdConnectConstants.Scopes.Profile
@@ -1159,16 +1296,20 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleSignInAsync_ResourcesAreReturnedWhenTheyDifferFromRequestedResources() {
+        public async Task HandleSignInAsync_ResourcesAreReturnedWhenTheyDifferFromRequestedResources()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateTokenRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleTokenRequest = context => {
+                options.Provider.OnHandleTokenRequest = context =>
+                {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
@@ -1188,7 +1329,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = OpenIdConnectConstants.GrantTypes.Password,
                 Username = "johndoe",
                 Password = "A3ddj3w",
@@ -1200,16 +1342,20 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleSignInAsync_ScopesAreReturnedWhenTheyDifferFromRequestedScopes() {
+        public async Task HandleSignInAsync_ScopesAreReturnedWhenTheyDifferFromRequestedScopes()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateTokenRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleTokenRequest = context => {
+                options.Provider.OnHandleTokenRequest = context =>
+                {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
@@ -1229,7 +1375,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = OpenIdConnectConstants.GrantTypes.Password,
                 Username = "johndoe",
                 Password = "A3ddj3w",
@@ -1245,16 +1392,20 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         [InlineData("code token")]
         [InlineData("id_token token")]
         [InlineData("token")]
-        public async Task HandleSignInAsync_AnAccessTokenIsReturnedForImplicitAndHybridFlowRequests(string type) {
+        public async Task HandleSignInAsync_AnAccessTokenIsReturnedForImplicitAndHybridFlowRequests(string type)
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateAuthorizationRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateAuthorizationRequest = context =>
+                {
                     context.Validate();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleAuthorizationRequest = context => {
+                options.Provider.OnHandleAuthorizationRequest = context =>
+                {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
@@ -1267,7 +1418,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest
+            {
                 ClientId = "Fabrikam",
                 Nonce = "n-0S6_WzA2Mj",
                 RedirectUri = "http://www.fabrikam.com/path",
@@ -1280,10 +1432,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleSignInAsync_AnAccessTokenIsReturnedForCodeGrantRequests() {
+        public async Task HandleSignInAsync_AnAccessTokenIsReturnedForCodeGrantRequests()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeAuthorizationCode = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAuthorizationCode = context =>
+                {
                     Assert.Equal("SplxlOBeZQQYbYS6WxSbIA", context.AuthorizationCode);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
@@ -1299,7 +1454,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateTokenRequest = context => {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
@@ -1309,7 +1465,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 ClientId = "Fabrikam",
                 Code = "SplxlOBeZQQYbYS6WxSbIA",
                 GrantType = OpenIdConnectConstants.GrantTypes.AuthorizationCode
@@ -1320,10 +1477,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleSignInAsync_AnAccessTokenIsReturnedForRefreshTokenGrantRequests() {
+        public async Task HandleSignInAsync_AnAccessTokenIsReturnedForRefreshTokenGrantRequests()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeRefreshToken = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeRefreshToken = context =>
+                {
                     Assert.Equal("8xLOxBtZp8", context.RefreshToken);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
@@ -1337,7 +1497,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateTokenRequest = context => {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
@@ -1347,7 +1508,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = OpenIdConnectConstants.GrantTypes.RefreshToken,
                 RefreshToken = "8xLOxBtZp8"
             });
@@ -1357,16 +1519,20 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleSignInAsync_AnAccessTokenIsReturnedForPasswordGrantRequests() {
+        public async Task HandleSignInAsync_AnAccessTokenIsReturnedForPasswordGrantRequests()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateTokenRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleTokenRequest = context => {
+                options.Provider.OnHandleTokenRequest = context =>
+                {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
@@ -1379,7 +1545,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = OpenIdConnectConstants.GrantTypes.Password,
                 Username = "johndoe",
                 Password = "A3ddj3w"
@@ -1390,16 +1557,20 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleSignInAsync_AnAccessTokenIsReturnedForClientCredentialsGrantRequests() {
+        public async Task HandleSignInAsync_AnAccessTokenIsReturnedForClientCredentialsGrantRequests()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateTokenRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Validate();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleTokenRequest = context => {
+                options.Provider.OnHandleTokenRequest = context =>
+                {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Fabrikam");
 
@@ -1412,7 +1583,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 ClientId = "Fabrikam",
                 ClientSecret = "7Fjfp0ZBr1KtDRbnfVdmIw",
                 GrantType = OpenIdConnectConstants.GrantTypes.ClientCredentials,
@@ -1423,16 +1595,20 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleSignInAsync_AnAccessTokenIsReturnedForCustomGrantRequests() {
+        public async Task HandleSignInAsync_AnAccessTokenIsReturnedForCustomGrantRequests()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateTokenRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleTokenRequest = context => {
+                options.Provider.OnHandleTokenRequest = context =>
+                {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
@@ -1445,7 +1621,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = "urn:ietf:params:oauth:grant-type:custom_grant"
             });
 
@@ -1454,16 +1631,20 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleSignInAsync_ExpiresInIsReturnedWhenExpirationDateIsKnown() {
+        public async Task HandleSignInAsync_ExpiresInIsReturnedWhenExpirationDateIsKnown()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateTokenRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleTokenRequest = context => {
+                options.Provider.OnHandleTokenRequest = context =>
+                {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
@@ -1476,7 +1657,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = OpenIdConnectConstants.GrantTypes.Password,
                 Username = "johndoe",
                 Password = "A3ddj3w"
@@ -1487,16 +1669,20 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleSignInAsync_NoRefreshTokenIsReturnedWhenOfflineAccessScopeIsNotGranted() {
+        public async Task HandleSignInAsync_NoRefreshTokenIsReturnedWhenOfflineAccessScopeIsNotGranted()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateTokenRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleTokenRequest = context => {
+                options.Provider.OnHandleTokenRequest = context =>
+                {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
@@ -1509,7 +1695,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = OpenIdConnectConstants.GrantTypes.Password,
                 Username = "johndoe",
                 Password = "A3ddj3w"
@@ -1520,10 +1707,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleSignInAsync_ARefreshTokenIsReturnedForCodeGrantRequests() {
+        public async Task HandleSignInAsync_ARefreshTokenIsReturnedForCodeGrantRequests()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeAuthorizationCode = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAuthorizationCode = context =>
+                {
                     Assert.Equal("SplxlOBeZQQYbYS6WxSbIA", context.AuthorizationCode);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
@@ -1540,7 +1730,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateTokenRequest = context => {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
@@ -1550,7 +1741,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 ClientId = "Fabrikam",
                 Code = "SplxlOBeZQQYbYS6WxSbIA",
                 GrantType = OpenIdConnectConstants.GrantTypes.AuthorizationCode
@@ -1561,10 +1753,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleSignInAsync_ARefreshTokenIsReturnedForRefreshTokenGrantRequests() {
+        public async Task HandleSignInAsync_ARefreshTokenIsReturnedForRefreshTokenGrantRequests()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeRefreshToken = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeRefreshToken = context =>
+                {
                     Assert.Equal("8xLOxBtZp8", context.RefreshToken);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
@@ -1580,7 +1775,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateTokenRequest = context => {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
@@ -1590,7 +1786,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = OpenIdConnectConstants.GrantTypes.RefreshToken,
                 RefreshToken = "8xLOxBtZp8"
             });
@@ -1600,12 +1797,15 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleSignInAsync_NoRefreshTokenIsReturnedWhenSlidingExpirationIsDisabled() {
+        public async Task HandleSignInAsync_NoRefreshTokenIsReturnedWhenSlidingExpirationIsDisabled()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
+            var server = CreateAuthorizationServer(options =>
+            {
                 options.UseSlidingExpiration = false;
 
-                options.Provider.OnDeserializeRefreshToken = context => {
+                options.Provider.OnDeserializeRefreshToken = context =>
+                {
                     Assert.Equal("8xLOxBtZp8", context.RefreshToken);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
@@ -1621,7 +1821,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateTokenRequest = context => {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
@@ -1631,7 +1832,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = OpenIdConnectConstants.GrantTypes.RefreshToken,
                 RefreshToken = "8xLOxBtZp8"
             });
@@ -1641,16 +1843,20 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleSignInAsync_ARefreshTokenIsReturnedForPasswordGrantRequests() {
+        public async Task HandleSignInAsync_ARefreshTokenIsReturnedForPasswordGrantRequests()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateTokenRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleTokenRequest = context => {
+                options.Provider.OnHandleTokenRequest = context =>
+                {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
@@ -1670,7 +1876,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = OpenIdConnectConstants.GrantTypes.Password,
                 Username = "johndoe",
                 Password = "A3ddj3w"
@@ -1681,16 +1888,20 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleSignInAsync_ARefreshTokenIsReturnedForClientCredentialsGrantRequests() {
+        public async Task HandleSignInAsync_ARefreshTokenIsReturnedForClientCredentialsGrantRequests()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateTokenRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Validate();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleTokenRequest = context => {
+                options.Provider.OnHandleTokenRequest = context =>
+                {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Fabrikam");
 
@@ -1710,7 +1921,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 ClientId = "Fabrikam",
                 ClientSecret = "7Fjfp0ZBr1KtDRbnfVdmIw",
                 GrantType = OpenIdConnectConstants.GrantTypes.ClientCredentials,
@@ -1721,16 +1933,20 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleSignInAsync_ARefreshTokenIsReturnedForCustomGrantRequests() {
+        public async Task HandleSignInAsync_ARefreshTokenIsReturnedForCustomGrantRequests()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateTokenRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleTokenRequest = context => {
+                options.Provider.OnHandleTokenRequest = context =>
+                {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
@@ -1750,7 +1966,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = "urn:ietf:params:oauth:grant-type:custom_grant"
             });
 
@@ -1759,16 +1976,20 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleSignInAsync_NoIdentityTokenIsReturnedWhenOfflineAccessScopeIsNotGranted() {
+        public async Task HandleSignInAsync_NoIdentityTokenIsReturnedWhenOfflineAccessScopeIsNotGranted()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateTokenRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleTokenRequest = context => {
+                options.Provider.OnHandleTokenRequest = context =>
+                {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
@@ -1781,7 +2002,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = OpenIdConnectConstants.GrantTypes.Password,
                 Username = "johndoe",
                 Password = "A3ddj3w"
@@ -1796,16 +2018,20 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         [InlineData("code id_token token")]
         [InlineData("id_token")]
         [InlineData("id_token token")]
-        public async Task HandleSignInAsync_AnIdentityTokenIsReturnedForImplicitAndHybridFlowRequests(string type) {
+        public async Task HandleSignInAsync_AnIdentityTokenIsReturnedForImplicitAndHybridFlowRequests(string type)
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateAuthorizationRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateAuthorizationRequest = context =>
+                {
                     context.Validate();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleAuthorizationRequest = context => {
+                options.Provider.OnHandleAuthorizationRequest = context =>
+                {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
@@ -1818,7 +2044,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest
+            {
                 ClientId = "Fabrikam",
                 Nonce = "n-0S6_WzA2Mj",
                 RedirectUri = "http://www.fabrikam.com/path",
@@ -1831,10 +2058,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleSignInAsync_AnIdentityTokenIsReturnedForCodeGrantRequests() {
+        public async Task HandleSignInAsync_AnIdentityTokenIsReturnedForCodeGrantRequests()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeAuthorizationCode = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAuthorizationCode = context =>
+                {
                     Assert.Equal("SplxlOBeZQQYbYS6WxSbIA", context.AuthorizationCode);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
@@ -1851,7 +2081,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateTokenRequest = context => {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
@@ -1861,7 +2092,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 ClientId = "Fabrikam",
                 Code = "SplxlOBeZQQYbYS6WxSbIA",
                 GrantType = OpenIdConnectConstants.GrantTypes.AuthorizationCode
@@ -1872,10 +2104,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleSignInAsync_AnIdentityTokenIsReturnedForRefreshTokenGrantRequests() {
+        public async Task HandleSignInAsync_AnIdentityTokenIsReturnedForRefreshTokenGrantRequests()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeRefreshToken = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeRefreshToken = context =>
+                {
                     Assert.Equal("8xLOxBtZp8", context.RefreshToken);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
@@ -1891,7 +2126,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateTokenRequest = context => {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
@@ -1901,7 +2137,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = OpenIdConnectConstants.GrantTypes.RefreshToken,
                 RefreshToken = "8xLOxBtZp8"
             });
@@ -1911,16 +2148,20 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleSignInAsync_AnIdentityTokenIsReturnedForPasswordGrantRequests() {
+        public async Task HandleSignInAsync_AnIdentityTokenIsReturnedForPasswordGrantRequests()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateTokenRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleTokenRequest = context => {
+                options.Provider.OnHandleTokenRequest = context =>
+                {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
@@ -1933,7 +2174,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = OpenIdConnectConstants.GrantTypes.Password,
                 Username = "johndoe",
                 Password = "A3ddj3w",
@@ -1945,16 +2187,20 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleSignInAsync_AnIdentityTokenIsReturnedForClientCredentialsGrantRequests() {
+        public async Task HandleSignInAsync_AnIdentityTokenIsReturnedForClientCredentialsGrantRequests()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateTokenRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Validate();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleTokenRequest = context => {
+                options.Provider.OnHandleTokenRequest = context =>
+                {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Fabrikam");
 
@@ -1967,7 +2213,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 ClientId = "Fabrikam",
                 ClientSecret = "7Fjfp0ZBr1KtDRbnfVdmIw",
                 GrantType = OpenIdConnectConstants.GrantTypes.ClientCredentials,
@@ -1979,16 +2226,20 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleSignInAsync_AnIdentityTokenIsReturnedForCustomGrantRequests() {
+        public async Task HandleSignInAsync_AnIdentityTokenIsReturnedForCustomGrantRequests()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateTokenRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleTokenRequest = context => {
+                options.Provider.OnHandleTokenRequest = context =>
+                {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
@@ -2001,7 +2252,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = "urn:ietf:params:oauth:grant-type:custom_grant",
                 Scope = OpenIdConnectConstants.Scopes.OpenId
             });
@@ -2011,12 +2263,15 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleSignOutAsync_InvalidEndpointCausesAnException() {
+        public async Task HandleSignOutAsync_InvalidEndpointCausesAnException()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
+            var server = CreateAuthorizationServer(options =>
+            {
                 options.ConfigurationEndpointPath = "/invalid-signout";
 
-                options.Provider.OnHandleConfigurationRequest = context => {
+                options.Provider.OnHandleConfigurationRequest = context =>
+                {
                     context.SkipToNextMiddleware();
 
                     return Task.FromResult(0);
@@ -2026,7 +2281,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act and assert
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate {
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate
+            {
                 return client.GetAsync("/invalid-signout");
             });
 
@@ -2034,10 +2290,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleSignOutAsync_DuplicateResponseCausesAnException() {
+        public async Task HandleSignOutAsync_DuplicateResponseCausesAnException()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnHandleLogoutRequest = async context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnHandleLogoutRequest = async context =>
+                {
                     await context.HttpContext.Authentication.SignOutAsync(
                         OpenIdConnectServerDefaults.AuthenticationScheme);
 
@@ -2051,7 +2310,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act and assert
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate {
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate
+            {
                 return client.PostAsync(LogoutEndpoint, new OpenIdConnectRequest());
             });
 
@@ -2059,16 +2319,20 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleSignOutAsync_LogoutResponseFlowsState() {
+        public async Task HandleSignOutAsync_LogoutResponseFlowsState()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateLogoutRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateLogoutRequest = context =>
+                {
                     context.Validate();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleLogoutRequest = context => {
+                options.Provider.OnHandleLogoutRequest = context =>
+                {
                     context.HandleResponse();
 
                     return context.HttpContext.Authentication.SignOutAsync(context.Options.AuthenticationScheme);
@@ -2078,7 +2342,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(LogoutEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(LogoutEndpoint, new OpenIdConnectRequest
+            {
                 PostLogoutRedirectUri = "http://www.fabrikam.com/path",
                 State = "af0ifjsldkj"
             });
@@ -2088,12 +2353,15 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleUnauthorizedAsync_InvalidEndpointCausesAnException() {
+        public async Task HandleUnauthorizedAsync_InvalidEndpointCausesAnException()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
+            var server = CreateAuthorizationServer(options =>
+            {
                 options.ConfigurationEndpointPath = "/invalid-challenge";
 
-                options.Provider.OnHandleConfigurationRequest = context => {
+                options.Provider.OnHandleConfigurationRequest = context =>
+                {
                     context.SkipToNextMiddleware();
 
                     return Task.FromResult(0);
@@ -2103,7 +2371,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act and assert
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate {
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate
+            {
                 return client.GetAsync("/invalid-challenge");
             });
 
@@ -2111,16 +2380,20 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleUnauthorizedAsync_DuplicateResponseCausesAnException() {
+        public async Task HandleUnauthorizedAsync_DuplicateResponseCausesAnException()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateAuthorizationRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateAuthorizationRequest = context =>
+                {
                     context.Validate();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleAuthorizationRequest = async context => {
+                options.Provider.OnHandleAuthorizationRequest = async context =>
+                {
                     await context.HttpContext.Authentication.ForbidAsync(
                         OpenIdConnectServerDefaults.AuthenticationScheme);
 
@@ -2134,8 +2407,10 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act and assert
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate {
-                return client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest {
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate
+            {
+                return client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest
+                {
                     ClientId = "Fabrikam",
                     RedirectUri = "http://www.fabrikam.com/path",
                     ResponseType = OpenIdConnectConstants.ResponseTypes.Code
@@ -2146,16 +2421,20 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleUnauthorizedAsync_AuthorizationResponseFlowsState() {
+        public async Task HandleUnauthorizedAsync_AuthorizationResponseFlowsState()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateAuthorizationRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateAuthorizationRequest = context =>
+                {
                     context.Validate();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleAuthorizationRequest = context => {
+                options.Provider.OnHandleAuthorizationRequest = context =>
+                {
                     context.HandleResponse();
 
                     return context.HttpContext.Authentication.ChallengeAsync(context.Options.AuthenticationScheme);
@@ -2165,7 +2444,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest
+            {
                 ClientId = "Fabrikam",
                 RedirectUri = "http://www.fabrikam.com/path",
                 ResponseType = OpenIdConnectConstants.ResponseTypes.Code,
@@ -2179,19 +2459,24 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleUnauthorizedAsync_ReturnsSpecifiedError() {
+        public async Task HandleUnauthorizedAsync_ReturnsSpecifiedError()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateTokenRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleTokenRequest = context => {
+                options.Provider.OnHandleTokenRequest = context =>
+                {
                     context.HandleResponse();
 
-                    var properties = new AuthenticationProperties(new Dictionary<string, string> {
+                    var properties = new AuthenticationProperties(new Dictionary<string, string>
+                    {
                         [OpenIdConnectConstants.Properties.Error] = "custom_error",
                         [OpenIdConnectConstants.Properties.ErrorDescription] = "custom_error_description",
                         [OpenIdConnectConstants.Properties.ErrorUri] = "custom_error_uri"
@@ -2204,7 +2489,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = OpenIdConnectConstants.GrantTypes.Password,
                 Username = "johndoe",
                 Password = "A3ddj3w"
@@ -2217,16 +2503,20 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task HandleUnauthorizedAsync_ReturnsDefaultErrorWhenNoneIsSpecified() {
+        public async Task HandleUnauthorizedAsync_ReturnsDefaultErrorWhenNoneIsSpecified()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateTokenRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleTokenRequest = context => {
+                options.Provider.OnHandleTokenRequest = context =>
+                {
                     context.HandleResponse();
 
                     return context.HttpContext.Authentication.ChallengeAsync(context.Options.AuthenticationScheme);
@@ -2236,7 +2526,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = OpenIdConnectConstants.GrantTypes.Password,
                 Username = "johndoe",
                 Password = "A3ddj3w"
@@ -2248,22 +2539,26 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             Assert.Null(response.ErrorUri);
         }
 
-        private static TestServer CreateAuthorizationServer(Action<OpenIdConnectServerOptions> configuration = null) {
+        private static TestServer CreateAuthorizationServer(Action<OpenIdConnectServerOptions> configuration = null)
+        {
             var builder = new WebHostBuilder();
 
             builder.UseEnvironment("Testing");
 
             builder.ConfigureServices(services => services.AddAuthentication());
 
-            builder.Configure(app => {
-                app.UseCookieAuthentication(new CookieAuthenticationOptions {
+            builder.Configure(app =>
+            {
+                app.UseCookieAuthentication(new CookieAuthenticationOptions
+                {
                     AutomaticAuthenticate = true,
                     AutomaticChallenge = true,
                     LoginPath = "/login",
                     LogoutPath = "/logout"
                 });
 
-                app.UseOpenIdConnectServer(options => {
+                app.UseOpenIdConnectServer(options =>
+                {
                     options.AllowInsecureHttp = true;
 
                     // Enable the tested endpoints.
@@ -2289,8 +2584,10 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     configuration?.Invoke(options);
                 });
 
-                app.Use(next => context => {
-                    if (context.Request.Path == "/invalid-signin") {
+                app.Use(next => context =>
+                {
+                    if (context.Request.Path == "/invalid-signin")
+                    {
                         var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                         identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Bricoleur");
 
@@ -2299,28 +2596,33 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                         return context.Authentication.SignInAsync(OpenIdConnectServerDefaults.AuthenticationScheme, principal);
                     }
 
-                    else if (context.Request.Path == "/invalid-signout") {
+                    else if (context.Request.Path == "/invalid-signout")
+                    {
                         return context.Authentication.SignOutAsync(OpenIdConnectServerDefaults.AuthenticationScheme);
                     }
 
-                    else if (context.Request.Path == "/invalid-challenge") {
+                    else if (context.Request.Path == "/invalid-challenge")
+                    {
                         return context.Authentication.ChallengeAsync(
                             OpenIdConnectServerDefaults.AuthenticationScheme,
                             new AuthenticationProperties(),
                             ChallengeBehavior.Unauthorized);
                     }
 
-                    else if (context.Request.Path == "/invalid-authenticate") {
+                    else if (context.Request.Path == "/invalid-authenticate")
+                    {
                         return context.Authentication.AuthenticateAsync(OpenIdConnectServerDefaults.AuthenticationScheme);
                     }
 
                     return next(context);
                 });
 
-                app.Run(context => {
+                app.Run(context =>
+                {
                     context.Response.Headers[HeaderNames.ContentType] = "application/json";
 
-                    return context.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                    return context.Response.WriteAsync(JsonConvert.SerializeObject(new
+                    {
                         name = "Bob le Magnifique"
                     }));
                 });

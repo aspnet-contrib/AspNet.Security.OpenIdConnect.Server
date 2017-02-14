@@ -12,8 +12,10 @@ using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.Owin.Security;
 using Xunit;
 
-namespace Owin.Security.OpenIdConnect.Extensions.Tests {
-    public class OpenIdConnectExtensionsTests {
+namespace Owin.Security.OpenIdConnect.Extensions.Tests
+{
+    public class OpenIdConnectExtensionsTests
+    {
         [Theory]
         [InlineData(null, new string[0])]
         [InlineData("", new string[0])]
@@ -22,7 +24,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         [InlineData(@"[""access_token"",""id_token""]", new[] { "access_token", "id_token" })]
         [InlineData(@"[""access_token"",""access_token"",""id_token""]", new[] { "access_token", "id_token" })]
         [InlineData(@"[""access_token"",""ACCESS_TOKEN"",""id_token""]", new[] { "access_token", "id_token" })]
-        public void GetDestinations_ReturnsExpectedDestinations(string destination, string[] destinations) {
+        public void GetDestinations_ReturnsExpectedDestinations(string destination, string[] destinations)
+        {
             // Arrange
             var claim = new Claim(OpenIdConnectConstants.Claims.Name, "Bob le Bricoleur");
             claim.Properties[OpenIdConnectConstants.Properties.Destinations] = destination;
@@ -34,7 +37,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         [Theory]
         [InlineData(null)]
         [InlineData(new object[] { new string[0] })]
-        public void SetDestinations_RemovesPropertyForEmptyArray(string[] destinations) {
+        public void SetDestinations_RemovesPropertyForEmptyArray(string[] destinations)
+        {
             // Arrange
             var claim = new Claim(OpenIdConnectConstants.Claims.Name, "Bob le Bricoleur");
 
@@ -48,7 +52,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public void SetDestinations_ThrowsForInvalidDestinations(string destination) {
+        public void SetDestinations_ThrowsForInvalidDestinations(string destination)
+        {
             // Arrange
             var claim = new Claim(OpenIdConnectConstants.Claims.Name, "Bob le Bricoleur");
 
@@ -64,7 +69,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         [InlineData(new[] { "access_token", "id_token" }, @"[""access_token"",""id_token""]")]
         [InlineData(new[] { "access_token", "access_token", "id_token" }, @"[""access_token"",""id_token""]")]
         [InlineData(new[] { "access_token", "ACCESS_TOKEN", "id_token" }, @"[""access_token"",""id_token""]")]
-        public void SetDestinations_SetsAppropriateDestinations(string[] destinations, string destination) {
+        public void SetDestinations_SetsAppropriateDestinations(string[] destinations, string destination)
+        {
             // Arrange
             var claim = new Claim(OpenIdConnectConstants.Claims.Name, "Bob le Bricoleur");
 
@@ -76,7 +82,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         }
 
         [Fact]
-        public void Clone_ReturnsDifferentInstance() {
+        public void Clone_ReturnsDifferentInstance()
+        {
             // Arrange
             var identity = new ClaimsIdentity();
             identity.AddClaim(new Claim(OpenIdConnectConstants.Claims.Name, "Bob le Bricoleur"));
@@ -91,7 +98,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         }
 
         [Fact]
-        public void Clone_ExcludesUnwantedClaims() {
+        public void Clone_ExcludesUnwantedClaims()
+        {
             // Arrange
             var identity = new ClaimsIdentity();
             identity.AddClaim(new Claim(OpenIdConnectConstants.Claims.Name, "Bob le Bricoleur"));
@@ -107,7 +115,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         }
 
         [Fact]
-        public void Clone_ExcludesUnwantedClaimsFromActor() {
+        public void Clone_ExcludesUnwantedClaimsFromActor()
+        {
             // Arrange
             var identity = new ClaimsIdentity();
             identity.Actor = new ClaimsIdentity();
@@ -124,7 +133,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         }
 
         [Fact]
-        public void Clone_ExcludesUnwantedClaimsFromIdentities() {
+        public void Clone_ExcludesUnwantedClaimsFromIdentities()
+        {
             // Arrange
             var identity = new ClaimsIdentity();
             identity.AddClaim(new Claim(OpenIdConnectConstants.Claims.Name, "Bob le Bricoleur"));
@@ -142,7 +152,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         }
 
         [Fact]
-        public void AddClaim_SetsAppropriateClaim() {
+        public void AddClaim_SetsAppropriateClaim()
+        {
             // Arrange
             var identity = new ClaimsIdentity();
 
@@ -158,7 +169,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         [InlineData(new[] { "access_token", "id_token" }, @"[""access_token"",""id_token""]")]
         [InlineData(new[] { "access_token", "access_token", "id_token" }, @"[""access_token"",""id_token""]")]
         [InlineData(new[] { "access_token", "ACCESS_TOKEN", "id_token" }, @"[""access_token"",""id_token""]")]
-        public void AddClaim_SetsAppropriateDestinations(string[] destinations, string destination) {
+        public void AddClaim_SetsAppropriateDestinations(string[] destinations, string destination)
+        {
             // Arrange
             var identity = new ClaimsIdentity();
 
@@ -173,7 +185,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         }
 
         [Fact]
-        public void GetClaim_ReturnsNullForMissingClaims() {
+        public void GetClaim_ReturnsNullForMissingClaims()
+        {
             // Arrange
             var identity = new ClaimsIdentity();
             var principal = new ClaimsPrincipal();
@@ -184,7 +197,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         }
 
         [Fact]
-        public void GetClaim_ReturnsAppropriateResult() {
+        public void GetClaim_ReturnsAppropriateResult()
+        {
             // Arrange
             var identity = new ClaimsIdentity();
             var principal = new ClaimsPrincipal(identity);
@@ -197,7 +211,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         }
 
         [Fact]
-        public void Copy_ReturnsIdenticalProperties() {
+        public void Copy_ReturnsIdenticalProperties()
+        {
             // Arrange
             var properties = new AuthenticationProperties();
             properties.SetProperty("property", "value");
@@ -210,7 +225,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         }
 
         [Fact]
-        public void Copy_ReturnsIdenticalTicket() {
+        public void Copy_ReturnsIdenticalTicket()
+        {
             // Arrange
             var identity = new ClaimsIdentity();
             identity.AddClaim(new Claim(OpenIdConnectConstants.Claims.Name, "Bob le Bricoleur"));
@@ -227,7 +243,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         }
 
         [Fact]
-        public void Copy_ReturnsDifferentPropertiesInstance() {
+        public void Copy_ReturnsDifferentPropertiesInstance()
+        {
             // Arrange
             var properties = new AuthenticationProperties();
             properties.SetProperty("property", "value");
@@ -242,7 +259,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         }
 
         [Fact]
-        public void Copy_ReturnsDifferentTicketInstance() {
+        public void Copy_ReturnsDifferentTicketInstance()
+        {
             // Arrange
             var identity = new ClaimsIdentity();
             identity.AddClaim(new Claim(OpenIdConnectConstants.Claims.Name, "Bob le Bricoleur"));
@@ -262,7 +280,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         }
 
         [Fact]
-        public void GetProperty_ReturnsNullForMissingProperty() {
+        public void GetProperty_ReturnsNullForMissingProperty()
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
@@ -274,7 +293,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         }
 
         [Fact]
-        public void GetProperty_ReturnsAppropriateResult() {
+        public void GetProperty_ReturnsAppropriateResult()
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
@@ -288,7 +308,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         }
 
         [Fact]
-        public void GetProperty_IsCaseSensitive() {
+        public void GetProperty_IsCaseSensitive()
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
@@ -309,7 +330,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         [InlineData(@"[""fabrikam"",""contoso""]", new[] { "fabrikam", "contoso" })]
         [InlineData(@"[""fabrikam"",""fabrikam"",""contoso""]", new[] { "fabrikam", "contoso" })]
         [InlineData(@"[""fabrikam"",""FABRIKAM"",""contoso""]", new[] { "fabrikam", "FABRIKAM", "contoso" })]
-        public void GetAudiences_ReturnsExpectedAudiences(string audience, string[] audiences) {
+        public void GetAudiences_ReturnsExpectedAudiences(string audience, string[] audiences)
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
@@ -329,7 +351,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         [InlineData(@"[""fabrikam"",""contoso""]", new[] { "fabrikam", "contoso" })]
         [InlineData(@"[""fabrikam"",""fabrikam"",""contoso""]", new[] { "fabrikam", "contoso" })]
         [InlineData(@"[""fabrikam"",""FABRIKAM"",""contoso""]", new[] { "fabrikam", "FABRIKAM", "contoso" })]
-        public void GetPresenters_ReturnsExpectedPresenters(string presenter, string[] presenters) {
+        public void GetPresenters_ReturnsExpectedPresenters(string presenter, string[] presenters)
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
@@ -349,7 +372,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         [InlineData(@"[""fabrikam"",""contoso""]", new[] { "fabrikam", "contoso" })]
         [InlineData(@"[""fabrikam"",""fabrikam"",""contoso""]", new[] { "fabrikam", "contoso" })]
         [InlineData(@"[""fabrikam"",""FABRIKAM"",""contoso""]", new[] { "fabrikam", "FABRIKAM", "contoso" })]
-        public void GetResources_ReturnsExpectedResources(string resource, string[] resources) {
+        public void GetResources_ReturnsExpectedResources(string resource, string[] resources)
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
@@ -369,7 +393,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         [InlineData(@"[""openid"",""profile""]", new[] { "openid", "profile" })]
         [InlineData(@"[""openid"",""openid"",""profile""]", new[] { "openid", "profile" })]
         [InlineData(@"[""openid"",""OPENID"",""profile""]", new[] { "openid", "OPENID", "profile" })]
-        public void GetScopes_ReturnsExpectedScopes(string scope, string[] scopes) {
+        public void GetScopes_ReturnsExpectedScopes(string scope, string[] scopes)
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
@@ -384,7 +409,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         [Theory]
         [InlineData(null)]
         [InlineData("42.00:00:00")]
-        public void GetAccessTokenLifetime_ReturnsExpectedResult(string lifetime) {
+        public void GetAccessTokenLifetime_ReturnsExpectedResult(string lifetime)
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
@@ -399,7 +425,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         [Theory]
         [InlineData(null)]
         [InlineData("42.00:00:00")]
-        public void GetAuthorizationCodeLifetime_ReturnsExpectedResult(string lifetime) {
+        public void GetAuthorizationCodeLifetime_ReturnsExpectedResult(string lifetime)
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
@@ -414,7 +441,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         [Theory]
         [InlineData(null)]
         [InlineData("42.00:00:00")]
-        public void GetIdentityTokenLifetime_ReturnsExpectedResult(string lifetime) {
+        public void GetIdentityTokenLifetime_ReturnsExpectedResult(string lifetime)
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
@@ -429,7 +457,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         [Theory]
         [InlineData(null)]
         [InlineData("42.00:00:00")]
-        public void GetRefreshTokenLifetime_ReturnsExpectedResult(string lifetime) {
+        public void GetRefreshTokenLifetime_ReturnsExpectedResult(string lifetime)
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
@@ -444,7 +473,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         [Theory]
         [InlineData(null)]
         [InlineData("identifier")]
-        public void GetTicketId_ReturnsExpectedResult(string identifier) {
+        public void GetTicketId_ReturnsExpectedResult(string identifier)
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
@@ -459,7 +489,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         [Theory]
         [InlineData(null)]
         [InlineData("access_token")]
-        public void GetUsage_ReturnsExpectedResult(string usage) {
+        public void GetUsage_ReturnsExpectedResult(string usage)
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
@@ -474,7 +505,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         [Theory]
         [InlineData(null, false)]
         [InlineData("value", true)]
-        public void HasProperty_ReturnsExpectedResult(string value, bool result) {
+        public void HasProperty_ReturnsExpectedResult(string value, bool result)
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
@@ -492,7 +524,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         [InlineData("", false)]
         [InlineData("[]", false)]
         [InlineData(@"[""fabrikam""]", true)]
-        public void HasAudience_ReturnsExpectedResult(string audience, bool result) {
+        public void HasAudience_ReturnsExpectedResult(string audience, bool result)
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
@@ -516,7 +549,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         [InlineData(@"[""CONTOSO"",""FABRIKAM""]", false)]
         [InlineData(@"[""FABRIKAM""]", false)]
         [InlineData(@"[""FABRIKAM"",""CONTOSO""]", false)]
-        public void HasAudience_ReturnsAppropriateResult(string audience, bool result) {
+        public void HasAudience_ReturnsAppropriateResult(string audience, bool result)
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
@@ -533,7 +567,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         [InlineData("", false)]
         [InlineData("[]", false)]
         [InlineData(@"[""fabrikam""]", true)]
-        public void HasPresenter_ReturnsExpectedResult(string presenter, bool result) {
+        public void HasPresenter_ReturnsExpectedResult(string presenter, bool result)
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
@@ -557,7 +592,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         [InlineData(@"[""CONTOSO"",""FABRIKAM""]", false)]
         [InlineData(@"[""FABRIKAM""]", false)]
         [InlineData(@"[""FABRIKAM"",""CONTOSO""]", false)]
-        public void HasPresenter_ReturnsAppropriateResult(string presenter, bool result) {
+        public void HasPresenter_ReturnsAppropriateResult(string presenter, bool result)
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
@@ -574,7 +610,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         [InlineData("", false)]
         [InlineData("[]", false)]
         [InlineData(@"[""fabrikam""]", true)]
-        public void HasResource_ReturnsExpectedResult(string resource, bool result) {
+        public void HasResource_ReturnsExpectedResult(string resource, bool result)
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
@@ -598,7 +635,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         [InlineData(@"[""CONTOSO"",""FABRIKAM""]", false)]
         [InlineData(@"[""FABRIKAM""]", false)]
         [InlineData(@"[""FABRIKAM"",""CONTOSO""]", false)]
-        public void HasResource_ReturnsAppropriateResult(string resource, bool result) {
+        public void HasResource_ReturnsAppropriateResult(string resource, bool result)
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
@@ -615,7 +653,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         [InlineData("", false)]
         [InlineData("[]", false)]
         [InlineData(@"[""openid""]", true)]
-        public void HasScope_ReturnsExpectedResult(string scope, bool result) {
+        public void HasScope_ReturnsExpectedResult(string scope, bool result)
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
@@ -639,7 +678,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         [InlineData(@"[""PROFILE"",""OPENID""]", false)]
         [InlineData(@"[""OPENID""]", false)]
         [InlineData(@"[""OPENID"",""PROFILE""]", false)]
-        public void HasScope_ReturnsAppropriateResult(string scope, bool result) {
+        public void HasScope_ReturnsAppropriateResult(string scope, bool result)
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
@@ -656,7 +696,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         [InlineData("unknown", false)]
         [InlineData(OpenIdConnectConstants.ConfidentialityLevels.Private, true)]
         [InlineData(OpenIdConnectConstants.ConfidentialityLevels.Public, false)]
-        public void IsConfidential_ReturnsExpectedResult(string level, bool result) {
+        public void IsConfidential_ReturnsExpectedResult(string level, bool result)
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
@@ -675,7 +716,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         [InlineData(OpenIdConnectConstants.Usages.AuthorizationCode, false)]
         [InlineData(OpenIdConnectConstants.Usages.IdentityToken, false)]
         [InlineData(OpenIdConnectConstants.Usages.RefreshToken, false)]
-        public void IsAccessToken_ReturnsExpectedResult(string usage, bool result) {
+        public void IsAccessToken_ReturnsExpectedResult(string usage, bool result)
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
@@ -694,7 +736,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         [InlineData(OpenIdConnectConstants.Usages.AuthorizationCode, true)]
         [InlineData(OpenIdConnectConstants.Usages.IdentityToken, false)]
         [InlineData(OpenIdConnectConstants.Usages.RefreshToken, false)]
-        public void IsAuthorizationCode_ReturnsExpectedResult(string usage, bool result) {
+        public void IsAuthorizationCode_ReturnsExpectedResult(string usage, bool result)
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
@@ -713,7 +756,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         [InlineData(OpenIdConnectConstants.Usages.AuthorizationCode, false)]
         [InlineData(OpenIdConnectConstants.Usages.IdentityToken, true)]
         [InlineData(OpenIdConnectConstants.Usages.RefreshToken, false)]
-        public void IsIdentityToken_ReturnsExpectedResult(string usage, bool result) {
+        public void IsIdentityToken_ReturnsExpectedResult(string usage, bool result)
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
@@ -732,7 +776,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         [InlineData(OpenIdConnectConstants.Usages.AuthorizationCode, false)]
         [InlineData(OpenIdConnectConstants.Usages.IdentityToken, false)]
         [InlineData(OpenIdConnectConstants.Usages.RefreshToken, true)]
-        public void IsRefreshToken_ReturnsExpectedResult(string usage, bool result) {
+        public void IsRefreshToken_ReturnsExpectedResult(string usage, bool result)
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
@@ -745,7 +790,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         }
 
         [Fact]
-        public void AddProperty_AddsExpectedProperty() {
+        public void AddProperty_AddsExpectedProperty()
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
@@ -759,7 +805,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         }
 
         [Fact]
-        public void RemoveProperty_RemovesProperty() {
+        public void RemoveProperty_RemovesProperty()
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
@@ -775,7 +822,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         }
 
         [Fact]
-        public void SetProperty_AddsExpectedProperty() {
+        public void SetProperty_AddsExpectedProperty()
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
@@ -789,7 +837,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         }
 
         [Fact]
-        public void SetProperty_IsCaseSensitive() {
+        public void SetProperty_IsCaseSensitive()
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
@@ -803,7 +852,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         }
 
         [Fact]
-        public void SetProperty_RemovesEmptyProperty() {
+        public void SetProperty_RemovesEmptyProperty()
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
@@ -817,7 +867,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         }
 
         [Fact]
-        public void SetProperty_SupportsMultipleStrings() {
+        public void SetProperty_SupportsMultipleStrings()
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
@@ -831,7 +882,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         }
 
         [Fact]
-        public void SetProperty_IgnoreEmptyEnumerations() {
+        public void SetProperty_IgnoreEmptyEnumerations()
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
@@ -850,7 +902,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         [InlineData(new[] { "fabrikam", "contoso" }, @"[""fabrikam"",""contoso""]")]
         [InlineData(new[] { "fabrikam", "fabrikam", "contoso" }, @"[""fabrikam"",""contoso""]")]
         [InlineData(new[] { "fabrikam", "FABRIKAM", "contoso" }, @"[""fabrikam"",""FABRIKAM"",""contoso""]")]
-        public void SetAudiences_AddsAudiences(string[] audiences, string audience) {
+        public void SetAudiences_AddsAudiences(string[] audiences, string audience)
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
@@ -869,7 +922,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         [InlineData(new[] { "fabrikam", "contoso" }, @"[""fabrikam"",""contoso""]")]
         [InlineData(new[] { "fabrikam", "fabrikam", "contoso" }, @"[""fabrikam"",""contoso""]")]
         [InlineData(new[] { "fabrikam", "FABRIKAM", "contoso" }, @"[""fabrikam"",""FABRIKAM"",""contoso""]")]
-        public void SetPresenters_AddsPresenters(string[] presenters, string presenter) {
+        public void SetPresenters_AddsPresenters(string[] presenters, string presenter)
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
@@ -888,7 +942,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         [InlineData(new[] { "fabrikam", "contoso" }, @"[""fabrikam"",""contoso""]")]
         [InlineData(new[] { "fabrikam", "fabrikam", "contoso" }, @"[""fabrikam"",""contoso""]")]
         [InlineData(new[] { "fabrikam", "FABRIKAM", "contoso" }, @"[""fabrikam"",""FABRIKAM"",""contoso""]")]
-        public void SetResources_AddsResources(string[] resources, string resource) {
+        public void SetResources_AddsResources(string[] resources, string resource)
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
@@ -907,7 +962,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         [InlineData(new[] { "openid", "profile" }, @"[""openid"",""profile""]")]
         [InlineData(new[] { "openid", "openid", "profile" }, @"[""openid"",""profile""]")]
         [InlineData(new[] { "openid", "OPENID", "profile" }, @"[""openid"",""OPENID"",""profile""]")]
-        public void SetScopes_AddsScopes(string[] scopes, string scope) {
+        public void SetScopes_AddsScopes(string[] scopes, string scope)
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
@@ -923,7 +979,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         [Theory]
         [InlineData(null)]
         [InlineData("42.00:00:00")]
-        public void SetAccessTokenLifetime_AddsLifetime(string lifetime) {
+        public void SetAccessTokenLifetime_AddsLifetime(string lifetime)
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
@@ -939,7 +996,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         [Theory]
         [InlineData(null)]
         [InlineData("42.00:00:00")]
-        public void SetAuthorizationCodeLifetime_AddsLifetime(string lifetime) {
+        public void SetAuthorizationCodeLifetime_AddsLifetime(string lifetime)
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
@@ -955,7 +1013,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         [Theory]
         [InlineData(null)]
         [InlineData("42.00:00:00")]
-        public void SetIdentityTokenLifetime_AddsLifetime(string lifetime) {
+        public void SetIdentityTokenLifetime_AddsLifetime(string lifetime)
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
@@ -971,7 +1030,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         [Theory]
         [InlineData(null)]
         [InlineData("42.00:00:00")]
-        public void SetRefreshTokenLifetime_AddsLifetime(string lifetime) {
+        public void SetRefreshTokenLifetime_AddsLifetime(string lifetime)
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
@@ -987,7 +1047,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         [Theory]
         [InlineData(null)]
         [InlineData("identifier")]
-        public void SetTicketId_AddsScopes(string identifier) {
+        public void SetTicketId_AddsScopes(string identifier)
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
@@ -1003,7 +1064,8 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests {
         [Theory]
         [InlineData(null)]
         [InlineData("usage")]
-        public void SetUsage_AddsScopes(string usage) {
+        public void SetUsage_AddsScopes(string usage)
+        {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),

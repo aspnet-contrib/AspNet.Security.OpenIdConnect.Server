@@ -3,16 +3,22 @@ using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.OpenIdConnect;
 using Nancy.Security;
 
-namespace Nancy.Client.Modules {
-    public class AuthenticationModule : NancyModule {
-        public AuthenticationModule() {
-            Get["/signin"] = parameters => {
+namespace Nancy.Client.Modules
+{
+    public class AuthenticationModule : NancyModule
+    {
+        public AuthenticationModule()
+        {
+            Get["/signin"] = parameters =>
+            {
                 var manager = Context.GetAuthenticationManager();
-                if (manager == null) {
+                if (manager == null)
+                {
                     throw new NotSupportedException("An OWIN authentication manager cannot be extracted from NancyContext");
                 }
 
-                var properties = new AuthenticationProperties {
+                var properties = new AuthenticationProperties
+                {
                     RedirectUri = "/"
                 };
 
@@ -23,9 +29,11 @@ namespace Nancy.Client.Modules {
                 return HttpStatusCode.Unauthorized;
             };
 
-            Get["/signout"] = Post["/signout"] = parameters => {
+            Get["/signout"] = Post["/signout"] = parameters =>
+            {
                 var manager = Context.GetAuthenticationManager();
-                if (manager == null) {
+                if (manager == null)
+                {
                     throw new NotSupportedException("An OWIN authentication manager cannot be extracted from NancyContext");
                 }
 

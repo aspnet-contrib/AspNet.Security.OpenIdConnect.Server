@@ -6,11 +6,13 @@
 
 using Microsoft.Owin.Security;
 
-namespace Owin.Security.OpenIdConnect.Server {
+namespace Owin.Security.OpenIdConnect.Server
+{
     /// <summary>
     /// Exposes the default values used by the OpenID Connect server middleware.
     /// </summary>
-    public static class OpenIdConnectServerDefaults {
+    public static class OpenIdConnectServerDefaults
+    {
         /// <summary>
         /// Default value for <see cref="AuthenticationOptions.AuthenticationType"/>.
         /// </summary>

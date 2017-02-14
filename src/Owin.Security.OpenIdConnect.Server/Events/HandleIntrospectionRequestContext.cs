@@ -10,12 +10,14 @@ using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 
-namespace Owin.Security.OpenIdConnect.Server {
+namespace Owin.Security.OpenIdConnect.Server
+{
     /// <summary>
     /// An event raised before the authorization server handles
     /// the request made to the token introspection endpoint.
     /// </summary>
-    public class HandleIntrospectionRequestContext : BaseValidatingContext {
+    public class HandleIntrospectionRequestContext : BaseValidatingContext
+    {
         /// <summary>
         /// Creates an instance of this context.
         /// </summary>
@@ -24,7 +26,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             OpenIdConnectServerOptions options,
             OpenIdConnectRequest request,
             AuthenticationTicket ticket)
-            : base(context, options, request) {
+            : base(context, options, request)
+        {
             Ticket = ticket;
             Validate();
         }

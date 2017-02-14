@@ -11,11 +11,13 @@ using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Notifications;
 using Owin.Security.OpenIdConnect.Extensions;
 
-namespace Owin.Security.OpenIdConnect.Server {
+namespace Owin.Security.OpenIdConnect.Server
+{
     /// <summary>
     /// Provides context information used when issuing a refresh token.
     /// </summary>
-    public class SerializeRefreshTokenContext : BaseNotification<OpenIdConnectServerOptions> {
+    public class SerializeRefreshTokenContext : BaseNotification<OpenIdConnectServerOptions>
+    {
         /// <summary>
         /// Initializes a new instance of the <see cref="SerializeRefreshTokenContext"/> class
         /// </summary>
@@ -30,7 +32,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             OpenIdConnectRequest request,
             OpenIdConnectResponse response,
             AuthenticationTicket ticket)
-            : base(context, options) {
+            : base(context, options)
+        {
             Request = request;
             Response = response;
             Ticket = ticket;
@@ -54,7 +57,8 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets or sets the presenters associated with the authentication ticket.
         /// </summary>
-        public IEnumerable<string> Presenters {
+        public IEnumerable<string> Presenters
+        {
             get { return Ticket.GetPresenters(); }
             set { Ticket.SetPresenters(value); }
         }

@@ -13,12 +13,16 @@ using Microsoft.Owin.Security;
 using Microsoft.Owin.Testing;
 using Xunit;
 
-namespace Owin.Security.OpenIdConnect.Server.Tests {
-    public class OpenIdConnectServerMiddlewareTests {
+namespace Owin.Security.OpenIdConnect.Server.Tests
+{
+    public class OpenIdConnectServerMiddlewareTests
+    {
         [Fact]
-        public void Constructor_MissingProviderThrowsAnException() {
+        public void Constructor_MissingProviderThrowsAnException()
+        {
             // Arrange, act, assert
-            var exception = Assert.Throws<TargetInvocationException>(() => CreateAuthorizationServer(options => {
+            var exception = Assert.Throws<TargetInvocationException>(() => CreateAuthorizationServer(options =>
+            {
                 options.Provider = null;
             }));
 
@@ -28,9 +32,11 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public void Constructor_MissingClockThrowsAnException() {
+        public void Constructor_MissingClockThrowsAnException()
+        {
             // Arrange, act, assert
-            var exception = Assert.Throws<TargetInvocationException>(() => CreateAuthorizationServer(options => {
+            var exception = Assert.Throws<TargetInvocationException>(() => CreateAuthorizationServer(options =>
+            {
                 options.SystemClock = null;
             }));
 
@@ -40,9 +46,11 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public void Constructor_RelativeIssuerThrowsAnException() {
+        public void Constructor_RelativeIssuerThrowsAnException()
+        {
             // Arrange, act, assert
-            var exception = Assert.Throws<TargetInvocationException>(() => CreateAuthorizationServer(options => {
+            var exception = Assert.Throws<TargetInvocationException>(() => CreateAuthorizationServer(options =>
+            {
                 options.Issuer = new Uri("/path", UriKind.Relative);
             }));
 
@@ -54,9 +62,11 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         [Theory]
         [InlineData("http://www.fabrikam.com/path?param=value")]
         [InlineData("http://www.fabrikam.com/path#param=value")]
-        public void Constructor_InvalidIssuerThrowsAnException(string issuer) {
+        public void Constructor_InvalidIssuerThrowsAnException(string issuer)
+        {
             // Arrange, act, assert
-            var exception = Assert.Throws<TargetInvocationException>(() => CreateAuthorizationServer(options => {
+            var exception = Assert.Throws<TargetInvocationException>(() => CreateAuthorizationServer(options =>
+            {
                 options.Issuer = new Uri(issuer);
             }));
 
@@ -67,9 +77,11 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public void Constructor_NonHttpsIssuerThrowsAnExceptionWhenAllowInsecureHttpIsNotEnabled() {
+        public void Constructor_NonHttpsIssuerThrowsAnExceptionWhenAllowInsecureHttpIsNotEnabled()
+        {
             // Arrange, act, assert
-            var exception = Assert.Throws<TargetInvocationException>(() => CreateAuthorizationServer(options => {
+            var exception = Assert.Throws<TargetInvocationException>(() => CreateAuthorizationServer(options =>
+            {
                 options.AllowInsecureHttp = false;
                 options.Issuer = new Uri("http://www.fabrikam.com/");
             }));
@@ -81,9 +93,11 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public void Constructor_ActiveAuthenticationModeThrowsAnException() {
+        public void Constructor_ActiveAuthenticationModeThrowsAnException()
+        {
             // Arrange, act, assert
-            var exception = Assert.Throws<TargetInvocationException>(() => CreateAuthorizationServer(options => {
+            var exception = Assert.Throws<TargetInvocationException>(() => CreateAuthorizationServer(options =>
+            {
                 options.AuthenticationMode = AuthenticationMode.Active;
             }));
 
@@ -94,9 +108,11 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public void Constructor_MissingSigningCredentialsThrowAnException() {
+        public void Constructor_MissingSigningCredentialsThrowAnException()
+        {
             // Arrange, act, assert
-            var exception = Assert.Throws<TargetInvocationException>(() => CreateAuthorizationServer(options => {
+            var exception = Assert.Throws<TargetInvocationException>(() => CreateAuthorizationServer(options =>
+            {
                 options.AccessTokenHandler = new JwtSecurityTokenHandler();
                 options.SigningCredentials.Clear();
             }));
@@ -111,9 +127,11 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public void Constructor_ThrowsAnExceptionForMissingAppName(string name) {
+        public void Constructor_ThrowsAnExceptionForMissingAppName(string name)
+        {
             // Arrange, act, assert
-            var exception = Assert.Throws<TargetInvocationException>(() => TestServer.Create(app => {
+            var exception = Assert.Throws<TargetInvocationException>(() => TestServer.Create(app =>
+            {
                 var properties = new AppProperties(app.Properties);
                 properties.AppName = name;
 
@@ -127,9 +145,12 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                               exception.InnerException.Message);
         }
 
-        private static TestServer CreateAuthorizationServer(Action<OpenIdConnectServerOptions> configuration = null) {
-            return TestServer.Create(app => {
-                app.UseOpenIdConnectServer(options => {
+        private static TestServer CreateAuthorizationServer(Action<OpenIdConnectServerOptions> configuration = null)
+        {
+            return TestServer.Create(app =>
+            {
+                app.UseOpenIdConnectServer(options =>
+                {
                     options.AllowInsecureHttp = true;
 
                     options.SigningCredentials.AddCertificate(

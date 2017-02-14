@@ -19,16 +19,21 @@ using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin.Security.Infrastructure;
 using Newtonsoft.Json.Linq;
 
-namespace Owin.Security.OpenIdConnect.Server {
-    internal partial class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions> {
-        private async Task<bool> InvokeConfigurationEndpointAsync() {
+namespace Owin.Security.OpenIdConnect.Server
+{
+    internal partial class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions>
+    {
+        private async Task<bool> InvokeConfigurationEndpointAsync()
+        {
             // Metadata requests must be made via GET.
             // See http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationRequest
-            if (!string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
+            if (!string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase))
+            {
                 Options.Logger.LogError("The discovery request was rejected because an invalid " +
                                         "HTTP method was used: {Method}.", Request.Method);
 
-                return await SendConfigurationResponseAsync(new OpenIdConnectResponse {
+                return await SendConfigurationResponseAsync(new OpenIdConnectResponse
+                {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "Invalid HTTP method: make sure to use GET."
                 });
@@ -46,24 +51,28 @@ namespace Owin.Security.OpenIdConnect.Server {
             var @event = new ExtractConfigurationRequestContext(Context, Options, request);
             await Options.Provider.ExtractConfigurationRequest(@event);
 
-            if (@event.HandledResponse) {
+            if (@event.HandledResponse)
+            {
                 Options.Logger.LogDebug("The discovery request was handled in user code.");
 
                 return true;
             }
 
-            else if (@event.Skipped) {
+            else if (@event.Skipped)
+            {
                 Options.Logger.LogDebug("The default discovery request handling was skipped from user code.");
 
                 return false;
             }
 
-            else if (@event.IsRejected) {
+            else if (@event.IsRejected)
+            {
                 Options.Logger.LogError("The discovery request was rejected with the following error: {Error} ; {Description}",
                                         /* Error: */ @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                                         /* Description: */ @event.ErrorDescription);
 
-                return await SendConfigurationResponseAsync(new OpenIdConnectResponse {
+                return await SendConfigurationResponseAsync(new OpenIdConnectResponse
+                {
                     Error = @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = @event.ErrorDescription,
                     ErrorUri = @event.ErrorUri
@@ -76,24 +85,28 @@ namespace Owin.Security.OpenIdConnect.Server {
             var context = new ValidateConfigurationRequestContext(Context, Options, request);
             await Options.Provider.ValidateConfigurationRequest(context);
 
-            if (context.HandledResponse) {
+            if (context.HandledResponse)
+            {
                 Options.Logger.LogDebug("The discovery request was handled in user code.");
 
                 return true;
             }
 
-            else if (context.Skipped) {
+            else if (context.Skipped)
+            {
                 Options.Logger.LogDebug("The default discovery request handling was skipped from user code.");
 
                 return false;
             }
 
-            else if (!context.IsValidated) {
+            else if (!context.IsValidated)
+            {
                 Options.Logger.LogError("The discovery request was rejected with the following error: {Error} ; {Description}",
                                         /* Error: */ context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                                         /* Description: */ context.ErrorDescription);
 
-                return await SendConfigurationResponseAsync(new OpenIdConnectResponse {
+                return await SendConfigurationResponseAsync(new OpenIdConnectResponse
+                {
                     Error = context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = context.ErrorDescription,
                     ErrorUri = context.ErrorUri
@@ -105,45 +118,55 @@ namespace Owin.Security.OpenIdConnect.Server {
             var notification = new HandleConfigurationRequestContext(Context, Options, request);
             notification.Issuer = Context.GetIssuer(Options);
 
-            if (Options.AuthorizationEndpointPath.HasValue) {
+            if (Options.AuthorizationEndpointPath.HasValue)
+            {
                 notification.AuthorizationEndpoint = notification.Issuer.AddPath(Options.AuthorizationEndpointPath);
             }
 
-            if (Options.CryptographyEndpointPath.HasValue) {
+            if (Options.CryptographyEndpointPath.HasValue)
+            {
                 notification.CryptographyEndpoint = notification.Issuer.AddPath(Options.CryptographyEndpointPath);
             }
 
-            if (Options.IntrospectionEndpointPath.HasValue) {
+            if (Options.IntrospectionEndpointPath.HasValue)
+            {
                 notification.IntrospectionEndpoint = notification.Issuer.AddPath(Options.IntrospectionEndpointPath);
             }
 
-            if (Options.LogoutEndpointPath.HasValue) {
+            if (Options.LogoutEndpointPath.HasValue)
+            {
                 notification.LogoutEndpoint = notification.Issuer.AddPath(Options.LogoutEndpointPath);
             }
 
-            if (Options.RevocationEndpointPath.HasValue) {
+            if (Options.RevocationEndpointPath.HasValue)
+            {
                 notification.RevocationEndpoint = notification.Issuer.AddPath(Options.RevocationEndpointPath);
             }
 
-            if (Options.TokenEndpointPath.HasValue) {
+            if (Options.TokenEndpointPath.HasValue)
+            {
                 notification.TokenEndpoint = notification.Issuer.AddPath(Options.TokenEndpointPath);
             }
 
-            if (Options.UserinfoEndpointPath.HasValue) {
+            if (Options.UserinfoEndpointPath.HasValue)
+            {
                 notification.UserinfoEndpoint = notification.Issuer.AddPath(Options.UserinfoEndpointPath);
             }
 
-            if (Options.AuthorizationEndpointPath.HasValue) {
+            if (Options.AuthorizationEndpointPath.HasValue)
+            {
                 notification.GrantTypes.Add(OpenIdConnectConstants.GrantTypes.Implicit);
 
-                if (Options.TokenEndpointPath.HasValue) {
+                if (Options.TokenEndpointPath.HasValue)
+                {
                     // Only expose the authorization code and refresh token grant types
                     // if both the authorization and the token endpoints are enabled.
                     notification.GrantTypes.Add(OpenIdConnectConstants.GrantTypes.AuthorizationCode);
                 }
             }
 
-            if (Options.TokenEndpointPath.HasValue) {
+            if (Options.TokenEndpointPath.HasValue)
+            {
                 notification.GrantTypes.Add(OpenIdConnectConstants.GrantTypes.RefreshToken);
                 notification.GrantTypes.Add(OpenIdConnectConstants.GrantTypes.ClientCredentials);
                 notification.GrantTypes.Add(OpenIdConnectConstants.GrantTypes.Password);
@@ -151,7 +174,8 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             // Only populate response_modes_supported and response_types_supported
             // if the authorization endpoint is available.
-            if (Options.AuthorizationEndpointPath.HasValue) {
+            if (Options.AuthorizationEndpointPath.HasValue)
+            {
                 notification.ResponseModes.Add(OpenIdConnectConstants.ResponseModes.FormPost);
                 notification.ResponseModes.Add(OpenIdConnectConstants.ResponseModes.Fragment);
                 notification.ResponseModes.Add(OpenIdConnectConstants.ResponseModes.Query);
@@ -160,7 +184,8 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                 // Only expose response types containing code when
                 // the token endpoint has not been explicitly disabled.
-                if (Options.TokenEndpointPath.HasValue) {
+                if (Options.TokenEndpointPath.HasValue)
+                {
                     notification.ResponseTypes.Add(OpenIdConnectConstants.ResponseTypes.Code);
 
                     notification.ResponseTypes.Add(
@@ -169,7 +194,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                 }
 
                 // Only expose the response types containing id_token if an asymmetric signing key is available.
-                if (Options.SigningCredentials.Any(credentials => credentials.SigningKey is AsymmetricSecurityKey)) {
+                if (Options.SigningCredentials.Any(credentials => credentials.SigningKey is AsymmetricSecurityKey))
+                {
                     notification.ResponseTypes.Add(OpenIdConnectConstants.ResponseTypes.IdToken);
 
                     notification.ResponseTypes.Add(
@@ -178,7 +204,8 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                     // Only expose response types containing code when
                     // the token endpoint has not been explicitly disabled.
-                    if (Options.TokenEndpointPath.HasValue) {
+                    if (Options.TokenEndpointPath.HasValue)
+                    {
                         notification.ResponseTypes.Add(
                             OpenIdConnectConstants.ResponseTypes.Code + ' ' +
                             OpenIdConnectConstants.ResponseTypes.IdToken);
@@ -200,15 +227,18 @@ namespace Owin.Security.OpenIdConnect.Server {
             notification.CodeChallengeMethods.Add(OpenIdConnectConstants.CodeChallengeMethods.Plain);
             notification.CodeChallengeMethods.Add(OpenIdConnectConstants.CodeChallengeMethods.Sha256);
 
-            foreach (var credentials in Options.SigningCredentials) {
+            foreach (var credentials in Options.SigningCredentials)
+            {
                 // If the signing key is not an asymmetric key, ignore it.
-                if (!(credentials.SigningKey is AsymmetricSecurityKey)) {
+                if (!(credentials.SigningKey is AsymmetricSecurityKey))
+                {
                     continue;
                 }
 
                 // Try to resolve the JWA algorithm short name. If a null value is returned, ignore it.
                 var algorithm = OpenIdConnectServerHelpers.GetJwtAlgorithm(credentials.SignatureAlgorithm);
-                if (string.IsNullOrEmpty(algorithm)) {
+                if (string.IsNullOrEmpty(algorithm))
+                {
                     continue;
                 }
 
@@ -217,31 +247,36 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             await Options.Provider.HandleConfigurationRequest(notification);
 
-            if (notification.HandledResponse) {
+            if (notification.HandledResponse)
+            {
                 Options.Logger.LogDebug("The discovery request was handled in user code.");
 
                 return true;
             }
 
-            else if (notification.Skipped) {
+            else if (notification.Skipped)
+            {
                 Options.Logger.LogDebug("The default discovery request handling was skipped from user code.");
 
                 return false;
             }
 
-            else if (notification.IsRejected) {
+            else if (notification.IsRejected)
+            {
                 Options.Logger.LogError("The discovery request was rejected with the following error: {Error} ; {Description}",
                                         /* Error: */ notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                                         /* Description: */ notification.ErrorDescription);
 
-                return await SendConfigurationResponseAsync(new OpenIdConnectResponse {
+                return await SendConfigurationResponseAsync(new OpenIdConnectResponse
+                {
                     Error = notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = notification.ErrorDescription,
                     ErrorUri = notification.ErrorUri
                 });
             }
 
-            var response = new OpenIdConnectResponse {
+            var response = new OpenIdConnectResponse
+            {
                 [OpenIdConnectConstants.Metadata.Issuer] = notification.Issuer,
                 [OpenIdConnectConstants.Metadata.AuthorizationEndpoint] = notification.AuthorizationEndpoint,
                 [OpenIdConnectConstants.Metadata.TokenEndpoint] = notification.TokenEndpoint,
@@ -259,21 +294,25 @@ namespace Owin.Security.OpenIdConnect.Server {
                 [OpenIdConnectConstants.Metadata.SubjectTypesSupported] = new JArray(notification.SubjectTypes)
             };
 
-            foreach (var metadata in notification.Metadata) {
+            foreach (var metadata in notification.Metadata)
+            {
                 response.SetParameter(metadata.Key, metadata.Value);
             }
 
             return await SendConfigurationResponseAsync(response);
         }
 
-        private async Task<bool> InvokeCryptographyEndpointAsync() {
+        private async Task<bool> InvokeCryptographyEndpointAsync()
+        {
             // Metadata requests must be made via GET.
             // See http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationRequest
-            if (!string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase)) {
+            if (!string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase))
+            {
                 Options.Logger.LogError("The discovery request was rejected because an invalid " +
                                         "HTTP method was used: {Method}.", Request.Method);
 
-                return await SendCryptographyResponseAsync(new OpenIdConnectResponse {
+                return await SendCryptographyResponseAsync(new OpenIdConnectResponse
+                {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "Invalid HTTP method: make sure to use GET."
                 });
@@ -291,24 +330,28 @@ namespace Owin.Security.OpenIdConnect.Server {
             var @event = new ExtractCryptographyRequestContext(Context, Options, request);
             await Options.Provider.ExtractCryptographyRequest(@event);
 
-            if (@event.HandledResponse) {
+            if (@event.HandledResponse)
+            {
                 Options.Logger.LogDebug("The discovery request was handled in user code.");
 
                 return true;
             }
 
-            else if (@event.Skipped) {
+            else if (@event.Skipped)
+            {
                 Options.Logger.LogDebug("The default discovery request handling was skipped from user code.");
 
                 return false;
             }
 
-            else if (@event.IsRejected) {
+            else if (@event.IsRejected)
+            {
                 Options.Logger.LogError("The discovery request was rejected with the following error: {Error} ; {Description}",
                                         /* Error: */ @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                                         /* Description: */ @event.ErrorDescription);
 
-                return await SendCryptographyResponseAsync(new OpenIdConnectResponse {
+                return await SendCryptographyResponseAsync(new OpenIdConnectResponse
+                {
                     Error = @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = @event.ErrorDescription,
                     ErrorUri = @event.ErrorUri
@@ -321,24 +364,28 @@ namespace Owin.Security.OpenIdConnect.Server {
             var context = new ValidateCryptographyRequestContext(Context, Options, request);
             await Options.Provider.ValidateCryptographyRequest(context);
 
-            if (context.HandledResponse) {
+            if (context.HandledResponse)
+            {
                 Options.Logger.LogDebug("The discovery request was handled in user code.");
 
                 return true;
             }
 
-            else if (context.Skipped) {
+            else if (context.Skipped)
+            {
                 Options.Logger.LogDebug("The default discovery request handling was skipped from user code.");
 
                 return false;
             }
 
-            else if (!context.IsValidated) {
+            else if (!context.IsValidated)
+            {
                 Options.Logger.LogError("The discovery request was rejected with the following error: {Error} ; {Description}",
                                         /* Error: */ context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                                         /* Description: */ context.ErrorDescription);
 
-                return await SendCryptographyResponseAsync(new OpenIdConnectResponse {
+                return await SendCryptographyResponseAsync(new OpenIdConnectResponse
+                {
                     Error = context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = context.ErrorDescription,
                     ErrorUri = context.ErrorUri
@@ -347,13 +394,16 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             var notification = new HandleCryptographyRequestContext(Context, Options, request);
 
-            foreach (var credentials in Options.SigningCredentials) {
+            foreach (var credentials in Options.SigningCredentials)
+            {
                 // If the signing key is not an asymmetric key, ignore it.
-                if (!(credentials.SigningKey is AsymmetricSecurityKey)) {
+                if (!(credentials.SigningKey is AsymmetricSecurityKey))
+                {
                     continue;
                 }
 
-                if (!credentials.SigningKey.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature)) {
+                if (!credentials.SigningKey.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature))
+                {
                     Options.Logger.LogInformation("An unsupported signing key was ignored and excluded from the " +
                                                   "key set: {Type}. Only RSA asymmetric security keys can be exposed " +
                                                   "via the JWKS endpoint.", credentials.SigningKey.GetType().Name);
@@ -372,7 +422,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                         privateKey: false) as RSA;
 
                 // Skip the key if an algorithm instance cannot be extracted.
-                if (algorithm == null) {
+                if (algorithm == null)
+                {
                     Options.Logger.LogWarning("A signing key was ignored because it was unable " +
                                               "to provide the requested algorithm instance.");
 
@@ -387,7 +438,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                              parameters.Modulus != null,
                     "RSA.ExportParameters() shouldn't return null parameters.");
 
-                var key = new JsonWebKey {
+                var key = new JsonWebKey
+                {
                     Use = JsonWebKeyUseNames.Sig,
                     Kty = JsonWebAlgorithmsKeyTypes.RSA,
 
@@ -408,26 +460,31 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                 // Determine whether the signing credentials are directly based on a X.509 certificate.
                 var x509SigningCredentials = credentials as X509SigningCredentials;
-                if (x509SigningCredentials != null) {
+                if (x509SigningCredentials != null)
+                {
                     certificate = x509SigningCredentials.Certificate;
                 }
 
                 // Skip looking for a X509SecurityKey in SigningCredentials.SigningKey
                 // if a certificate has been found in the SigningCredentials instance.
-                if (certificate == null) {
+                if (certificate == null)
+                {
                     // Determine whether the security key is an asymmetric key embedded in a X.509 certificate.
                     var x509SecurityKey = credentials.SigningKey as X509SecurityKey;
-                    if (x509SecurityKey != null) {
+                    if (x509SecurityKey != null)
+                    {
                         certificate = x509SecurityKey.Certificate;
                     }
                 }
 
                 // Skip looking for a X509AsymmetricSecurityKey in SigningCredentials.SigningKey
                 // if a certificate has been found in SigningCredentials or SigningCredentials.SigningKey.
-                if (certificate == null) {
+                if (certificate == null)
+                {
                     // Determine whether the security key is an asymmetric key embedded in a X.509 certificate.
                     var x509AsymmetricSecurityKey = credentials.SigningKey as X509AsymmetricSecurityKey;
-                    if (x509AsymmetricSecurityKey != null) {
+                    if (x509AsymmetricSecurityKey != null)
+                    {
                         // The X.509 certificate is not directly accessible when using X509AsymmetricSecurityKey.
                         // Reflection is the only way to get the certificate used to create the security key.
                         var field = typeof(X509AsymmetricSecurityKey).GetField(
@@ -441,7 +498,8 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                 // If the signing key is embedded in a X.509 certificate, set
                 // the x5t and x5c parameters using the certificate details.
-                if (certificate != null) {
+                if (certificate != null)
+                {
                     // x5t must be base64url-encoded.
                     // See https://tools.ietf.org/html/rfc7517#section-4.8
                     key.X5t = Base64UrlEncoder.Encode(certificate.GetCertHash());
@@ -457,24 +515,28 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             await Options.Provider.HandleCryptographyRequest(notification);
 
-            if (notification.HandledResponse) {
+            if (notification.HandledResponse)
+            {
                 Options.Logger.LogDebug("The discovery request was handled in user code.");
 
                 return true;
             }
 
-            else if (notification.Skipped) {
+            else if (notification.Skipped)
+            {
                 Options.Logger.LogDebug("The default discovery request handling was skipped from user code.");
 
                 return false;
             }
 
-            else if (notification.IsRejected) {
+            else if (notification.IsRejected)
+            {
                 Options.Logger.LogError("The discovery request was rejected with the following error: {Error} ; {Description}",
                                         /* Error: */ notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                                         /* Description: */ notification.ErrorDescription);
 
-                return await SendCryptographyResponseAsync(new OpenIdConnectResponse {
+                return await SendCryptographyResponseAsync(new OpenIdConnectResponse
+                {
                     Error = notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = notification.ErrorDescription,
                     ErrorUri = notification.ErrorUri
@@ -483,12 +545,14 @@ namespace Owin.Security.OpenIdConnect.Server {
 
             var keys = new JArray();
 
-            foreach (var key in notification.Keys) {
+            foreach (var key in notification.Keys)
+            {
                 var item = new JObject();
 
                 // Ensure a key type has been provided.
                 // See https://tools.ietf.org/html/rfc7517#section-4.1
-                if (string.IsNullOrEmpty(key.Kty)) {
+                if (string.IsNullOrEmpty(key.Kty))
+                {
                     Options.Logger.LogError("A JSON Web Key was excluded from the key set because " +
                                             "it didn't contain the mandatory 'kid' parameter.");
 
@@ -497,7 +561,8 @@ namespace Owin.Security.OpenIdConnect.Server {
 
                 // Create a dictionary associating the
                 // JsonWebKey components with their values.
-                var parameters = new Dictionary<string, string> {
+                var parameters = new Dictionary<string, string>
+                {
                     [JsonWebKeyParameterNames.Kid] = key.Kid,
                     [JsonWebKeyParameterNames.Use] = key.Use,
                     [JsonWebKeyParameterNames.Kty] = key.Kty,
@@ -509,38 +574,45 @@ namespace Owin.Security.OpenIdConnect.Server {
                     [JsonWebKeyParameterNames.X5u] = key.X5u
                 };
 
-                foreach (var parameter in parameters) {
-                    if (!string.IsNullOrEmpty(parameter.Value)) {
+                foreach (var parameter in parameters)
+                {
+                    if (!string.IsNullOrEmpty(parameter.Value))
+                    {
                         item.Add(parameter.Key, parameter.Value);
                     }
                 }
 
-                if (key.X5c.Count != 0) {
+                if (key.X5c.Count != 0)
+                {
                     item.Add(JsonWebKeyParameterNames.X5c, new JArray(key.X5c));
                 }
 
                 keys.Add(item);
             }
 
-            return await SendCryptographyResponseAsync(new OpenIdConnectResponse {
+            return await SendCryptographyResponseAsync(new OpenIdConnectResponse
+            {
                 [OpenIdConnectConstants.Parameters.Keys] = keys
             });
         }
 
-        private async Task<bool> SendConfigurationResponseAsync(OpenIdConnectResponse response) {
+        private async Task<bool> SendConfigurationResponseAsync(OpenIdConnectResponse response)
+        {
             var request = Context.GetOpenIdConnectRequest();
             Context.SetOpenIdConnectResponse(response);
 
             var notification = new ApplyConfigurationResponseContext(Context, Options, request, response);
             await Options.Provider.ApplyConfigurationResponse(notification);
 
-            if (notification.HandledResponse) {
+            if (notification.HandledResponse)
+            {
                 Options.Logger.LogDebug("The discovery request was handled in user code.");
 
                 return true;
             }
 
-            else if (notification.Skipped) {
+            else if (notification.Skipped)
+            {
                 Options.Logger.LogDebug("The default discovery request handling was skipped from user code.");
 
                 return false;
@@ -551,20 +623,23 @@ namespace Owin.Security.OpenIdConnect.Server {
             return await SendPayloadAsync(response);
         }
 
-        private async Task<bool> SendCryptographyResponseAsync(OpenIdConnectResponse response) {
+        private async Task<bool> SendCryptographyResponseAsync(OpenIdConnectResponse response)
+        {
             var request = Context.GetOpenIdConnectRequest();
             Context.SetOpenIdConnectResponse(response);
 
             var notification = new ApplyCryptographyResponseContext(Context, Options, request, response);
             await Options.Provider.ApplyCryptographyResponse(notification);
 
-            if (notification.HandledResponse) {
+            if (notification.HandledResponse)
+            {
                 Options.Logger.LogDebug("The discovery request was handled in user code.");
 
                 return true;
             }
 
-            else if (notification.Skipped) {
+            else if (notification.Skipped)
+            {
                 Options.Logger.LogDebug("The default discovery request handling was skipped from user code.");
 
                 return false;

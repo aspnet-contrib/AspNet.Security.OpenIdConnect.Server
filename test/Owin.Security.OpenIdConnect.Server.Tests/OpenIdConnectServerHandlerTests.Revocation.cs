@@ -14,8 +14,10 @@ using Owin.Security.OpenIdConnect.Extensions;
 using Xunit;
 using static System.Net.Http.HttpMethod;
 
-namespace Owin.Security.OpenIdConnect.Server.Tests {
-    public partial class OpenIdConnectServerHandlerTests {
+namespace Owin.Security.OpenIdConnect.Server.Tests
+{
+    public partial class OpenIdConnectServerHandlerTests
+    {
         [Theory]
         [InlineData(nameof(Delete))]
         [InlineData(nameof(Get))]
@@ -23,7 +25,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         [InlineData(nameof(Options))]
         [InlineData(nameof(Put))]
         [InlineData(nameof(Trace))]
-        public async Task InvokeRevocationEndpointAsync_UnexpectedMethodReturnsAnError(string method) {
+        public async Task InvokeRevocationEndpointAsync_UnexpectedMethodReturnsAnError(string method)
+        {
             // Arrange
             var server = CreateAuthorizationServer();
 
@@ -46,10 +49,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         [InlineData(null, "custom_description", "custom_uri")]
         [InlineData(null, null, "custom_uri")]
         [InlineData(null, null, null)]
-        public async Task InvokeRevocationEndpointAsync_ExtractRevocationRequest_AllowsRejectingRequest(string error, string description, string uri) {
+        public async Task InvokeRevocationEndpointAsync_ExtractRevocationRequest_AllowsRejectingRequest(string error, string description, string uri)
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnExtractRevocationRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnExtractRevocationRequest = context =>
+                {
                     context.Reject(error, description, uri);
 
                     return Task.FromResult(0);
@@ -68,15 +74,19 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeRevocationEndpointAsync_ExtractRevocationRequest_AllowsHandlingResponse() {
+        public async Task InvokeRevocationEndpointAsync_ExtractRevocationRequest_AllowsHandlingResponse()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnExtractRevocationRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnExtractRevocationRequest = context =>
+                {
                     context.HandleResponse();
 
                     context.OwinContext.Response.Headers["Content-Type"] = "application/json";
 
-                    return context.OwinContext.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                    return context.OwinContext.Response.WriteAsync(JsonConvert.SerializeObject(new
+                    {
                         name = "Bob le Bricoleur"
                     }));
                 };
@@ -92,10 +102,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeRevocationEndpointAsync_ExtractRevocationRequest_AllowsSkippingToNextMiddleware() {
+        public async Task InvokeRevocationEndpointAsync_ExtractRevocationRequest_AllowsSkippingToNextMiddleware()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnExtractRevocationRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnExtractRevocationRequest = context =>
+                {
                     context.SkipToNextMiddleware();
 
                     return Task.FromResult(0);
@@ -112,14 +125,16 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeRevocationEndpointAsync_MissingTokenCausesAnError() {
+        public async Task InvokeRevocationEndpointAsync_MissingTokenCausesAnError()
+        {
             // Arrange
             var server = CreateAuthorizationServer();
 
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(RevocationEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(RevocationEndpoint, new OpenIdConnectRequest
+            {
                 Token = null
             });
 
@@ -137,10 +152,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         [InlineData(null, "custom_description", "custom_uri")]
         [InlineData(null, null, "custom_uri")]
         [InlineData(null, null, null)]
-        public async Task InvokeRevocationEndpointAsync_ValidateRevocationRequest_AllowsRejectingRequest(string error, string description, string uri) {
+        public async Task InvokeRevocationEndpointAsync_ValidateRevocationRequest_AllowsRejectingRequest(string error, string description, string uri)
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateRevocationRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateRevocationRequest = context =>
+                {
                     context.Reject(error, description, uri);
 
                     return Task.FromResult(0);
@@ -150,7 +168,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(RevocationEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(RevocationEndpoint, new OpenIdConnectRequest
+            {
                 Token = "2YotnFZFEjr1zCsicMWpAA"
             });
 
@@ -161,15 +180,19 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeRevocationEndpointAsync_ValidateRevocationRequest_AllowsHandlingResponse() {
+        public async Task InvokeRevocationEndpointAsync_ValidateRevocationRequest_AllowsHandlingResponse()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateRevocationRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateRevocationRequest = context =>
+                {
                     context.HandleResponse();
 
                     context.OwinContext.Response.Headers["Content-Type"] = "application/json";
 
-                    return context.OwinContext.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                    return context.OwinContext.Response.WriteAsync(JsonConvert.SerializeObject(new
+                    {
                         name = "Bob le Magnifique"
                     }));
                 };
@@ -178,7 +201,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(RevocationEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(RevocationEndpoint, new OpenIdConnectRequest
+            {
                 Token = "2YotnFZFEjr1zCsicMWpAA"
             });
 
@@ -187,10 +211,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeRevocationEndpointAsync_ValidateRevocationRequest_AllowsSkippingToNextMiddleware() {
+        public async Task InvokeRevocationEndpointAsync_ValidateRevocationRequest_AllowsSkippingToNextMiddleware()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateRevocationRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateRevocationRequest = context =>
+                {
                     context.SkipToNextMiddleware();
 
                     return Task.FromResult(0);
@@ -200,7 +227,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(RevocationEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(RevocationEndpoint, new OpenIdConnectRequest
+            {
                 Token = "2YotnFZFEjr1zCsicMWpAA"
             });
 
@@ -209,10 +237,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeRevocationEndpointAsync_MissingClientIdCausesAnErrorForValidatedRequests() {
+        public async Task InvokeRevocationEndpointAsync_MissingClientIdCausesAnErrorForValidatedRequests()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateRevocationRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateRevocationRequest = context =>
+                {
                     context.Validate();
 
                     return Task.FromResult(0);
@@ -222,7 +253,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(RevocationEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(RevocationEndpoint, new OpenIdConnectRequest
+            {
                 ClientId = null,
                 Token = "2YotnFZFEjr1zCsicMWpAA"
             });
@@ -233,10 +265,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeRevocationEndpointAsync_ConfidentialTokenCausesAnErrorWhenValidationIsSkipped() {
+        public async Task InvokeRevocationEndpointAsync_ConfidentialTokenCausesAnErrorWhenValidationIsSkipped()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeRefreshToken = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeRefreshToken = context =>
+                {
                     Assert.Equal("SlAV32hkKG", context.RefreshToken);
 
                     context.Ticket = new AuthenticationTicket(
@@ -250,7 +285,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateRevocationRequest = context => {
+                options.Provider.OnValidateRevocationRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
@@ -260,7 +296,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(RevocationEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(RevocationEndpoint, new OpenIdConnectRequest
+            {
                 Token = "SlAV32hkKG",
                 TokenTypeHint = OpenIdConnectConstants.TokenTypeHints.RefreshToken
             });
@@ -270,10 +307,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeRevocationEndpointAsync_AuthorizationCodeCausesAnErrorWhenCallerIsNotAValidPresenter() {
+        public async Task InvokeRevocationEndpointAsync_AuthorizationCodeCausesAnErrorWhenCallerIsNotAValidPresenter()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeAuthorizationCode = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAuthorizationCode = context =>
+                {
                     Assert.Equal("SlAV32hkKG", context.AuthorizationCode);
 
                     context.Ticket = new AuthenticationTicket(
@@ -285,7 +325,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateRevocationRequest = context => {
+                options.Provider.OnValidateRevocationRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
@@ -295,7 +336,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(RevocationEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(RevocationEndpoint, new OpenIdConnectRequest
+            {
                 ClientId = "Fabrikam",
                 Token = "SlAV32hkKG",
                 TokenTypeHint = OpenIdConnectConstants.TokenTypeHints.AuthorizationCode
@@ -306,10 +348,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeRevocationEndpointAsync_AccessTokenCausesAnErrorWhenCallerIsNotAValidAudienceOrPresenter() {
+        public async Task InvokeRevocationEndpointAsync_AccessTokenCausesAnErrorWhenCallerIsNotAValidAudienceOrPresenter()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeAccessToken = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAccessToken = context =>
+                {
                     Assert.Equal("2YotnFZFEjr1zCsicMWpAA", context.AccessToken);
 
                     context.Ticket = new AuthenticationTicket(
@@ -322,7 +367,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateRevocationRequest = context => {
+                options.Provider.OnValidateRevocationRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
@@ -332,7 +378,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(RevocationEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(RevocationEndpoint, new OpenIdConnectRequest
+            {
                 ClientId = "Fabrikam",
                 Token = "2YotnFZFEjr1zCsicMWpAA",
                 TokenTypeHint = OpenIdConnectConstants.TokenTypeHints.AccessToken
@@ -343,10 +390,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeRevocationEndpointAsync_IdentityTokenCausesAnErrorWhenCallerIsNotAValidAudience() {
+        public async Task InvokeRevocationEndpointAsync_IdentityTokenCausesAnErrorWhenCallerIsNotAValidAudience()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeIdentityToken = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeIdentityToken = context =>
+                {
                     Assert.Equal("2YotnFZFEjr1zCsicMWpAA", context.IdentityToken);
 
                     context.Ticket = new AuthenticationTicket(
@@ -358,7 +408,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateRevocationRequest = context => {
+                options.Provider.OnValidateRevocationRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
@@ -368,7 +419,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(RevocationEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(RevocationEndpoint, new OpenIdConnectRequest
+            {
                 ClientId = "Fabrikam",
                 Token = "2YotnFZFEjr1zCsicMWpAA",
                 TokenTypeHint = OpenIdConnectConstants.TokenTypeHints.IdToken
@@ -379,10 +431,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeRevocationEndpointAsync_RefreshTokenCausesAnErrorWhenCallerIsNotAValidPresenter() {
+        public async Task InvokeRevocationEndpointAsync_RefreshTokenCausesAnErrorWhenCallerIsNotAValidPresenter()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeRefreshToken = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeRefreshToken = context =>
+                {
                     Assert.Equal("8xLOxBtZp8", context.RefreshToken);
 
                     context.Ticket = new AuthenticationTicket(
@@ -394,7 +449,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateRevocationRequest = context => {
+                options.Provider.OnValidateRevocationRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
@@ -404,7 +460,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(RevocationEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(RevocationEndpoint, new OpenIdConnectRequest
+            {
                 ClientId = "Fabrikam",
                 Token = "8xLOxBtZp8",
                 TokenTypeHint = OpenIdConnectConstants.TokenTypeHints.RefreshToken
@@ -422,10 +479,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         [InlineData(null, "custom_description", "custom_uri")]
         [InlineData(null, null, "custom_uri")]
         [InlineData(null, null, null)]
-        public async Task InvokeRevocationEndpointAsync_HandleRevocationRequest_AllowsRejectingRequest(string error, string description, string uri) {
+        public async Task InvokeRevocationEndpointAsync_HandleRevocationRequest_AllowsRejectingRequest(string error, string description, string uri)
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeAuthorizationCode = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAuthorizationCode = context =>
+                {
                     Assert.Equal("2YotnFZFEjr1zCsicMWpAA", context.AuthorizationCode);
 
                     context.Ticket = new AuthenticationTicket(
@@ -435,13 +495,15 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateRevocationRequest = context => {
+                options.Provider.OnValidateRevocationRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleRevocationRequest = context => {
+                options.Provider.OnHandleRevocationRequest = context =>
+                {
                     context.Reject(error, description, uri);
 
                     return Task.FromResult(0);
@@ -451,7 +513,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(RevocationEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(RevocationEndpoint, new OpenIdConnectRequest
+            {
                 Token = "2YotnFZFEjr1zCsicMWpAA"
             });
 
@@ -462,10 +525,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeRevocationEndpointAsync_HandleRevocationRequest_AllowsHandlingResponse() {
+        public async Task InvokeRevocationEndpointAsync_HandleRevocationRequest_AllowsHandlingResponse()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeAuthorizationCode = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAuthorizationCode = context =>
+                {
                     Assert.Equal("2YotnFZFEjr1zCsicMWpAA", context.AuthorizationCode);
 
                     context.Ticket = new AuthenticationTicket(
@@ -475,18 +541,21 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateRevocationRequest = context => {
+                options.Provider.OnValidateRevocationRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleRevocationRequest = context => {
+                options.Provider.OnHandleRevocationRequest = context =>
+                {
                     context.HandleResponse();
 
                     context.OwinContext.Response.Headers["Content-Type"] = "application/json";
 
-                    return context.OwinContext.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                    return context.OwinContext.Response.WriteAsync(JsonConvert.SerializeObject(new
+                    {
                         name = "Bob le Magnifique"
                     }));
                 };
@@ -495,7 +564,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(RevocationEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(RevocationEndpoint, new OpenIdConnectRequest
+            {
                 Token = "2YotnFZFEjr1zCsicMWpAA"
             });
 
@@ -504,10 +574,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeRevocationEndpointAsync_HandleRevocationRequest_AllowsSkippingToNextMiddleware() {
+        public async Task InvokeRevocationEndpointAsync_HandleRevocationRequest_AllowsSkippingToNextMiddleware()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeAuthorizationCode = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAuthorizationCode = context =>
+                {
                     Assert.Equal("2YotnFZFEjr1zCsicMWpAA", context.AuthorizationCode);
 
                     context.Ticket = new AuthenticationTicket(
@@ -517,13 +590,15 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateRevocationRequest = context => {
+                options.Provider.OnValidateRevocationRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleRevocationRequest = context => {
+                options.Provider.OnHandleRevocationRequest = context =>
+                {
                     context.SkipToNextMiddleware();
 
                     return Task.FromResult(0);
@@ -533,7 +608,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(RevocationEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(RevocationEndpoint, new OpenIdConnectRequest
+            {
                 Token = "2YotnFZFEjr1zCsicMWpAA"
             });
 
@@ -542,10 +618,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task SendRevocationResponseAsync_ApplyRevocationResponse_AllowsHandlingResponse() {
+        public async Task SendRevocationResponseAsync_ApplyRevocationResponse_AllowsHandlingResponse()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeAuthorizationCode = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAuthorizationCode = context =>
+                {
                     Assert.Equal("2YotnFZFEjr1zCsicMWpAA", context.AuthorizationCode);
 
                     context.Ticket = new AuthenticationTicket(
@@ -555,18 +634,21 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateRevocationRequest = context => {
+                options.Provider.OnValidateRevocationRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnApplyRevocationResponse = context => {
+                options.Provider.OnApplyRevocationResponse = context =>
+                {
                     context.HandleResponse();
 
                     context.OwinContext.Response.Headers["Content-Type"] = "application/json";
 
-                    return context.OwinContext.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                    return context.OwinContext.Response.WriteAsync(JsonConvert.SerializeObject(new
+                    {
                         name = "Bob le Magnifique"
                     }));
                 };
@@ -575,7 +657,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(RevocationEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(RevocationEndpoint, new OpenIdConnectRequest
+            {
                 Token = "2YotnFZFEjr1zCsicMWpAA"
             });
 
@@ -584,10 +667,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task SendRevocationResponseAsync_ApplyRevocationResponse_ResponseContainsCustomParameters() {
+        public async Task SendRevocationResponseAsync_ApplyRevocationResponse_ResponseContainsCustomParameters()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeAuthorizationCode = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAuthorizationCode = context =>
+                {
                     Assert.Equal("2YotnFZFEjr1zCsicMWpAA", context.AuthorizationCode);
 
                     context.Ticket = new AuthenticationTicket(
@@ -597,13 +683,15 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateRevocationRequest = context => {
+                options.Provider.OnValidateRevocationRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnApplyRevocationResponse = context => {
+                options.Provider.OnApplyRevocationResponse = context =>
+                {
                     context.Response["custom_parameter"] = "custom_value";
 
                     return Task.FromResult(0);
@@ -613,7 +701,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(RevocationEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(RevocationEndpoint, new OpenIdConnectRequest
+            {
                 Token = "2YotnFZFEjr1zCsicMWpAA"
             });
 

@@ -9,11 +9,13 @@ using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 
-namespace AspNet.Security.OpenIdConnect.Server {
+namespace AspNet.Security.OpenIdConnect.Server
+{
     /// <summary>
     /// Provides context information used when receiving a refresh token.
     /// </summary>
-    public class DeserializeRefreshTokenContext : BaseControlContext {
+    public class DeserializeRefreshTokenContext : BaseControlContext
+    {
         /// <summary>
         /// Initializes a new instance of the <see cref="DeserializeRefreshTokenContext"/> class
         /// </summary>
@@ -26,7 +28,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             OpenIdConnectServerOptions options,
             OpenIdConnectRequest request,
             string token)
-            : base(context) {
+            : base(context)
+        {
             Options = options;
             Request = request;
             RefreshToken = token;
@@ -45,7 +48,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the OpenID Connect response.
         /// </summary>
-        public new OpenIdConnectResponse Response {
+        public new OpenIdConnectResponse Response
+        {
             get { throw new InvalidOperationException("The OpenID Connect response is not available at this stage."); }
         }
 

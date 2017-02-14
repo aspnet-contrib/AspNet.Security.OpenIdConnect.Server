@@ -8,10 +8,14 @@ using System.Collections.Generic;
 using System.Reflection;
 using Xunit;
 
-namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
-    public class OpenIdConnectResponseTests {
-        public static IEnumerable<object[]> Properties {
-            get {
+namespace AspNet.Security.OpenIdConnect.Primitives.Tests
+{
+    public class OpenIdConnectResponseTests
+    {
+        public static IEnumerable<object[]> Properties
+        {
+            get
+            {
                 yield return new object[] {
                     /* property: */ nameof(OpenIdConnectResponse.AccessToken),
                     /* name: */ OpenIdConnectConstants.Parameters.AccessToken,
@@ -100,7 +104,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
 
         [Theory]
         [MemberData(nameof(Properties))]
-        public void PropertyGetter_ReturnsExpectedParameter(string property, string name, OpenIdConnectParameter value) {
+        public void PropertyGetter_ReturnsExpectedParameter(string property, string name, OpenIdConnectParameter value)
+        {
             // Arrange
             var response = new OpenIdConnectResponse();
             response.SetParameter(name, value);
@@ -111,7 +116,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
 
         [Theory]
         [MemberData(nameof(Properties))]
-        public void PropertySetter_AddsExpectedParameter(string property, string name, OpenIdConnectParameter value) {
+        public void PropertySetter_AddsExpectedParameter(string property, string name, OpenIdConnectParameter value)
+        {
             // Arrange
             var response = new OpenIdConnectResponse();
 

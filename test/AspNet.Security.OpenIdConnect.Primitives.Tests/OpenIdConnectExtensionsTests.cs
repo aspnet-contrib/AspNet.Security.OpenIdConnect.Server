@@ -6,8 +6,10 @@
 
 using Xunit;
 
-namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
-    public class OpenIdConnectExtensionsTests {
+namespace AspNet.Security.OpenIdConnect.Primitives.Tests
+{
+    public class OpenIdConnectExtensionsTests
+    {
         [Theory]
         [InlineData(null, new string[0])]
         [InlineData("fabrikam", new[] { "fabrikam" })]
@@ -17,7 +19,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData("fabrikam     contoso", new[] { "fabrikam", "contoso" })]
         [InlineData("fabrikam contoso ", new[] { "fabrikam", "contoso" })]
         [InlineData(" fabrikam contoso", new[] { "fabrikam", "contoso" })]
-        public void GetResources_ReturnsExpectedResources(string resource, string[] resources) {
+        public void GetResources_ReturnsExpectedResources(string resource, string[] resources)
+        {
             // Arrange
             var request = new OpenIdConnectRequest();
             request.Resource = resource;
@@ -35,7 +38,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData("openid     profile", new[] { "openid", "profile" })]
         [InlineData("openid profile ", new[] { "openid", "profile" })]
         [InlineData(" openid profile", new[] { "openid", "profile" })]
-        public void GetScopes_ReturnsExpectedScopes(string scope, string[] scopes) {
+        public void GetScopes_ReturnsExpectedScopes(string scope, string[] scopes)
+        {
             // Arrange
             var request = new OpenIdConnectRequest();
             request.Scope = scope;
@@ -66,7 +70,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData("ID_TOKEN    CODE   TOKEN ", false)]
         [InlineData("ID_TOKEN", false)]
         [InlineData("ID_TOKEN TOKEN", false)]
-        public void HasResponseType_ReturnsExpectedResult(string type, bool result) {
+        public void HasResponseType_ReturnsExpectedResult(string type, bool result)
+        {
             // Arrange
             var request = new OpenIdConnectRequest();
             request.ResponseType = type;
@@ -95,7 +100,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData(" OPENID PROFILE", false)]
         [InlineData("PROFILE", false)]
         [InlineData("PROFILE EMAIL", false)]
-        public void HasScope_ReturnsExpectedResult(string scope, bool result) {
+        public void HasScope_ReturnsExpectedResult(string scope, bool result)
+        {
             // Arrange
             var request = new OpenIdConnectRequest();
             request.Scope = scope;
@@ -108,7 +114,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData(null, false)]
         [InlineData("unknown", false)]
         [InlineData(OpenIdConnectConstants.MessageTypes.AuthorizationRequest, true)]
-        public void IsAuthorizationRequest_ReturnsExpectedResult(string type, bool result) {
+        public void IsAuthorizationRequest_ReturnsExpectedResult(string type, bool result)
+        {
             // Arrange
             var request = new OpenIdConnectRequest();
             request.SetProperty(OpenIdConnectConstants.Properties.MessageType, type);
@@ -122,7 +129,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData("unknown", false)]
         [InlineData(OpenIdConnectConstants.ConfidentialityLevels.Private, true)]
         [InlineData(OpenIdConnectConstants.ConfidentialityLevels.Public, false)]
-        public void IsConfidential_ReturnsExpectedResult(string level, bool result) {
+        public void IsConfidential_ReturnsExpectedResult(string level, bool result)
+        {
             // Arrange
             var request = new OpenIdConnectRequest();
             request.SetProperty(OpenIdConnectConstants.Properties.ConfidentialityLevel, level);
@@ -135,7 +143,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData(null, false)]
         [InlineData("unknown", false)]
         [InlineData(OpenIdConnectConstants.MessageTypes.ConfigurationRequest, true)]
-        public void IsConfigurationRequest_ReturnsExpectedResult(string type, bool result) {
+        public void IsConfigurationRequest_ReturnsExpectedResult(string type, bool result)
+        {
             // Arrange
             var request = new OpenIdConnectRequest();
             request.SetProperty(OpenIdConnectConstants.Properties.MessageType, type);
@@ -148,7 +157,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData(null, false)]
         [InlineData("unknown", false)]
         [InlineData(OpenIdConnectConstants.MessageTypes.CryptographyRequest, true)]
-        public void IsCryptographyRequest_ReturnsExpectedResult(string type, bool result) {
+        public void IsCryptographyRequest_ReturnsExpectedResult(string type, bool result)
+        {
             // Arrange
             var request = new OpenIdConnectRequest();
             request.SetProperty(OpenIdConnectConstants.Properties.MessageType, type);
@@ -161,7 +171,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData(null, false)]
         [InlineData("unknown", false)]
         [InlineData(OpenIdConnectConstants.MessageTypes.IntrospectionRequest, true)]
-        public void IsIntrospectionRequest_ReturnsExpectedResult(string type, bool result) {
+        public void IsIntrospectionRequest_ReturnsExpectedResult(string type, bool result)
+        {
             // Arrange
             var request = new OpenIdConnectRequest();
             request.SetProperty(OpenIdConnectConstants.Properties.MessageType, type);
@@ -174,7 +185,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData(null, false)]
         [InlineData("unknown", false)]
         [InlineData(OpenIdConnectConstants.MessageTypes.LogoutRequest, true)]
-        public void IsLogoutRequest_ReturnsExpectedResult(string type, bool result) {
+        public void IsLogoutRequest_ReturnsExpectedResult(string type, bool result)
+        {
             // Arrange
             var request = new OpenIdConnectRequest();
             request.SetProperty(OpenIdConnectConstants.Properties.MessageType, type);
@@ -187,7 +199,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData(null, false)]
         [InlineData("unknown", false)]
         [InlineData(OpenIdConnectConstants.MessageTypes.RevocationRequest, true)]
-        public void IsRevocationRequest_ReturnsExpectedResult(string type, bool result) {
+        public void IsRevocationRequest_ReturnsExpectedResult(string type, bool result)
+        {
             // Arrange
             var request = new OpenIdConnectRequest();
             request.SetProperty(OpenIdConnectConstants.Properties.MessageType, type);
@@ -200,7 +213,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData(null, false)]
         [InlineData("unknown", false)]
         [InlineData(OpenIdConnectConstants.MessageTypes.TokenRequest, true)]
-        public void IsTokenRequest_ReturnsExpectedResult(string type, bool result) {
+        public void IsTokenRequest_ReturnsExpectedResult(string type, bool result)
+        {
             // Arrange
             var request = new OpenIdConnectRequest();
             request.SetProperty(OpenIdConnectConstants.Properties.MessageType, type);
@@ -213,7 +227,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData(null, false)]
         [InlineData("unknown", false)]
         [InlineData(OpenIdConnectConstants.MessageTypes.UserinfoRequest, true)]
-        public void IsUserinfoRequest_ReturnsExpectedResult(string type, bool result) {
+        public void IsUserinfoRequest_ReturnsExpectedResult(string type, bool result)
+        {
             // Arrange
             var request = new OpenIdConnectRequest();
             request.SetProperty(OpenIdConnectConstants.Properties.MessageType, type);
@@ -239,7 +254,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData(" NONE ID_TOKEN", false)]
         [InlineData("NONE ID_TOKEN ", false)]
         [InlineData(" NONE ID_TOKEN ", false)]
-        public void IsNoneFlow_ReturnsExpectedResult(string type, bool result) {
+        public void IsNoneFlow_ReturnsExpectedResult(string type, bool result)
+        {
             // Arrange
             var request = new OpenIdConnectRequest();
             request.ResponseType = type;
@@ -265,7 +281,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData(" CODE ID_TOKEN", false)]
         [InlineData("CODE ID_TOKEN ", false)]
         [InlineData(" CODE ID_TOKEN ", false)]
-        public void IsAuthorizationCodeFlow_ReturnsExpectedResult(string type, bool result) {
+        public void IsAuthorizationCodeFlow_ReturnsExpectedResult(string type, bool result)
+        {
             // Arrange
             var request = new OpenIdConnectRequest();
             request.ResponseType = type;
@@ -303,7 +320,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData("CODE ID_TOKEN", false)]
         [InlineData("CODE ID_TOKEN TOKEN", false)]
         [InlineData("CODE TOKEN", false)]
-        public void IsImplicitFlow_ReturnsExpectedResult(string type, bool result) {
+        public void IsImplicitFlow_ReturnsExpectedResult(string type, bool result)
+        {
             // Arrange
             var request = new OpenIdConnectRequest();
             request.ResponseType = type;
@@ -345,7 +363,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData("ID_TOKEN", false)]
         [InlineData("ID_TOKEN TOKEN", false)]
         [InlineData("TOKEN", false)]
-        public void IsHybridFlow_ReturnsExpectedResult(string type, bool result) {
+        public void IsHybridFlow_ReturnsExpectedResult(string type, bool result)
+        {
             // Arrange
             var request = new OpenIdConnectRequest();
             request.ResponseType = type;
@@ -380,7 +399,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData(null, "ID_TOKEN", false)]
         [InlineData(null, "ID_TOKEN TOKEN", false)]
         [InlineData(null, "TOKEN", false)]
-        public void IsFragmentResponseMode_ReturnsExpectedResult(string mode, string type, bool result) {
+        public void IsFragmentResponseMode_ReturnsExpectedResult(string mode, string type, bool result)
+        {
             // Arrange
             var request = new OpenIdConnectRequest();
             request.ResponseMode = mode;
@@ -416,7 +436,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData(null, "ID_TOKEN", false)]
         [InlineData(null, "ID_TOKEN TOKEN", false)]
         [InlineData(null, "TOKEN", false)]
-        public void IsQueryResponseMode_ReturnsExpectedResult(string mode, string type, bool result) {
+        public void IsQueryResponseMode_ReturnsExpectedResult(string mode, string type, bool result)
+        {
             // Arrange
             var request = new OpenIdConnectRequest();
             request.ResponseMode = mode;
@@ -438,7 +459,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData("QUERY", false)]
         [InlineData("FRAGMENT", false)]
         [InlineData("FORM_POST", false)]
-        public void IsFormPostResponseMode_ReturnsExpectedResult(string mode, bool result) {
+        public void IsFormPostResponseMode_ReturnsExpectedResult(string mode, bool result)
+        {
             // Arrange
             var request = new OpenIdConnectRequest();
             request.ResponseMode = mode;
@@ -461,7 +483,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData("CLIENT_CREDENTIALS", false)]
         [InlineData("PASSWORD", false)]
         [InlineData("REFRESH_TOKEN", false)]
-        public void IsAuthorizationCodeGrantType_ReturnsExpectedResult(string type, bool result) {
+        public void IsAuthorizationCodeGrantType_ReturnsExpectedResult(string type, bool result)
+        {
             // Arrange
             var request = new OpenIdConnectRequest();
             request.GrantType = type;
@@ -484,7 +507,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData("CLIENT_CREDENTIALS", false)]
         [InlineData("PASSWORD", false)]
         [InlineData("REFRESH_TOKEN", false)]
-        public void IsClientCredentialsGrantType_ReturnsExpectedResult(string type, bool result) {
+        public void IsClientCredentialsGrantType_ReturnsExpectedResult(string type, bool result)
+        {
             // Arrange
             var request = new OpenIdConnectRequest();
             request.GrantType = type;
@@ -507,7 +531,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData("CLIENT_CREDENTIALS", false)]
         [InlineData("PASSWORD", false)]
         [InlineData("REFRESH_TOKEN", false)]
-        public void IsPasswordGrantType_ReturnsExpectedResult(string type, bool result) {
+        public void IsPasswordGrantType_ReturnsExpectedResult(string type, bool result)
+        {
             // Arrange
             var request = new OpenIdConnectRequest();
             request.GrantType = type;
@@ -530,7 +555,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData("CLIENT_CREDENTIALS", false)]
         [InlineData("PASSWORD", false)]
         [InlineData("REFRESH_TOKEN", false)]
-        public void IsRefreshTokenGrantType_ReturnsExpectedResult(string type, bool result) {
+        public void IsRefreshTokenGrantType_ReturnsExpectedResult(string type, bool result)
+        {
             // Arrange
             var request = new OpenIdConnectRequest();
             request.GrantType = type;

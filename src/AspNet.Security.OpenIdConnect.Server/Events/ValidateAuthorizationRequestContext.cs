@@ -8,11 +8,13 @@ using System;
 using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.AspNetCore.Http;
 
-namespace AspNet.Security.OpenIdConnect.Server {
+namespace AspNet.Security.OpenIdConnect.Server
+{
     /// <summary>
     /// Provides context information used when validating an authorization request.
     /// </summary>
-    public class ValidateAuthorizationRequestContext : BaseValidatingContext {
+    public class ValidateAuthorizationRequestContext : BaseValidatingContext
+    {
         /// <summary>
         /// Initializes a new instance of the <see cref="ValidateAuthorizationRequestContext"/> class.
         /// </summary>
@@ -23,7 +25,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             HttpContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectRequest request)
-            : base(context, options, request) {
+            : base(context, options, request)
+        {
         }
 
         /// <summary>
@@ -34,7 +37,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the client redirect URI
         /// </summary>
-        public string RedirectUri {
+        public string RedirectUri
+        {
             get { return Request.RedirectUri; }
             set { Request.RedirectUri = value; }
         }
@@ -44,8 +48,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// IsValidated becomes true and HasError becomes false as a result of calling.
         /// </summary>
         /// <returns></returns>
-        public override bool Validate() {
-            if (string.IsNullOrEmpty(RedirectUri)) {
+        public override bool Validate()
+        {
+            if (string.IsNullOrEmpty(RedirectUri))
+            {
                 // Don't allow default validation when
                 // the redirect_uri is not provided.
                 return false;
@@ -59,13 +65,16 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="address"></param>
         /// <returns></returns>
-        public bool Validate(string address) {
-            if (string.IsNullOrEmpty(address)) {
+        public bool Validate(string address)
+        {
+            if (string.IsNullOrEmpty(address))
+            {
                 throw new ArgumentException("The redirect_uri cannot be null or empty.", nameof(address));
             }
 
             if (!string.IsNullOrEmpty(RedirectUri) &&
-                !string.Equals(RedirectUri, address, StringComparison.Ordinal)) {
+                !string.Equals(RedirectUri, address, StringComparison.Ordinal))
+            {
                 // Don't allow validation to alter the redirect_uri
                 // parameter extracted from the request.
                 return false;

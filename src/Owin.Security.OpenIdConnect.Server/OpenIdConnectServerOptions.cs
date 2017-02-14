@@ -15,16 +15,19 @@ using Microsoft.Owin.Infrastructure;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Notifications;
 
-namespace Owin.Security.OpenIdConnect.Server {
+namespace Owin.Security.OpenIdConnect.Server
+{
     /// <summary>
     /// Options class provides information needed to control Authorization Server middleware behavior
     /// </summary>
-    public class OpenIdConnectServerOptions : AuthenticationOptions {
+    public class OpenIdConnectServerOptions : AuthenticationOptions
+    {
         /// <summary>
         /// Creates an instance of authorization server options with default values.
         /// </summary>
         public OpenIdConnectServerOptions()
-            : base(OpenIdConnectServerDefaults.AuthenticationType) {
+            : base(OpenIdConnectServerDefaults.AuthenticationType)
+        {
             AuthenticationMode = AuthenticationMode.Passive;
         }
 

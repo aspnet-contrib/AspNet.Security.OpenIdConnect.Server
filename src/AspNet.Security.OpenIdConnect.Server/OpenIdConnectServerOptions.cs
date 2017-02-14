@@ -14,16 +14,19 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
 
-namespace AspNet.Security.OpenIdConnect.Server {
+namespace AspNet.Security.OpenIdConnect.Server
+{
     /// <summary>
     /// Provides various settings needed to control
     /// the behavior of the OpenID Connect server.
     /// </summary>
-    public class OpenIdConnectServerOptions : AuthenticationOptions {
+    public class OpenIdConnectServerOptions : AuthenticationOptions
+    {
         /// <summary>
         /// Creates an instance of authorization server options with default values.
         /// </summary>
-        public OpenIdConnectServerOptions() {
+        public OpenIdConnectServerOptions()
+        {
             AuthenticationScheme = OpenIdConnectServerDefaults.AuthenticationScheme;
         }
 

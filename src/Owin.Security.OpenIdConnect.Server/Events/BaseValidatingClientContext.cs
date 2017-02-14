@@ -7,11 +7,13 @@
 using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.Owin;
 
-namespace Owin.Security.OpenIdConnect.Server {
+namespace Owin.Security.OpenIdConnect.Server
+{
     /// <summary>
     /// Base class used for certain event contexts
     /// </summary>
-    public abstract class BaseValidatingClientContext : BaseValidatingContext {
+    public abstract class BaseValidatingClientContext : BaseValidatingContext
+    {
         /// <summary>
         /// Initializes base class used for certain event contexts
         /// </summary>
@@ -19,7 +21,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             IOwinContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectRequest request)
-            : base(context, options, request) {
+            : base(context, options, request)
+        {
         }
 
         /// <summary>
@@ -27,7 +30,8 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// The authorization server application is responsible for
         /// validating this value to ensure it identifies a registered client.
         /// </summary>
-        public string ClientId {
+        public string ClientId
+        {
             get { return Request.ClientId; }
             set { Request.ClientId = value; }
         }
@@ -37,7 +41,8 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// The authorization server application is responsible for
         /// validating this value to ensure it identifies a registered client.
         /// </summary>
-        public string ClientSecret {
+        public string ClientSecret
+        {
             get { return Request.ClientSecret; }
             set { Request.ClientSecret = value; }
         }
@@ -48,7 +53,8 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="clientId"></param>
         /// <returns></returns>
-        public bool Validate(string clientId) {
+        public bool Validate(string clientId)
+        {
             ClientId = clientId;
 
             return Validate();
@@ -61,7 +67,8 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <param name="clientId"></param>
         /// <param name="clientSecret"></param>
         /// <returns></returns>
-        public bool Validate(string clientId, string clientSecret) {
+        public bool Validate(string clientId, string clientSecret)
+        {
             ClientId = clientId;
             ClientSecret = clientSecret;
 
@@ -72,7 +79,8 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// Resets client_id and client_secret and marks
         /// the context as rejected by the application.
         /// </summary>
-        public override bool Reject() {
+        public override bool Reject()
+        {
             ClientId = null;
             ClientSecret = null;
 

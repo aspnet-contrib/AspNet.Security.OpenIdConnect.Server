@@ -10,11 +10,13 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Authentication;
 
-namespace AspNet.Security.OpenIdConnect.Server {
+namespace AspNet.Security.OpenIdConnect.Server
+{
     /// <summary>
     /// Base class used for certain event contexts
     /// </summary>
-    public abstract class BaseValidatingTicketContext : BaseValidatingContext {
+    public abstract class BaseValidatingTicketContext : BaseValidatingContext
+    {
         /// <summary>
         /// Initializes base class used for certain event contexts
         /// </summary>
@@ -23,7 +25,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             OpenIdConnectServerOptions options,
             OpenIdConnectRequest request,
             AuthenticationTicket ticket)
-            : base(context, options, request) {
+            : base(context, options, request)
+        {
             Ticket = ticket;
         }
 
@@ -33,7 +36,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="ticket">Assigned to the Ticket property</param>
         /// <returns>True if the validation has taken effect.</returns>
-        public bool Validate(AuthenticationTicket ticket) {
+        public bool Validate(AuthenticationTicket ticket)
+        {
             Ticket = ticket;
             return Validate();
         }
@@ -44,7 +48,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="principal">Assigned to the Ticket.Principal property</param>
         /// <returns>True if the validation has taken effect.</returns>
-        public bool Validate(ClaimsPrincipal principal) {
+        public bool Validate(ClaimsPrincipal principal)
+        {
             var properties = Ticket?.Properties ?? new AuthenticationProperties();
             return Validate(new AuthenticationTicket(principal, properties, Options.AuthenticationScheme));
         }

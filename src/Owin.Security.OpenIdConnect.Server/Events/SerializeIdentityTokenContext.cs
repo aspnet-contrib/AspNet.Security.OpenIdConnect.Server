@@ -12,11 +12,13 @@ using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Notifications;
 using Owin.Security.OpenIdConnect.Extensions;
 
-namespace Owin.Security.OpenIdConnect.Server {
+namespace Owin.Security.OpenIdConnect.Server
+{
     /// <summary>
     /// Provides context information used when issuing an identity token.
     /// </summary>
-    public class SerializeIdentityTokenContext : BaseNotification<OpenIdConnectServerOptions> {
+    public class SerializeIdentityTokenContext : BaseNotification<OpenIdConnectServerOptions>
+    {
         /// <summary>
         /// Initializes a new instance of the <see cref="SerializeIdentityTokenContext"/> class
         /// </summary>
@@ -31,7 +33,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             OpenIdConnectRequest request,
             OpenIdConnectResponse response,
             AuthenticationTicket ticket)
-            : base(context, options) {
+            : base(context, options)
+        {
             Request = request;
             Response = response;
             Ticket = ticket;
@@ -60,7 +63,8 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets or sets the audiences associated with the authentication ticket.
         /// </summary>
-        public IEnumerable<string> Audiences {
+        public IEnumerable<string> Audiences
+        {
             get { return Ticket.GetAudiences(); }
             set { Ticket.SetAudiences(value); }
         }
@@ -68,7 +72,8 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets or sets the presenters associated with the authentication ticket.
         /// </summary>
-        public IEnumerable<string> Presenters {
+        public IEnumerable<string> Presenters
+        {
             get { return Ticket.GetPresenters(); }
             set { Ticket.SetPresenters(value); }
         }

@@ -4,10 +4,14 @@ using Microsoft.Owin.Security;
 using Nancy.Security;
 using Nancy.Server.Extensions;
 
-namespace Nancy.Server.Modules {
-    public class AuthenticationModule : NancyModule {
-        public AuthenticationModule() {
-            Get["/signin"] = parameters => {
+namespace Nancy.Server.Modules
+{
+    public class AuthenticationModule : NancyModule
+    {
+        public AuthenticationModule()
+        {
+            Get["/signin"] = parameters =>
+            {
                 this.CreateNewCsrfToken();
 
                 // Note: the ReturnUrl parameter corresponds to the endpoint the user agent
@@ -16,11 +20,13 @@ namespace Nancy.Server.Modules {
                 return View["SignIn.cshtml", (string) Request.Query.ReturnUrl];
             };
 
-            Post["/signin"] = parameters => {
+            Post["/signin"] = parameters =>
+            {
                 this.ValidateCsrfToken();
 
                 var identifier = (string) Request.Form.Identifier;
-                if (string.IsNullOrEmpty(identifier)) {
+                if (string.IsNullOrEmpty(identifier))
+                {
                     return HttpStatusCode.BadRequest;
                 }
 
@@ -28,11 +34,13 @@ namespace Nancy.Server.Modules {
                 // will be redirected to after a successful authentication and not
                 // the redirect_uri of the requesting client application.
                 var returnUrl = (string) Request.Form.ReturnUrl;
-                if (string.IsNullOrEmpty(returnUrl)) {
+                if (string.IsNullOrEmpty(returnUrl))
+                {
                     return HttpStatusCode.BadRequest;
                 }
 
-                var properties = new AuthenticationProperties {
+                var properties = new AuthenticationProperties
+                {
                     RedirectUri = returnUrl
                 };
 
@@ -45,7 +53,8 @@ namespace Nancy.Server.Modules {
                 return Response.AsRedirect(returnUrl);
             };
 
-            Get["/signout"] = Post["/signout"] = parameters => {
+            Get["/signout"] = Post["/signout"] = parameters =>
+            {
                 // Instruct the cookies middleware to delete the local cookie created
                 // when the user agent is redirected from the external identity provider
                 // after a successful authentication flow (e.g Google or Facebook).
@@ -58,10 +67,13 @@ namespace Nancy.Server.Modules {
         /// <summary>
         /// Gets the IAuthenticationManager instance associated with the current request.
         /// </summary>
-        protected IAuthenticationManager AuthenticationManager {
-            get {
+        protected IAuthenticationManager AuthenticationManager
+        {
+            get
+            {
                 var context = Context.GetOwinContext();
-                if (context == null) {
+                if (context == null)
+                {
                     throw new NotSupportedException("An OWIN context cannot be extracted from NancyContext");
                 }
 

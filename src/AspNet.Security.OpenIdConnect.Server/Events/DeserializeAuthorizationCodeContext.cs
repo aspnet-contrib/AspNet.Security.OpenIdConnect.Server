@@ -9,11 +9,13 @@ using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 
-namespace AspNet.Security.OpenIdConnect.Server {
+namespace AspNet.Security.OpenIdConnect.Server
+{
     /// <summary>
     /// Provides context information used when receiving an authorization code.
     /// </summary>
-    public class DeserializeAuthorizationCodeContext : BaseControlContext {
+    public class DeserializeAuthorizationCodeContext : BaseControlContext
+    {
         /// <summary>
         /// Initializes a new instance of the <see cref="DeserializeAuthorizationCodeContext"/> class
         /// </summary>
@@ -26,7 +28,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             OpenIdConnectServerOptions options,
             OpenIdConnectRequest request,
             string code)
-            : base(context) {
+            : base(context)
+        {
             Options = options;
             Request = request;
             AuthorizationCode = code;
@@ -45,7 +48,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the OpenID Connect response.
         /// </summary>
-        public new OpenIdConnectResponse Response {
+        public new OpenIdConnectResponse Response
+        {
             get { throw new InvalidOperationException("The OpenID Connect response is not available at this stage."); }
         }
 

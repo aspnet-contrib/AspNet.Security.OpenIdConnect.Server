@@ -17,8 +17,10 @@ using Owin.Security.OpenIdConnect.Extensions;
 using Xunit;
 using static System.Net.Http.HttpMethod;
 
-namespace Owin.Security.OpenIdConnect.Server.Tests {
-    public partial class OpenIdConnectServerHandlerTests {
+namespace Owin.Security.OpenIdConnect.Server.Tests
+{
+    public partial class OpenIdConnectServerHandlerTests
+    {
         [Theory]
         [InlineData(nameof(Delete))]
         [InlineData(nameof(Get))]
@@ -26,7 +28,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         [InlineData(nameof(Options))]
         [InlineData(nameof(Put))]
         [InlineData(nameof(Trace))]
-        public async Task InvokeTokenEndpointAsync_UnexpectedMethodReturnsAnError(string method) {
+        public async Task InvokeTokenEndpointAsync_UnexpectedMethodReturnsAnError(string method)
+        {
             // Arrange
             var server = CreateAuthorizationServer();
 
@@ -48,10 +51,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         [InlineData(null, "custom_description", "custom_uri")]
         [InlineData(null, null, "custom_uri")]
         [InlineData(null, null, null)]
-        public async Task InvokeTokenEndpointAsync_ExtractTokenRequest_AllowsRejectingRequest(string error, string description, string uri) {
+        public async Task InvokeTokenEndpointAsync_ExtractTokenRequest_AllowsRejectingRequest(string error, string description, string uri)
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnExtractTokenRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnExtractTokenRequest = context =>
+                {
                     context.Reject(error, description, uri);
 
                     return Task.FromResult(0);
@@ -70,15 +76,19 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeTokenEndpointAsync_ExtractTokenRequest_AllowsHandlingResponse() {
+        public async Task InvokeTokenEndpointAsync_ExtractTokenRequest_AllowsHandlingResponse()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnExtractTokenRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnExtractTokenRequest = context =>
+                {
                     context.HandleResponse();
 
                     context.OwinContext.Response.Headers["Content-Type"] = "application/json";
 
-                    return context.OwinContext.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                    return context.OwinContext.Response.WriteAsync(JsonConvert.SerializeObject(new
+                    {
                         name = "Bob le Bricoleur"
                     }));
                 };
@@ -94,10 +104,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeTokenEndpointAsync_ExtractTokenRequest_AllowsSkippingToNextMiddleware() {
+        public async Task InvokeTokenEndpointAsync_ExtractTokenRequest_AllowsSkippingToNextMiddleware()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnExtractTokenRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnExtractTokenRequest = context =>
+                {
                     context.SkipToNextMiddleware();
 
                     return Task.FromResult(0);
@@ -114,14 +127,16 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeTokenEndpointAsync_MissingGrantTypeCausesAnError() {
+        public async Task InvokeTokenEndpointAsync_MissingGrantTypeCausesAnError()
+        {
             // Arrange
             var server = CreateAuthorizationServer();
 
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = null
             });
 
@@ -131,16 +146,19 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeTokenEndpointAsync_AuthorizationCodeGrantTypeCausesAnErrorWhenAuthorizationEndpointIsDisabled() {
+        public async Task InvokeTokenEndpointAsync_AuthorizationCodeGrantTypeCausesAnErrorWhenAuthorizationEndpointIsDisabled()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
+            var server = CreateAuthorizationServer(options =>
+            {
                 options.AuthorizationEndpointPath = PathString.Empty;
             });
 
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = OpenIdConnectConstants.GrantTypes.AuthorizationCode
             });
 
@@ -150,14 +168,16 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeTokenEndpointAsync_MissingCodeCausesAnError() {
+        public async Task InvokeTokenEndpointAsync_MissingCodeCausesAnError()
+        {
             // Arrange
             var server = CreateAuthorizationServer();
 
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 Code = null,
                 GrantType = OpenIdConnectConstants.GrantTypes.AuthorizationCode
             });
@@ -168,14 +188,16 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeTokenEndpointAsync_MissingRefreshTokenCausesAnError() {
+        public async Task InvokeTokenEndpointAsync_MissingRefreshTokenCausesAnError()
+        {
             // Arrange
             var server = CreateAuthorizationServer();
 
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = OpenIdConnectConstants.GrantTypes.RefreshToken,
                 RefreshToken = null
             });
@@ -189,14 +211,16 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         [InlineData(null, null)]
         [InlineData("username", null)]
         [InlineData(null, "password")]
-        public async Task InvokeTokenEndpointAsync_MissingUserCredentialsCauseAnError(string username, string password) {
+        public async Task InvokeTokenEndpointAsync_MissingUserCredentialsCauseAnError(string username, string password)
+        {
             // Arrange
             var server = CreateAuthorizationServer();
 
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = OpenIdConnectConstants.GrantTypes.Password,
                 Username = username,
                 Password = password
@@ -216,10 +240,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         [InlineData(null, "custom_description", "custom_uri")]
         [InlineData(null, null, "custom_uri")]
         [InlineData(null, null, null)]
-        public async Task InvokeTokenEndpointAsync_ValidateTokenRequest_AllowsRejectingRequest(string error, string description, string uri) {
+        public async Task InvokeTokenEndpointAsync_ValidateTokenRequest_AllowsRejectingRequest(string error, string description, string uri)
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateTokenRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Reject(error, description, uri);
 
                     return Task.FromResult(0);
@@ -229,7 +256,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = OpenIdConnectConstants.GrantTypes.Password,
                 Username = "johndoe",
                 Password = "A3ddj3w"
@@ -242,15 +270,19 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeTokenEndpointAsync_ValidateTokenRequest_AllowsHandlingResponse() {
+        public async Task InvokeTokenEndpointAsync_ValidateTokenRequest_AllowsHandlingResponse()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateTokenRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.HandleResponse();
 
                     context.OwinContext.Response.Headers["Content-Type"] = "application/json";
 
-                    return context.OwinContext.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                    return context.OwinContext.Response.WriteAsync(JsonConvert.SerializeObject(new
+                    {
                         name = "Bob le Magnifique"
                     }));
                 };
@@ -259,7 +291,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = OpenIdConnectConstants.GrantTypes.Password,
                 Username = "johndoe",
                 Password = "A3ddj3w"
@@ -270,10 +303,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeTokenEndpointAsync_ValidateTokenRequest_AllowsSkippingToNextMiddleware() {
+        public async Task InvokeTokenEndpointAsync_ValidateTokenRequest_AllowsSkippingToNextMiddleware()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateTokenRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.SkipToNextMiddleware();
 
                     return Task.FromResult(0);
@@ -283,7 +319,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = OpenIdConnectConstants.GrantTypes.Password,
                 Username = "johndoe",
                 Password = "A3ddj3w"
@@ -294,10 +331,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeTokenEndpointAsync_ValidateTokenRequest_MissingClientIdCausesAnErrorForClientCredentialsRequests() {
+        public async Task InvokeTokenEndpointAsync_ValidateTokenRequest_MissingClientIdCausesAnErrorForClientCredentialsRequests()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateTokenRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
@@ -307,7 +347,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 Code = "SplxlOBeZQQYbYS6WxSbIA",
                 GrantType = OpenIdConnectConstants.GrantTypes.ClientCredentials
             });
@@ -318,10 +359,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeTokenEndpointAsync_MissingClientIdCausesAnErrorForValidatedRequests() {
+        public async Task InvokeTokenEndpointAsync_MissingClientIdCausesAnErrorForValidatedRequests()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateTokenRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Validate();
 
                     return Task.FromResult(0);
@@ -331,7 +375,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 ClientId = null,
                 Code = "SplxlOBeZQQYbYS6WxSbIA",
                 GrantType = OpenIdConnectConstants.GrantTypes.AuthorizationCode
@@ -343,10 +388,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeTokenEndpointAsync_MissingClientIdCausesAnErrorForCodeFlowRequests() {
+        public async Task InvokeTokenEndpointAsync_MissingClientIdCausesAnErrorForCodeFlowRequests()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateTokenRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
@@ -356,7 +404,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 ClientId = null,
                 Code = "SplxlOBeZQQYbYS6WxSbIA",
                 GrantType = OpenIdConnectConstants.GrantTypes.AuthorizationCode
@@ -368,10 +417,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeTokenEndpointAsync_InvalidAuthorizationCodeCausesAnError() {
+        public async Task InvokeTokenEndpointAsync_InvalidAuthorizationCodeCausesAnError()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateTokenRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
@@ -381,7 +433,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 ClientId = "Fabrikam",
                 Code = "SplxlOBeZQQYbYS6WxSbIA",
                 GrantType = OpenIdConnectConstants.GrantTypes.AuthorizationCode
@@ -393,10 +446,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeTokenEndpointAsync_InvalidRefreshTokenCausesAnError() {
+        public async Task InvokeTokenEndpointAsync_InvalidRefreshTokenCausesAnError()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateTokenRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
@@ -406,7 +462,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = OpenIdConnectConstants.GrantTypes.RefreshToken,
                 RefreshToken = "8xLOxBtZp8"
             });
@@ -417,10 +474,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeTokenEndpointAsync_ConfidentialRefreshTokenCausesAnErrorWhenValidationIsSkipped() {
+        public async Task InvokeTokenEndpointAsync_ConfidentialRefreshTokenCausesAnErrorWhenValidationIsSkipped()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeRefreshToken = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeRefreshToken = context =>
+                {
                     Assert.Equal("8xLOxBtZp8", context.RefreshToken);
 
                     context.Ticket = new AuthenticationTicket(
@@ -434,7 +494,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateTokenRequest = context => {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
@@ -444,7 +505,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = OpenIdConnectConstants.GrantTypes.RefreshToken,
                 RefreshToken = "8xLOxBtZp8"
             });
@@ -455,10 +517,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeTokenEndpointAsync_ExpiredAuthorizationCodeCausesAnError() {
+        public async Task InvokeTokenEndpointAsync_ExpiredAuthorizationCodeCausesAnError()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeAuthorizationCode = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAuthorizationCode = context =>
+                {
                     Assert.Equal("SplxlOBeZQQYbYS6WxSbIA", context.AuthorizationCode);
 
                     context.Ticket = new AuthenticationTicket(
@@ -470,7 +535,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateTokenRequest = context => {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
@@ -480,7 +546,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 ClientId = "Fabrikam",
                 Code = "SplxlOBeZQQYbYS6WxSbIA",
                 GrantType = OpenIdConnectConstants.GrantTypes.AuthorizationCode
@@ -492,10 +559,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeTokenEndpointAsync_ExpiredRefreshTokenCausesAnError() {
+        public async Task InvokeTokenEndpointAsync_ExpiredRefreshTokenCausesAnError()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeRefreshToken = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeRefreshToken = context =>
+                {
                     Assert.Equal("8xLOxBtZp8", context.RefreshToken);
 
                     context.Ticket = new AuthenticationTicket(
@@ -507,7 +577,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateTokenRequest = context => {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
@@ -517,7 +588,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = OpenIdConnectConstants.GrantTypes.RefreshToken,
                 RefreshToken = "8xLOxBtZp8"
             });
@@ -528,10 +600,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeTokenEndpointAsync_AuthorizationCodeCausesAnErrorWhenPresentersAreMissing() {
+        public async Task InvokeTokenEndpointAsync_AuthorizationCodeCausesAnErrorWhenPresentersAreMissing()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeAuthorizationCode = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAuthorizationCode = context =>
+                {
                     Assert.Equal("SplxlOBeZQQYbYS6WxSbIA", context.AuthorizationCode);
 
                     context.Ticket = new AuthenticationTicket(
@@ -543,7 +618,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateTokenRequest = context => {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
@@ -553,7 +629,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 ClientId = "Fabrikam",
                 Code = "SplxlOBeZQQYbYS6WxSbIA",
                 GrantType = OpenIdConnectConstants.GrantTypes.AuthorizationCode
@@ -565,10 +642,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeTokenEndpointAsync_AuthorizationCodeCausesAnErrorWhenCallerIsNotAPresenter() {
+        public async Task InvokeTokenEndpointAsync_AuthorizationCodeCausesAnErrorWhenCallerIsNotAPresenter()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeAuthorizationCode = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAuthorizationCode = context =>
+                {
                     Assert.Equal("SplxlOBeZQQYbYS6WxSbIA", context.AuthorizationCode);
 
                     context.Ticket = new AuthenticationTicket(
@@ -580,7 +660,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateTokenRequest = context => {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
@@ -590,7 +671,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 ClientId = "Fabrikam",
                 Code = "SplxlOBeZQQYbYS6WxSbIA",
                 GrantType = OpenIdConnectConstants.GrantTypes.AuthorizationCode
@@ -602,10 +684,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeTokenEndpointAsync_RefreshTokenCausesAnErrorWhenCallerIsNotAPresenter() {
+        public async Task InvokeTokenEndpointAsync_RefreshTokenCausesAnErrorWhenCallerIsNotAPresenter()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeRefreshToken = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeRefreshToken = context =>
+                {
                     Assert.Equal("8xLOxBtZp8", context.RefreshToken);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
@@ -620,7 +705,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateTokenRequest = context => {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
@@ -630,7 +716,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 ClientId = "Fabrikam",
                 GrantType = OpenIdConnectConstants.GrantTypes.RefreshToken,
                 RefreshToken = "8xLOxBtZp8"
@@ -642,10 +729,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeTokenEndpointAsync_AuthorizationCodeCausesAnErrorWhenRedirectUriIsMissing() {
+        public async Task InvokeTokenEndpointAsync_AuthorizationCodeCausesAnErrorWhenRedirectUriIsMissing()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeAuthorizationCode = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAuthorizationCode = context =>
+                {
                     Assert.Equal("SplxlOBeZQQYbYS6WxSbIA", context.AuthorizationCode);
 
                     context.Ticket = new AuthenticationTicket(
@@ -661,7 +751,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateTokenRequest = context => {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
@@ -671,7 +762,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 ClientId = "Fabrikam",
                 Code = "SplxlOBeZQQYbYS6WxSbIA",
                 GrantType = OpenIdConnectConstants.GrantTypes.AuthorizationCode,
@@ -684,10 +776,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeTokenEndpointAsync_AuthorizationCodeCausesAnErrorWhenRedirectUriIsInvalid() {
+        public async Task InvokeTokenEndpointAsync_AuthorizationCodeCausesAnErrorWhenRedirectUriIsInvalid()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeAuthorizationCode = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAuthorizationCode = context =>
+                {
                     Assert.Equal("SplxlOBeZQQYbYS6WxSbIA", context.AuthorizationCode);
 
                     context.Ticket = new AuthenticationTicket(
@@ -703,7 +798,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateTokenRequest = context => {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
@@ -713,7 +809,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 ClientId = "Fabrikam",
                 Code = "SplxlOBeZQQYbYS6WxSbIA",
                 GrantType = OpenIdConnectConstants.GrantTypes.AuthorizationCode,
@@ -726,10 +823,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeTokenEndpointAsync_AuthorizationCodeCausesAnErrorWhenCodeVerifierIsMissing() {
+        public async Task InvokeTokenEndpointAsync_AuthorizationCodeCausesAnErrorWhenCodeVerifierIsMissing()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeAuthorizationCode = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAuthorizationCode = context =>
+                {
                     Assert.Equal("SplxlOBeZQQYbYS6WxSbIA", context.AuthorizationCode);
 
                     context.Ticket = new AuthenticationTicket(
@@ -749,7 +849,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateTokenRequest = context => {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
@@ -759,7 +860,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 ClientId = "Fabrikam",
                 Code = "SplxlOBeZQQYbYS6WxSbIA",
                 CodeVerifier = null,
@@ -774,10 +876,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         [Theory]
         [InlineData(OpenIdConnectConstants.CodeChallengeMethods.Plain, "challenge", "invalid_verifier")]
         [InlineData(OpenIdConnectConstants.CodeChallengeMethods.Sha256, "challenge", "invalid_verifier")]
-        public async Task InvokeTokenEndpointAsync_AuthorizationCodeCausesAnErrorWhenCodeVerifierIsInvalid(string method, string challenge, string verifier) {
+        public async Task InvokeTokenEndpointAsync_AuthorizationCodeCausesAnErrorWhenCodeVerifierIsInvalid(string method, string challenge, string verifier)
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeAuthorizationCode = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAuthorizationCode = context =>
+                {
                     Assert.Equal("SplxlOBeZQQYbYS6WxSbIA", context.AuthorizationCode);
 
                     context.Ticket = new AuthenticationTicket(
@@ -792,7 +897,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateTokenRequest = context => {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
@@ -802,7 +908,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 ClientId = "Fabrikam",
                 Code = "SplxlOBeZQQYbYS6WxSbIA",
                 CodeVerifier = verifier,
@@ -822,10 +929,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             OpenIdConnectConstants.CodeChallengeMethods.Sha256,
             "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
             "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk")]
-        public async Task InvokeTokenEndpointAsync_TokenRequestSucceedsWhenCodeVerifierIsValid(string method, string challenge, string verifier) {
+        public async Task InvokeTokenEndpointAsync_TokenRequestSucceedsWhenCodeVerifierIsValid(string method, string challenge, string verifier)
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeAuthorizationCode = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAuthorizationCode = context =>
+                {
                     Assert.Equal("SplxlOBeZQQYbYS6WxSbIA", context.AuthorizationCode);
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
@@ -838,7 +948,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateTokenRequest = context => {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
@@ -848,7 +959,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 ClientId = "Fabrikam",
                 Code = "SplxlOBeZQQYbYS6WxSbIA",
                 CodeVerifier = verifier,
@@ -860,10 +972,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeTokenEndpointAsync_RefreshTokenCausesAnErrorWhenResourceIsUnexpected() {
+        public async Task InvokeTokenEndpointAsync_RefreshTokenCausesAnErrorWhenResourceIsUnexpected()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeRefreshToken = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeRefreshToken = context =>
+                {
                     Assert.Equal("8xLOxBtZp8", context.RefreshToken);
 
                     context.Ticket = new AuthenticationTicket(
@@ -875,7 +990,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateTokenRequest = context => {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
@@ -885,7 +1001,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = OpenIdConnectConstants.GrantTypes.RefreshToken,
                 RefreshToken = "8xLOxBtZp8",
                 Resource = "phone_api contact_api"
@@ -898,10 +1015,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeTokenEndpointAsync_RefreshTokenCausesAnErrorWhenResourceIsInvalid() {
+        public async Task InvokeTokenEndpointAsync_RefreshTokenCausesAnErrorWhenResourceIsInvalid()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeRefreshToken = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeRefreshToken = context =>
+                {
                     Assert.Equal("8xLOxBtZp8", context.RefreshToken);
 
                     context.Ticket = new AuthenticationTicket(
@@ -913,7 +1033,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateTokenRequest = context => {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
@@ -923,7 +1044,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = OpenIdConnectConstants.GrantTypes.RefreshToken,
                 RefreshToken = "8xLOxBtZp8",
                 Resource = "phone_api contact_api"
@@ -935,10 +1057,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeTokenEndpointAsync_RefreshTokenCausesAnErrorWhenScopeIsUnexpected() {
+        public async Task InvokeTokenEndpointAsync_RefreshTokenCausesAnErrorWhenScopeIsUnexpected()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeRefreshToken = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeRefreshToken = context =>
+                {
                     Assert.Equal("8xLOxBtZp8", context.RefreshToken);
 
                     context.Ticket = new AuthenticationTicket(
@@ -950,7 +1075,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateTokenRequest = context => {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
@@ -960,7 +1086,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = OpenIdConnectConstants.GrantTypes.RefreshToken,
                 RefreshToken = "8xLOxBtZp8",
                 Scope = "profile phone"
@@ -973,10 +1100,13 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeTokenEndpointAsync_RefreshTokenCausesAnErrorWhenScopeIsInvalid() {
+        public async Task InvokeTokenEndpointAsync_RefreshTokenCausesAnErrorWhenScopeIsInvalid()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeRefreshToken = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeRefreshToken = context =>
+                {
                     Assert.Equal("8xLOxBtZp8", context.RefreshToken);
 
                     context.Ticket = new AuthenticationTicket(
@@ -988,7 +1118,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateTokenRequest = context => {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
@@ -998,7 +1129,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = OpenIdConnectConstants.GrantTypes.RefreshToken,
                 RefreshToken = "8xLOxBtZp8",
                 Scope = "profile phone"
@@ -1017,16 +1149,20 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         [InlineData(null, "custom_description", "custom_uri")]
         [InlineData(null, null, "custom_uri")]
         [InlineData(null, null, null)]
-        public async Task InvokeTokenEndpointAsync_HandleTokenRequest_AllowsRejectingRequest(string error, string description, string uri) {
+        public async Task InvokeTokenEndpointAsync_HandleTokenRequest_AllowsRejectingRequest(string error, string description, string uri)
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateTokenRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleTokenRequest = context => {
+                options.Provider.OnHandleTokenRequest = context =>
+                {
                     context.Reject(error, description, uri);
 
                     return Task.FromResult(0);
@@ -1036,7 +1172,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = OpenIdConnectConstants.GrantTypes.Password,
                 Username = "johndoe",
                 Password = "A3ddj3w"
@@ -1049,21 +1186,26 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeTokenEndpointAsync_HandleTokenRequest_AllowsHandlingResponse() {
+        public async Task InvokeTokenEndpointAsync_HandleTokenRequest_AllowsHandlingResponse()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateTokenRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleTokenRequest = context => {
+                options.Provider.OnHandleTokenRequest = context =>
+                {
                     context.HandleResponse();
 
                     context.OwinContext.Response.Headers["Content-Type"] = "application/json";
 
-                    return context.OwinContext.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                    return context.OwinContext.Response.WriteAsync(JsonConvert.SerializeObject(new
+                    {
                         name = "Bob le Magnifique"
                     }));
                 };
@@ -1072,7 +1214,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = OpenIdConnectConstants.GrantTypes.Password,
                 Username = "johndoe",
                 Password = "A3ddj3w"
@@ -1083,16 +1226,20 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeTokenEndpointAsync_HandleTokenRequest_AllowsSkippingToNextMiddleware() {
+        public async Task InvokeTokenEndpointAsync_HandleTokenRequest_AllowsSkippingToNextMiddleware()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateTokenRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleTokenRequest = context => {
+                options.Provider.OnHandleTokenRequest = context =>
+                {
                     context.SkipToNextMiddleware();
 
                     return Task.FromResult(0);
@@ -1102,7 +1249,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = OpenIdConnectConstants.GrantTypes.Password,
                 Username = "johndoe",
                 Password = "A3ddj3w"
@@ -1113,16 +1261,20 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task SendTokenResponseAsync_ApplyTokenResponse_AllowsHandlingResponse() {
+        public async Task SendTokenResponseAsync_ApplyTokenResponse_AllowsHandlingResponse()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateTokenRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleTokenRequest = context => {
+                options.Provider.OnHandleTokenRequest = context =>
+                {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
@@ -1131,12 +1283,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnApplyTokenResponse = context => {
+                options.Provider.OnApplyTokenResponse = context =>
+                {
                     context.HandleResponse();
 
                     context.OwinContext.Response.Headers["Content-Type"] = "application/json";
 
-                    return context.OwinContext.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                    return context.OwinContext.Response.WriteAsync(JsonConvert.SerializeObject(new
+                    {
                         name = "Bob le Magnifique"
                     }));
                 };
@@ -1145,7 +1299,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = OpenIdConnectConstants.GrantTypes.Password,
                 Username = "johndoe",
                 Password = "A3ddj3w"
@@ -1156,16 +1311,20 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task SendTokenResponseAsync_ApplyTokenResponse_ResponseContainsCustomParameters() {
+        public async Task SendTokenResponseAsync_ApplyTokenResponse_ResponseContainsCustomParameters()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateTokenRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleTokenRequest = context => {
+                options.Provider.OnHandleTokenRequest = context =>
+                {
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
@@ -1174,7 +1333,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnApplyTokenResponse = context => {
+                options.Provider.OnApplyTokenResponse = context =>
+                {
                     context.Response["custom_parameter"] = "custom_value";
 
                     return Task.FromResult(0);
@@ -1184,7 +1344,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.HttpClient);
 
             // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
                 GrantType = OpenIdConnectConstants.GrantTypes.Password,
                 Username = "johndoe",
                 Password = "A3ddj3w"

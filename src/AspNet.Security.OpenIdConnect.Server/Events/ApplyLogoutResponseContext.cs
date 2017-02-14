@@ -8,11 +8,13 @@ using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 
-namespace AspNet.Security.OpenIdConnect.Server {
+namespace AspNet.Security.OpenIdConnect.Server
+{
     /// <summary>
     /// Provides context information when processing a logout response.
     /// </summary>
-    public class ApplyLogoutResponseContext : BaseControlContext {
+    public class ApplyLogoutResponseContext : BaseControlContext
+    {
         /// <summary>
         /// Initializes a new instance of the <see cref="ApplyLogoutResponseContext"/> class
         /// </summary>
@@ -25,7 +27,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             OpenIdConnectServerOptions options,
             OpenIdConnectRequest request,
             OpenIdConnectResponse response)
-            : base(context) {
+            : base(context)
+        {
             Options = options;
             Request = request;
             Response = response;

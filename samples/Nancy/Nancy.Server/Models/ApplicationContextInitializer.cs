@@ -1,8 +1,11 @@
 ﻿using System.Data.Entity;
 
-namespace Nancy.Server.Models {
-    public class ApplicationContextInitializer : DropCreateDatabaseIfModelChanges<ApplicationContext> {
-        protected override void Seed(ApplicationContext context) {
+namespace Nancy.Server.Models
+{
+    public class ApplicationContextInitializer : DropCreateDatabaseIfModelChanges<ApplicationContext>
+    {
+        protected override void Seed(ApplicationContext context)
+        {
             // Note: when using the introspection middleware, your resource server
             // MUST be registered as an OAuth2 client and have valid credentials.
             //
@@ -13,7 +16,8 @@ namespace Nancy.Server.Models {
             // });
 
             // Note: these values must match the settings defined in Nancy.Client.
-            context.Applications.Add(new Application {
+            context.Applications.Add(new Application
+            {
                 ApplicationID = "myClient",
                 DisplayName = "My client application",
                 RedirectUri = "http://localhost:56765/oidc",

@@ -13,7 +13,8 @@ AspNet.Security.OpenIdConnect.Server
 Based on `OAuthAuthorizationServerMiddleware` from **Katana 3**, **AspNet.Security.OpenIdConnect.Server** exposes similar primitives and can be directly registered in **Startup.cs** using the `UseOpenIdConnectServer` extension method:
 
 ```csharp
-app.UseOpenIdConnectServer(options => {
+app.UseOpenIdConnectServer(options =>
+{
     // Enable the token endpoint.
     options.TokenEndpointPath = "/connect/token";
 
@@ -21,9 +22,11 @@ app.UseOpenIdConnectServer(options => {
     options.SigningCredentials.AddCertificate("7D2A741FE34CC2C7369237A5F2078988E17A6A75");
 
     // Implement OnValidateTokenRequest to support flows using the token endpoint.
-    options.Provider.OnValidateTokenRequest = context => {
+    options.Provider.OnValidateTokenRequest = context =>
+    {
         // Reject token requests that don't use grant_type=password or grant_type=refresh_token.
-        if (!context.Request.IsPasswordGrantType() && !context.Request.IsRefreshTokenGrantType()) {
+        if (!context.Request.IsPasswordGrantType() && !context.Request.IsRefreshTokenGrantType())
+        {
             context.Reject(
                 error: OpenIdConnectConstants.Errors.UnsupportedGrantType,
                 description: "Only grant_type=password and refresh_token " +
@@ -34,7 +37,8 @@ app.UseOpenIdConnectServer(options => {
 
         // Note: you can skip the request validation when the client_id
         // parameter is missing to support unauthenticated token requests.
-        // if (string.IsNullOrEmpty(context.ClientId)) {
+        // if (string.IsNullOrEmpty(context.ClientId))
+        // {
         //     context.Skip();
         // 
         //     return Task.FromResult(0);
@@ -44,7 +48,8 @@ app.UseOpenIdConnectServer(options => {
         // a key derivation function like PBKDF2 to slow down the secret validation process.
         // You SHOULD also consider using a time-constant comparer to prevent timing attacks.
         if (string.Equals(context.ClientId, "client_id", StringComparison.Ordinal) &&
-            string.Equals(context.ClientSecret, "client_secret", StringComparison.Ordinal)) {
+            string.Equals(context.ClientSecret, "client_secret", StringComparison.Ordinal))
+        {
             context.Validate();
         }
 
@@ -54,15 +59,18 @@ app.UseOpenIdConnectServer(options => {
     };
 
     // Implement OnHandleTokenRequest to support token requests.
-    options.Provider.OnHandleTokenRequest = context => {
+    options.Provider.OnHandleTokenRequest = context =>
+    {
         // Only handle grant_type=password token requests and let the
         // OpenID Connect server middleware handle the other grant types.
-        if (context.Request.IsPasswordGrantType()) {
+        if (context.Request.IsPasswordGrantType())
+        {
             // Implement context.Request.Username/context.Request.Password validation here.
             // Note: you can call context Reject() to indicate that authentication failed.
             // Using password derivation and time-constant comparer is STRONGLY recommended.
             if (!string.Equals(context.Request.Username, "Bob", StringComparison.Ordinal) ||
-                !string.Equals(context.Request.Password, "P@ssw0rd", StringComparison.Ordinal)) {
+                !string.Equals(context.Request.Password, "P@ssw0rd", StringComparison.Ordinal))
+            {
                 context.Reject(
                     error: OpenIdConnectConstants.Errors.InvalidGrant,
                     description: "Invalid user credentials.");
@@ -102,7 +110,8 @@ app.UseOpenIdConnectServer(options => {
 > Note: in order for the OpenID Connect server middleware to work properly, **the authentication services must be registered in the DI container**:
 
 ```csharp
-public void ConfigureServices(IServiceCollection services) {
+public void ConfigureServices(IServiceCollection services)
+{
     services.AddAuthentication();
 }
 ```

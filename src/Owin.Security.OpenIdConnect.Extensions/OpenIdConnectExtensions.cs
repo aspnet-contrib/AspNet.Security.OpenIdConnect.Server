@@ -13,30 +13,34 @@ using System.Linq;
 using System.Security.Claims;
 using AspNet.Security.OpenIdConnect.Primitives;
 using JetBrains.Annotations;
-using Microsoft.Extensions.Primitives;
 using Microsoft.Owin.Security;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Owin.Security.OpenIdConnect.Extensions {
+namespace Owin.Security.OpenIdConnect.Extensions
+{
     /// <summary>
     /// Provides extension methods to make <see cref="AuthenticationTicket"/> easier to use.
     /// </summary>
-    public static class OpenIdConnectExtensions {
+    public static class OpenIdConnectExtensions
+    {
         /// <summary>
         /// Gets the destinations associated with a claim.
         /// </summary>
         /// <param name="claim">The <see cref="Claim"/> instance.</param>
         /// <returns>The destinations associated with the claim.</returns>
-        public static IEnumerable<string> GetDestinations([NotNull] this Claim claim) {
-            if (claim == null) {
+        public static IEnumerable<string> GetDestinations([NotNull] this Claim claim)
+        {
+            if (claim == null)
+            {
                 throw new ArgumentNullException(nameof(claim));
             }
 
             string destinations;
             claim.Properties.TryGetValue(OpenIdConnectConstants.Properties.Destinations, out destinations);
 
-            if (string.IsNullOrEmpty(destinations)) {
+            if (string.IsNullOrEmpty(destinations))
+            {
                 return Enumerable.Empty<string>();
             }
 
@@ -49,15 +53,18 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="claim">The <see cref="Claim"/> instance.</param>
         /// <param name="destination">The required destination.</param>
-        public static bool HasDestination([NotNull] this Claim claim, string destination) {
-            if (claim == null) {
+        public static bool HasDestination([NotNull] this Claim claim, string destination)
+        {
+            if (claim == null)
+            {
                 throw new ArgumentNullException(nameof(claim));
             }
 
             string destinations;
             claim.Properties.TryGetValue(OpenIdConnectConstants.Properties.Destinations, out destinations);
 
-            if (string.IsNullOrEmpty(destinations)) {
+            if (string.IsNullOrEmpty(destinations))
+            {
                 return false;
             }
 
@@ -69,18 +76,22 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="claim">The <see cref="Claim"/> instance.</param>
         /// <param name="destinations">The destinations.</param>
-        public static Claim SetDestinations([NotNull] this Claim claim, IEnumerable<string> destinations) {
-            if (claim == null) {
+        public static Claim SetDestinations([NotNull] this Claim claim, IEnumerable<string> destinations)
+        {
+            if (claim == null)
+            {
                 throw new ArgumentNullException(nameof(claim));
             }
 
-            if (destinations == null || !destinations.Any()) {
+            if (destinations == null || !destinations.Any())
+            {
                 claim.Properties.Remove(OpenIdConnectConstants.Properties.Destinations);
 
                 return claim;
             }
 
-            if (destinations.Any(destination => string.IsNullOrEmpty(destination))) {
+            if (destinations.Any(destination => string.IsNullOrEmpty(destination)))
+            {
                 throw new ArgumentException("Destinations cannot be null or empty.", nameof(destinations));
             }
 
@@ -95,7 +106,8 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="claim">The <see cref="Claim"/> instance.</param>
         /// <param name="destinations">The destinations.</param>
-        public static Claim SetDestinations([NotNull] this Claim claim, params string[] destinations) {
+        public static Claim SetDestinations([NotNull] this Claim claim, params string[] destinations)
+        {
             // Note: guarding the destinations parameter against null values
             // is not necessary as AsEnumerable() doesn't throw on null values.
             return claim.SetDestinations(destinations.AsEnumerable());
@@ -111,12 +123,15 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </param>
         public static ClaimsIdentity Clone(
             [NotNull] this ClaimsIdentity identity,
-            [NotNull] Func<Claim, bool> filter) {
-            if (identity == null) {
+            [NotNull] Func<Claim, bool> filter)
+        {
+            if (identity == null)
+            {
                 throw new ArgumentNullException(nameof(identity));
             }
 
-            if (filter == null) {
+            if (filter == null)
+            {
                 throw new ArgumentNullException(nameof(filter));
             }
 
@@ -124,13 +139,16 @@ namespace Owin.Security.OpenIdConnect.Extensions {
 
             // Note: make sure to call ToArray() to avoid modifying
             // the initial collection iterated by ClaimsIdentity.Claims.
-            foreach (var claim in clone.Claims.ToArray()) {
-                if (!filter(claim)) {
+            foreach (var claim in clone.Claims.ToArray())
+            {
+                if (!filter(claim))
+                {
                     clone.RemoveClaim(claim);
                 }
             }
 
-            if (clone.Actor != null) {
+            if (clone.Actor != null)
+            {
                 clone.Actor = clone.Actor.Clone(filter);
             }
 
@@ -147,18 +165,22 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </param>
         public static ClaimsPrincipal Clone(
             [NotNull] this ClaimsPrincipal principal,
-            [NotNull] Func<Claim, bool> filter) {
-            if (principal == null) {
+            [NotNull] Func<Claim, bool> filter)
+        {
+            if (principal == null)
+            {
                 throw new ArgumentNullException(nameof(principal));
             }
 
-            if (filter == null) {
+            if (filter == null)
+            {
                 throw new ArgumentNullException(nameof(filter));
             }
 
             var clone = new ClaimsPrincipal();
 
-            foreach (var identity in principal.Identities) {
+            foreach (var identity in principal.Identities)
+            {
                 clone.AddIdentity(identity.Clone(filter));
             }
 
@@ -173,16 +195,20 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="value">The value associated with the claim.</param>
         public static ClaimsIdentity AddClaim(
             [NotNull] this ClaimsIdentity identity,
-            [NotNull] string type, [NotNull] string value) {
-            if (identity == null) {
+            [NotNull] string type, [NotNull] string value)
+        {
+            if (identity == null)
+            {
                 throw new ArgumentNullException(nameof(identity));
             }
 
-            if (string.IsNullOrEmpty(type)) {
+            if (string.IsNullOrEmpty(type))
+            {
                 throw new ArgumentException("The claim type cannot be null or empty.", nameof(type));
             }
 
-            if (string.IsNullOrEmpty(value)) {
+            if (string.IsNullOrEmpty(value))
+            {
                 throw new ArgumentException("The claim value cannot be null or empty.", nameof(value));
             }
 
@@ -200,20 +226,25 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         public static ClaimsIdentity AddClaim(
             [NotNull] this ClaimsIdentity identity,
             [NotNull] string type, [NotNull] string value,
-            [NotNull] IEnumerable<string> destinations) {
-            if (identity == null) {
+            [NotNull] IEnumerable<string> destinations)
+        {
+            if (identity == null)
+            {
                 throw new ArgumentNullException(nameof(identity));
             }
 
-            if (string.IsNullOrEmpty(type)) {
+            if (string.IsNullOrEmpty(type))
+            {
                 throw new ArgumentException("The claim type cannot be null or empty.", nameof(type));
             }
 
-            if (string.IsNullOrEmpty(value)) {
+            if (string.IsNullOrEmpty(value))
+            {
                 throw new ArgumentException("The claim value cannot be null or empty.", nameof(value));
             }
 
-            if (destinations == null) {
+            if (destinations == null)
+            {
                 throw new ArgumentNullException(nameof(destinations));
             }
 
@@ -231,7 +262,8 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         public static ClaimsIdentity AddClaim(
             [NotNull] this ClaimsIdentity identity,
             [NotNull] string type, [NotNull] string value,
-            [NotNull] params string[] destinations) {
+            [NotNull] params string[] destinations)
+        {
             // Note: guarding the destinations parameter against null values
             // is not necessary as AsEnumerable() doesn't throw on null values.
             return identity.AddClaim(type, value, destinations.AsEnumerable());
@@ -243,12 +275,15 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="identity">The identity.</param>
         /// <param name="type">The type associated with the claim.</param>
         /// <returns>The claim value.</returns>
-        public static string GetClaim([NotNull] this ClaimsIdentity identity, [NotNull] string type) {
-            if (identity == null) {
+        public static string GetClaim([NotNull] this ClaimsIdentity identity, [NotNull] string type)
+        {
+            if (identity == null)
+            {
                 throw new ArgumentNullException(nameof(identity));
             }
 
-            if (string.IsNullOrEmpty(type)) {
+            if (string.IsNullOrEmpty(type))
+            {
                 throw new ArgumentException("The claim type cannot be null or empty.", nameof(type));
             }
 
@@ -261,12 +296,15 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="principal">The principal.</param>
         /// <param name="type">The type associated with the claim.</param>
         /// <returns>The claim value.</returns>
-        public static string GetClaim([NotNull] this ClaimsPrincipal principal, [NotNull] string type) {
-            if (principal == null) {
+        public static string GetClaim([NotNull] this ClaimsPrincipal principal, [NotNull] string type)
+        {
+            if (principal == null)
+            {
                 throw new ArgumentNullException(nameof(principal));
             }
 
-            if (string.IsNullOrEmpty(type)) {
+            if (string.IsNullOrEmpty(type))
+            {
                 throw new ArgumentException("The claim type cannot be null or empty.", nameof(type));
             }
 
@@ -282,12 +320,15 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <returns>The authentication properties.</returns>
         public static AuthenticationProperties AddProperty(
             [NotNull] this AuthenticationProperties properties,
-            [NotNull] string property, [CanBeNull] string value) {
-            if (properties == null) {
+            [NotNull] string property, [CanBeNull] string value)
+        {
+            if (properties == null)
+            {
                 throw new ArgumentNullException(nameof(properties));
             }
 
-            if (string.IsNullOrEmpty(property)) {
+            if (string.IsNullOrEmpty(property))
+            {
                 throw new ArgumentException("The property name cannot be null or empty.", nameof(property));
             }
 
@@ -305,16 +346,20 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <returns>The authentication properties.</returns>
         public static AuthenticationProperties AddProperty(
             [NotNull] this AuthenticationProperties properties,
-            [NotNull] string property, [NotNull] IEnumerable<string> values) {
-            if (properties == null) {
+            [NotNull] string property, [NotNull] IEnumerable<string> values)
+        {
+            if (properties == null)
+            {
                 throw new ArgumentNullException(nameof(properties));
             }
 
-            if (values == null) {
+            if (values == null)
+            {
                 throw new ArgumentNullException(nameof(values));
             }
 
-            if (string.IsNullOrEmpty(property)) {
+            if (string.IsNullOrEmpty(property))
+            {
                 throw new ArgumentException("The property name cannot be null or empty.", nameof(property));
             }
 
@@ -332,8 +377,10 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <returns>The authentication ticket.</returns>
         public static AuthenticationTicket AddProperty(
             [NotNull] this AuthenticationTicket ticket,
-            [NotNull] string property, [CanBeNull] string value) {
-            if (ticket == null) {
+            [NotNull] string property, [CanBeNull] string value)
+        {
+            if (ticket == null)
+            {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
@@ -351,12 +398,15 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <returns>The authentication ticket.</returns>
         public static AuthenticationTicket AddProperty(
             [NotNull] this AuthenticationTicket ticket,
-            [NotNull] string property, [NotNull] IEnumerable<string> values) {
-            if (ticket == null) {
+            [NotNull] string property, [NotNull] IEnumerable<string> values)
+        {
+            if (ticket == null)
+            {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            if (values == null) {
+            if (values == null)
+            {
                 throw new ArgumentNullException(nameof(values));
             }
 
@@ -370,8 +420,10 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="properties">The authentication properties to copy.</param>
         /// <returns>A new instance containing the copied properties.</returns>
-        public static AuthenticationProperties Copy([NotNull] this AuthenticationProperties properties) {
-            if (properties == null) {
+        public static AuthenticationProperties Copy([NotNull] this AuthenticationProperties properties)
+        {
+            if (properties == null)
+            {
                 throw new ArgumentNullException(nameof(properties));
             }
 
@@ -383,8 +435,10 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="ticket">The authentication ticket to copy.</param>
         /// <returns>A new instance containing the copied ticket</returns>
-        public static AuthenticationTicket Copy([NotNull] this AuthenticationTicket ticket) {
-            if (ticket == null) {
+        public static AuthenticationTicket Copy([NotNull] this AuthenticationTicket ticket)
+        {
+            if (ticket == null)
+            {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
@@ -398,17 +452,21 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="properties">The authentication properties.</param>
         /// <param name="property">The specific property to look for.</param>
         /// <returns>The value corresponding to the property, or <c>null</c> if the property cannot be found.</returns>
-        public static string GetProperty([NotNull] this AuthenticationProperties properties, [NotNull] string property) {
-            if (properties == null) {
+        public static string GetProperty([NotNull] this AuthenticationProperties properties, [NotNull] string property)
+        {
+            if (properties == null)
+            {
                 throw new ArgumentNullException(nameof(properties));
             }
 
-            if (string.IsNullOrEmpty(property)) {
+            if (string.IsNullOrEmpty(property))
+            {
                 throw new ArgumentException("The property name cannot be null or empty.", nameof(property));
             }
 
             string value;
-            if (!properties.Dictionary.TryGetValue(property, out value)) {
+            if (!properties.Dictionary.TryGetValue(property, out value))
+            {
                 return null;
             }
 
@@ -421,8 +479,10 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="ticket">The authentication ticket.</param>
         /// <param name="property">The specific property to look for.</param>
         /// <returns>The value corresponding to the property, or <c>null</c> if the property cannot be found.</returns>
-        public static string GetProperty([NotNull] this AuthenticationTicket ticket, [NotNull] string property) {
-            if (ticket == null) {
+        public static string GetProperty([NotNull] this AuthenticationTicket ticket, [NotNull] string property)
+        {
+            if (ticket == null)
+            {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
@@ -435,13 +495,16 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
         /// <returns>The audiences list or <c>Enumerable.Empty</c> is the property cannot be found.</returns>
-        public static IEnumerable<string> GetAudiences([NotNull] this AuthenticationTicket ticket) {
-            if (ticket == null) {
+        public static IEnumerable<string> GetAudiences([NotNull] this AuthenticationTicket ticket)
+        {
+            if (ticket == null)
+            {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
             var audiences = ticket.GetProperty(OpenIdConnectConstants.Properties.Audiences);
-            if (string.IsNullOrEmpty(audiences)) {
+            if (string.IsNullOrEmpty(audiences))
+            {
                 return Enumerable.Empty<string>();
             }
 
@@ -454,13 +517,16 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
         /// <returns>The presenters list or <c>Enumerable.Empty</c> is the property cannot be found.</returns>
-        public static IEnumerable<string> GetPresenters([NotNull] this AuthenticationTicket ticket) {
-            if (ticket == null) {
+        public static IEnumerable<string> GetPresenters([NotNull] this AuthenticationTicket ticket)
+        {
+            if (ticket == null)
+            {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
             var presenters = ticket.GetProperty(OpenIdConnectConstants.Properties.Presenters);
-            if (string.IsNullOrEmpty(presenters)) {
+            if (string.IsNullOrEmpty(presenters))
+            {
                 return Enumerable.Empty<string>();
             }
 
@@ -473,13 +539,16 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
         /// <returns>The resources list or <c>Enumerable.Empty</c> is the property cannot be found.</returns>
-        public static IEnumerable<string> GetResources([NotNull] this AuthenticationTicket ticket) {
-            if (ticket == null) {
+        public static IEnumerable<string> GetResources([NotNull] this AuthenticationTicket ticket)
+        {
+            if (ticket == null)
+            {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
             var resources = ticket.GetProperty(OpenIdConnectConstants.Properties.Resources);
-            if (string.IsNullOrEmpty(resources)) {
+            if (string.IsNullOrEmpty(resources))
+            {
                 return Enumerable.Empty<string>();
             }
 
@@ -492,13 +561,16 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
         /// <returns>The scopes list or <c>Enumerable.Empty</c> is the property cannot be found.</returns>
-        public static IEnumerable<string> GetScopes([NotNull] this AuthenticationTicket ticket) {
-            if (ticket == null) {
+        public static IEnumerable<string> GetScopes([NotNull] this AuthenticationTicket ticket)
+        {
+            if (ticket == null)
+            {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
             var scopes = ticket.GetProperty(OpenIdConnectConstants.Properties.Scopes);
-            if (string.IsNullOrEmpty(scopes)) {
+            if (string.IsNullOrEmpty(scopes))
+            {
                 return Enumerable.Empty<string>();
             }
 
@@ -511,18 +583,22 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="ticket">The authentication ticket.</param>
         /// <returns>The access token lifetime or <c>null</c> is the property cannot be found.</returns>
 
-        public static TimeSpan? GetAccessTokenLifetime([NotNull] this AuthenticationTicket ticket) {
-            if (ticket == null) {
+        public static TimeSpan? GetAccessTokenLifetime([NotNull] this AuthenticationTicket ticket)
+        {
+            if (ticket == null)
+            {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
             var value = ticket.GetProperty(OpenIdConnectConstants.Properties.AccessTokenLifetime);
-            if (string.IsNullOrEmpty(value)) {
+            if (string.IsNullOrEmpty(value))
+            {
                 return null;
             }
 
             TimeSpan result;
-            if (TimeSpan.TryParseExact(value, "c", CultureInfo.InvariantCulture, out result)) {
+            if (TimeSpan.TryParseExact(value, "c", CultureInfo.InvariantCulture, out result))
+            {
                 return result;
             }
 
@@ -535,18 +611,22 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="ticket">The authentication ticket.</param>
         /// <returns>The authorization code lifetime or <c>null</c> is the property cannot be found.</returns>
 
-        public static TimeSpan? GetAuthorizationCodeLifetime([NotNull] this AuthenticationTicket ticket) {
-            if (ticket == null) {
+        public static TimeSpan? GetAuthorizationCodeLifetime([NotNull] this AuthenticationTicket ticket)
+        {
+            if (ticket == null)
+            {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
             var value = ticket.GetProperty(OpenIdConnectConstants.Properties.AuthorizationCodeLifetime);
-            if (string.IsNullOrEmpty(value)) {
+            if (string.IsNullOrEmpty(value))
+            {
                 return null;
             }
 
             TimeSpan result;
-            if (TimeSpan.TryParseExact(value, "c", CultureInfo.InvariantCulture, out result)) {
+            if (TimeSpan.TryParseExact(value, "c", CultureInfo.InvariantCulture, out result))
+            {
                 return result;
             }
 
@@ -559,18 +639,22 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="ticket">The authentication ticket.</param>
         /// <returns>The identity token lifetime or <c>null</c> is the property cannot be found.</returns>
 
-        public static TimeSpan? GetIdentityTokenLifetime([NotNull] this AuthenticationTicket ticket) {
-            if (ticket == null) {
+        public static TimeSpan? GetIdentityTokenLifetime([NotNull] this AuthenticationTicket ticket)
+        {
+            if (ticket == null)
+            {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
             var value = ticket.GetProperty(OpenIdConnectConstants.Properties.IdentityTokenLifetime);
-            if (string.IsNullOrEmpty(value)) {
+            if (string.IsNullOrEmpty(value))
+            {
                 return null;
             }
 
             TimeSpan result;
-            if (TimeSpan.TryParseExact(value, "c", CultureInfo.InvariantCulture, out result)) {
+            if (TimeSpan.TryParseExact(value, "c", CultureInfo.InvariantCulture, out result))
+            {
                 return result;
             }
 
@@ -583,18 +667,22 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="ticket">The authentication ticket.</param>
         /// <returns>The refresh token lifetime or <c>null</c> is the property cannot be found.</returns>
 
-        public static TimeSpan? GetRefreshTokenLifetime([NotNull] this AuthenticationTicket ticket) {
-            if (ticket == null) {
+        public static TimeSpan? GetRefreshTokenLifetime([NotNull] this AuthenticationTicket ticket)
+        {
+            if (ticket == null)
+            {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
             var value = ticket.GetProperty(OpenIdConnectConstants.Properties.RefreshTokenLifetime);
-            if (string.IsNullOrEmpty(value)) {
+            if (string.IsNullOrEmpty(value))
+            {
                 return null;
             }
 
             TimeSpan result;
-            if (TimeSpan.TryParseExact(value, "c", CultureInfo.InvariantCulture, out result)) {
+            if (TimeSpan.TryParseExact(value, "c", CultureInfo.InvariantCulture, out result))
+            {
                 return result;
             }
 
@@ -606,8 +694,10 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
         /// <returns>The unique identifier or <c>null</c> is the property cannot be found.</returns>
-        public static string GetTicketId([NotNull] this AuthenticationTicket ticket) {
-            if (ticket == null) {
+        public static string GetTicketId([NotNull] this AuthenticationTicket ticket)
+        {
+            if (ticket == null)
+            {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
@@ -619,8 +709,10 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
         /// <returns>The usage of the token or <c>null</c> is the property cannot be found.</returns>
-        public static string GetUsage([NotNull] this AuthenticationTicket ticket) {
-            if (ticket == null) {
+        public static string GetUsage([NotNull] this AuthenticationTicket ticket)
+        {
+            if (ticket == null)
+            {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
@@ -633,17 +725,21 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="properties">The authentication properties.</param>
         /// <param name="property">The specific property to look for.</param>
         /// <returns><c>true</c> if the property was found, <c>false</c> otherwise.</returns>
-        public static bool HasProperty([NotNull] this AuthenticationProperties properties, [NotNull] string property) {
-            if (properties == null) {
+        public static bool HasProperty([NotNull] this AuthenticationProperties properties, [NotNull] string property)
+        {
+            if (properties == null)
+            {
                 throw new ArgumentNullException(nameof(properties));
             }
 
-            if (string.IsNullOrEmpty(property)) {
+            if (string.IsNullOrEmpty(property))
+            {
                 throw new ArgumentException($"{nameof(property)} cannot be null or empty.", nameof(property));
             }
 
             string value;
-            if (!properties.Dictionary.TryGetValue(property, out value)) {
+            if (!properties.Dictionary.TryGetValue(property, out value))
+            {
                 return false;
             }
 
@@ -656,8 +752,10 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="ticket">The authentication ticket.</param>
         /// <param name="property">The specific property to look for.</param>
         /// <returns><c>true</c> if the property was found, <c>false</c> otherwise.</returns>
-        public static bool HasProperty([NotNull] this AuthenticationTicket ticket, [NotNull] string property) {
-            if (ticket == null) {
+        public static bool HasProperty([NotNull] this AuthenticationTicket ticket, [NotNull] string property)
+        {
+            if (ticket == null)
+            {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
@@ -669,13 +767,16 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
         /// <returns><c>true</c> if the ticket contains at least one audience.</returns>
-        public static bool HasAudience([NotNull] this AuthenticationTicket ticket) {
-            if (ticket == null) {
+        public static bool HasAudience([NotNull] this AuthenticationTicket ticket)
+        {
+            if (ticket == null)
+            {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
             var audiences = ticket.GetProperty(OpenIdConnectConstants.Properties.Audiences);
-            if (string.IsNullOrEmpty(audiences)) {
+            if (string.IsNullOrEmpty(audiences))
+            {
                 return false;
             }
 
@@ -688,13 +789,16 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="ticket">The authentication ticket.</param>
         /// <param name="audience">The audience.</param>
         /// <returns><c>true</c> if the ticket contains the given audience.</returns>
-        public static bool HasAudience([NotNull] this AuthenticationTicket ticket, string audience) {
-            if (ticket == null) {
+        public static bool HasAudience([NotNull] this AuthenticationTicket ticket, string audience)
+        {
+            if (ticket == null)
+            {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
             var audiences = ticket.GetProperty(OpenIdConnectConstants.Properties.Audiences);
-            if (string.IsNullOrEmpty(audiences)) {
+            if (string.IsNullOrEmpty(audiences))
+            {
                 return false;
             }
 
@@ -706,13 +810,16 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
         /// <returns><c>true</c> if the ticket contains at least one presenter.</returns>
-        public static bool HasPresenter([NotNull] this AuthenticationTicket ticket) {
-            if (ticket == null) {
+        public static bool HasPresenter([NotNull] this AuthenticationTicket ticket)
+        {
+            if (ticket == null)
+            {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
             var presenters = ticket.GetProperty(OpenIdConnectConstants.Properties.Presenters);
-            if (string.IsNullOrEmpty(presenters)) {
+            if (string.IsNullOrEmpty(presenters))
+            {
                 return false;
             }
 
@@ -725,13 +832,16 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="ticket">The authentication ticket.</param>
         /// <param name="presenter">The presenter.</param>
         /// <returns><c>true</c> if the ticket contains the given presenter.</returns>
-        public static bool HasPresenter([NotNull] this AuthenticationTicket ticket, string presenter) {
-            if (ticket == null) {
+        public static bool HasPresenter([NotNull] this AuthenticationTicket ticket, string presenter)
+        {
+            if (ticket == null)
+            {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
             var presenters = ticket.GetProperty(OpenIdConnectConstants.Properties.Presenters);
-            if (string.IsNullOrEmpty(presenters)) {
+            if (string.IsNullOrEmpty(presenters))
+            {
                 return false;
             }
 
@@ -743,13 +853,16 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
         /// <returns><c>true</c> if the ticket contains at least one resource.</returns>
-        public static bool HasResource([NotNull] this AuthenticationTicket ticket) {
-            if (ticket == null) {
+        public static bool HasResource([NotNull] this AuthenticationTicket ticket)
+        {
+            if (ticket == null)
+            {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
             var resources = ticket.GetProperty(OpenIdConnectConstants.Properties.Resources);
-            if (string.IsNullOrEmpty(resources)) {
+            if (string.IsNullOrEmpty(resources))
+            {
                 return false;
             }
 
@@ -762,13 +875,16 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="ticket">The authentication ticket.</param>
         /// <param name="resource">The resource.</param>
         /// <returns><c>true</c> if the ticket contains the given resource.</returns>
-        public static bool HasResource([NotNull] this AuthenticationTicket ticket, string resource) {
-            if (ticket == null) {
+        public static bool HasResource([NotNull] this AuthenticationTicket ticket, string resource)
+        {
+            if (ticket == null)
+            {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
             var resources = ticket.GetProperty(OpenIdConnectConstants.Properties.Resources);
-            if (string.IsNullOrEmpty(resources)) {
+            if (string.IsNullOrEmpty(resources))
+            {
                 return false;
             }
 
@@ -780,13 +896,16 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
         /// <returns><c>true</c> if the ticket contains at least one scope.</returns>
-        public static bool HasScope([NotNull] this AuthenticationTicket ticket) {
-            if (ticket == null) {
+        public static bool HasScope([NotNull] this AuthenticationTicket ticket)
+        {
+            if (ticket == null)
+            {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
             var scopes = ticket.GetProperty(OpenIdConnectConstants.Properties.Scopes);
-            if (string.IsNullOrEmpty(scopes)) {
+            if (string.IsNullOrEmpty(scopes))
+            {
                 return false;
             }
 
@@ -799,13 +918,16 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="ticket">The authentication ticket.</param>
         /// <param name="scope">The scope.</param>
         /// <returns><c>true</c> if the ticket contains the given scope.</returns>
-        public static bool HasScope([NotNull] this AuthenticationTicket ticket, string scope) {
-            if (ticket == null) {
+        public static bool HasScope([NotNull] this AuthenticationTicket ticket, string scope)
+        {
+            if (ticket == null)
+            {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
             var scopes = ticket.GetProperty(OpenIdConnectConstants.Properties.Scopes);
-            if (string.IsNullOrEmpty(scopes)) {
+            if (string.IsNullOrEmpty(scopes))
+            {
                 return false;
             }
 
@@ -818,13 +940,16 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
         /// <returns><c>true</c> if the ticket is confidential, or <c>false</c> if it's not.</returns>
-        public static bool IsConfidential([NotNull] this AuthenticationTicket ticket) {
-            if (ticket == null) {
+        public static bool IsConfidential([NotNull] this AuthenticationTicket ticket)
+        {
+            if (ticket == null)
+            {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
             var value = ticket.GetProperty(OpenIdConnectConstants.Properties.ConfidentialityLevel);
-            if (string.IsNullOrEmpty(value)) {
+            if (string.IsNullOrEmpty(value))
+            {
                 return false;
             }
 
@@ -837,13 +962,16 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
         /// <returns><c>true</c> if the ticket corresponds to an access token.</returns>
-        public static bool IsAccessToken([NotNull] this AuthenticationTicket ticket) {
-            if (ticket == null) {
+        public static bool IsAccessToken([NotNull] this AuthenticationTicket ticket)
+        {
+            if (ticket == null)
+            {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
             var value = ticket.GetProperty(OpenIdConnectConstants.Properties.Usage);
-            if (string.IsNullOrEmpty(value)) {
+            if (string.IsNullOrEmpty(value))
+            {
                 return false;
             }
 
@@ -856,13 +984,16 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
         /// <returns><c>true</c> if the ticket corresponds to an authorization code.</returns>
-        public static bool IsAuthorizationCode([NotNull] this AuthenticationTicket ticket) {
-            if (ticket == null) {
+        public static bool IsAuthorizationCode([NotNull] this AuthenticationTicket ticket)
+        {
+            if (ticket == null)
+            {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
             var value = ticket.GetProperty(OpenIdConnectConstants.Properties.Usage);
-            if (string.IsNullOrEmpty(value)) {
+            if (string.IsNullOrEmpty(value))
+            {
                 return false;
             }
 
@@ -875,13 +1006,16 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
         /// <returns><c>true</c> if the ticket corresponds to an identity token.</returns>
-        public static bool IsIdentityToken([NotNull] this AuthenticationTicket ticket) {
-            if (ticket == null) {
+        public static bool IsIdentityToken([NotNull] this AuthenticationTicket ticket)
+        {
+            if (ticket == null)
+            {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
             var value = ticket.GetProperty(OpenIdConnectConstants.Properties.Usage);
-            if (string.IsNullOrEmpty(value)) {
+            if (string.IsNullOrEmpty(value))
+            {
                 return false;
             }
 
@@ -894,13 +1028,16 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
         /// <returns><c>true</c> if the ticket corresponds to a refresh token.</returns>
-        public static bool IsRefreshToken([NotNull] this AuthenticationTicket ticket) {
-            if (ticket == null) {
+        public static bool IsRefreshToken([NotNull] this AuthenticationTicket ticket)
+        {
+            if (ticket == null)
+            {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
             var value = ticket.GetProperty(OpenIdConnectConstants.Properties.Usage);
-            if (string.IsNullOrEmpty(value)) {
+            if (string.IsNullOrEmpty(value))
+            {
                 return false;
             }
 
@@ -914,15 +1051,18 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="property">The specific property to remove.</param>
         /// <returns>The authentication properties.</returns>
         public static AuthenticationProperties RemoveProperty(
-            [NotNull] this AuthenticationProperties properties, [NotNull] string property) {
-            if (properties == null) {
+            [NotNull] this AuthenticationProperties properties, [NotNull] string property)
+        {
+            if (properties == null)
+            {
                 throw new ArgumentNullException(nameof(properties));
             }
 
-            if (string.IsNullOrEmpty(property)) {
+            if (string.IsNullOrEmpty(property))
+            {
                 throw new ArgumentException("The property name cannot be null or empty.", nameof(property));
             }
-            
+
             properties.Dictionary.Remove(property);
 
             return properties;
@@ -935,8 +1075,10 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="property">The specific property to remove.</param>
         /// <returns>The authentication ticket.</returns>
         public static AuthenticationTicket RemoveProperty(
-            [NotNull] this AuthenticationTicket ticket, [NotNull] string property) {
-            if (ticket == null) {
+            [NotNull] this AuthenticationTicket ticket, [NotNull] string property)
+        {
+            if (ticket == null)
+            {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
@@ -954,16 +1096,20 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <returns>The authentication properties.</returns>
         public static AuthenticationProperties SetProperty(
             [NotNull] this AuthenticationProperties properties,
-            [NotNull] string property, [CanBeNull] string value) {
-            if (properties == null) {
+            [NotNull] string property, [CanBeNull] string value)
+        {
+            if (properties == null)
+            {
                 throw new ArgumentNullException(nameof(properties));
             }
 
-            if (string.IsNullOrEmpty(property)) {
+            if (string.IsNullOrEmpty(property))
+            {
                 throw new ArgumentException("The property name cannot be null or empty.", nameof(property));
             }
 
-            if (string.IsNullOrEmpty(value)) {
+            if (string.IsNullOrEmpty(value))
+            {
                 properties.Dictionary.Remove(property);
 
                 return properties;
@@ -983,16 +1129,20 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <returns>The authentication properties.</returns>
         public static AuthenticationProperties SetProperty(
             [NotNull] this AuthenticationProperties properties,
-            [NotNull] string property, [CanBeNull] IEnumerable<string> values) {
-            if (properties == null) {
+            [NotNull] string property, [CanBeNull] IEnumerable<string> values)
+        {
+            if (properties == null)
+            {
                 throw new ArgumentNullException(nameof(properties));
             }
 
-            if (string.IsNullOrEmpty(property)) {
+            if (string.IsNullOrEmpty(property))
+            {
                 throw new ArgumentException("The property name cannot be null or empty.", nameof(property));
             }
 
-            if (values == null || !values.Any()) {
+            if (values == null || !values.Any())
+            {
                 properties.Dictionary.Remove(property);
 
                 return properties;
@@ -1012,7 +1162,8 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <returns>The authentication properties.</returns>
         public static AuthenticationProperties SetProperty(
             [NotNull] this AuthenticationProperties properties,
-            [NotNull] string property, [CanBeNull] params string[] values) {
+            [NotNull] string property, [CanBeNull] params string[] values)
+        {
             // Note: guarding the values parameter against null values
             // is not necessary as AsEnumerable() doesn't throw on null values.
             return properties.SetProperty(property, values.AsEnumerable());
@@ -1027,8 +1178,10 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <returns>The authentication ticket.</returns>
         public static AuthenticationTicket SetProperty(
             [NotNull] this AuthenticationTicket ticket,
-            [NotNull] string property, [CanBeNull] string value) {
-            if (ticket == null) {
+            [NotNull] string property, [CanBeNull] string value)
+        {
+            if (ticket == null)
+            {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
@@ -1046,8 +1199,10 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <returns>The authentication ticket.</returns>
         public static AuthenticationTicket SetProperty(
             [NotNull] this AuthenticationTicket ticket,
-            [NotNull] string property, [CanBeNull] IEnumerable<string> values) {
-            if (ticket == null) {
+            [NotNull] string property, [CanBeNull] IEnumerable<string> values)
+        {
+            if (ticket == null)
+            {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
@@ -1065,7 +1220,8 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <returns>The authentication ticket.</returns>
         public static AuthenticationTicket SetProperty(
             [NotNull] this AuthenticationTicket ticket,
-            [NotNull] string property, [CanBeNull] params string[] values) {
+            [NotNull] string property, [CanBeNull] params string[] values)
+        {
             // Note: guarding the values parameter against null values
             // is not necessary as AsEnumerable() doesn't throw on null values.
             return ticket.SetProperty(property, values.AsEnumerable());
@@ -1080,18 +1236,22 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <returns>The authentication ticket.</returns>
         public static AuthenticationTicket SetAudiences(
             [NotNull] this AuthenticationTicket ticket,
-            [CanBeNull] IEnumerable<string> audiences) {
-            if (ticket == null) {
+            [CanBeNull] IEnumerable<string> audiences)
+        {
+            if (ticket == null)
+            {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            if (audiences == null || !audiences.Any()) {
+            if (audiences == null || !audiences.Any())
+            {
                 ticket.Properties.Dictionary.Remove(OpenIdConnectConstants.Properties.Audiences);
 
                 return ticket;
             }
 
-            if (audiences.Any(audience => string.IsNullOrEmpty(audience))) {
+            if (audiences.Any(audience => string.IsNullOrEmpty(audience)))
+            {
                 throw new ArgumentException("Audiences cannot be null or empty.", nameof(audiences));
             }
 
@@ -1106,7 +1266,8 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="audiences">The audiences to store.</param>
         /// <returns>The authentication ticket.</returns>
         public static AuthenticationTicket SetAudiences(
-            [NotNull] this AuthenticationTicket ticket, [CanBeNull] params string[] audiences) {
+            [NotNull] this AuthenticationTicket ticket, [CanBeNull] params string[] audiences)
+        {
             // Note: guarding the audiences parameter against null values
             // is not necessary as AsEnumerable() doesn't throw on null values.
             return ticket.SetAudiences(audiences.AsEnumerable());
@@ -1121,18 +1282,22 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <returns>The authentication ticket.</returns>
         public static AuthenticationTicket SetPresenters(
             [NotNull] this AuthenticationTicket ticket,
-            [CanBeNull] IEnumerable<string> presenters) {
-            if (ticket == null) {
+            [CanBeNull] IEnumerable<string> presenters)
+        {
+            if (ticket == null)
+            {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            if (presenters == null || !presenters.Any()) {
+            if (presenters == null || !presenters.Any())
+            {
                 ticket.Properties.Dictionary.Remove(OpenIdConnectConstants.Properties.Presenters);
 
                 return ticket;
             }
 
-            if (presenters.Any(presenter => string.IsNullOrEmpty(presenter))) {
+            if (presenters.Any(presenter => string.IsNullOrEmpty(presenter)))
+            {
                 throw new ArgumentException("Presenters cannot be null or empty.", nameof(presenters));
             }
 
@@ -1147,7 +1312,8 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="presenters">The presenters to store.</param>
         /// <returns>The authentication ticket.</returns>
         public static AuthenticationTicket SetPresenters(
-            [NotNull] this AuthenticationTicket ticket, [CanBeNull] params string[] presenters) {
+            [NotNull] this AuthenticationTicket ticket, [CanBeNull] params string[] presenters)
+        {
             // Note: guarding the presenters parameter against null values
             // is not necessary as AsEnumerable() doesn't throw on null values.
             return ticket.SetPresenters(presenters.AsEnumerable());
@@ -1162,18 +1328,22 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <returns>The authentication ticket.</returns>
         public static AuthenticationTicket SetResources(
             [NotNull] this AuthenticationTicket ticket,
-            [CanBeNull] IEnumerable<string> resources) {
-            if (ticket == null) {
+            [CanBeNull] IEnumerable<string> resources)
+        {
+            if (ticket == null)
+            {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            if (resources == null || !resources.Any()) {
+            if (resources == null || !resources.Any())
+            {
                 ticket.Properties.Dictionary.Remove(OpenIdConnectConstants.Properties.Resources);
 
                 return ticket;
             }
 
-            if (resources.Any(resource => string.IsNullOrEmpty(resource))) {
+            if (resources.Any(resource => string.IsNullOrEmpty(resource)))
+            {
                 throw new ArgumentException("Resources cannot be null or empty.", nameof(resources));
             }
 
@@ -1188,7 +1358,8 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="resources">The resources to store.</param>
         /// <returns>The authentication ticket.</returns>
         public static AuthenticationTicket SetResources(
-            [NotNull] this AuthenticationTicket ticket, [CanBeNull] params string[] resources) {
+            [NotNull] this AuthenticationTicket ticket, [CanBeNull] params string[] resources)
+        {
             // Note: guarding the resources parameter against null values
             // is not necessary as AsEnumerable() doesn't throw on null values.
             return ticket.SetResources(resources.AsEnumerable());
@@ -1203,18 +1374,22 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <returns>The authentication ticket.</returns>
         public static AuthenticationTicket SetScopes(
             [NotNull] this AuthenticationTicket ticket,
-            [CanBeNull] IEnumerable<string> scopes) {
-            if (ticket == null) {
+            [CanBeNull] IEnumerable<string> scopes)
+        {
+            if (ticket == null)
+            {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            if (scopes == null || !scopes.Any()) {
+            if (scopes == null || !scopes.Any())
+            {
                 ticket.Properties.Dictionary.Remove(OpenIdConnectConstants.Properties.Scopes);
 
                 return ticket;
             }
 
-            if (scopes.Any(scope => string.IsNullOrEmpty(scope))) {
+            if (scopes.Any(scope => string.IsNullOrEmpty(scope)))
+            {
                 throw new ArgumentException("Scopes cannot be null or empty.", nameof(scopes));
             }
 
@@ -1229,7 +1404,8 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="scopes">The scopes to store.</param>
         /// <returns>The authentication ticket.</returns>
         public static AuthenticationTicket SetScopes(
-            [NotNull] this AuthenticationTicket ticket, [CanBeNull] params string[] scopes) {
+            [NotNull] this AuthenticationTicket ticket, [CanBeNull] params string[] scopes)
+        {
             // Note: guarding the scopes parameter against null values
             // is not necessary as AsEnumerable() doesn't throw on null values.
             return ticket.SetScopes(scopes.AsEnumerable());
@@ -1241,8 +1417,10 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="ticket">The authentication ticket.</param>
         /// <param name="lifetime">The access token lifetime to store.</param>
         /// <returns>The authentication ticket.</returns>
-        public static AuthenticationTicket SetAccessTokenLifetime([NotNull] this AuthenticationTicket ticket, TimeSpan? lifetime) {
-            if (ticket == null) {
+        public static AuthenticationTicket SetAccessTokenLifetime([NotNull] this AuthenticationTicket ticket, TimeSpan? lifetime)
+        {
+            if (ticket == null)
+            {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
@@ -1257,8 +1435,10 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="ticket">The authentication ticket.</param>
         /// <param name="lifetime">The authorization code lifetime to store.</param>
         /// <returns>The authentication ticket.</returns>
-        public static AuthenticationTicket SetAuthorizationCodeLifetime([NotNull] this AuthenticationTicket ticket, TimeSpan? lifetime) {
-            if (ticket == null) {
+        public static AuthenticationTicket SetAuthorizationCodeLifetime([NotNull] this AuthenticationTicket ticket, TimeSpan? lifetime)
+        {
+            if (ticket == null)
+            {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
@@ -1273,8 +1453,10 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="ticket">The authentication ticket.</param>
         /// <param name="lifetime">The identity token lifetime to store.</param>
         /// <returns>The authentication ticket.</returns>
-        public static AuthenticationTicket SetIdentityTokenLifetime([NotNull] this AuthenticationTicket ticket, TimeSpan? lifetime) {
-            if (ticket == null) {
+        public static AuthenticationTicket SetIdentityTokenLifetime([NotNull] this AuthenticationTicket ticket, TimeSpan? lifetime)
+        {
+            if (ticket == null)
+            {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
@@ -1289,8 +1471,10 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="ticket">The authentication ticket.</param>
         /// <param name="lifetime">The refresh token lifetime to store.</param>
         /// <returns>The authentication ticket.</returns>
-        public static AuthenticationTicket SetRefreshTokenLifetime([NotNull] this AuthenticationTicket ticket, TimeSpan? lifetime) {
-            if (ticket == null) {
+        public static AuthenticationTicket SetRefreshTokenLifetime([NotNull] this AuthenticationTicket ticket, TimeSpan? lifetime)
+        {
+            if (ticket == null)
+            {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
@@ -1305,8 +1489,10 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="ticket">The authentication ticket.</param>
         /// <param name="identifier">The unique identifier to store.</param>
         /// <returns>The authentication ticket.</returns>
-        public static AuthenticationTicket SetTicketId([NotNull] this AuthenticationTicket ticket, string identifier) {
-            if (ticket == null) {
+        public static AuthenticationTicket SetTicketId([NotNull] this AuthenticationTicket ticket, string identifier)
+        {
+            if (ticket == null)
+            {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
@@ -1319,23 +1505,29 @@ namespace Owin.Security.OpenIdConnect.Extensions {
         /// <param name="ticket">The authentication ticket.</param>
         /// <param name="usage">The usage of the token.</param>
         /// <returns>The authentication ticket.</returns>
-        public static AuthenticationTicket SetUsage([NotNull] this AuthenticationTicket ticket, string usage) {
-            if (ticket == null) {
+        public static AuthenticationTicket SetUsage([NotNull] this AuthenticationTicket ticket, string usage)
+        {
+            if (ticket == null)
+            {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
             return ticket.SetProperty(OpenIdConnectConstants.Properties.Usage, usage);
         }
 
-        private static IEnumerable<string> GetValues(string source) {
+        private static IEnumerable<string> GetValues(string source)
+        {
             Debug.Assert(!string.IsNullOrEmpty(source), "The source string shouldn't be null or empty.");
 
-            using (var reader = new JsonTextReader(new StringReader(source))) {
+            using (var reader = new JsonTextReader(new StringReader(source)))
+            {
                 var array = JArray.Load(reader);
 
-                for (var index = 0; index < array.Count; index++) {
+                for (var index = 0; index < array.Count; index++)
+                {
                     var element = array[index] as JValue;
-                    if (element?.Type != JTokenType.String) {
+                    if (element?.Type != JTokenType.String)
+                    {
                         continue;
                     }
 
@@ -1346,20 +1538,25 @@ namespace Owin.Security.OpenIdConnect.Extensions {
             yield break;
         }
 
-        private static bool HasValue(string source, string value, StringComparison comparison) {
+        private static bool HasValue(string source, string value, StringComparison comparison)
+        {
             Debug.Assert(!string.IsNullOrEmpty(source), "The source string shouldn't be null or empty.");
             Debug.Assert(!string.IsNullOrEmpty(value), "The value string shouldn't be null or empty.");
 
-            using (var reader = new JsonTextReader(new StringReader(source))) {
+            using (var reader = new JsonTextReader(new StringReader(source)))
+            {
                 var array = JArray.Load(reader);
 
-                for (var index = 0; index < array.Count; index++) {
+                for (var index = 0; index < array.Count; index++)
+                {
                     var element = array[index] as JValue;
-                    if (element?.Type != JTokenType.String) {
+                    if (element?.Type != JTokenType.String)
+                    {
                         continue;
                     }
 
-                    if (string.Equals((string) element.Value, value, comparison)) {
+                    if (string.Equals((string) element.Value, value, comparison))
+                    {
                         return true;
                     }
                 }

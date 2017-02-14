@@ -18,13 +18,15 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Owin;
 using Owin.Security.OpenIdConnect.Server;
 
-namespace Owin {
+namespace Owin
+{
     /// <summary>
     /// Provides extension methods allowing to easily register an
     /// OWIN-powered OpenID Connect server and to retrieve various
     /// OpenID Connect-related contexts from the OWIN environment.
     /// </summary>
-    public static class OpenIdConnectServerExtensions {
+    public static class OpenIdConnectServerExtensions
+    {
         /// <summary>
         /// Adds a new OpenID Connect server instance in the OWIN pipeline.
         /// </summary>
@@ -36,12 +38,15 @@ namespace Owin {
         /// <returns>The application builder.</returns>
         public static IAppBuilder UseOpenIdConnectServer(
             [NotNull] this IAppBuilder app,
-            [NotNull] Action<OpenIdConnectServerOptions> configuration) {
-            if (app == null) {
+            [NotNull] Action<OpenIdConnectServerOptions> configuration)
+        {
+            if (app == null)
+            {
                 throw new ArgumentNullException(nameof(app));
             }
 
-            if (configuration == null) {
+            if (configuration == null)
+            {
                 throw new ArgumentNullException(nameof(configuration));
             }
 
@@ -59,12 +64,15 @@ namespace Owin {
         /// <returns>The application builder.</returns>
         public static IAppBuilder UseOpenIdConnectServer(
             [NotNull] this IAppBuilder app,
-            [NotNull] OpenIdConnectServerOptions options) {
-            if (app == null) {
+            [NotNull] OpenIdConnectServerOptions options)
+        {
+            if (app == null)
+            {
                 throw new ArgumentNullException(nameof(app));
             }
 
-            if (options == null) {
+            if (options == null)
+            {
                 throw new ArgumentNullException(nameof(options));
             }
 
@@ -79,16 +87,20 @@ namespace Owin {
         /// <returns>The signing credentials.</returns>
         public static IList<SigningCredentials> AddCertificate(
             [NotNull] this IList<SigningCredentials> credentials,
-            [NotNull] X509Certificate2 certificate) {
-            if (credentials == null) {
+            [NotNull] X509Certificate2 certificate)
+        {
+            if (credentials == null)
+            {
                 throw new ArgumentNullException(nameof(credentials));
             }
 
-            if (certificate == null) {
+            if (certificate == null)
+            {
                 throw new ArgumentNullException(nameof(certificate));
             }
 
-            if (certificate.PrivateKey == null) {
+            if (certificate.PrivateKey == null)
+            {
                 throw new InvalidOperationException("The certificate doesn't contain the required private key.");
             }
 
@@ -120,25 +132,32 @@ namespace Owin {
         /// <returns>The signing credentials.</returns>
         public static IList<SigningCredentials> AddCertificate(
             [NotNull] this IList<SigningCredentials> credentials,
-            [NotNull] Assembly assembly, [NotNull] string resource, [NotNull] string password) {
-            if (credentials == null) {
+            [NotNull] Assembly assembly, [NotNull] string resource, [NotNull] string password)
+        {
+            if (credentials == null)
+            {
                 throw new ArgumentNullException(nameof(credentials));
             }
 
-            if (assembly == null) {
+            if (assembly == null)
+            {
                 throw new ArgumentNullException(nameof(assembly));
             }
 
-            if (string.IsNullOrEmpty(resource)) {
+            if (string.IsNullOrEmpty(resource))
+            {
                 throw new ArgumentException("The resource cannot be null or empty.", nameof(password));
             }
 
-            if (string.IsNullOrEmpty(password)) {
+            if (string.IsNullOrEmpty(password))
+            {
                 throw new ArgumentException("The password cannot be null or empty.", nameof(password));
             }
 
-            using (var stream = assembly.GetManifestResourceStream(resource)) {
-                if (stream == null) {
+            using (var stream = assembly.GetManifestResourceStream(resource))
+            {
+                if (stream == null)
+                {
                     throw new InvalidOperationException("The certificate was not found in the given assembly.");
                 }
 
@@ -155,7 +174,8 @@ namespace Owin {
         /// <param name="password">The password used to open the certificate.</param>
         /// <returns>The signing credentials.</returns>
         public static IList<SigningCredentials> AddCertificate(
-            [NotNull] this IList<SigningCredentials> credentials, [NotNull] Stream stream, [NotNull] string password) {
+            [NotNull] this IList<SigningCredentials> credentials, [NotNull] Stream stream, [NotNull] string password)
+        {
             return credentials.AddCertificate(stream, password, X509KeyStorageFlags.Exportable |
                                                                 X509KeyStorageFlags.MachineKeySet);
         }
@@ -171,20 +191,25 @@ namespace Owin {
         /// <returns>The signing credentials.</returns>
         public static IList<SigningCredentials> AddCertificate(
             [NotNull] this IList<SigningCredentials> credentials, [NotNull] Stream stream,
-            [NotNull] string password, X509KeyStorageFlags flags) {
-            if (credentials == null) {
+            [NotNull] string password, X509KeyStorageFlags flags)
+        {
+            if (credentials == null)
+            {
                 throw new ArgumentNullException(nameof(credentials));
             }
 
-            if (stream == null) {
+            if (stream == null)
+            {
                 throw new ArgumentNullException(nameof(stream));
             }
 
-            if (string.IsNullOrEmpty(password)) {
+            if (string.IsNullOrEmpty(password))
+            {
                 throw new ArgumentException("The password cannot be null or empty.", nameof(password));
             }
 
-            using (var buffer = new MemoryStream()) {
+            using (var buffer = new MemoryStream())
+            {
                 stream.CopyTo(buffer);
 
                 return credentials.AddCertificate(new X509Certificate2(buffer.ToArray(), password, flags));
@@ -199,19 +224,23 @@ namespace Owin {
         /// <param name="thumbprint">The thumbprint of the certificate used to identify it in the X.509 store.</param>
         /// <returns>The signing credentials.</returns>
         public static IList<SigningCredentials> AddCertificate(
-            [NotNull] this IList<SigningCredentials> credentials, [NotNull] string thumbprint) {
-            if (credentials == null) {
+            [NotNull] this IList<SigningCredentials> credentials, [NotNull] string thumbprint)
+        {
+            if (credentials == null)
+            {
                 throw new ArgumentNullException(nameof(credentials));
             }
 
-            if (string.IsNullOrEmpty(thumbprint)) {
+            if (string.IsNullOrEmpty(thumbprint))
+            {
                 throw new ArgumentException("The thumbprint cannot be null or empty.", nameof(thumbprint));
             }
 
             var certificate = OpenIdConnectServerHelpers.GetCertificate(StoreName.My, StoreLocation.CurrentUser, thumbprint) ??
                               OpenIdConnectServerHelpers.GetCertificate(StoreName.My, StoreLocation.LocalMachine, thumbprint);
 
-            if (certificate == null) {
+            if (certificate == null)
+            {
                 throw new InvalidOperationException("The certificate corresponding to the given thumbprint was not found.");
             }
 
@@ -229,17 +258,21 @@ namespace Owin {
         /// <returns>The signing credentials.</returns>
         public static IList<SigningCredentials> AddCertificate(
             [NotNull] this IList<SigningCredentials> credentials,
-            [NotNull] string thumbprint, StoreName name, StoreLocation location) {
-            if (credentials == null) {
+            [NotNull] string thumbprint, StoreName name, StoreLocation location)
+        {
+            if (credentials == null)
+            {
                 throw new ArgumentNullException(nameof(credentials));
             }
 
-            if (string.IsNullOrEmpty(thumbprint)) {
+            if (string.IsNullOrEmpty(thumbprint))
+            {
                 throw new ArgumentException("The thumbprint cannot be null or empty.", nameof(thumbprint));
             }
 
             var certificate = OpenIdConnectServerHelpers.GetCertificate(name, location, thumbprint);
-            if (certificate == null) {
+            if (certificate == null)
+            {
                 throw new InvalidOperationException("The certificate corresponding to the given thumbprint was not found.");
             }
 
@@ -254,7 +287,8 @@ namespace Owin {
         /// </summary>
         /// <param name="credentials">The signing credentials.</param>
         /// <returns>The signing credentials.</returns>
-        public static IList<SigningCredentials> AddEphemeralKey([NotNull] this IList<SigningCredentials> credentials) {
+        public static IList<SigningCredentials> AddEphemeralKey([NotNull] this IList<SigningCredentials> credentials)
+        {
             return credentials.AddEphemeralKey(SecurityAlgorithms.RsaSha256Signature);
         }
 
@@ -268,34 +302,42 @@ namespace Owin {
         /// <param name="algorithm">The algorithm associated with the signing key.</param>
         /// <returns>The signing credentials.</returns>
         public static IList<SigningCredentials> AddEphemeralKey(
-            [NotNull] this IList<SigningCredentials> credentials, [NotNull] string algorithm) {
-            if (credentials == null) {
+            [NotNull] this IList<SigningCredentials> credentials, [NotNull] string algorithm)
+        {
+            if (credentials == null)
+            {
                 throw new ArgumentNullException(nameof(credentials));
             }
 
-            if (string.IsNullOrEmpty(algorithm)) {
+            if (string.IsNullOrEmpty(algorithm))
+            {
                 throw new ArgumentException("The algorithm cannot be null or empty.", nameof(algorithm));
             }
 
-            switch (algorithm) {
-                case SecurityAlgorithms.RsaSha256Signature: {
+            switch (algorithm)
+            {
+                case SecurityAlgorithms.RsaSha256Signature:
+                {
                     // Note: a 1024-bit key might be returned by RSA.Create() on .NET Desktop/Mono,
                     // where RSACryptoServiceProvider is still the default implementation and
                     // where custom implementations can be registered via CryptoConfig.
                     // To ensure the key size is always acceptable, replace it if necessary.
                     var rsa = RSA.Create();
 
-                    if (rsa.KeySize < 2048) {
+                    if (rsa.KeySize < 2048)
+                    {
                         rsa.KeySize = 2048;
                     }
 
                     // Note: RSACng cannot be used as it's not available on <.NET 4.6.
-                    if (rsa.KeySize < 2048 && rsa is RSACryptoServiceProvider) {
+                    if (rsa.KeySize < 2048 && rsa is RSACryptoServiceProvider)
+                    {
                         rsa.Dispose();
                         rsa = new RSACryptoServiceProvider(2048);
                     }
 
-                    if (rsa.KeySize < 2048) {
+                    if (rsa.KeySize < 2048)
+                    {
                         throw new InvalidOperationException("The ephemeral key generation failed.");
                     }
 
@@ -319,23 +361,28 @@ namespace Owin {
         /// <param name="key">The key used to sign security tokens issued by the server.</param>
         /// <returns>The signing credentials.</returns>
         public static IList<SigningCredentials> AddKey(
-            [NotNull] this IList<SigningCredentials> credentials, [NotNull] SecurityKey key) {
-            if (credentials == null) {
+            [NotNull] this IList<SigningCredentials> credentials, [NotNull] SecurityKey key)
+        {
+            if (credentials == null)
+            {
                 throw new ArgumentNullException(nameof(credentials));
             }
 
-            if (key == null) {
+            if (key == null)
+            {
                 throw new ArgumentNullException(nameof(key));
             }
 
-            if (key.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature)) {
+            if (key.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature))
+            {
                 credentials.Add(new SigningCredentials(key, SecurityAlgorithms.RsaSha256Signature,
                                                             SecurityAlgorithms.Sha256Digest, key.GetKeyIdentifier()));
 
                 return credentials;
             }
 
-            else if (key.IsSupportedAlgorithm(SecurityAlgorithms.HmacSha256Signature)) {
+            else if (key.IsSupportedAlgorithm(SecurityAlgorithms.HmacSha256Signature))
+            {
                 credentials.Add(new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature,
                                                             SecurityAlgorithms.Sha256Digest, key.GetKeyIdentifier()));
 
@@ -354,12 +401,15 @@ namespace Owin {
         /// <returns>The options used to configure the OpenID Connect server.</returns>
         public static OpenIdConnectServerOptions UseLogging(
             [NotNull] this OpenIdConnectServerOptions options,
-            [NotNull] Action<ILoggerFactory> configuration) {
-            if (options == null) {
+            [NotNull] Action<ILoggerFactory> configuration)
+        {
+            if (options == null)
+            {
                 throw new ArgumentNullException(nameof(options));
             }
 
-            if (configuration == null) {
+            if (configuration == null)
+            {
                 throw new ArgumentNullException(nameof(configuration));
             }
 
@@ -377,8 +427,10 @@ namespace Owin {
         /// </summary>
         /// <param name="context">The OWIN context.</param>
         /// <returns>The <see cref="OpenIdConnectRequest"/> associated with the current request.</returns>
-        public static OpenIdConnectRequest GetOpenIdConnectRequest([NotNull] this IOwinContext context) {
-            if (context == null) {
+        public static OpenIdConnectRequest GetOpenIdConnectRequest([NotNull] this IOwinContext context)
+        {
+            if (context == null)
+            {
                 throw new ArgumentNullException(nameof(context));
             }
 
@@ -391,8 +443,10 @@ namespace Owin {
         /// </summary>
         /// <param name="context">The OWIN context.</param>
         /// <returns>The <see cref="OpenIdConnectResponse"/> associated with the current response.</returns>
-        public static OpenIdConnectResponse GetOpenIdConnectResponse([NotNull] this IOwinContext context) {
-            if (context == null) {
+        public static OpenIdConnectResponse GetOpenIdConnectResponse([NotNull] this IOwinContext context)
+        {
+            if (context == null)
+            {
                 throw new ArgumentNullException(nameof(context));
             }
 
@@ -405,8 +459,10 @@ namespace Owin {
         /// <param name="context">The OWIN context.</param>
         /// <param name="request">The ambient <see cref="OpenIdConnectRequest"/>.</param>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public static void SetOpenIdConnectRequest([NotNull] this IOwinContext context, OpenIdConnectRequest request) {
-            if (context == null) {
+        public static void SetOpenIdConnectRequest([NotNull] this IOwinContext context, OpenIdConnectRequest request)
+        {
+            if (context == null)
+            {
                 throw new ArgumentNullException(nameof(context));
             }
 
@@ -419,8 +475,10 @@ namespace Owin {
         /// <param name="context">The OWIN context.</param>
         /// <param name="response">The ambient <see cref="OpenIdConnectResponse"/>.</param>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public static void SetOpenIdConnectResponse([NotNull] this IOwinContext context, OpenIdConnectResponse response) {
-            if (context == null) {
+        public static void SetOpenIdConnectResponse([NotNull] this IOwinContext context, OpenIdConnectResponse response)
+        {
+            if (context == null)
+            {
                 throw new ArgumentNullException(nameof(context));
             }
 

@@ -6,7 +6,6 @@
 
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Client;
-using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Net.Http.Headers;
@@ -14,15 +13,18 @@ using Newtonsoft.Json;
 using Xunit;
 using static System.Net.Http.HttpMethod;
 
-namespace AspNet.Security.OpenIdConnect.Server.Tests {
-    public partial class OpenIdConnectServerHandlerTests {
+namespace AspNet.Security.OpenIdConnect.Server.Tests
+{
+    public partial class OpenIdConnectServerHandlerTests
+    {
         [Theory]
         [InlineData(nameof(Delete))]
         [InlineData(nameof(Head))]
         [InlineData(nameof(Options))]
         [InlineData(nameof(Put))]
         [InlineData(nameof(Trace))]
-        public async Task InvokeLogoutEndpointAsync_UnexpectedMethodReturnsAnError(string method) {
+        public async Task InvokeLogoutEndpointAsync_UnexpectedMethodReturnsAnError(string method)
+        {
             // Arrange
             var server = CreateAuthorizationServer();
 
@@ -45,10 +47,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         [InlineData(null, "custom_description", "custom_uri")]
         [InlineData(null, null, "custom_uri")]
         [InlineData(null, null, null)]
-        public async Task InvokeLogoutEndpointAsync_ExtractLogoutRequest_AllowsRejectingRequest(string error, string description, string uri) {
+        public async Task InvokeLogoutEndpointAsync_ExtractLogoutRequest_AllowsRejectingRequest(string error, string description, string uri)
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnExtractLogoutRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnExtractLogoutRequest = context =>
+                {
                     context.Reject(error, description, uri);
 
                     return Task.FromResult(0);
@@ -67,15 +72,19 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeLogoutEndpointAsync_ExtractLogoutRequest_AllowsHandlingResponse() {
+        public async Task InvokeLogoutEndpointAsync_ExtractLogoutRequest_AllowsHandlingResponse()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnExtractLogoutRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnExtractLogoutRequest = context =>
+                {
                     context.HandleResponse();
 
                     context.HttpContext.Response.Headers[HeaderNames.ContentType] = "application/json";
 
-                    return context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                    return context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(new
+                    {
                         name = "Bob le Bricoleur"
                     }));
                 };
@@ -91,10 +100,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeLogoutEndpointAsync_ExtractLogoutRequest_AllowsSkippingToNextMiddleware() {
+        public async Task InvokeLogoutEndpointAsync_ExtractLogoutRequest_AllowsSkippingToNextMiddleware()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnExtractLogoutRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnExtractLogoutRequest = context =>
+                {
                     context.SkipToNextMiddleware();
 
                     return Task.FromResult(0);
@@ -118,10 +130,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         [InlineData(null, "custom_description", "custom_uri")]
         [InlineData(null, null, "custom_uri")]
         [InlineData(null, null, null)]
-        public async Task InvokeLogoutEndpointAsync_ValidateLogoutRequest_AllowsRejectingRequest(string error, string description, string uri) {
+        public async Task InvokeLogoutEndpointAsync_ValidateLogoutRequest_AllowsRejectingRequest(string error, string description, string uri)
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateLogoutRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateLogoutRequest = context =>
+                {
                     context.Reject(error, description, uri);
 
                     return Task.FromResult(0);
@@ -140,15 +155,19 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeLogoutEndpointAsync_ValidateLogoutRequest_AllowsHandlingResponse() {
+        public async Task InvokeLogoutEndpointAsync_ValidateLogoutRequest_AllowsHandlingResponse()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateLogoutRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateLogoutRequest = context =>
+                {
                     context.HandleResponse();
 
                     context.HttpContext.Response.Headers[HeaderNames.ContentType] = "application/json";
 
-                    return context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                    return context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(new
+                    {
                         name = "Bob le Magnifique"
                     }));
                 };
@@ -164,10 +183,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeLogoutEndpointAsync_ValidateLogoutRequest_AllowsSkippingToNextMiddleware() {
+        public async Task InvokeLogoutEndpointAsync_ValidateLogoutRequest_AllowsSkippingToNextMiddleware()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateLogoutRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateLogoutRequest = context =>
+                {
                     context.SkipToNextMiddleware();
 
                     return Task.FromResult(0);
@@ -191,16 +213,20 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         [InlineData(null, "custom_description", "custom_uri")]
         [InlineData(null, null, "custom_uri")]
         [InlineData(null, null, null)]
-        public async Task InvokeLogoutEndpointAsync_HandleLogoutRequest_AllowsRejectingRequest(string error, string description, string uri) {
+        public async Task InvokeLogoutEndpointAsync_HandleLogoutRequest_AllowsRejectingRequest(string error, string description, string uri)
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateLogoutRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateLogoutRequest = context =>
+                {
                     context.Validate();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleLogoutRequest = context => {
+                options.Provider.OnHandleLogoutRequest = context =>
+                {
                     context.Reject(error, description, uri);
 
                     return Task.FromResult(0);
@@ -219,21 +245,26 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeLogoutEndpointAsync_HandleLogoutRequest_AllowsHandlingResponse() {
+        public async Task InvokeLogoutEndpointAsync_HandleLogoutRequest_AllowsHandlingResponse()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateLogoutRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateLogoutRequest = context =>
+                {
                     context.Validate();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleLogoutRequest = context => {
+                options.Provider.OnHandleLogoutRequest = context =>
+                {
                     context.HandleResponse();
 
                     context.HttpContext.Response.Headers[HeaderNames.ContentType] = "application/json";
 
-                    return context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                    return context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(new
+                    {
                         name = "Bob le Magnifique"
                     }));
                 };
@@ -249,16 +280,20 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeLogoutEndpointAsync_HandleLogoutRequest_AllowsSkippingToNextMiddleware() {
+        public async Task InvokeLogoutEndpointAsync_HandleLogoutRequest_AllowsSkippingToNextMiddleware()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateLogoutRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateLogoutRequest = context =>
+                {
                     context.Validate();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleLogoutRequest = context => {
+                options.Provider.OnHandleLogoutRequest = context =>
+                {
                     context.SkipToNextMiddleware();
 
                     return Task.FromResult(0);
@@ -275,28 +310,34 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task SendLogoutResponseAsync_ApplyLogoutResponse_AllowsHandlingResponse() {
+        public async Task SendLogoutResponseAsync_ApplyLogoutResponse_AllowsHandlingResponse()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateLogoutRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateLogoutRequest = context =>
+                {
                     context.Validate();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleLogoutRequest = context => {
+                options.Provider.OnHandleLogoutRequest = context =>
+                {
                     context.HandleResponse();
 
                     return context.HttpContext.Authentication.SignOutAsync(
                         OpenIdConnectServerDefaults.AuthenticationScheme);
                 };
 
-                options.Provider.OnApplyLogoutResponse = context => {
+                options.Provider.OnApplyLogoutResponse = context =>
+                {
                     context.HandleResponse();
 
                     context.HttpContext.Response.Headers[HeaderNames.ContentType] = "application/json";
 
-                    return context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                    return context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(new
+                    {
                         name = "Bob le Magnifique"
                     }));
                 };
@@ -312,23 +353,28 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task SendLogoutResponseAsync_ApplyLogoutResponse_ResponseContainsCustomParameters() {
+        public async Task SendLogoutResponseAsync_ApplyLogoutResponse_ResponseContainsCustomParameters()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateLogoutRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateLogoutRequest = context =>
+                {
                     context.Validate();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleLogoutRequest = context => {
+                options.Provider.OnHandleLogoutRequest = context =>
+                {
                     context.HandleResponse();
 
                     return context.HttpContext.Authentication.SignOutAsync(
                         OpenIdConnectServerDefaults.AuthenticationScheme);
                 };
 
-                options.Provider.OnApplyLogoutResponse = context => {
+                options.Provider.OnApplyLogoutResponse = context =>
+                {
                     context.Response["custom_parameter"] = "custom_value";
 
                     return Task.FromResult(0);
@@ -338,7 +384,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(LogoutEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(LogoutEndpoint, new OpenIdConnectRequest
+            {
                 PostLogoutRedirectUri = "http://www.fabrikam.com/path"
             });
 

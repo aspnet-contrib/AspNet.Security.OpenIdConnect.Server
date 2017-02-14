@@ -16,19 +16,21 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Authentication;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Xunit;
 using static System.Net.Http.HttpMethod;
 
-namespace AspNet.Security.OpenIdConnect.Server.Tests {
-    public partial class OpenIdConnectServerHandlerTests {
+namespace AspNet.Security.OpenIdConnect.Server.Tests
+{
+    public partial class OpenIdConnectServerHandlerTests
+    {
         [Theory]
         [InlineData(nameof(Delete))]
         [InlineData(nameof(Head))]
         [InlineData(nameof(Options))]
         [InlineData(nameof(Put))]
         [InlineData(nameof(Trace))]
-        public async Task InvokeUserinfoEndpointAsync_UnexpectedMethodReturnsAnError(string method) {
+        public async Task InvokeUserinfoEndpointAsync_UnexpectedMethodReturnsAnError(string method)
+        {
             // Arrange
             var server = CreateAuthorizationServer();
 
@@ -51,10 +53,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         [InlineData(null, "custom_description", "custom_uri")]
         [InlineData(null, null, "custom_uri")]
         [InlineData(null, null, null)]
-        public async Task InvokeUserinfoEndpointAsync_ExtractUserinfoRequest_AllowsRejectingRequest(string error, string description, string uri) {
+        public async Task InvokeUserinfoEndpointAsync_ExtractUserinfoRequest_AllowsRejectingRequest(string error, string description, string uri)
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnExtractUserinfoRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnExtractUserinfoRequest = context =>
+                {
                     context.Reject(error, description, uri);
 
                     return Task.FromResult(0);
@@ -73,15 +78,19 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeUserinfoEndpointAsync_ExtractUserinfoRequest_AllowsHandlingResponse() {
+        public async Task InvokeUserinfoEndpointAsync_ExtractUserinfoRequest_AllowsHandlingResponse()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnExtractUserinfoRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnExtractUserinfoRequest = context =>
+                {
                     context.HandleResponse();
 
                     context.HttpContext.Response.Headers[HeaderNames.ContentType] = "application/json";
 
-                    return context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                    return context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(new
+                    {
                         name = "Bob le Bricoleur"
                     }));
                 };
@@ -97,10 +106,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeUserinfoEndpointAsync_ExtractUserinfoRequest_AllowsSkippingToNextMiddleware() {
+        public async Task InvokeUserinfoEndpointAsync_ExtractUserinfoRequest_AllowsSkippingToNextMiddleware()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnExtractUserinfoRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnExtractUserinfoRequest = context =>
+                {
                     context.SkipToNextMiddleware();
 
                     return Task.FromResult(0);
@@ -117,14 +129,16 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeUserinfoEndpointAsync_MissingTokenCausesAnError() {
+        public async Task InvokeUserinfoEndpointAsync_MissingTokenCausesAnError()
+        {
             // Arrange
             var server = CreateAuthorizationServer();
 
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest
+            {
                 AccessToken = null
             });
 
@@ -141,10 +155,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         [InlineData(null, "custom_description", "custom_uri")]
         [InlineData(null, null, "custom_uri")]
         [InlineData(null, null, null)]
-        public async Task InvokeUserinfoEndpointAsync_ValidateUserinfoRequest_AllowsRejectingRequest(string error, string description, string uri) {
+        public async Task InvokeUserinfoEndpointAsync_ValidateUserinfoRequest_AllowsRejectingRequest(string error, string description, string uri)
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateUserinfoRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateUserinfoRequest = context =>
+                {
                     context.Reject(error, description, uri);
 
                     return Task.FromResult(0);
@@ -154,7 +171,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest
+            {
                 AccessToken = "SlAV32hkKG"
             });
 
@@ -165,15 +183,19 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeUserinfoEndpointAsync_ValidateUserinfoRequest_AllowsHandlingResponse() {
+        public async Task InvokeUserinfoEndpointAsync_ValidateUserinfoRequest_AllowsHandlingResponse()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateUserinfoRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateUserinfoRequest = context =>
+                {
                     context.HandleResponse();
 
                     context.HttpContext.Response.Headers[HeaderNames.ContentType] = "application/json";
 
-                    return context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                    return context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(new
+                    {
                         name = "Bob le Magnifique"
                     }));
                 };
@@ -182,7 +204,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest
+            {
                 AccessToken = "SlAV32hkKG"
             });
 
@@ -191,10 +214,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeUserinfoEndpointAsync_ValidateUserinfoRequest_AllowsSkippingToNextMiddleware() {
+        public async Task InvokeUserinfoEndpointAsync_ValidateUserinfoRequest_AllowsSkippingToNextMiddleware()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnValidateUserinfoRequest = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateUserinfoRequest = context =>
+                {
                     context.SkipToNextMiddleware();
 
                     return Task.FromResult(0);
@@ -204,7 +230,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest
+            {
                 AccessToken = "SlAV32hkKG"
             });
 
@@ -213,14 +240,16 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeUserinfoEndpointAsync_InvalidTokenCausesAnError() {
+        public async Task InvokeUserinfoEndpointAsync_InvalidTokenCausesAnError()
+        {
             // Arrange
             var server = CreateAuthorizationServer();
 
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest
+            {
                 AccessToken = "SlAV32hkKG"
             });
 
@@ -230,10 +259,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeUserinfoEndpointAsync_ExpiredTokenCausesAnError() {
+        public async Task InvokeUserinfoEndpointAsync_ExpiredTokenCausesAnError()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeAccessToken = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAccessToken = context =>
+                {
                     Assert.Equal("SlAV32hkKG", context.AccessToken);
 
                     context.Ticket = new AuthenticationTicket(
@@ -250,7 +282,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest
+            {
                 AccessToken = "SlAV32hkKG"
             });
 
@@ -260,10 +293,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeUserinfoEndpointAsync_BasicClaimsAreCorrectlyReturned() {
+        public async Task InvokeUserinfoEndpointAsync_BasicClaimsAreCorrectlyReturned()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeAccessToken = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAccessToken = context =>
+                {
                     Assert.Equal("SlAV32hkKG", context.AccessToken);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
@@ -283,7 +319,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest
+            {
                 AccessToken = "SlAV32hkKG"
             });
 
@@ -295,10 +332,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeUserinfoEndpointAsync_NonBasicClaimsAreNotReturnedWhenNoScopeWasGranted() {
+        public async Task InvokeUserinfoEndpointAsync_NonBasicClaimsAreNotReturnedWhenNoScopeWasGranted()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeAccessToken = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAccessToken = context =>
+                {
                     Assert.Equal("SlAV32hkKG", context.AccessToken);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
@@ -323,7 +363,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest
+            {
                 AccessToken = "SlAV32hkKG"
             });
 
@@ -335,10 +376,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeUserinfoEndpointAsync_ProfileClaimsAreCorrectlyReturned() {
+        public async Task InvokeUserinfoEndpointAsync_ProfileClaimsAreCorrectlyReturned()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeAccessToken = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAccessToken = context =>
+                {
                     Assert.Equal("SlAV32hkKG", context.AccessToken);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
@@ -362,7 +406,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest
+            {
                 AccessToken = "SlAV32hkKG"
             });
 
@@ -373,10 +418,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeUserinfoEndpointAsync_EmailClaimIsCorrectlyReturned() {
+        public async Task InvokeUserinfoEndpointAsync_EmailClaimIsCorrectlyReturned()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeAccessToken = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAccessToken = context =>
+                {
                     Assert.Equal("SlAV32hkKG", context.AccessToken);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
@@ -398,7 +446,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest
+            {
                 AccessToken = "SlAV32hkKG"
             });
 
@@ -407,10 +456,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeUserinfoEndpointAsync_PhoneClaimIsCorrectlyReturned() {
+        public async Task InvokeUserinfoEndpointAsync_PhoneClaimIsCorrectlyReturned()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeAccessToken = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAccessToken = context =>
+                {
                     Assert.Equal("SlAV32hkKG", context.AccessToken);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
@@ -432,7 +484,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest
+            {
                 AccessToken = "SlAV32hkKG"
             });
 
@@ -448,10 +501,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         [InlineData(null, "custom_description", "custom_uri")]
         [InlineData(null, null, "custom_uri")]
         [InlineData(null, null, null)]
-        public async Task InvokeUserinfoEndpointAsync_HandleUserinfoRequest_AllowsRejectingRequest(string error, string description, string uri) {
+        public async Task InvokeUserinfoEndpointAsync_HandleUserinfoRequest_AllowsRejectingRequest(string error, string description, string uri)
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeAccessToken = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAccessToken = context =>
+                {
                     Assert.Equal("SlAV32hkKG", context.AccessToken);
 
                     context.Ticket = new AuthenticationTicket(
@@ -462,7 +518,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleUserinfoRequest = context => {
+                options.Provider.OnHandleUserinfoRequest = context =>
+                {
                     context.Reject(error, description, uri);
 
                     return Task.FromResult(0);
@@ -472,7 +529,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest
+            {
                 AccessToken = "SlAV32hkKG"
             });
 
@@ -483,10 +541,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeUserinfoEndpointAsync_HandleUserinfoRequest_AllowsHandlingResponse() {
+        public async Task InvokeUserinfoEndpointAsync_HandleUserinfoRequest_AllowsHandlingResponse()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeAccessToken = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAccessToken = context =>
+                {
                     Assert.Equal("SlAV32hkKG", context.AccessToken);
 
                     context.Ticket = new AuthenticationTicket(
@@ -497,12 +558,14 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleUserinfoRequest = context => {
+                options.Provider.OnHandleUserinfoRequest = context =>
+                {
                     context.HandleResponse();
 
                     context.HttpContext.Response.Headers[HeaderNames.ContentType] = "application/json";
 
-                    return context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                    return context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(new
+                    {
                         name = "Bob le Magnifique"
                     }));
                 };
@@ -511,7 +574,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest
+            {
                 AccessToken = "SlAV32hkKG"
             });
 
@@ -520,10 +584,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task InvokeUserinfoEndpointAsync_HandleUserinfoRequest_AllowsSkippingToNextMiddleware() {
+        public async Task InvokeUserinfoEndpointAsync_HandleUserinfoRequest_AllowsSkippingToNextMiddleware()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeAccessToken = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAccessToken = context =>
+                {
                     Assert.Equal("SlAV32hkKG", context.AccessToken);
 
                     context.Ticket = new AuthenticationTicket(
@@ -534,7 +601,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnHandleUserinfoRequest = context => {
+                options.Provider.OnHandleUserinfoRequest = context =>
+                {
                     context.SkipToNextMiddleware();
 
                     return Task.FromResult(0);
@@ -544,7 +612,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest
+            {
                 AccessToken = "SlAV32hkKG"
             });
 
@@ -553,10 +622,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task SendUserinfoResponseAsync_ApplyUserinfoResponse_AllowsHandlingResponse() {
+        public async Task SendUserinfoResponseAsync_ApplyUserinfoResponse_AllowsHandlingResponse()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeAccessToken = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAccessToken = context =>
+                {
                     Assert.Equal("SlAV32hkKG", context.AccessToken);
 
                     context.Ticket = new AuthenticationTicket(
@@ -567,12 +639,14 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnApplyUserinfoResponse = context => {
+                options.Provider.OnApplyUserinfoResponse = context =>
+                {
                     context.HandleResponse();
 
                     context.HttpContext.Response.Headers[HeaderNames.ContentType] = "application/json";
 
-                    return context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(new {
+                    return context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(new
+                    {
                         name = "Bob le Magnifique"
                     }));
                 };
@@ -581,7 +655,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest
+            {
                 Token = "SlAV32hkKG"
             });
 
@@ -590,10 +665,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public async Task SendUserinfoResponseAsync_ApplyUserinfoResponse_ResponseContainsCustomParameters() {
+        public async Task SendUserinfoResponseAsync_ApplyUserinfoResponse_ResponseContainsCustomParameters()
+        {
             // Arrange
-            var server = CreateAuthorizationServer(options => {
-                options.Provider.OnDeserializeAccessToken = context => {
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAccessToken = context =>
+                {
                     Assert.Equal("SlAV32hkKG", context.AccessToken);
 
                     context.Ticket = new AuthenticationTicket(
@@ -604,13 +682,15 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateUserinfoRequest = context => {
+                options.Provider.OnValidateUserinfoRequest = context =>
+                {
                     context.Skip();
 
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnApplyUserinfoResponse = context => {
+                options.Provider.OnApplyUserinfoResponse = context =>
+                {
                     context.Response["custom_parameter"] = "custom_value";
 
                     return Task.FromResult(0);
@@ -620,7 +700,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
             var client = new OpenIdConnectClient(server.CreateClient());
 
             // Act
-            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest {
+            var response = await client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest
+            {
                 Token = "SlAV32hkKG"
             });
 

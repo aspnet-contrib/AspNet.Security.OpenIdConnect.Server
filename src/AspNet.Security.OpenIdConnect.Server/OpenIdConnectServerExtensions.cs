@@ -18,13 +18,15 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Microsoft.AspNetCore.Builder {
+namespace Microsoft.AspNetCore.Builder
+{
     /// <summary>
     /// Provides extension methods allowing to easily register an
     /// ASP.NET-powered OpenID Connect server and to retrieve various
     /// OpenID Connect-related contexts from the ASP.NET environment.
     /// </summary>
-    public static class OpenIdConnectServerExtensions {
+    public static class OpenIdConnectServerExtensions
+    {
         /// <summary>
         /// Adds a new OpenID Connect server instance in the ASP.NET pipeline.
         /// </summary>
@@ -36,12 +38,15 @@ namespace Microsoft.AspNetCore.Builder {
         /// <returns>The application builder.</returns>
         public static IApplicationBuilder UseOpenIdConnectServer(
             [NotNull] this IApplicationBuilder app,
-            [NotNull] Action<OpenIdConnectServerOptions> configuration) {
-            if (app == null) {
+            [NotNull] Action<OpenIdConnectServerOptions> configuration)
+        {
+            if (app == null)
+            {
                 throw new ArgumentNullException(nameof(app));
             }
 
-            if (configuration == null) {
+            if (configuration == null)
+            {
                 throw new ArgumentNullException(nameof(configuration));
             }
 
@@ -59,12 +64,15 @@ namespace Microsoft.AspNetCore.Builder {
         /// <returns>The application builder.</returns>
         public static IApplicationBuilder UseOpenIdConnectServer(
             [NotNull] this IApplicationBuilder app,
-            [NotNull] OpenIdConnectServerOptions options) {
-            if (app == null) {
+            [NotNull] OpenIdConnectServerOptions options)
+        {
+            if (app == null)
+            {
                 throw new ArgumentNullException(nameof(app));
             }
 
-            if (options == null) {
+            if (options == null)
+            {
                 throw new ArgumentNullException(nameof(options));
             }
 
@@ -78,16 +86,20 @@ namespace Microsoft.AspNetCore.Builder {
         /// <param name="certificate">The certificate used to sign security tokens issued by the server.</param>
         /// <returns>The signing credentials.</returns>
         public static IList<SigningCredentials> AddCertificate(
-            [NotNull] this IList<SigningCredentials> credentials, [NotNull] X509Certificate2 certificate) {
-            if (credentials == null) {
+            [NotNull] this IList<SigningCredentials> credentials, [NotNull] X509Certificate2 certificate)
+        {
+            if (credentials == null)
+            {
                 throw new ArgumentNullException(nameof(credentials));
             }
 
-            if (certificate == null) {
+            if (certificate == null)
+            {
                 throw new ArgumentNullException(nameof(certificate));
             }
 
-            if (!certificate.HasPrivateKey) {
+            if (!certificate.HasPrivateKey)
+            {
                 throw new InvalidOperationException("The certificate doesn't contain the required private key.");
             }
 
@@ -105,25 +117,32 @@ namespace Microsoft.AspNetCore.Builder {
         /// <returns>The signing credentials.</returns>
         public static IList<SigningCredentials> AddCertificate(
             [NotNull] this IList<SigningCredentials> credentials,
-            [NotNull] Assembly assembly, [NotNull] string resource, [NotNull] string password) {
-            if (credentials == null) {
+            [NotNull] Assembly assembly, [NotNull] string resource, [NotNull] string password)
+        {
+            if (credentials == null)
+            {
                 throw new ArgumentNullException(nameof(credentials));
             }
 
-            if (assembly == null) {
+            if (assembly == null)
+            {
                 throw new ArgumentNullException(nameof(assembly));
             }
 
-            if (string.IsNullOrEmpty(resource)) {
+            if (string.IsNullOrEmpty(resource))
+            {
                 throw new ArgumentException("The resource cannot be null or empty.", nameof(password));
             }
 
-            if (string.IsNullOrEmpty(password)) {
+            if (string.IsNullOrEmpty(password))
+            {
                 throw new ArgumentException("The password cannot be null or empty.", nameof(password));
             }
 
-            using (var stream = assembly.GetManifestResourceStream(resource)) {
-                if (stream == null) {
+            using (var stream = assembly.GetManifestResourceStream(resource))
+            {
+                if (stream == null)
+                {
                     throw new InvalidOperationException("The certificate was not found in the given assembly.");
                 }
 
@@ -141,7 +160,8 @@ namespace Microsoft.AspNetCore.Builder {
         /// <returns>The signing credentials.</returns>
         public static IList<SigningCredentials> AddCertificate(
             [NotNull] this IList<SigningCredentials> credentials,
-            [NotNull] Stream stream, [NotNull] string password) {
+            [NotNull] Stream stream, [NotNull] string password)
+        {
             return credentials.AddCertificate(stream, password, X509KeyStorageFlags.Exportable |
                                                                 X509KeyStorageFlags.MachineKeySet);
         }
@@ -157,20 +177,25 @@ namespace Microsoft.AspNetCore.Builder {
         /// <returns>The signing credentials.</returns>
         public static IList<SigningCredentials> AddCertificate(
             [NotNull] this IList<SigningCredentials> credentials, [NotNull] Stream stream,
-            [NotNull] string password, X509KeyStorageFlags flags) {
-            if (credentials == null) {
+            [NotNull] string password, X509KeyStorageFlags flags)
+        {
+            if (credentials == null)
+            {
                 throw new ArgumentNullException(nameof(credentials));
             }
 
-            if (stream == null) {
+            if (stream == null)
+            {
                 throw new ArgumentNullException(nameof(stream));
             }
 
-            if (string.IsNullOrEmpty(password)) {
+            if (string.IsNullOrEmpty(password))
+            {
                 throw new ArgumentException("The password cannot be null or empty.", nameof(password));
             }
 
-            using (var buffer = new MemoryStream()) {
+            using (var buffer = new MemoryStream())
+            {
                 stream.CopyTo(buffer);
 
                 return credentials.AddCertificate(new X509Certificate2(buffer.ToArray(), password, flags));
@@ -185,19 +210,23 @@ namespace Microsoft.AspNetCore.Builder {
         /// <param name="thumbprint">The thumbprint of the certificate used to identify it in the X.509 store.</param>
         /// <returns>The signing credentials.</returns>
         public static IList<SigningCredentials> AddCertificate(
-            [NotNull] this IList<SigningCredentials> credentials, [NotNull] string thumbprint) {
-            if (credentials == null) {
+            [NotNull] this IList<SigningCredentials> credentials, [NotNull] string thumbprint)
+        {
+            if (credentials == null)
+            {
                 throw new ArgumentNullException(nameof(credentials));
             }
 
-            if (string.IsNullOrEmpty(thumbprint)) {
+            if (string.IsNullOrEmpty(thumbprint))
+            {
                 throw new ArgumentException("The thumbprint cannot be null or empty.", nameof(thumbprint));
             }
 
             var certificate = OpenIdConnectServerHelpers.GetCertificate(StoreName.My, StoreLocation.CurrentUser, thumbprint) ??
                               OpenIdConnectServerHelpers.GetCertificate(StoreName.My, StoreLocation.LocalMachine, thumbprint);
 
-            if (certificate == null) {
+            if (certificate == null)
+            {
                 throw new InvalidOperationException("The certificate corresponding to the given thumbprint was not found.");
             }
 
@@ -215,17 +244,21 @@ namespace Microsoft.AspNetCore.Builder {
         /// <returns>The signing credentials.</returns>
         public static IList<SigningCredentials> AddCertificate(
             [NotNull] this IList<SigningCredentials> credentials,
-            [NotNull] string thumbprint, StoreName name, StoreLocation location) {
-            if (credentials == null) {
+            [NotNull] string thumbprint, StoreName name, StoreLocation location)
+        {
+            if (credentials == null)
+            {
                 throw new ArgumentNullException(nameof(credentials));
             }
 
-            if (string.IsNullOrEmpty(thumbprint)) {
+            if (string.IsNullOrEmpty(thumbprint))
+            {
                 throw new ArgumentException("The thumbprint cannot be null or empty.", nameof(thumbprint));
             }
 
             var certificate = OpenIdConnectServerHelpers.GetCertificate(name, location, thumbprint);
-            if (certificate == null) {
+            if (certificate == null)
+            {
                 throw new InvalidOperationException("The certificate corresponding to the given thumbprint was not found.");
             }
 
@@ -240,7 +273,8 @@ namespace Microsoft.AspNetCore.Builder {
         /// </summary>
         /// <param name="credentials">The signing credentials.</param>
         /// <returns>The signing credentials.</returns>
-        public static IList<SigningCredentials> AddEphemeralKey([NotNull] this IList<SigningCredentials> credentials) {
+        public static IList<SigningCredentials> AddEphemeralKey([NotNull] this IList<SigningCredentials> credentials)
+        {
             return credentials.AddEphemeralKey(SecurityAlgorithms.RsaSha256Signature);
         }
 
@@ -254,38 +288,46 @@ namespace Microsoft.AspNetCore.Builder {
         /// <param name="algorithm">The algorithm associated with the signing key.</param>
         /// <returns>The signing credentials.</returns>
         public static IList<SigningCredentials> AddEphemeralKey(
-            [NotNull] this IList<SigningCredentials> credentials, [NotNull] string algorithm) {
-            if (credentials == null) {
+            [NotNull] this IList<SigningCredentials> credentials, [NotNull] string algorithm)
+        {
+            if (credentials == null)
+            {
                 throw new ArgumentNullException(nameof(credentials));
             }
 
-            if (string.IsNullOrEmpty(algorithm)) {
+            if (string.IsNullOrEmpty(algorithm))
+            {
                 throw new ArgumentException("The algorithm cannot be null or empty.", nameof(algorithm));
             }
 
-            switch (algorithm) {
+            switch (algorithm)
+            {
                 case SecurityAlgorithms.RsaSha256Signature:
                 case SecurityAlgorithms.RsaSha384Signature:
-                case SecurityAlgorithms.RsaSha512Signature: {
+                case SecurityAlgorithms.RsaSha512Signature:
+                {
                     // Note: a 1024-bit key might be returned by RSA.Create() on .NET Desktop/Mono,
                     // where RSACryptoServiceProvider is still the default implementation and
                     // where custom implementations can be registered via CryptoConfig.
                     // To ensure the key size is always acceptable, replace it if necessary.
                     var rsa = RSA.Create();
 
-                    if (rsa.KeySize < 2048) {
+                    if (rsa.KeySize < 2048)
+                    {
                         rsa.KeySize = 2048;
                     }
 
 #if NET451
                     // Note: RSACng cannot be used as it's not available on <.NET 4.6.
-                    if (rsa.KeySize < 2048 && rsa is RSACryptoServiceProvider) {
+                    if (rsa.KeySize < 2048 && rsa is RSACryptoServiceProvider)
+                    {
                         rsa.Dispose();
                         rsa = new RSACryptoServiceProvider(2048);
                     }
 #endif
 
-                    if (rsa.KeySize < 2048) {
+                    if (rsa.KeySize < 2048)
+                    {
                         throw new InvalidOperationException("The ephemeral key generation failed.");
                     }
 
@@ -294,7 +336,8 @@ namespace Microsoft.AspNetCore.Builder {
                     // this bug, the RSA public/private parameters are manually exported and re-imported when needed.
                     SecurityKey key;
 #if NET451
-                    if (rsa is RSACryptoServiceProvider) {
+                    if (rsa is RSACryptoServiceProvider)
+                    {
                         var parameters = rsa.ExportParameters(includePrivateParameters: true);
                         key = new RsaSecurityKey(parameters);
                         key.KeyId = key.GetKeyIdentifier();
@@ -303,7 +346,8 @@ namespace Microsoft.AspNetCore.Builder {
                         rsa.Dispose();
                     }
 
-                    else {
+                    else
+                    {
 #endif
                         key = new RsaSecurityKey(rsa);
                         key.KeyId = key.GetKeyIdentifier();
@@ -317,7 +361,8 @@ namespace Microsoft.AspNetCore.Builder {
                 }
 
 #if SUPPORTS_ECDSA
-                case SecurityAlgorithms.EcdsaSha256Signature: {
+                case SecurityAlgorithms.EcdsaSha256Signature:
+                {
                     // Generate a new ECDSA key using the P-256 curve.
                     var ecdsa = ECDsa.Create(ECCurve.NamedCurves.nistP256);
 
@@ -329,7 +374,8 @@ namespace Microsoft.AspNetCore.Builder {
                     return credentials;
                 }
 
-                case SecurityAlgorithms.EcdsaSha384Signature: {
+                case SecurityAlgorithms.EcdsaSha384Signature:
+                {
                     // Generate a new ECDSA key using the P-384 curve.
                     var ecdsa = ECDsa.Create(ECCurve.NamedCurves.nistP384);
 
@@ -341,7 +387,8 @@ namespace Microsoft.AspNetCore.Builder {
                     return credentials;
                 }
 
-                case SecurityAlgorithms.EcdsaSha512Signature: {
+                case SecurityAlgorithms.EcdsaSha512Signature:
+                {
                     // Generate a new ECDSA key using the P-521 curve.
                     var ecdsa = ECDsa.Create(ECCurve.NamedCurves.nistP521);
 
@@ -371,29 +418,35 @@ namespace Microsoft.AspNetCore.Builder {
         /// <param name="key">The key used to sign security tokens issued by the server.</param>
         /// <returns>The signing credentials.</returns>
         public static IList<SigningCredentials> AddKey(
-            [NotNull] this IList<SigningCredentials> credentials, [NotNull] SecurityKey key) {
-            if (credentials == null) {
+            [NotNull] this IList<SigningCredentials> credentials, [NotNull] SecurityKey key)
+        {
+            if (credentials == null)
+            {
                 throw new ArgumentNullException(nameof(credentials));
             }
 
-            if (key == null) {
+            if (key == null)
+            {
                 throw new ArgumentNullException(nameof(key));
             }
 
             // When no key identifier can be retrieved from the security key, a value is automatically
             // inferred from the hexadecimal representation of the certificate thumbprint (SHA-1)
             // when the key is bound to a X.509 certificate or from the public part of the signing key.
-            if (string.IsNullOrEmpty(key.KeyId)) {
+            if (string.IsNullOrEmpty(key.KeyId))
+            {
                 key.KeyId = key.GetKeyIdentifier();
             }
 
-            if (key.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature)) {
+            if (key.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature))
+            {
                 credentials.Add(new SigningCredentials(key, SecurityAlgorithms.RsaSha256Signature));
 
                 return credentials;
             }
 
-            else if (key.IsSupportedAlgorithm(SecurityAlgorithms.HmacSha256Signature)) {
+            else if (key.IsSupportedAlgorithm(SecurityAlgorithms.HmacSha256Signature))
+            {
                 credentials.Add(new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature));
 
                 return credentials;
@@ -421,7 +474,8 @@ namespace Microsoft.AspNetCore.Builder {
 #else
             else if (key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha256Signature) ||
                      key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha384Signature) ||
-                     key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha512Signature)) {
+                     key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha512Signature))
+            {
                 throw new InvalidOperationException("ECDSA signing keys are not supported on this platform.");
             }
 #endif
@@ -436,13 +490,16 @@ namespace Microsoft.AspNetCore.Builder {
         /// </summary>
         /// <param name="context">The ASP.NET context.</param>
         /// <returns>The <see cref="OpenIdConnectRequest"/> associated with the current request.</returns>
-        public static OpenIdConnectRequest GetOpenIdConnectRequest([NotNull] this HttpContext context) {
-            if (context == null) {
+        public static OpenIdConnectRequest GetOpenIdConnectRequest([NotNull] this HttpContext context)
+        {
+            if (context == null)
+            {
                 throw new ArgumentNullException(nameof(context));
             }
 
             var feature = context.Features.Get<OpenIdConnectServerFeature>();
-            if (feature == null) {
+            if (feature == null)
+            {
                 feature = new OpenIdConnectServerFeature();
 
                 context.Features.Set(feature);
@@ -457,13 +514,16 @@ namespace Microsoft.AspNetCore.Builder {
         /// </summary>
         /// <param name="context">The ASP.NET context.</param>
         /// <returns>The <see cref="OpenIdConnectResponse"/> associated with the current response.</returns>
-        public static OpenIdConnectResponse GetOpenIdConnectResponse([NotNull] this HttpContext context) {
-            if (context == null) {
+        public static OpenIdConnectResponse GetOpenIdConnectResponse([NotNull] this HttpContext context)
+        {
+            if (context == null)
+            {
                 throw new ArgumentNullException(nameof(context));
             }
 
             var feature = context.Features.Get<OpenIdConnectServerFeature>();
-            if (feature == null) {
+            if (feature == null)
+            {
                 feature = new OpenIdConnectServerFeature();
 
                 context.Features.Set(feature);
@@ -478,13 +538,16 @@ namespace Microsoft.AspNetCore.Builder {
         /// <param name="context">The ASP.NET context.</param>
         /// <param name="request">The ambient <see cref="OpenIdConnectRequest"/>.</param>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public static void SetOpenIdConnectRequest([NotNull] this HttpContext context, OpenIdConnectRequest request) {
-            if (context == null) {
+        public static void SetOpenIdConnectRequest([NotNull] this HttpContext context, OpenIdConnectRequest request)
+        {
+            if (context == null)
+            {
                 throw new ArgumentNullException(nameof(context));
             }
 
             var feature = context.Features.Get<OpenIdConnectServerFeature>();
-            if (feature == null) {
+            if (feature == null)
+            {
                 feature = new OpenIdConnectServerFeature();
 
                 context.Features.Set(feature);
@@ -499,13 +562,16 @@ namespace Microsoft.AspNetCore.Builder {
         /// <param name="context">The ASP.NET context.</param>
         /// <param name="response">The ambient <see cref="OpenIdConnectResponse"/>.</param>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public static void SetOpenIdConnectResponse([NotNull] this HttpContext context, OpenIdConnectResponse response) {
-            if (context == null) {
+        public static void SetOpenIdConnectResponse([NotNull] this HttpContext context, OpenIdConnectResponse response)
+        {
+            if (context == null)
+            {
                 throw new ArgumentNullException(nameof(context));
             }
 
             var feature = context.Features.Get<OpenIdConnectServerFeature>();
-            if (feature == null) {
+            if (feature == null)
+            {
                 feature = new OpenIdConnectServerFeature();
 
                 context.Features.Set(feature);

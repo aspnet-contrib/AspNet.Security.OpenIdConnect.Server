@@ -12,11 +12,13 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
 
-namespace AspNet.Security.OpenIdConnect.Server {
+namespace AspNet.Security.OpenIdConnect.Server
+{
     /// <summary>
     /// Provides context information used when issuing an identity token.
     /// </summary>
-    public class SerializeIdentityTokenContext : BaseControlContext {
+    public class SerializeIdentityTokenContext : BaseControlContext
+    {
         /// <summary>
         /// Initializes a new instance of the <see cref="SerializeIdentityTokenContext"/> class
         /// </summary>
@@ -31,7 +33,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             OpenIdConnectRequest request,
             OpenIdConnectResponse response,
             AuthenticationTicket ticket)
-            : base(context) {
+            : base(context)
+        {
             Options = options;
             Request = request;
             Response = response;
@@ -61,7 +64,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets or sets the audiences associated with the authentication ticket.
         /// </summary>
-        public IEnumerable<string> Audiences {
+        public IEnumerable<string> Audiences
+        {
             get { return Ticket.GetAudiences(); }
             set { Ticket.SetAudiences(value); }
         }
@@ -69,7 +73,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets or sets the presenters associated with the authentication ticket.
         /// </summary>
-        public IEnumerable<string> Presenters {
+        public IEnumerable<string> Presenters
+        {
             get { return Ticket.GetPresenters(); }
             set { Ticket.SetPresenters(value); }
         }

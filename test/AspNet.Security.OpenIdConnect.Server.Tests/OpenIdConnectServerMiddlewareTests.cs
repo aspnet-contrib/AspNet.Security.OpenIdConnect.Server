@@ -13,12 +13,16 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace AspNet.Security.OpenIdConnect.Server.Tests {
-    public class OpenIdConnectServerMiddlewareTests {
+namespace AspNet.Security.OpenIdConnect.Server.Tests
+{
+    public class OpenIdConnectServerMiddlewareTests
+    {
         [Fact]
-        public void Constructor_MissingProviderThrowsAnException() {
+        public void Constructor_MissingProviderThrowsAnException()
+        {
             // Arrange, act, assert
-            var exception = Assert.Throws<ArgumentException>(() => CreateAuthorizationServer(options => {
+            var exception = Assert.Throws<ArgumentException>(() => CreateAuthorizationServer(options =>
+            {
                 options.Provider = null;
             }));
 
@@ -27,9 +31,11 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public void Constructor_MissingClockThrowsAnException() {
+        public void Constructor_MissingClockThrowsAnException()
+        {
             // Arrange, act, assert
-            var exception = Assert.Throws<ArgumentException>(() => CreateAuthorizationServer(options => {
+            var exception = Assert.Throws<ArgumentException>(() => CreateAuthorizationServer(options =>
+            {
                 options.SystemClock = null;
             }));
 
@@ -38,9 +44,11 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public void Constructor_RelativeIssuerThrowsAnException() {
+        public void Constructor_RelativeIssuerThrowsAnException()
+        {
             // Arrange, act, assert
-            var exception = Assert.Throws<ArgumentException>(() => CreateAuthorizationServer(options => {
+            var exception = Assert.Throws<ArgumentException>(() => CreateAuthorizationServer(options =>
+            {
                 options.Issuer = new Uri("/path", UriKind.Relative);
             }));
 
@@ -51,9 +59,11 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         [Theory]
         [InlineData("http://www.fabrikam.com/path?param=value")]
         [InlineData("http://www.fabrikam.com/path#param=value")]
-        public void Constructor_InvalidIssuerThrowsAnException(string issuer) {
+        public void Constructor_InvalidIssuerThrowsAnException(string issuer)
+        {
             // Arrange, act, assert
-            var exception = Assert.Throws<ArgumentException>(() => CreateAuthorizationServer(options => {
+            var exception = Assert.Throws<ArgumentException>(() => CreateAuthorizationServer(options =>
+            {
                 options.Issuer = new Uri(issuer);
             }));
 
@@ -63,9 +73,11 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public void Constructor_NonHttpsIssuerThrowsAnExceptionWhenAllowInsecureHttpIsNotEnabled() {
+        public void Constructor_NonHttpsIssuerThrowsAnExceptionWhenAllowInsecureHttpIsNotEnabled()
+        {
             // Arrange, act, assert
-            var exception = Assert.Throws<ArgumentException>(() => CreateAuthorizationServer(options => {
+            var exception = Assert.Throws<ArgumentException>(() => CreateAuthorizationServer(options =>
+            {
                 options.AllowInsecureHttp = false;
                 options.Issuer = new Uri("http://www.fabrikam.com/");
             }));
@@ -76,9 +88,11 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public void Constructor_AutomaticAuthenticateThrowsAnException() {
+        public void Constructor_AutomaticAuthenticateThrowsAnException()
+        {
             // Arrange, act, assert
-            var exception = Assert.Throws<ArgumentException>(() => CreateAuthorizationServer(options => {
+            var exception = Assert.Throws<ArgumentException>(() => CreateAuthorizationServer(options =>
+            {
                 options.AutomaticAuthenticate = true;
             }));
 
@@ -88,9 +102,11 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public void Constructor_AutomaticChallengeThrowsAnException() {
+        public void Constructor_AutomaticChallengeThrowsAnException()
+        {
             // Arrange, act, assert
-            var exception = Assert.Throws<ArgumentException>(() => CreateAuthorizationServer(options => {
+            var exception = Assert.Throws<ArgumentException>(() => CreateAuthorizationServer(options =>
+            {
                 options.AutomaticChallenge = true;
             }));
 
@@ -100,9 +116,11 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
         }
 
         [Fact]
-        public void Constructor_MissingSigningCredentialsThrowAnException() {
+        public void Constructor_MissingSigningCredentialsThrowAnException()
+        {
             // Arrange, act, assert
-            var exception = Assert.Throws<ArgumentException>(() => CreateAuthorizationServer(options => {
+            var exception = Assert.Throws<ArgumentException>(() => CreateAuthorizationServer(options =>
+            {
                 options.AccessTokenHandler = new JwtSecurityTokenHandler();
                 options.SigningCredentials.Clear();
             }));
@@ -113,15 +131,18 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests {
                               "or call 'services.AddOpenIddict().AddEphemeralSigningKey()' to use an ephemeral key.", exception.Message);
         }
 
-        private static TestServer CreateAuthorizationServer(Action<OpenIdConnectServerOptions> configuration = null) {
+        private static TestServer CreateAuthorizationServer(Action<OpenIdConnectServerOptions> configuration = null)
+        {
             var builder = new WebHostBuilder();
 
             builder.UseEnvironment("Testing");
 
             builder.ConfigureServices(services => services.AddAuthentication());
 
-            builder.Configure(app => {
-                app.UseOpenIdConnectServer(options => {
+            builder.Configure(app =>
+            {
+                app.UseOpenIdConnectServer(options =>
+                {
                     options.AllowInsecureHttp = true;
 
                     // Note: overriding the default data protection provider is not necessary for the tests to pass,

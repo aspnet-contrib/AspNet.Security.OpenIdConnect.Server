@@ -9,11 +9,13 @@ using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 
-namespace AspNet.Security.OpenIdConnect.Server {
+namespace AspNet.Security.OpenIdConnect.Server
+{
     /// <summary>
     /// Base class used for certain event contexts.
     /// </summary>
-    public abstract class BaseValidatingContext : BaseControlContext {
+    public abstract class BaseValidatingContext : BaseControlContext
+    {
         /// <summary>
         /// Initializes base class used for certain event contexts.
         /// </summary>
@@ -21,7 +23,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             HttpContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectRequest request)
-            : base(context) {
+            : base(context)
+        {
             Options = options;
             Request = request;
         }
@@ -34,7 +37,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the OpenID Connect response.
         /// </summary>
-        public new OpenIdConnectResponse Response {
+        public new OpenIdConnectResponse Response
+        {
             get { throw new InvalidOperationException("The OpenID Connect response is not available at this stage."); }
         }
 
@@ -83,7 +87,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// Marks the context as skipped by the application.
         /// </summary>
         /// <returns></returns>
-        public virtual bool Skip() {
+        public virtual bool Skip()
+        {
             IsSkipped = true;
             IsRejected = false;
             IsValidated = false;
@@ -95,7 +100,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// Marks this context as validated by the application.
         /// </summary>
         /// <returns>True if the validation has taken effect.</returns>
-        public virtual bool Validate() {
+        public virtual bool Validate()
+        {
             IsSkipped = false;
             IsValidated = true;
             IsRejected = false;
@@ -106,7 +112,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <summary>
         /// Marks this context as not validated by the application.
         /// </summary>
-        public virtual bool Reject() {
+        public virtual bool Reject()
+        {
             IsSkipped = false;
             IsRejected = true;
             IsValidated = false;
@@ -119,7 +126,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// and assigns various error information properties.
         /// </summary>
         /// <param name="error">Assigned to the <see cref="Error"/> property.</param>
-        public virtual bool Reject(string error) {
+        public virtual bool Reject(string error)
+        {
             Error = error;
 
             return Reject();
@@ -131,7 +139,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// </summary>
         /// <param name="error">Assigned to the <see cref="Error"/> property.</param>
         /// <param name="description">Assigned to the <see cref="ErrorDescription"/> property.</param>
-        public virtual bool Reject(string error, string description) {
+        public virtual bool Reject(string error, string description)
+        {
             Error = error;
             ErrorDescription = description;
 
@@ -145,7 +154,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
         /// <param name="error">Assigned to the <see cref="Error"/> property</param>
         /// <param name="description">Assigned to the <see cref="ErrorDescription"/> property</param>
         /// <param name="uri">Assigned to the <see cref="ErrorUri"/> property</param>
-        public virtual bool Reject(string error, string description, string uri) {
+        public virtual bool Reject(string error, string description, string uri)
+        {
             Error = error;
             ErrorDescription = description;
             ErrorUri = uri;

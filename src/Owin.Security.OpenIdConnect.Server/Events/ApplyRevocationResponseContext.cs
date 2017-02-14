@@ -8,12 +8,14 @@ using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.Owin;
 using Microsoft.Owin.Security.Notifications;
 
-namespace Owin.Security.OpenIdConnect.Server {
+namespace Owin.Security.OpenIdConnect.Server
+{
     /// <summary>
     /// An event raised before the authorization server starts
     /// writing the revocation response to the response stream.
     /// </summary>
-    public class ApplyRevocationResponseContext : BaseNotification<OpenIdConnectServerOptions> {
+    public class ApplyRevocationResponseContext : BaseNotification<OpenIdConnectServerOptions>
+    {
         /// <summary>
         /// Creates an instance of this context.
         /// </summary>
@@ -22,7 +24,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             OpenIdConnectServerOptions options,
             OpenIdConnectRequest request,
             OpenIdConnectResponse response)
-            : base(context, options) {
+            : base(context, options)
+        {
             Request = request;
             Response = response;
         }

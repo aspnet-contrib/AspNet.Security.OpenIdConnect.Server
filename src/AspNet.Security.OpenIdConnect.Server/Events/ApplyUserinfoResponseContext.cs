@@ -8,11 +8,13 @@ using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 
-namespace AspNet.Security.OpenIdConnect.Server {
+namespace AspNet.Security.OpenIdConnect.Server
+{
     /// <summary>
     /// Provides context information used at the end of a userinfo request.
     /// </summary>
-    public class ApplyUserinfoResponseContext : BaseControlContext {
+    public class ApplyUserinfoResponseContext : BaseControlContext
+    {
         /// <summary>
         /// Initializes a new instance of the <see cref="ApplyUserinfoResponseContext"/> class
         /// </summary>
@@ -25,7 +27,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             OpenIdConnectServerOptions options,
             OpenIdConnectRequest request,
             OpenIdConnectResponse response)
-            : base(context) {
+            : base(context)
+        {
             Options = options;
             Request = request;
             Response = response;

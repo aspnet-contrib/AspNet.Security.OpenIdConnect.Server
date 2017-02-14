@@ -7,12 +7,16 @@ using System.Security.Cryptography.X509Certificates;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
 
-namespace AspNet.Security.OpenIdConnect.Server {
-    internal static class OpenIdConnectServerHelpers {
-        public static X509Certificate2 GetCertificate(StoreName name, StoreLocation location, string thumbprint) {
+namespace AspNet.Security.OpenIdConnect.Server
+{
+    internal static class OpenIdConnectServerHelpers
+    {
+        public static X509Certificate2 GetCertificate(StoreName name, StoreLocation location, string thumbprint)
+        {
             var store = new X509Store(name, location);
 
-            try {
+            try
+            {
                 store.Open(OpenFlags.ReadOnly);
 
                 var certificates = store.Certificates.Find(X509FindType.FindByThumbprint, thumbprint, validOnly: false);
@@ -20,7 +24,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 return certificates.OfType<X509Certificate2>().SingleOrDefault();
             }
 
-            finally {
+            finally
+            {
 #if NET451
                 store.Close();
 #else
@@ -29,22 +34,27 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
         }
 
-        public static string GetKeyIdentifier(this SecurityKey key) {
-            if (key == null) {
+        public static string GetKeyIdentifier(this SecurityKey key)
+        {
+            if (key == null)
+            {
                 throw new ArgumentNullException(nameof(key));
             }
 
             var x509SecurityKey = key as X509SecurityKey;
-            if (x509SecurityKey != null) {
+            if (x509SecurityKey != null)
+            {
                 return x509SecurityKey.Certificate.Thumbprint;
             }
 
             var rsaSecurityKey = key as RsaSecurityKey;
-            if (rsaSecurityKey != null) {
+            if (rsaSecurityKey != null)
+            {
                 // Note: if the RSA parameters are not attached to the signing key,
                 // extract them by calling ExportParameters on the RSA instance.
                 var parameters = rsaSecurityKey.Parameters;
-                if (parameters.Modulus == null) {
+                if (parameters.Modulus == null)
+                {
                     parameters = rsaSecurityKey.Rsa.ExportParameters(includePrivateParameters: false);
 
                     Debug.Assert(parameters.Modulus != null,
@@ -74,11 +84,14 @@ namespace AspNet.Security.OpenIdConnect.Server {
             return null;
         }
 
-        public static string GetIssuer(this HttpContext context, OpenIdConnectServerOptions options) {
+        public static string GetIssuer(this HttpContext context, OpenIdConnectServerOptions options)
+        {
             var issuer = options.Issuer;
-            if (issuer == null) {
+            if (issuer == null)
+            {
                 if (!Uri.TryCreate(context.Request.Scheme + "://" + context.Request.Host +
-                                   context.Request.PathBase, UriKind.Absolute, out issuer)) {
+                                   context.Request.PathBase, UriKind.Absolute, out issuer))
+                {
                     throw new InvalidOperationException("The issuer address cannot be inferred from the current request");
                 }
             }
@@ -86,40 +99,50 @@ namespace AspNet.Security.OpenIdConnect.Server {
             return issuer.AbsoluteUri;
         }
 
-        public static string AddPath(this string address, PathString path) {
-            if (address.EndsWith("/")) {
+        public static string AddPath(this string address, PathString path)
+        {
+            if (address.EndsWith("/"))
+            {
                 address = address.Substring(0, address.Length - 1);
             }
 
             return address + path;
         }
 
-        public static bool IsEquivalentTo(this PathString path, PathString other) {
-            if (path.Equals(other)) {
+        public static bool IsEquivalentTo(this PathString path, PathString other)
+        {
+            if (path.Equals(other))
+            {
                 return true;
             }
 
-            if (path.Equals(other + "/")) {
+            if (path.Equals(other + "/"))
+            {
                 return true;
             }
 
-            if (other.Equals(path + "/")) {
+            if (other.Equals(path + "/"))
+            {
                 return true;
             }
 
             return false;
         }
 
-        public static bool IsSupportedAlgorithm(this SecurityKey key, string algorithm) {
+        public static bool IsSupportedAlgorithm(this SecurityKey key, string algorithm)
+        {
             return key.CryptoProviderFactory.IsSupportedAlgorithm(algorithm, key);
         }
 
-        public static HashAlgorithm GetHashAlgorithm(string algorithm) {
-            if (string.IsNullOrEmpty(algorithm)) {
+        public static HashAlgorithm GetHashAlgorithm(string algorithm)
+        {
+            if (string.IsNullOrEmpty(algorithm))
+            {
                 throw new ArgumentNullException(nameof(algorithm));
             }
 
-            switch (algorithm) {
+            switch (algorithm)
+            {
                 case SecurityAlgorithms.RsaSha256:
                 case SecurityAlgorithms.HmacSha256:
                 case SecurityAlgorithms.EcdsaSha256:
@@ -148,12 +171,15 @@ namespace AspNet.Security.OpenIdConnect.Server {
             throw new NotSupportedException($"The hash algorithm cannot be inferred from the '{algorithm}' signature algorithm.");
         }
 
-        public static string GetJwtAlgorithm(string algorithm) {
-            if (string.IsNullOrEmpty(algorithm)) {
+        public static string GetJwtAlgorithm(string algorithm)
+        {
+            if (string.IsNullOrEmpty(algorithm))
+            {
                 throw new ArgumentNullException(nameof(algorithm));
             }
 
-            switch (algorithm) {
+            switch (algorithm)
+            {
                 case SecurityAlgorithms.EcdsaSha256:
                 case SecurityAlgorithms.EcdsaSha256Signature:
                     return SecurityAlgorithms.EcdsaSha256;
@@ -224,27 +250,32 @@ namespace AspNet.Security.OpenIdConnect.Server {
 #endif
 
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-        public static bool AreEqual(string first, string second) {
+        public static bool AreEqual(string first, string second)
+        {
             // Note: these null checks can be theoretically considered as early checks
             // (which would defeat the purpose of a time-constant comparison method),
             // but the expected string length is the only information an attacker
             // could get at this stage, which is not critical where this method is used.
 
-            if (first == null && second == null) {
+            if (first == null && second == null)
+            {
                 return true;
             }
 
-            if (first == null || second == null) {
+            if (first == null || second == null)
+            {
                 return false;
             }
 
-            if (first.Length != second.Length) {
+            if (first.Length != second.Length)
+            {
                 return false;
             }
 
             var result = true;
 
-            for (var index = 0; index < first.Length; index++) {
+            for (var index = 0; index < first.Length; index++)
+            {
                 result &= first[index] == second[index];
             }
 

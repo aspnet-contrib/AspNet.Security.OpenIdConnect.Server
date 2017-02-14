@@ -10,11 +10,13 @@ using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Notifications;
 
-namespace Owin.Security.OpenIdConnect.Server {
+namespace Owin.Security.OpenIdConnect.Server
+{
     /// <summary>
     /// Provides context information used when receiving a refresh token.
     /// </summary>
-    public class DeserializeRefreshTokenContext : BaseNotification<OpenIdConnectServerOptions> {
+    public class DeserializeRefreshTokenContext : BaseNotification<OpenIdConnectServerOptions>
+    {
         /// <summary>
         /// Initializes a new instance of the <see cref="DeserializeRefreshTokenContext"/> class
         /// </summary>
@@ -27,7 +29,8 @@ namespace Owin.Security.OpenIdConnect.Server {
             OpenIdConnectServerOptions options,
             OpenIdConnectRequest request,
             string token)
-            : base(context, options) {
+            : base(context, options)
+        {
             Request = request;
             RefreshToken = token;
         }
@@ -40,7 +43,8 @@ namespace Owin.Security.OpenIdConnect.Server {
         /// <summary>
         /// Gets the OpenID Connect response.
         /// </summary>
-        public new OpenIdConnectResponse Response {
+        public new OpenIdConnectResponse Response
+        {
             get { throw new InvalidOperationException("The OpenID Connect response is not available at this stage."); }
         }
 

@@ -9,13 +9,17 @@ using System.Security.Cryptography.X509Certificates;
 using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.Owin;
 
-namespace Owin.Security.OpenIdConnect.Server {
-    internal static class OpenIdConnectServerHelpers {
+namespace Owin.Security.OpenIdConnect.Server
+{
+    internal static class OpenIdConnectServerHelpers
+    {
 
-        public static X509Certificate2 GetCertificate(StoreName name, StoreLocation location, string thumbprint) {
+        public static X509Certificate2 GetCertificate(StoreName name, StoreLocation location, string thumbprint)
+        {
             var store = new X509Store(name, location);
 
-            try {
+            try
+            {
                 store.Open(OpenFlags.ReadOnly);
 
                 var certificates = store.Certificates.Find(X509FindType.FindByThumbprint, thumbprint, validOnly: false);
@@ -23,13 +27,16 @@ namespace Owin.Security.OpenIdConnect.Server {
                 return certificates.OfType<X509Certificate2>().SingleOrDefault();
             }
 
-            finally {
+            finally
+            {
                 store.Close();
             }
         }
 
-        public static SecurityKeyIdentifier GetKeyIdentifier(this SecurityKey key) {
-            if (key == null) {
+        public static SecurityKeyIdentifier GetKeyIdentifier(this SecurityKey key)
+        {
+            if (key == null)
+            {
                 throw new ArgumentNullException(nameof(key));
             }
 
@@ -37,12 +44,14 @@ namespace Owin.Security.OpenIdConnect.Server {
             X509Certificate2 certificate = null;
 
             var x509SecurityKey = key as X509SecurityKey;
-            if (x509SecurityKey != null) {
+            if (x509SecurityKey != null)
+            {
                 certificate = x509SecurityKey.Certificate;
             }
 
             var x509AsymmetricSecurityKey = key as X509AsymmetricSecurityKey;
-            if (x509AsymmetricSecurityKey != null) {
+            if (x509AsymmetricSecurityKey != null)
+            {
                 // The X.509 certificate is not directly accessible when using X509AsymmetricSecurityKey.
                 // Reflection is the only way to get the certificate used to create the security key.
                 var field = typeof(X509AsymmetricSecurityKey).GetField(
@@ -53,7 +62,8 @@ namespace Owin.Security.OpenIdConnect.Server {
                 certificate = (X509Certificate2) field.GetValue(x509AsymmetricSecurityKey);
             }
 
-            if (certificate != null) {
+            if (certificate != null)
+            {
                 identifier = new SecurityKeyIdentifier {
                     new X509IssuerSerialKeyIdentifierClause(x509SecurityKey.Certificate),
                     new X509RawDataKeyIdentifierClause(x509SecurityKey.Certificate),
@@ -63,12 +73,14 @@ namespace Owin.Security.OpenIdConnect.Server {
                 };
             }
 
-            if (identifier == null) {
+            if (identifier == null)
+            {
                 // Create an empty security key identifier.
                 identifier = new SecurityKeyIdentifier();
 
                 var rsaSecurityKey = key as RsaSecurityKey;
-                if (rsaSecurityKey != null) {
+                if (rsaSecurityKey != null)
+                {
                     // Resolve the underlying algorithm from the security key.
                     var algorithm = (RSA) rsaSecurityKey.GetAsymmetricAlgorithm(
                         algorithm: SecurityAlgorithms.RsaSha256Signature,
@@ -100,11 +112,14 @@ namespace Owin.Security.OpenIdConnect.Server {
             return identifier;
         }
 
-        public static string GetIssuer(this IOwinContext context, OpenIdConnectServerOptions options) {
+        public static string GetIssuer(this IOwinContext context, OpenIdConnectServerOptions options)
+        {
             var issuer = options.Issuer;
-            if (issuer == null) {
+            if (issuer == null)
+            {
                 if (!Uri.TryCreate(context.Request.Scheme + "://" + context.Request.Host +
-                                   context.Request.PathBase, UriKind.Absolute, out issuer)) {
+                                   context.Request.PathBase, UriKind.Absolute, out issuer))
+                {
                     throw new InvalidOperationException("The issuer address cannot be inferred from the current request");
                 }
             }
@@ -112,36 +127,45 @@ namespace Owin.Security.OpenIdConnect.Server {
             return issuer.AbsoluteUri;
         }
 
-        public static string AddPath(this string address, PathString path) {
-            if (address.EndsWith("/")) {
+        public static string AddPath(this string address, PathString path)
+        {
+            if (address.EndsWith("/"))
+            {
                 address = address.Substring(0, address.Length - 1);
             }
 
             return address + path;
         }
 
-        public static bool IsEquivalentTo(this PathString path, PathString other) {
-            if (path.Equals(other)) {
+        public static bool IsEquivalentTo(this PathString path, PathString other)
+        {
+            if (path.Equals(other))
+            {
                 return true;
             }
 
-            if (path.Equals(other + new PathString("/"))) {
+            if (path.Equals(other + new PathString("/")))
+            {
                 return true;
             }
-            
-            if (other.Equals(path + new PathString("/"))) {
+
+            if (other.Equals(path + new PathString("/")))
+            {
                 return true;
             }
 
             return false;
         }
 
-        public static string GetJwtAlgorithm(string algorithm) {
-            if (string.IsNullOrEmpty(algorithm)) {
+        public static string GetJwtAlgorithm(string algorithm)
+        {
+            if (string.IsNullOrEmpty(algorithm))
+            {
                 throw new ArgumentNullException(nameof(algorithm));
             }
 
-            switch (algorithm) {
+            switch (algorithm)
+            {
                 case OpenIdConnectConstants.Algorithms.HmacSha256:
                 case SecurityAlgorithms.HmacSha256Signature:
                     return JwtAlgorithms.HMAC_SHA256;
@@ -178,27 +202,32 @@ namespace Owin.Security.OpenIdConnect.Server {
         }
 
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-        public static bool AreEqual(string first, string second) {
+        public static bool AreEqual(string first, string second)
+        {
             // Note: these null checks can be theoretically considered as early checks
             // (which would defeat the purpose of a time-constant comparison method),
             // but the expected string length is the only information an attacker
             // could get at this stage, which is not critical where this method is used.
 
-            if (first == null && second == null) {
+            if (first == null && second == null)
+            {
                 return true;
             }
 
-            if (first == null || second == null) {
+            if (first == null || second == null)
+            {
                 return false;
             }
 
-            if (first.Length != second.Length) {
+            if (first.Length != second.Length)
+            {
                 return false;
             }
 
             var result = true;
 
-            for (var index = 0; index < first.Length; index++) {
+            for (var index = 0; index < first.Length; index++)
+            {
                 result &= first[index] == second[index];
             }
 

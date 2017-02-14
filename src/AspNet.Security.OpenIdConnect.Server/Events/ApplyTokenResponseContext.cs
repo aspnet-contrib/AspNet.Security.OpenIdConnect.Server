@@ -8,11 +8,13 @@ using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 
-namespace AspNet.Security.OpenIdConnect.Server {
+namespace AspNet.Security.OpenIdConnect.Server
+{
     /// <summary>
     /// Provides context information used at the end of a token-endpoint-request.
     /// </summary>
-    public class ApplyTokenResponseContext : BaseControlContext {
+    public class ApplyTokenResponseContext : BaseControlContext
+    {
         /// <summary>
         /// Initializes a new instance of the <see cref="ApplyTokenResponseContext"/> class
         /// </summary>
@@ -27,7 +29,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             AuthenticationTicket ticket,
             OpenIdConnectRequest request,
             OpenIdConnectResponse response)
-            : base(context) {
+            : base(context)
+        {
             Options = options;
             Ticket = ticket;
             Request = request;

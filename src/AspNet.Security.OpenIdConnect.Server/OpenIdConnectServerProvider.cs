@@ -8,13 +8,15 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 
-namespace AspNet.Security.OpenIdConnect.Server {
+namespace AspNet.Security.OpenIdConnect.Server
+{
     /// <summary>
     /// Exposes events used by the authorization server to communicate with the web application
     /// while processing incoming requests. This class may be used as a virtual base class, and offers
     /// delegate properties which may be used to handle individual calls without declaring a new type.
     /// </summary>
-    public class OpenIdConnectServerProvider {
+    public class OpenIdConnectServerProvider
+    {
         /// <summary>
         /// Called to determine if an incoming request is treated as an authorization or token
         /// endpoint. If Options.AuthorizationEndpointPath or Options.TokenEndpointPath

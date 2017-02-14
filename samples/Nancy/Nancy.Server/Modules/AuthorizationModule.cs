@@ -14,10 +14,14 @@ using Owin;
 using Owin.Security.OpenIdConnect.Extensions;
 using Owin.Security.OpenIdConnect.Server;
 
-namespace Nancy.Server.Modules {
-    public class AuthorizationModule : NancyModule {
-        public AuthorizationModule() {
-            Get["/connect/authorize", runAsync: true] = async (parameters, cancellationToken) => {
+namespace Nancy.Server.Modules
+{
+    public class AuthorizationModule : NancyModule
+    {
+        public AuthorizationModule()
+        {
+            Get["/connect/authorize", runAsync: true] = async (parameters, cancellationToken) =>
+            {
                 this.CreateNewCsrfToken();
                 this.RequiresMSOwinAuthentication();
 
@@ -26,14 +30,17 @@ namespace Nancy.Server.Modules {
                 // You can safely remove this part and let ASOS automatically handle the unrecoverable errors
                 // by switching ApplicationCanDisplayErrors to false in Startup.cs.
                 var response = OwinContext.GetOpenIdConnectResponse();
-                if (response != null) {
+                if (response != null)
+                {
                     return View["Error.cshtml", response];
                 }
 
                 // Extract the authorization request from the OWIN environment.
                 var request = OwinContext.GetOpenIdConnectRequest();
-                if (request == null) {
-                    return View["Error.cshtml", new OpenIdConnectResponse {
+                if (request == null)
+                {
+                    return View["Error.cshtml", new OpenIdConnectResponse
+                    {
                         Error = "invalid_request",
                         ErrorDescription = "An internal error has occurred"
                     }];
@@ -44,8 +51,10 @@ namespace Nancy.Server.Modules {
                 // In theory, this null check shouldn't be needed, but a race condition could occur if you
                 // manually removed the application details from the database after the initial check made by ASOS.
                 var application = await GetApplicationAsync(request.ClientId, cancellationToken);
-                if (application == null) {
-                    return View["Error.cshtml", new OpenIdConnectResponse {
+                if (application == null)
+                {
+                    return View["Error.cshtml", new OpenIdConnectResponse
+                    {
                         Error = "invalid_client",
                         ErrorDescription = "Details concerning the calling client application cannot be found in the database"
                     }];
@@ -56,18 +65,22 @@ namespace Nancy.Server.Modules {
                 return View["Authorize.cshtml", Tuple.Create(request, application)];
             };
 
-            Post["/connect/authorize/accept", runAsync: true] = async (parameters, cancellationToken) => {
+            Post["/connect/authorize/accept", runAsync: true] = async (parameters, cancellationToken) =>
+            {
                 this.RequiresMSOwinAuthentication();
                 this.ValidateCsrfToken();
 
                 var response = OwinContext.GetOpenIdConnectResponse();
-                if (response != null) {
+                if (response != null)
+                {
                     return View["Error.cshtml", response];
                 }
 
                 var request = OwinContext.GetOpenIdConnectRequest();
-                if (request == null) {
-                    return View["Error.cshtml", new OpenIdConnectResponse {
+                if (request == null)
+                {
+                    return View["Error.cshtml", new OpenIdConnectResponse
+                    {
                         Error = "invalid_request",
                         ErrorDescription = "An internal error has occurred"
                     }];
@@ -77,12 +90,14 @@ namespace Nancy.Server.Modules {
                 // will be used to create an id_token, a token or a code.
                 var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationType);
 
-                foreach (var claim in OwinContext.Authentication.User.Claims) {
+                foreach (var claim in OwinContext.Authentication.User.Claims)
+                {
                     // Allow ClaimTypes.Name to be added in the id_token.
                     // ClaimTypes.NameIdentifier is automatically added, even if its
                     // destination is not defined or doesn't include "id_token".
                     // The other claims won't be visible for the client application.
-                    if (claim.Type == ClaimTypes.Name) {
+                    if (claim.Type == ClaimTypes.Name)
+                    {
                         claim.SetDestinations(OpenIdConnectConstants.Destinations.AccessToken,
                                               OpenIdConnectConstants.Destinations.IdentityToken);
                     }
@@ -91,8 +106,10 @@ namespace Nancy.Server.Modules {
                 }
 
                 var application = await GetApplicationAsync(request.ClientId, CancellationToken.None);
-                if (application == null) {
-                    return View["Error.cshtml", new OpenIdConnectResponse {
+                if (application == null)
+                {
+                    return View["Error.cshtml", new OpenIdConnectResponse
+                    {
                         Error = "invalid_client",
                         ErrorDescription = "Details concerning the calling client application cannot be found in the database"
                     }];
@@ -105,7 +122,8 @@ namespace Nancy.Server.Modules {
                 // Note: this sample always grants the "openid", "email" and "profile" scopes
                 // when they are requested by the client application: a real world application
                 // would probably display a form allowing to select the scopes to grant.
-                ticket.SetScopes(new[] {
+                ticket.SetScopes(new[]
+                {
                     /* openid: */ OpenIdConnectConstants.Scopes.OpenId,
                     /* email: */ OpenIdConnectConstants.Scopes.Email,
                     /* profile: */ OpenIdConnectConstants.Scopes.Profile,
@@ -123,19 +141,23 @@ namespace Nancy.Server.Modules {
                 return HttpStatusCode.OK;
             };
 
-            Post["/connect/authorize/deny"] = parameters => {
+            Post["/connect/authorize/deny"] = parameters =>
+            {
                 this.RequiresMSOwinAuthentication();
                 this.ValidateCsrfToken();
 
                 var response = OwinContext.GetOpenIdConnectResponse();
-                if (response != null) {
+                if (response != null)
+                {
                     return View["Error.cshtml", response];
                 }
 
                 // Extract the authorization request from the cache, the query string or the request form.
                 var request = OwinContext.GetOpenIdConnectRequest();
-                if (request == null) {
-                    return View["Error.cshtml", new OpenIdConnectResponse {
+                if (request == null)
+                {
+                    return View["Error.cshtml", new OpenIdConnectResponse
+                    {
                         Error = "invalid_request",
                         ErrorDescription = "An internal error has occurred"
                     }];
@@ -149,9 +171,11 @@ namespace Nancy.Server.Modules {
                 return HttpStatusCode.Forbidden;
             };
 
-            Get["/connect/logout", runAsync: true] = async (parameters, cancellationToken) => {
+            Get["/connect/logout", runAsync: true] = async (parameters, cancellationToken) =>
+            {
                 var response = OwinContext.GetOpenIdConnectResponse();
-                if (response != null) {
+                if (response != null)
+                {
                     return View["Error.cshtml", response];
                 }
 
@@ -162,8 +186,10 @@ namespace Nancy.Server.Modules {
 
                 // Extract the logout request from the OWIN environment.
                 var request = OwinContext.GetOpenIdConnectRequest();
-                if (request == null) {
-                    return View["Error.cshtml", new OpenIdConnectResponse {
+                if (request == null)
+                {
+                    return View["Error.cshtml", new OpenIdConnectResponse
+                    {
                         Error = "invalid_request",
                         ErrorDescription = "An internal error has occurred"
                     }];
@@ -172,11 +198,13 @@ namespace Nancy.Server.Modules {
                 return View["Logout.cshtml", Tuple.Create(request, identity)];
             };
 
-            Post["/connect/logout"] = parameters => {
+            Post["/connect/logout"] = parameters =>
+            {
                 this.ValidateCsrfToken();
 
                 var response = OwinContext.GetOpenIdConnectResponse();
-                if (response != null) {
+                if (response != null)
+                {
                     return View["Error.cshtml", response];
                 }
 
@@ -193,10 +221,13 @@ namespace Nancy.Server.Modules {
         /// <summary>
         /// Gets the IOwinContext instance associated with the current request.
         /// </summary>
-        protected IOwinContext OwinContext {
-            get {
+        protected IOwinContext OwinContext
+        {
+            get
+            {
                 var context = Context.GetOwinContext();
-                if (context == null) {
+                if (context == null)
+                {
                     throw new NotSupportedException("An OWIN context cannot be extracted from NancyContext");
                 }
 
@@ -204,8 +235,10 @@ namespace Nancy.Server.Modules {
             }
         }
 
-        protected async Task<Application> GetApplicationAsync(string identifier, CancellationToken cancellationToken) {
-            using (var context = new ApplicationContext()) {
+        protected async Task<Application> GetApplicationAsync(string identifier, CancellationToken cancellationToken)
+        {
+            using (var context = new ApplicationContext())
+            {
                 // Retrieve the application details corresponding to the requested client_id.
                 return await (from application in context.Applications
                               where application.ApplicationID == identifier

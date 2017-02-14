@@ -7,12 +7,14 @@
 using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.AspNetCore.Http;
 
-namespace AspNet.Security.OpenIdConnect.Server {
+namespace AspNet.Security.OpenIdConnect.Server
+{
     /// <summary>
     /// An event raised after the Authorization Server has processed the request, but before it is passed on to the web application.
     /// Calling RequestCompleted will prevent the request from passing on to the web application.
     /// </summary>
-    public class HandleAuthorizationRequestContext : BaseValidatingTicketContext {
+    public class HandleAuthorizationRequestContext : BaseValidatingTicketContext
+    {
         /// <summary>
         /// Creates an instance of this context
         /// </summary>
@@ -20,7 +22,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             HttpContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectRequest request)
-            : base(context, options, request, null) {
+            : base(context, options, request, null)
+        {
             Validate();
         }
     }

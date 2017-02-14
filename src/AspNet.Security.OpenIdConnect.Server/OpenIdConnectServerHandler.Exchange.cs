@@ -19,25 +19,32 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
 
-namespace AspNet.Security.OpenIdConnect.Server {
-    internal partial class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions> {
-        private async Task<bool> InvokeTokenEndpointAsync() {
-            if (!string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase)) {
+namespace AspNet.Security.OpenIdConnect.Server
+{
+    internal partial class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions>
+    {
+        private async Task<bool> InvokeTokenEndpointAsync()
+        {
+            if (!string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase))
+            {
                 Logger.LogError("The token request was rejected because an invalid " +
                                 "HTTP method was received: {Method}.", Request.Method);
 
-                return await SendTokenResponseAsync(new OpenIdConnectResponse {
+                return await SendTokenResponseAsync(new OpenIdConnectResponse
+                {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "A malformed token request has been received: make sure to use POST."
                 });
             }
 
             // See http://openid.net/specs/openid-connect-core-1_0.html#FormSerialization
-            if (string.IsNullOrEmpty(Request.ContentType)) {
+            if (string.IsNullOrEmpty(Request.ContentType))
+            {
                 Logger.LogError("The token request was rejected because the " +
                                 "mandatory 'Content-Type' header was missing.");
 
-                return await SendTokenResponseAsync(new OpenIdConnectResponse {
+                return await SendTokenResponseAsync(new OpenIdConnectResponse
+                {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "A malformed token request has been received: " +
                         "the mandatory 'Content-Type' header was missing from the POST request."
@@ -45,11 +52,13 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             // May have media/type; charset=utf-8, allow partial match.
-            if (!Request.ContentType.StartsWith("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase)) {
+            if (!Request.ContentType.StartsWith("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase))
+            {
                 Logger.LogError("The token request was rejected because an invalid 'Content-Type' " +
                                 "header was received: {ContentType}.", Request.ContentType);
 
-                return await SendTokenResponseAsync(new OpenIdConnectResponse {
+                return await SendTokenResponseAsync(new OpenIdConnectResponse
+                {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "A malformed token request has been received: " +
                         "the 'Content-Type' header contained an unexcepted value. " +
@@ -69,24 +78,28 @@ namespace AspNet.Security.OpenIdConnect.Server {
             var @event = new ExtractTokenRequestContext(Context, Options, request);
             await Options.Provider.ExtractTokenRequest(@event);
 
-            if (@event.HandledResponse) {
+            if (@event.HandledResponse)
+            {
                 Logger.LogDebug("The token request was handled in user code.");
 
                 return true;
             }
 
-            else if (@event.Skipped) {
+            else if (@event.Skipped)
+            {
                 Logger.LogDebug("The default token request handling was skipped from user code.");
 
                 return false;
             }
 
-            else if (@event.IsRejected) {
+            else if (@event.IsRejected)
+            {
                 Logger.LogError("The token request was rejected with the following error: {Error} ; {Description}",
                                 /* Error: */ @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                                 /* Description: */ @event.ErrorDescription);
 
-                return await SendTokenResponseAsync(new OpenIdConnectResponse {
+                return await SendTokenResponseAsync(new OpenIdConnectResponse
+                {
                     Error = @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = @event.ErrorDescription,
                     ErrorUri = @event.ErrorUri
@@ -97,20 +110,24 @@ namespace AspNet.Security.OpenIdConnect.Server {
                                   "from the HTTP request: {Request}", request);
 
             // Reject token requests missing the mandatory grant_type parameter.
-            if (string.IsNullOrEmpty(request.GrantType)) {
+            if (string.IsNullOrEmpty(request.GrantType))
+            {
                 Logger.LogError("The token request was rejected because the grant type was missing.");
 
-                return await SendTokenResponseAsync(new OpenIdConnectResponse {
+                return await SendTokenResponseAsync(new OpenIdConnectResponse
+                {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "The mandatory 'grant_type' parameter was missing.",
                 });
             }
 
             // Reject grant_type=authorization_code requests if the authorization endpoint is disabled.
-            else if (request.IsAuthorizationCodeGrantType() && !Options.AuthorizationEndpointPath.HasValue) {
+            else if (request.IsAuthorizationCodeGrantType() && !Options.AuthorizationEndpointPath.HasValue)
+            {
                 Logger.LogError("The token request was rejected because the authorization code grant was disabled.");
 
-                return await SendTokenResponseAsync(new OpenIdConnectResponse {
+                return await SendTokenResponseAsync(new OpenIdConnectResponse
+                {
                     Error = OpenIdConnectConstants.Errors.UnsupportedGrantType,
                     ErrorDescription = "The authorization code grant is not allowed by this authorization server."
                 });
@@ -118,10 +135,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             // Reject grant_type=authorization_code requests missing the authorization code.
             // See https://tools.ietf.org/html/rfc6749#section-4.1.3
-            else if (request.IsAuthorizationCodeGrantType() && string.IsNullOrEmpty(request.Code)) {
+            else if (request.IsAuthorizationCodeGrantType() && string.IsNullOrEmpty(request.Code))
+            {
                 Logger.LogError("The token request was rejected because the authorization code was missing.");
 
-                return await SendTokenResponseAsync(new OpenIdConnectResponse {
+                return await SendTokenResponseAsync(new OpenIdConnectResponse
+                {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "The mandatory 'code' parameter was missing."
                 });
@@ -129,10 +148,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             // Reject grant_type=refresh_token requests missing the refresh token.
             // See https://tools.ietf.org/html/rfc6749#section-6
-            else if (request.IsRefreshTokenGrantType() && string.IsNullOrEmpty(request.RefreshToken)) {
+            else if (request.IsRefreshTokenGrantType() && string.IsNullOrEmpty(request.RefreshToken))
+            {
                 Logger.LogError("The token request was rejected because the refresh token was missing.");
 
-                return await SendTokenResponseAsync(new OpenIdConnectResponse {
+                return await SendTokenResponseAsync(new OpenIdConnectResponse
+                {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "The mandatory 'refresh_token' parameter was missing."
                 });
@@ -141,10 +162,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // Reject grant_type=password requests missing username or password.
             // See https://tools.ietf.org/html/rfc6749#section-4.3.2
             else if (request.IsPasswordGrantType() && (string.IsNullOrEmpty(request.Username) ||
-                                                       string.IsNullOrEmpty(request.Password))) {
+                                                       string.IsNullOrEmpty(request.Password)))
+            {
                 Logger.LogError("The token request was rejected because the resource owner credentials were missing.");
 
-                return await SendTokenResponseAsync(new OpenIdConnectResponse {
+                return await SendTokenResponseAsync(new OpenIdConnectResponse
+                {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "The mandatory 'username' and/or 'password' parameters " +
                                        "was/were missing from the request message."
@@ -154,15 +177,19 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // When client_id and client_secret are both null, try to extract them from the Authorization header.
             // See http://tools.ietf.org/html/rfc6749#section-2.3.1 and
             // http://openid.net/specs/openid-connect-core-1_0.html#ClientAuthentication
-            if (string.IsNullOrEmpty(request.ClientId) && string.IsNullOrEmpty(request.ClientSecret)) {
+            if (string.IsNullOrEmpty(request.ClientId) && string.IsNullOrEmpty(request.ClientSecret))
+            {
                 string header = Request.Headers[HeaderNames.Authorization];
-                if (!string.IsNullOrEmpty(header) && header.StartsWith("Basic ", StringComparison.OrdinalIgnoreCase)) {
-                    try {
+                if (!string.IsNullOrEmpty(header) && header.StartsWith("Basic ", StringComparison.OrdinalIgnoreCase))
+                {
+                    try
+                    {
                         var value = header.Substring("Basic ".Length).Trim();
                         var data = Encoding.UTF8.GetString(Convert.FromBase64String(value));
 
                         var index = data.IndexOf(':');
-                        if (index >= 0) {
+                        if (index >= 0)
+                        {
                             request.ClientId = data.Substring(0, index);
                             request.ClientSecret = data.Substring(index + 1);
                         }
@@ -178,29 +205,34 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             // If the validation context was set as fully validated,
             // mark the OpenID Connect request as confidential.
-            if (context.IsValidated) {
+            if (context.IsValidated)
+            {
                 request.SetProperty(OpenIdConnectConstants.Properties.ConfidentialityLevel,
                                     OpenIdConnectConstants.ConfidentialityLevels.Private);
             }
 
-            if (context.HandledResponse) {
+            if (context.HandledResponse)
+            {
                 Logger.LogDebug("The token request was handled in user code.");
 
                 return true;
             }
 
-            else if (context.Skipped) {
+            else if (context.Skipped)
+            {
                 Logger.LogDebug("The default token request handling was skipped from user code.");
 
                 return false;
             }
 
-            else if (context.IsRejected) {
+            else if (context.IsRejected)
+            {
                 Logger.LogError("The token request was rejected with the following error: {Error} ; {Description}",
                                 /* Error: */ context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                                 /* Description: */ context.ErrorDescription);
 
-                return await SendTokenResponseAsync(new OpenIdConnectResponse {
+                return await SendTokenResponseAsync(new OpenIdConnectResponse
+                {
                     Error = context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = context.ErrorDescription,
                     ErrorUri = context.ErrorUri
@@ -208,20 +240,24 @@ namespace AspNet.Security.OpenIdConnect.Server {
             }
 
             // Reject grant_type=client_credentials requests if validation was skipped.
-            else if (context.IsSkipped && request.IsClientCredentialsGrantType()) {
+            else if (context.IsSkipped && request.IsClientCredentialsGrantType())
+            {
                 Logger.LogError("The token request must be fully validated to use the client_credentials grant type.");
 
-                return await SendTokenResponseAsync(new OpenIdConnectResponse {
+                return await SendTokenResponseAsync(new OpenIdConnectResponse
+                {
                     Error = OpenIdConnectConstants.Errors.InvalidGrant,
                     ErrorDescription = "Client authentication is required when using client_credentials."
                 });
             }
 
             // Ensure that the client_id has been set from the ValidateTokenRequest event.
-            else if (context.IsValidated && string.IsNullOrEmpty(request.ClientId)) {
+            else if (context.IsValidated && string.IsNullOrEmpty(request.ClientId))
+            {
                 Logger.LogError("The token request was validated but the client_id was not set.");
 
-                return await SendTokenResponseAsync(new OpenIdConnectResponse {
+                return await SendTokenResponseAsync(new OpenIdConnectResponse
+                {
                     Error = OpenIdConnectConstants.Errors.ServerError,
                     ErrorDescription = "An internal server error occurred."
                 });
@@ -231,10 +267,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // as it must either be set in the ValidateTokenRequest notification
             // by the developer or manually flowed by non-confidential client applications.
             // See https://tools.ietf.org/html/rfc6749#section-4.1.3
-            if (request.IsAuthorizationCodeGrantType() && string.IsNullOrEmpty(request.ClientId)) {
+            if (request.IsAuthorizationCodeGrantType() && string.IsNullOrEmpty(request.ClientId))
+            {
                 Logger.LogError("The token request was rejected because the mandatory 'client_id' was missing.");
 
-                return await SendTokenResponseAsync(new OpenIdConnectResponse {
+                return await SendTokenResponseAsync(new OpenIdConnectResponse
+                {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
                     ErrorDescription = "client_id was missing from the token request"
                 });
@@ -247,16 +285,19 @@ namespace AspNet.Security.OpenIdConnect.Server {
             // See http://tools.ietf.org/html/rfc6749#section-4.1
             // and http://tools.ietf.org/html/rfc6749#section-4.1.3 (authorization code grant).
             // See http://tools.ietf.org/html/rfc6749#section-6 (refresh token grant).
-            if (request.IsAuthorizationCodeGrantType() || request.IsRefreshTokenGrantType()) {
+            if (request.IsAuthorizationCodeGrantType() || request.IsRefreshTokenGrantType())
+            {
                 ticket = request.IsAuthorizationCodeGrantType() ?
                     await DeserializeAuthorizationCodeAsync(request.Code, request) :
                     await DeserializeRefreshTokenAsync(request.RefreshToken, request);
 
-                if (ticket == null) {
+                if (ticket == null)
+                {
                     Logger.LogError("The token request was rejected because the " +
                                     "authorization code or the refresh token was invalid.");
 
-                    return await SendTokenResponseAsync(new OpenIdConnectResponse {
+                    return await SendTokenResponseAsync(new OpenIdConnectResponse
+                    {
                         Error = OpenIdConnectConstants.Errors.InvalidGrant,
                         ErrorDescription = "Invalid ticket"
                     });
@@ -264,22 +305,26 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                 // If the client was fully authenticated when retrieving its refresh token,
                 // the current request must be rejected if client authentication was not enforced.
-                if (request.IsRefreshTokenGrantType() && !context.IsValidated && ticket.IsConfidential()) {
+                if (request.IsRefreshTokenGrantType() && !context.IsValidated && ticket.IsConfidential())
+                {
                     Logger.LogError("The token request was rejected because client authentication " +
                                     "was required to use the confidential refresh token.");
 
-                    return await SendTokenResponseAsync(new OpenIdConnectResponse {
+                    return await SendTokenResponseAsync(new OpenIdConnectResponse
+                    {
                         Error = OpenIdConnectConstants.Errors.InvalidGrant,
                         ErrorDescription = "Client authentication is required to use this ticket"
                     });
                 }
 
                 if (ticket.Properties.ExpiresUtc.HasValue &&
-                    ticket.Properties.ExpiresUtc < Options.SystemClock.UtcNow) {
+                    ticket.Properties.ExpiresUtc < Options.SystemClock.UtcNow)
+                {
                     Logger.LogError("The token request was rejected because the " +
                                     "authorization code or the refresh token was expired.");
 
-                    return await SendTokenResponseAsync(new OpenIdConnectResponse {
+                    return await SendTokenResponseAsync(new OpenIdConnectResponse
+                    {
                         Error = OpenIdConnectConstants.Errors.InvalidGrant,
                         ErrorDescription = "Expired ticket"
                     });
@@ -288,11 +333,13 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 // Note: presenters may be empty during a grant_type=refresh_token request if the refresh token
                 // was issued to a public client but cannot be null for an authorization code grant request.
                 var presenters = ticket.GetPresenters();
-                if (request.IsAuthorizationCodeGrantType() && !presenters.Any()) {
+                if (request.IsAuthorizationCodeGrantType() && !presenters.Any())
+                {
                     Logger.LogError("The token request was rejected because the authorization " +
                                     "code didn't contain any valid presenter.");
 
-                    return await SendTokenResponseAsync(new OpenIdConnectResponse {
+                    return await SendTokenResponseAsync(new OpenIdConnectResponse
+                    {
                         Error = OpenIdConnectConstants.Errors.ServerError,
                         ErrorDescription = "An internal server error occurred."
                     });
@@ -304,11 +351,13 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 // See https://tools.ietf.org/html/rfc6749#section-6
                 // and http://openid.net/specs/openid-connect-core-1_0.html#RefreshingAccessToken
                 if (!string.IsNullOrEmpty(request.ClientId) && presenters.Any() &&
-                    !presenters.Contains(request.ClientId, StringComparer.Ordinal)) {
+                    !presenters.Contains(request.ClientId, StringComparer.Ordinal))
+                {
                     Logger.LogError("The token request was rejected because the authorization " +
                                     "code was issued to a different client application.");
 
-                    return await SendTokenResponseAsync(new OpenIdConnectResponse {
+                    return await SendTokenResponseAsync(new OpenIdConnectResponse
+                    {
                         Error = OpenIdConnectConstants.Errors.InvalidGrant,
                         ErrorDescription = "Ticket does not contain matching client_id"
                     });
@@ -322,24 +371,29 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 // See https://tools.ietf.org/html/rfc6749#section-4.1.3
                 // and http://openid.net/specs/openid-connect-core-1_0.html#TokenRequestValidation
                 var address = ticket.GetProperty(OpenIdConnectConstants.Properties.RedirectUri);
-                if (request.IsAuthorizationCodeGrantType() && !string.IsNullOrEmpty(address)) {
+                if (request.IsAuthorizationCodeGrantType() && !string.IsNullOrEmpty(address))
+                {
                     ticket.RemoveProperty(OpenIdConnectConstants.Properties.RedirectUri);
 
-                    if (string.IsNullOrEmpty(request.RedirectUri)) {
+                    if (string.IsNullOrEmpty(request.RedirectUri))
+                    {
                         Logger.LogError("The token request was rejected because the mandatory 'redirect_uri' " +
                                         "parameter was missing from the grant_type=authorization_code request.");
 
-                        return await SendTokenResponseAsync(new OpenIdConnectResponse {
+                        return await SendTokenResponseAsync(new OpenIdConnectResponse
+                        {
                             Error = OpenIdConnectConstants.Errors.InvalidRequest,
                             ErrorDescription = "redirect_uri was missing from the token request"
                         });
                     }
 
-                    else if (!string.Equals(address, request.RedirectUri, StringComparison.Ordinal)) {
-                        Logger.LogError("The token request was rejected because the 'redirect_uri' "+
+                    else if (!string.Equals(address, request.RedirectUri, StringComparison.Ordinal))
+                    {
+                        Logger.LogError("The token request was rejected because the 'redirect_uri' " +
                                         "parameter didn't correspond to the expected value.");
 
-                        return await SendTokenResponseAsync(new OpenIdConnectResponse {
+                        return await SendTokenResponseAsync(new OpenIdConnectResponse
+                        {
                             Error = OpenIdConnectConstants.Errors.InvalidGrant,
                             ErrorDescription = "Authorization code does not contain matching redirect_uri"
                         });
@@ -349,17 +403,20 @@ namespace AspNet.Security.OpenIdConnect.Server {
                 // If a code challenge was initially sent in the authorization request and associated with the
                 // code, validate the code verifier to ensure the token request is sent by a legit caller.
                 var challenge = ticket.GetProperty(OpenIdConnectConstants.Properties.CodeChallenge);
-                if (request.IsAuthorizationCodeGrantType() && !string.IsNullOrEmpty(challenge)) {
+                if (request.IsAuthorizationCodeGrantType() && !string.IsNullOrEmpty(challenge))
+                {
                     ticket.RemoveProperty(OpenIdConnectConstants.Properties.CodeChallenge);
 
                     // Get the code verifier from the token request.
                     // If it cannot be found, return an invalid_grant error.
                     var verifier = request.CodeVerifier;
-                    if (string.IsNullOrEmpty(verifier)) {
+                    if (string.IsNullOrEmpty(verifier))
+                    {
                         Logger.LogError("The token request was rejected because the required 'code_verifier' " +
                                         "parameter was missing from the grant_type=authorization_code request.");
 
-                        return await SendTokenResponseAsync(new OpenIdConnectResponse {
+                        return await SendTokenResponseAsync(new OpenIdConnectResponse
+                        {
                             Error = OpenIdConnectConstants.Errors.InvalidRequest,
                             ErrorDescription = "The required 'code_verifier' was missing from the token request."
                         });
@@ -375,8 +432,10 @@ namespace AspNet.Security.OpenIdConnect.Server {
                         "The specified code challenge method should be supported.");
 
                     // If the S256 challenge method was used, compute the hash corresponding to the code verifier.
-                    if (string.Equals(method, OpenIdConnectConstants.CodeChallengeMethods.Sha256, StringComparison.Ordinal)) {
-                        using (var algorithm = SHA256.Create()) {
+                    if (string.Equals(method, OpenIdConnectConstants.CodeChallengeMethods.Sha256, StringComparison.Ordinal))
+                    {
+                        using (var algorithm = SHA256.Create())
+                        {
                             // Compute the SHA-256 hash of the code verifier and encode it using base64-url.
                             // See https://tools.ietf.org/html/rfc7636#section-4.6 for more information.
                             var hash = algorithm.ComputeHash(Encoding.ASCII.GetBytes(request.CodeVerifier));
@@ -387,24 +446,29 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
                     // Compare the verifier and the code challenge: if the two don't match, return an error.
                     // Note: to prevent timing attacks, a time-constant comparer is always used.
-                    if (!OpenIdConnectServerHelpers.AreEqual(verifier, challenge)) {
+                    if (!OpenIdConnectServerHelpers.AreEqual(verifier, challenge))
+                    {
                         Logger.LogError("The token request was rejected because the 'code_verifier' was invalid.");
 
-                        return await SendTokenResponseAsync(new OpenIdConnectResponse {
+                        return await SendTokenResponseAsync(new OpenIdConnectResponse
+                        {
                             Error = OpenIdConnectConstants.Errors.InvalidGrant,
                             ErrorDescription = "The specified 'code_verifier' was invalid."
                         });
                     }
                 }
 
-                if (request.IsRefreshTokenGrantType() && !string.IsNullOrEmpty(request.Resource)) {
+                if (request.IsRefreshTokenGrantType() && !string.IsNullOrEmpty(request.Resource))
+                {
                     // When an explicit resource parameter has been included in the token request
                     // but was missing from the initial request, the request MUST be rejected.
                     var resources = ticket.GetResources();
-                    if (!resources.Any()) {
+                    if (!resources.Any())
+                    {
                         Logger.LogError("The token request was rejected because the 'resource' parameter was not allowed.");
 
-                        return await SendTokenResponseAsync(new OpenIdConnectResponse {
+                        return await SendTokenResponseAsync(new OpenIdConnectResponse
+                        {
                             Error = OpenIdConnectConstants.Errors.InvalidGrant,
                             ErrorDescription = "Token request cannot contain a resource parameter " +
                                                "if the authorization request didn't contain one"
@@ -414,25 +478,30 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     // When an explicit resource parameter has been included in the token request,
                     // the authorization server MUST ensure that it doesn't contain resources
                     // that were not allowed during the initial authorization/token request.
-                    else if (!new HashSet<string>(resources).IsSupersetOf(request.GetResources())) {
+                    else if (!new HashSet<string>(resources).IsSupersetOf(request.GetResources()))
+                    {
                         Logger.LogError("The token request was rejected because the 'resource' parameter was not valid.");
 
-                        return await SendTokenResponseAsync(new OpenIdConnectResponse {
+                        return await SendTokenResponseAsync(new OpenIdConnectResponse
+                        {
                             Error = OpenIdConnectConstants.Errors.InvalidGrant,
                             ErrorDescription = "Token request doesn't contain a valid resource parameter"
                         });
                     }
                 }
 
-                if (request.IsRefreshTokenGrantType() && !string.IsNullOrEmpty(request.Scope)) {
+                if (request.IsRefreshTokenGrantType() && !string.IsNullOrEmpty(request.Scope))
+                {
                     // When an explicit scope parameter has been included in the token request
                     // but was missing from the initial request, the request MUST be rejected.
                     // See http://tools.ietf.org/html/rfc6749#section-6
                     var scopes = ticket.GetScopes();
-                    if (!scopes.Any()) {
+                    if (!scopes.Any())
+                    {
                         Logger.LogError("The token request was rejected because the 'scope' parameter was not allowed.");
 
-                        return await SendTokenResponseAsync(new OpenIdConnectResponse {
+                        return await SendTokenResponseAsync(new OpenIdConnectResponse
+                        {
                             Error = OpenIdConnectConstants.Errors.InvalidGrant,
                             ErrorDescription = "Token request cannot contain a scope parameter " +
                                                "if the authorization request didn't contain one"
@@ -443,10 +512,12 @@ namespace AspNet.Security.OpenIdConnect.Server {
                     // the authorization server MUST ensure that it doesn't contain scopes
                     // that were not allowed during the initial authorization/token request.
                     // See https://tools.ietf.org/html/rfc6749#section-6
-                    else if (!new HashSet<string>(scopes).IsSupersetOf(request.GetScopes())) {
+                    else if (!new HashSet<string>(scopes).IsSupersetOf(request.GetScopes()))
+                    {
                         Logger.LogError("The token request was rejected because the 'scope' parameter was not valid.");
 
-                        return await SendTokenResponseAsync(new OpenIdConnectResponse {
+                        return await SendTokenResponseAsync(new OpenIdConnectResponse
+                        {
                             Error = OpenIdConnectConstants.Errors.InvalidGrant,
                             ErrorDescription = "Token request doesn't contain a valid scope parameter"
                         });
@@ -457,24 +528,28 @@ namespace AspNet.Security.OpenIdConnect.Server {
             var notification = new HandleTokenRequestContext(Context, Options, request, ticket);
             await Options.Provider.HandleTokenRequest(notification);
 
-            if (notification.HandledResponse) {
+            if (notification.HandledResponse)
+            {
                 Logger.LogDebug("The token request was handled in user code.");
 
                 return true;
             }
 
-            else if (notification.Skipped) {
+            else if (notification.Skipped)
+            {
                 Logger.LogDebug("The default token request handling was skipped from user code.");
 
                 return false;
             }
 
-            else if (notification.IsRejected) {
+            else if (notification.IsRejected)
+            {
                 Logger.LogError("The token request was rejected with the following error: {Error} ; {Description}",
                                 /* Error: */ notification.Error ?? OpenIdConnectConstants.Errors.InvalidGrant,
                                 /* Description: */ notification.ErrorDescription);
 
-                return await SendTokenResponseAsync(new OpenIdConnectResponse {
+                return await SendTokenResponseAsync(new OpenIdConnectResponse
+                {
                     Error = notification.Error ?? OpenIdConnectConstants.Errors.InvalidGrant,
                     ErrorDescription = notification.ErrorDescription,
                     ErrorUri = notification.ErrorUri
@@ -486,11 +561,13 @@ namespace AspNet.Security.OpenIdConnect.Server {
 
             // Ensure an authentication ticket has been provided or return
             // an error code indicating that the grant type is not supported.
-            if (ticket == null) {
+            if (ticket == null)
+            {
                 Logger.LogError("The token request was rejected because no authentication " +
                                 "ticket was returned by application code.");
 
-                return await SendTokenResponseAsync(new OpenIdConnectResponse {
+                return await SendTokenResponseAsync(new OpenIdConnectResponse
+                {
                     Error = OpenIdConnectConstants.Errors.UnsupportedGrantType,
                     ErrorDescription = "The specified grant_type parameter is not supported."
                 });
@@ -500,20 +577,23 @@ namespace AspNet.Security.OpenIdConnect.Server {
             return await HandleSignInAsync(ticket);
         }
 
-        private async Task<bool> SendTokenResponseAsync(OpenIdConnectResponse response, AuthenticationTicket ticket = null) {
+        private async Task<bool> SendTokenResponseAsync(OpenIdConnectResponse response, AuthenticationTicket ticket = null)
+        {
             var request = Context.GetOpenIdConnectRequest();
             Context.SetOpenIdConnectResponse(response);
 
             var notification = new ApplyTokenResponseContext(Context, Options, ticket, request, response);
             await Options.Provider.ApplyTokenResponse(notification);
 
-            if (notification.HandledResponse) {
+            if (notification.HandledResponse)
+            {
                 Logger.LogDebug("The token request was handled in user code.");
 
                 return true;
             }
 
-            else if (notification.Skipped) {
+            else if (notification.Skipped)
+            {
                 Logger.LogDebug("The default token request handling was skipped from user code.");
 
                 return false;

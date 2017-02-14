@@ -11,12 +11,16 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
-namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
-    public class OpenIdConnectMessageTests {
+namespace AspNet.Security.OpenIdConnect.Primitives.Tests
+{
+    public class OpenIdConnectMessageTests
+    {
         [Fact]
-        public void Constructor_ImportsParameters() {
+        public void Constructor_ImportsParameters()
+        {
             // Arrange and act
-            var message = new OpenIdConnectMessage(new[] {
+            var message = new OpenIdConnectMessage(new[]
+            {
                 new KeyValuePair<string, OpenIdConnectParameter>("parameter", 42)
             });
 
@@ -25,9 +29,11 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
-        public void Constructor_IgnoresNamelessParameters() {
+        public void Constructor_IgnoresNamelessParameters()
+        {
             // Arrange and act
-            var message = new OpenIdConnectMessage(new[] {
+            var message = new OpenIdConnectMessage(new[]
+            {
                 new KeyValuePair<string, OpenIdConnectParameter>(null, new OpenIdConnectParameter()),
                 new KeyValuePair<string, OpenIdConnectParameter>(string.Empty, new OpenIdConnectParameter())
             });
@@ -37,9 +43,11 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
-        public void Constructor_PreservesEmptyParameters() {
+        public void Constructor_PreservesEmptyParameters()
+        {
             // Arrange and act
-            var message = new OpenIdConnectMessage(new[] {
+            var message = new OpenIdConnectMessage(new[]
+            {
                 new KeyValuePair<string, OpenIdConnectParameter>("null-parameter", (string) null),
                 new KeyValuePair<string, OpenIdConnectParameter>("empty-parameter", string.Empty)
             });
@@ -49,9 +57,11 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
-        public void Constructor_IgnoresDuplicateParameters() {
+        public void Constructor_IgnoresDuplicateParameters()
+        {
             // Arrange and act
-            var message = new OpenIdConnectMessage(new[] {
+            var message = new OpenIdConnectMessage(new[]
+            {
                 new KeyValuePair<string, OpenIdConnectParameter>("parameter", "Fabrikam"),
                 new KeyValuePair<string, OpenIdConnectParameter>("parameter", "Contoso")
             });
@@ -64,12 +74,14 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public void AddParameter_ThrowsAnExceptionForNullOrEmptyName(string name) {
+        public void AddParameter_ThrowsAnExceptionForNullOrEmptyName(string name)
+        {
             // Arrange
             var message = new OpenIdConnectMessage();
 
             // Act and assert
-            var exception = Assert.Throws<ArgumentException>(delegate {
+            var exception = Assert.Throws<ArgumentException>(delegate
+            {
                 message.AddParameter(name, new OpenIdConnectParameter());
             });
 
@@ -78,7 +90,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
-        public void AddParameter_AddsExpectedParameter() {
+        public void AddParameter_AddsExpectedParameter()
+        {
             // Arrange
             var message = new OpenIdConnectMessage();
 
@@ -90,7 +103,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
-        public void AddParameter_IsCaseSensitive() {
+        public void AddParameter_IsCaseSensitive()
+        {
             // Arrange
             var message = new OpenIdConnectMessage();
 
@@ -102,7 +116,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
-        public void AddParameter_PreservesEmptyParameters() {
+        public void AddParameter_PreservesEmptyParameters()
+        {
             // Arrange
             var message = new OpenIdConnectMessage();
 
@@ -122,12 +137,14 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public void AddProperty_ThrowsAnExceptionForNullOrEmptyName(string name) {
+        public void AddProperty_ThrowsAnExceptionForNullOrEmptyName(string name)
+        {
             // Arrange
             var message = new OpenIdConnectMessage();
 
             // Act and assert
-            var exception = Assert.Throws<ArgumentException>(delegate {
+            var exception = Assert.Throws<ArgumentException>(delegate
+            {
                 message.AddProperty(name, null);
             });
 
@@ -136,7 +153,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
-        public void AddProperty_AddsExpectedProperty() {
+        public void AddProperty_AddsExpectedProperty()
+        {
             // Arrange
             var message = new OpenIdConnectMessage();
 
@@ -148,7 +166,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
-        public void AddProperty_IsCaseSensitive() {
+        public void AddProperty_IsCaseSensitive()
+        {
             // Arrange
             var message = new OpenIdConnectMessage();
 
@@ -160,7 +179,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
-        public void AddProperty_PreservesEmptyProperties() {
+        public void AddProperty_PreservesEmptyProperties()
+        {
             // Arrange
             var message = new OpenIdConnectMessage();
 
@@ -174,12 +194,14 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public void GetParameter_ThrowsAnExceptionForNullOrEmptyName(string name) {
+        public void GetParameter_ThrowsAnExceptionForNullOrEmptyName(string name)
+        {
             // Arrange
             var message = new OpenIdConnectMessage();
 
             // Act and assert
-            var exception = Assert.Throws<ArgumentException>(delegate {
+            var exception = Assert.Throws<ArgumentException>(delegate
+            {
                 message.GetParameter(name);
             });
 
@@ -188,7 +210,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
-        public void GetParameter_ReturnsExpectedParameter() {
+        public void GetParameter_ReturnsExpectedParameter()
+        {
             // Arrange
             var message = new OpenIdConnectMessage();
 
@@ -199,7 +222,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
-        public void GetParameter_IsCaseSensitive() {
+        public void GetParameter_IsCaseSensitive()
+        {
             // Arrange
             var message = new OpenIdConnectMessage();
 
@@ -210,7 +234,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
-        public void GetParameter_ReturnsNullForUnsetParameter() {
+        public void GetParameter_ReturnsNullForUnsetParameter()
+        {
             // Arrange
             var message = new OpenIdConnectMessage();
 
@@ -219,9 +244,11 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
-        public void GetParameters_EnumeratesParameters() {
+        public void GetParameters_EnumeratesParameters()
+        {
             // Arrange
-            var parameters = new Dictionary<string, OpenIdConnectParameter> {
+            var parameters = new Dictionary<string, OpenIdConnectParameter>
+            {
                 ["int"] = int.MaxValue,
                 ["long"] = long.MaxValue,
                 ["string"] = "value"
@@ -234,9 +261,11 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
-        public void GetProperties_EnumeratesProperties() {
+        public void GetProperties_EnumeratesProperties()
+        {
             // Arrange
-            var properties = new Dictionary<string, object> {
+            var properties = new Dictionary<string, object>
+            {
                 ["int"] = int.MaxValue,
                 ["long"] = long.MaxValue,
                 ["object"] = new object(),
@@ -245,7 +274,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
 
             var message = new OpenIdConnectMessage();
 
-            foreach (var property in properties) {
+            foreach (var property in properties)
+            {
                 message.SetProperty(property.Key, property.Value);
             }
 
@@ -256,12 +286,14 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public void GetProperty_ThrowsAnExceptionForNullOrEmptyName(string name) {
+        public void GetProperty_ThrowsAnExceptionForNullOrEmptyName(string name)
+        {
             // Arrange
             var message = new OpenIdConnectMessage();
 
             // Act and assert
-            var exception = Assert.Throws<ArgumentException>(delegate {
+            var exception = Assert.Throws<ArgumentException>(delegate
+            {
                 message.GetProperty(name);
             });
 
@@ -270,7 +302,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
-        public void GetProperty_ReturnsDefaultInstanceForMissingProperty() {
+        public void GetProperty_ReturnsDefaultInstanceForMissingProperty()
+        {
             // Arrange
             var message = new OpenIdConnectMessage();
 
@@ -279,7 +312,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
-        public void GetProperty_ReturnsDefaultInstanceForInvalidType() {
+        public void GetProperty_ReturnsDefaultInstanceForInvalidType()
+        {
             // Arrange
             var message = new OpenIdConnectMessage();
 
@@ -293,7 +327,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData("property", "value")]
         [InlineData("PROPERTY", null)]
         [InlineData("missing_property", null)]
-        public void GetProperty_ReturnsExpectedResult(string property, object result) {
+        public void GetProperty_ReturnsExpectedResult(string property, object result)
+        {
             // Arrange
             var message = new OpenIdConnectMessage();
 
@@ -306,12 +341,14 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public void HasParameter_ThrowsAnExceptionForNullOrEmptyName(string name) {
+        public void HasParameter_ThrowsAnExceptionForNullOrEmptyName(string name)
+        {
             // Arrange
             var message = new OpenIdConnectMessage();
 
             // Act and assert
-            var exception = Assert.Throws<ArgumentException>(delegate {
+            var exception = Assert.Throws<ArgumentException>(delegate
+            {
                 message.HasParameter(name);
             });
 
@@ -323,7 +360,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData("parameter", true)]
         [InlineData("PARAMETER", false)]
         [InlineData("missing_parameter", false)]
-        public void HasParameter_ReturnsExpectedResult(string parameter, bool result) {
+        public void HasParameter_ReturnsExpectedResult(string parameter, bool result)
+        {
             // Arrange
             var message = new OpenIdConnectMessage();
 
@@ -336,12 +374,14 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public void HasProperty_ThrowsAnExceptionForNullOrEmptyName(string name) {
+        public void HasProperty_ThrowsAnExceptionForNullOrEmptyName(string name)
+        {
             // Arrange
             var message = new OpenIdConnectMessage();
 
             // Act and assert
-            var exception = Assert.Throws<ArgumentException>(delegate {
+            var exception = Assert.Throws<ArgumentException>(delegate
+            {
                 message.HasProperty(name);
             });
 
@@ -353,7 +393,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData("property", true)]
         [InlineData("PROPERTY", false)]
         [InlineData("missing_property", false)]
-        public void HasProperty_ReturnsExpectedResult(string property, bool result) {
+        public void HasProperty_ReturnsExpectedResult(string property, bool result)
+        {
             // Arrange
             var message = new OpenIdConnectMessage();
             message.SetProperty("property", "value");
@@ -365,12 +406,14 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public void RemoveParameter_ThrowsAnExceptionForNullOrEmptyName(string name) {
+        public void RemoveParameter_ThrowsAnExceptionForNullOrEmptyName(string name)
+        {
             // Arrange
             var message = new OpenIdConnectMessage();
 
             // Act and assert
-            var exception = Assert.Throws<ArgumentException>(delegate {
+            var exception = Assert.Throws<ArgumentException>(delegate
+            {
                 message.RemoveParameter(name);
             });
 
@@ -379,7 +422,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
-        public void RemoveParameter_RemovesExpectedParameter() {
+        public void RemoveParameter_RemovesExpectedParameter()
+        {
             // Arrange
             var message = new OpenIdConnectMessage();
             message.AddParameter("parameter", 42);
@@ -394,12 +438,14 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public void RemoveProperty_ThrowsAnExceptionForNullOrEmptyName(string name) {
+        public void RemoveProperty_ThrowsAnExceptionForNullOrEmptyName(string name)
+        {
             // Arrange
             var message = new OpenIdConnectMessage();
 
             // Act and assert
-            var exception = Assert.Throws<ArgumentException>(delegate {
+            var exception = Assert.Throws<ArgumentException>(delegate
+            {
                 message.RemoveProperty(name);
             });
 
@@ -408,7 +454,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
-        public void RemoveProperty_RemovesExpectedProperty() {
+        public void RemoveProperty_RemovesExpectedProperty()
+        {
             // Arrange
             var message = new OpenIdConnectMessage();
             message.AddProperty("property", 42);
@@ -423,12 +470,14 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public void SetParameter_ThrowsAnExceptionForNullOrEmptyName(string name) {
+        public void SetParameter_ThrowsAnExceptionForNullOrEmptyName(string name)
+        {
             // Arrange
             var message = new OpenIdConnectMessage();
 
             // Act and assert
-            var exception = Assert.Throws<ArgumentException>(delegate {
+            var exception = Assert.Throws<ArgumentException>(delegate
+            {
                 message.SetParameter(name, null);
             });
 
@@ -437,7 +486,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
-        public void SetParameter_AddsExpectedParameter() {
+        public void SetParameter_AddsExpectedParameter()
+        {
             // Arrange
             var message = new OpenIdConnectMessage();
 
@@ -449,7 +499,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
-        public void SetParameter_IsCaseSensitive() {
+        public void SetParameter_IsCaseSensitive()
+        {
             // Arrange
             var message = new OpenIdConnectMessage();
 
@@ -461,7 +512,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
-        public void SetParameter_RemovesNullParameters() {
+        public void SetParameter_RemovesNullParameters()
+        {
             // Arrange
             var message = new OpenIdConnectMessage();
 
@@ -473,7 +525,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
-        public void SetParameter_RemovesEmptyParameters() {
+        public void SetParameter_RemovesEmptyParameters()
+        {
             // Arrange
             var message = new OpenIdConnectMessage();
 
@@ -490,12 +543,14 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public void SetProperty_ThrowsAnExceptionForNullOrEmptyName(string name) {
+        public void SetProperty_ThrowsAnExceptionForNullOrEmptyName(string name)
+        {
             // Arrange
             var message = new OpenIdConnectMessage();
 
             // Act and assert
-            var exception = Assert.Throws<ArgumentException>(delegate {
+            var exception = Assert.Throws<ArgumentException>(delegate
+            {
                 message.SetProperty(name, null);
             });
 
@@ -504,7 +559,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
-        public void SetProperty_AddsExpectedProperty() {
+        public void SetProperty_AddsExpectedProperty()
+        {
             // Arrange
             var message = new OpenIdConnectMessage();
 
@@ -516,7 +572,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
-        public void SetProperty_IsCaseSensitive() {
+        public void SetProperty_IsCaseSensitive()
+        {
             // Arrange
             var message = new OpenIdConnectMessage();
 
@@ -528,7 +585,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
-        public void SetProperty_RemovesEmptyProperties() {
+        public void SetProperty_RemovesEmptyProperties()
+        {
             // Arrange
             var message = new OpenIdConnectMessage();
 
@@ -540,7 +598,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
-        public void ToString_ReturnsJsonRepresentation() {
+        public void ToString_ReturnsJsonRepresentation()
+        {
             // Arrange
             var message = JsonConvert.DeserializeObject<OpenIdConnectMessage>(@"{
   ""redirect_uris"": [
@@ -559,7 +618,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         }
 
         [Fact]
-        public void ToString_IgnoresProperties() {
+        public void ToString_IgnoresProperties()
+        {
             // Arrange
             var message = new OpenIdConnectMessage();
             message.SetProperty("property", "value");
@@ -579,7 +639,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests {
         [InlineData(OpenIdConnectConstants.Parameters.Password)]
         [InlineData(OpenIdConnectConstants.Parameters.RefreshToken)]
         [InlineData(OpenIdConnectConstants.Parameters.Token)]
-        public void ToString_ExcludesSensitiveParameters(string parameter) {
+        public void ToString_ExcludesSensitiveParameters(string parameter)
+        {
             // Arrange
             var message = new OpenIdConnectMessage();
             message.AddParameter(parameter, "secret value");

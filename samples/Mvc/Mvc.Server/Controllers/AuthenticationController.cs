@@ -2,10 +2,13 @@
 using Microsoft.AspNetCore.Mvc;
 using Mvc.Server.Extensions;
 
-namespace Mvc.Server.Controllers {
-    public class AuthenticationController : Controller {
+namespace Mvc.Server.Controllers
+{
+    public class AuthenticationController : Controller
+    {
         [HttpGet("~/signin")]
-        public ActionResult SignIn(string returnUrl = null) {
+        public ActionResult SignIn(string returnUrl = null)
+        {
             // Note: the "returnUrl" parameter corresponds to the endpoint the user agent
             // will be redirected to after a successful authentication and not
             // the redirect_uri of the requesting client application.
@@ -16,21 +19,25 @@ namespace Mvc.Server.Controllers {
         }
 
         [HttpPost("~/signin")]
-        public ActionResult SignIn(string provider, string returnUrl) {
+        public ActionResult SignIn(string provider, string returnUrl)
+        {
             // Note: the "provider" parameter corresponds to the external
             // authentication provider choosen by the user agent.
-            if (string.IsNullOrEmpty(provider)) {
+            if (string.IsNullOrEmpty(provider))
+            {
                 return BadRequest();
             }
 
-            if (!HttpContext.IsProviderSupported(provider)) {
+            if (!HttpContext.IsProviderSupported(provider))
+            {
                 return BadRequest();
             }
 
             // Note: the "returnUrl" parameter corresponds to the endpoint the user agent
             // will be redirected to after a successful authentication and not
             // the redirect_uri of the requesting client application.
-            if (string.IsNullOrEmpty(returnUrl)) {
+            if (string.IsNullOrEmpty(returnUrl))
+            {
                 return BadRequest();
             }
 
@@ -41,7 +48,8 @@ namespace Mvc.Server.Controllers {
         }
 
         [HttpGet("~/signout"), HttpPost("~/signout")]
-        public ActionResult SignOut() {
+        public ActionResult SignOut()
+        {
             // Instruct the cookies middleware to delete the local cookie created
             // when the user agent is redirected from the external identity provider
             // after a successful authentication flow (e.g Google or Facebook).

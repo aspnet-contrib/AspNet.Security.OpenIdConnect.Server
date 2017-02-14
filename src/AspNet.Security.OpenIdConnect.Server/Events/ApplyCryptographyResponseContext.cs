@@ -8,12 +8,14 @@ using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 
-namespace AspNet.Security.OpenIdConnect.Server {
+namespace AspNet.Security.OpenIdConnect.Server
+{
     /// <summary>
     /// An event raised before the authorization server starts
     /// writing the JWKS metadata to the response stream.
     /// </summary>
-    public class ApplyCryptographyResponseContext : BaseControlContext {
+    public class ApplyCryptographyResponseContext : BaseControlContext
+    {
         /// <summary>
         /// Creates an instance of this context.
         /// </summary>
@@ -22,7 +24,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             OpenIdConnectServerOptions options,
             OpenIdConnectRequest request,
             OpenIdConnectResponse response)
-            : base(context) {
+            : base(context)
+        {
             Options = options;
             Request = request;
             Response = response;

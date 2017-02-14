@@ -4,9 +4,12 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
-namespace AspNet.Security.OpenIdConnect.Primitives {
-    public static class OpenIdConnectConstants {
-        public static class Algorithms {
+namespace AspNet.Security.OpenIdConnect.Primitives
+{
+    public static class OpenIdConnectConstants
+    {
+        public static class Algorithms
+        {
             public const string EcdsaSha256 = "ES256";
             public const string EcdsaSha384 = "ES384";
             public const string EcdsaSha512 = "ES512";
@@ -21,7 +24,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
             public const string RsaSsaPssSha512 = "PS512";
         }
 
-        public static class Claims {
+        public static class Claims
+        {
             public const string AccessTokenHash = "at_hash";
             public const string Active = "active";
             public const string Address = "address";
@@ -67,22 +71,26 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
             public const string Zoneinfo = "zoneinfo";
         }
 
-        public static class CodeChallengeMethods {
+        public static class CodeChallengeMethods
+        {
             public const string Plain = "plain";
             public const string Sha256 = "S256";
         }
 
-        public static class ConfidentialityLevels {
+        public static class ConfidentialityLevels
+        {
             public const string Private = "private";
             public const string Public = "public";
         }
 
-        public static class Destinations {
+        public static class Destinations
+        {
             public const string AccessToken = "access_token";
             public const string IdentityToken = "id_token";
         }
 
-        public static class Errors {
+        public static class Errors
+        {
             public const string AccessDenied = "access_denied";
             public const string AccountSelectionRequired = "account_selection_required";
             public const string ConsentRequired = "consent_required";
@@ -100,7 +108,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
             public const string UnsupportedTokenType = "unsupported_token_type";
         }
 
-        public static class GrantTypes {
+        public static class GrantTypes
+        {
             public const string AuthorizationCode = "authorization_code";
             public const string ClientCredentials = "client_credentials";
             public const string Implicit = "implicit";
@@ -108,7 +117,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
             public const string RefreshToken = "refresh_token";
         }
 
-        public static class MessageTypes {
+        public static class MessageTypes
+        {
             public const string AuthorizationRequest = "authorization_request";
             public const string ConfigurationRequest = "configuration_request";
             public const string CryptographyRequest = "cryptography_request";
@@ -119,7 +129,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
             public const string UserinfoRequest = "userinfo_request";
         }
 
-        public static class Metadata {
+        public static class Metadata
+        {
             public const string AcrValuesSupported = "acr_values_supported";
             public const string AuthorizationEndpoint = "authorization_endpoint";
             public const string ClaimsLocalesSupported = "claims_locales_supported";
@@ -160,7 +171,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
             public const string UserinfoSigningAlgValuesSupported = "userinfo_signing_alg_values_supported";
         }
 
-        public static class Parameters {
+        public static class Parameters
+        {
             public const string AccessToken = "access_token";
             public const string Active = "active";
             public const string Assertion = "assertion";
@@ -200,7 +212,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
             public const string Username = "username";
         }
 
-        public static class Properties {
+        public static class Properties
+        {
             public const string AccessTokenLifetime = ".access_token_lifetime";
             public const string AuthorizationCodeLifetime = ".authorization_code_lifetime";
             public const string Audiences = ".audiences";
@@ -223,25 +236,29 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
             public const string Usage = ".usage";
         }
 
-        public static class ResponseModes {
+        public static class ResponseModes
+        {
             public const string FormPost = "form_post";
             public const string Fragment = "fragment";
             public const string Query = "query";
         }
 
-        public static class ResponseTypes {
+        public static class ResponseTypes
+        {
             public const string Code = "code";
             public const string IdToken = "id_token";
             public const string None = "none";
             public const string Token = "token";
         }
 
-        public static class Separators {
+        public static class Separators
+        {
             public static readonly char[] Ampersand = { '&' };
             public static readonly char[] Space = { ' ' };
         }
 
-        public static class Scopes {
+        public static class Scopes
+        {
             public const string Address = "address";
             public const string Email = "email";
             public const string OfflineAccess = "offline_access";
@@ -250,23 +267,27 @@ namespace AspNet.Security.OpenIdConnect.Primitives {
             public const string Profile = "profile";
         }
 
-        public static class SubjectTypes {
+        public static class SubjectTypes
+        {
             public const string Pairwise = "pairwise";
             public const string Public = "public";
         }
 
-        public static class TokenTypeHints {
+        public static class TokenTypeHints
+        {
             public const string AccessToken = "access_token";
             public const string AuthorizationCode = "authorization_code";
             public const string IdToken = "id_token";
             public const string RefreshToken = "refresh_token";
         }
 
-        public static class TokenTypes {
+        public static class TokenTypes
+        {
             public const string Bearer = "Bearer";
         }
 
-        public static class Usages {
+        public static class Usages
+        {
             public const string AccessToken = "access_token";
             public const string AuthorizationCode = "authorization_code";
             public const string IdentityToken = "identity_token";

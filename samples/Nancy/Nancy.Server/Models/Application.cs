@@ -1,7 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Nancy.Server.Models {
-    public class Application {
+namespace Nancy.Server.Models
+{
+    public class Application
+    {
         [Key]
         public string ApplicationID { get; set; }
         public string DisplayName { get; set; }

@@ -7,11 +7,13 @@
 using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.AspNetCore.Http;
 
-namespace AspNet.Security.OpenIdConnect.Server {
+namespace AspNet.Security.OpenIdConnect.Server
+{
     /// <summary>
     /// Provides context information used when validating a discovery request.
     /// </summary>
-    public class ValidateConfigurationRequestContext : BaseValidatingContext {
+    public class ValidateConfigurationRequestContext : BaseValidatingContext
+    {
         /// <summary>
         /// Initializes a new instance of the <see cref="ValidateConfigurationRequestContext"/> class.
         /// </summary>
@@ -22,7 +24,8 @@ namespace AspNet.Security.OpenIdConnect.Server {
             HttpContext context,
             OpenIdConnectServerOptions options,
             OpenIdConnectRequest request)
-            : base(context, options, request) {
+            : base(context, options, request)
+        {
             Validate();
         }
     }
