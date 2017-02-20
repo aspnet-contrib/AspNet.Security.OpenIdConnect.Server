@@ -370,7 +370,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             if (!ticket.HasAudience() || (!string.IsNullOrEmpty(request.ClientId) && ticket.HasAudience(request.ClientId)))
             {
                 notification.Username = ticket.Principal.Identity?.Name;
-                notification.Scope = ticket.GetProperty(OpenIdConnectConstants.Properties.Scopes);
+                notification.Scope = string.Join(" ", ticket.GetScopes());
 
                 // Potentially sensitive claims are only exposed to trusted callers
                 // if the ticket corresponds to an access or identity token.

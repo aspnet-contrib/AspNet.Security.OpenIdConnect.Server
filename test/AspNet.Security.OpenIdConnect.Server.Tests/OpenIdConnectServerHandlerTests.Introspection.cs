@@ -622,6 +622,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     Assert.Equal("2YotnFZFEjr1zCsicMWpAA", context.AccessToken);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Username, "Bob");
                     identity.AddClaim("custom_claim", "secret_value");
 
                     context.Ticket = new AuthenticationTicket(
@@ -630,6 +631,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                         context.Options.AuthenticationScheme);
 
                     context.Ticket.SetAudiences("Contoso");
+                    context.Ticket.SetScopes(OpenIdConnectConstants.Scopes.OpenId,
+                                             OpenIdConnectConstants.Scopes.Profile);
 
                     return Task.FromResult(0);
                 };
@@ -654,6 +657,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Null(response["custom_claim"]);
+            Assert.Null(response[OpenIdConnectConstants.Claims.Username]);
+            Assert.Null(response[OpenIdConnectConstants.Claims.Scope]);
         }
 
         [Fact]
@@ -667,6 +672,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     Assert.Equal("2YotnFZFEjr1zCsicMWpAA", context.AccessToken);
 
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Username, "Bob");
                     identity.AddClaim("custom_claim", "secret_value");
 
                     context.Ticket = new AuthenticationTicket(
@@ -675,6 +681,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                         context.Options.AuthenticationScheme);
 
                     context.Ticket.SetAudiences("Fabrikam");
+                    context.Ticket.SetScopes(OpenIdConnectConstants.Scopes.OpenId,
+                                             OpenIdConnectConstants.Scopes.Profile);
 
                     return Task.FromResult(0);
                 };
@@ -699,6 +707,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal("secret_value", (string) response["custom_claim"]);
+            Assert.Equal("Bob", (string) response[OpenIdConnectConstants.Claims.Username]);
+            Assert.Equal("openid profile", (string) response[OpenIdConnectConstants.Claims.Scope]);
         }
 
         [Theory]
