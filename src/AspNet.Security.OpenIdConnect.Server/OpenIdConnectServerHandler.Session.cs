@@ -216,6 +216,9 @@ namespace AspNet.Security.OpenIdConnect.Server
                     return false;
                 }
 
+                Logger.LogInformation("The logout response was successfully returned " +
+                                      "as a plain-text document: {Response}", response);
+
                 return await SendNativePageAsync(response);
             }
 

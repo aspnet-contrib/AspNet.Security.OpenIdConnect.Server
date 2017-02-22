@@ -429,6 +429,9 @@ namespace Owin.Security.OpenIdConnect.Server
                         return false;
                     }
 
+                    Options.Logger.LogInformation("The authorization response was successfully returned " +
+                                                  "as a plain-text document: {Response}", response);
+
                     return await SendNativePageAsync(response);
                 }
             }
