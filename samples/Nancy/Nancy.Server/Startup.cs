@@ -17,29 +17,29 @@ namespace Nancy.Server
         {
             app.SetDefaultSignInAsAuthenticationType("ServerCookie");
 
-            app.UseWhen(context => context.Request.Path.StartsWithSegments(new PathString("/api")), map =>
+            app.UseWhen(context => context.Request.Path.StartsWithSegments(new PathString("/api")), branch =>
             {
-                map.UseOAuthValidation();
+                branch.UseOAuthValidation();
 
                 // Alternatively, you can also use the introspection middleware.
                 // Using it is recommended if your resource server is in a
                 // different application/separated from the authorization server.
                 //
-                // map.UseOAuthIntrospection(options =>
+                // branch.UseOAuthIntrospection(options =>
                 // {
-                //     options.AuthenticationMode = AuthenticationMode.Active;
-                //     options.Authority = "http://localhost:54540/";
+                //     options.Authority = new Uri("http://localhost:54540/");
                 //     options.Audiences.Add("resource_server");
                 //     options.ClientId = "resource_server";
                 //     options.ClientSecret = "875sqd4s5d748z78z7ds1ff8zz8814ff88ed8ea4z4zzd";
+                //     options.RequireHttpsMetadata = false;
                 // });
             });
 
             // Insert a new cookies middleware in the pipeline to store
             // the user identity returned by the external identity provider.
-            app.UseWhen(context => !context.Request.Path.StartsWithSegments(new PathString("/api")), map =>
+            app.UseWhen(context => !context.Request.Path.StartsWithSegments(new PathString("/api")), branch =>
             {
-                map.UseCookieAuthentication(new CookieAuthenticationOptions
+                branch.UseCookieAuthentication(new CookieAuthenticationOptions
                 {
                     AuthenticationMode = AuthenticationMode.Active,
                     AuthenticationType = "ServerCookie",

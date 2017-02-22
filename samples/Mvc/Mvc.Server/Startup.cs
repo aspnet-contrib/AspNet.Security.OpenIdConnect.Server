@@ -45,14 +45,13 @@ namespace Mvc.Server
                 // Using it is recommended if your resource server is in a
                 // different application/separated from the authorization server.
                 //
-                // branch.UseOAuthIntrospection(new OAuthIntrospectionOptions
+                // branch.UseOAuthIntrospection(options =>
                 // {
-                //     AutomaticAuthenticate = true,
-                //     AutomaticChallenge = true,
-                //     Authority = "http://localhost:54540/",
-                //     Audiences = { "resource_server" },
-                //     ClientId = "resource_server",
-                //     ClientSecret = "875sqd4s5d748z78z7ds1ff8zz8814ff88ed8ea4z4zzd"
+                //     options.Authority = new Uri("http://localhost:54540/");
+                //     options.Audiences.Add("resource_server");
+                //     options.ClientId = "resource_server";
+                //     options.ClientSecret = "875sqd4s5d748z78z7ds1ff8zz8814ff88ed8ea4z4zzd";
+                //     options.RequireHttpsMetadata = false;
                 // });
             });
 
