@@ -1,13 +1,17 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.IdentityModel.Tokens;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.Owin;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Owin.Security.OpenIdConnect.Server
 {
@@ -198,6 +202,63 @@ namespace Owin.Security.OpenIdConnect.Server
 
                 default:
                     return null;
+            }
+        }
+
+        public static OpenIdConnectParameter AsParameter(this Claim claim)
+        {
+            if (claim == null)
+            {
+                throw new ArgumentNullException(nameof(claim));
+            }
+
+            switch (claim.ValueType)
+            {
+                case ClaimValueTypes.Boolean:
+                {
+                    bool value;
+                    if (bool.TryParse(claim.Value, out value))
+                    {
+                        return value;
+                    }
+
+                    goto default;
+                }
+
+                case ClaimValueTypes.Integer:
+                case ClaimValueTypes.Integer32:
+                case ClaimValueTypes.Integer64:
+                {
+                    long value;
+                    if (long.TryParse(claim.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out value))
+                    {
+                        return value;
+                    }
+
+                    goto default;
+                }
+
+                case OpenIdConnectConstants.ClaimValueTypes.Json:
+                case OpenIdConnectConstants.ClaimValueTypes.JsonArray:
+                {
+                    try
+                    {
+                        return JToken.Parse(claim.Value);
+                    }
+
+                    // Swallow the conversion exceptions and serialize
+                    // the claim value as a string when an error occurs.
+                    catch (Exception exception) when (exception is ArgumentException ||
+                                                      exception is FormatException ||
+                                                      exception is InvalidCastException ||
+                                                      exception is JsonReaderException ||
+                                                      exception is JsonSerializationException)
+                    {
+                        goto default;
+                    }
+                }
+
+                default: return new OpenIdConnectParameter(claim.Value);
             }
         }
 

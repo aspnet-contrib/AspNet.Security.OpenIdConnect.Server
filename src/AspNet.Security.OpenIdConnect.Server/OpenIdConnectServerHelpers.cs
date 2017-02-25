@@ -1,11 +1,16 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace AspNet.Security.OpenIdConnect.Server
 {
@@ -228,17 +233,22 @@ namespace AspNet.Security.OpenIdConnect.Server
         }
 
 #if SUPPORTS_ECDSA
-        public static string GetJwtAlgorithmCurve(ECCurve curve) {
-            if (curve.IsNamed) {
-                if (curve.Oid.FriendlyName == ECCurve.NamedCurves.nistP256.Oid.FriendlyName) {
+        public static string GetJwtAlgorithmCurve(ECCurve curve)
+        {
+            if (curve.IsNamed)
+            {
+                if (curve.Oid.FriendlyName == ECCurve.NamedCurves.nistP256.Oid.FriendlyName)
+                {
                     return JsonWebKeyECTypes.P256;
                 }
 
-                else if (curve.Oid.FriendlyName == ECCurve.NamedCurves.nistP384.Oid.FriendlyName) {
+                else if (curve.Oid.FriendlyName == ECCurve.NamedCurves.nistP384.Oid.FriendlyName)
+                {
                     return JsonWebKeyECTypes.P384;
                 }
 
-                else if (curve.Oid.FriendlyName == ECCurve.NamedCurves.nistP521.Oid.FriendlyName) {
+                else if (curve.Oid.FriendlyName == ECCurve.NamedCurves.nistP521.Oid.FriendlyName)
+                {
                     // Note: JsonWebKeyECTypes.P512 cannot be used as it doesn't represent a valid curve.
                     // See https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet/issues/486
                     return "P-521";
@@ -248,6 +258,63 @@ namespace AspNet.Security.OpenIdConnect.Server
             return null;
         }
 #endif
+
+        public static OpenIdConnectParameter AsParameter(this Claim claim)
+        {
+            if (claim == null)
+            {
+                throw new ArgumentNullException(nameof(claim));
+            }
+
+            switch (claim.ValueType)
+            {
+                case ClaimValueTypes.Boolean:
+                {
+                    bool value;
+                    if (bool.TryParse(claim.Value, out value))
+                    {
+                        return value;
+                    }
+
+                    goto default;
+                }
+
+                case ClaimValueTypes.Integer:
+                case ClaimValueTypes.Integer32:
+                case ClaimValueTypes.Integer64:
+                {
+                    long value;
+                    if (long.TryParse(claim.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out value))
+                    {
+                        return value;
+                    }
+
+                    goto default;
+                }
+
+                case OpenIdConnectConstants.ClaimValueTypes.Json:
+                case OpenIdConnectConstants.ClaimValueTypes.JsonArray:
+                {
+                    try
+                    {
+                        return JToken.Parse(claim.Value);
+                    }
+
+                    // Swallow the conversion exceptions and serialize
+                    // the claim value as a string when an error occurs.
+                    catch (Exception exception) when (exception is ArgumentException ||
+                                                      exception is FormatException ||
+                                                      exception is InvalidCastException ||
+                                                      exception is JsonReaderException ||
+                                                      exception is JsonSerializationException)
+                    {
+                        goto default;
+                    }
+                }
+
+                default: return new OpenIdConnectParameter(claim.Value);
+            }
+        }
 
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         public static bool AreEqual(string first, string second)

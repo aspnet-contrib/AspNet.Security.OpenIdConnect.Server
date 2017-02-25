@@ -14,6 +14,7 @@ using Microsoft.Owin.Infrastructure;
 using Microsoft.Owin.Security;
 using Moq;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Owin.Security.OpenIdConnect.Extensions;
 using Xunit;
 using static System.Net.Http.HttpMethod;
@@ -692,6 +693,161 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
             Assert.Equal("secret_value", (string) response["custom_claim"]);
             Assert.Equal("Bob", (string) response[OpenIdConnectConstants.Claims.Username]);
             Assert.Equal("openid profile", (string) response[OpenIdConnectConstants.Claims.Scope]);
+        }
+
+        [Fact]
+        public async Task InvokeIntrospectionEndpointAsync_ClaimValueTypesAreHonored()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAccessToken = context =>
+                {
+                    Assert.Equal("2YotnFZFEjr1zCsicMWpAA", context.AccessToken);
+
+                    var identity = new ClaimsIdentity(context.Options.AuthenticationType);
+                    identity.AddClaim(new Claim("boolean_claim", "true", ClaimValueTypes.Boolean));
+                    identity.AddClaim(new Claim("integer_claim", "42", ClaimValueTypes.Integer));
+                    identity.AddClaim(new Claim("array_claim", @"[""Contoso"",""Fabrikam""]",
+                        OpenIdConnectConstants.ClaimValueTypes.JsonArray));
+                    identity.AddClaim(new Claim("object_claim", @"{""parameter"":""value""}",
+                        OpenIdConnectConstants.ClaimValueTypes.Json));
+
+                    context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnValidateIntrospectionRequest = context =>
+                {
+                    context.Skip();
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+            {
+                Token = "2YotnFZFEjr1zCsicMWpAA",
+                TokenTypeHint = OpenIdConnectConstants.TokenTypeHints.AccessToken
+            });
+
+            // Assert
+            Assert.True((bool) response["boolean_claim"]);
+            Assert.Equal(JTokenType.Boolean, ((JToken) response["boolean_claim"]).Type);
+            Assert.Equal(42, (long) response["integer_claim"]);
+            Assert.Equal(JTokenType.Integer, ((JToken) response["integer_claim"]).Type);
+            Assert.Equal(new[] { "Contoso", "Fabrikam" }, (string[]) response["array_claim"]);
+            Assert.Equal(JTokenType.Array, ((JToken) response["array_claim"]).Type);
+            Assert.Equal("value", (string) response["object_claim"]?["parameter"]);
+            Assert.Equal(JTokenType.Object, ((JToken) response["object_claim"]).Type);
+        }
+
+        [Fact]
+        public async Task InvokeIntrospectionEndpointAsync_InvalidClaimsAreReturnedAsStrings()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAccessToken = context =>
+                {
+                    Assert.Equal("2YotnFZFEjr1zCsicMWpAA", context.AccessToken);
+
+                    var identity = new ClaimsIdentity(context.Options.AuthenticationType);
+                    identity.AddClaim(new Claim("boolean_claim", "Contoso", ClaimValueTypes.Boolean));
+                    identity.AddClaim(new Claim("integer_claim", "Contoso", ClaimValueTypes.Integer));
+                    identity.AddClaim(new Claim("array_claim", "Contoso", OpenIdConnectConstants.ClaimValueTypes.JsonArray));
+                    identity.AddClaim(new Claim("object_claim", "Contoso", OpenIdConnectConstants.ClaimValueTypes.Json));
+
+                    context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnValidateIntrospectionRequest = context =>
+                {
+                    context.Skip();
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+            {
+                Token = "2YotnFZFEjr1zCsicMWpAA",
+                TokenTypeHint = OpenIdConnectConstants.TokenTypeHints.AccessToken
+            });
+
+            // Assert
+            Assert.Equal("Contoso", (string) response["boolean_claim"]);
+            Assert.Equal(JTokenType.String, ((JToken) response["boolean_claim"]).Type);
+            Assert.Equal("Contoso", (string) response["integer_claim"]);
+            Assert.Equal(JTokenType.String, ((JToken) response["integer_claim"]).Type);
+            Assert.Equal("Contoso", (string) response["array_claim"]);
+            Assert.Equal(JTokenType.String, ((JToken) response["array_claim"]).Type);
+            Assert.Equal("Contoso", (string) response["object_claim"]);
+            Assert.Equal(JTokenType.String, ((JToken) response["object_claim"]).Type);
+        }
+
+        [Fact]
+        public async Task InvokeIntrospectionEndpointAsync_MultipleClaimsAreReturnedAsArrays()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAccessToken = context =>
+                {
+                    Assert.Equal("2YotnFZFEjr1zCsicMWpAA", context.AccessToken);
+
+                    var identity = new ClaimsIdentity(context.Options.AuthenticationType);
+                    identity.AddClaim(new Claim("boolean_claim", "true", ClaimValueTypes.Boolean));
+                    identity.AddClaim(new Claim("boolean_claim", "false", ClaimValueTypes.Boolean));
+
+                    identity.AddClaim(new Claim("integer_claim", "42", ClaimValueTypes.Integer));
+                    identity.AddClaim(new Claim("integer_claim", "43", ClaimValueTypes.Integer));
+
+                    identity.AddClaim(new Claim("array_claim", @"[""Contoso"",""Fabrikam""]",
+                        OpenIdConnectConstants.ClaimValueTypes.JsonArray));
+                    identity.AddClaim(new Claim("array_claim", @"[""Microsoft"",""Google""]",
+                        OpenIdConnectConstants.ClaimValueTypes.JsonArray));
+
+                    context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnValidateIntrospectionRequest = context =>
+                {
+                    context.Skip();
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+            {
+                Token = "2YotnFZFEjr1zCsicMWpAA",
+                TokenTypeHint = OpenIdConnectConstants.TokenTypeHints.AccessToken
+            });
+
+            // Assert
+            Assert.Equal(new JArray(new[] { true, false }), (JArray) response["boolean_claim"]);
+            Assert.Equal(JTokenType.Array, ((JToken) response["boolean_claim"]).Type);
+            Assert.Equal(new JArray(new[] { 42, 43 }), (JArray) response["integer_claim"]);
+            Assert.Equal(JTokenType.Array, ((JToken) response["integer_claim"]).Type);
+            Assert.Equal(new JArray(new[] {
+                new JArray(new[] { "Contoso", "Fabrikam" }),
+                new JArray(new[] { "Microsoft", "Google" }) }), (JArray) response["array_claim"]);
+            Assert.Equal(JTokenType.Array, ((JToken) response["array_claim"]).Type);
         }
 
         [Theory]

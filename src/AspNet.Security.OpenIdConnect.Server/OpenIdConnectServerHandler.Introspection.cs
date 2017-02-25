@@ -5,7 +5,6 @@
  */
 
 using System;
-using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
@@ -392,31 +391,31 @@ namespace AspNet.Security.OpenIdConnect.Server
                                 continue;
                         }
 
-                        // If there's no existing claim with the same type,
-                        // simply add the claim as-is without converting it.
-                        if (!notification.Claims.ContainsKey(claim.Type))
-                        {
-                            notification.Claims[claim.Type] = claim.Value;
-
-                            continue;
-                        }
+                        // Convert the claim as an OpenIdConnectParameter instance,
+                        // whose token type is determined from the claim value type.
+                        var value = claim.AsParameter();
 
                         // When multiple claims with the same name exist, convert the existing entry
                         // to a new JArray to allow returning multiple claim values to the caller.
-                        var array = notification.Claims[claim.Type].Value as JArray;
-                        if (array == null)
+                        if (notification.Claims.ContainsKey(claim.Type))
                         {
-                            array = new JArray();
+                            // Determine whether the existing claim is an array.
+                            // If it's not an array or if the current claim value type
+                            // corresponds to a JSON array, create a new array.
+                            var collection = (JArray) notification.Claims[claim.Type];
+                            if (collection == null || claim.ValueType == OpenIdConnectConstants.ClaimValueTypes.JsonArray)
+                            {
+                                collection = new JArray((JToken) notification.Claims[claim.Type]);
+                            }
 
-                            // Copy the existing claim value to the new array.
-                            array.Add(notification.Claims[claim.Type]);
+                            // Add the current claim value in the array.
+                            collection.Add((JToken) value);
 
-                            // Replace the entry in the claims collection.
-                            notification.Claims[claim.Type] = array;
+                            // Replace the current claim value with the new array.
+                            value = new OpenIdConnectParameter(collection);
                         }
 
-                        // Add the new item in the JArray.
-                        array.Add(claim.Value);
+                        notification.Claims[claim.Type] = value;
                     }
                 }
             }

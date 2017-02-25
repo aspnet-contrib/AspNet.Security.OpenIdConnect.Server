@@ -480,6 +480,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives
             catch (Exception exception) when (exception is ArgumentException ||
                                               exception is FormatException ||
                                               exception is InvalidCastException ||
+                                              exception is JsonReaderException ||
                                               exception is JsonSerializationException)
             {
                 return default(T);
