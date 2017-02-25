@@ -76,10 +76,11 @@ namespace AspNet.Security.OpenIdConnect.Server
         public DateTimeOffset? NotBefore { get; set; }
 
         /// <summary>
-        /// Gets or sets the "scope" claim
-        /// returned to the caller, if applicable.
+        /// Gets the list of scopes returned to the caller
+        /// as part of the "scope" claim, if applicable.
         /// </summary>
-        public string Scope { get; set; }
+        public ISet<string> Scopes { get; } =
+            new HashSet<string>(StringComparer.Ordinal);
 
         /// <summary>
         /// Gets or sets the "sub" claim

@@ -241,10 +241,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             // Note: when receiving an access token, its audiences list cannot be used for the "aud" claim
             // as the client application is not the intented audience but only an authorized presenter.
             // See http://openid.net/specs/openid-connect-core-1_0.html#UserInfoResponse
-            foreach (var presenter in ticket.GetPresenters())
-            {
-                notification.Audiences.Add(presenter);
-            }
+            notification.Audiences.UnionWith(ticket.GetPresenters());
 
             // The following claims are all optional and should be excluded when
             // no corresponding value has been found in the authentication ticket.

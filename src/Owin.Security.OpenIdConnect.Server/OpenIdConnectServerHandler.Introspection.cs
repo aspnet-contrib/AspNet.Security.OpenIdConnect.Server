@@ -358,17 +358,14 @@ namespace Owin.Security.OpenIdConnect.Server
             notification.ExpiresAt = ticket.Properties.ExpiresUtc;
 
             // Copy the audiences extracted from the "aud" claim.
-            foreach (var audience in ticket.GetAudiences())
-            {
-                notification.Audiences.Add(audience);
-            }
+            notification.Audiences.UnionWith(ticket.GetAudiences());
 
             // Note: non-metadata claims are only added if the caller is authenticated
             // AND is in the specified audiences, unless there's so explicit audience.
             if (!ticket.HasAudience() || (!string.IsNullOrEmpty(request.ClientId) && ticket.HasAudience(request.ClientId)))
             {
                 notification.Username = ticket.Identity.Name;
-                notification.Scope = string.Join(" ", ticket.GetScopes());
+                notification.Scopes.UnionWith(ticket.GetScopes());
 
                 // Potentially sensitive claims are only exposed to trusted callers
                 // if the ticket corresponds to an access or identity token.
@@ -378,52 +375,42 @@ namespace Owin.Security.OpenIdConnect.Server
                     {
                         // Exclude standard claims, that are already handled via strongly-typed properties.
                         // Make sure to always update this list when adding new built-in claim properties.
-                        if (string.Equals(claim.Type, ClaimTypes.NameIdentifier, StringComparison.Ordinal))
+                        switch (claim.Type)
                         {
-                            continue;
-                        }
-
-                        if (string.Equals(claim.Type, OpenIdConnectConstants.Claims.Audience, StringComparison.Ordinal) ||
-                            string.Equals(claim.Type, OpenIdConnectConstants.Claims.ExpiresAt, StringComparison.Ordinal) ||
-                            string.Equals(claim.Type, OpenIdConnectConstants.Claims.IssuedAt, StringComparison.Ordinal) ||
-                            string.Equals(claim.Type, OpenIdConnectConstants.Claims.Issuer, StringComparison.Ordinal) ||
-                            string.Equals(claim.Type, OpenIdConnectConstants.Claims.NotBefore, StringComparison.Ordinal) ||
-                            string.Equals(claim.Type, OpenIdConnectConstants.Claims.Scope, StringComparison.Ordinal) ||
-                            string.Equals(claim.Type, OpenIdConnectConstants.Claims.Subject, StringComparison.Ordinal) ||
-                            string.Equals(claim.Type, OpenIdConnectConstants.Claims.TokenType, StringComparison.Ordinal))
-                        {
-                            continue;
-                        }
-
-                        string type;
-                        // Try to resolve the short name associated with the claim type:
-                        // if none can be found, the claim type is used as-is.
-                        if (!JwtSecurityTokenHandler.OutboundClaimTypeMap.TryGetValue(claim.Type, out type))
-                        {
-                            type = claim.Type;
+                            case ClaimTypes.NameIdentifier:
+                            case ClaimTypes.Upn:
+                            case OpenIdConnectConstants.Claims.Audience:
+                            case OpenIdConnectConstants.Claims.ExpiresAt:
+                            case OpenIdConnectConstants.Claims.IssuedAt:
+                            case OpenIdConnectConstants.Claims.Issuer:
+                            case OpenIdConnectConstants.Claims.NotBefore:
+                            case OpenIdConnectConstants.Claims.Scope:
+                            case OpenIdConnectConstants.Claims.Subject:
+                            case OpenIdConnectConstants.Claims.TokenType:
+                                continue;
                         }
 
                         // If there's no existing claim with the same type,
                         // simply add the claim as-is without converting it.
-                        if (!notification.Claims.ContainsKey(type))
+                        if (!notification.Claims.ContainsKey(claim.Type))
                         {
-                            notification.Claims[type] = claim.Value;
+                            notification.Claims[claim.Type] = claim.Value;
 
                             continue;
                         }
 
                         // When multiple claims with the same name exist, convert the existing entry
                         // to a new JArray to allow returning multiple claim values to the caller.
-                        var array = notification.Claims[type].Value as JArray;
+                        var array = notification.Claims[claim.Type].Value as JArray;
                         if (array == null)
                         {
                             array = new JArray();
 
                             // Copy the existing claim value to the new array.
-                            array.Add(notification.Claims[type]);
+                            array.Add(notification.Claims[claim.Type]);
 
                             // Replace the entry in the claims collection.
-                            notification.Claims[type] = array;
+                            notification.Claims[claim.Type] = array;
                         }
 
                         // Add the new item in the JArray.
@@ -474,7 +461,7 @@ namespace Owin.Security.OpenIdConnect.Server
                 response[OpenIdConnectConstants.Claims.Issuer] = notification.Issuer;
                 response[OpenIdConnectConstants.Claims.Username] = notification.Username;
                 response[OpenIdConnectConstants.Claims.Subject] = notification.Subject;
-                response[OpenIdConnectConstants.Claims.Scope] = notification.Scope;
+                response[OpenIdConnectConstants.Claims.Scope] = string.Join(" ", notification.Scopes);
                 response[OpenIdConnectConstants.Claims.JwtId] = notification.TokenId;
                 response[OpenIdConnectConstants.Claims.TokenType] = notification.TokenType;
 
