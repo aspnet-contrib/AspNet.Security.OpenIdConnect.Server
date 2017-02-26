@@ -286,6 +286,111 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
+        public async Task InvokeConfigurationEndpointAsync_NoClientAuthenticationMethodIsIncludedWhenTokenEndpointIsDisabled()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.TokenEndpointPath = PathString.Empty;
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.GetAsync(ConfigurationEndpoint);
+
+            // Assert
+            Assert.False(response.HasParameter(OpenIdConnectConstants.Metadata.TokenEndpointAuthMethodsSupported));
+        }
+
+        [Fact]
+        public async Task InvokeConfigurationEndpointAsync_DefaultClientAuthenticationMethodsAreIncludedWhenTokenEndpointIsEnabled()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer();
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.GetAsync(ConfigurationEndpoint);
+            var methods = (string[]) response[OpenIdConnectConstants.Metadata.TokenEndpointAuthMethodsSupported];
+
+            // Assert
+            Assert.Contains(OpenIdConnectConstants.ClientAuthenticationMethods.ClientSecretBasic, methods);
+            Assert.Contains(OpenIdConnectConstants.ClientAuthenticationMethods.ClientSecretPost, methods);
+        }
+
+        [Fact]
+        public async Task InvokeConfigurationEndpointAsync_NoClientAuthenticationMethodIsIncludedWhenIntrospectionEndpointIsDisabled()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.IntrospectionEndpointPath = PathString.Empty;
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.GetAsync(ConfigurationEndpoint);
+
+            // Assert
+            Assert.False(response.HasParameter(OpenIdConnectConstants.Metadata.IntrospectionEndpointAuthMethodsSupported));
+        }
+
+        [Fact]
+        public async Task InvokeConfigurationEndpointAsync_DefaultClientAuthenticationMethodsAreIncludedWhenIntrospectionEndpointIsEnabled()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer();
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.GetAsync(ConfigurationEndpoint);
+            var methods = (string[]) response[OpenIdConnectConstants.Metadata.IntrospectionEndpointAuthMethodsSupported];
+
+            // Assert
+            Assert.Contains(OpenIdConnectConstants.ClientAuthenticationMethods.ClientSecretBasic, methods);
+            Assert.Contains(OpenIdConnectConstants.ClientAuthenticationMethods.ClientSecretPost, methods);
+        }
+
+        [Fact]
+        public async Task InvokeConfigurationEndpointAsync_NoClientAuthenticationMethodIsIncludedWhenRevocationEndpointIsDisabled()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.RevocationEndpointPath = PathString.Empty;
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.GetAsync(ConfigurationEndpoint);
+
+            // Assert
+            Assert.False(response.HasParameter(OpenIdConnectConstants.Metadata.RevocationEndpointAuthMethodsSupported));
+        }
+
+        [Fact]
+        public async Task InvokeConfigurationEndpointAsync_DefaultClientAuthenticationMethodsAreIncludedWhenRevocationEndpointIsEnabled()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer();
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.GetAsync(ConfigurationEndpoint);
+            var methods = (string[]) response[OpenIdConnectConstants.Metadata.RevocationEndpointAuthMethodsSupported];
+
+            // Assert
+            Assert.Contains(OpenIdConnectConstants.ClientAuthenticationMethods.ClientSecretBasic, methods);
+            Assert.Contains(OpenIdConnectConstants.ClientAuthenticationMethods.ClientSecretPost, methods);
+        }
+
+        [Fact]
         public async Task InvokeConfigurationEndpointAsync_GrantTypesIncludeCodeWhenAuthorizationEndpointIsEnabled()
         {
             // Arrange
@@ -333,6 +438,59 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
             Assert.Contains(OpenIdConnectConstants.GrantTypes.ClientCredentials, types);
             Assert.Contains(OpenIdConnectConstants.GrantTypes.Password, types);
             Assert.Contains(OpenIdConnectConstants.GrantTypes.RefreshToken, types);
+        }
+
+        [Fact]
+        public async Task InvokeConfigurationEndpointAsync_NoCodeChallengeMethodIsIncludedWhenAuthorizationEndpointIsDisabled()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.AuthorizationEndpointPath = PathString.Empty;
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.GetAsync(ConfigurationEndpoint);
+
+            // Assert
+            Assert.False(response.HasParameter(OpenIdConnectConstants.Metadata.CodeChallengeMethodsSupported));
+        }
+
+        [Fact]
+        public async Task InvokeConfigurationEndpointAsync_NoCodeChallengeMethodIsIncludedWhenTokenEndpointIsDisabled()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.TokenEndpointPath = PathString.Empty;
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.GetAsync(ConfigurationEndpoint);
+
+            // Assert
+            Assert.False(response.HasParameter(OpenIdConnectConstants.Metadata.CodeChallengeMethodsSupported));
+        }
+
+        [Fact]
+        public async Task InvokeConfigurationEndpointAsync_DefaultCodeChallengeMethodsAreCorrectlyReturned()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer();
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.GetAsync(ConfigurationEndpoint);
+            var methods = (string[]) response[OpenIdConnectConstants.Metadata.CodeChallengeMethodsSupported];
+
+            // Assert
+            Assert.Contains(OpenIdConnectConstants.CodeChallengeMethods.Plain, methods);
+            Assert.Contains(OpenIdConnectConstants.CodeChallengeMethods.Sha256, methods);
         }
 
         [Fact]
@@ -533,23 +691,6 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(1, algorithms.Count());
-        }
-
-        [Fact]
-        public async Task InvokeConfigurationEndpointAsync_DefaultCodeChallengeMethodsAreCorrectlyReturned()
-        {
-            // Arrange
-            var server = CreateAuthorizationServer();
-
-            var client = new OpenIdConnectClient(server.HttpClient);
-
-            // Act
-            var response = await client.GetAsync(ConfigurationEndpoint);
-            var methods = (string[]) response[OpenIdConnectConstants.Metadata.CodeChallengeMethodsSupported];
-
-            // Assert
-            Assert.Contains(OpenIdConnectConstants.CodeChallengeMethods.Plain, methods);
-            Assert.Contains(OpenIdConnectConstants.CodeChallengeMethods.Sha256, methods);
         }
 
         [Theory]

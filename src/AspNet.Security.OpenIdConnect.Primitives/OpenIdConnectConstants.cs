@@ -77,6 +77,12 @@ namespace AspNet.Security.OpenIdConnect.Primitives
             public const string JsonArray = "JSON_ARRAY";
         }
 
+        public static class ClientAuthenticationMethods
+        {
+            public const string ClientSecretBasic = "client_secret_basic";
+            public const string ClientSecretPost = "client_secret_post";
+        }
+
         public static class CodeChallengeMethods
         {
             public const string Plain = "plain";
@@ -151,6 +157,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives
             public const string IdTokenEncryptionEncValuesSupported = "id_token_encryption_enc_values_supported";
             public const string IdTokenSigningAlgValuesSupported = "id_token_signing_alg_values_supported";
             public const string IntrospectionEndpoint = "introspection_endpoint";
+            public const string IntrospectionEndpointAuthMethodsSupported = "introspection_endpoint_auth_methods_supported";
+            public const string IntrospectionEndpointAuthSigningAlgValuesSupported = "introspection_endpoint_auth_signing_alg_values_supported";
             public const string Issuer = "issuer";
             public const string JwksUri = "jwks_uri";
             public const string OpPolicyUri = "op_policy_uri";
@@ -164,6 +172,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives
             public const string ResponseModesSupported = "response_modes_supported";
             public const string ResponseTypesSupported = "response_types_supported";
             public const string RevocationEndpoint = "revocation_endpoint";
+            public const string RevocationEndpointAuthMethodsSupported = "revocation_endpoint_auth_methods_supported";
+            public const string RevocationEndpointAuthSigningAlgValuesSupported = "revocation_endpoint_auth_signing_alg_values_supported";
             public const string ScopesSupported = "scopes_supported";
             public const string ServiceDocumentation = "service_documentation";
             public const string SubjectTypesSupported = "subject_types_supported";

@@ -90,6 +90,20 @@ namespace Owin.Security.OpenIdConnect.Server
             new HashSet<string>(StringComparer.Ordinal);
 
         /// <summary>
+        /// Gets a list of the signing algorithms supported by the
+        /// authorization server for signing the identity tokens.
+        /// </summary>
+        public ISet<string> IdTokenSigningAlgorithms { get; } =
+            new HashSet<string>(StringComparer.Ordinal);
+
+        /// <summary>
+        /// Gets a list of the client authentication methods supported by
+        /// the introspection endpoint provided by the authorization server.
+        /// </summary>
+        public ISet<string> IntrospectionEndpointAuthenticationMethods { get; } =
+            new HashSet<string>(StringComparer.Ordinal);
+
+        /// <summary>
         /// Gets a HashSet of the response modes
         /// supported by the authorization server.
         /// </summary>
@@ -104,6 +118,13 @@ namespace Owin.Security.OpenIdConnect.Server
             new HashSet<string>(StringComparer.Ordinal);
 
         /// <summary>
+        /// Gets a list of the client authentication methods supported by
+        /// the revocation endpoint provided by the authorization server.
+        /// </summary>
+        public ISet<string> RevocationEndpointAuthenticationMethods { get; } =
+            new HashSet<string>(StringComparer.Ordinal);
+
+        /// <summary>
         /// Gets a HashSet of the scope values
         /// supported by the authorization server.
         /// </summary>
@@ -111,17 +132,17 @@ namespace Owin.Security.OpenIdConnect.Server
             new HashSet<string>(StringComparer.Ordinal);
 
         /// <summary>
-        /// Gets a HashSet of the signing algorithms
-        /// supported by the authorization server.
-        /// </summary>
-        public ISet<string> SigningAlgorithms { get; } =
-            new HashSet<string>(StringComparer.Ordinal);
-
-        /// <summary>
         /// Gets a HashSet of the subject types
         /// supported by the authorization server.
         /// </summary>
         public ISet<string> SubjectTypes { get; } =
+            new HashSet<string>(StringComparer.Ordinal);
+
+        /// <summary>
+        /// Gets a list of the client authentication methods supported by
+        /// the token endpoint provided by the authorization server.
+        /// </summary>
+        public ISet<string> TokenEndpointAuthenticationMethods { get; } =
             new HashSet<string>(StringComparer.Ordinal);
     }
 }

@@ -129,6 +129,11 @@ namespace AspNet.Security.OpenIdConnect.Server
             if (Options.IntrospectionEndpointPath.HasValue)
             {
                 notification.IntrospectionEndpoint = notification.Issuer.AddPath(Options.IntrospectionEndpointPath);
+
+                notification.IntrospectionEndpointAuthenticationMethods.Add(
+                    OpenIdConnectConstants.ClientAuthenticationMethods.ClientSecretBasic);
+                notification.IntrospectionEndpointAuthenticationMethods.Add(
+                    OpenIdConnectConstants.ClientAuthenticationMethods.ClientSecretPost);
             }
 
             if (Options.LogoutEndpointPath.HasValue)
@@ -139,11 +144,21 @@ namespace AspNet.Security.OpenIdConnect.Server
             if (Options.RevocationEndpointPath.HasValue)
             {
                 notification.RevocationEndpoint = notification.Issuer.AddPath(Options.RevocationEndpointPath);
+
+                notification.RevocationEndpointAuthenticationMethods.Add(
+                    OpenIdConnectConstants.ClientAuthenticationMethods.ClientSecretBasic);
+                notification.RevocationEndpointAuthenticationMethods.Add(
+                    OpenIdConnectConstants.ClientAuthenticationMethods.ClientSecretPost);
             }
 
             if (Options.TokenEndpointPath.HasValue)
             {
                 notification.TokenEndpoint = notification.Issuer.AddPath(Options.TokenEndpointPath);
+
+                notification.TokenEndpointAuthenticationMethods.Add(
+                    OpenIdConnectConstants.ClientAuthenticationMethods.ClientSecretBasic);
+                notification.TokenEndpointAuthenticationMethods.Add(
+                    OpenIdConnectConstants.ClientAuthenticationMethods.ClientSecretPost);
             }
 
             if (Options.UserinfoEndpointPath.HasValue)
@@ -157,9 +172,14 @@ namespace AspNet.Security.OpenIdConnect.Server
 
                 if (Options.TokenEndpointPath.HasValue)
                 {
-                    // Only expose the authorization code and refresh token grant types
+                    // Only expose the code grant type and the code challenge methods
                     // if both the authorization and the token endpoints are enabled.
                     notification.GrantTypes.Add(OpenIdConnectConstants.GrantTypes.AuthorizationCode);
+
+                    // Note: supporting S256 is mandatory for authorization servers that implement PKCE.
+                    // See https://tools.ietf.org/html/rfc7636#section-4.2 for more information.
+                    notification.CodeChallengeMethods.Add(OpenIdConnectConstants.CodeChallengeMethods.Plain);
+                    notification.CodeChallengeMethods.Add(OpenIdConnectConstants.CodeChallengeMethods.Sha256);
                 }
             }
 
@@ -220,11 +240,6 @@ namespace AspNet.Security.OpenIdConnect.Server
 
             notification.SubjectTypes.Add(OpenIdConnectConstants.SubjectTypes.Public);
 
-            // Note: supporting S256 is mandatory for authorization servers that implement PKCE.
-            // See https://tools.ietf.org/html/rfc7636#section-4.2 for more information.
-            notification.CodeChallengeMethods.Add(OpenIdConnectConstants.CodeChallengeMethods.Plain);
-            notification.CodeChallengeMethods.Add(OpenIdConnectConstants.CodeChallengeMethods.Sha256);
-
             foreach (var credentials in Options.SigningCredentials)
             {
                 // If the signing key is not an asymmetric key, ignore it.
@@ -240,7 +255,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                     continue;
                 }
 
-                notification.SigningAlgorithms.Add(algorithm);
+                notification.IdTokenSigningAlgorithms.Add(algorithm);
             }
 
             await Options.Provider.HandleConfigurationRequest(notification);
@@ -287,9 +302,12 @@ namespace AspNet.Security.OpenIdConnect.Server
                 [OpenIdConnectConstants.Metadata.ResponseTypesSupported] = new JArray(notification.ResponseTypes),
                 [OpenIdConnectConstants.Metadata.ResponseModesSupported] = new JArray(notification.ResponseModes),
                 [OpenIdConnectConstants.Metadata.ScopesSupported] = new JArray(notification.Scopes),
-                [OpenIdConnectConstants.Metadata.IdTokenSigningAlgValuesSupported] = new JArray(notification.SigningAlgorithms),
+                [OpenIdConnectConstants.Metadata.IdTokenSigningAlgValuesSupported] = new JArray(notification.IdTokenSigningAlgorithms),
                 [OpenIdConnectConstants.Metadata.CodeChallengeMethodsSupported] = new JArray(notification.CodeChallengeMethods),
-                [OpenIdConnectConstants.Metadata.SubjectTypesSupported] = new JArray(notification.SubjectTypes)
+                [OpenIdConnectConstants.Metadata.SubjectTypesSupported] = new JArray(notification.SubjectTypes),
+                [OpenIdConnectConstants.Metadata.TokenEndpointAuthMethodsSupported] = new JArray(notification.TokenEndpointAuthenticationMethods),
+                [OpenIdConnectConstants.Metadata.IntrospectionEndpointAuthMethodsSupported] = new JArray(notification.IntrospectionEndpointAuthenticationMethods),
+                [OpenIdConnectConstants.Metadata.RevocationEndpointAuthMethodsSupported] = new JArray(notification.RevocationEndpointAuthenticationMethods)
             };
 
             foreach (var metadata in notification.Metadata)
