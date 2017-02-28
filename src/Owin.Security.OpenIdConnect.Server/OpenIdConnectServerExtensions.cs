@@ -99,7 +99,7 @@ namespace Owin
                 throw new ArgumentNullException(nameof(certificate));
             }
 
-            if (certificate.PrivateKey == null)
+            if (!certificate.HasPrivateKey)
             {
                 throw new InvalidOperationException("The certificate doesn't contain the required private key.");
             }
@@ -370,6 +370,12 @@ namespace Owin
             if (key == null)
             {
                 throw new ArgumentNullException(nameof(key));
+            }
+
+            // If the signing key is an asymmetric security key, ensure it has a private key.
+            if (key is AsymmetricSecurityKey && !((AsymmetricSecurityKey) key).HasPrivateKey())
+            {
+                throw new InvalidOperationException("The asymmetric signing key doesn't contain the required private key.");
             }
 
             if (key.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature))

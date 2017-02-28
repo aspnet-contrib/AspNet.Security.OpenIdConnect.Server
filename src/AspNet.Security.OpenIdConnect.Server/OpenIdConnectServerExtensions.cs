@@ -429,6 +429,12 @@ namespace Microsoft.AspNetCore.Builder
                 throw new ArgumentNullException(nameof(key));
             }
 
+            // If the signing key is an asymmetric security key, ensure it has a private key.
+            if (key is AsymmetricSecurityKey && !((AsymmetricSecurityKey) key).HasPrivateKey)
+            {
+                throw new InvalidOperationException("The asymmetric signing key doesn't contain the required private key.");
+            }
+
             // When no key identifier can be retrieved from the security key, a value is automatically
             // inferred from the hexadecimal representation of the certificate thumbprint (SHA-1)
             // when the key is bound to a X.509 certificate or from the public part of the signing key.
@@ -453,19 +459,22 @@ namespace Microsoft.AspNetCore.Builder
 
 #if SUPPORTS_ECDSA
             // Note: ECDSA algorithms are bound to specific curves and must be treated separately.
-            else if (key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha256Signature)) {
+            else if (key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha256Signature))
+            {
                 credentials.Add(new SigningCredentials(key, SecurityAlgorithms.EcdsaSha256Signature));
 
                 return credentials;
             }
 
-            else if (key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha384Signature)) {
+            else if (key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha384Signature))
+            {
                 credentials.Add(new SigningCredentials(key, SecurityAlgorithms.EcdsaSha384Signature));
 
                 return credentials;
             }
 
-            else if (key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha512Signature)) {
+            else if (key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha512Signature))
+            {
                 credentials.Add(new SigningCredentials(key, SecurityAlgorithms.EcdsaSha512Signature));
 
                 return credentials;
