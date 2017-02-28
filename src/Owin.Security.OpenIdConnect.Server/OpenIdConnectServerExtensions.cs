@@ -176,8 +176,7 @@ namespace Owin
         public static IList<SigningCredentials> AddCertificate(
             [NotNull] this IList<SigningCredentials> credentials, [NotNull] Stream stream, [NotNull] string password)
         {
-            return credentials.AddCertificate(stream, password, X509KeyStorageFlags.Exportable |
-                                                                X509KeyStorageFlags.MachineKeySet);
+            return credentials.AddCertificate(stream, password, X509KeyStorageFlags.MachineKeySet);
         }
 
         /// <summary>
