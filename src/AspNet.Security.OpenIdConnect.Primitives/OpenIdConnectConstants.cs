@@ -60,6 +60,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives
             public const string PreferredUsername = "preferred_username";
             public const string Profile = "profile";
             public const string Region = "region";
+            public const string Role = "role";
             public const string Scope = "scope";
             public const string StreetAddress = "street_address";
             public const string Subject = "sub";
