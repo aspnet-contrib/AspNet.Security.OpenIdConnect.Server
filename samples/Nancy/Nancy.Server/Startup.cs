@@ -141,6 +141,9 @@ namespace Nancy.Server
                 //     password: "Owin.Security.OpenIdConnect.Server");
 
                 // Note: to override the default access token format and use JWT, assign AccessTokenHandler:
+                //
+                // JwtSecurityTokenHandler.InboundClaimTypeMap.Clear();
+                // JwtSecurityTokenHandler.OutboundClaimTypeMap.Clear();
                 // options.AccessTokenHandler = new JwtSecurityTokenHandler();
 
                 // Register the logging listeners used by the OpenID Connect server middleware.

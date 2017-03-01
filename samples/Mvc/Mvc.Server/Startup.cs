@@ -99,8 +99,13 @@ namespace Mvc.Server
                 options.ApplicationCanDisplayErrors = true;
                 options.AllowInsecureHttp = true;
 
-                // Note: to override the default access token format and use JWT, assign AccessTokenHandler.
-                // options.AccessTokenHandler = new JwtSecurityTokenHandler();
+                // Note: to override the default access token format and use JWT, assign AccessTokenHandler:
+                //
+                // options.AccessTokenHandler = new JwtSecurityTokenHandler
+                // {
+                //     InboundClaimTypeMap = new Dictionary<string, string>(),
+                //     OutboundClaimTypeMap = new Dictionary<string, string>()
+                // };
                 //
                 // Note: when using JWT as the access token format, you have to register a signing key.
                 //

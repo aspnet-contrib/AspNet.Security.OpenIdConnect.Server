@@ -337,6 +337,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             var notification = new HandleIntrospectionRequestContext(Context, Options, request, ticket);
             notification.Active = true;
             notification.Issuer = Context.GetIssuer(Options);
+            notification.Subject = ticket.Principal.GetClaim(OpenIdConnectConstants.Claims.Subject);
 
             // Use the unique ticket identifier to populate the "jti" claim.
             notification.TokenId = ticket.GetTicketId();
@@ -348,11 +349,6 @@ namespace AspNet.Security.OpenIdConnect.Server
             {
                 notification.TokenType = OpenIdConnectConstants.TokenTypes.Bearer;
             }
-
-            // Try to resolve the subject using one of the well-known sub/name identifier/upn claims.
-            notification.Subject = ticket.Principal.GetClaim(OpenIdConnectConstants.Claims.Subject) ??
-                                   ticket.Principal.GetClaim(ClaimTypes.NameIdentifier) ??
-                                   ticket.Principal.GetClaim(ClaimTypes.Upn);
 
             notification.IssuedAt = ticket.Properties.IssuedUtc;
             notification.NotBefore = ticket.Properties.IssuedUtc;
@@ -378,8 +374,6 @@ namespace AspNet.Security.OpenIdConnect.Server
                         // Make sure to always update this list when adding new built-in claim properties.
                         switch (claim.Type)
                         {
-                            case ClaimTypes.NameIdentifier:
-                            case ClaimTypes.Upn:
                             case OpenIdConnectConstants.Claims.Audience:
                             case OpenIdConnectConstants.Claims.ExpiresAt:
                             case OpenIdConnectConstants.Claims.IssuedAt:

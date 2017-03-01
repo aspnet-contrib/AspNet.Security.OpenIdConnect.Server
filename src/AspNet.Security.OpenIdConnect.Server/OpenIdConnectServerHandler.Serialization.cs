@@ -84,10 +84,8 @@ namespace AspNet.Security.OpenIdConnect.Server
             // Actors identities are also filtered (delegation scenarios).
             principal = principal.Clone(claim =>
             {
-                // Never exclude the subject claims.
-                if (string.Equals(claim.Type, OpenIdConnectConstants.Claims.Subject, StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(claim.Type, ClaimTypes.NameIdentifier, StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(claim.Type, ClaimTypes.Upn, StringComparison.OrdinalIgnoreCase))
+                // Never exclude the subject claim.
+                if (string.Equals(claim.Type, OpenIdConnectConstants.Claims.Subject, StringComparison.OrdinalIgnoreCase))
                 {
                     return true;
                 }
@@ -185,31 +183,6 @@ namespace AspNet.Security.OpenIdConnect.Server
                 identity.AddClaim(OpenIdConnectConstants.Claims.Scope, scope);
             }
 
-            // Note: when used as an access token, a JWT token doesn't have to expose a "sub" claim
-            // but the name identifier claim is used as a substitute when it has been explicitly added.
-            // See https://tools.ietf.org/html/rfc7519#section-4.1.2
-            var subject = identity.GetClaim(OpenIdConnectConstants.Claims.Subject);
-            if (string.IsNullOrEmpty(subject))
-            {
-                subject = identity.GetClaim(ClaimTypes.NameIdentifier) ??
-                          identity.GetClaim(ClaimTypes.Upn);
-
-                if (!string.IsNullOrEmpty(subject))
-                {
-                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, subject);
-                }
-            }
-
-            // Remove the ClaimTypes.NameIdentifier claims to avoid getting duplicate claims.
-            // Note: the "sub" claim is automatically mapped by JwtSecurityTokenHandler
-            // to ClaimTypes.NameIdentifier when validating a JWT token.
-            // Note: make sure to call ToArray() to avoid an InvalidOperationException
-            // on old versions of Mono, where FindAll() is implemented using an iterator.
-            foreach (var claim in identity.FindAll(ClaimTypes.NameIdentifier).ToArray())
-            {
-                identity.RemoveClaim(claim);
-            }
-
             // Store the audiences as claims.
             foreach (var audience in notification.Audiences)
             {
@@ -256,10 +229,8 @@ namespace AspNet.Security.OpenIdConnect.Server
             // Actors identities are also filtered (delegation scenarios).
             principal = principal.Clone(claim =>
             {
-                // Never exclude the subject claims.
-                if (string.Equals(claim.Type, OpenIdConnectConstants.Claims.Subject, StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(claim.Type, ClaimTypes.NameIdentifier, StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(claim.Type, ClaimTypes.Upn, StringComparison.OrdinalIgnoreCase))
+                // Never exclude the subject claim.
+                if (string.Equals(claim.Type, OpenIdConnectConstants.Claims.Subject, StringComparison.OrdinalIgnoreCase))
                 {
                     return true;
                 }
@@ -329,9 +300,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             // Extract the main identity from the principal.
             identity = (ClaimsIdentity) ticket.Principal.Identity;
 
-            if (string.IsNullOrEmpty(identity.GetClaim(OpenIdConnectConstants.Claims.Subject)) &&
-                string.IsNullOrEmpty(identity.GetClaim(ClaimTypes.NameIdentifier)) &&
-                string.IsNullOrEmpty(identity.GetClaim(ClaimTypes.Upn)))
+            if (string.IsNullOrEmpty(identity.GetClaim(OpenIdConnectConstants.Claims.Subject)))
             {
                 throw new InvalidOperationException("The authentication ticket was rejected because " +
                                                     "it doesn't contain the mandatory subject claim.");
@@ -344,30 +313,6 @@ namespace AspNet.Security.OpenIdConnect.Server
             if (notification.SigningCredentials == null && request.IsAuthorizationRequest())
             {
                 throw new InvalidOperationException("A signing key must be provided.");
-            }
-
-            // Note: if the "sub" claim was not explicitly added, try to use
-            // one of the other well-known name identifier/upn claims.
-            var subject = identity.GetClaim(OpenIdConnectConstants.Claims.Subject);
-            if (string.IsNullOrEmpty(subject))
-            {
-                subject = identity.GetClaim(ClaimTypes.NameIdentifier) ??
-                          identity.GetClaim(ClaimTypes.Upn);
-
-                if (!string.IsNullOrEmpty(subject))
-                {
-                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, subject);
-                }
-            }
-
-            // Remove the ClaimTypes.NameIdentifier claims to avoid getting duplicate claims.
-            // Note: the "sub" claim is automatically mapped by JwtSecurityTokenHandler
-            // to ClaimTypes.NameIdentifier when validating a JWT token.
-            // Note: make sure to call ToArray() to avoid an InvalidOperationException
-            // on old versions of Mono, where FindAll() is implemented using an iterator.
-            foreach (var claim in identity.FindAll(ClaimTypes.NameIdentifier).ToArray())
-            {
-                identity.RemoveClaim(claim);
             }
 
             // Store the "unique_id" property as a claim.

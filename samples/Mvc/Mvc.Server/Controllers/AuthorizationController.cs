@@ -91,24 +91,21 @@ namespace Mvc.Server.Controllers
 
             // Create a new ClaimsIdentity containing the claims that
             // will be used to create an id_token, a token or a code.
-            var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
+            var identity = new ClaimsIdentity(
+                OpenIdConnectServerDefaults.AuthenticationScheme,
+                OpenIdConnectConstants.Claims.Name,
+                OpenIdConnectConstants.Claims.Role);
 
-            // Copy the claims retrieved from the external identity provider
-            // (e.g Google, Facebook, a WS-Fed provider or another OIDC server).
-            foreach (var claim in HttpContext.User.Claims)
-            {
-                // Allow ClaimTypes.Name to be added in the id_token.
-                // ClaimTypes.NameIdentifier is automatically added, even if its
-                // destination is not defined or doesn't include "id_token".
-                // The other claims won't be visible for the client application.
-                if (claim.Type == ClaimTypes.Name)
-                {
-                    claim.SetDestinations(OpenIdConnectConstants.Destinations.AccessToken,
-                                          OpenIdConnectConstants.Destinations.IdentityToken);
-                }
+            // Note: the "sub" claim is mandatory and an exception is thrown if this claim is missing.
+            identity.AddClaim(
+                new Claim(OpenIdConnectConstants.Claims.Subject, User.FindFirst(ClaimTypes.NameIdentifier).Value)
+                    .SetDestinations(OpenIdConnectConstants.Destinations.AccessToken,
+                                     OpenIdConnectConstants.Destinations.IdentityToken));
 
-                identity.AddClaim(claim);
-            }
+            identity.AddClaim(
+                new Claim(OpenIdConnectConstants.Claims.Name, User.FindFirst(ClaimTypes.Name).Value)
+                    .SetDestinations(OpenIdConnectConstants.Destinations.AccessToken,
+                                     OpenIdConnectConstants.Destinations.IdentityToken));
 
             var application = await GetApplicationAsync(request.ClientId, cancellationToken);
             if (application == null)
@@ -142,8 +139,6 @@ namespace Mvc.Server.Controllers
             ticket.SetResources("resource_server");
 
             // Returning a SignInResult will ask ASOS to serialize the specified identity to build appropriate tokens.
-            // Note: you should always make sure the identities you return contain ClaimTypes.NameIdentifier claim.
-            // In this sample, the identity always contains the name identifier returned by the external provider.
             return SignIn(ticket.Principal, ticket.Properties, ticket.AuthenticationScheme);
         }
 

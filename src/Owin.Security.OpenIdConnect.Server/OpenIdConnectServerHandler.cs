@@ -304,9 +304,7 @@ namespace Owin.Security.OpenIdConnect.Server
                 throw new InvalidOperationException("An OpenID Connect response has already been sent.");
             }
 
-            if (string.IsNullOrEmpty(ticket.Identity.GetClaim(OpenIdConnectConstants.Claims.Subject)) &&
-                string.IsNullOrEmpty(ticket.Identity.GetClaim(ClaimTypes.NameIdentifier)) &&
-                string.IsNullOrEmpty(ticket.Identity.GetClaim(ClaimTypes.Upn)))
+            if (string.IsNullOrEmpty(ticket.Identity.GetClaim(OpenIdConnectConstants.Claims.Subject)))
             {
                 throw new InvalidOperationException("The authentication ticket was rejected because " +
                                                     "it doesn't contain the mandatory subject claim.");

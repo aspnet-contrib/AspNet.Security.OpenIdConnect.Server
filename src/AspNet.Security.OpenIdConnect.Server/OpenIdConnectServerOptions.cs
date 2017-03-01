@@ -144,7 +144,11 @@ namespace AspNet.Security.OpenIdConnect.Server
         /// This property is only used when <see cref="OpenIdConnectServerProvider.SerializeIdentityToken"/>
         /// doesn't call <see cref="BaseControlContext.HandleResponse"/>.
         /// </summary>
-        public JwtSecurityTokenHandler IdentityTokenHandler { get; set; } = new JwtSecurityTokenHandler();
+        public JwtSecurityTokenHandler IdentityTokenHandler { get; set; } = new JwtSecurityTokenHandler
+        {
+            InboundClaimTypeMap = new Dictionary<string, string>(),
+            OutboundClaimTypeMap = new Dictionary<string, string>()
+        };
 
         /// <summary>
         /// The period of time the authorization code remains valid after being issued. The default is 5 minutes.

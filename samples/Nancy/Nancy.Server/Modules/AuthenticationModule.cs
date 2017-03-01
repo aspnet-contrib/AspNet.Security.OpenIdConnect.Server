@@ -55,9 +55,6 @@ namespace Nancy.Server.Modules
 
             Get["/signout"] = Post["/signout"] = parameters =>
             {
-                // Instruct the cookies middleware to delete the local cookie created
-                // when the user agent is redirected from the external identity provider
-                // after a successful authentication flow (e.g Google or Facebook).
                 AuthenticationManager.SignOut("ServerCookie");
 
                 return HttpStatusCode.OK;
