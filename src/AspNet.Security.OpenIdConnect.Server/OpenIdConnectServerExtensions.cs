@@ -505,15 +505,7 @@ namespace Microsoft.AspNetCore.Builder
                 throw new ArgumentNullException(nameof(context));
             }
 
-            var feature = context.Features.Get<OpenIdConnectServerFeature>();
-            if (feature == null)
-            {
-                feature = new OpenIdConnectServerFeature();
-
-                context.Features.Set(feature);
-            }
-
-            return feature.Request;
+            return context.Features.Get<OpenIdConnectServerFeature>()?.Request;
         }
 
         /// <summary>
@@ -529,15 +521,7 @@ namespace Microsoft.AspNetCore.Builder
                 throw new ArgumentNullException(nameof(context));
             }
 
-            var feature = context.Features.Get<OpenIdConnectServerFeature>();
-            if (feature == null)
-            {
-                feature = new OpenIdConnectServerFeature();
-
-                context.Features.Set(feature);
-            }
-
-            return feature.Response;
+            return context.Features.Get<OpenIdConnectServerFeature>()?.Response;
         }
 
         /// <summary>
