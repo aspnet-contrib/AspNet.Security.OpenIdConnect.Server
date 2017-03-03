@@ -348,8 +348,7 @@ namespace Owin
                     return credentials;
                 }
 
-                default:
-                    throw new InvalidOperationException("The specified algorithm is not supported.");
+                default: throw new InvalidOperationException("The specified algorithm is not supported.");
             }
         }
 

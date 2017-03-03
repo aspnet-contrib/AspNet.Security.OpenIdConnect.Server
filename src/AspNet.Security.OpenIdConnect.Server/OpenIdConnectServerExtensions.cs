@@ -405,8 +405,7 @@ namespace Microsoft.AspNetCore.Builder
                     throw new InvalidOperationException("ECDSA signing keys are not supported on this platform.");
 #endif
 
-                default:
-                    throw new InvalidOperationException("The specified algorithm is not supported.");
+                default: throw new InvalidOperationException("The specified algorithm is not supported.");
             }
         }
 

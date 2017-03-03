@@ -1,4 +1,5 @@
 using System;
+using System.IdentityModel.Tokens;
 using System.IO;
 using Microsoft.Extensions.Logging;
 using Microsoft.Owin;
@@ -15,6 +16,9 @@ namespace Nancy.Server
     {
         public void Configuration(IAppBuilder app)
         {
+            JwtSecurityTokenHandler.InboundClaimTypeMap.Clear();
+            JwtSecurityTokenHandler.OutboundClaimTypeMap.Clear();
+
             app.SetDefaultSignInAsAuthenticationType("ServerCookie");
 
             app.UseWhen(context => context.Request.Path.StartsWithSegments(new PathString("/api")), branch =>
@@ -142,8 +146,6 @@ namespace Nancy.Server
 
                 // Note: to override the default access token format and use JWT, assign AccessTokenHandler:
                 //
-                // JwtSecurityTokenHandler.InboundClaimTypeMap.Clear();
-                // JwtSecurityTokenHandler.OutboundClaimTypeMap.Clear();
                 // options.AccessTokenHandler = new JwtSecurityTokenHandler();
 
                 // Register the logging listeners used by the OpenID Connect server middleware.
