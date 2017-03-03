@@ -188,6 +188,9 @@ namespace Owin.Security.OpenIdConnect.Server
             var request = Context.GetOpenIdConnectRequest();
             Context.SetOpenIdConnectResponse(response);
 
+            response.SetProperty(OpenIdConnectConstants.Properties.MessageType,
+                                 OpenIdConnectConstants.MessageTypes.LogoutResponse);
+
             var notification = new ApplyLogoutResponseContext(Context, Options, request, response);
             await Options.Provider.ApplyLogoutResponse(notification);
 

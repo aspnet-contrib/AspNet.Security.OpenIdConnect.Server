@@ -133,13 +133,21 @@ namespace AspNet.Security.OpenIdConnect.Primitives
         public static class MessageTypes
         {
             public const string AuthorizationRequest = "authorization_request";
+            public const string AuthorizationResponse = "authorization_response";
             public const string ConfigurationRequest = "configuration_request";
+            public const string ConfigurationResponse = "configuration_response";
             public const string CryptographyRequest = "cryptography_request";
+            public const string CryptographyResponse = "cryptography_response";
             public const string IntrospectionRequest = "introspection_request";
+            public const string IntrospectionResponse = "introspection_response";
             public const string LogoutRequest = "logout_request";
+            public const string LogoutResponse = "logout_response";
             public const string RevocationRequest = "revocation_request";
+            public const string RevocationResponse = "revocation_response";
             public const string TokenRequest = "token_request";
+            public const string TokenResponse = "token_response";
             public const string UserinfoRequest = "userinfo_request";
+            public const string UserinfoResponse = "userinfo_response";
         }
 
         public static class Metadata

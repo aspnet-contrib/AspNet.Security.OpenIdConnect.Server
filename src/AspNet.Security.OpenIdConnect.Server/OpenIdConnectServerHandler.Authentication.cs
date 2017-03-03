@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Net.Http.Headers;
 
 namespace AspNet.Security.OpenIdConnect.Server
 {
@@ -393,6 +394,9 @@ namespace AspNet.Security.OpenIdConnect.Server
             var request = Context.GetOpenIdConnectRequest();
             Context.SetOpenIdConnectResponse(response);
 
+            response.SetProperty(OpenIdConnectConstants.Properties.MessageType,
+                                 OpenIdConnectConstants.MessageTypes.AuthorizationResponse);
+
             var notification = new ApplyAuthorizationResponseContext(Context, Options, ticket, request, response);
             await Options.Provider.ApplyAuthorizationResponse(notification);
 
@@ -499,6 +503,10 @@ namespace AspNet.Security.OpenIdConnect.Server
                     Response.StatusCode = 200;
                     Response.ContentLength = buffer.Length;
                     Response.ContentType = "text/html;charset=UTF-8";
+
+                    Response.Headers[HeaderNames.CacheControl] = "no-cache";
+                    Response.Headers[HeaderNames.Pragma] = "no-cache";
+                    Response.Headers[HeaderNames.Expires] = "-1";
 
                     buffer.Seek(offset: 0, loc: SeekOrigin.Begin);
                     await buffer.CopyToAsync(Response.Body, 4096, Context.RequestAborted);

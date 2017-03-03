@@ -360,6 +360,9 @@ namespace AspNet.Security.OpenIdConnect.Server
             var request = Context.GetOpenIdConnectRequest();
             Context.SetOpenIdConnectResponse(response);
 
+            response.SetProperty(OpenIdConnectConstants.Properties.MessageType,
+                                 OpenIdConnectConstants.MessageTypes.RevocationResponse);
+
             var notification = new ApplyRevocationResponseContext(Context, Options, request, response);
             await Options.Provider.ApplyRevocationResponse(notification);
 

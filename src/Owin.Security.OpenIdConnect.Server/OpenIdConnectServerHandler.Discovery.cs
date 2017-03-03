@@ -619,6 +619,9 @@ namespace Owin.Security.OpenIdConnect.Server
             var request = Context.GetOpenIdConnectRequest();
             Context.SetOpenIdConnectResponse(response);
 
+            response.SetProperty(OpenIdConnectConstants.Properties.MessageType,
+                                 OpenIdConnectConstants.MessageTypes.ConfigurationResponse);
+
             var notification = new ApplyConfigurationResponseContext(Context, Options, request, response);
             await Options.Provider.ApplyConfigurationResponse(notification);
 
@@ -645,6 +648,9 @@ namespace Owin.Security.OpenIdConnect.Server
         {
             var request = Context.GetOpenIdConnectRequest();
             Context.SetOpenIdConnectResponse(response);
+
+            response.SetProperty(OpenIdConnectConstants.Properties.MessageType,
+                                 OpenIdConnectConstants.MessageTypes.CryptographyResponse);
 
             var notification = new ApplyCryptographyResponseContext(Context, Options, request, response);
             await Options.Provider.ApplyCryptographyResponse(notification);

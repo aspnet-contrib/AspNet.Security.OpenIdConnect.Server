@@ -504,6 +504,9 @@ namespace Owin.Security.OpenIdConnect.Server
             var request = Context.GetOpenIdConnectRequest();
             Context.SetOpenIdConnectResponse(response);
 
+            response.SetProperty(OpenIdConnectConstants.Properties.MessageType,
+                                 OpenIdConnectConstants.MessageTypes.IntrospectionResponse);
+
             var notification = new ApplyIntrospectionResponseContext(Context, Options, request, response);
             await Options.Provider.ApplyIntrospectionResponse(notification);
 

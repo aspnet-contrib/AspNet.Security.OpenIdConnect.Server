@@ -582,9 +582,25 @@ namespace AspNet.Security.OpenIdConnect.Server
                 Response.ContentLength = buffer.Length;
                 Response.ContentType = "application/json;charset=UTF-8";
 
-                Response.Headers[HeaderNames.CacheControl] = "no-cache";
-                Response.Headers[HeaderNames.Pragma] = "no-cache";
-                Response.Headers[HeaderNames.Expires] = "-1";
+                switch (response.GetProperty<string>(OpenIdConnectConstants.Properties.MessageType))
+                {
+                    // Discovery, userinfo and introspection responses can be cached by the client
+                    // or the intermediate proxies. To allow the developer to set up his own response
+                    // caching policy, don't override the Cache-Control, Pragma and Expires headers.
+                    case OpenIdConnectConstants.MessageTypes.ConfigurationResponse:
+                    case OpenIdConnectConstants.MessageTypes.CryptographyResponse:
+                    case OpenIdConnectConstants.MessageTypes.IntrospectionResponse:
+                    case OpenIdConnectConstants.MessageTypes.UserinfoResponse:
+                        break;
+
+                    // Prevent the other responses from being cached.
+                    default:
+                        Response.Headers[HeaderNames.CacheControl] = "no-cache";
+                        Response.Headers[HeaderNames.Pragma] = "no-cache";
+                        Response.Headers[HeaderNames.Expires] = "-1";
+
+                        break;
+                }
 
                 buffer.Seek(offset: 0, loc: SeekOrigin.Begin);
                 await buffer.CopyToAsync(Response.Body, 4096, Context.RequestAborted);

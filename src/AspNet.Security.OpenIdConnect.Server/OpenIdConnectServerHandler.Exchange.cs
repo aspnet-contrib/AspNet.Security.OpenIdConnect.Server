@@ -582,6 +582,9 @@ namespace AspNet.Security.OpenIdConnect.Server
             var request = Context.GetOpenIdConnectRequest();
             Context.SetOpenIdConnectResponse(response);
 
+            response.SetProperty(OpenIdConnectConstants.Properties.MessageType,
+                                 OpenIdConnectConstants.MessageTypes.TokenResponse);
+
             var notification = new ApplyTokenResponseContext(Context, Options, ticket, request, response);
             await Options.Provider.ApplyTokenResponse(notification);
 
