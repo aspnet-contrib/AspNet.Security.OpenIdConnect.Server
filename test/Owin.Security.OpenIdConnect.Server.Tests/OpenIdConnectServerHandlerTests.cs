@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens;
 using System.Reflection;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -2392,6 +2393,9 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
         private static TestServer CreateAuthorizationServer(Action<OpenIdConnectServerOptions> configuration = null)
         {
+            JwtSecurityTokenHandler.InboundClaimTypeMap.Clear();
+            JwtSecurityTokenHandler.OutboundClaimTypeMap.Clear();
+
             return TestServer.Create(app =>
             {
                 app.UseCookieAuthentication(new CookieAuthenticationOptions
