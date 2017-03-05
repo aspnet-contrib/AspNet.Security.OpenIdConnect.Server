@@ -512,6 +512,8 @@ namespace AspNet.Security.OpenIdConnect.Server
             notification.TokenValidationParameters = new TokenValidationParameters
             {
                 IssuerSigningKeys = Options.SigningCredentials.Select(credentials => credentials.Key),
+                NameClaimType = OpenIdConnectConstants.Claims.Name,
+                RoleClaimType = OpenIdConnectConstants.Claims.Role,
                 ValidIssuer = Context.GetIssuer(Options),
                 ValidateAudience = false,
                 ValidateLifetime = false
@@ -630,6 +632,8 @@ namespace AspNet.Security.OpenIdConnect.Server
             notification.TokenValidationParameters = new TokenValidationParameters
             {
                 IssuerSigningKeys = Options.SigningCredentials.Select(credentials => credentials.Key),
+                NameClaimType = OpenIdConnectConstants.Claims.Name,
+                RoleClaimType = OpenIdConnectConstants.Claims.Role,
                 ValidIssuer = Context.GetIssuer(Options),
                 ValidateAudience = false,
                 ValidateLifetime = false
