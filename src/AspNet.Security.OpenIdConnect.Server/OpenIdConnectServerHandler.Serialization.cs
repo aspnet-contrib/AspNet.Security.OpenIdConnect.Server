@@ -39,6 +39,15 @@ namespace AspNet.Security.OpenIdConnect.Server
             // Associate a random identifier with the authorization code.
             ticket.SetTicketId(Guid.NewGuid().ToString());
 
+            // Store the code_challenge, code_challenge_method, nonce and redirect_uri parameters for later comparison.
+            ticket.SetProperty(OpenIdConnectConstants.Properties.CodeChallenge, request.CodeChallenge)
+                  .SetProperty(OpenIdConnectConstants.Properties.CodeChallengeMethod, request.CodeChallengeMethod)
+                  .SetProperty(OpenIdConnectConstants.Properties.Nonce, request.Nonce)
+                  .SetProperty(OpenIdConnectConstants.Properties.RedirectUri, request.RedirectUri);
+
+            // Remove the unwanted properties from the authentication ticket.
+            ticket.RemoveProperty(OpenIdConnectConstants.Properties.AuthorizationCodeLifetime);
+
             // By default, add the client_id to the list of the
             // presenters allowed to use the authorization code.
             if (!string.IsNullOrEmpty(request.ClientId))
@@ -102,6 +111,12 @@ namespace AspNet.Security.OpenIdConnect.Server
                 return true;
             });
 
+            // Remove the destinations from the claim properties.
+            foreach (var claim in principal.Claims)
+            {
+                claim.Properties.Remove(OpenIdConnectConstants.Properties.Destinations);
+            }
+
             var identity = (ClaimsIdentity) principal.Identity;
 
             // Create a new ticket containing the updated properties and the filtered principal.
@@ -115,6 +130,16 @@ namespace AspNet.Security.OpenIdConnect.Server
 
             // Associate a random identifier with the access token.
             ticket.SetTicketId(Guid.NewGuid().ToString());
+
+            // Remove the unwanted properties from the authentication ticket.
+            ticket.RemoveProperty(OpenIdConnectConstants.Properties.AccessTokenLifetime)
+                  .RemoveProperty(OpenIdConnectConstants.Properties.AuthorizationCodeLifetime)
+                  .RemoveProperty(OpenIdConnectConstants.Properties.CodeChallenge)
+                  .RemoveProperty(OpenIdConnectConstants.Properties.CodeChallengeMethod)
+                  .RemoveProperty(OpenIdConnectConstants.Properties.IdentityTokenLifetime)
+                  .RemoveProperty(OpenIdConnectConstants.Properties.Nonce)
+                  .RemoveProperty(OpenIdConnectConstants.Properties.RedirectUri)
+                  .RemoveProperty(OpenIdConnectConstants.Properties.RefreshTokenLifetime);
 
             // By default, add the client_id to the list of the
             // presenters allowed to use the access token.
@@ -247,6 +272,12 @@ namespace AspNet.Security.OpenIdConnect.Server
                 return true;
             });
 
+            // Remove the destinations from the claim properties.
+            foreach (var claim in principal.Claims)
+            {
+                claim.Properties.Remove(OpenIdConnectConstants.Properties.Destinations);
+            }
+
             var identity = (ClaimsIdentity) principal.Identity;
 
             // Create a new ticket containing the updated properties and the filtered principal.
@@ -259,6 +290,15 @@ namespace AspNet.Security.OpenIdConnect.Server
 
             // Associate a random identifier with the identity token.
             ticket.SetTicketId(Guid.NewGuid().ToString());
+
+            // Remove the unwanted properties from the authentication ticket.
+            ticket.RemoveProperty(OpenIdConnectConstants.Properties.AccessTokenLifetime)
+                  .RemoveProperty(OpenIdConnectConstants.Properties.AuthorizationCodeLifetime)
+                  .RemoveProperty(OpenIdConnectConstants.Properties.CodeChallenge)
+                  .RemoveProperty(OpenIdConnectConstants.Properties.CodeChallengeMethod)
+                  .RemoveProperty(OpenIdConnectConstants.Properties.IdentityTokenLifetime)
+                  .RemoveProperty(OpenIdConnectConstants.Properties.RedirectUri)
+                  .RemoveProperty(OpenIdConnectConstants.Properties.RefreshTokenLifetime);
 
             // By default, add the client_id to the list of the
             // presenters allowed to use the identity token.
@@ -427,6 +467,13 @@ namespace AspNet.Security.OpenIdConnect.Server
 
             // Associate a random identifier with the refresh token.
             ticket.SetTicketId(Guid.NewGuid().ToString());
+
+            // Remove the unwanted properties from the authentication ticket.
+            ticket.RemoveProperty(OpenIdConnectConstants.Properties.AuthorizationCodeLifetime)
+                  .RemoveProperty(OpenIdConnectConstants.Properties.CodeChallenge)
+                  .RemoveProperty(OpenIdConnectConstants.Properties.CodeChallengeMethod)
+                  .RemoveProperty(OpenIdConnectConstants.Properties.Nonce)
+                  .RemoveProperty(OpenIdConnectConstants.Properties.RedirectUri);
 
             // By default, add the client_id to the list of the
             // presenters allowed to use the refresh token.

@@ -286,12 +286,6 @@ namespace AspNet.Security.OpenIdConnect.Server
             {
                 response.RedirectUri = request.RedirectUri;
                 response.State = request.State;
-
-                // Keep the code_challenge, code_challenge_method, nonce and redirect_uri parameters for later comparison.
-                ticket.SetProperty(OpenIdConnectConstants.Properties.CodeChallenge, request.CodeChallenge)
-                      .SetProperty(OpenIdConnectConstants.Properties.CodeChallengeMethod, request.CodeChallengeMethod)
-                      .SetProperty(OpenIdConnectConstants.Properties.Nonce, request.Nonce)
-                      .SetProperty(OpenIdConnectConstants.Properties.RedirectUri, request.RedirectUri);
             }
 
             // Copy the confidentiality level associated with the request to the authentication ticket.
