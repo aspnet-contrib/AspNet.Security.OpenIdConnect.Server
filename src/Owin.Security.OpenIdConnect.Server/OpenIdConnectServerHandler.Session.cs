@@ -33,8 +33,8 @@ namespace Owin.Security.OpenIdConnect.Server
                 // See http://openid.net/specs/openid-connect-core-1_0.html#FormSerialization
                 if (string.IsNullOrEmpty(Request.ContentType))
                 {
-                    Options.Logger.LogError("The logout request was rejected because " +
-                                            "the mandatory 'Content-Type' header was missing.");
+                    Logger.LogError("The logout request was rejected because " +
+                                    "the mandatory 'Content-Type' header was missing.");
 
                     return await SendLogoutResponseAsync(new OpenIdConnectResponse
                     {
@@ -47,8 +47,8 @@ namespace Owin.Security.OpenIdConnect.Server
                 // May have media/type; charset=utf-8, allow partial match.
                 if (!Request.ContentType.StartsWith("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase))
                 {
-                    Options.Logger.LogError("The logout request was rejected because an invalid 'Content-Type' " +
-                                            "header was received: {ContentType}.", Request.ContentType);
+                    Logger.LogError("The logout request was rejected because an invalid 'Content-Type' " +
+                                    "header was received: {ContentType}.", Request.ContentType);
 
                     return await SendLogoutResponseAsync(new OpenIdConnectResponse
                     {
@@ -64,8 +64,8 @@ namespace Owin.Security.OpenIdConnect.Server
 
             else
             {
-                Options.Logger.LogError("The logout request was rejected because an invalid " +
-                                        "HTTP method was received: {Method}.", Request.Method);
+                Logger.LogError("The logout request was rejected because an invalid " +
+                                "HTTP method was received: {Method}.", Request.Method);
 
                 return await SendLogoutResponseAsync(new OpenIdConnectResponse
                 {
@@ -87,23 +87,23 @@ namespace Owin.Security.OpenIdConnect.Server
 
             if (@event.HandledResponse)
             {
-                Options.Logger.LogDebug("The logout request was handled in user code.");
+                Logger.LogDebug("The logout request was handled in user code.");
 
                 return true;
             }
 
             else if (@event.Skipped)
             {
-                Options.Logger.LogDebug("The default logout request handling was skipped from user code.");
+                Logger.LogDebug("The default logout request handling was skipped from user code.");
 
                 return false;
             }
 
             else if (@event.IsRejected)
             {
-                Options.Logger.LogError("The logout request was rejected with the following error: {Error} ; {Description}",
-                                        /* Error: */ @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
-                                        /* Description: */ @event.ErrorDescription);
+                Logger.LogError("The logout request was rejected with the following error: {Error} ; {Description}",
+                                /* Error: */ @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                                /* Description: */ @event.ErrorDescription);
 
                 return await SendLogoutResponseAsync(new OpenIdConnectResponse
                 {
@@ -113,31 +113,31 @@ namespace Owin.Security.OpenIdConnect.Server
                 });
             }
 
-            Options.Logger.LogInformation("The logout request was successfully extracted " +
-                                          "from the HTTP request: {Request}", request);
+            Logger.LogInformation("The logout request was successfully extracted " +
+                                  "from the HTTP request: {Request}", request);
 
             var context = new ValidateLogoutRequestContext(Context, Options, request);
             await Options.Provider.ValidateLogoutRequest(context);
 
             if (context.HandledResponse)
             {
-                Options.Logger.LogDebug("The logout request was handled in user code.");
+                Logger.LogDebug("The logout request was handled in user code.");
 
                 return true;
             }
 
             else if (context.Skipped)
             {
-                Options.Logger.LogDebug("The default logout request handling was skipped from user code.");
+                Logger.LogDebug("The default logout request handling was skipped from user code.");
 
                 return false;
             }
 
             else if (context.IsRejected)
             {
-                Options.Logger.LogError("The logout request was rejected with the following error: {Error} ; {Description}",
-                                        /* Error: */ context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
-                                        /* Description: */ context.ErrorDescription);
+                Logger.LogError("The logout request was rejected with the following error: {Error} ; {Description}",
+                                /* Error: */ context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                                /* Description: */ context.ErrorDescription);
 
                 return await SendLogoutResponseAsync(new OpenIdConnectResponse
                 {
@@ -147,30 +147,30 @@ namespace Owin.Security.OpenIdConnect.Server
                 });
             }
 
-            Options.Logger.LogInformation("The logout request was successfully validated.");
+            Logger.LogInformation("The logout request was successfully validated.");
 
             var notification = new HandleLogoutRequestContext(Context, Options, request);
             await Options.Provider.HandleLogoutRequest(notification);
 
             if (notification.HandledResponse)
             {
-                Options.Logger.LogDebug("The logout request was handled in user code.");
+                Logger.LogDebug("The logout request was handled in user code.");
 
                 return true;
             }
 
             else if (notification.Skipped)
             {
-                Options.Logger.LogDebug("The default logout request handling was skipped from user code.");
+                Logger.LogDebug("The default logout request handling was skipped from user code.");
 
                 return false;
             }
 
             else if (notification.IsRejected)
             {
-                Options.Logger.LogError("The logout request was rejected with the following error: {Error} ; {Description}",
-                                        /* Error: */ notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
-                                        /* Description: */ notification.ErrorDescription);
+                Logger.LogError("The logout request was rejected with the following error: {Error} ; {Description}",
+                                /* Error: */ notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                                /* Description: */ notification.ErrorDescription);
 
                 return await SendLogoutResponseAsync(new OpenIdConnectResponse
                 {
@@ -196,14 +196,14 @@ namespace Owin.Security.OpenIdConnect.Server
 
             if (notification.HandledResponse)
             {
-                Options.Logger.LogDebug("The logout request was handled in user code.");
+                Logger.LogDebug("The logout request was handled in user code.");
 
                 return true;
             }
 
             else if (notification.Skipped)
             {
-                Options.Logger.LogDebug("The default logout request handling was skipped from user code.");
+                Logger.LogDebug("The default logout request handling was skipped from user code.");
 
                 return false;
             }
@@ -220,13 +220,13 @@ namespace Owin.Security.OpenIdConnect.Server
                     return false;
                 }
 
-                Options.Logger.LogInformation("The logout response was successfully returned " +
-                                              "as a plain-text document: {Response}", response);
+                Logger.LogInformation("The logout response was successfully returned " +
+                                      "as a plain-text document: {Response}", response);
 
                 return await SendNativePageAsync(response);
             }
 
-            Options.Logger.LogInformation("The logout response was successfully returned: {Response}", response);
+            Logger.LogInformation("The logout response was successfully returned: {Response}", response);
 
             // Don't redirect the user agent if no explicit post_logout_redirect_uri was
             // provided or if the URI was not fully validated by the application code.

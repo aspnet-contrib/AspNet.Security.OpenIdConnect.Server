@@ -77,14 +77,14 @@ namespace Owin.Security.OpenIdConnect.Server
 
             if (notification.HandledResponse)
             {
-                Options.Logger.LogDebug("The request was handled in user code.");
+                Logger.LogDebug("The request was handled in user code.");
 
                 return true;
             }
 
             else if (notification.Skipped)
             {
-                Options.Logger.LogDebug("The default request handling was skipped from user code.");
+                Logger.LogDebug("The default request handling was skipped from user code.");
 
                 return false;
             }
@@ -95,9 +95,9 @@ namespace Owin.Security.OpenIdConnect.Server
                 // Return the native error page for endpoints involving the user participation.
                 if (notification.IsAuthorizationEndpoint || notification.IsLogoutEndpoint)
                 {
-                    Options.Logger.LogWarning("The current request was rejected because the OpenID Connect server middleware " +
-                                              "has been configured to reject HTTP requests. To permanently disable the transport " +
-                                              "security requirement, set 'OpenIdConnectServerOptions.AllowInsecureHttp' to 'true'.");
+                    Logger.LogWarning("The current request was rejected because the OpenID Connect server middleware " +
+                                      "has been configured to reject HTTP requests. To permanently disable the transport " +
+                                      "security requirement, set 'OpenIdConnectServerOptions.AllowInsecureHttp' to 'true'.");
 
                     return await SendNativePageAsync(new OpenIdConnectResponse
                     {
@@ -111,9 +111,9 @@ namespace Owin.Security.OpenIdConnect.Server
                          notification.IsIntrospectionEndpoint || notification.IsRevocationEndpoint ||
                          notification.IsTokenEndpoint || notification.IsUserinfoEndpoint)
                 {
-                    Options.Logger.LogWarning("The current request was rejected because the OpenID Connect server middleware " +
-                                              "has been configured to reject HTTP requests. To permanently disable the transport " +
-                                              "security requirement, set 'OpenIdConnectServerOptions.AllowInsecureHttp' to 'true'.");
+                    Logger.LogWarning("The current request was rejected because the OpenID Connect server middleware " +
+                                      "has been configured to reject HTTP requests. To permanently disable the transport " +
+                                      "security requirement, set 'OpenIdConnectServerOptions.AllowInsecureHttp' to 'true'.");
 
                     return await SendPayloadAsync(new OpenIdConnectResponse
                     {
@@ -222,8 +222,8 @@ namespace Owin.Security.OpenIdConnect.Server
                 var ticket = await DeserializeIdentityTokenAsync(request.IdTokenHint, request);
                 if (ticket == null)
                 {
-                    Options.Logger.LogWarning("The identity token extracted from the id_token_hint " +
-                                              "parameter was invalid and has been ignored.");
+                    Logger.LogWarning("The identity token extracted from the id_token_hint " +
+                                      "parameter was invalid and has been ignored.");
 
                     return null;
                 }
@@ -247,8 +247,8 @@ namespace Owin.Security.OpenIdConnect.Server
                     var ticket = await DeserializeAuthorizationCodeAsync(request.Code, request);
                     if (ticket == null)
                     {
-                        Options.Logger.LogWarning("The authorization code extracted from the " +
-                                                  "token request was invalid and has been ignored.");
+                        Logger.LogWarning("The authorization code extracted from the " +
+                                          "token request was invalid and has been ignored.");
 
                         return null;
                     }
@@ -266,8 +266,8 @@ namespace Owin.Security.OpenIdConnect.Server
                     var ticket = await DeserializeRefreshTokenAsync(request.RefreshToken, request);
                     if (ticket == null)
                     {
-                        Options.Logger.LogWarning("The refresh token extracted from the " +
-                                                  "token request was invalid and has been ignored.");
+                        Logger.LogWarning("The refresh token extracted from the " +
+                                          "token request was invalid and has been ignored.");
 
                         return null;
                     }
@@ -374,8 +374,8 @@ namespace Owin.Security.OpenIdConnect.Server
                 {
                     if (!string.IsNullOrEmpty(request.Resource))
                     {
-                        Options.Logger.LogDebug("The access token resources will be limited to the resources " +
-                                                "requested by the client application: {Resources}.", request.GetResources());
+                        Logger.LogDebug("The access token resources will be limited to the resources " +
+                                        "requested by the client application: {Resources}.", request.GetResources());
 
                         // Replace the resources initially granted by the resources listed by the client application in the token request.
                         // Note: request.GetResources() automatically removes duplicate entries, so additional filtering is not necessary.
@@ -384,8 +384,8 @@ namespace Owin.Security.OpenIdConnect.Server
 
                     if (!string.IsNullOrEmpty(request.Scope))
                     {
-                        Options.Logger.LogDebug("The access token scopes will be limited to the scopes " +
-                                                "requested by the client application: {Scopes}.", request.GetScopes());
+                        Logger.LogDebug("The access token scopes will be limited to the scopes " +
+                                        "requested by the client application: {Scopes}.", request.GetScopes());
 
                         // Replace the scopes initially granted by the scopes listed by the client application in the token request.
                         // Note: request.GetScopes() automatically removes duplicate entries, so additional filtering is not necessary.
@@ -635,6 +635,8 @@ namespace Owin.Security.OpenIdConnect.Server
                 return true;
             }
         }
+
+        public ILogger Logger => Options.Logger;
 
         private class Appender
         {

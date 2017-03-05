@@ -29,8 +29,8 @@ namespace Owin.Security.OpenIdConnect.Server
             // See http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationRequest
             if (!string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase))
             {
-                Options.Logger.LogError("The discovery request was rejected because an invalid " +
-                                        "HTTP method was used: {Method}.", Request.Method);
+                Logger.LogError("The discovery request was rejected because an invalid " +
+                                "HTTP method was used: {Method}.", Request.Method);
 
                 return await SendConfigurationResponseAsync(new OpenIdConnectResponse
                 {
@@ -53,23 +53,23 @@ namespace Owin.Security.OpenIdConnect.Server
 
             if (@event.HandledResponse)
             {
-                Options.Logger.LogDebug("The discovery request was handled in user code.");
+                Logger.LogDebug("The discovery request was handled in user code.");
 
                 return true;
             }
 
             else if (@event.Skipped)
             {
-                Options.Logger.LogDebug("The default discovery request handling was skipped from user code.");
+                Logger.LogDebug("The default discovery request handling was skipped from user code.");
 
                 return false;
             }
 
             else if (@event.IsRejected)
             {
-                Options.Logger.LogError("The discovery request was rejected with the following error: {Error} ; {Description}",
-                                        /* Error: */ @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
-                                        /* Description: */ @event.ErrorDescription);
+                Logger.LogError("The discovery request was rejected with the following error: {Error} ; {Description}",
+                                /* Error: */ @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                                /* Description: */ @event.ErrorDescription);
 
                 return await SendConfigurationResponseAsync(new OpenIdConnectResponse
                 {
@@ -79,31 +79,31 @@ namespace Owin.Security.OpenIdConnect.Server
                 });
             }
 
-            Options.Logger.LogInformation("The discovery request was successfully extracted " +
-                                          "from the HTTP request: {Request}", request);
+            Logger.LogInformation("The discovery request was successfully extracted " +
+                                  "from the HTTP request: {Request}", request);
 
             var context = new ValidateConfigurationRequestContext(Context, Options, request);
             await Options.Provider.ValidateConfigurationRequest(context);
 
             if (context.HandledResponse)
             {
-                Options.Logger.LogDebug("The discovery request was handled in user code.");
+                Logger.LogDebug("The discovery request was handled in user code.");
 
                 return true;
             }
 
             else if (context.Skipped)
             {
-                Options.Logger.LogDebug("The default discovery request handling was skipped from user code.");
+                Logger.LogDebug("The default discovery request handling was skipped from user code.");
 
                 return false;
             }
 
             else if (!context.IsValidated)
             {
-                Options.Logger.LogError("The discovery request was rejected with the following error: {Error} ; {Description}",
-                                        /* Error: */ context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
-                                        /* Description: */ context.ErrorDescription);
+                Logger.LogError("The discovery request was rejected with the following error: {Error} ; {Description}",
+                                /* Error: */ context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                                /* Description: */ context.ErrorDescription);
 
                 return await SendConfigurationResponseAsync(new OpenIdConnectResponse
                 {
@@ -113,7 +113,7 @@ namespace Owin.Security.OpenIdConnect.Server
                 });
             }
 
-            Options.Logger.LogInformation("The discovery request was successfully validated.");
+            Logger.LogInformation("The discovery request was successfully validated.");
 
             var notification = new HandleConfigurationRequestContext(Context, Options, request);
             notification.Issuer = Context.GetIssuer(Options);
@@ -264,23 +264,23 @@ namespace Owin.Security.OpenIdConnect.Server
 
             if (notification.HandledResponse)
             {
-                Options.Logger.LogDebug("The discovery request was handled in user code.");
+                Logger.LogDebug("The discovery request was handled in user code.");
 
                 return true;
             }
 
             else if (notification.Skipped)
             {
-                Options.Logger.LogDebug("The default discovery request handling was skipped from user code.");
+                Logger.LogDebug("The default discovery request handling was skipped from user code.");
 
                 return false;
             }
 
             else if (notification.IsRejected)
             {
-                Options.Logger.LogError("The discovery request was rejected with the following error: {Error} ; {Description}",
-                                        /* Error: */ notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
-                                        /* Description: */ notification.ErrorDescription);
+                Logger.LogError("The discovery request was rejected with the following error: {Error} ; {Description}",
+                                /* Error: */ notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                                /* Description: */ notification.ErrorDescription);
 
                 return await SendConfigurationResponseAsync(new OpenIdConnectResponse
                 {
@@ -326,8 +326,8 @@ namespace Owin.Security.OpenIdConnect.Server
             // See http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationRequest
             if (!string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase))
             {
-                Options.Logger.LogError("The discovery request was rejected because an invalid " +
-                                        "HTTP method was used: {Method}.", Request.Method);
+                Logger.LogError("The discovery request was rejected because an invalid " +
+                                "HTTP method was used: {Method}.", Request.Method);
 
                 return await SendCryptographyResponseAsync(new OpenIdConnectResponse
                 {
@@ -350,23 +350,23 @@ namespace Owin.Security.OpenIdConnect.Server
 
             if (@event.HandledResponse)
             {
-                Options.Logger.LogDebug("The discovery request was handled in user code.");
+                Logger.LogDebug("The discovery request was handled in user code.");
 
                 return true;
             }
 
             else if (@event.Skipped)
             {
-                Options.Logger.LogDebug("The default discovery request handling was skipped from user code.");
+                Logger.LogDebug("The default discovery request handling was skipped from user code.");
 
                 return false;
             }
 
             else if (@event.IsRejected)
             {
-                Options.Logger.LogError("The discovery request was rejected with the following error: {Error} ; {Description}",
-                                        /* Error: */ @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
-                                        /* Description: */ @event.ErrorDescription);
+                Logger.LogError("The discovery request was rejected with the following error: {Error} ; {Description}",
+                                /* Error: */ @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                                /* Description: */ @event.ErrorDescription);
 
                 return await SendCryptographyResponseAsync(new OpenIdConnectResponse
                 {
@@ -376,31 +376,31 @@ namespace Owin.Security.OpenIdConnect.Server
                 });
             }
 
-            Options.Logger.LogInformation("The discovery request was successfully extracted " +
-                                          "from the HTTP request: {Request}", request);
+            Logger.LogInformation("The discovery request was successfully extracted " +
+                                  "from the HTTP request: {Request}", request);
 
             var context = new ValidateCryptographyRequestContext(Context, Options, request);
             await Options.Provider.ValidateCryptographyRequest(context);
 
             if (context.HandledResponse)
             {
-                Options.Logger.LogDebug("The discovery request was handled in user code.");
+                Logger.LogDebug("The discovery request was handled in user code.");
 
                 return true;
             }
 
             else if (context.Skipped)
             {
-                Options.Logger.LogDebug("The default discovery request handling was skipped from user code.");
+                Logger.LogDebug("The default discovery request handling was skipped from user code.");
 
                 return false;
             }
 
             else if (!context.IsValidated)
             {
-                Options.Logger.LogError("The discovery request was rejected with the following error: {Error} ; {Description}",
-                                        /* Error: */ context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
-                                        /* Description: */ context.ErrorDescription);
+                Logger.LogError("The discovery request was rejected with the following error: {Error} ; {Description}",
+                                /* Error: */ context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                                /* Description: */ context.ErrorDescription);
 
                 return await SendCryptographyResponseAsync(new OpenIdConnectResponse
                 {
@@ -422,9 +422,9 @@ namespace Owin.Security.OpenIdConnect.Server
 
                 if (!credentials.SigningKey.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature))
                 {
-                    Options.Logger.LogInformation("An unsupported signing key was ignored and excluded from the " +
-                                                  "key set: {Type}. Only RSA asymmetric security keys can be exposed " +
-                                                  "via the JWKS endpoint.", credentials.SigningKey.GetType().Name);
+                    Logger.LogInformation("An unsupported signing key was ignored and excluded from the " +
+                                          "key set: {Type}. Only RSA asymmetric security keys can be exposed " +
+                                          "via the JWKS endpoint.", credentials.SigningKey.GetType().Name);
 
                     continue;
                 }
@@ -442,8 +442,8 @@ namespace Owin.Security.OpenIdConnect.Server
                 // Skip the key if an algorithm instance cannot be extracted.
                 if (algorithm == null)
                 {
-                    Options.Logger.LogWarning("A signing key was ignored because it was unable " +
-                                              "to provide the requested algorithm instance.");
+                    Logger.LogWarning("A signing key was ignored because it was unable " +
+                                      "to provide the requested algorithm instance.");
 
                     continue;
                 }
@@ -535,23 +535,23 @@ namespace Owin.Security.OpenIdConnect.Server
 
             if (notification.HandledResponse)
             {
-                Options.Logger.LogDebug("The discovery request was handled in user code.");
+                Logger.LogDebug("The discovery request was handled in user code.");
 
                 return true;
             }
 
             else if (notification.Skipped)
             {
-                Options.Logger.LogDebug("The default discovery request handling was skipped from user code.");
+                Logger.LogDebug("The default discovery request handling was skipped from user code.");
 
                 return false;
             }
 
             else if (notification.IsRejected)
             {
-                Options.Logger.LogError("The discovery request was rejected with the following error: {Error} ; {Description}",
-                                        /* Error: */ notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
-                                        /* Description: */ notification.ErrorDescription);
+                Logger.LogError("The discovery request was rejected with the following error: {Error} ; {Description}",
+                                /* Error: */ notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                                /* Description: */ notification.ErrorDescription);
 
                 return await SendCryptographyResponseAsync(new OpenIdConnectResponse
                 {
@@ -571,8 +571,8 @@ namespace Owin.Security.OpenIdConnect.Server
                 // See https://tools.ietf.org/html/rfc7517#section-4.1
                 if (string.IsNullOrEmpty(key.Kty))
                 {
-                    Options.Logger.LogError("A JSON Web Key was excluded from the key set because " +
-                                            "it didn't contain the mandatory 'kid' parameter.");
+                    Logger.LogError("A JSON Web Key was excluded from the key set because " +
+                                    "it didn't contain the mandatory 'kid' parameter.");
 
                     continue;
                 }
@@ -627,19 +627,19 @@ namespace Owin.Security.OpenIdConnect.Server
 
             if (notification.HandledResponse)
             {
-                Options.Logger.LogDebug("The discovery request was handled in user code.");
+                Logger.LogDebug("The discovery request was handled in user code.");
 
                 return true;
             }
 
             else if (notification.Skipped)
             {
-                Options.Logger.LogDebug("The default discovery request handling was skipped from user code.");
+                Logger.LogDebug("The default discovery request handling was skipped from user code.");
 
                 return false;
             }
 
-            Options.Logger.LogInformation("The discovery response was successfully returned: {Response}", response);
+            Logger.LogInformation("The discovery response was successfully returned: {Response}", response);
 
             return await SendPayloadAsync(response);
         }
@@ -657,19 +657,19 @@ namespace Owin.Security.OpenIdConnect.Server
 
             if (notification.HandledResponse)
             {
-                Options.Logger.LogDebug("The discovery request was handled in user code.");
+                Logger.LogDebug("The discovery request was handled in user code.");
 
                 return true;
             }
 
             else if (notification.Skipped)
             {
-                Options.Logger.LogDebug("The default discovery request handling was skipped from user code.");
+                Logger.LogDebug("The default discovery request handling was skipped from user code.");
 
                 return false;
             }
 
-            Options.Logger.LogInformation("The discovery response was successfully returned: {Response}", response);
+            Logger.LogInformation("The discovery response was successfully returned: {Response}", response);
 
             return await SendPayloadAsync(response);
         }

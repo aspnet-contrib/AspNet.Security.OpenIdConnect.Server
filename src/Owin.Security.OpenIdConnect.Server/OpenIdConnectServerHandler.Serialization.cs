@@ -91,7 +91,7 @@ namespace Owin.Security.OpenIdConnect.Server
                 // contain "access_token" are not included in the access token.
                 if (!claim.HasDestination(OpenIdConnectConstants.Destinations.AccessToken))
                 {
-                    Options.Logger.LogDebug("'{Claim}' was excluded from the access token claims.", claim.Type);
+                    Logger.LogDebug("'{Claim}' was excluded from the access token claims.", claim.Type);
 
                     return false;
                 }
@@ -187,8 +187,8 @@ namespace Owin.Security.OpenIdConnect.Server
                     break;
 
                 default:
-                    Options.Logger.LogWarning("Multiple presenters have been associated with the access token " +
-                                              "but the JWT format only accepts single values.");
+                    Logger.LogWarning("Multiple presenters have been associated with the access token " +
+                                      "but the JWT format only accepts single values.");
 
                     // Only add the first authorized party.
                     ticket.Identity.AddClaim(OpenIdConnectConstants.Claims.AuthorizedParty, presenters[0]);
@@ -235,7 +235,7 @@ namespace Owin.Security.OpenIdConnect.Server
                 // contain "id_token" are not included in the identity token.
                 if (!claim.HasDestination(OpenIdConnectConstants.Destinations.IdentityToken))
                 {
-                    Options.Logger.LogDebug("'{Claim}' was excluded from the identity token claims.", claim.Type);
+                    Logger.LogDebug("'{Claim}' was excluded from the identity token claims.", claim.Type);
 
                     return false;
                 }
@@ -374,8 +374,8 @@ namespace Owin.Security.OpenIdConnect.Server
                     break;
 
                 default:
-                    Options.Logger.LogWarning("Multiple presenters have been associated with the identity token " +
-                                              "but the JWT format only accepts single values.");
+                    Logger.LogWarning("Multiple presenters have been associated with the identity token " +
+                                      "but the JWT format only accepts single values.");
 
                     // Only add the first authorized party.
                     identity.AddClaim(OpenIdConnectConstants.Claims.AuthorizedParty, presenters[0]);
@@ -479,7 +479,7 @@ namespace Owin.Security.OpenIdConnect.Server
             // Ensure the received ticket is an authorization code.
             if (!ticket.IsAuthorizationCode())
             {
-                Options.Logger.LogDebug("The received token was not an authorization code: {Code}.", code);
+                Logger.LogDebug("The received token was not an authorization code: {Code}.", code);
 
                 return null;
             }
@@ -535,7 +535,7 @@ namespace Owin.Security.OpenIdConnect.Server
             {
                 if (!handler.CanReadToken(token))
                 {
-                    Options.Logger.LogDebug("The access token handler refused to read the token: {Token}", token);
+                    Logger.LogDebug("The access token handler refused to read the token: {Token}", token);
 
                     return null;
                 }
@@ -545,7 +545,7 @@ namespace Owin.Security.OpenIdConnect.Server
 
             catch (Exception exception)
             {
-                Options.Logger.LogDebug("An exception occured when deserializing an access token: {Message}", exception.Message);
+                Logger.LogDebug("An exception occured when deserializing an access token: {Message}", exception.Message);
 
                 return null;
             }
@@ -600,7 +600,7 @@ namespace Owin.Security.OpenIdConnect.Server
             // Ensure the received ticket is an access token.
             if (!ticket.IsAccessToken())
             {
-                Options.Logger.LogDebug("The received token was not an access token: {Token}.", token);
+                Logger.LogDebug("The received token was not an access token: {Token}.", token);
 
                 return null;
             }
@@ -654,7 +654,7 @@ namespace Owin.Security.OpenIdConnect.Server
             {
                 if (!notification.SecurityTokenHandler.CanReadToken(token))
                 {
-                    Options.Logger.LogDebug("The identity token handler refused to read the token: {Token}", token);
+                    Logger.LogDebug("The identity token handler refused to read the token: {Token}", token);
 
                     return null;
                 }
@@ -664,7 +664,7 @@ namespace Owin.Security.OpenIdConnect.Server
 
             catch (Exception exception)
             {
-                Options.Logger.LogDebug("An exception occured when deserializing an identity token: {Message}", exception.Message);
+                Logger.LogDebug("An exception occured when deserializing an identity token: {Message}", exception.Message);
 
                 return null;
             }
@@ -713,7 +713,7 @@ namespace Owin.Security.OpenIdConnect.Server
             // Ensure the received ticket is an identity token.
             if (!ticket.IsIdentityToken())
             {
-                Options.Logger.LogDebug("The received token was not an identity token: {Token}.", token);
+                Logger.LogDebug("The received token was not an identity token: {Token}.", token);
 
                 return null;
             }
@@ -751,7 +751,7 @@ namespace Owin.Security.OpenIdConnect.Server
             // Ensure the received ticket is an identity token.
             if (!ticket.IsRefreshToken())
             {
-                Options.Logger.LogDebug("The received token was not a refresh token: {Token}.", token);
+                Logger.LogDebug("The received token was not a refresh token: {Token}.", token);
 
                 return null;
             }

@@ -37,8 +37,8 @@ namespace Owin.Security.OpenIdConnect.Server
                 // See http://openid.net/specs/openid-connect-core-1_0.html#FormSerialization
                 if (string.IsNullOrEmpty(Request.ContentType))
                 {
-                    Options.Logger.LogError("The introspection request was rejected because " +
-                                            "the mandatory 'Content-Type' header was missing.");
+                    Logger.LogError("The introspection request was rejected because " +
+                                    "the mandatory 'Content-Type' header was missing.");
 
                     return await SendIntrospectionResponseAsync(new OpenIdConnectResponse
                     {
@@ -51,8 +51,8 @@ namespace Owin.Security.OpenIdConnect.Server
                 // May have media/type; charset=utf-8, allow partial match.
                 if (!Request.ContentType.StartsWith("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase))
                 {
-                    Options.Logger.LogError("The introspection request was rejected because an invalid 'Content-Type' " +
-                                            "header was received: {ContentType}.", Request.ContentType);
+                    Logger.LogError("The introspection request was rejected because an invalid 'Content-Type' " +
+                                    "header was received: {ContentType}.", Request.ContentType);
 
                     return await SendIntrospectionResponseAsync(new OpenIdConnectResponse
                     {
@@ -68,8 +68,8 @@ namespace Owin.Security.OpenIdConnect.Server
 
             else
             {
-                Options.Logger.LogError("The introspection request was rejected because an invalid " +
-                                        "HTTP method was received: {Method}.", Request.Method);
+                Logger.LogError("The introspection request was rejected because an invalid " +
+                                "HTTP method was received: {Method}.", Request.Method);
 
                 return await SendIntrospectionResponseAsync(new OpenIdConnectResponse
                 {
@@ -91,23 +91,23 @@ namespace Owin.Security.OpenIdConnect.Server
 
             if (@event.HandledResponse)
             {
-                Options.Logger.LogDebug("The introspection request was handled in user code.");
+                Logger.LogDebug("The introspection request was handled in user code.");
 
                 return true;
             }
 
             else if (@event.Skipped)
             {
-                Options.Logger.LogDebug("The default introspection request handling was skipped from user code.");
+                Logger.LogDebug("The default introspection request handling was skipped from user code.");
 
                 return false;
             }
 
             else if (@event.IsRejected)
             {
-                Options.Logger.LogError("The introspection request was rejected with the following error: {Error} ; {Description}",
-                                        /* Error: */ @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
-                                        /* Description: */ @event.ErrorDescription);
+                Logger.LogError("The introspection request was rejected with the following error: {Error} ; {Description}",
+                                /* Error: */ @event.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                                /* Description: */ @event.ErrorDescription);
 
                 return await SendIntrospectionResponseAsync(new OpenIdConnectResponse
                 {
@@ -117,8 +117,8 @@ namespace Owin.Security.OpenIdConnect.Server
                 });
             }
 
-            Options.Logger.LogInformation("The introspection request was successfully extracted " +
-                                          "from the HTTP request: {Request}", request);
+            Logger.LogInformation("The introspection request was successfully extracted " +
+                                  "from the HTTP request: {Request}", request);
 
             if (string.IsNullOrWhiteSpace(request.Token))
             {
@@ -169,23 +169,23 @@ namespace Owin.Security.OpenIdConnect.Server
 
             if (context.HandledResponse)
             {
-                Options.Logger.LogDebug("The introspection request was handled in user code.");
+                Logger.LogDebug("The introspection request was handled in user code.");
 
                 return true;
             }
 
             else if (context.Skipped)
             {
-                Options.Logger.LogDebug("The default introspection request handling was skipped from user code.");
+                Logger.LogDebug("The default introspection request handling was skipped from user code.");
 
                 return false;
             }
 
             else if (context.IsRejected)
             {
-                Options.Logger.LogError("The introspection request was rejected with the following error: {Error} ; {Description}",
-                                        /* Error: */ context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
-                                        /* Description: */ context.ErrorDescription);
+                Logger.LogError("The introspection request was rejected with the following error: {Error} ; {Description}",
+                                /* Error: */ context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                                /* Description: */ context.ErrorDescription);
 
                 return await SendIntrospectionResponseAsync(new OpenIdConnectResponse
                 {
@@ -198,7 +198,7 @@ namespace Owin.Security.OpenIdConnect.Server
             // Ensure that the client_id has been set from the ValidateIntrospectionRequest event.
             else if (context.IsValidated && string.IsNullOrEmpty(request.ClientId))
             {
-                Options.Logger.LogError("The introspection request was validated but the client_id was not set.");
+                Logger.LogError("The introspection request was validated but the client_id was not set.");
 
                 return await SendIntrospectionResponseAsync(new OpenIdConnectResponse
                 {
@@ -207,7 +207,7 @@ namespace Owin.Security.OpenIdConnect.Server
                 });
             }
 
-            Options.Logger.LogInformation("The introspection request was successfully validated.");
+            Logger.LogInformation("The introspection request was successfully validated.");
 
             AuthenticationTicket ticket = null;
 
@@ -246,7 +246,7 @@ namespace Owin.Security.OpenIdConnect.Server
 
             if (ticket == null)
             {
-                Options.Logger.LogInformation("The introspection request was rejected because the token was invalid.");
+                Logger.LogInformation("The introspection request was rejected because the token was invalid.");
 
                 return await SendIntrospectionResponseAsync(new OpenIdConnectResponse
                 {
@@ -259,7 +259,7 @@ namespace Owin.Security.OpenIdConnect.Server
             // in both cases, the caller must be authenticated if the ticket is marked as confidential.
             if (context.IsSkipped && ticket.IsConfidential())
             {
-                Options.Logger.LogError("The introspection request was rejected because the caller was not authenticated.");
+                Logger.LogError("The introspection request was rejected because the caller was not authenticated.");
 
                 return await SendIntrospectionResponseAsync(new OpenIdConnectResponse
                 {
@@ -271,7 +271,7 @@ namespace Owin.Security.OpenIdConnect.Server
             if (ticket.Properties.ExpiresUtc.HasValue &&
                 ticket.Properties.ExpiresUtc < Options.SystemClock.UtcNow)
             {
-                Options.Logger.LogInformation("The introspection request was rejected because the token was expired.");
+                Logger.LogInformation("The introspection request was rejected because the token was expired.");
 
                 return await SendIntrospectionResponseAsync(new OpenIdConnectResponse
                 {
@@ -285,8 +285,8 @@ namespace Owin.Security.OpenIdConnect.Server
             {
                 if (ticket.IsAuthorizationCode() && ticket.HasPresenter() && !ticket.HasPresenter(request.ClientId))
                 {
-                    Options.Logger.LogError("The introspection request was rejected because the " +
-                                            "authorization code was issued to a different client.");
+                    Logger.LogError("The introspection request was rejected because the " +
+                                    "authorization code was issued to a different client.");
 
                     return await SendIntrospectionResponseAsync(new OpenIdConnectResponse
                     {
@@ -298,8 +298,8 @@ namespace Owin.Security.OpenIdConnect.Server
                 else if (ticket.IsAccessToken() && ticket.HasAudience() && !ticket.HasAudience(request.ClientId) &&
                                                    ticket.HasPresenter() && !ticket.HasPresenter(request.ClientId))
                 {
-                    Options.Logger.LogError("The introspection request was rejected because the access token " +
-                                            "was issued to a different client or for another resource server.");
+                    Logger.LogError("The introspection request was rejected because the access token " +
+                                    "was issued to a different client or for another resource server.");
 
                     return await SendIntrospectionResponseAsync(new OpenIdConnectResponse
                     {
@@ -310,8 +310,8 @@ namespace Owin.Security.OpenIdConnect.Server
                 // Reject the request if the caller is not listed as a valid audience.
                 else if (ticket.IsIdentityToken() && ticket.HasAudience() && !ticket.HasAudience(request.ClientId))
                 {
-                    Options.Logger.LogError("The introspection request was rejected because the " +
-                                            "identity token was issued to a different client.");
+                    Logger.LogError("The introspection request was rejected because the " +
+                                    "identity token was issued to a different client.");
 
                     return await SendIntrospectionResponseAsync(new OpenIdConnectResponse
                     {
@@ -323,8 +323,8 @@ namespace Owin.Security.OpenIdConnect.Server
                 // correspond to the client application the token was issued to.
                 else if (ticket.IsRefreshToken() && ticket.HasPresenter() && !ticket.HasPresenter(request.ClientId))
                 {
-                    Options.Logger.LogError("The introspection request was rejected because the " +
-                                            "refresh token was issued to a different client.");
+                    Logger.LogError("The introspection request was rejected because the " +
+                                    "refresh token was issued to a different client.");
 
                     return await SendIntrospectionResponseAsync(new OpenIdConnectResponse
                     {
@@ -419,23 +419,23 @@ namespace Owin.Security.OpenIdConnect.Server
 
             if (notification.HandledResponse)
             {
-                Options.Logger.LogDebug("The introspection request was handled in user code.");
+                Logger.LogDebug("The introspection request was handled in user code.");
 
                 return true;
             }
 
             else if (notification.Skipped)
             {
-                Options.Logger.LogDebug("The default introspection request handling was skipped from user code.");
+                Logger.LogDebug("The default introspection request handling was skipped from user code.");
 
                 return false;
             }
 
             else if (notification.IsRejected)
             {
-                Options.Logger.LogError("The introspection request was rejected with the following error: {Error} ; {Description}",
-                                        /* Error: */ notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
-                                        /* Description: */ notification.ErrorDescription);
+                Logger.LogError("The introspection request was rejected with the following error: {Error} ; {Description}",
+                                /* Error: */ notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                                /* Description: */ notification.ErrorDescription);
 
                 return await SendIntrospectionResponseAsync(new OpenIdConnectResponse
                 {
@@ -514,19 +514,19 @@ namespace Owin.Security.OpenIdConnect.Server
 
             if (notification.HandledResponse)
             {
-                Options.Logger.LogDebug("The introspection request was handled in user code.");
+                Logger.LogDebug("The introspection request was handled in user code.");
 
                 return true;
             }
 
             else if (notification.Skipped)
             {
-                Options.Logger.LogDebug("The default introspection request handling was skipped from user code.");
+                Logger.LogDebug("The default introspection request handling was skipped from user code.");
 
                 return false;
             }
 
-            Options.Logger.LogInformation("The introspection response was successfully returned: {Response}", response);
+            Logger.LogInformation("The introspection response was successfully returned: {Response}", response);
 
             return await SendPayloadAsync(response);
         }
