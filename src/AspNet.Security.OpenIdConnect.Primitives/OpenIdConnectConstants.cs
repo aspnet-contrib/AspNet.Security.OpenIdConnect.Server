@@ -72,12 +72,6 @@ namespace AspNet.Security.OpenIdConnect.Primitives
             public const string Zoneinfo = "zoneinfo";
         }
 
-        public static class ClaimValueTypes
-        {
-            public const string Json = "JSON";
-            public const string JsonArray = "JSON_ARRAY";
-        }
-
         public static class ClientAuthenticationMethods
         {
             public const string ClientSecretBasic = "client_secret_basic";

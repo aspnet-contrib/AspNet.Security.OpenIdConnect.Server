@@ -5,6 +5,7 @@
  */
 
 using System;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -725,10 +726,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
                     identity.AddClaim(new Claim("boolean_claim", "true", ClaimValueTypes.Boolean));
                     identity.AddClaim(new Claim("integer_claim", "42", ClaimValueTypes.Integer));
-                    identity.AddClaim(new Claim("array_claim", @"[""Contoso"",""Fabrikam""]",
-                        OpenIdConnectConstants.ClaimValueTypes.JsonArray));
-                    identity.AddClaim(new Claim("object_claim", @"{""parameter"":""value""}",
-                        OpenIdConnectConstants.ClaimValueTypes.Json));
+                    identity.AddClaim(new Claim("array_claim", @"[""Contoso"",""Fabrikam""]", JsonClaimValueTypes.JsonArray));
+                    identity.AddClaim(new Claim("object_claim", @"{""parameter"":""value""}", JsonClaimValueTypes.Json));
 
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
@@ -779,8 +778,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
                     identity.AddClaim(new Claim("boolean_claim", "Contoso", ClaimValueTypes.Boolean));
                     identity.AddClaim(new Claim("integer_claim", "Contoso", ClaimValueTypes.Integer));
-                    identity.AddClaim(new Claim("array_claim", "Contoso", OpenIdConnectConstants.ClaimValueTypes.JsonArray));
-                    identity.AddClaim(new Claim("object_claim", "Contoso", OpenIdConnectConstants.ClaimValueTypes.Json));
+                    identity.AddClaim(new Claim("array_claim", "Contoso", JsonClaimValueTypes.JsonArray));
+                    identity.AddClaim(new Claim("object_claim", "Contoso", JsonClaimValueTypes.Json));
 
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
@@ -835,10 +834,11 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     identity.AddClaim(new Claim("integer_claim", "42", ClaimValueTypes.Integer));
                     identity.AddClaim(new Claim("integer_claim", "43", ClaimValueTypes.Integer));
 
-                    identity.AddClaim(new Claim("array_claim", @"[""Contoso"",""Fabrikam""]",
-                        OpenIdConnectConstants.ClaimValueTypes.JsonArray));
-                    identity.AddClaim(new Claim("array_claim", @"[""Microsoft"",""Google""]",
-                        OpenIdConnectConstants.ClaimValueTypes.JsonArray));
+                    identity.AddClaim(new Claim("array_claim", @"[""Contoso"",""Fabrikam""]", JsonClaimValueTypes.JsonArray));
+                    identity.AddClaim(new Claim("array_claim", @"[""Microsoft"",""Google""]", JsonClaimValueTypes.JsonArray));
+
+                    identity.AddClaim(new Claim("object_claim", @"{""parameter_1"":""value-1""}", JsonClaimValueTypes.Json));
+                    identity.AddClaim(new Claim("object_claim", @"{""parameter_2"":""value-2""}", JsonClaimValueTypes.Json));
 
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
@@ -874,6 +874,10 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 new JArray(new[] { "Contoso", "Fabrikam" }),
                 new JArray(new[] { "Microsoft", "Google" }) }), (JArray) response["array_claim"]);
             Assert.Equal(JTokenType.Array, ((JToken) response["array_claim"]).Type);
+            Assert.Equal(new JArray(new[] {
+                JObject.FromObject(new { parameter_1 = "value-1" }),
+                JObject.FromObject(new { parameter_2 = "value-2" }) }), (JArray) response["object_claim"]);
+            Assert.Equal(JTokenType.Array, ((JToken) response["object_claim"]).Type);
         }
 
         [Theory]

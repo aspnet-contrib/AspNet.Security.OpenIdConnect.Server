@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Globalization;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Security.Claims;
@@ -292,8 +293,8 @@ namespace AspNet.Security.OpenIdConnect.Server
                     goto default;
                 }
 
-                case OpenIdConnectConstants.ClaimValueTypes.Json:
-                case OpenIdConnectConstants.ClaimValueTypes.JsonArray:
+                case JsonClaimValueTypes.Json:
+                case JsonClaimValueTypes.JsonArray:
                 {
                     try
                     {

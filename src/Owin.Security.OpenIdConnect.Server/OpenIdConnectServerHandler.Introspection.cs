@@ -367,11 +367,12 @@ namespace Owin.Security.OpenIdConnect.Server
                 // if the ticket corresponds to an access or identity token.
                 if (ticket.IsAccessToken() || ticket.IsIdentityToken())
                 {
-                    foreach (var claim in ticket.Identity.Claims)
+                    foreach (var grouping in ticket.Identity.Claims.GroupBy(claim => claim.Type))
                     {
                         // Exclude standard claims, that are already handled via strongly-typed properties.
                         // Make sure to always update this list when adding new built-in claim properties.
-                        switch (claim.Type)
+                        var type = grouping.Key;
+                        switch (type)
                         {
                             case OpenIdConnectConstants.Claims.Audience:
                             case OpenIdConnectConstants.Claims.ExpiresAt:
@@ -384,31 +385,32 @@ namespace Owin.Security.OpenIdConnect.Server
                                 continue;
                         }
 
-                        // Convert the claim as an OpenIdConnectParameter instance,
-                        // whose token type is determined from the claim value type.
-                        var value = claim.AsParameter();
+                        var claims = grouping.ToArray();
 
-                        // When multiple claims with the same name exist, convert the existing entry
-                        // to a new JArray to allow returning multiple claim values to the caller.
-                        if (notification.Claims.ContainsKey(claim.Type))
+                        switch (claims.Length)
                         {
-                            // Determine whether the existing claim is an array.
-                            // If it's not an array or if the current claim value type
-                            // corresponds to a JSON array, create a new array.
-                            var collection = (JArray) notification.Claims[claim.Type];
-                            if (collection == null || claim.ValueType == OpenIdConnectConstants.ClaimValueTypes.JsonArray)
+                            case 0: continue;
+
+                            // When there's only one claim with the same type, directly
+                            // convert the claim as an OpenIdConnectParameter instance,
+                            // whose token type is determined from the claim value type.
+                            case 1:
                             {
-                                collection = new JArray((JToken) notification.Claims[claim.Type]);
+                                notification.Claims[type] = claims[0].AsParameter();
+
+                                continue;
                             }
 
-                            // Add the current claim value in the array.
-                            collection.Add((JToken) value);
+                            // When multiple claims share the same type, convert all the claims
+                            // to OpenIdConnectParameter instances, retrieve the underlying
+                            // JSON values and add everything to a new JSON array.
+                            default:
+                            {
+                                notification.Claims[type] = new JArray(claims.Select(claim => claim.AsParameter().Value));
 
-                            // Replace the current claim value with the new array.
-                            value = new OpenIdConnectParameter(collection);
+                                continue;
+                            }
                         }
-
-                        notification.Claims[claim.Type] = value;
                     }
                 }
             }

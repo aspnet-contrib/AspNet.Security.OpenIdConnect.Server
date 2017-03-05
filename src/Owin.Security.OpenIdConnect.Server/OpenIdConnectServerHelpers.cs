@@ -238,8 +238,7 @@ namespace Owin.Security.OpenIdConnect.Server
                     goto default;
                 }
 
-                case OpenIdConnectConstants.ClaimValueTypes.Json:
-                case OpenIdConnectConstants.ClaimValueTypes.JsonArray:
+                case JwtConstants.JsonClaimValueType:
                 {
                     try
                     {
