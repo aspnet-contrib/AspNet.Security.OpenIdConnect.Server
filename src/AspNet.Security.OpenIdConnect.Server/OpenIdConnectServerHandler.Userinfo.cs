@@ -18,7 +18,7 @@ using Newtonsoft.Json.Linq;
 
 namespace AspNet.Security.OpenIdConnect.Server
 {
-    internal partial class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions>
+    public partial class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions>
     {
         private async Task<bool> InvokeUserinfoEndpointAsync()
         {

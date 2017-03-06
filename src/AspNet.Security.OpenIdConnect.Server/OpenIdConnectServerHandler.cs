@@ -22,7 +22,7 @@ using Newtonsoft.Json;
 
 namespace AspNet.Security.OpenIdConnect.Server
 {
-    internal partial class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions>
+    public partial class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions>
     {
         public override async Task<bool> HandleRequestAsync()
         {

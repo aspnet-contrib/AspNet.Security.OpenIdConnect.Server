@@ -20,7 +20,7 @@ using Owin.Security.OpenIdConnect.Extensions;
 
 namespace Owin.Security.OpenIdConnect.Server
 {
-    internal partial class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions>
+    public partial class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions>
     {
         private async Task<string> SerializeAuthorizationCodeAsync(
             ClaimsIdentity identity, AuthenticationProperties properties,
