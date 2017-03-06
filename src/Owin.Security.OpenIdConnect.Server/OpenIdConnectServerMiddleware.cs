@@ -120,7 +120,7 @@ namespace Owin.Security.OpenIdConnect.Server
             {
                 var protector = Options.DataProtectionProvider.CreateProtector(
                     nameof(OpenIdConnectServerMiddleware),
-                    Options.AuthenticationType, "Access_Token", "v1");
+                    nameof(Options.AccessTokenFormat), Options.AuthenticationType);
 
                 Options.AccessTokenFormat = new AspNetTicketDataFormat(new DataProtectorShim(protector));
             }
@@ -129,7 +129,7 @@ namespace Owin.Security.OpenIdConnect.Server
             {
                 var protector = Options.DataProtectionProvider.CreateProtector(
                     nameof(OpenIdConnectServerMiddleware),
-                    Options.AuthenticationType, "Authorization_Code", "v1");
+                    nameof(Options.AuthorizationCodeFormat), Options.AuthenticationType);
 
                 Options.AuthorizationCodeFormat = new AspNetTicketDataFormat(new DataProtectorShim(protector));
             }
@@ -138,7 +138,7 @@ namespace Owin.Security.OpenIdConnect.Server
             {
                 var protector = Options.DataProtectionProvider.CreateProtector(
                     nameof(OpenIdConnectServerMiddleware),
-                    Options.AuthenticationType, "Refresh_Token", "v1");
+                    nameof(Options.RefreshTokenFormat), Options.AuthenticationType);
 
                 Options.RefreshTokenFormat = new AspNetTicketDataFormat(new DataProtectorShim(protector));
             }
