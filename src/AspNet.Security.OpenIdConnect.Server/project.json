@@ -33,7 +33,7 @@
 
   "dependencies": {
     "AspNet.Security.OpenIdConnect.Extensions": { "target": "project" },
-    "JetBrains.Annotations": { "type": "build", "version": "10.1.4" },
+    "JetBrains.Annotations": { "type": "build", "version": "10.3.0" },
     "Microsoft.AspNetCore.Authentication": "1.0.0",
     "Microsoft.IdentityModel.Protocols.OpenIdConnect": "2.0.0"
   },
@@ -44,12 +44,7 @@
     "netstandard1.4": {
       "dependencies": {
         "System.Text.Encoding.Extensions": "4.0.11"
-      },
-
-      "imports": [
-        "dotnet5.5",
-        "portable-net451+win8"
-      ]
+      }
     },
 
     "netstandard1.6": {
@@ -59,12 +54,7 @@
 
       "dependencies": {
         "System.Text.Encoding.Extensions": "4.0.11"
-      },
-
-      "imports": [
-        "dotnet5.7",
-        "portable-net451+win8"
-      ]
+      }
     }
   }
 }
