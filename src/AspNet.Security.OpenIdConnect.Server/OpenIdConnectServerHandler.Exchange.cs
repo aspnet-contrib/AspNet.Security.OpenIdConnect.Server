@@ -251,23 +251,11 @@ namespace AspNet.Security.OpenIdConnect.Server
                 });
             }
 
-            // Ensure that the client_id has been set from the ValidateTokenRequest event.
-            else if (context.IsValidated && string.IsNullOrEmpty(request.ClientId))
-            {
-                Logger.LogError("The token request was validated but the client_id was not set.");
-
-                return await SendTokenResponseAsync(new OpenIdConnectResponse
-                {
-                    Error = OpenIdConnectConstants.Errors.ServerError,
-                    ErrorDescription = "An internal server error occurred."
-                });
-            }
-
             // At this stage, client_id cannot be null for grant_type=authorization_code requests,
             // as it must either be set in the ValidateTokenRequest notification
             // by the developer or manually flowed by non-confidential client applications.
             // See https://tools.ietf.org/html/rfc6749#section-4.1.3
-            if (request.IsAuthorizationCodeGrantType() && string.IsNullOrEmpty(request.ClientId))
+            if (request.IsAuthorizationCodeGrantType() && string.IsNullOrEmpty(context.ClientId))
             {
                 Logger.LogError("The token request was rejected because the mandatory 'client_id' was missing.");
 
@@ -277,6 +265,9 @@ namespace AspNet.Security.OpenIdConnect.Server
                     ErrorDescription = "client_id was missing from the token request"
                 });
             }
+
+            // Store the validated client_id as a request property.
+            request.SetProperty(OpenIdConnectConstants.Properties.ClientId, context.ClientId);
 
             Logger.LogInformation("The token request was successfully validated.");
 
@@ -335,14 +326,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                 var presenters = ticket.GetPresenters();
                 if (request.IsAuthorizationCodeGrantType() && !presenters.Any())
                 {
-                    Logger.LogError("The token request was rejected because the authorization " +
-                                    "code didn't contain any valid presenter.");
-
-                    return await SendTokenResponseAsync(new OpenIdConnectResponse
-                    {
-                        Error = OpenIdConnectConstants.Errors.ServerError,
-                        ErrorDescription = "An internal server error occurred."
-                    });
+                    throw new InvalidOperationException("The presenters list cannot be extracted from the authorization code.");
                 }
 
                 // Ensure the authorization code/refresh token was issued to the client application making the token request.
@@ -350,8 +334,8 @@ namespace AspNet.Security.OpenIdConnect.Server
                 // As a consequence, this check doesn't depend on the actual status of client authentication.
                 // See https://tools.ietf.org/html/rfc6749#section-6
                 // and http://openid.net/specs/openid-connect-core-1_0.html#RefreshingAccessToken
-                if (!string.IsNullOrEmpty(request.ClientId) && presenters.Any() &&
-                    !presenters.Contains(request.ClientId, StringComparer.Ordinal))
+                if (!string.IsNullOrEmpty(context.ClientId) && presenters.Any() &&
+                    !presenters.Contains(context.ClientId, StringComparer.Ordinal))
                 {
                     Logger.LogError("The token request was rejected because the authorization " +
                                     "code was issued to a different client application.");
@@ -373,8 +357,6 @@ namespace AspNet.Security.OpenIdConnect.Server
                 var address = ticket.GetProperty(OpenIdConnectConstants.Properties.RedirectUri);
                 if (request.IsAuthorizationCodeGrantType() && !string.IsNullOrEmpty(address))
                 {
-                    ticket.RemoveProperty(OpenIdConnectConstants.Properties.RedirectUri);
-
                     if (string.IsNullOrEmpty(request.RedirectUri))
                     {
                         Logger.LogError("The token request was rejected because the mandatory 'redirect_uri' " +
@@ -405,8 +387,6 @@ namespace AspNet.Security.OpenIdConnect.Server
                 var challenge = ticket.GetProperty(OpenIdConnectConstants.Properties.CodeChallenge);
                 if (request.IsAuthorizationCodeGrantType() && !string.IsNullOrEmpty(challenge))
                 {
-                    ticket.RemoveProperty(OpenIdConnectConstants.Properties.CodeChallenge);
-
                     // Get the code verifier from the token request.
                     // If it cannot be found, return an invalid_grant error.
                     var verifier = request.CodeVerifier;
@@ -424,7 +404,6 @@ namespace AspNet.Security.OpenIdConnect.Server
 
                     // Note: the code challenge method is always validated when receiving the authorization request.
                     var method = ticket.GetProperty(OpenIdConnectConstants.Properties.CodeChallengeMethod);
-                    ticket.RemoveProperty(OpenIdConnectConstants.Properties.CodeChallengeMethod);
 
                     Debug.Assert(string.IsNullOrEmpty(method) ||
                                  string.Equals(method, OpenIdConnectConstants.CodeChallengeMethods.Plain, StringComparison.Ordinal) ||

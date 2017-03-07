@@ -236,6 +236,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives
             public const string AccessTokenLifetime = ".access_token_lifetime";
             public const string AuthorizationCodeLifetime = ".authorization_code_lifetime";
             public const string Audiences = ".audiences";
+            public const string ClientId = ".client_id";
             public const string CodeChallenge = ".code_challenge";
             public const string CodeChallengeMethod = ".code_challenge_method";
             public const string ConfidentialityLevel = ".confidentiality_level";
@@ -246,6 +247,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives
             public const string IdentityTokenLifetime = ".identity_token_lifetime";
             public const string MessageType = ".message_type";
             public const string Nonce = ".nonce";
+            public const string OriginalRedirectUri = ".original_redirect_uri";
+            public const string PostLogoutRedirectUri = ".post_logout_redirect_uri";
             public const string Presenters = ".presenters";
             public const string RedirectUri = ".redirect_uri";
             public const string RefreshTokenLifetime = ".refresh_token_lifetime";

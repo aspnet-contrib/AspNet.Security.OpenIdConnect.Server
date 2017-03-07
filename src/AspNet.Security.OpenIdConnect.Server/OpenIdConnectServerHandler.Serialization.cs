@@ -39,21 +39,18 @@ namespace AspNet.Security.OpenIdConnect.Server
             // Associate a random identifier with the authorization code.
             ticket.SetTicketId(Guid.NewGuid().ToString());
 
-            // Store the code_challenge, code_challenge_method, nonce and redirect_uri parameters for later comparison.
+            // Store the code_challenge, code_challenge_method and nonce parameters for later comparison.
             ticket.SetProperty(OpenIdConnectConstants.Properties.CodeChallenge, request.CodeChallenge)
                   .SetProperty(OpenIdConnectConstants.Properties.CodeChallengeMethod, request.CodeChallengeMethod)
-                  .SetProperty(OpenIdConnectConstants.Properties.Nonce, request.Nonce)
-                  .SetProperty(OpenIdConnectConstants.Properties.RedirectUri, request.RedirectUri);
+                  .SetProperty(OpenIdConnectConstants.Properties.Nonce, request.Nonce);
+
+            // Store the original redirect_uri sent by the client application for later comparison.
+            ticket.SetProperty(OpenIdConnectConstants.Properties.RedirectUri,
+                request.GetProperty<string>(OpenIdConnectConstants.Properties.OriginalRedirectUri));
 
             // Remove the unwanted properties from the authentication ticket.
-            ticket.RemoveProperty(OpenIdConnectConstants.Properties.AuthorizationCodeLifetime);
-
-            // By default, add the client_id to the list of the
-            // presenters allowed to use the authorization code.
-            if (!string.IsNullOrEmpty(request.ClientId))
-            {
-                ticket.SetPresenters(request.ClientId);
-            }
+            ticket.RemoveProperty(OpenIdConnectConstants.Properties.AuthorizationCodeLifetime)
+                  .RemoveProperty(OpenIdConnectConstants.Properties.ClientId);
 
             var notification = new SerializeAuthorizationCodeContext(Context, Options, request, response, ticket)
             {
@@ -134,19 +131,13 @@ namespace AspNet.Security.OpenIdConnect.Server
             // Remove the unwanted properties from the authentication ticket.
             ticket.RemoveProperty(OpenIdConnectConstants.Properties.AccessTokenLifetime)
                   .RemoveProperty(OpenIdConnectConstants.Properties.AuthorizationCodeLifetime)
+                  .RemoveProperty(OpenIdConnectConstants.Properties.ClientId)
                   .RemoveProperty(OpenIdConnectConstants.Properties.CodeChallenge)
                   .RemoveProperty(OpenIdConnectConstants.Properties.CodeChallengeMethod)
                   .RemoveProperty(OpenIdConnectConstants.Properties.IdentityTokenLifetime)
                   .RemoveProperty(OpenIdConnectConstants.Properties.Nonce)
                   .RemoveProperty(OpenIdConnectConstants.Properties.RedirectUri)
                   .RemoveProperty(OpenIdConnectConstants.Properties.RefreshTokenLifetime);
-
-            // By default, add the client_id to the list of the
-            // presenters allowed to use the access token.
-            if (!string.IsNullOrEmpty(request.ClientId))
-            {
-                ticket.SetPresenters(request.ClientId);
-            }
 
             var notification = new SerializeAccessTokenContext(Context, Options, request, response, ticket)
             {
@@ -294,19 +285,14 @@ namespace AspNet.Security.OpenIdConnect.Server
             // Remove the unwanted properties from the authentication ticket.
             ticket.RemoveProperty(OpenIdConnectConstants.Properties.AccessTokenLifetime)
                   .RemoveProperty(OpenIdConnectConstants.Properties.AuthorizationCodeLifetime)
+                  .RemoveProperty(OpenIdConnectConstants.Properties.ClientId)
                   .RemoveProperty(OpenIdConnectConstants.Properties.CodeChallenge)
                   .RemoveProperty(OpenIdConnectConstants.Properties.CodeChallengeMethod)
                   .RemoveProperty(OpenIdConnectConstants.Properties.IdentityTokenLifetime)
                   .RemoveProperty(OpenIdConnectConstants.Properties.RedirectUri)
                   .RemoveProperty(OpenIdConnectConstants.Properties.RefreshTokenLifetime);
 
-            // By default, add the client_id to the list of the
-            // presenters allowed to use the identity token.
-            if (!string.IsNullOrEmpty(request.ClientId))
-            {
-                ticket.SetAudiences(request.ClientId);
-                ticket.SetPresenters(request.ClientId);
-            }
+            ticket.SetAudiences(ticket.GetPresenters());
 
             var notification = new SerializeIdentityTokenContext(Context, Options, request, response, ticket)
             {
@@ -470,17 +456,11 @@ namespace AspNet.Security.OpenIdConnect.Server
 
             // Remove the unwanted properties from the authentication ticket.
             ticket.RemoveProperty(OpenIdConnectConstants.Properties.AuthorizationCodeLifetime)
+                  .RemoveProperty(OpenIdConnectConstants.Properties.ClientId)
                   .RemoveProperty(OpenIdConnectConstants.Properties.CodeChallenge)
                   .RemoveProperty(OpenIdConnectConstants.Properties.CodeChallengeMethod)
                   .RemoveProperty(OpenIdConnectConstants.Properties.Nonce)
                   .RemoveProperty(OpenIdConnectConstants.Properties.RedirectUri);
-
-            // By default, add the client_id to the list of the
-            // presenters allowed to use the refresh token.
-            if (!string.IsNullOrEmpty(request.ClientId))
-            {
-                ticket.SetPresenters(request.ClientId);
-            }
 
             var notification = new SerializeRefreshTokenContext(Context, Options, request, response, ticket)
             {

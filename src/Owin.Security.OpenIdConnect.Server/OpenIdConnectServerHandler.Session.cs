@@ -147,6 +147,9 @@ namespace Owin.Security.OpenIdConnect.Server
                 });
             }
 
+            // Store the validated post_logout_redirect_uri as a request property.
+            request.SetProperty(OpenIdConnectConstants.Properties.PostLogoutRedirectUri, context.PostLogoutRedirectUri);
+
             Logger.LogInformation("The logout request was successfully validated.");
 
             var notification = new HandleLogoutRequestContext(Context, Options, request);

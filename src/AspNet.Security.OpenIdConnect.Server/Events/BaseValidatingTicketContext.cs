@@ -4,6 +4,7 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
+using System;
 using System.Security.Claims;
 using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.AspNetCore.Authentication;
@@ -35,11 +36,15 @@ namespace AspNet.Security.OpenIdConnect.Server
         /// IsValidated becomes true and HasError becomes false as a result of calling.
         /// </summary>
         /// <param name="ticket">Assigned to the Ticket property</param>
-        /// <returns>True if the validation has taken effect.</returns>
-        public bool Validate(AuthenticationTicket ticket)
+        public void Validate(AuthenticationTicket ticket)
         {
+            if (ticket == null)
+            {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
             Ticket = ticket;
-            return Validate();
+            Validate();
         }
 
         /// <summary>
@@ -47,11 +52,15 @@ namespace AspNet.Security.OpenIdConnect.Server
         /// IsValidated becomes true and HasError becomes false as a result of calling.
         /// </summary>
         /// <param name="principal">Assigned to the Ticket.Principal property</param>
-        /// <returns>True if the validation has taken effect.</returns>
-        public bool Validate(ClaimsPrincipal principal)
+        public void Validate(ClaimsPrincipal principal)
         {
+            if (principal == null)
+            {
+                throw new ArgumentNullException(nameof(principal));
+            }
+
             var properties = Ticket?.Properties ?? new AuthenticationProperties();
-            return Validate(new AuthenticationTicket(principal, properties, Options.AuthenticationScheme));
+            Validate(new AuthenticationTicket(principal, properties, Options.AuthenticationScheme));
         }
     }
 }

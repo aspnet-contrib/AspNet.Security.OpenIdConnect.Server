@@ -4,6 +4,7 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
+using System;
 using System.Security.Claims;
 using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.Owin;
@@ -41,11 +42,15 @@ namespace Owin.Security.OpenIdConnect.Server
         /// IsValidated becomes true and HasError becomes false as a result of calling.
         /// </summary>
         /// <param name="ticket">Assigned to the Ticket property</param>
-        /// <returns>True if the validation has taken effect.</returns>
-        public bool Validate(AuthenticationTicket ticket)
+        public void Validate(AuthenticationTicket ticket)
         {
+            if (ticket == null)
+            {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
             Ticket = ticket;
-            return Validate();
+            base.Validate();
         }
 
         /// <summary>
@@ -53,12 +58,15 @@ namespace Owin.Security.OpenIdConnect.Server
         /// IsValidated becomes true and HasError becomes false as a result of calling.
         /// </summary>
         /// <param name="identity">Assigned to the Ticket.Identity property</param>
-        /// <returns>True if the validation has taken effect.</returns>
-        public bool Validate(ClaimsIdentity identity)
+        public void Validate(ClaimsIdentity identity)
         {
-            var properties = Ticket?.Properties ?? new AuthenticationProperties();
+            if (identity == null)
+            {
+                throw new ArgumentNullException(nameof(identity));
+            }
 
-            return Validate(new AuthenticationTicket(identity, properties));
+            var properties = Ticket?.Properties ?? new AuthenticationProperties();
+            Validate(new AuthenticationTicket(identity, properties));
         }
     }
 }

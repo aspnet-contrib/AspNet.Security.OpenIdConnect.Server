@@ -242,7 +242,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public async Task InvokeIntrospectionEndpointAsync_MissingClientIdCausesAnErrorForValidatedRequests()
+        public async Task InvokeIntrospectionEndpointAsync_ValidateIntrospectionRequest_MissingClientIdCausesAnExceptionForValidatedRequests()
         {
             // Arrange
             var server = CreateAuthorizationServer(options =>
@@ -257,16 +257,48 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
             var client = new OpenIdConnectClient(server.HttpClient);
 
-            // Act
-            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+            // Act and assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate
             {
-                ClientId = null,
-                Token = "2YotnFZFEjr1zCsicMWpAA"
+                return client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+                {
+                    ClientId = null,
+                    Token = "2YotnFZFEjr1zCsicMWpAA"
+                });
             });
 
-            // Assert
-            Assert.Equal(OpenIdConnectConstants.Errors.ServerError, response.Error);
-            Assert.Equal("An internal server error occurred.", response.ErrorDescription);
+            Assert.Equal("The request cannot be validated because no client_id " +
+                         "was specified by the client application.", exception.Message);
+        }
+
+        [Fact]
+        public async Task InvokeIntrospectionEndpointAsync_ValidateIntrospectionRequest_InvalidClientIdCausesAnExceptionForValidatedRequests()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateIntrospectionRequest = context =>
+                {
+                    context.Validate("Contoso");
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act and assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate
+            {
+                return client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+                {
+                    ClientId = "Fabrikam",
+                    Token = "2YotnFZFEjr1zCsicMWpAA"
+                });
+            });
+
+            Assert.Equal("The request cannot be validated because a different " +
+                         "client_id was specified by the client application.", exception.Message);
         }
 
         [Fact]

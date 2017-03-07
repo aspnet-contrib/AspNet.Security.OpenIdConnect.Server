@@ -571,7 +571,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public async Task InvokeAuthorizationEndpointAsync_ValidateAuthorizationRequest_SkippedRequestCausesAnError()
+        public async Task InvokeAuthorizationEndpointAsync_ValidateAuthorizationRequest_SkippedRequestCausesAnException()
         {
             // Arrange
             var server = CreateAuthorizationServer(options =>
@@ -586,17 +586,84 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
             var client = new OpenIdConnectClient(server.HttpClient);
 
-            // Act
-            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest
+            // Act and assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate
             {
-                ClientId = "Fabrikam",
-                RedirectUri = "http://www.fabrikam.com/path",
-                ResponseType = OpenIdConnectConstants.ResponseTypes.Code,
-                Scope = OpenIdConnectConstants.Scopes.OpenId
+                return client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest
+                {
+                    ClientId = "Fabrikam",
+                    RedirectUri = "http://www.fabrikam.com/path",
+                    ResponseType = OpenIdConnectConstants.ResponseTypes.Code,
+                    Scope = OpenIdConnectConstants.Scopes.OpenId
+                });
             });
 
             // Assert
-            Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
+            Assert.Equal("Request validation cannot be skipped.", exception.Message);
+        }
+
+        [Fact]
+        public async Task InvokeAuthorizationEndpointAsync_ValidateAuthorizationRequest_MissingRedirectUriCausesAnException()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateAuthorizationRequest = context =>
+                {
+                    context.Validate();
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act and assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate
+            {
+                return client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest
+                {
+                    ClientId = "Fabrikam",
+                    RedirectUri = null,
+                    ResponseType = OpenIdConnectConstants.ResponseTypes.Code
+                });
+            });
+
+            // Assert
+            Assert.Equal("The authorization request cannot be validated because no " +
+                         "redirect_uri was specified by the client application.", exception.Message);
+        }
+
+        [Fact]
+        public async Task InvokeAuthorizationEndpointAsync_ValidateAuthorizationRequest_InvalidRedirectUriCausesAnException()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateAuthorizationRequest = context =>
+                {
+                    context.Validate("http://www.contoso.com/path");
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act and assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate
+            {
+                return client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest
+                {
+                    ClientId = "Fabrikam",
+                    RedirectUri = "http://www.fabrikam.com/path",
+                    ResponseType = OpenIdConnectConstants.ResponseTypes.Code
+                });
+            });
+
+            // Assert
+            Assert.Equal("The authorization request cannot be validated because a different " +
+                         "redirect_uri was specified by the client application.", exception.Message);
         }
 
         [Theory]

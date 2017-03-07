@@ -315,7 +315,7 @@ namespace Owin.Security.OpenIdConnect.Server
 
             if (request.IsAuthorizationRequest())
             {
-                response.RedirectUri = request.RedirectUri;
+                response.RedirectUri = request.GetProperty<string>(OpenIdConnectConstants.Properties.RedirectUri);
                 response.State = request.State;
             }
 
@@ -339,6 +339,14 @@ namespace Owin.Security.OpenIdConnect.Server
             if (ticket.HasAudience() && !ticket.HasResource())
             {
                 ticket.SetResources(ticket.GetAudiences());
+            }
+
+            // Add the validated client_id to the list of authorized presenters,
+            // unless the presenters were explicitly set by the developer.
+            var presenter = request.GetProperty<string>(OpenIdConnectConstants.Properties.ClientId);
+            if (!string.IsNullOrEmpty(presenter) && !ticket.HasPresenter())
+            {
+                ticket.SetPresenters(presenter);
             }
 
             // Only return an authorization code if the request is an authorization request and has response_type=code.
@@ -472,7 +480,7 @@ namespace Owin.Security.OpenIdConnect.Server
             // Prepare a new a OpenID Connect response.
             response = new OpenIdConnectResponse
             {
-                PostLogoutRedirectUri = request.PostLogoutRedirectUri,
+                PostLogoutRedirectUri = request.GetProperty<string>(OpenIdConnectConstants.Properties.PostLogoutRedirectUri),
                 State = request.State
             };
 
@@ -518,7 +526,7 @@ namespace Owin.Security.OpenIdConnect.Server
             // redirect_uri and the state to the OpenID Connect response.
             if (request.IsAuthorizationRequest())
             {
-                response.RedirectUri = request.RedirectUri;
+                response.RedirectUri = request.GetProperty<string>(OpenIdConnectConstants.Properties.RedirectUri);
                 response.State = request.State;
             }
 

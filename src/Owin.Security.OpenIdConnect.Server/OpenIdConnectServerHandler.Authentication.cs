@@ -115,6 +115,9 @@ namespace Owin.Security.OpenIdConnect.Server
                 });
             }
 
+            // Store the original redirect_uri sent by the client application for later comparison.
+            request.SetProperty(OpenIdConnectConstants.Properties.OriginalRedirectUri, request.RedirectUri);
+
             Logger.LogInformation("The authorization request was successfully extracted " +
                                   "from the HTTP request: {Request}", request);
 
@@ -347,6 +350,10 @@ namespace Owin.Security.OpenIdConnect.Server
             }
 
             Logger.LogInformation("The authorization request was successfully validated.");
+
+            // Store the validated client_id/redirect_uri as request properties.
+            request.SetProperty(OpenIdConnectConstants.Properties.ClientId, context.ClientId)
+                   .SetProperty(OpenIdConnectConstants.Properties.RedirectUri, context.RedirectUri);
 
             var notification = new HandleAuthorizationRequestContext(Context, Options, request);
             await Options.Provider.HandleAuthorizationRequest(notification);

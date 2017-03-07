@@ -27,62 +27,71 @@ namespace AspNet.Security.OpenIdConnect.Server
             OpenIdConnectRequest request)
             : base(context, options, request)
         {
+            RedirectUri = request.RedirectUri;
         }
 
         /// <summary>
-        /// Gets the client identifier.
+        /// Gets the client_id specified by the client application.
         /// </summary>
         public string ClientId => Request.ClientId;
 
         /// <summary>
-        /// Gets the client redirect URI
+        /// Gets the redirect_uri specified by the client application.
+        /// If it's not provided by the client, it must be set by
+        /// the user code by calling <see cref="Validate(string)"/>.
         /// </summary>
-        public string RedirectUri
+        public string RedirectUri { get; private set; }
+
+        /// <summary>
+        /// Marks the context as skipped by the application.
+        /// </summary>
+        public override void Skip()
         {
-            get { return Request.RedirectUri; }
-            set { Request.RedirectUri = value; }
+            throw new InvalidOperationException("Request validation cannot be skipped.");
         }
 
         /// <summary>
         /// Marks this context as validated by the application.
         /// IsValidated becomes true and HasError becomes false as a result of calling.
-        /// </summary>
-        /// <returns></returns>
-        public override bool Validate()
+        /// </summary>>
+        public override void Validate()
         {
-            if (string.IsNullOrEmpty(RedirectUri))
+            // Don't allow default validation when the redirect_uri
+            // is not explicitly provided by the client application.
+            if (string.IsNullOrEmpty(Request.RedirectUri))
             {
-                // Don't allow default validation when
-                // the redirect_uri is not provided.
-                return false;
+                throw new InvalidOperationException(
+                    "The authorization request cannot be validated because no " +
+                    "redirect_uri was specified by the client application.");
             }
 
-            return base.Validate();
+            base.Validate();
         }
 
         /// <summary>
         /// Checks the redirect URI to determine whether it equals <see cref="RedirectUri"/>.
         /// </summary>
         /// <param name="address"></param>
-        /// <returns></returns>
-        public bool Validate(string address)
+        public void Validate(string address)
         {
             if (string.IsNullOrEmpty(address))
             {
                 throw new ArgumentException("The redirect_uri cannot be null or empty.", nameof(address));
             }
 
-            if (!string.IsNullOrEmpty(RedirectUri) &&
-                !string.Equals(RedirectUri, address, StringComparison.Ordinal))
+            // Don't allow validation to alter the redirect_uri parameter extracted
+            // from the request if the address was explicitly provided by the client.
+            if (!string.IsNullOrEmpty(Request.RedirectUri) &&
+                !string.Equals(Request.RedirectUri, address, StringComparison.Ordinal))
             {
-                // Don't allow validation to alter the redirect_uri
-                // parameter extracted from the request.
-                return false;
+                throw new InvalidOperationException(
+                    "The authorization request cannot be validated because a different " +
+                    "redirect_uri was specified by the client application.");
             }
 
             RedirectUri = address;
 
-            return Validate();
+            base.Validate();
         }
     }
 }

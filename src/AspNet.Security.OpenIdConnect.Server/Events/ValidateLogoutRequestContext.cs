@@ -34,57 +34,49 @@ namespace AspNet.Security.OpenIdConnect.Server
             {
                 Skip();
             }
+
+            PostLogoutRedirectUri = request.PostLogoutRedirectUri;
         }
 
         /// <summary>
-        /// Gets the post logout redirect URI.
+        /// Gets the post_logout_redirect_uri specified by the client application.
         /// </summary>
-        public string PostLogoutRedirectUri
-        {
-            get { return Request.PostLogoutRedirectUri; }
-            set { Request.PostLogoutRedirectUri = value; }
-        }
+        public string PostLogoutRedirectUri { get; private set; }
 
         /// <summary>
-        /// Marks this context as validated by the application.
-        /// IsValidated becomes true and HasError becomes false as a result of calling.
+        /// Marks the context as skipped by the application.
         /// </summary>
-        /// <returns></returns>
-        public override bool Validate()
+        public override void Skip()
         {
-            if (string.IsNullOrEmpty(PostLogoutRedirectUri))
-            {
-                // Don't allow default validation when
-                // the redirect_uri is not provided.
-                return false;
-            }
+            PostLogoutRedirectUri = null;
 
-            return base.Validate();
+            base.Skip();
         }
 
         /// <summary>
         /// Checks the redirect URI to determine whether it equals <see cref="PostLogoutRedirectUri"/>.
         /// </summary>
         /// <param name="address"></param>
-        /// <returns></returns>
-        public bool Validate(string address)
+        public void Validate(string address)
         {
-            if (address == null)
+            if (string.IsNullOrEmpty(address))
             {
                 throw new ArgumentException("The post_logout_redirect_uri cannot be null or empty.", nameof(address));
             }
 
-            if (!string.IsNullOrEmpty(PostLogoutRedirectUri) &&
-                !string.Equals(PostLogoutRedirectUri, address, StringComparison.Ordinal))
+            // Don't allow validation to alter the post_logout_redirect_uri parameter extracted
+            // from the request if the address was explicitly provided by the client application.
+            if (!string.IsNullOrEmpty(Request.PostLogoutRedirectUri) &&
+                !string.Equals(Request.PostLogoutRedirectUri, address, StringComparison.Ordinal))
             {
-                // Don't allow validation to alter the redirect_uri
-                // parameter extracted from the request.
-                return false;
+                throw new InvalidOperationException(
+                    "The end session request cannot be validated because a different " +
+                    "post_logout_redirect_uri was specified by the client application.");
             }
 
             PostLogoutRedirectUri = address;
 
-            return Validate();
+            base.Validate();
         }
     }
 }

@@ -132,6 +132,65 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
+        public async Task SerializeAuthorizationCodeAsync_ParametersAreCopiedToAuthorizationCode()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnSerializeAuthorizationCode = context =>
+                {
+                    // Assert
+                    Assert.Equal("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+                        context.Ticket.GetProperty(OpenIdConnectConstants.Properties.CodeChallenge));
+
+                    Assert.Equal(OpenIdConnectConstants.CodeChallengeMethods.Sha256,
+                        context.Ticket.GetProperty(OpenIdConnectConstants.Properties.CodeChallengeMethod));
+
+                    Assert.Equal("n-0S6_WzA2Mj", context.Ticket.GetProperty(OpenIdConnectConstants.Properties.Nonce));
+
+                    Assert.Equal("http://www.fabrikam.com/path",
+                        context.Ticket.GetProperty(OpenIdConnectConstants.Properties.RedirectUri));
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnValidateAuthorizationRequest = context =>
+                {
+                    context.Validate();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnHandleAuthorizationRequest = context =>
+                {
+                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
+
+                    context.Validate(new ClaimsPrincipal(identity));
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest
+            {
+                ClientId = "Fabrikam",
+                CodeChallenge = "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+                CodeChallengeMethod = OpenIdConnectConstants.CodeChallengeMethods.Sha256,
+                Nonce = "n-0S6_WzA2Mj",
+                RedirectUri = "http://www.fabrikam.com/path",
+                ResponseType = OpenIdConnectConstants.ResponseTypes.Code,
+                State = "af0ifjsldkj"
+            });
+
+            // Assert
+            Assert.NotNull(response.Code);
+        }
+
+        [Fact]
         public async Task SerializeAuthorizationCodeAsync_BasicPropertiesAreAutomaticallyAdded()
         {
             // Arrange

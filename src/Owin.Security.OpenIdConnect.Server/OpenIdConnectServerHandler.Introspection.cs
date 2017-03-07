@@ -195,17 +195,8 @@ namespace Owin.Security.OpenIdConnect.Server
                 });
             }
 
-            // Ensure that the client_id has been set from the ValidateIntrospectionRequest event.
-            else if (context.IsValidated && string.IsNullOrEmpty(request.ClientId))
-            {
-                Logger.LogError("The introspection request was validated but the client_id was not set.");
-
-                return await SendIntrospectionResponseAsync(new OpenIdConnectResponse
-                {
-                    Error = OpenIdConnectConstants.Errors.ServerError,
-                    ErrorDescription = "An internal server error occurred."
-                });
-            }
+            // Store the validated client_id as a request property.
+            request.SetProperty(OpenIdConnectConstants.Properties.ClientId, context.ClientId);
 
             Logger.LogInformation("The introspection request was successfully validated.");
 
@@ -281,9 +272,9 @@ namespace Owin.Security.OpenIdConnect.Server
 
             // When a client_id can be inferred from the introspection request,
             // ensure that the client application is a valid audience/presenter.
-            if (!string.IsNullOrEmpty(request.ClientId))
+            if (!string.IsNullOrEmpty(context.ClientId))
             {
-                if (ticket.IsAuthorizationCode() && ticket.HasPresenter() && !ticket.HasPresenter(request.ClientId))
+                if (ticket.IsAuthorizationCode() && ticket.HasPresenter() && !ticket.HasPresenter(context.ClientId))
                 {
                     Logger.LogError("The introspection request was rejected because the " +
                                     "authorization code was issued to a different client.");
@@ -295,8 +286,8 @@ namespace Owin.Security.OpenIdConnect.Server
                 }
 
                 // Ensure the caller is listed as a valid audience or authorized presenter.
-                else if (ticket.IsAccessToken() && ticket.HasAudience() && !ticket.HasAudience(request.ClientId) &&
-                                                   ticket.HasPresenter() && !ticket.HasPresenter(request.ClientId))
+                else if (ticket.IsAccessToken() && ticket.HasAudience() && !ticket.HasAudience(context.ClientId) &&
+                                                   ticket.HasPresenter() && !ticket.HasPresenter(context.ClientId))
                 {
                     Logger.LogError("The introspection request was rejected because the access token " +
                                     "was issued to a different client or for another resource server.");
@@ -308,7 +299,7 @@ namespace Owin.Security.OpenIdConnect.Server
                 }
 
                 // Reject the request if the caller is not listed as a valid audience.
-                else if (ticket.IsIdentityToken() && ticket.HasAudience() && !ticket.HasAudience(request.ClientId))
+                else if (ticket.IsIdentityToken() && ticket.HasAudience() && !ticket.HasAudience(context.ClientId))
                 {
                     Logger.LogError("The introspection request was rejected because the " +
                                     "identity token was issued to a different client.");
@@ -321,7 +312,7 @@ namespace Owin.Security.OpenIdConnect.Server
 
                 // Reject the introspection request if the caller doesn't
                 // correspond to the client application the token was issued to.
-                else if (ticket.IsRefreshToken() && ticket.HasPresenter() && !ticket.HasPresenter(request.ClientId))
+                else if (ticket.IsRefreshToken() && ticket.HasPresenter() && !ticket.HasPresenter(context.ClientId))
                 {
                     Logger.LogError("The introspection request was rejected because the " +
                                     "refresh token was issued to a different client.");
@@ -358,7 +349,7 @@ namespace Owin.Security.OpenIdConnect.Server
 
             // Note: non-metadata claims are only added if the caller is authenticated
             // AND is in the specified audiences, unless there's so explicit audience.
-            if (!ticket.HasAudience() || (!string.IsNullOrEmpty(request.ClientId) && ticket.HasAudience(request.ClientId)))
+            if (!ticket.HasAudience() || (!string.IsNullOrEmpty(context.ClientId) && ticket.HasAudience(context.ClientId)))
             {
                 notification.Username = ticket.Identity.Name;
                 notification.Scopes.UnionWith(ticket.GetScopes());

@@ -291,15 +291,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             // Ensure the "sub" claim has been correctly populated.
             if (string.IsNullOrEmpty(notification.Subject))
             {
-                Logger.LogError("The mandatory 'sub' claim was missing from the userinfo response.");
-
-                Response.StatusCode = 500;
-
-                return await SendUserinfoResponseAsync(new OpenIdConnectResponse
-                {
-                    Error = OpenIdConnectConstants.Errors.ServerError,
-                    ErrorDescription = "The mandatory 'sub' claim was missing."
-                });
+                throw new InvalidOperationException("The subject claim cannot be null or empty.");
             }
 
             var response = new OpenIdConnectResponse

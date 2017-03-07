@@ -80,39 +80,31 @@ namespace Owin.Security.OpenIdConnect.Server
         /// <summary>
         /// Marks the context as skipped by the application.
         /// </summary>
-        /// <returns></returns>
-        public virtual bool Skip()
+        public virtual void Skip()
         {
             IsSkipped = true;
             IsRejected = false;
             IsValidated = false;
-
-            return true;
         }
 
         /// <summary>
         /// Marks this context as validated by the application.
         /// </summary>
-        /// <returns>True if the validation has taken effect.</returns>
-        public virtual bool Validate()
+        public virtual void Validate()
         {
             IsSkipped = false;
             IsValidated = true;
             IsRejected = false;
-
-            return true;
         }
 
         /// <summary>
         /// Marks this context as not validated by the application.
         /// </summary>
-        public virtual bool Reject()
+        public virtual void Reject()
         {
             IsSkipped = false;
             IsRejected = true;
             IsValidated = false;
-
-            return true;
         }
 
         /// <summary>
@@ -120,11 +112,11 @@ namespace Owin.Security.OpenIdConnect.Server
         /// and assigns various error information properties.
         /// </summary>
         /// <param name="error">Assigned to the <see cref="Error"/> property.</param>
-        public virtual bool Reject(string error)
+        public virtual void Reject(string error)
         {
             Error = error;
 
-            return Reject();
+            Reject();
         }
 
         /// <summary>
@@ -133,12 +125,12 @@ namespace Owin.Security.OpenIdConnect.Server
         /// </summary>
         /// <param name="error">Assigned to the <see cref="Error"/> property.</param>
         /// <param name="description">Assigned to the <see cref="ErrorDescription"/> property.</param>
-        public virtual bool Reject(string error, string description)
+        public virtual void Reject(string error, string description)
         {
             Error = error;
             ErrorDescription = description;
 
-            return Reject();
+            Reject();
         }
 
         /// <summary>
@@ -148,13 +140,13 @@ namespace Owin.Security.OpenIdConnect.Server
         /// <param name="error">Assigned to the <see cref="Error"/> property</param>
         /// <param name="description">Assigned to the <see cref="ErrorDescription"/> property</param>
         /// <param name="uri">Assigned to the <see cref="ErrorUri"/> property</param>
-        public virtual bool Reject(string error, string description, string uri)
+        public virtual void Reject(string error, string description, string uri)
         {
             Error = error;
             ErrorDescription = description;
             ErrorUri = uri;
 
-            return Reject();
+            Reject();
         }
     }
 }

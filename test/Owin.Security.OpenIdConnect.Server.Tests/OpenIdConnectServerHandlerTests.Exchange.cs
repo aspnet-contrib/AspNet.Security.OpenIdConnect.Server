@@ -359,7 +359,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public async Task InvokeTokenEndpointAsync_MissingClientIdCausesAnErrorForValidatedRequests()
+        public async Task InvokeTokenEndpointAsync_ValidateTokenRequest_MissingClientIdCausesAnExceptionForValidatedRequests()
         {
             // Arrange
             var server = CreateAuthorizationServer(options =>
@@ -374,21 +374,54 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
             var client = new OpenIdConnectClient(server.HttpClient);
 
-            // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            // Act and assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate
             {
-                ClientId = null,
-                Code = "SplxlOBeZQQYbYS6WxSbIA",
-                GrantType = OpenIdConnectConstants.GrantTypes.AuthorizationCode
+                return client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+                {
+                    ClientId = null,
+                    Code = "SplxlOBeZQQYbYS6WxSbIA",
+                    GrantType = OpenIdConnectConstants.GrantTypes.AuthorizationCode
+                });
             });
 
-            // Assert
-            Assert.Equal(OpenIdConnectConstants.Errors.ServerError, response.Error);
-            Assert.Equal("An internal server error occurred.", response.ErrorDescription);
+            Assert.Equal("The request cannot be validated because no client_id " +
+                         "was specified by the client application.", exception.Message);
         }
 
         [Fact]
-        public async Task InvokeTokenEndpointAsync_MissingClientIdCausesAnErrorForCodeFlowRequests()
+        public async Task InvokeTokenEndpointAsync_ValidateTokenRequest_InvalidClientIdCausesAnExceptionForValidatedRequests()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
+                    context.Validate("Consoto");
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act and assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate
+            {
+                return client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+                {
+                    ClientId = "Fabrikam",
+                    Code = "SplxlOBeZQQYbYS6WxSbIA",
+                    GrantType = OpenIdConnectConstants.GrantTypes.AuthorizationCode
+                });
+            });
+
+            Assert.Equal("The request cannot be validated because a different " +
+                         "client_id was specified by the client application.", exception.Message);
+        }
+
+        [Fact]
+        public async Task InvokeTokenEndpointAsync_ValidateTokenRequest_MissingClientIdCausesAnErrorForCodeFlowRequests()
         {
             // Arrange
             var server = CreateAuthorizationServer(options =>
@@ -628,17 +661,18 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
             var client = new OpenIdConnectClient(server.HttpClient);
 
-            // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            // Act and assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate
             {
-                ClientId = "Fabrikam",
-                Code = "SplxlOBeZQQYbYS6WxSbIA",
-                GrantType = OpenIdConnectConstants.GrantTypes.AuthorizationCode
+                return client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+                {
+                    ClientId = "Fabrikam",
+                    Code = "SplxlOBeZQQYbYS6WxSbIA",
+                    GrantType = OpenIdConnectConstants.GrantTypes.AuthorizationCode
+                });
             });
 
-            // Assert
-            Assert.Equal(OpenIdConnectConstants.Errors.ServerError, response.Error);
-            Assert.Equal("An internal server error occurred.", response.ErrorDescription);
+            Assert.Equal("The presenters list cannot be extracted from the authorization code.", exception.Message);
         }
 
         [Fact]

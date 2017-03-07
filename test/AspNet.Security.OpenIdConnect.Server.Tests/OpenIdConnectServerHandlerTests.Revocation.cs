@@ -4,6 +4,7 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
+using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Client;
@@ -240,7 +241,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public async Task InvokeRevocationEndpointAsync_MissingClientIdCausesAnErrorForValidatedRequests()
+        public async Task InvokeRevocationEndpointAsync_ValidateRevocationRequest_MissingClientIdCausesAnExceptionForValidatedRequests()
         {
             // Arrange
             var server = CreateAuthorizationServer(options =>
@@ -255,20 +256,52 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             var client = new OpenIdConnectClient(server.CreateClient());
 
-            // Act
-            var response = await client.PostAsync(RevocationEndpoint, new OpenIdConnectRequest
+            // Act and assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate
             {
-                ClientId = null,
-                Token = "2YotnFZFEjr1zCsicMWpAA"
+                return client.PostAsync(RevocationEndpoint, new OpenIdConnectRequest
+                {
+                    ClientId = null,
+                    Token = "2YotnFZFEjr1zCsicMWpAA"
+                });
             });
 
-            // Assert
-            Assert.Equal(OpenIdConnectConstants.Errors.ServerError, response.Error);
-            Assert.Equal("An internal server error occurred.", response.ErrorDescription);
+            Assert.Equal("The request cannot be validated because no client_id " +
+                         "was specified by the client application.", exception.Message);
         }
 
         [Fact]
-        public async Task InvokeRevocationEndpointAsync_ConfidentialTokenCausesAnErrorWhenValidationIsSkipped()
+        public async Task InvokeRevocationEndpointAsync_ValidateRevocationRequest_InvalidClientIdCausesAnExceptionForValidatedRequests()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateRevocationRequest = context =>
+                {
+                    context.Validate("Contoso");
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act and assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate
+            {
+                return client.PostAsync(RevocationEndpoint, new OpenIdConnectRequest
+                {
+                    ClientId = "Fabrikam",
+                    Token = "2YotnFZFEjr1zCsicMWpAA"
+                });
+            });
+
+            Assert.Equal("The request cannot be validated because a different " +
+                         "client_id was specified by the client application.", exception.Message);
+        }
+
+        [Fact]
+        public async Task InvokeRevocationEndpointAsync_ValidateRevocationRequest_ConfidentialTokenCausesAnErrorWhenValidationIsSkipped()
         {
             // Arrange
             var server = CreateAuthorizationServer(options =>

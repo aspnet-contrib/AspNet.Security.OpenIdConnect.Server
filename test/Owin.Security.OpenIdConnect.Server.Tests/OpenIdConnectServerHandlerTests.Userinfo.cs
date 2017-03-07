@@ -289,6 +289,38 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
+        public async Task InvokeUserinfoEndpointAsync_MissingSubjectClaimCausesAnException()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAccessToken = context =>
+                {
+                    Assert.Equal("SlAV32hkKG", context.AccessToken);
+
+                    context.Ticket = new AuthenticationTicket(
+                        new ClaimsIdentity(context.Options.AuthenticationType),
+                        new AuthenticationProperties());
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act and assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate
+            {
+                return client.PostAsync(UserinfoEndpoint, new OpenIdConnectRequest
+                {
+                    AccessToken = "SlAV32hkKG"
+                });
+            });
+
+            Assert.Equal("The subject claim cannot be null or empty.", exception.Message);
+        }
+
+        [Fact]
         public async Task InvokeUserinfoEndpointAsync_BasicClaimsAreCorrectlyReturned()
         {
             // Arrange
