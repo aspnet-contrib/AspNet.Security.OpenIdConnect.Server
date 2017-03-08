@@ -19,6 +19,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         [InlineData("fabrikam     contoso", new[] { "fabrikam", "contoso" })]
         [InlineData("fabrikam contoso ", new[] { "fabrikam", "contoso" })]
         [InlineData(" fabrikam contoso", new[] { "fabrikam", "contoso" })]
+        [InlineData("fabrikam fabrikam contoso", new[] { "fabrikam", "contoso" })]
+        [InlineData("fabrikam FABRIKAM contoso", new[] { "fabrikam", "FABRIKAM", "contoso" })]
         public void GetResources_ReturnsExpectedResources(string resource, string[] resources)
         {
             // Arrange
@@ -38,6 +40,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         [InlineData("openid     profile", new[] { "openid", "profile" })]
         [InlineData("openid profile ", new[] { "openid", "profile" })]
         [InlineData(" openid profile", new[] { "openid", "profile" })]
+        [InlineData("openid openid profile", new[] { "openid", "profile" })]
+        [InlineData("openid OPENID profile", new[] { "openid", "OPENID", "profile" })]
         public void GetScopes_ReturnsExpectedScopes(string scope, string[] scopes)
         {
             // Arrange

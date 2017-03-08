@@ -465,11 +465,11 @@ namespace AspNet.Security.OpenIdConnect.Primitives
                         case OpenIdConnectConstants.Parameters.Password:
                         case OpenIdConnectConstants.Parameters.RefreshToken:
                         case OpenIdConnectConstants.Parameters.Token:
-                            {
-                                writer.WriteValue("[removed for security reasons]");
+                        {
+                            writer.WriteValue("[removed for security reasons]");
 
-                                continue;
-                            }
+                            continue;
+                        }
                     }
 
                     var token = (JToken) parameter.Value;

@@ -35,7 +35,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives
                 return Enumerable.Empty<string>();
             }
 
-            return GetValues(request.Resource, OpenIdConnectConstants.Separators.Space);
+            return GetValues(request.Resource, OpenIdConnectConstants.Separators.Space).Distinct(StringComparer.Ordinal);
         }
 
         /// <summary>
@@ -54,7 +54,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives
                 return Enumerable.Empty<string>();
             }
 
-            return GetValues(request.Scope, OpenIdConnectConstants.Separators.Space);
+            return GetValues(request.Scope, OpenIdConnectConstants.Separators.Space).Distinct(StringComparer.Ordinal);
         }
 
         /// <summary>
