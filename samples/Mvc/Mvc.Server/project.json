@@ -18,8 +18,8 @@
   },
 
   "dependencies": {
-    "AspNet.Security.OAuth.Introspection": "1.0.0-*",
-    "AspNet.Security.OAuth.Validation": "1.0.0-*",
+    "AspNet.Security.OAuth.Introspection": "1.0.0-beta1-final",
+    "AspNet.Security.OAuth.Validation": "1.0.0-beta1-final",
     "AspNet.Security.OpenIdConnect.Server": { "target": "project" },
     "Microsoft.AspNetCore.Authentication.Cookies": "1.0.0",
     "Microsoft.AspNetCore.Authentication.Google": "1.0.0",

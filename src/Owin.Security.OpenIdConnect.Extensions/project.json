@@ -1,5 +1,5 @@
 ﻿{
-  "version": "1.0.0-rc1-*",
+  "version": "1.0.0-rc1-final",
 
   "description": "OpenID Connect extensions for the OpenID Connect server middleware.",
   "authors": [ "Kévin Chalet" ],
