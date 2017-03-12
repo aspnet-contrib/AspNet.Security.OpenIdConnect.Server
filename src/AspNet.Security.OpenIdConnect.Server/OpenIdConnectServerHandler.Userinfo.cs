@@ -31,36 +31,32 @@ namespace AspNet.Security.OpenIdConnect.Server
 
             else if (string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase))
             {
-                // See http://openid.net/specs/openid-connect-core-1_0.html#FormSerialization
-                if (string.IsNullOrWhiteSpace(Request.ContentType))
+                // Note: if no Content-Type header was specified, assume the userinfo request
+                // doesn't contain any parameter and create an empty OpenIdConnectRequest.
+                if (string.IsNullOrEmpty(Request.ContentType))
                 {
-                    Logger.LogError("The userinfo request was rejected because " +
-                                    "the mandatory 'Content-Type' header was missing.");
-
-                    return await SendUserinfoResponseAsync(new OpenIdConnectResponse
-                    {
-                        Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                        ErrorDescription = "A malformed userinfo request has been received: " +
-                            "the mandatory 'Content-Type' header was missing from the POST request."
-                    });
+                    request = new OpenIdConnectRequest();
                 }
 
-                // May have media/type; charset=utf-8, allow partial match.
-                if (!Request.ContentType.StartsWith("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase))
+                else
                 {
-                    Logger.LogError("The userinfo request was rejected because an invalid 'Content-Type' " +
-                                    "header was received: {ContentType}.", Request.ContentType);
-
-                    return await SendUserinfoResponseAsync(new OpenIdConnectResponse
+                    // May have media/type; charset=utf-8, allow partial match.
+                    if (!Request.ContentType.StartsWith("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase))
                     {
-                        Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                        ErrorDescription = "A malformed userinfo request has been received: " +
-                            "the 'Content-Type' header contained an unexcepted value. " +
-                            "Make sure to use 'application/x-www-form-urlencoded'."
-                    });
-                }
+                        Logger.LogError("The userinfo request was rejected because an invalid 'Content-Type' " +
+                                        "header was received: {ContentType}.", Request.ContentType);
 
-                request = new OpenIdConnectRequest(await Request.ReadFormAsync(Context.RequestAborted));
+                        return await SendUserinfoResponseAsync(new OpenIdConnectResponse
+                        {
+                            Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                            ErrorDescription = "A malformed userinfo request has been received: " +
+                                "the 'Content-Type' header contained an unexcepted value. " +
+                                "Make sure to use 'application/x-www-form-urlencoded'."
+                        });
+                    }
+
+                    request = new OpenIdConnectRequest(await Request.ReadFormAsync());
+                }
             }
 
             else
