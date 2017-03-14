@@ -18,9 +18,6 @@ app.UseOpenIdConnectServer(options =>
     // Enable the token endpoint.
     options.TokenEndpointPath = "/connect/token";
 
-    // Register the certificate used to sign the identity tokens.
-    options.SigningCredentials.AddCertificate("7D2A741FE34CC2C7369237A5F2078988E17A6A75");
-
     // Implement OnValidateTokenRequest to support flows using the token endpoint.
     options.Provider.OnValidateTokenRequest = context =>
     {
@@ -78,8 +75,12 @@ app.UseOpenIdConnectServer(options =>
                 return Task.FromResult(0);
             }
 
-            var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
-            identity.AddClaim(ClaimTypes.NameIdentifier, "[unique id]");
+            var identity = new ClaimsIdentity(context.Options.AuthenticationScheme,
+                OpenIdConnectConstants.Claims.Name,
+                OpenIdConnectConstants.Claims.Role);
+
+            // Add the mandatory subject/user identifier claim.
+            identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "[unique id]");
 
             // By default, claims are not serialized in the access/identity tokens.
             // Use the overload taking a "destinations" parameter to make sure
