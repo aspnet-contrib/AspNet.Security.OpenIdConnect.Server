@@ -105,7 +105,10 @@ namespace AspNet.Security.OpenIdConnect.Primitives
             public const string InvalidClient = "invalid_client";
             public const string InvalidGrant = "invalid_grant";
             public const string InvalidRequest = "invalid_request";
+            public const string InvalidRequestObject = "invalid_request_object";
+            public const string InvalidRequestUri = "invalid_request_uri";
             public const string LoginRequired = "login_required";
+            public const string RegistrationNotSupported = "registration_not_supported";
             public const string RequestNotSupported = "request_not_supported";
             public const string RequestUriNotSupported = "request_uri_not_supported";
             public const string ServerError = "server_error";
