@@ -16,85 +16,99 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         {
             get
             {
-                yield return new object[] {
+                yield return new object[]
+                {
                     /* property: */ nameof(OpenIdConnectResponse.AccessToken),
                     /* name: */ OpenIdConnectConstants.Parameters.AccessToken,
                     /* value: */ new OpenIdConnectParameter("802A3E3E-DCCA-4EFC-89FA-7D82FE8C27E4")
                 };
 
-                yield return new object[] {
+                yield return new object[]
+                {
                     /* property: */ nameof(OpenIdConnectResponse.Code),
                     /* name: */ OpenIdConnectConstants.Parameters.Code,
                     /* value: */ new OpenIdConnectParameter("802A3E3E-DCCA-4EFC-89FA-7D82FE8C27E4")
                 };
 
-                yield return new object[] {
+                yield return new object[]
+                {
                     /* property: */ nameof(OpenIdConnectResponse.Error),
                     /* name: */ OpenIdConnectConstants.Parameters.Error,
                     /* value: */ new OpenIdConnectParameter("802A3E3E-DCCA-4EFC-89FA-7D82FE8C27E4")
                 };
 
-                yield return new object[] {
+                yield return new object[]
+                {
                     /* property: */ nameof(OpenIdConnectResponse.ErrorDescription),
                     /* name: */ OpenIdConnectConstants.Parameters.ErrorDescription,
                     /* value: */ new OpenIdConnectParameter("802A3E3E-DCCA-4EFC-89FA-7D82FE8C27E4")
                 };
 
-                yield return new object[] {
+                yield return new object[]
+                {
                     /* property: */ nameof(OpenIdConnectResponse.ErrorUri),
                     /* name: */ OpenIdConnectConstants.Parameters.ErrorUri,
                     /* value: */ new OpenIdConnectParameter("802A3E3E-DCCA-4EFC-89FA-7D82FE8C27E4")
                 };
 
-                yield return new object[] {
+                yield return new object[]
+                {
                     /* property: */ nameof(OpenIdConnectResponse.ExpiresIn),
                     /* name: */ OpenIdConnectConstants.Parameters.ExpiresIn,
                     /* value: */ new OpenIdConnectParameter((long?) 42)
                 };
 
-                yield return new object[] {
+                yield return new object[]
+                {
                     /* property: */ nameof(OpenIdConnectResponse.IdToken),
                     /* name: */ OpenIdConnectConstants.Parameters.IdToken,
                     /* value: */ new OpenIdConnectParameter("802A3E3E-DCCA-4EFC-89FA-7D82FE8C27E4")
                 };
 
-                yield return new object[] {
+                yield return new object[]
+                {
                     /* property: */ nameof(OpenIdConnectResponse.PostLogoutRedirectUri),
                     /* name: */ OpenIdConnectConstants.Parameters.PostLogoutRedirectUri,
                     /* value: */ new OpenIdConnectParameter("802A3E3E-DCCA-4EFC-89FA-7D82FE8C27E4")
                 };
 
-                yield return new object[] {
+                yield return new object[]
+                {
                     /* property: */ nameof(OpenIdConnectResponse.RedirectUri),
                     /* name: */ OpenIdConnectConstants.Parameters.RedirectUri,
                     /* value: */ new OpenIdConnectParameter("802A3E3E-DCCA-4EFC-89FA-7D82FE8C27E4")
                 };
 
-                yield return new object[] {
+                yield return new object[]
+                {
                     /* property: */ nameof(OpenIdConnectResponse.RefreshToken),
                     /* name: */ OpenIdConnectConstants.Parameters.RefreshToken,
                     /* value: */ new OpenIdConnectParameter("802A3E3E-DCCA-4EFC-89FA-7D82FE8C27E4")
                 };
 
-                yield return new object[] {
+                yield return new object[]
+                {
                     /* property: */ nameof(OpenIdConnectResponse.Resource),
                     /* name: */ OpenIdConnectConstants.Parameters.Resource,
                     /* value: */ new OpenIdConnectParameter("802A3E3E-DCCA-4EFC-89FA-7D82FE8C27E4")
                 };
 
-                yield return new object[] {
+                yield return new object[]
+                {
                     /* property: */ nameof(OpenIdConnectResponse.Scope),
                     /* name: */ OpenIdConnectConstants.Parameters.Scope,
                     /* value: */ new OpenIdConnectParameter("802A3E3E-DCCA-4EFC-89FA-7D82FE8C27E4")
                 };
 
-                yield return new object[] {
+                yield return new object[]
+                {
                     /* property: */ nameof(OpenIdConnectResponse.State),
                     /* name: */ OpenIdConnectConstants.Parameters.State,
                     /* value: */ new OpenIdConnectParameter("802A3E3E-DCCA-4EFC-89FA-7D82FE8C27E4")
                 };
 
-                yield return new object[] {
+                yield return new object[]
+                {
                     /* property: */ nameof(OpenIdConnectResponse.TokenType),
                     /* name: */ OpenIdConnectConstants.Parameters.TokenType,
                     /* value: */ new OpenIdConnectParameter("802A3E3E-DCCA-4EFC-89FA-7D82FE8C27E4")

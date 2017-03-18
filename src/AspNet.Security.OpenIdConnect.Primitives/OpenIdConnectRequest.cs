@@ -76,12 +76,39 @@ namespace AspNet.Security.OpenIdConnect.Primitives
         }
 
         /// <summary>
+        /// Gets or sets the "acr_values" parameter.
+        /// </summary>
+        public string AcrValues
+        {
+            get { return (string) GetParameter(OpenIdConnectConstants.Parameters.AcrValues); }
+            set { SetParameter(OpenIdConnectConstants.Parameters.AcrValues, value); }
+        }
+
+        /// <summary>
         /// Gets or sets the "assertion" parameter.
         /// </summary>
         public string Assertion
         {
             get { return (string) GetParameter(OpenIdConnectConstants.Parameters.Assertion); }
             set { SetParameter(OpenIdConnectConstants.Parameters.Assertion, value); }
+        }
+
+        /// <summary>
+        /// Gets or sets the "claims" parameter.
+        /// </summary>
+        public JObject Claims
+        {
+            get { return (JObject) GetParameter(OpenIdConnectConstants.Parameters.Claims); }
+            set { SetParameter(OpenIdConnectConstants.Parameters.Claims, value); }
+        }
+
+        /// <summary>
+        /// Gets or sets the "claims_locales" parameter.
+        /// </summary>
+        public string ClaimsLocales
+        {
+            get { return (string) GetParameter(OpenIdConnectConstants.Parameters.ClaimsLocales); }
+            set { SetParameter(OpenIdConnectConstants.Parameters.ClaimsLocales, value); }
         }
 
         /// <summary>
@@ -157,6 +184,15 @@ namespace AspNet.Security.OpenIdConnect.Primitives
         }
 
         /// <summary>
+        /// Gets or sets the "display" parameter.
+        /// </summary>
+        public string Display
+        {
+            get { return (string) GetParameter(OpenIdConnectConstants.Parameters.Display); }
+            set { SetParameter(OpenIdConnectConstants.Parameters.Display, value); }
+        }
+
+        /// <summary>
         /// Gets or sets the "grant_type" parameter.
         /// </summary>
         public string GrantType
@@ -166,12 +202,39 @@ namespace AspNet.Security.OpenIdConnect.Primitives
         }
 
         /// <summary>
+        /// Gets or sets the "identity_provider" parameter.
+        /// </summary>
+        public string IdentityProvider
+        {
+            get { return (string) GetParameter(OpenIdConnectConstants.Parameters.IdentityProvider); }
+            set { SetParameter(OpenIdConnectConstants.Parameters.IdentityProvider, value); }
+        }
+
+        /// <summary>
         /// Gets or sets the "id_token_hint" parameter.
         /// </summary>
         public string IdTokenHint
         {
             get { return (string) GetParameter(OpenIdConnectConstants.Parameters.IdTokenHint); }
             set { SetParameter(OpenIdConnectConstants.Parameters.IdTokenHint, value); }
+        }
+
+        /// <summary>
+        /// Gets or sets the "login_hint" parameter.
+        /// </summary>
+        public string LoginHint
+        {
+            get { return (string) GetParameter(OpenIdConnectConstants.Parameters.LoginHint); }
+            set { SetParameter(OpenIdConnectConstants.Parameters.LoginHint, value); }
+        }
+
+        /// <summary>
+        /// Gets or sets the "max_age" parameter.
+        /// </summary>
+        public long? MaxAge
+        {
+            get { return (long?) GetParameter(OpenIdConnectConstants.Parameters.MaxAge); }
+            set { SetParameter(OpenIdConnectConstants.Parameters.MaxAge, value); }
         }
 
         /// <summary>
@@ -316,6 +379,24 @@ namespace AspNet.Security.OpenIdConnect.Primitives
         {
             get { return (string) GetParameter(OpenIdConnectConstants.Parameters.TokenTypeHint); }
             set { SetParameter(OpenIdConnectConstants.Parameters.TokenTypeHint, value); }
+        }
+
+        /// <summary>
+        /// Gets or sets the "registration" parameter.
+        /// </summary>
+        public JObject Registration
+        {
+            get { return (JObject) GetParameter(OpenIdConnectConstants.Parameters.Registration); }
+            set { SetParameter(OpenIdConnectConstants.Parameters.Registration, value); }
+        }
+
+        /// <summary>
+        /// Gets or sets the "ui_locales" parameter.
+        /// </summary>
+        public string UiLocales
+        {
+            get { return (string) GetParameter(OpenIdConnectConstants.Parameters.UiLocales); }
+            set { SetParameter(OpenIdConnectConstants.Parameters.UiLocales, value); }
         }
 
         /// <summary>

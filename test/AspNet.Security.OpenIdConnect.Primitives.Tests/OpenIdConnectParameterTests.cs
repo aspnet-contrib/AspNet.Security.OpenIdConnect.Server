@@ -573,10 +573,25 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         }
 
         [Fact]
+        public void JArrayConverter_ReturnsDefaultValueForUnsupportedSerializedJson()
+        {
+            // Arrange, act and assert
+            Assert.Null((JArray) new OpenIdConnectParameter(@"{""Property"":""value""}"));
+            Assert.Null((JArray) new OpenIdConnectParameter("["));
+        }
+
+        [Fact]
         public void JArrayConverter_CanConvertFromJsonValues()
         {
             // Arrange, act and assert
             Assert.Equal(new JArray("Contoso", "Fabrikam"), (JArray) new OpenIdConnectParameter(new JArray("Contoso", "Fabrikam")));
+        }
+
+        [Fact]
+        public void JArrayConverter_CanConvertFromSerializedJson()
+        {
+            // Arrange, act and assert
+            Assert.Equal(new JArray("Contoso", "Fabrikam"), (JArray) new OpenIdConnectParameter(@"[""Contoso"",""Fabrikam""]"));
         }
 
         [Fact]
@@ -617,10 +632,25 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         }
 
         [Fact]
+        public void JObjectConverter_ReturnsDefaultValueForUnsupportedSerializedJson()
+        {
+            // Arrange, act and assert
+            Assert.Null((JObject) new OpenIdConnectParameter(@"[""Fabrikam"",""Contoso""]"));
+            Assert.Null((JObject) new OpenIdConnectParameter("{"));
+        }
+
+        [Fact]
         public void JObjectConverter_CanConvertFromJsonValues()
         {
             // Arrange, act and assert
             Assert.Equal(JObject.FromObject(new { Property = "value" }), (JObject) new OpenIdConnectParameter(JObject.FromObject(new { Property = "value" })));
+        }
+
+        [Fact]
+        public void JObjectConverter_CanConvertFromSerializedJson()
+        {
+            // Arrange, act and assert
+            Assert.Equal(JObject.FromObject(new { Property = "value" }), (JObject) new OpenIdConnectParameter(@"{""Property"":""value""}"));
         }
 
         [Fact]

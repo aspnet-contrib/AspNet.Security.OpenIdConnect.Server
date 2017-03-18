@@ -374,7 +374,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives
         /// </summary>
         /// <param name="parameter">The parameter to convert.</param>
         /// <returns>The converted value.</returns>
-        public static explicit operator long? (OpenIdConnectParameter? parameter) => Convert<long?>(parameter);
+        public static explicit operator long?(OpenIdConnectParameter? parameter) => Convert<long?>(parameter);
 
         /// <summary>
         /// Converts an <see cref="OpenIdConnectParameter"/> instance to a string.
@@ -388,7 +388,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives
         /// </summary>
         /// <param name="parameter">The parameter to convert.</param>
         /// <returns>The converted value.</returns>
-        public static explicit operator string[] (OpenIdConnectParameter? parameter) => Convert<string[]>(parameter);
+        public static explicit operator string[](OpenIdConnectParameter? parameter) => Convert<string[]>(parameter);
 
         /// <summary>
         /// Converts a boolean to an <see cref="OpenIdConnectParameter"/> instance.
@@ -463,16 +463,31 @@ namespace AspNet.Security.OpenIdConnect.Primitives
                 return (T) value;
             }
 
-            // Note: the value is either a JSON object or a
-            // primitive type that can be used with JValue.
-            var token = value as JToken;
-            if (token == null)
-            {
-                token = new JValue(value);
-            }
-
             try
             {
+                // Note: the value is either a JSON object or a
+                // primitive type that can be used with JValue.
+                var token = value as JToken;
+                if (token == null)
+                {
+                    // Note: when the parameter is represented as a string, try to
+                    // deserialize it if requested type is a JArray or a JObject.
+                    if (value is string)
+                    {
+                        if (typeof(T) == typeof(JArray))
+                        {
+                            return (T) (object) JArray.Parse((string) value);
+                        }
+
+                        else if (typeof(T) == typeof(JObject))
+                        {
+                            return (T) (object) JObject.Parse((string) value);
+                        }
+                    }
+
+                    token = new JValue(value);
+                }
+
                 return token.ToObject<T>();
             }
 
