@@ -316,6 +316,7 @@ namespace Owin.Security.OpenIdConnect.Server
             if (request.IsAuthorizationRequest())
             {
                 response.RedirectUri = request.GetProperty<string>(OpenIdConnectConstants.Properties.RedirectUri);
+                response.ResponseMode = request.ResponseMode;
                 response.State = request.State;
             }
 
@@ -527,6 +528,7 @@ namespace Owin.Security.OpenIdConnect.Server
             if (request.IsAuthorizationRequest())
             {
                 response.RedirectUri = request.GetProperty<string>(OpenIdConnectConstants.Properties.RedirectUri);
+                response.ResponseMode = request.ResponseMode;
                 response.State = request.State;
             }
 

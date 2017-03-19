@@ -95,6 +95,13 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
 
                 yield return new object[]
                 {
+                    /* property: */ nameof(OpenIdConnectResponse.ResponseMode),
+                    /* name: */ OpenIdConnectConstants.Parameters.ResponseMode,
+                    /* value: */ new OpenIdConnectParameter("802A3E3E-DCCA-4EFC-89FA-7D82FE8C27E4")
+                };
+
+                yield return new object[]
+                {
                     /* property: */ nameof(OpenIdConnectResponse.Scope),
                     /* name: */ OpenIdConnectConstants.Parameters.Scope,
                     /* value: */ new OpenIdConnectParameter("802A3E3E-DCCA-4EFC-89FA-7D82FE8C27E4")

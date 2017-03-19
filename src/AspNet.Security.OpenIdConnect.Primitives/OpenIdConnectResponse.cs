@@ -166,6 +166,15 @@ namespace AspNet.Security.OpenIdConnect.Primitives
         }
 
         /// <summary>
+        /// Gets or sets the "response_mode" parameter.
+        /// </summary>
+        public string ResponseMode
+        {
+            get { return (string) GetParameter(OpenIdConnectConstants.Parameters.ResponseMode); }
+            set { SetParameter(OpenIdConnectConstants.Parameters.ResponseMode, value); }
+        }
+
+        /// <summary>
         /// Gets or sets the "scope" parameter.
         /// </summary>
         public string Scope

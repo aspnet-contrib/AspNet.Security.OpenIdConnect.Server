@@ -405,6 +405,15 @@ namespace Owin.Security.OpenIdConnect.Server
             response.SetProperty(OpenIdConnectConstants.Properties.MessageType,
                                  OpenIdConnectConstants.MessageTypes.AuthorizationResponse);
 
+            // If the response_mode parameter was not specified, try to infer it.
+            if (request != null && string.IsNullOrEmpty(response.ResponseMode))
+            {
+                response.ResponseMode =
+                    request.IsFormPostResponseMode() ? OpenIdConnectConstants.ResponseModes.FormPost :
+                    request.IsFragmentResponseMode() ? OpenIdConnectConstants.ResponseModes.Fragment :
+                    request.IsQueryResponseMode() ? OpenIdConnectConstants.ResponseModes.Query : null;
+            }
+
             var notification = new ApplyAuthorizationResponseContext(Context, Options, ticket, request, response);
             await Options.Provider.ApplyAuthorizationResponse(notification);
 
@@ -459,10 +468,12 @@ namespace Owin.Security.OpenIdConnect.Server
 
             foreach (var parameter in response.GetParameters())
             {
-                // Don't include redirect_uri in the parameters dictionary.
-                if (string.Equals(parameter.Key, OpenIdConnectConstants.Parameters.RedirectUri, StringComparison.Ordinal))
+                switch (parameter.Key)
                 {
-                    continue;
+                    // Always exclude redirect_uri and response_mode.
+                    case OpenIdConnectConstants.Parameters.RedirectUri:
+                    case OpenIdConnectConstants.Parameters.ResponseMode:
+                        continue;
                 }
 
                 // Ignore null or empty parameters, including JSON
@@ -477,90 +488,96 @@ namespace Owin.Security.OpenIdConnect.Server
             }
 
             // Note: at this stage, the redirect_uri parameter MUST be trusted.
-            if (request.IsFormPostResponseMode())
+            switch (response.ResponseMode)
             {
-                Logger.LogInformation("The authorization response was successfully returned " +
-                                      "using the form post response mode: {Response}", response);
-
-                using (var buffer = new MemoryStream())
-                using (var writer = new StreamWriter(buffer))
+                case OpenIdConnectConstants.ResponseModes.FormPost:
                 {
-                    writer.WriteLine("<!doctype html>");
-                    writer.WriteLine("<html>");
-                    writer.WriteLine("<body>");
+                    Logger.LogInformation("The authorization response was successfully returned " +
+                                          "using the form post response mode: {Response}", response);
 
-                    // While the redirect_uri parameter should be guarded against unknown values
-                    // by OpenIdConnectServerProvider.ValidateAuthorizationRequest,
-                    // it's still safer to encode it to avoid cross-site scripting attacks
-                    // if the authorization server has a relaxed policy concerning redirect URIs.
-                    writer.WriteLine($"<form name='form' method='post' action='{Options.HtmlEncoder.Encode(response.RedirectUri)}'>");
+                    using (var buffer = new MemoryStream())
+                    using (var writer = new StreamWriter(buffer))
+                    {
+                        writer.WriteLine("<!doctype html>");
+                        writer.WriteLine("<html>");
+                        writer.WriteLine("<body>");
+
+                        // While the redirect_uri parameter should be guarded against unknown values
+                        // by OpenIdConnectServerProvider.ValidateAuthorizationRequest,
+                        // it's still safer to encode it to avoid cross-site scripting attacks
+                        // if the authorization server has a relaxed policy concerning redirect URIs.
+                        writer.WriteLine($"<form name='form' method='post' action='{Options.HtmlEncoder.Encode(response.RedirectUri)}'>");
+
+                        foreach (var parameter in parameters)
+                        {
+                            var key = Options.HtmlEncoder.Encode(parameter.Key);
+                            var value = Options.HtmlEncoder.Encode(parameter.Value);
+
+                            writer.WriteLine($"<input type='hidden' name='{key}' value='{value}' />");
+                        }
+
+                        writer.WriteLine("<noscript>Click here to finish the authorization process: <input type='submit' /></noscript>");
+                        writer.WriteLine("</form>");
+                        writer.WriteLine("<script>document.form.submit();</script>");
+                        writer.WriteLine("</body>");
+                        writer.WriteLine("</html>");
+                        writer.Flush();
+
+                        Response.StatusCode = 200;
+                        Response.ContentLength = buffer.Length;
+                        Response.ContentType = "text/html;charset=UTF-8";
+
+                        Response.Headers["Cache-Control"] = "no-cache";
+                        Response.Headers["Pragma"] = "no-cache";
+                        Response.Headers["Expires"] = "-1";
+
+                        buffer.Seek(offset: 0, loc: SeekOrigin.Begin);
+                        await buffer.CopyToAsync(Response.Body, 4096, Request.CallCancelled);
+
+                        return true;
+                    }
+                }
+
+                case OpenIdConnectConstants.ResponseModes.Fragment:
+                {
+                    Logger.LogInformation("The authorization response was successfully returned " +
+                                          "using the fragment response mode: {Response}", response);
+
+                    var location = response.RedirectUri;
+                    var appender = new Appender(location, '#');
 
                     foreach (var parameter in parameters)
                     {
-                        var key = Options.HtmlEncoder.Encode(parameter.Key);
-                        var value = Options.HtmlEncoder.Encode(parameter.Value);
-
-                        writer.WriteLine($"<input type='hidden' name='{key}' value='{value}' />");
+                        appender.Append(parameter.Key, parameter.Value);
                     }
 
-                    writer.WriteLine("<noscript>Click here to finish the authorization process: <input type='submit' /></noscript>");
-                    writer.WriteLine("</form>");
-                    writer.WriteLine("<script>document.form.submit();</script>");
-                    writer.WriteLine("</body>");
-                    writer.WriteLine("</html>");
-                    writer.Flush();
-
-                    Response.StatusCode = 200;
-                    Response.ContentLength = buffer.Length;
-                    Response.ContentType = "text/html;charset=UTF-8";
-
-                    Response.Headers["Cache-Control"] = "no-cache";
-                    Response.Headers["Pragma"] = "no-cache";
-                    Response.Headers["Expires"] = "-1";
-
-                    buffer.Seek(offset: 0, loc: SeekOrigin.Begin);
-                    await buffer.CopyToAsync(Response.Body, 4096, Request.CallCancelled);
-
+                    Response.Redirect(appender.ToString());
                     return true;
                 }
-            }
 
-            else if (request.IsFragmentResponseMode())
-            {
-                Logger.LogInformation("The authorization response was successfully returned " +
-                                      "using the fragment response mode: {Response}", response);
-
-                var location = response.RedirectUri;
-                var appender = new Appender(location, '#');
-
-                foreach (var parameter in parameters)
+                case OpenIdConnectConstants.ResponseModes.Query:
                 {
-                    appender.Append(parameter.Key, parameter.Value);
+                    Logger.LogInformation("The authorization response was successfully returned " +
+                                          "using the query response mode: {Response}", response);
+
+                    var location = WebUtilities.AddQueryString(response.RedirectUri, parameters);
+
+                    Response.Redirect(location);
+                    return true;
                 }
 
-                Response.Redirect(appender.ToString());
-                return true;
+                default:
+                {
+                    Logger.LogError("The authorization request was rejected because the 'response_mode' " +
+                                    "parameter was invalid: {ResponseMode}.", request.ResponseMode);
+
+                    return await SendNativePageAsync(new OpenIdConnectResponse
+                    {
+                        Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                        ErrorDescription = "response_mode unsupported"
+                    });
+                }
             }
-
-            else if (request.IsQueryResponseMode())
-            {
-                Logger.LogInformation("The authorization response was successfully returned " +
-                                      "using the query response mode: {Response}", response);
-
-                var location = WebUtilities.AddQueryString(response.RedirectUri, parameters);
-
-                Response.Redirect(location);
-                return true;
-            }
-
-            Logger.LogError("The authorization request was rejected because the 'response_mode' " +
-                            "parameter was invalid: {ResponseMode}.", request.ResponseMode);
-
-            return await SendNativePageAsync(new OpenIdConnectResponse
-            {
-                Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                ErrorDescription = "response_mode unsupported"
-            });
         }
     }
 }

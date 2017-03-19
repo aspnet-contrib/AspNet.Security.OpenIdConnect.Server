@@ -839,6 +839,59 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
             Assert.Equal("Bob le Magnifique", (string) response["name"]);
         }
 
+        [Theory]
+        [InlineData("code", OpenIdConnectConstants.ResponseModes.Query)]
+        [InlineData("code id_token", OpenIdConnectConstants.ResponseModes.Fragment)]
+        [InlineData("code id_token token", OpenIdConnectConstants.ResponseModes.Fragment)]
+        [InlineData("code token", OpenIdConnectConstants.ResponseModes.Fragment)]
+        [InlineData("id_token", OpenIdConnectConstants.ResponseModes.Fragment)]
+        [InlineData("id_token token", OpenIdConnectConstants.ResponseModes.Fragment)]
+        [InlineData("token", OpenIdConnectConstants.ResponseModes.Fragment)]
+        public async Task SendAuthorizationResponseAsync_ResponseModeIsAutomaticallyInferred(string type, string mode)
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateAuthorizationRequest = context =>
+                {
+                    context.Validate();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnHandleAuthorizationRequest = context =>
+                {
+                    var identity = new ClaimsIdentity(context.Options.AuthenticationType);
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
+
+                    context.Validate(identity);
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnApplyAuthorizationResponse = context =>
+                {
+                    context.Response["inferred_response_mode"] = context.Response.ResponseMode;
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest
+            {
+                ClientId = "Fabrikam",
+                RedirectUri = "http://www.fabrikam.com/path",
+                ResponseType = type,
+                Scope = OpenIdConnectConstants.Scopes.OpenId
+            });
+
+            // Assert
+            Assert.Equal(mode, (string) response["inferred_response_mode"]);
+        }
+
         [Fact]
         public async Task SendAuthorizationResponseAsync_ApplyAuthorizationResponse_ResponseContainsCustomParameters()
         {
