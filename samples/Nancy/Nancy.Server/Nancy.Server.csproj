@@ -39,6 +39,7 @@
 
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.IdentityModel" />
   </ItemGroup>
 
 </Project>
