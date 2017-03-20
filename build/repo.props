@@ -1,0 +1,8 @@
+<Project>
+
+  <ItemGroup>
+    <ExcludeFromTest Include="$(RepositoryRoot)test\Owin.Security.OpenIdConnect.Extensions.Tests\*.csproj" Condition="'$(OS)' != 'Windows_NT'"/>
+    <ExcludeFromTest Include="$(RepositoryRoot)test\Owin.Security.OpenIdConnect.Server.Tests\*.csproj" Condition="'$(OS)' != 'Windows_NT'"/>
+  </ItemGroup>
+
+</Project>

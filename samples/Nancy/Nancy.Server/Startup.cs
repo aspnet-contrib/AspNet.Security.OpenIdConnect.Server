@@ -7,7 +7,6 @@ using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
 using Nancy.Server.Extensions;
 using Nancy.Server.Providers;
-using NWebsec.Owin;
 using Owin;
 
 namespace Nancy.Server
@@ -52,23 +51,6 @@ namespace Nancy.Server
                     LoginPath = new PathString("/signin")
                 });
             });
-
-            // Insert a new middleware responsible of setting the Content-Security-Policy header.
-            // See https://nwebsec.codeplex.com/wikipage?title=Configuring%20Content%20Security%20Policy&referringTitle=NWebsec
-            app.UseCsp(options => options.DefaultSources(configuration => configuration.Self())
-                                         .ScriptSources(configuration => configuration.UnsafeInline()));
-
-            // Insert a new middleware responsible of setting the X-Content-Type-Options header.
-            // See https://nwebsec.codeplex.com/wikipage?title=Configuring%20security%20headers&referringTitle=NWebsec
-            app.UseXContentTypeOptions();
-
-            // Insert a new middleware responsible of setting the X-Frame-Options header.
-            // See https://nwebsec.codeplex.com/wikipage?title=Configuring%20security%20headers&referringTitle=NWebsec
-            app.UseXfo(options => options.Deny());
-
-            // Insert a new middleware responsible of setting the X-Xss-Protection header.
-            // See https://nwebsec.codeplex.com/wikipage?title=Configuring%20security%20headers&referringTitle=NWebsec
-            app.UseXXssProtection(options => options.EnabledWithBlockMode());
 
             app.Use(async (context, next) =>
             {

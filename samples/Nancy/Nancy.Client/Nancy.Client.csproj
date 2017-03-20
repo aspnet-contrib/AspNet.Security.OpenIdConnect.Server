@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\..\..\build\dependencies.props" />
+
+  <PropertyGroup>
+    <TargetFrameworks>net451</TargetFrameworks>
+    <PreserveCompilationContext>true</PreserveCompilationContext>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Update="Content\**\*;Views\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNet.Razor" Version="3.2.3" />
+    <PackageReference Include="Microsoft.Owin.Security.Cookies" Version="$(OwinVersion)" />
+    <PackageReference Include="Microsoft.Owin.Security.OAuth" Version="$(OwinVersion)" />
+    <PackageReference Include="Microsoft.Owin.Security.OpenIdConnect" Version="$(OwinVersion)" />
+    <PackageReference Include="Microsoft.Owin.SelfHost" Version="$(OwinVersion)" />
+    <PackageReference Include="Nancy.MSOwinSecurity" Version="1.0.1" />
+    <PackageReference Include="Nancy.Owin" Version="1.3.0" />
+    <PackageReference Include="Nancy.Viewengines.Razor" Version="1.3.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="$(JsonNetVersion)" />
+  </ItemGroup>
+
+</Project>

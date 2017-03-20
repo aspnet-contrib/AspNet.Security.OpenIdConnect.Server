@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\..\build\common.props" />
+
+  <PropertyGroup>
+    <TargetFramework>net451</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Description>OpenID Connect server middleware for OWIN/Katana.</Description>
+    <Authors>Kévin Chalet</Authors>
+    <PackageTags>authentication;katana;jwt;openidconnect;owin;security</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Owin.Security.OpenIdConnect.Extensions\Owin.Security.OpenIdConnect.Extensions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="JetBrains.Annotations" Version="$(JetBrainsVersion)" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="$(AspNetCoreVersion)" />
+    <PackageReference Include="Microsoft.IdentityModel.Protocol.Extensions" Version="$(IdentityModelVersion)" />
+    <PackageReference Include="Microsoft.Owin.Security.Interop" Version="$(AspNetCoreVersion)" />
+    <PackageReference Include="System.Text.Encodings.Web" Version="4.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net451' ">
+    <Reference Include="System.IdentityModel" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+
+</Project>
