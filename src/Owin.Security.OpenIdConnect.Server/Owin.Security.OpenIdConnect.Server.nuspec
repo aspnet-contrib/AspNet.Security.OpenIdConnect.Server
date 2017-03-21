@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>$id$</id>
+    <version>$version$</version>
+    <authors>$authors$</authors>
+    <owners>$authors$</owners>
+    <requireLicenseAcceptance>$requireLicenseAcceptance$</requireLicenseAcceptance>
+    <licenseUrl>$licenseUrl$</licenseUrl>
+    <projectUrl>$projectUrl$</projectUrl>
+    <iconUrl>$iconUrl$</iconUrl>
+    <description>$description$</description>
+    <tags>$tags$</tags>
+    <repository type="$repositoryType$" url="$repositoryUrl$" />
+    <dependencies>
+      <group targetFramework=".NETFramework4.5.1">
+        <dependency id="Owin.Security.OpenIdConnect.Extensions" version="$version$" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.Extensions.Logging" version="$aspNetCoreVersion$" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.IdentityModel.Protocol.Extensions" version="$identityModelVersion$" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.Owin.Security.Interop" version="$aspNetCoreVersion$" exclude="Build,Analyzers" />
+        <dependency id="System.Text.Encodings.Web" version="4.0.0" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+    <frameworkAssemblies>
+      <frameworkAssembly assemblyName="System.IdentityModel" targetFramework=".NETFramework4.5.1" />
+      <frameworkAssembly assemblyName="System.Xml" targetFramework=".NETFramework4.5.1" />
+    </frameworkAssemblies>
+  </metadata>
+  <files>
+    <file src="bin\$configuration$\net451\$id$.dll" target="lib\net451" />
+    <file src="bin\$configuration$\net451\$id$.xml" target="lib\net451" />
+  </files>
+</package>
