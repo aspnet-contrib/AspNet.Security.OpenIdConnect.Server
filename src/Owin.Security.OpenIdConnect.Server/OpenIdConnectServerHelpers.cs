@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IdentityModel.Tokens;
@@ -8,6 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.Owin;
 using Newtonsoft.Json;
@@ -258,6 +260,46 @@ namespace Owin.Security.OpenIdConnect.Server
                 }
 
                 default: return new OpenIdConnectParameter(claim.Value);
+            }
+        }
+
+        public static KeyValuePair<string, string>? GetClientCredentials(this IHeaderDictionary headers)
+        {
+            if (headers == null)
+            {
+                throw new ArgumentNullException(nameof(headers));
+            }
+
+            string header = headers["Authorization"];
+            if (string.IsNullOrEmpty(header))
+            {
+                return null;
+            }
+
+            if (!header.StartsWith("Basic ", StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+
+            try
+            {
+                var value = header.Substring("Basic ".Length).Trim();
+                var data = Encoding.ASCII.GetString(Convert.FromBase64String(value));
+
+                var index = data.IndexOf(':');
+                if (index < 0)
+                {
+                    return null;
+                }
+
+                return new KeyValuePair<string, string>(
+                    /* client_id: */ data.Substring(0, index),
+                    /* client_secret: */ data.Substring(index + 1));
+            }
+
+            catch
+            {
+                return null;
             }
         }
 

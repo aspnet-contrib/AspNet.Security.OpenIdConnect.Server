@@ -149,6 +149,35 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                          "with an access, refresh, or identity token is required.", response.ErrorDescription);
         }
 
+        [Fact]
+        public async Task InvokeIntrospectionEndpointAsync_MultipleClientCredentialsCauseAnError()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnExtractIntrospectionRequest = context =>
+                {
+                    context.OwinContext.Request.Headers["Authorization"] = "Basic czZCaGRSa3F0MzpnWDFmQmF0M2JW";
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+            {
+                ClientId = "Fabrikam",
+                ClientSecret = "7Fjfp0ZBr1KtDRbnfVdmIw",
+                Token = "2YotnFZFEjr1zCsicMWpAA"
+            });
+
+            // Assert
+            Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
+            Assert.Equal("Multiple client credentials cannot be specified.", response.ErrorDescription);
+        }
+
         [Theory]
         [InlineData("custom_error", null, null)]
         [InlineData("custom_error", "custom_description", null)]

@@ -17,7 +17,6 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.Net.Http.Headers;
 
 namespace AspNet.Security.OpenIdConnect.Server
 {
@@ -174,30 +173,26 @@ namespace AspNet.Security.OpenIdConnect.Server
                 });
             }
 
-            // When client_id and client_secret are both null, try to extract them from the Authorization header.
-            // See http://tools.ietf.org/html/rfc6749#section-2.3.1 and
-            // http://openid.net/specs/openid-connect-core-1_0.html#ClientAuthentication
-            if (string.IsNullOrEmpty(request.ClientId) && string.IsNullOrEmpty(request.ClientSecret))
+            // Try to resolve the client credentials specified in the 'Authorization' header.
+            // If they cannot be extracted, fallback to the client_id/client_secret parameters.
+            var credentials = Request.Headers.GetClientCredentials();
+            if (credentials != null)
             {
-                string header = Request.Headers[HeaderNames.Authorization];
-                if (!string.IsNullOrEmpty(header) && header.StartsWith("Basic ", StringComparison.OrdinalIgnoreCase))
+                // Reject requests that use multiple client authentication methods.
+                // See https://tools.ietf.org/html/rfc6749#section-2.3 for more information.
+                if (!string.IsNullOrEmpty(request.ClientSecret))
                 {
-                    try
+                    Logger.LogError("The token request was rejected because multiple client credentials were specified.");
+
+                    return await SendTokenResponseAsync(new OpenIdConnectResponse
                     {
-                        var value = header.Substring("Basic ".Length).Trim();
-                        var data = Encoding.UTF8.GetString(Convert.FromBase64String(value));
-
-                        var index = data.IndexOf(':');
-                        if (index >= 0)
-                        {
-                            request.ClientId = data.Substring(0, index);
-                            request.ClientSecret = data.Substring(index + 1);
-                        }
-                    }
-
-                    catch (FormatException) { }
-                    catch (ArgumentException) { }
+                        Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                        ErrorDescription = "Multiple client credentials cannot be specified."
+                    });
                 }
+
+                request.ClientId = credentials?.Key;
+                request.ClientSecret = credentials?.Value;
             }
 
             var context = new ValidateTokenRequestContext(Context, Options, request);

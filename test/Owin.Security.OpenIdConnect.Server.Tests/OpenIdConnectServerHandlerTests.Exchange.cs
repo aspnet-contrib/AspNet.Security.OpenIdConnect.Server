@@ -232,6 +232,37 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                          "was/were missing from the request message.", response.ErrorDescription);
         }
 
+        [Fact]
+        public async Task InvokeTokenEndpointAsync_MultipleClientCredentialsCauseAnError()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnExtractTokenRequest = context =>
+                {
+                    context.OwinContext.Request.Headers["Authorization"] = "Basic czZCaGRSa3F0MzpnWDFmQmF0M2JW";
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
+                ClientId = "Fabrikam",
+                ClientSecret = "7Fjfp0ZBr1KtDRbnfVdmIw",
+                GrantType = OpenIdConnectConstants.GrantTypes.Password,
+                Username = "johndoe",
+                Password = "A3ddj3w"
+            });
+
+            // Assert
+            Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
+            Assert.Equal("Multiple client credentials cannot be specified.", response.ErrorDescription);
+        }
+
         [Theory]
         [InlineData("custom_error", null, null)]
         [InlineData("custom_error", "custom_description", null)]

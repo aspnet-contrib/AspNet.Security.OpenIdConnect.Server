@@ -148,6 +148,35 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                          "with an access or refresh token is required.", response.ErrorDescription);
         }
 
+        [Fact]
+        public async Task InvokeRevocationEndpointAsync_MultipleClientCredentialsCauseAnError()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnExtractRevocationRequest = context =>
+                {
+                    context.HttpContext.Request.Headers[HeaderNames.Authorization] = "Basic czZCaGRSa3F0MzpnWDFmQmF0M2JW";
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(RevocationEndpoint, new OpenIdConnectRequest
+            {
+                ClientId = "Fabrikam",
+                ClientSecret = "7Fjfp0ZBr1KtDRbnfVdmIw",
+                Token = "2YotnFZFEjr1zCsicMWpAA"
+            });
+
+            // Assert
+            Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
+            Assert.Equal("Multiple client credentials cannot be specified.", response.ErrorDescription);
+        }
+
         [Theory]
         [InlineData("custom_error", null, null)]
         [InlineData("custom_error", "custom_description", null)]
