@@ -31,8 +31,8 @@ namespace AspNet.Security.OpenIdConnect.Server
             // Create a new ticket containing the updated properties.
             var ticket = new AuthenticationTicket(principal, properties, Options.AuthenticationScheme);
             ticket.Properties.IssuedUtc = Options.SystemClock.UtcNow;
-            ticket.Properties.ExpiresUtc = ticket.Properties.IssuedUtc +
-                (ticket.GetAuthorizationCodeLifetime() ?? Options.AuthorizationCodeLifetime);
+            ticket.Properties.ExpiresUtc = ticket.Properties.IssuedUtc;
+            ticket.Properties.ExpiresUtc += ticket.GetAuthorizationCodeLifetime() ?? Options.AuthorizationCodeLifetime;
 
             ticket.SetUsage(OpenIdConnectConstants.Usages.AuthorizationCode);
 
@@ -119,8 +119,8 @@ namespace AspNet.Security.OpenIdConnect.Server
             // Create a new ticket containing the updated properties and the filtered principal.
             var ticket = new AuthenticationTicket(principal, properties, Options.AuthenticationScheme);
             ticket.Properties.IssuedUtc = Options.SystemClock.UtcNow;
-            ticket.Properties.ExpiresUtc = ticket.Properties.IssuedUtc +
-                (ticket.GetAccessTokenLifetime() ?? Options.AccessTokenLifetime);
+            ticket.Properties.ExpiresUtc = ticket.Properties.IssuedUtc;
+            ticket.Properties.ExpiresUtc += ticket.GetAccessTokenLifetime() ?? Options.AccessTokenLifetime;
 
             ticket.SetUsage(OpenIdConnectConstants.Usages.AccessToken);
             ticket.SetAudiences(ticket.GetResources());
@@ -274,8 +274,8 @@ namespace AspNet.Security.OpenIdConnect.Server
             // Create a new ticket containing the updated properties and the filtered principal.
             var ticket = new AuthenticationTicket(principal, properties, Options.AuthenticationScheme);
             ticket.Properties.IssuedUtc = Options.SystemClock.UtcNow;
-            ticket.Properties.ExpiresUtc = ticket.Properties.IssuedUtc +
-                (ticket.GetIdentityTokenLifetime() ?? Options.IdentityTokenLifetime);
+            ticket.Properties.ExpiresUtc = ticket.Properties.IssuedUtc;
+            ticket.Properties.ExpiresUtc += ticket.GetIdentityTokenLifetime() ?? Options.IdentityTokenLifetime;
 
             ticket.SetUsage(OpenIdConnectConstants.Usages.IdentityToken);
 
@@ -446,8 +446,8 @@ namespace AspNet.Security.OpenIdConnect.Server
             // Create a new ticket containing the updated properties.
             var ticket = new AuthenticationTicket(principal, properties, Options.AuthenticationScheme);
             ticket.Properties.IssuedUtc = Options.SystemClock.UtcNow;
-            ticket.Properties.ExpiresUtc = ticket.Properties.IssuedUtc +
-                (ticket.GetRefreshTokenLifetime() ?? Options.RefreshTokenLifetime);
+            ticket.Properties.ExpiresUtc = ticket.Properties.IssuedUtc;
+            ticket.Properties.ExpiresUtc += ticket.GetRefreshTokenLifetime() ?? Options.RefreshTokenLifetime;
 
             ticket.SetUsage(OpenIdConnectConstants.Usages.RefreshToken);
 
@@ -658,7 +658,9 @@ namespace AspNet.Security.OpenIdConnect.Server
             // in InvokeIntrospectionEndpointAsync or InvokeTokenEndpointAsync.
             notification.TokenValidationParameters = new TokenValidationParameters
             {
-                IssuerSigningKeys = Options.SigningCredentials.Select(credentials => credentials.Key),
+                IssuerSigningKeys = Options.SigningCredentials.Select(credentials => credentials.Key)
+                                                              .Where(key => key is AsymmetricSecurityKey),
+
                 NameClaimType = OpenIdConnectConstants.Claims.Name,
                 RoleClaimType = OpenIdConnectConstants.Claims.Role,
                 ValidIssuer = Context.GetIssuer(Options),
