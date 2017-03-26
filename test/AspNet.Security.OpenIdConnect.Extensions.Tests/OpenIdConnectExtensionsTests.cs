@@ -908,38 +908,6 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
             Assert.Null(ticket.GetProperty("property"));
         }
 
-        [Fact]
-        public void SetProperty_SupportsMultipleStrings()
-        {
-            // Arrange
-            var ticket = new AuthenticationTicket(
-                new ClaimsPrincipal(),
-                new AuthenticationProperties(),
-                nameof(AuthenticationTicket));
-
-            // Act
-            ticket.SetProperty("property", new[] { "value-1", "value-2" });
-
-            // Assert
-            Assert.Equal(@"[""value-1"",""value-2""]", ticket.GetProperty("property"));
-        }
-
-        [Fact]
-        public void SetProperty_IgnoreEmptyEnumerations()
-        {
-            // Arrange
-            var ticket = new AuthenticationTicket(
-                new ClaimsPrincipal(),
-                new AuthenticationProperties(),
-                nameof(AuthenticationTicket));
-
-            // Act
-            ticket.SetProperty("property", new string[0]);
-
-            // Assert
-            Assert.Null(ticket.GetProperty("property"));
-        }
-
         [Theory]
         [InlineData(new string[0], null)]
         [InlineData(new[] { "fabrikam" }, @"[""fabrikam""]")]

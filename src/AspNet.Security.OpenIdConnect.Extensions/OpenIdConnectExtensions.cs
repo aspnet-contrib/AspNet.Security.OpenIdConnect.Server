@@ -339,37 +339,6 @@ namespace AspNet.Security.OpenIdConnect.Extensions
         }
 
         /// <summary>
-        /// Adds a given property in the authentication properties.
-        /// </summary>
-        /// <param name="properties">The authentication properties.</param>
-        /// <param name="property">The specific property to add.</param>
-        /// <param name="values">The values associated with the property.</param>
-        /// <returns>The authentication properties.</returns>
-        public static AuthenticationProperties AddProperty(
-            [NotNull] this AuthenticationProperties properties,
-            [NotNull] string property, [NotNull] IEnumerable<string> values)
-        {
-            if (properties == null)
-            {
-                throw new ArgumentNullException(nameof(properties));
-            }
-
-            if (values == null)
-            {
-                throw new ArgumentNullException(nameof(values));
-            }
-
-            if (string.IsNullOrEmpty(property))
-            {
-                throw new ArgumentException("The property name cannot be null or empty.", nameof(property));
-            }
-
-            properties.Items[property] = new JArray(values).ToString(Formatting.None);
-
-            return properties;
-        }
-
-        /// <summary>
         /// Adds a given property in the authentication ticket.
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
@@ -386,32 +355,6 @@ namespace AspNet.Security.OpenIdConnect.Extensions
             }
 
             ticket.Properties.AddProperty(property, value);
-
-            return ticket;
-        }
-
-        /// <summary>
-        /// Adds a given property in the authentication ticket.
-        /// </summary>
-        /// <param name="ticket">The authentication ticket.</param>
-        /// <param name="property">The specific property to add.</param>
-        /// <param name="values">The values associated with the property.</param>
-        /// <returns>The authentication ticket.</returns>
-        public static AuthenticationTicket AddProperty(
-            [NotNull] this AuthenticationTicket ticket,
-            [NotNull] string property, [NotNull] IEnumerable<string> values)
-        {
-            if (ticket == null)
-            {
-                throw new ArgumentNullException(nameof(ticket));
-            }
-
-            if (values == null)
-            {
-                throw new ArgumentNullException(nameof(values));
-            }
-
-            ticket.Properties.AddProperty(property, values);
 
             return ticket;
         }
@@ -1124,55 +1067,6 @@ namespace AspNet.Security.OpenIdConnect.Extensions
         }
 
         /// <summary>
-        /// Adds, updates or removes a given property in the authentication properties.
-        /// </summary>
-        /// <param name="properties">The authentication properties.</param>
-        /// <param name="property">The specific property to add, update or remove.</param>
-        /// <param name="values">The values associated with the property.</param>
-        /// <returns>The authentication properties.</returns>
-        public static AuthenticationProperties SetProperty(
-            [NotNull] this AuthenticationProperties properties,
-            [NotNull] string property, [CanBeNull] IEnumerable<string> values)
-        {
-            if (properties == null)
-            {
-                throw new ArgumentNullException(nameof(properties));
-            }
-
-            if (string.IsNullOrEmpty(property))
-            {
-                throw new ArgumentException("The property name cannot be null or empty.", nameof(property));
-            }
-
-            if (values == null || !values.Any())
-            {
-                properties.Items.Remove(property);
-
-                return properties;
-            }
-
-            properties.Items[property] = new JArray(values).ToString(Formatting.None);
-
-            return properties;
-        }
-
-        /// <summary>
-        /// Adds, updates or removes a given property in the authentication properties.
-        /// </summary>
-        /// <param name="properties">The authentication properties.</param>
-        /// <param name="property">The specific property to add, update or remove.</param>
-        /// <param name="values">The values associated with the property.</param>
-        /// <returns>The authentication properties.</returns>
-        public static AuthenticationProperties SetProperty(
-            [NotNull] this AuthenticationProperties properties,
-            [NotNull] string property, [CanBeNull] params string[] values)
-        {
-            // Note: guarding the values parameter against null values
-            // is not necessary as AsEnumerable() doesn't throw on null values.
-            return properties.SetProperty(property, values.AsEnumerable());
-        }
-
-        /// <summary>
         /// Adds, updates or removes a given property in the authentication ticket.
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
@@ -1191,43 +1085,6 @@ namespace AspNet.Security.OpenIdConnect.Extensions
             ticket.Properties.SetProperty(property, value);
 
             return ticket;
-        }
-
-        /// <summary>
-        /// Adds, updates or removes a given property in the authentication ticket.
-        /// </summary>
-        /// <param name="ticket">The authentication ticket.</param>
-        /// <param name="property">The specific property to add, update or remove.</param>
-        /// <param name="values">The values associated with the property.</param>
-        /// <returns>The authentication ticket.</returns>
-        public static AuthenticationTicket SetProperty(
-            [NotNull] this AuthenticationTicket ticket,
-            [NotNull] string property, [CanBeNull] IEnumerable<string> values)
-        {
-            if (ticket == null)
-            {
-                throw new ArgumentNullException(nameof(ticket));
-            }
-
-            ticket.Properties.SetProperty(property, values);
-
-            return ticket;
-        }
-
-        /// <summary>
-        /// Adds, updates or removes a given property in the authentication ticket.
-        /// </summary>
-        /// <param name="ticket">The authentication ticket.</param>
-        /// <param name="property">The specific property to add, update or remove.</param>
-        /// <param name="values">The values associated with the property.</param>
-        /// <returns>The authentication ticket.</returns>
-        public static AuthenticationTicket SetProperty(
-            [NotNull] this AuthenticationTicket ticket,
-            [NotNull] string property, [CanBeNull] params string[] values)
-        {
-            // Note: guarding the values parameter against null values
-            // is not necessary as AsEnumerable() doesn't throw on null values.
-            return ticket.SetProperty(property, values.AsEnumerable());
         }
 
         /// <summary>
@@ -1258,7 +1115,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions
                 throw new ArgumentException("Audiences cannot be null or empty.", nameof(audiences));
             }
 
-            return ticket.SetProperty(OpenIdConnectConstants.Properties.Audiences, audiences.Distinct(StringComparer.Ordinal));
+            return SetProperty(ticket, OpenIdConnectConstants.Properties.Audiences, audiences.Distinct(StringComparer.Ordinal));
         }
 
         /// <summary>
@@ -1304,7 +1161,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions
                 throw new ArgumentException("Presenters cannot be null or empty.", nameof(presenters));
             }
 
-            return ticket.SetProperty(OpenIdConnectConstants.Properties.Presenters, presenters.Distinct(StringComparer.Ordinal));
+            return SetProperty(ticket, OpenIdConnectConstants.Properties.Presenters, presenters.Distinct(StringComparer.Ordinal));
         }
 
         /// <summary>
@@ -1350,7 +1207,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions
                 throw new ArgumentException("Resources cannot be null or empty.", nameof(resources));
             }
 
-            return ticket.SetProperty(OpenIdConnectConstants.Properties.Resources, resources.Distinct(StringComparer.Ordinal));
+            return SetProperty(ticket, OpenIdConnectConstants.Properties.Resources, resources.Distinct(StringComparer.Ordinal));
         }
 
         /// <summary>
@@ -1396,7 +1253,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions
                 throw new ArgumentException("Scopes cannot be null or empty.", nameof(scopes));
             }
 
-            return ticket.SetProperty(OpenIdConnectConstants.Properties.Scopes, scopes.Distinct(StringComparer.Ordinal));
+            return SetProperty(ticket, OpenIdConnectConstants.Properties.Scopes, scopes.Distinct(StringComparer.Ordinal));
         }
 
         /// <summary>
@@ -1516,6 +1373,24 @@ namespace AspNet.Security.OpenIdConnect.Extensions
             }
 
             return ticket.SetProperty(OpenIdConnectConstants.Properties.Usage, usage);
+        }
+
+        private static AuthenticationTicket SetProperty(
+            AuthenticationTicket ticket, string property, IEnumerable<string> values)
+        {
+            Debug.Assert(ticket != null, "The authentication ticket cannot be null.");
+            Debug.Assert(!string.IsNullOrEmpty(property), "The property name cannot be null or empty.");
+
+            if (values == null || !values.Any())
+            {
+                ticket.Properties.Items.Remove(property);
+
+                return ticket;
+            }
+
+            ticket.Properties.Items[property] = new JArray(values).ToString(Formatting.None);
+
+            return ticket;
         }
 
         private static IEnumerable<string> GetValues(string source)

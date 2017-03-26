@@ -15,6 +15,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Infrastructure;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Owin.Security.OpenIdConnect.Extensions;
 
 namespace Owin.Security.OpenIdConnect.Server
@@ -380,9 +381,11 @@ namespace Owin.Security.OpenIdConnect.Server
                         Logger.LogDebug("The access token resources will be limited to the resources " +
                                         "requested by the client application: {Resources}.", request.GetResources());
 
-                        // Replace the resources initially granted by the resources listed by the client application in the token request.
-                        // Note: request.GetResources() automatically removes duplicate entries, so additional filtering is not necessary.
-                        properties.SetProperty(OpenIdConnectConstants.Properties.Resources, request.GetResources());
+                        // Replace the resources initially granted by the resources listed by the client
+                        // application in the token request. Note: request.GetResources() automatically
+                        // removes duplicate entries, so additional filtering is not necessary.
+                        properties.SetProperty(OpenIdConnectConstants.Properties.Resources,
+                            new JArray(request.GetResources()).ToString(Formatting.None));
                     }
 
                     if (!string.IsNullOrEmpty(request.Scope))
@@ -390,9 +393,11 @@ namespace Owin.Security.OpenIdConnect.Server
                         Logger.LogDebug("The access token scopes will be limited to the scopes " +
                                         "requested by the client application: {Scopes}.", request.GetScopes());
 
-                        // Replace the scopes initially granted by the scopes listed by the client application in the token request.
-                        // Note: request.GetScopes() automatically removes duplicate entries, so additional filtering is not necessary.
-                        properties.SetProperty(OpenIdConnectConstants.Properties.Scopes, request.GetScopes());
+                        // Replace the scopes initially granted by the scopes listed by the client
+                        // application in the token request. Note: request.GetScopes() automatically
+                        // removes duplicate entries, so additional filtering is not necessary.
+                        properties.SetProperty(OpenIdConnectConstants.Properties.Scopes,
+                            new JArray(request.GetScopes()).ToString(Formatting.None));
                     }
                 }
 
