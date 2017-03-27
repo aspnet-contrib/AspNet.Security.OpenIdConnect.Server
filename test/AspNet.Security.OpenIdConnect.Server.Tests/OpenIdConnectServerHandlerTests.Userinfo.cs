@@ -715,13 +715,6 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     return Task.FromResult(0);
                 };
 
-                options.Provider.OnValidateUserinfoRequest = context =>
-                {
-                    context.Skip();
-
-                    return Task.FromResult(0);
-                };
-
                 options.Provider.OnApplyUserinfoResponse = context =>
                 {
                     context.Response["custom_parameter"] = "custom_value";

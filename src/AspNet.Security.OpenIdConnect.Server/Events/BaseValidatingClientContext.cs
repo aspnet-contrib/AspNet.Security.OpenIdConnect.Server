@@ -42,6 +42,32 @@ namespace AspNet.Security.OpenIdConnect.Server
         public string ClientSecret => Request.ClientSecret;
 
         /// <summary>
+        /// Gets whether the <see cref="Skip()"/>
+        /// method has been called or not.
+        /// </summary>
+        public bool IsSkipped { get; private set; }
+
+        /// <summary>
+        /// Marks the context as skipped by the application.
+        /// </summary>
+        public virtual void Skip()
+        {
+            IsSkipped = true;
+            IsRejected = false;
+            IsValidated = false;
+        }
+
+        /// <summary>
+        /// Marks this context as not validated by the application.
+        /// </summary>
+        public override void Reject()
+        {
+            IsSkipped = false;
+            IsRejected = true;
+            IsValidated = false;
+        }
+
+        /// <summary>
         /// Marks this context as validated by the application.
         /// IsValidated becomes true and HasError becomes false as a result of calling.
         /// </summary>>
@@ -55,6 +81,8 @@ namespace AspNet.Security.OpenIdConnect.Server
                     "The request cannot be validated because no " +
                     "client_id was specified by the client application.");
             }
+
+            IsSkipped = false;
 
             base.Validate();
         }
@@ -82,6 +110,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             }
 
             ClientId = identifier;
+            IsSkipped = false;
 
             base.Validate();
         }

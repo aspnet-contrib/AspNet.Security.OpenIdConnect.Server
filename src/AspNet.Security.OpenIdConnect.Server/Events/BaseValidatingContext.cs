@@ -48,22 +48,16 @@ namespace AspNet.Security.OpenIdConnect.Server
         public OpenIdConnectServerOptions Options { get; }
 
         /// <summary>
-        /// Gets whether the <see cref="Skip()"/>
-        /// method has been called or not.
-        /// </summary>
-        public bool IsSkipped { get; private set; }
-
-        /// <summary>
         /// Gets whether the <see cref="Validate()"/>
         /// method has been called or not.
         /// </summary>
-        public bool IsValidated { get; private set; }
+        public bool IsValidated { get; protected set; }
 
         /// <summary>
         /// Gets whether the <see cref="Reject()"/>
         /// method has been called or not.
         /// </summary>
-        public bool IsRejected { get; private set; } = true;
+        public bool IsRejected { get; protected set; } = true;
 
         /// <summary>
         /// The error argument provided when <see cref="Reject()"/> was called on this context.
@@ -84,21 +78,10 @@ namespace AspNet.Security.OpenIdConnect.Server
         public string ErrorUri { get; private set; }
 
         /// <summary>
-        /// Marks the context as skipped by the application.
-        /// </summary>
-        public virtual void Skip()
-        {
-            IsSkipped = true;
-            IsRejected = false;
-            IsValidated = false;
-        }
-
-        /// <summary>
         /// Marks this context as validated by the application.
         /// </summary>
         public virtual void Validate()
         {
-            IsSkipped = false;
             IsValidated = true;
             IsRejected = false;
         }
@@ -108,7 +91,6 @@ namespace AspNet.Security.OpenIdConnect.Server
         /// </summary>
         public virtual void Reject()
         {
-            IsSkipped = false;
             IsRejected = true;
             IsValidated = false;
         }

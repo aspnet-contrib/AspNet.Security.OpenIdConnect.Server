@@ -334,7 +334,7 @@ namespace Owin.Security.OpenIdConnect.Server
                 return false;
             }
 
-            else if (!context.IsValidated)
+            else if (context.IsRejected)
             {
                 Logger.LogError("The authorization request was rejected with the following error: {Error} ; {Description}",
                                 /* Error: */ context.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,

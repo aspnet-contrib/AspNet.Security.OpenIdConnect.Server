@@ -28,11 +28,11 @@ namespace Owin.Security.OpenIdConnect.Server
             : base(context, options, request)
         {
             // Note: if the optional post_logout_redirect_uri parameter
-            // is missing, mark the validation context as skipped.
+            // is missing, mark the validation context as validated.
             // See http://openid.net/specs/openid-connect-session-1_0.html#RPLogout
             if (string.IsNullOrEmpty(request.PostLogoutRedirectUri))
             {
-                Skip();
+                Validate();
             }
 
             PostLogoutRedirectUri = request.PostLogoutRedirectUri;
@@ -42,16 +42,6 @@ namespace Owin.Security.OpenIdConnect.Server
         /// Gets the post_logout_redirect_uri specified by the client application.
         /// </summary>
         public string PostLogoutRedirectUri { get; private set; }
-
-        /// <summary>
-        /// Marks the context as skipped by the application.
-        /// </summary>
-        public override void Skip()
-        {
-            PostLogoutRedirectUri = null;
-
-            base.Skip();
-        }
 
         /// <summary>
         /// Checks the redirect URI to determine whether it equals <see cref="PostLogoutRedirectUri"/>.

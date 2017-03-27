@@ -157,16 +157,10 @@ namespace Nancy.Server.Providers
         {
             using (var database = new ApplicationContext())
             {
-                // Skip validation if the post_logout_redirect_uri parameter was missing.
-                if (string.IsNullOrEmpty(context.PostLogoutRedirectUri))
-                {
-                    context.Skip();
-
-                    return;
-                }
-
-                // When provided, post_logout_redirect_uri must exactly match the address registered by the client application.
-                if (!await database.Applications.AnyAsync(application => application.LogoutRedirectUri == context.PostLogoutRedirectUri))
+                // When provided, post_logout_redirect_uri must exactly
+                // match the address registered by the client application.
+                if (!string.IsNullOrEmpty(context.PostLogoutRedirectUri) &&
+                    !await database.Applications.AnyAsync(application => application.LogoutRedirectUri == context.PostLogoutRedirectUri))
                 {
                     context.Reject(
                         error: OpenIdConnectConstants.Errors.InvalidClient,

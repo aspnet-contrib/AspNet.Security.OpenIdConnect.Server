@@ -43,14 +43,6 @@ namespace AspNet.Security.OpenIdConnect.Server
         public string RedirectUri { get; private set; }
 
         /// <summary>
-        /// Marks the context as skipped by the application.
-        /// </summary>
-        public override void Skip()
-        {
-            throw new InvalidOperationException("Request validation cannot be skipped.");
-        }
-
-        /// <summary>
         /// Marks this context as validated by the application.
         /// IsValidated becomes true and HasError becomes false as a result of calling.
         /// </summary>>

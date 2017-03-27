@@ -571,38 +571,6 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public async Task InvokeAuthorizationEndpointAsync_ValidateAuthorizationRequest_SkippedRequestCausesAnException()
-        {
-            // Arrange
-            var server = CreateAuthorizationServer(options =>
-            {
-                options.Provider.OnValidateAuthorizationRequest = context =>
-                {
-                    context.Skip();
-
-                    return Task.FromResult(0);
-                };
-            });
-
-            var client = new OpenIdConnectClient(server.HttpClient);
-
-            // Act and assert
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate
-            {
-                return client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest
-                {
-                    ClientId = "Fabrikam",
-                    RedirectUri = "http://www.fabrikam.com/path",
-                    ResponseType = OpenIdConnectConstants.ResponseTypes.Code,
-                    Scope = OpenIdConnectConstants.Scopes.OpenId
-                });
-            });
-
-            // Assert
-            Assert.Equal("Request validation cannot be skipped.", exception.Message);
-        }
-
-        [Fact]
         public async Task InvokeAuthorizationEndpointAsync_ValidateAuthorizationRequest_MissingRedirectUriCausesAnException()
         {
             // Arrange
