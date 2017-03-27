@@ -113,8 +113,10 @@ namespace AspNet.Security.OpenIdConnect.Server
 
             Logger.LogInformation("The discovery request was successfully validated.");
 
-            var notification = new HandleConfigurationRequestContext(Context, Options, request);
-            notification.Issuer = Context.GetIssuer(Options);
+            var notification = new HandleConfigurationRequestContext(Context, Options, request)
+            {
+                Issuer = Context.GetIssuer(Options)
+            };
 
             if (Options.AuthorizationEndpointPath.HasValue)
             {
@@ -460,14 +462,12 @@ namespace AspNet.Security.OpenIdConnect.Server
                     // from a generic asymmetric security key. To work around this limitation, try to cast
                     // the security key to the built-in IdentityModel types to extract the required RSA instance.
                     // See https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet/issues/395
-                    var x509SecurityKey = credentials.Key as X509SecurityKey;
-                    if (x509SecurityKey != null)
+                    if (credentials.Key is X509SecurityKey x509SecurityKey)
                     {
                         algorithm = x509SecurityKey.PublicKey as RSA;
                     }
 
-                    var rsaSecurityKey = credentials.Key as RsaSecurityKey;
-                    if (rsaSecurityKey != null)
+                    else if (credentials.Key is RsaSecurityKey rsaSecurityKey)
                     {
                         algorithm = rsaSecurityKey.Rsa;
 
@@ -513,18 +513,19 @@ namespace AspNet.Security.OpenIdConnect.Server
                 {
                     ECDsa algorithm = null;
 
-                    var x509SecurityKey = credentials.Key as X509SecurityKey;
-                    if (x509SecurityKey != null) {
+                    if (credentials.Key is X509SecurityKey x509SecurityKey)
+                    {
                         algorithm = x509SecurityKey.PublicKey as ECDsa;
                     }
 
-                    var ecdsaSecurityKey = credentials.Key as ECDsaSecurityKey;
-                    if (ecdsaSecurityKey != null) {
+                    else if (credentials.Key is ECDsaSecurityKey ecdsaSecurityKey)
+                    {
                         algorithm = ecdsaSecurityKey.ECDsa;
                     }
 
                     // Skip the key if an algorithm instance cannot be extracted.
-                    if (algorithm == null) {
+                    if (algorithm == null)
+                    {
                         Logger.LogWarning("A signing key was ignored because it was unable " +
                                           "to provide the requested algorithm instance.");
 

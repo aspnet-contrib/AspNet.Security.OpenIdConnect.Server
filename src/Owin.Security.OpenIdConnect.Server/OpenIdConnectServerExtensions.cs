@@ -104,7 +104,8 @@ namespace Owin
                 throw new InvalidOperationException("The certificate doesn't contain the required private key.");
             }
 
-            var identifier = new SecurityKeyIdentifier {
+            var identifier = new SecurityKeyIdentifier
+            {
                 new X509IssuerSerialKeyIdentifierClause(certificate),
                 new X509RawDataKeyIdentifierClause(certificate),
                 new X509ThumbprintKeyIdentifierClause(certificate),

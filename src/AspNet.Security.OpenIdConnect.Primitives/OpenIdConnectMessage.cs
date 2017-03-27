@@ -225,8 +225,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives
                 throw new ArgumentException("The parameter name cannot be null or empty.", nameof(name));
             }
 
-            OpenIdConnectParameter value;
-            if (Parameters.TryGetValue(name, out value))
+            if (Parameters.TryGetValue(name, out OpenIdConnectParameter value))
             {
                 return value;
             }
@@ -276,8 +275,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives
                 throw new ArgumentException("The property name cannot be null or empty.", nameof(name));
             }
 
-            object value;
-            if (Properties.TryGetValue(name, out value))
+            if (Properties.TryGetValue(name, out object value))
             {
                 return value;
             }
@@ -299,8 +297,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives
                 throw new ArgumentException("The property name cannot be null or empty.", nameof(name));
             }
 
-            object value;
-            if (Properties.TryGetValue(name, out value) && value is T)
+            if (Properties.TryGetValue(name, out object value) && value is T)
             {
                 return (T) value;
             }

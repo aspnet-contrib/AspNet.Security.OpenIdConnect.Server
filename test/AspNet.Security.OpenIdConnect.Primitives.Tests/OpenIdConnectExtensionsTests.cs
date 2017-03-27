@@ -24,8 +24,10 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         public void GetResources_ReturnsExpectedResources(string resource, string[] resources)
         {
             // Arrange
-            var request = new OpenIdConnectRequest();
-            request.Resource = resource;
+            var request = new OpenIdConnectRequest()
+            {
+                Resource = resource
+            };
 
             // Act and assert
             Assert.Equal(resources, request.GetResources());
@@ -45,8 +47,10 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         public void GetScopes_ReturnsExpectedScopes(string scope, string[] scopes)
         {
             // Arrange
-            var request = new OpenIdConnectRequest();
-            request.Scope = scope;
+            var request = new OpenIdConnectRequest()
+            {
+                Scope = scope
+            };
 
             // Act and assert
             Assert.Equal(scopes, request.GetScopes());
@@ -77,8 +81,10 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         public void HasResponseType_ReturnsExpectedResult(string type, bool result)
         {
             // Arrange
-            var request = new OpenIdConnectRequest();
-            request.ResponseType = type;
+            var request = new OpenIdConnectRequest()
+            {
+                ResponseType = type
+            };
 
             // Act and assert
             Assert.Equal(result, request.HasResponseType(OpenIdConnectConstants.ResponseTypes.Code));
@@ -107,8 +113,10 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         public void HasScope_ReturnsExpectedResult(string scope, bool result)
         {
             // Arrange
-            var request = new OpenIdConnectRequest();
-            request.Scope = scope;
+            var request = new OpenIdConnectRequest()
+            {
+                Scope = scope
+            };
 
             // Act and assert
             Assert.Equal(result, request.HasScope(OpenIdConnectConstants.Scopes.OpenId));
@@ -261,8 +269,10 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         public void IsNoneFlow_ReturnsExpectedResult(string type, bool result)
         {
             // Arrange
-            var request = new OpenIdConnectRequest();
-            request.ResponseType = type;
+            var request = new OpenIdConnectRequest()
+            {
+                ResponseType = type
+            };
 
             // Act and assert
             Assert.Equal(result, request.IsNoneFlow());
@@ -288,8 +298,10 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         public void IsAuthorizationCodeFlow_ReturnsExpectedResult(string type, bool result)
         {
             // Arrange
-            var request = new OpenIdConnectRequest();
-            request.ResponseType = type;
+            var request = new OpenIdConnectRequest()
+            {
+                ResponseType = type
+            };
 
             // Act and assert
             Assert.Equal(result, request.IsAuthorizationCodeFlow());
@@ -327,8 +339,10 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         public void IsImplicitFlow_ReturnsExpectedResult(string type, bool result)
         {
             // Arrange
-            var request = new OpenIdConnectRequest();
-            request.ResponseType = type;
+            var request = new OpenIdConnectRequest()
+            {
+                ResponseType = type
+            };
 
             // Act and assert
             Assert.Equal(result, request.IsImplicitFlow());
@@ -368,8 +382,10 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         public void IsHybridFlow_ReturnsExpectedResult(string type, bool result)
         {
             // Arrange
-            var request = new OpenIdConnectRequest();
-            request.ResponseType = type;
+            var request = new OpenIdConnectRequest()
+            {
+                ResponseType = type
+            };
 
             // Act and assert
             Assert.Equal(result, request.IsHybridFlow());
@@ -404,9 +420,11 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         public void IsFragmentResponseMode_ReturnsExpectedResult(string mode, string type, bool result)
         {
             // Arrange
-            var request = new OpenIdConnectRequest();
-            request.ResponseMode = mode;
-            request.ResponseType = type;
+            var request = new OpenIdConnectRequest()
+            {
+                ResponseMode = mode,
+                ResponseType = type
+            };
 
             // Act and assert
             Assert.Equal(result, request.IsFragmentResponseMode());
@@ -441,9 +459,11 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         public void IsQueryResponseMode_ReturnsExpectedResult(string mode, string type, bool result)
         {
             // Arrange
-            var request = new OpenIdConnectRequest();
-            request.ResponseMode = mode;
-            request.ResponseType = type;
+            var request = new OpenIdConnectRequest()
+            {
+                ResponseMode = mode,
+                ResponseType = type
+            };
 
             // Act and assert
             Assert.Equal(result, request.IsQueryResponseMode());
@@ -464,8 +484,10 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         public void IsFormPostResponseMode_ReturnsExpectedResult(string mode, bool result)
         {
             // Arrange
-            var request = new OpenIdConnectRequest();
-            request.ResponseMode = mode;
+            var request = new OpenIdConnectRequest()
+            {
+                ResponseMode = mode
+            };
 
             // Act and assert
             Assert.Equal(result, request.IsFormPostResponseMode());
@@ -488,8 +510,10 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         public void IsAuthorizationCodeGrantType_ReturnsExpectedResult(string type, bool result)
         {
             // Arrange
-            var request = new OpenIdConnectRequest();
-            request.GrantType = type;
+            var request = new OpenIdConnectRequest()
+            {
+                GrantType = type
+            };
 
             // Act and assert
             Assert.Equal(result, request.IsAuthorizationCodeGrantType());
@@ -512,8 +536,10 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         public void IsClientCredentialsGrantType_ReturnsExpectedResult(string type, bool result)
         {
             // Arrange
-            var request = new OpenIdConnectRequest();
-            request.GrantType = type;
+            var request = new OpenIdConnectRequest()
+            {
+                GrantType = type
+            };
 
             // Act and assert
             Assert.Equal(result, request.IsClientCredentialsGrantType());
@@ -536,8 +562,10 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         public void IsPasswordGrantType_ReturnsExpectedResult(string type, bool result)
         {
             // Arrange
-            var request = new OpenIdConnectRequest();
-            request.GrantType = type;
+            var request = new OpenIdConnectRequest()
+            {
+                GrantType = type
+            };
 
             // Act and assert
             Assert.Equal(result, request.IsPasswordGrantType());
@@ -560,8 +588,10 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         public void IsRefreshTokenGrantType_ReturnsExpectedResult(string type, bool result)
         {
             // Arrange
-            var request = new OpenIdConnectRequest();
-            request.GrantType = type;
+            var request = new OpenIdConnectRequest()
+            {
+                GrantType = type
+            };
 
             // Act and assert
             Assert.Equal(result, request.IsRefreshTokenGrantType());

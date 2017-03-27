@@ -223,9 +223,11 @@ namespace Owin.Security.OpenIdConnect.Server
                 });
             }
 
-            var notification = new HandleUserinfoRequestContext(Context, Options, request, ticket);
-            notification.Issuer = Context.GetIssuer(Options);
-            notification.Subject = ticket.Identity.GetClaim(OpenIdConnectConstants.Claims.Subject);
+            var notification = new HandleUserinfoRequestContext(Context, Options, request, ticket)
+            {
+                Issuer = Context.GetIssuer(Options),
+                Subject = ticket.Identity.GetClaim(OpenIdConnectConstants.Claims.Subject)
+            };
 
             // Note: when receiving an access token, its audiences list cannot be used for the "aud" claim
             // as the client application is not the intented audience but only an authorized presenter.

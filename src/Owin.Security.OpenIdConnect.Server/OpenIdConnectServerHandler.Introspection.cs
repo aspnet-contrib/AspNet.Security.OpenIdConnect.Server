@@ -319,13 +319,15 @@ namespace Owin.Security.OpenIdConnect.Server
                 }
             }
 
-            var notification = new HandleIntrospectionRequestContext(Context, Options, request, ticket);
-            notification.Active = true;
-            notification.Issuer = Context.GetIssuer(Options);
-            notification.Subject = ticket.Identity.GetClaim(OpenIdConnectConstants.Claims.Subject);
+            var notification = new HandleIntrospectionRequestContext(Context, Options, request, ticket)
+            {
+                Active = true,
+                Issuer = Context.GetIssuer(Options),
+                Subject = ticket.Identity.GetClaim(OpenIdConnectConstants.Claims.Subject),
 
-            // Use the unique ticket identifier to populate the "jti" claim.
-            notification.TokenId = ticket.GetTicketId();
+                // Use the unique ticket identifier to populate the "jti" claim.
+                TokenId = ticket.GetTicketId()
+            };
 
             // Note: only set "token_type" when the received token is an access token.
             // See https://tools.ietf.org/html/rfc7662#section-2.2

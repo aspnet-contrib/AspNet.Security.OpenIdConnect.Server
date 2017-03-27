@@ -73,12 +73,13 @@ namespace Nancy.Client
                             var configuration = await notification.Options.ConfigurationManager.GetConfigurationAsync(notification.Request.CallCancelled);
 
                             var request = new HttpRequestMessage(HttpMethod.Post, configuration.TokenEndpoint);
-                            request.Content = new FormUrlEncodedContent(new Dictionary<string, string> {
-                                { OpenIdConnectParameterNames.ClientId, notification.Options.ClientId },
-                                { OpenIdConnectParameterNames.ClientSecret, notification.Options.ClientSecret },
-                                { OpenIdConnectParameterNames.Code, notification.ProtocolMessage.Code },
-                                { OpenIdConnectParameterNames.GrantType, "authorization_code" },
-                                { OpenIdConnectParameterNames.RedirectUri, notification.Options.RedirectUri }
+                            request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
+                            {
+                                [OpenIdConnectParameterNames.ClientId] = notification.Options.ClientId,
+                                [OpenIdConnectParameterNames.ClientSecret] = notification.Options.ClientSecret,
+                                [OpenIdConnectParameterNames.Code] = notification.ProtocolMessage.Code,
+                                [OpenIdConnectParameterNames.GrantType] = "authorization_code",
+                                [OpenIdConnectParameterNames.RedirectUri] = notification.Options.RedirectUri
                             });
 
                             var response = await client.SendAsync(request, notification.Request.CallCancelled);

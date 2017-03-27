@@ -50,14 +50,12 @@ namespace AspNet.Security.OpenIdConnect.Server
                 throw new ArgumentNullException(nameof(key));
             }
 
-            var x509SecurityKey = key as X509SecurityKey;
-            if (x509SecurityKey != null)
+            if (key is X509SecurityKey x509SecurityKey)
             {
                 return x509SecurityKey.Certificate.Thumbprint;
             }
 
-            var rsaSecurityKey = key as RsaSecurityKey;
-            if (rsaSecurityKey != null)
+            if (key is RsaSecurityKey rsaSecurityKey)
             {
                 // Note: if the RSA parameters are not attached to the signing key,
                 // extract them by calling ExportParameters on the RSA instance.
@@ -76,8 +74,8 @@ namespace AspNet.Security.OpenIdConnect.Server
             }
 
 #if SUPPORTS_ECDSA
-            var ecsdaSecurityKey = key as ECDsaSecurityKey;
-            if (ecsdaSecurityKey != null) {
+            if (key is ECDsaSecurityKey ecsdaSecurityKey)
+            {
                 // Extract the ECDSA parameters from the signing credentials.
                 var parameters = ecsdaSecurityKey.ECDsa.ExportParameters(includePrivateParameters: false);
 
@@ -274,8 +272,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             {
                 case ClaimValueTypes.Boolean:
                 {
-                    bool value;
-                    if (bool.TryParse(claim.Value, out value))
+                    if (bool.TryParse(claim.Value, out bool value))
                     {
                         return value;
                     }
@@ -287,8 +284,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                 case ClaimValueTypes.Integer32:
                 case ClaimValueTypes.Integer64:
                 {
-                    long value;
-                    if (long.TryParse(claim.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out value))
+                    if (long.TryParse(claim.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out long value))
                     {
                         return value;
                     }

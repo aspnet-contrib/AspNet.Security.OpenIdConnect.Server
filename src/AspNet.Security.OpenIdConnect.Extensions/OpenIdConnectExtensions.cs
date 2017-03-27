@@ -37,8 +37,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions
                 throw new ArgumentNullException(nameof(claim));
             }
 
-            string destinations;
-            claim.Properties.TryGetValue(OpenIdConnectConstants.Properties.Destinations, out destinations);
+            claim.Properties.TryGetValue(OpenIdConnectConstants.Properties.Destinations, out string destinations);
 
             if (string.IsNullOrEmpty(destinations))
             {
@@ -61,8 +60,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions
                 throw new ArgumentNullException(nameof(claim));
             }
 
-            string destinations;
-            claim.Properties.TryGetValue(OpenIdConnectConstants.Properties.Destinations, out destinations);
+            claim.Properties.TryGetValue(OpenIdConnectConstants.Properties.Destinations, out string destinations);
 
             if (string.IsNullOrEmpty(destinations))
             {
@@ -410,8 +408,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions
                 throw new ArgumentException("The property name cannot be null or empty.", nameof(property));
             }
 
-            string value;
-            if (!properties.Items.TryGetValue(property, out value))
+            if (!properties.Items.TryGetValue(property, out string value))
             {
                 return null;
             }
@@ -542,8 +539,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions
                 return null;
             }
 
-            TimeSpan result;
-            if (TimeSpan.TryParseExact(value, "c", CultureInfo.InvariantCulture, out result))
+            if (TimeSpan.TryParseExact(value, "c", CultureInfo.InvariantCulture, out TimeSpan result))
             {
                 return result;
             }
@@ -570,8 +566,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions
                 return null;
             }
 
-            TimeSpan result;
-            if (TimeSpan.TryParseExact(value, "c", CultureInfo.InvariantCulture, out result))
+            if (TimeSpan.TryParseExact(value, "c", CultureInfo.InvariantCulture, out TimeSpan result))
             {
                 return result;
             }
@@ -598,8 +593,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions
                 return null;
             }
 
-            TimeSpan result;
-            if (TimeSpan.TryParseExact(value, "c", CultureInfo.InvariantCulture, out result))
+            if (TimeSpan.TryParseExact(value, "c", CultureInfo.InvariantCulture, out TimeSpan result))
             {
                 return result;
             }
@@ -626,8 +620,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions
                 return null;
             }
 
-            TimeSpan result;
-            if (TimeSpan.TryParseExact(value, "c", CultureInfo.InvariantCulture, out result))
+            if (TimeSpan.TryParseExact(value, "c", CultureInfo.InvariantCulture, out TimeSpan result))
             {
                 return result;
             }
@@ -683,8 +676,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions
                 throw new ArgumentException($"{nameof(property)} cannot be null or empty.", nameof(property));
             }
 
-            string value;
-            if (!properties.Items.TryGetValue(property, out value))
+            if (!properties.Items.TryGetValue(property, out string value))
             {
                 return false;
             }

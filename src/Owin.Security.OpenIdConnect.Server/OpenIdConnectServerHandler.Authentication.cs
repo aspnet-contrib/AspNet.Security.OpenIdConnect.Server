@@ -157,8 +157,7 @@ namespace Owin.Security.OpenIdConnect.Server
                 // Note: when specified, redirect_uri MUST be an absolute URI.
                 // See http://tools.ietf.org/html/rfc6749#section-3.1.2
                 // and http://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
-                Uri uri;
-                if (!Uri.TryCreate(request.RedirectUri, UriKind.Absolute, out uri))
+                if (!Uri.TryCreate(request.RedirectUri, UriKind.Absolute, out Uri uri))
                 {
                     Logger.LogError("The authorization request was rejected because the 'redirect_uri' parameter " +
                                     "didn't correspond to a valid absolute URL: {RedirectUri}.", request.RedirectUri);

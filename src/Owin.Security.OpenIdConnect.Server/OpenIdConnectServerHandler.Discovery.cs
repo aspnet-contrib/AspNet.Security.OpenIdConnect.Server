@@ -115,8 +115,10 @@ namespace Owin.Security.OpenIdConnect.Server
 
             Logger.LogInformation("The discovery request was successfully validated.");
 
-            var notification = new HandleConfigurationRequestContext(Context, Options, request);
-            notification.Issuer = Context.GetIssuer(Options);
+            var notification = new HandleConfigurationRequestContext(Context, Options, request)
+            {
+                Issuer = Context.GetIssuer(Options)
+            };
 
             if (Options.AuthorizationEndpointPath.HasValue)
             {
@@ -477,41 +479,28 @@ namespace Owin.Security.OpenIdConnect.Server
                 X509Certificate2 certificate = null;
 
                 // Determine whether the signing credentials are directly based on a X.509 certificate.
-                var x509SigningCredentials = credentials as X509SigningCredentials;
-                if (x509SigningCredentials != null)
+                if (credentials is X509SigningCredentials x509SigningCredentials)
                 {
                     certificate = x509SigningCredentials.Certificate;
                 }
 
-                // Skip looking for a X509SecurityKey in SigningCredentials.SigningKey
-                // if a certificate has been found in the SigningCredentials instance.
-                if (certificate == null)
+                // Determine whether the security key is an asymmetric key embedded in a X.509 certificate.
+                else if (credentials.SigningKey is X509SecurityKey x509SecurityKey)
                 {
-                    // Determine whether the security key is an asymmetric key embedded in a X.509 certificate.
-                    var x509SecurityKey = credentials.SigningKey as X509SecurityKey;
-                    if (x509SecurityKey != null)
-                    {
-                        certificate = x509SecurityKey.Certificate;
-                    }
+                    certificate = x509SecurityKey.Certificate;
                 }
 
-                // Skip looking for a X509AsymmetricSecurityKey in SigningCredentials.SigningKey
-                // if a certificate has been found in SigningCredentials or SigningCredentials.SigningKey.
-                if (certificate == null)
+                // Determine whether the security key is an asymmetric key embedded in a X.509 certificate.
+                else if (credentials.SigningKey is X509AsymmetricSecurityKey x509AsymmetricSecurityKey)
                 {
-                    // Determine whether the security key is an asymmetric key embedded in a X.509 certificate.
-                    var x509AsymmetricSecurityKey = credentials.SigningKey as X509AsymmetricSecurityKey;
-                    if (x509AsymmetricSecurityKey != null)
-                    {
-                        // The X.509 certificate is not directly accessible when using X509AsymmetricSecurityKey.
-                        // Reflection is the only way to get the certificate used to create the security key.
-                        var field = typeof(X509AsymmetricSecurityKey).GetField(
-                            name: "certificate",
-                            bindingAttr: BindingFlags.Instance | BindingFlags.NonPublic);
-                        Debug.Assert(field != null);
+                    // The X.509 certificate is not directly accessible when using X509AsymmetricSecurityKey.
+                    // Reflection is the only way to get the certificate used to create the security key.
+                    var field = typeof(X509AsymmetricSecurityKey).GetField(
+                        name: "certificate",
+                        bindingAttr: BindingFlags.Instance | BindingFlags.NonPublic);
+                    Debug.Assert(field != null);
 
-                        certificate = (X509Certificate2) field.GetValue(x509AsymmetricSecurityKey);
-                    }
+                    certificate = (X509Certificate2) field.GetValue(x509AsymmetricSecurityKey);
                 }
 
                 // If the signing key is embedded in a X.509 certificate, set

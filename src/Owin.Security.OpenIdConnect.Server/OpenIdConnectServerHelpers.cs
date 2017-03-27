@@ -49,14 +49,12 @@ namespace Owin.Security.OpenIdConnect.Server
             SecurityKeyIdentifier identifier = null;
             X509Certificate2 certificate = null;
 
-            var x509SecurityKey = key as X509SecurityKey;
-            if (x509SecurityKey != null)
+            if (key is X509SecurityKey x509SecurityKey)
             {
                 certificate = x509SecurityKey.Certificate;
             }
 
-            var x509AsymmetricSecurityKey = key as X509AsymmetricSecurityKey;
-            if (x509AsymmetricSecurityKey != null)
+            if (key is X509AsymmetricSecurityKey x509AsymmetricSecurityKey)
             {
                 // The X.509 certificate is not directly accessible when using X509AsymmetricSecurityKey.
                 // Reflection is the only way to get the certificate used to create the security key.
@@ -70,12 +68,13 @@ namespace Owin.Security.OpenIdConnect.Server
 
             if (certificate != null)
             {
-                identifier = new SecurityKeyIdentifier {
-                    new X509IssuerSerialKeyIdentifierClause(x509SecurityKey.Certificate),
-                    new X509RawDataKeyIdentifierClause(x509SecurityKey.Certificate),
-                    new X509ThumbprintKeyIdentifierClause(x509SecurityKey.Certificate),
-                    new LocalIdKeyIdentifierClause(x509SecurityKey.Certificate.Thumbprint.ToUpperInvariant()),
-                    new NamedKeySecurityKeyIdentifierClause(JwtHeaderParameterNames.X5t, x509SecurityKey.Certificate.Thumbprint.ToUpperInvariant())
+                identifier = new SecurityKeyIdentifier
+                {
+                    new X509IssuerSerialKeyIdentifierClause(certificate),
+                    new X509RawDataKeyIdentifierClause(certificate),
+                    new X509ThumbprintKeyIdentifierClause(certificate),
+                    new LocalIdKeyIdentifierClause(certificate.Thumbprint.ToUpperInvariant()),
+                    new NamedKeySecurityKeyIdentifierClause(JwtHeaderParameterNames.X5t, certificate.Thumbprint.ToUpperInvariant())
                 };
             }
 
@@ -84,8 +83,7 @@ namespace Owin.Security.OpenIdConnect.Server
                 // Create an empty security key identifier.
                 identifier = new SecurityKeyIdentifier();
 
-                var rsaSecurityKey = key as RsaSecurityKey;
-                if (rsaSecurityKey != null)
+                if (key is RsaSecurityKey rsaSecurityKey)
                 {
                     // Resolve the underlying algorithm from the security key.
                     var algorithm = (RSA) rsaSecurityKey.GetAsymmetricAlgorithm(
@@ -218,8 +216,7 @@ namespace Owin.Security.OpenIdConnect.Server
             {
                 case ClaimValueTypes.Boolean:
                 {
-                    bool value;
-                    if (bool.TryParse(claim.Value, out value))
+                    if (bool.TryParse(claim.Value, out bool value))
                     {
                         return value;
                     }
@@ -231,8 +228,7 @@ namespace Owin.Security.OpenIdConnect.Server
                 case ClaimValueTypes.Integer32:
                 case ClaimValueTypes.Integer64:
                 {
-                    long value;
-                    if (long.TryParse(claim.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out value))
+                    if (long.TryParse(claim.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out long value))
                     {
                         return value;
                     }
