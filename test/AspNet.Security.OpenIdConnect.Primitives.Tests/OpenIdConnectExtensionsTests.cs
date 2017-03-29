@@ -4,12 +4,28 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
+using System;
 using Xunit;
 
 namespace AspNet.Security.OpenIdConnect.Primitives.Tests
 {
     public class OpenIdConnectExtensionsTests
     {
+        [Fact]
+        public void GetResources_ThrowsAnExceptionForNullRequest()
+        {
+            // Arrange
+            var request = (OpenIdConnectRequest) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                request.GetResources();
+            });
+
+            Assert.Equal("request", exception.ParamName);
+        }
+
         [Theory]
         [InlineData(null, new string[0])]
         [InlineData("fabrikam", new[] { "fabrikam" })]
@@ -24,13 +40,28 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         public void GetResources_ReturnsExpectedResources(string resource, string[] resources)
         {
             // Arrange
-            var request = new OpenIdConnectRequest()
+            var request = new OpenIdConnectRequest
             {
                 Resource = resource
             };
 
             // Act and assert
             Assert.Equal(resources, request.GetResources());
+        }
+
+        [Fact]
+        public void GetScopes_ThrowsAnExceptionForNullRequest()
+        {
+            // Arrange
+            var request = (OpenIdConnectRequest) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                request.GetScopes();
+            });
+
+            Assert.Equal("request", exception.ParamName);
         }
 
         [Theory]
@@ -47,13 +78,46 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         public void GetScopes_ReturnsExpectedScopes(string scope, string[] scopes)
         {
             // Arrange
-            var request = new OpenIdConnectRequest()
+            var request = new OpenIdConnectRequest
             {
                 Scope = scope
             };
 
             // Act and assert
             Assert.Equal(scopes, request.GetScopes());
+        }
+
+        [Fact]
+        public void HasPrompt_ThrowsAnExceptionForNullRequest()
+        {
+            // Arrange
+            var request = (OpenIdConnectRequest) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                request.HasPrompt(OpenIdConnectConstants.Prompts.Consent);
+            });
+
+            Assert.Equal("request", exception.ParamName);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public void HasPrompt_ThrowsAnExceptionForNullOrEmptyPrompt(string prompt)
+        {
+            // Arrange
+            var request = new OpenIdConnectRequest();
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentException>(delegate
+            {
+                request.HasPrompt(prompt);
+            });
+
+            Assert.Equal("prompt", exception.ParamName);
+            Assert.StartsWith("The prompt cannot be null or empty.", exception.Message);
         }
 
         [Theory]
@@ -81,13 +145,46 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         public void HasPrompt_ReturnsExpectedResult(string prompt, bool result)
         {
             // Arrange
-            var request = new OpenIdConnectRequest()
+            var request = new OpenIdConnectRequest
             {
                 Prompt = prompt
             };
 
             // Act and assert
             Assert.Equal(result, request.HasPrompt(OpenIdConnectConstants.Prompts.Consent));
+        }
+
+        [Fact]
+        public void HasResponseType_ThrowsAnExceptionForNullRequest()
+        {
+            // Arrange
+            var request = (OpenIdConnectRequest) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                request.HasResponseType(OpenIdConnectConstants.ResponseTypes.Code);
+            });
+
+            Assert.Equal("request", exception.ParamName);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public void HasResponseType_ThrowsAnExceptionForNullOrEmptyResponseType(string type)
+        {
+            // Arrange
+            var request = new OpenIdConnectRequest();
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentException>(delegate
+            {
+                request.HasResponseType(type);
+            });
+
+            Assert.Equal("type", exception.ParamName);
+            Assert.StartsWith("The response type cannot be null or empty.", exception.Message);
         }
 
         [Theory]
@@ -115,13 +212,46 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         public void HasResponseType_ReturnsExpectedResult(string type, bool result)
         {
             // Arrange
-            var request = new OpenIdConnectRequest()
+            var request = new OpenIdConnectRequest
             {
                 ResponseType = type
             };
 
             // Act and assert
             Assert.Equal(result, request.HasResponseType(OpenIdConnectConstants.ResponseTypes.Code));
+        }
+
+        [Fact]
+        public void HasScope_ThrowsAnExceptionForNullRequest()
+        {
+            // Arrange
+            var request = (OpenIdConnectRequest) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                request.HasScope(OpenIdConnectConstants.Scopes.OpenId);
+            });
+
+            Assert.Equal("request", exception.ParamName);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public void HasScope_ThrowsAnExceptionForNullOrEmptyScope(string scope)
+        {
+            // Arrange
+            var request = new OpenIdConnectRequest();
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentException>(delegate
+            {
+                request.HasScope(scope);
+            });
+
+            Assert.Equal("scope", exception.ParamName);
+            Assert.StartsWith("The scope cannot be null or empty.", exception.Message);
         }
 
         [Theory]
@@ -147,13 +277,28 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         public void HasScope_ReturnsExpectedResult(string scope, bool result)
         {
             // Arrange
-            var request = new OpenIdConnectRequest()
+            var request = new OpenIdConnectRequest
             {
                 Scope = scope
             };
 
             // Act and assert
             Assert.Equal(result, request.HasScope(OpenIdConnectConstants.Scopes.OpenId));
+        }
+
+        [Fact]
+        public void IsAuthorizationRequest_ThrowsAnExceptionForNullRequest()
+        {
+            // Arrange
+            var request = (OpenIdConnectRequest) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                request.IsAuthorizationRequest();
+            });
+
+            Assert.Equal("request", exception.ParamName);
         }
 
         [Theory]
@@ -168,6 +313,21 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
 
             // Act and assert
             Assert.Equal(result, request.IsAuthorizationRequest());
+        }
+
+        [Fact]
+        public void IsConfidential_ThrowsAnExceptionForNullRequest()
+        {
+            // Arrange
+            var request = (OpenIdConnectRequest) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                request.IsConfidential();
+            });
+
+            Assert.Equal("request", exception.ParamName);
         }
 
         [Theory]
@@ -185,6 +345,21 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
             Assert.Equal(result, request.IsConfidential());
         }
 
+        [Fact]
+        public void IsConfigurationRequest_ThrowsAnExceptionForNullRequest()
+        {
+            // Arrange
+            var request = (OpenIdConnectRequest) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                request.IsConfigurationRequest();
+            });
+
+            Assert.Equal("request", exception.ParamName);
+        }
+
         [Theory]
         [InlineData(null, false)]
         [InlineData("unknown", false)]
@@ -197,6 +372,21 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
 
             // Act and assert
             Assert.Equal(result, request.IsConfigurationRequest());
+        }
+
+        [Fact]
+        public void IsCryptographyRequest_ThrowsAnExceptionForNullRequest()
+        {
+            // Arrange
+            var request = (OpenIdConnectRequest) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                request.IsCryptographyRequest();
+            });
+
+            Assert.Equal("request", exception.ParamName);
         }
 
         [Theory]
@@ -213,6 +403,21 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
             Assert.Equal(result, request.IsCryptographyRequest());
         }
 
+        [Fact]
+        public void IsIntrospectionRequest_ThrowsAnExceptionForNullRequest()
+        {
+            // Arrange
+            var request = (OpenIdConnectRequest) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                request.IsIntrospectionRequest();
+            });
+
+            Assert.Equal("request", exception.ParamName);
+        }
+
         [Theory]
         [InlineData(null, false)]
         [InlineData("unknown", false)]
@@ -225,6 +430,21 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
 
             // Act and assert
             Assert.Equal(result, request.IsIntrospectionRequest());
+        }
+
+        [Fact]
+        public void IsLogoutRequest_ThrowsAnExceptionForNullRequest()
+        {
+            // Arrange
+            var request = (OpenIdConnectRequest) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                request.IsLogoutRequest();
+            });
+
+            Assert.Equal("request", exception.ParamName);
         }
 
         [Theory]
@@ -241,6 +461,21 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
             Assert.Equal(result, request.IsLogoutRequest());
         }
 
+        [Fact]
+        public void IsRevocationRequest_ThrowsAnExceptionForNullRequest()
+        {
+            // Arrange
+            var request = (OpenIdConnectRequest) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                request.IsRevocationRequest();
+            });
+
+            Assert.Equal("request", exception.ParamName);
+        }
+
         [Theory]
         [InlineData(null, false)]
         [InlineData("unknown", false)]
@@ -253,6 +488,21 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
 
             // Act and assert
             Assert.Equal(result, request.IsRevocationRequest());
+        }
+
+        [Fact]
+        public void IsTokenRequest_ThrowsAnExceptionForNullRequest()
+        {
+            // Arrange
+            var request = (OpenIdConnectRequest) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                request.IsTokenRequest();
+            });
+
+            Assert.Equal("request", exception.ParamName);
         }
 
         [Theory]
@@ -269,6 +519,21 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
             Assert.Equal(result, request.IsTokenRequest());
         }
 
+        [Fact]
+        public void IsUserinfoRequest_ThrowsAnExceptionForNullRequest()
+        {
+            // Arrange
+            var request = (OpenIdConnectRequest) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                request.IsUserinfoRequest();
+            });
+
+            Assert.Equal("request", exception.ParamName);
+        }
+
         [Theory]
         [InlineData(null, false)]
         [InlineData("unknown", false)]
@@ -281,6 +546,21 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
 
             // Act and assert
             Assert.Equal(result, request.IsUserinfoRequest());
+        }
+
+        [Fact]
+        public void IsNoneFlow_ThrowsAnExceptionForNullRequest()
+        {
+            // Arrange
+            var request = (OpenIdConnectRequest) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                request.IsNoneFlow();
+            });
+
+            Assert.Equal("request", exception.ParamName);
         }
 
         [Theory]
@@ -303,13 +583,28 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         public void IsNoneFlow_ReturnsExpectedResult(string type, bool result)
         {
             // Arrange
-            var request = new OpenIdConnectRequest()
+            var request = new OpenIdConnectRequest
             {
                 ResponseType = type
             };
 
             // Act and assert
             Assert.Equal(result, request.IsNoneFlow());
+        }
+
+        [Fact]
+        public void IsAuthorizationCodeFlow_ThrowsAnExceptionForNullRequest()
+        {
+            // Arrange
+            var request = (OpenIdConnectRequest) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                request.IsAuthorizationCodeFlow();
+            });
+
+            Assert.Equal("request", exception.ParamName);
         }
 
         [Theory]
@@ -332,13 +627,28 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         public void IsAuthorizationCodeFlow_ReturnsExpectedResult(string type, bool result)
         {
             // Arrange
-            var request = new OpenIdConnectRequest()
+            var request = new OpenIdConnectRequest
             {
                 ResponseType = type
             };
 
             // Act and assert
             Assert.Equal(result, request.IsAuthorizationCodeFlow());
+        }
+
+        [Fact]
+        public void IsImplicitFlow_ThrowsAnExceptionForNullRequest()
+        {
+            // Arrange
+            var request = (OpenIdConnectRequest) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                request.IsImplicitFlow();
+            });
+
+            Assert.Equal("request", exception.ParamName);
         }
 
         [Theory]
@@ -373,13 +683,28 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         public void IsImplicitFlow_ReturnsExpectedResult(string type, bool result)
         {
             // Arrange
-            var request = new OpenIdConnectRequest()
+            var request = new OpenIdConnectRequest
             {
                 ResponseType = type
             };
 
             // Act and assert
             Assert.Equal(result, request.IsImplicitFlow());
+        }
+
+        [Fact]
+        public void IsHybridFlow_ThrowsAnExceptionForNullRequest()
+        {
+            // Arrange
+            var request = (OpenIdConnectRequest) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                request.IsHybridFlow();
+            });
+
+            Assert.Equal("request", exception.ParamName);
         }
 
         [Theory]
@@ -416,13 +741,28 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         public void IsHybridFlow_ReturnsExpectedResult(string type, bool result)
         {
             // Arrange
-            var request = new OpenIdConnectRequest()
+            var request = new OpenIdConnectRequest
             {
                 ResponseType = type
             };
 
             // Act and assert
             Assert.Equal(result, request.IsHybridFlow());
+        }
+
+        [Fact]
+        public void IsFragmentResponseMode_ThrowsAnExceptionForNullRequest()
+        {
+            // Arrange
+            var request = (OpenIdConnectRequest) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                request.IsFragmentResponseMode();
+            });
+
+            Assert.Equal("request", exception.ParamName);
         }
 
         [Theory]
@@ -454,7 +794,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         public void IsFragmentResponseMode_ReturnsExpectedResult(string mode, string type, bool result)
         {
             // Arrange
-            var request = new OpenIdConnectRequest()
+            var request = new OpenIdConnectRequest
             {
                 ResponseMode = mode,
                 ResponseType = type
@@ -462,6 +802,21 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
 
             // Act and assert
             Assert.Equal(result, request.IsFragmentResponseMode());
+        }
+
+        [Fact]
+        public void IsQueryResponseMode_ThrowsAnExceptionForNullRequest()
+        {
+            // Arrange
+            var request = (OpenIdConnectRequest) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                request.IsQueryResponseMode();
+            });
+
+            Assert.Equal("request", exception.ParamName);
         }
 
         [Theory]
@@ -493,7 +848,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         public void IsQueryResponseMode_ReturnsExpectedResult(string mode, string type, bool result)
         {
             // Arrange
-            var request = new OpenIdConnectRequest()
+            var request = new OpenIdConnectRequest
             {
                 ResponseMode = mode,
                 ResponseType = type
@@ -501,6 +856,21 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
 
             // Act and assert
             Assert.Equal(result, request.IsQueryResponseMode());
+        }
+
+        [Fact]
+        public void IsFormPostResponseMode_ThrowsAnExceptionForNullRequest()
+        {
+            // Arrange
+            var request = (OpenIdConnectRequest) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                request.IsFormPostResponseMode();
+            });
+
+            Assert.Equal("request", exception.ParamName);
         }
 
         [Theory]
@@ -518,13 +888,28 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         public void IsFormPostResponseMode_ReturnsExpectedResult(string mode, bool result)
         {
             // Arrange
-            var request = new OpenIdConnectRequest()
+            var request = new OpenIdConnectRequest
             {
                 ResponseMode = mode
             };
 
             // Act and assert
             Assert.Equal(result, request.IsFormPostResponseMode());
+        }
+
+        [Fact]
+        public void IsAuthorizationCodeGrantType_ThrowsAnExceptionForNullRequest()
+        {
+            // Arrange
+            var request = (OpenIdConnectRequest) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                request.IsAuthorizationCodeGrantType();
+            });
+
+            Assert.Equal("request", exception.ParamName);
         }
 
         [Theory]
@@ -544,13 +929,28 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         public void IsAuthorizationCodeGrantType_ReturnsExpectedResult(string type, bool result)
         {
             // Arrange
-            var request = new OpenIdConnectRequest()
+            var request = new OpenIdConnectRequest
             {
                 GrantType = type
             };
 
             // Act and assert
             Assert.Equal(result, request.IsAuthorizationCodeGrantType());
+        }
+
+        [Fact]
+        public void IsClientCredentialsGrantType_ThrowsAnExceptionForNullRequest()
+        {
+            // Arrange
+            var request = (OpenIdConnectRequest) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                request.IsClientCredentialsGrantType();
+            });
+
+            Assert.Equal("request", exception.ParamName);
         }
 
         [Theory]
@@ -570,13 +970,28 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         public void IsClientCredentialsGrantType_ReturnsExpectedResult(string type, bool result)
         {
             // Arrange
-            var request = new OpenIdConnectRequest()
+            var request = new OpenIdConnectRequest
             {
                 GrantType = type
             };
 
             // Act and assert
             Assert.Equal(result, request.IsClientCredentialsGrantType());
+        }
+
+        [Fact]
+        public void IsPasswordGrantType_ThrowsAnExceptionForNullRequest()
+        {
+            // Arrange
+            var request = (OpenIdConnectRequest) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                request.IsPasswordGrantType();
+            });
+
+            Assert.Equal("request", exception.ParamName);
         }
 
         [Theory]
@@ -596,13 +1011,28 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         public void IsPasswordGrantType_ReturnsExpectedResult(string type, bool result)
         {
             // Arrange
-            var request = new OpenIdConnectRequest()
+            var request = new OpenIdConnectRequest
             {
                 GrantType = type
             };
 
             // Act and assert
             Assert.Equal(result, request.IsPasswordGrantType());
+        }
+
+        [Fact]
+        public void IsRefreshTokenGrantType_ThrowsAnExceptionForNullRequest()
+        {
+            // Arrange
+            var request = (OpenIdConnectRequest) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                request.IsRefreshTokenGrantType();
+            });
+
+            Assert.Equal("request", exception.ParamName);
         }
 
         [Theory]
@@ -622,7 +1052,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         public void IsRefreshTokenGrantType_ReturnsExpectedResult(string type, bool result)
         {
             // Arrange
-            var request = new OpenIdConnectRequest()
+            var request = new OpenIdConnectRequest
             {
                 GrantType = type
             };

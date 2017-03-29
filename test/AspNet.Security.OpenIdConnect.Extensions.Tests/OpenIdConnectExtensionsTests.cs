@@ -17,6 +17,21 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
 {
     public class OpenIdConnectExtensionsTests
     {
+        [Fact]
+        public void GetDestinations_ThrowsAnExceptionForNullClaim()
+        {
+            // Arrange
+            var claim = (Claim) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                claim.GetDestinations();
+            });
+
+            Assert.Equal("claim", exception.ParamName);
+        }
+
         [Theory]
         [InlineData(null, new string[0])]
         [InlineData("", new string[0])]
@@ -33,6 +48,21 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
 
             // Act and assert
             Assert.Equal(destinations, claim.GetDestinations());
+        }
+
+        [Fact]
+        public void SetDestinations_ThrowsAnExceptionForNullTicket()
+        {
+            // Arrange
+            var claim = (Claim) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                claim.SetDestinations();
+            });
+
+            Assert.Equal("claim", exception.ParamName);
         }
 
         [Theory]
@@ -53,7 +83,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public void SetDestinations_ThrowsForInvalidDestinations(string destination)
+        public void SetDestinations_ThrowsAnExceptionForNullOrEmptyDestinations(string destination)
         {
             // Arrange
             var claim = new Claim(OpenIdConnectConstants.Claims.Name, "Bob le Bricoleur");
@@ -80,6 +110,21 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
 
             // Assert
             Assert.Equal(destination, claim.Properties[OpenIdConnectConstants.Properties.Destinations]);
+        }
+
+        [Fact]
+        public void Clone_ThrowsAnExceptionForNullIdentity()
+        {
+            // Arrange
+            var identity = (ClaimsIdentity) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                identity.Clone(claim => true);
+            });
+
+            Assert.Equal("identity", exception.ParamName);
         }
 
         [Fact]
@@ -153,6 +198,21 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
         }
 
         [Fact]
+        public void AddClaim_ThrowsAnExceptionForNullIdentity()
+        {
+            // Arrange
+            var identity = (ClaimsIdentity) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                identity.AddClaim(OpenIdConnectConstants.Claims.Name, "Bob le Bricoleur");
+            });
+
+            Assert.Equal("identity", exception.ParamName);
+        }
+
+        [Fact]
         public void AddClaim_SetsAppropriateClaim()
         {
             // Arrange
@@ -186,6 +246,21 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
         }
 
         [Fact]
+        public void GetClaim_ThrowsAnExceptionForNullIdentity()
+        {
+            // Arrange
+            var identity = (ClaimsIdentity) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                identity.GetClaim(OpenIdConnectConstants.Claims.Name);
+            });
+
+            Assert.Equal("identity", exception.ParamName);
+        }
+
+        [Fact]
         public void GetClaim_ReturnsNullForMissingClaims()
         {
             // Arrange
@@ -212,6 +287,21 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
         }
 
         [Fact]
+        public void Copy_ThrowsAnExceptionForNullProperties()
+        {
+            // Arrange
+            var properties = (AuthenticationProperties) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                properties.Copy();
+            });
+
+            Assert.Equal("properties", exception.ParamName);
+        }
+
+        [Fact]
         public void Copy_ReturnsIdenticalProperties()
         {
             // Arrange
@@ -223,6 +313,21 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
 
             // Assert
             Assert.Equal(properties.Items, copy.Items);
+        }
+
+        [Fact]
+        public void Copy_ThrowsAnExceptionForNullTicket()
+        {
+            // Arrange
+            var ticket = (AuthenticationTicket) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                ticket.Copy();
+            });
+
+            Assert.Equal("ticket", exception.ParamName);
         }
 
         [Fact]
@@ -290,6 +395,21 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
         }
 
         [Fact]
+        public void GetProperty_ThrowsAnExceptionForNullTicket()
+        {
+            // Arrange
+            var ticket = (AuthenticationTicket) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                ticket.GetProperty("property");
+            });
+
+            Assert.Equal("ticket", exception.ParamName);
+        }
+
+        [Fact]
         public void GetProperty_ReturnsNullForMissingProperty()
         {
             // Arrange
@@ -335,6 +455,21 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
             Assert.Null(ticket.Properties.GetProperty("PROPERTY"));
         }
 
+        [Fact]
+        public void GetAudiences_ThrowsAnExceptionForNullTicket()
+        {
+            // Arrange
+            var ticket = (AuthenticationTicket) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                ticket.GetAudiences();
+            });
+
+            Assert.Equal("ticket", exception.ParamName);
+        }
+
         [Theory]
         [InlineData(null, new string[0])]
         [InlineData("", new string[0])]
@@ -355,6 +490,21 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
 
             // Act and assert
             Assert.Equal(audiences, ticket.GetAudiences());
+        }
+
+        [Fact]
+        public void GetPresenters_ThrowsAnExceptionForNullTicket()
+        {
+            // Arrange
+            var ticket = (AuthenticationTicket) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                ticket.GetPresenters();
+            });
+
+            Assert.Equal("ticket", exception.ParamName);
         }
 
         [Theory]
@@ -379,6 +529,21 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
             Assert.Equal(presenters, ticket.GetPresenters());
         }
 
+        [Fact]
+        public void GetResources_ThrowsAnExceptionForNullTicket()
+        {
+            // Arrange
+            var ticket = (AuthenticationTicket) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                ticket.GetResources();
+            });
+
+            Assert.Equal("ticket", exception.ParamName);
+        }
+
         [Theory]
         [InlineData(null, new string[0])]
         [InlineData("", new string[0])]
@@ -399,6 +564,21 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
 
             // Act and assert
             Assert.Equal(resources, ticket.GetResources());
+        }
+
+        [Fact]
+        public void GetScopes_ThrowsAnExceptionForNullTicket()
+        {
+            // Arrange
+            var ticket = (AuthenticationTicket) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                ticket.GetScopes();
+            });
+
+            Assert.Equal("ticket", exception.ParamName);
         }
 
         [Theory]
@@ -423,6 +603,21 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
             Assert.Equal(scopes, ticket.GetScopes());
         }
 
+        [Fact]
+        public void GetAccessTokenLifetime_ThrowsAnExceptionForNullTicket()
+        {
+            // Arrange
+            var ticket = (AuthenticationTicket) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                ticket.GetAccessTokenLifetime();
+            });
+
+            Assert.Equal("ticket", exception.ParamName);
+        }
+
         [Theory]
         [InlineData(null)]
         [InlineData("42.00:00:00")]
@@ -438,6 +633,21 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
 
             // Act and assert
             Assert.Equal(lifetime, ticket.GetAccessTokenLifetime()?.ToString("c", CultureInfo.InvariantCulture));
+        }
+
+        [Fact]
+        public void GetAuthorizationCodeLifetime_ThrowsAnExceptionForNullTicket()
+        {
+            // Arrange
+            var ticket = (AuthenticationTicket) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                ticket.GetAuthorizationCodeLifetime();
+            });
+
+            Assert.Equal("ticket", exception.ParamName);
         }
 
         [Theory]
@@ -457,6 +667,21 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
             Assert.Equal(lifetime, ticket.GetAuthorizationCodeLifetime()?.ToString("c", CultureInfo.InvariantCulture));
         }
 
+        [Fact]
+        public void GetIdentityTokenLifetime_ThrowsAnExceptionForNullTicket()
+        {
+            // Arrange
+            var ticket = (AuthenticationTicket) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                ticket.GetIdentityTokenLifetime();
+            });
+
+            Assert.Equal("ticket", exception.ParamName);
+        }
+
         [Theory]
         [InlineData(null)]
         [InlineData("42.00:00:00")]
@@ -472,6 +697,21 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
 
             // Act and assert
             Assert.Equal(lifetime, ticket.GetIdentityTokenLifetime()?.ToString("c", CultureInfo.InvariantCulture));
+        }
+
+        [Fact]
+        public void GetRefreshTokenLifetime_ThrowsAnExceptionForNullTicket()
+        {
+            // Arrange
+            var ticket = (AuthenticationTicket) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                ticket.GetRefreshTokenLifetime();
+            });
+
+            Assert.Equal("ticket", exception.ParamName);
         }
 
         [Theory]
@@ -491,6 +731,21 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
             Assert.Equal(lifetime, ticket.GetRefreshTokenLifetime()?.ToString("c", CultureInfo.InvariantCulture));
         }
 
+        [Fact]
+        public void GetTicketId_ThrowsAnExceptionForNullTicket()
+        {
+            // Arrange
+            var ticket = (AuthenticationTicket) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                ticket.GetTicketId();
+            });
+
+            Assert.Equal("ticket", exception.ParamName);
+        }
+
         [Theory]
         [InlineData(null)]
         [InlineData("identifier")]
@@ -506,6 +761,21 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
 
             // Act and assert
             Assert.Equal(identifier, ticket.GetTicketId());
+        }
+
+        [Fact]
+        public void GetUsage_ThrowsAnExceptionForNullTicket()
+        {
+            // Arrange
+            var ticket = (AuthenticationTicket) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                ticket.GetUsage();
+            });
+
+            Assert.Equal("ticket", exception.ParamName);
         }
 
         [Theory]
@@ -525,6 +795,42 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
             Assert.Equal(usage, ticket.GetUsage());
         }
 
+        [Fact]
+        public void HasProperty_ThrowsAnExceptionForNullTicket()
+        {
+            // Arrange
+            var ticket = (AuthenticationTicket) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                ticket.HasProperty("property");
+            });
+
+            Assert.Equal("ticket", exception.ParamName);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public void HasProperty_ThrowsAnExceptionForNullOrEmptyProperty(string property)
+        {
+            // Arrange
+            var ticket = new AuthenticationTicket(
+                new ClaimsPrincipal(),
+                new AuthenticationProperties(),
+                nameof(AuthenticationTicket));
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentException>(delegate
+            {
+                ticket.HasProperty(property);
+            });
+
+            Assert.Equal("property", exception.ParamName);
+            Assert.StartsWith("The property name cannot be null or empty.", exception.Message);
+        }
+
         [Theory]
         [InlineData(null, false)]
         [InlineData("value", true)]
@@ -541,6 +847,42 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
             // Act and assert
             Assert.Equal(result, ticket.HasProperty("property"));
             Assert.Equal(result, ticket.Properties.HasProperty("property"));
+        }
+
+        [Fact]
+        public void HasAudience_ThrowsAnExceptionForNullTicket()
+        {
+            // Arrange
+            var ticket = (AuthenticationTicket) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                ticket.HasAudience("Fabrikam");
+            });
+
+            Assert.Equal("ticket", exception.ParamName);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public void HasAudience_ThrowsAnExceptionForNullOrEmptyAudience(string audience)
+        {
+            // Arrange
+            var ticket = new AuthenticationTicket(
+                new ClaimsPrincipal(),
+                new AuthenticationProperties(),
+                nameof(AuthenticationTicket));
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentException>(delegate
+            {
+                ticket.HasAudience(audience);
+            });
+
+            Assert.Equal("audience", exception.ParamName);
+            Assert.StartsWith("The audience cannot be null or empty.", exception.Message);
         }
 
         [Theory]
@@ -588,6 +930,42 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
             Assert.Equal(result, ticket.HasAudience("fabrikam"));
         }
 
+        [Fact]
+        public void HasPresenter_ThrowsAnExceptionForNullTicket()
+        {
+            // Arrange
+            var ticket = (AuthenticationTicket) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                ticket.HasPresenter("Fabrikam");
+            });
+
+            Assert.Equal("ticket", exception.ParamName);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public void HasPresenter_ThrowsAnExceptionForNullOrEmptyPresenter(string presenter)
+        {
+            // Arrange
+            var ticket = new AuthenticationTicket(
+                new ClaimsPrincipal(),
+                new AuthenticationProperties(),
+                nameof(AuthenticationTicket));
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentException>(delegate
+            {
+                ticket.HasPresenter(presenter);
+            });
+
+            Assert.Equal("presenter", exception.ParamName);
+            Assert.StartsWith("The presenter cannot be null or empty.", exception.Message);
+        }
+
         [Theory]
         [InlineData(null, false)]
         [InlineData("", false)]
@@ -631,6 +1009,42 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
 
             // Act and assert
             Assert.Equal(result, ticket.HasPresenter("fabrikam"));
+        }
+
+        [Fact]
+        public void HasResource_ThrowsAnExceptionForNullTicket()
+        {
+            // Arrange
+            var ticket = (AuthenticationTicket) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                ticket.HasResource("Fabrikam");
+            });
+
+            Assert.Equal("ticket", exception.ParamName);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public void HasResource_ThrowsAnExceptionForNullOrEmptyResource(string resource)
+        {
+            // Arrange
+            var ticket = new AuthenticationTicket(
+                new ClaimsPrincipal(),
+                new AuthenticationProperties(),
+                nameof(AuthenticationTicket));
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentException>(delegate
+            {
+                ticket.HasResource(resource);
+            });
+
+            Assert.Equal("resource", exception.ParamName);
+            Assert.StartsWith("The resource cannot be null or empty.", exception.Message);
         }
 
         [Theory]
@@ -678,6 +1092,42 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
             Assert.Equal(result, ticket.HasResource("fabrikam"));
         }
 
+        [Fact]
+        public void HasScope_ThrowsAnExceptionForNullTicket()
+        {
+            // Arrange
+            var ticket = (AuthenticationTicket) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                ticket.HasScope(OpenIdConnectConstants.Scopes.OpenId);
+            });
+
+            Assert.Equal("ticket", exception.ParamName);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public void HasScope_ThrowsAnExceptionForNullOrEmptyScope(string scope)
+        {
+            // Arrange
+            var ticket = new AuthenticationTicket(
+                new ClaimsPrincipal(),
+                new AuthenticationProperties(),
+                nameof(AuthenticationTicket));
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentException>(delegate
+            {
+                ticket.HasScope(scope);
+            });
+
+            Assert.Equal("scope", exception.ParamName);
+            Assert.StartsWith("The scope cannot be null or empty.", exception.Message);
+        }
+
         [Theory]
         [InlineData(null, false)]
         [InlineData("", false)]
@@ -723,6 +1173,21 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
             Assert.Equal(result, ticket.HasScope(OpenIdConnectConstants.Scopes.OpenId));
         }
 
+        [Fact]
+        public void IsConfidential_ThrowsAnExceptionForNullTicket()
+        {
+            // Arrange
+            var ticket = (AuthenticationTicket) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                ticket.IsConfidential();
+            });
+
+            Assert.Equal("ticket", exception.ParamName);
+        }
+
         [Theory]
         [InlineData(null, false)]
         [InlineData("unknown", false)]
@@ -740,6 +1205,21 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
 
             // Act and assert
             Assert.Equal(result, ticket.IsConfidential());
+        }
+
+        [Fact]
+        public void IsAccessToken_ThrowsAnExceptionForNullTicket()
+        {
+            // Arrange
+            var ticket = (AuthenticationTicket) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                ticket.IsAccessToken();
+            });
+
+            Assert.Equal("ticket", exception.ParamName);
         }
 
         [Theory]
@@ -763,6 +1243,21 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
             Assert.Equal(result, ticket.IsAccessToken());
         }
 
+        [Fact]
+        public void IsAuthorizationCode_ThrowsAnExceptionForNullTicket()
+        {
+            // Arrange
+            var ticket = (AuthenticationTicket) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                ticket.IsConfidential();
+            });
+
+            Assert.Equal("ticket", exception.ParamName);
+        }
+
         [Theory]
         [InlineData(null, false)]
         [InlineData("unknown", false)]
@@ -784,6 +1279,21 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
             Assert.Equal(result, ticket.IsAuthorizationCode());
         }
 
+        [Fact]
+        public void IsIdentityToken_ThrowsAnExceptionForNullTicket()
+        {
+            // Arrange
+            var ticket = (AuthenticationTicket) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                ticket.IsConfidential();
+            });
+
+            Assert.Equal("ticket", exception.ParamName);
+        }
+
         [Theory]
         [InlineData(null, false)]
         [InlineData("unknown", false)]
@@ -803,6 +1313,21 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
 
             // Act and assert
             Assert.Equal(result, ticket.IsIdentityToken());
+        }
+
+        [Fact]
+        public void IsRefreshToken_ThrowsAnExceptionForNullTicket()
+        {
+            // Arrange
+            var ticket = (AuthenticationTicket) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                ticket.IsConfidential();
+            });
+
+            Assert.Equal("ticket", exception.ParamName);
         }
 
         [Theory]
@@ -827,6 +1352,42 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
         }
 
         [Fact]
+        public void AddProperty_ThrowsAnExceptionForNullTicket()
+        {
+            // Arrange
+            var ticket = (AuthenticationTicket) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                ticket.AddProperty("property", "value");
+            });
+
+            Assert.Equal("ticket", exception.ParamName);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public void AddProperty_ThrowsAnExceptionForNullOrEmptyProperty(string property)
+        {
+            // Arrange
+            var ticket = new AuthenticationTicket(
+                new ClaimsPrincipal(),
+                new AuthenticationProperties(),
+                nameof(AuthenticationTicket));
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentException>(delegate
+            {
+                ticket.AddProperty(property, "value");
+            });
+
+            Assert.Equal("property", exception.ParamName);
+            Assert.StartsWith("The property name cannot be null or empty.", exception.Message);
+        }
+
+        [Fact]
         public void AddProperty_AddsExpectedProperty()
         {
             // Arrange
@@ -840,6 +1401,42 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
 
             // Assert
             Assert.Equal("value", ticket.GetProperty("property"));
+        }
+
+        [Fact]
+        public void RemoveProperty_ThrowsAnExceptionForNullTicket()
+        {
+            // Arrange
+            var ticket = (AuthenticationTicket) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                ticket.RemoveProperty("property");
+            });
+
+            Assert.Equal("ticket", exception.ParamName);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public void RemoveProperty_ThrowsAnExceptionForNullOrEmptyProperty(string property)
+        {
+            // Arrange
+            var ticket = new AuthenticationTicket(
+                new ClaimsPrincipal(),
+                new AuthenticationProperties(),
+                nameof(AuthenticationTicket));
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentException>(delegate
+            {
+                ticket.RemoveProperty(property);
+            });
+
+            Assert.Equal("property", exception.ParamName);
+            Assert.StartsWith("The property name cannot be null or empty.", exception.Message);
         }
 
         [Fact]
@@ -858,6 +1455,42 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
 
             // Assert
             Assert.Null(ticket.GetProperty("property"));
+        }
+
+        [Fact]
+        public void SetProperty_ThrowsAnExceptionForNullTicket()
+        {
+            // Arrange
+            var ticket = (AuthenticationTicket) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                ticket.SetProperty("property", "value");
+            });
+
+            Assert.Equal("ticket", exception.ParamName);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public void SetProperty_ThrowsAnExceptionForNullOrEmptyProperty(string property)
+        {
+            // Arrange
+            var ticket = new AuthenticationTicket(
+                new ClaimsPrincipal(),
+                new AuthenticationProperties(),
+                nameof(AuthenticationTicket));
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentException>(delegate
+            {
+                ticket.SetProperty(property, "value");
+            });
+
+            Assert.Equal("property", exception.ParamName);
+            Assert.StartsWith("The property name cannot be null or empty.", exception.Message);
         }
 
         [Fact]
@@ -908,6 +1541,21 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
             Assert.Null(ticket.GetProperty("property"));
         }
 
+        [Fact]
+        public void SetAudiences_ThrowsAnExceptionForNullTicket()
+        {
+            // Arrange
+            var ticket = (AuthenticationTicket) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                ticket.SetAudiences();
+            });
+
+            Assert.Equal("ticket", exception.ParamName);
+        }
+
         [Theory]
         [InlineData(new string[0], null)]
         [InlineData(new[] { "fabrikam" }, @"[""fabrikam""]")]
@@ -927,6 +1575,21 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
 
             // Assert
             Assert.Equal(audience, ticket.GetProperty(OpenIdConnectConstants.Properties.Audiences));
+        }
+
+        [Fact]
+        public void SetPresenters_ThrowsAnExceptionForNullTicket()
+        {
+            // Arrange
+            var ticket = (AuthenticationTicket) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                ticket.SetPresenters();
+            });
+
+            Assert.Equal("ticket", exception.ParamName);
         }
 
         [Theory]
@@ -950,6 +1613,21 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
             Assert.Equal(presenter, ticket.GetProperty(OpenIdConnectConstants.Properties.Presenters));
         }
 
+        [Fact]
+        public void SetResources_ThrowsAnExceptionForNullTicket()
+        {
+            // Arrange
+            var ticket = (AuthenticationTicket) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                ticket.SetResources();
+            });
+
+            Assert.Equal("ticket", exception.ParamName);
+        }
+
         [Theory]
         [InlineData(new string[0], null)]
         [InlineData(new[] { "fabrikam" }, @"[""fabrikam""]")]
@@ -969,6 +1647,21 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
 
             // Assert
             Assert.Equal(resource, ticket.GetProperty(OpenIdConnectConstants.Properties.Resources));
+        }
+
+        [Fact]
+        public void SetScopes_ThrowsAnExceptionForNullTicket()
+        {
+            // Arrange
+            var ticket = (AuthenticationTicket) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                ticket.SetScopes();
+            });
+
+            Assert.Equal("ticket", exception.ParamName);
         }
 
         [Theory]
@@ -992,6 +1685,21 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
             Assert.Equal(scope, ticket.GetProperty(OpenIdConnectConstants.Properties.Scopes));
         }
 
+        [Fact]
+        public void SetAccessTokenLifetime_ThrowsAnExceptionForNullTicket()
+        {
+            // Arrange
+            var ticket = (AuthenticationTicket) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                ticket.SetAccessTokenLifetime(null);
+            });
+
+            Assert.Equal("ticket", exception.ParamName);
+        }
+
         [Theory]
         [InlineData(null)]
         [InlineData("42.00:00:00")]
@@ -1008,6 +1716,21 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
 
             // Assert
             Assert.Equal(lifetime, ticket.GetProperty(OpenIdConnectConstants.Properties.AccessTokenLifetime));
+        }
+
+        [Fact]
+        public void SetAuthorizationCodeLifetime_ThrowsAnExceptionForNullTicket()
+        {
+            // Arrange
+            var ticket = (AuthenticationTicket) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                ticket.SetAuthorizationCodeLifetime(null);
+            });
+
+            Assert.Equal("ticket", exception.ParamName);
         }
 
         [Theory]
@@ -1028,6 +1751,21 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
             Assert.Equal(lifetime, ticket.GetProperty(OpenIdConnectConstants.Properties.AuthorizationCodeLifetime));
         }
 
+        [Fact]
+        public void SetIdentityTokenLifetime_ThrowsAnExceptionForNullTicket()
+        {
+            // Arrange
+            var ticket = (AuthenticationTicket) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                ticket.SetIdentityTokenLifetime(null);
+            });
+
+            Assert.Equal("ticket", exception.ParamName);
+        }
+
         [Theory]
         [InlineData(null)]
         [InlineData("42.00:00:00")]
@@ -1044,6 +1782,21 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
 
             // Assert
             Assert.Equal(lifetime, ticket.GetProperty(OpenIdConnectConstants.Properties.IdentityTokenLifetime));
+        }
+
+        [Fact]
+        public void SetRefreshTokenLifetime_ThrowsAnExceptionForNullTicket()
+        {
+            // Arrange
+            var ticket = (AuthenticationTicket) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                ticket.SetRefreshTokenLifetime(null);
+            });
+
+            Assert.Equal("ticket", exception.ParamName);
         }
 
         [Theory]
@@ -1064,6 +1817,21 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
             Assert.Equal(lifetime, ticket.GetProperty(OpenIdConnectConstants.Properties.RefreshTokenLifetime));
         }
 
+        [Fact]
+        public void SetTicketId_ThrowsAnExceptionForNullTicket()
+        {
+            // Arrange
+            var ticket = (AuthenticationTicket) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                ticket.SetTicketId(null);
+            });
+
+            Assert.Equal("ticket", exception.ParamName);
+        }
+
         [Theory]
         [InlineData(null)]
         [InlineData("identifier")]
@@ -1080,6 +1848,21 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
 
             // Assert
             Assert.Equal(identifier, ticket.GetProperty(OpenIdConnectConstants.Properties.TicketId));
+        }
+
+        [Fact]
+        public void SetUsage_ThrowsAnExceptionForNullTicket()
+        {
+            // Arrange
+            var ticket = (AuthenticationTicket) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                ticket.SetUsage(null);
+            });
+
+            Assert.Equal("ticket", exception.ParamName);
         }
 
         [Theory]

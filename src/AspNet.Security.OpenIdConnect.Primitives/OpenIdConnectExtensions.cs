@@ -63,11 +63,16 @@ namespace AspNet.Security.OpenIdConnect.Primitives
         /// </summary>
         /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
         /// <param name="prompt">The component to look for in the parameter.</param>
-        public static bool HasPrompt([NotNull] this OpenIdConnectRequest request, string prompt)
+        public static bool HasPrompt([NotNull] this OpenIdConnectRequest request, [NotNull] string prompt)
         {
             if (request == null)
             {
                 throw new ArgumentNullException(nameof(request));
+            }
+
+            if (string.IsNullOrEmpty(prompt))
+            {
+                throw new ArgumentException("The prompt cannot be null or empty.", nameof(prompt));
             }
 
             if (string.IsNullOrEmpty(request.Prompt))
@@ -84,11 +89,16 @@ namespace AspNet.Security.OpenIdConnect.Primitives
         /// </summary>
         /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
         /// <param name="type">The component to look for in the parameter.</param>
-        public static bool HasResponseType([NotNull] this OpenIdConnectRequest request, string type)
+        public static bool HasResponseType([NotNull] this OpenIdConnectRequest request, [NotNull] string type)
         {
             if (request == null)
             {
                 throw new ArgumentNullException(nameof(request));
+            }
+
+            if (string.IsNullOrEmpty(type))
+            {
+                throw new ArgumentException("The response type cannot be null or empty.", nameof(type));
             }
 
             if (string.IsNullOrEmpty(request.ResponseType))
@@ -105,11 +115,16 @@ namespace AspNet.Security.OpenIdConnect.Primitives
         /// </summary>
         /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
         /// <param name="scope">The component to look for in the parameter.</param>
-        public static bool HasScope([NotNull] this OpenIdConnectRequest request, string scope)
+        public static bool HasScope([NotNull] this OpenIdConnectRequest request, [NotNull] string scope)
         {
             if (request == null)
             {
                 throw new ArgumentNullException(nameof(request));
+            }
+
+            if (string.IsNullOrEmpty(scope))
+            {
+                throw new ArgumentException("The scope cannot be null or empty.", nameof(scope));
             }
 
             if (string.IsNullOrEmpty(request.Scope))

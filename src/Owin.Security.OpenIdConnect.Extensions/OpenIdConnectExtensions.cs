@@ -52,11 +52,16 @@ namespace Owin.Security.OpenIdConnect.Extensions
         /// </summary>
         /// <param name="claim">The <see cref="Claim"/> instance.</param>
         /// <param name="destination">The required destination.</param>
-        public static bool HasDestination([NotNull] this Claim claim, string destination)
+        public static bool HasDestination([NotNull] this Claim claim, [NotNull] string destination)
         {
             if (claim == null)
             {
                 throw new ArgumentNullException(nameof(claim));
+            }
+
+            if (string.IsNullOrEmpty(destination))
+            {
+                throw new ArgumentException("The destination cannot be null or empty.", nameof(destination));
             }
 
             claim.Properties.TryGetValue(OpenIdConnectConstants.Properties.Destinations, out string destinations);
@@ -670,7 +675,7 @@ namespace Owin.Security.OpenIdConnect.Extensions
 
             if (string.IsNullOrEmpty(property))
             {
-                throw new ArgumentException($"{nameof(property)} cannot be null or empty.", nameof(property));
+                throw new ArgumentException("The property name cannot be null or empty.", nameof(property));
             }
 
             if (!properties.Dictionary.TryGetValue(property, out string value))
@@ -724,11 +729,16 @@ namespace Owin.Security.OpenIdConnect.Extensions
         /// <param name="ticket">The authentication ticket.</param>
         /// <param name="audience">The audience.</param>
         /// <returns><c>true</c> if the ticket contains the given audience.</returns>
-        public static bool HasAudience([NotNull] this AuthenticationTicket ticket, string audience)
+        public static bool HasAudience([NotNull] this AuthenticationTicket ticket, [NotNull] string audience)
         {
             if (ticket == null)
             {
                 throw new ArgumentNullException(nameof(ticket));
+            }
+
+            if (string.IsNullOrEmpty(audience))
+            {
+                throw new ArgumentException("The audience cannot be null or empty.", nameof(audience));
             }
 
             var audiences = ticket.GetProperty(OpenIdConnectConstants.Properties.Audiences);
@@ -767,11 +777,16 @@ namespace Owin.Security.OpenIdConnect.Extensions
         /// <param name="ticket">The authentication ticket.</param>
         /// <param name="presenter">The presenter.</param>
         /// <returns><c>true</c> if the ticket contains the given presenter.</returns>
-        public static bool HasPresenter([NotNull] this AuthenticationTicket ticket, string presenter)
+        public static bool HasPresenter([NotNull] this AuthenticationTicket ticket, [NotNull] string presenter)
         {
             if (ticket == null)
             {
                 throw new ArgumentNullException(nameof(ticket));
+            }
+
+            if (string.IsNullOrEmpty(presenter))
+            {
+                throw new ArgumentException("The presenter cannot be null or empty.", nameof(presenter));
             }
 
             var presenters = ticket.GetProperty(OpenIdConnectConstants.Properties.Presenters);
@@ -810,11 +825,16 @@ namespace Owin.Security.OpenIdConnect.Extensions
         /// <param name="ticket">The authentication ticket.</param>
         /// <param name="resource">The resource.</param>
         /// <returns><c>true</c> if the ticket contains the given resource.</returns>
-        public static bool HasResource([NotNull] this AuthenticationTicket ticket, string resource)
+        public static bool HasResource([NotNull] this AuthenticationTicket ticket, [NotNull] string resource)
         {
             if (ticket == null)
             {
                 throw new ArgumentNullException(nameof(ticket));
+            }
+
+            if (string.IsNullOrEmpty(resource))
+            {
+                throw new ArgumentException("The resource cannot be null or empty.", nameof(resource));
             }
 
             var resources = ticket.GetProperty(OpenIdConnectConstants.Properties.Resources);
@@ -853,11 +873,16 @@ namespace Owin.Security.OpenIdConnect.Extensions
         /// <param name="ticket">The authentication ticket.</param>
         /// <param name="scope">The scope.</param>
         /// <returns><c>true</c> if the ticket contains the given scope.</returns>
-        public static bool HasScope([NotNull] this AuthenticationTicket ticket, string scope)
+        public static bool HasScope([NotNull] this AuthenticationTicket ticket, [NotNull] string scope)
         {
             if (ticket == null)
             {
                 throw new ArgumentNullException(nameof(ticket));
+            }
+
+            if (string.IsNullOrEmpty(scope))
+            {
+                throw new ArgumentException("The scope cannot be null or empty.", nameof(scope));
             }
 
             var scopes = ticket.GetProperty(OpenIdConnectConstants.Properties.Scopes);
