@@ -328,6 +328,91 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Theory]
+        [InlineData("none consent")]
+        [InlineData("none login")]
+        [InlineData("none select_account")]
+        public async Task InvokeAuthorizationEndpointAsync_InvalidPromptCausesAnError(string prompt)
+        {
+            // Arrange
+            var server = CreateAuthorizationServer();
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest
+            {
+                ClientId = "Fabrikam",
+                Nonce = "n-0S6_WzA2Mj",
+                Prompt = prompt,
+                RedirectUri = "http://www.fabrikam.com/path",
+                ResponseType = "code id_token token",
+                Scope = OpenIdConnectConstants.Scopes.OpenId
+            });
+
+            // Assert
+            Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
+            Assert.Equal("The specified 'prompt' parameter is invalid.", response.ErrorDescription);
+        }
+
+        [Theory]
+        [InlineData("none")]
+        [InlineData("consent")]
+        [InlineData("login")]
+        [InlineData("select_account")]
+        [InlineData("consent login")]
+        [InlineData("consent select_account")]
+        [InlineData("login select_account")]
+        [InlineData("consent login select_account")]
+        public async Task InvokeAuthorizationEndpointAsync_ValidPromptDoesNotCauseAnError(string prompt)
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateAuthorizationRequest = context =>
+                {
+                    context.Validate();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnHandleAuthorizationRequest = context =>
+                {
+                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
+
+                    var ticket = new AuthenticationTicket(
+                        new ClaimsPrincipal(identity),
+                        new AuthenticationProperties(),
+                        context.Options.AuthenticationScheme);
+
+                    context.Validate(ticket);
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest
+            {
+                ClientId = "Fabrikam",
+                Nonce = "n-0S6_WzA2Mj",
+                Prompt = prompt,
+                RedirectUri = "http://www.fabrikam.com/path",
+                ResponseType = "code id_token token",
+                Scope = OpenIdConnectConstants.Scopes.OpenId
+            });
+
+            // Assert
+            Assert.Null(response.Error);
+            Assert.Null(response.ErrorDescription);
+            Assert.NotNull(response.AccessToken);
+            Assert.NotNull(response.Code);
+            Assert.NotNull(response.IdToken);
+        }
+
+        [Theory]
         [InlineData("code id_token")]
         [InlineData("code id_token token")]
         [InlineData("code token")]

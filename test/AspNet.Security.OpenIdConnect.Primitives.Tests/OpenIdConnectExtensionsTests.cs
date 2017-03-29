@@ -58,6 +58,40 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
 
         [Theory]
         [InlineData(null, false)]
+        [InlineData("consent", true)]
+        [InlineData("consent login", true)]
+        [InlineData(" consent login", true)]
+        [InlineData("login consent", true)]
+        [InlineData("login consent ", true)]
+        [InlineData("login consent select_account", true)]
+        [InlineData("login consent select_account ", true)]
+        [InlineData("login    consent   select_account ", true)]
+        [InlineData("login", false)]
+        [InlineData("login select_account", false)]
+        [InlineData("CONSENT", false)]
+        [InlineData("CONSENT LOGIN", false)]
+        [InlineData(" CONSENT LOGIN", false)]
+        [InlineData("LOGIN CONSENT", false)]
+        [InlineData("LOGIN CONSENT ", false)]
+        [InlineData("LOGIN CONSENT SELECT_ACCOUNT", false)]
+        [InlineData("LOGIN CONSENT SELECT_ACCOUNT ", false)]
+        [InlineData("LOGIN    CONSENT   SELECT_ACCOUNT ", false)]
+        [InlineData("LOGIN", false)]
+        [InlineData("LOGIN SELECT_ACCOUNT", false)]
+        public void HasPrompt_ReturnsExpectedResult(string prompt, bool result)
+        {
+            // Arrange
+            var request = new OpenIdConnectRequest()
+            {
+                Prompt = prompt
+            };
+
+            // Act and assert
+            Assert.Equal(result, request.HasPrompt(OpenIdConnectConstants.Prompts.Consent));
+        }
+
+        [Theory]
+        [InlineData(null, false)]
         [InlineData("code", true)]
         [InlineData("code id_token", true)]
         [InlineData(" code id_token", true)]

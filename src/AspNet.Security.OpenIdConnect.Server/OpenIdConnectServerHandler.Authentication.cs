@@ -269,6 +269,20 @@ namespace AspNet.Security.OpenIdConnect.Server
                 });
             }
 
+            // Reject requests specifying prompt=none with consent/login or select_account.
+            if (request.HasPrompt(OpenIdConnectConstants.Prompts.None) && (request.HasPrompt(OpenIdConnectConstants.Prompts.Consent) ||
+                                                                           request.HasPrompt(OpenIdConnectConstants.Prompts.Login) ||
+                                                                           request.HasPrompt(OpenIdConnectConstants.Prompts.SelectAccount)))
+            {
+                Logger.LogError("The authorization request was rejected because an invalid prompt parameter was specified.");
+
+                return await SendAuthorizationResponseAsync(new OpenIdConnectResponse
+                {
+                    Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = "The specified 'prompt' parameter is invalid."
+                });
+            }
+
             if (!string.IsNullOrEmpty(request.CodeChallenge) || !string.IsNullOrEmpty(request.CodeChallengeMethod))
             {
                 // When code_challenge or code_challenge_method is specified, ensure the response_type includes "code".
