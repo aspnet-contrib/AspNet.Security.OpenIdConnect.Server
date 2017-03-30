@@ -540,6 +540,15 @@ namespace AspNet.Security.OpenIdConnect.Server
             {
                 foreach (var parameter in response.GetParameters())
                 {
+                    switch (parameter.Key)
+                    {
+                        // Always exclude post_logout_redirect_uri, redirect_uri and response_mode.
+                        case OpenIdConnectConstants.Parameters.PostLogoutRedirectUri:
+                        case OpenIdConnectConstants.Parameters.RedirectUri:
+                        case OpenIdConnectConstants.Parameters.ResponseMode:
+                            continue;
+                    }
+
                     // Ignore null or empty parameters, including JSON
                     // objects that can't be represented as strings.
                     var value = (string) parameter.Value;
