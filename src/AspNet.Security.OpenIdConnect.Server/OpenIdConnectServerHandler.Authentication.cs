@@ -417,16 +417,22 @@ namespace AspNet.Security.OpenIdConnect.Server
             response.SetProperty(OpenIdConnectConstants.Properties.MessageType,
                                  OpenIdConnectConstants.MessageTypes.AuthorizationResponse);
 
-            // If the response_mode parameter was not specified, try to infer it.
-            if (request != null && string.IsNullOrEmpty(response.ResponseMode))
+            // Note: as this stage, the request may be null (e.g if it couldn't be extracted from the HTTP request).
+            var notification = new ApplyAuthorizationResponseContext(Context, Options, ticket, request, response)
             {
-                response.ResponseMode =
+                RedirectUri = request?.GetProperty<string>(OpenIdConnectConstants.Properties.RedirectUri),
+                ResponseMode = request?.ResponseMode
+            };
+
+            // If the response_mode parameter was not specified, try to infer it.
+            if (string.IsNullOrEmpty(notification.ResponseMode) && !string.IsNullOrEmpty(notification.RedirectUri))
+            {
+                notification.ResponseMode =
                     request.IsFormPostResponseMode() ? OpenIdConnectConstants.ResponseModes.FormPost :
                     request.IsFragmentResponseMode() ? OpenIdConnectConstants.ResponseModes.Fragment :
                     request.IsQueryResponseMode() ? OpenIdConnectConstants.ResponseModes.Query : null;
             }
 
-            var notification = new ApplyAuthorizationResponseContext(Context, Options, ticket, request, response);
             await Options.Provider.ApplyAuthorizationResponse(notification);
 
             if (notification.HandledResponse)
@@ -447,7 +453,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             {
                 // Directly display an error page if redirect_uri cannot be used to
                 // redirect the user agent back to the client application.
-                if (string.IsNullOrEmpty(response.RedirectUri))
+                if (string.IsNullOrEmpty(notification.RedirectUri))
                 {
                     // Apply a 400 status code by default.
                     Response.StatusCode = 400;
@@ -473,19 +479,14 @@ namespace AspNet.Security.OpenIdConnect.Server
                 throw new InvalidOperationException("The authorization response cannot be returned.");
             }
 
+            // Attach the request state to the authorization response.
+            response.State = request.State;
+
             // Create a new parameters dictionary holding the name/value pairs.
             var parameters = new Dictionary<string, string>();
 
             foreach (var parameter in response.GetParameters())
             {
-                switch (parameter.Key)
-                {
-                    // Always exclude redirect_uri and response_mode.
-                    case OpenIdConnectConstants.Parameters.RedirectUri:
-                    case OpenIdConnectConstants.Parameters.ResponseMode:
-                        continue;
-                }
-
                 // Ignore null or empty parameters, including JSON
                 // objects that can't be represented as strings.
                 var value = (string) parameter.Value;
@@ -498,7 +499,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             }
 
             // Note: at this stage, the redirect_uri parameter MUST be trusted.
-            switch (response.ResponseMode)
+            switch (notification.ResponseMode)
             {
                 case OpenIdConnectConstants.ResponseModes.FormPost:
                 {
@@ -516,7 +517,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                         // by OpenIdConnectServerProvider.ValidateAuthorizationRequest,
                         // it's still safer to encode it to avoid cross-site scripting attacks
                         // if the authorization server has a relaxed policy concerning redirect URIs.
-                        writer.WriteLine($@"<form name=""form"" method=""post"" action=""{Options.HtmlEncoder.Encode(response.RedirectUri)}"">");
+                        writer.WriteLine($@"<form name=""form"" method=""post"" action=""{Options.HtmlEncoder.Encode(notification.RedirectUri)}"">");
 
                         foreach (var parameter in parameters)
                         {
@@ -553,7 +554,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                     Logger.LogInformation("The authorization response was successfully returned " +
                                           "using the fragment response mode: {Response}", response);
 
-                    var location = response.RedirectUri;
+                    var location = notification.RedirectUri;
                     var appender = new Appender(location, '#');
 
                     foreach (var parameter in parameters)
@@ -570,7 +571,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                     Logger.LogInformation("The authorization response was successfully returned " +
                                           "using the query response mode: {Response}", response);
 
-                    var location = QueryHelpers.AddQueryString(response.RedirectUri, parameters);
+                    var location = QueryHelpers.AddQueryString(notification.RedirectUri, parameters);
 
                     Response.Redirect(location);
                     return true;

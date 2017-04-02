@@ -67,20 +67,6 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
 
                 yield return new object[]
                 {
-                    /* property: */ nameof(OpenIdConnectResponse.PostLogoutRedirectUri),
-                    /* name: */ OpenIdConnectConstants.Parameters.PostLogoutRedirectUri,
-                    /* value: */ new OpenIdConnectParameter("802A3E3E-DCCA-4EFC-89FA-7D82FE8C27E4")
-                };
-
-                yield return new object[]
-                {
-                    /* property: */ nameof(OpenIdConnectResponse.RedirectUri),
-                    /* name: */ OpenIdConnectConstants.Parameters.RedirectUri,
-                    /* value: */ new OpenIdConnectParameter("802A3E3E-DCCA-4EFC-89FA-7D82FE8C27E4")
-                };
-
-                yield return new object[]
-                {
                     /* property: */ nameof(OpenIdConnectResponse.RefreshToken),
                     /* name: */ OpenIdConnectConstants.Parameters.RefreshToken,
                     /* value: */ new OpenIdConnectParameter("802A3E3E-DCCA-4EFC-89FA-7D82FE8C27E4")
@@ -90,13 +76,6 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
                 {
                     /* property: */ nameof(OpenIdConnectResponse.Resource),
                     /* name: */ OpenIdConnectConstants.Parameters.Resource,
-                    /* value: */ new OpenIdConnectParameter("802A3E3E-DCCA-4EFC-89FA-7D82FE8C27E4")
-                };
-
-                yield return new object[]
-                {
-                    /* property: */ nameof(OpenIdConnectResponse.ResponseMode),
-                    /* name: */ OpenIdConnectConstants.Parameters.ResponseMode,
                     /* value: */ new OpenIdConnectParameter("802A3E3E-DCCA-4EFC-89FA-7D82FE8C27E4")
                 };
 

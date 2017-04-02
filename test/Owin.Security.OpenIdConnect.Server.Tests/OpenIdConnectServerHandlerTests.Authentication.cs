@@ -919,7 +919,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                 options.Provider.OnApplyAuthorizationResponse = context =>
                 {
-                    context.Response["inferred_response_mode"] = context.Response.ResponseMode;
+                    context.Response["inferred_response_mode"] = context.ResponseMode;
 
                     return Task.FromResult(0);
                 };
@@ -931,6 +931,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
             var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest
             {
                 ClientId = "Fabrikam",
+                Nonce = "n-0S6_WzA2Mj",
                 RedirectUri = "http://www.fabrikam.com/path",
                 ResponseType = type,
                 Scope = OpenIdConnectConstants.Scopes.OpenId
@@ -1013,6 +1014,74 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
             });
 
             Assert.Equal("The authorization response cannot be returned.", exception.Message);
+        }
+
+        [Fact]
+        public async Task SendAuthorizationResponseAsync_DoesNotSetStateWhenUserIsNotRedirected()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateAuthorizationRequest = context =>
+                {
+                    context.Reject();
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest
+            {
+                ClientId = "Fabrikam",
+                ResponseType = OpenIdConnectConstants.ResponseTypes.Code,
+                State = "af0ifjsldkj"
+            });
+
+            // Assert
+            Assert.Null(response.State);
+        }
+
+        [Fact]
+        public async Task SendAuthorizationResponseAsync_FlowsStateWhenRedirectUriIsUsed()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateAuthorizationRequest = context =>
+                {
+                    context.Validate();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnHandleAuthorizationRequest = context =>
+                {
+                    var identity = new ClaimsIdentity(context.Options.AuthenticationType);
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
+
+                    context.OwinContext.Authentication.SignIn(identity);
+                    context.HandleResponse();
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest
+            {
+                ClientId = "Fabrikam",
+                RedirectUri = "http://www.fabrikam.com/path",
+                ResponseType = OpenIdConnectConstants.ResponseTypes.Code,
+                State = "af0ifjsldkj"
+            });
+
+            // Assert
+            Assert.Equal("af0ifjsldkj", response.State);
         }
 
         [Fact]

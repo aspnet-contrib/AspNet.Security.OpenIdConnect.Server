@@ -406,7 +406,7 @@ namespace AspNet.Security.OpenIdConnect.Client
                 }
             }
 
-            throw new InvalidOperationException("The server returned an unexpected response.");
+            return new OpenIdConnectResponse();
         }
     }
 }

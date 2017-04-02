@@ -283,13 +283,6 @@ namespace AspNet.Security.OpenIdConnect.Server
             // Prepare a new OpenID Connect response.
             response = new OpenIdConnectResponse();
 
-            if (request.IsAuthorizationRequest())
-            {
-                response.RedirectUri = request.GetProperty<string>(OpenIdConnectConstants.Properties.RedirectUri);
-                response.ResponseMode = request.ResponseMode;
-                response.State = request.State;
-            }
-
             // Copy the confidentiality level associated with the request to the authentication ticket.
             if (!ticket.HasProperty(OpenIdConnectConstants.Properties.ConfidentialityLevel))
             {
@@ -452,14 +445,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                 throw new InvalidOperationException("An OpenID Connect response has already been sent.");
             }
 
-            // Prepare a new OpenID Connect response.
-            response = new OpenIdConnectResponse
-            {
-                PostLogoutRedirectUri = request.GetProperty<string>(OpenIdConnectConstants.Properties.PostLogoutRedirectUri),
-                State = request.State
-            };
-
-            return SendLogoutResponseAsync(response);
+            return SendLogoutResponseAsync(new OpenIdConnectResponse());
         }
 
         protected override Task<bool> HandleForbiddenAsync(ChallengeContext context) => HandleUnauthorizedAsync(context);
@@ -502,15 +488,6 @@ namespace AspNet.Security.OpenIdConnect.Server
                   .RemoveProperty(OpenIdConnectConstants.Properties.ErrorDescription)
                   .RemoveProperty(OpenIdConnectConstants.Properties.ErrorUri);
 
-            // If the request is an authorization request, attach the
-            // redirect_uri and the state to the OpenID Connect response.
-            if (request.IsAuthorizationRequest())
-            {
-                response.RedirectUri = request.GetProperty<string>(OpenIdConnectConstants.Properties.RedirectUri);
-                response.ResponseMode = request.ResponseMode;
-                response.State = request.State;
-            }
-
             if (string.IsNullOrEmpty(response.Error))
             {
                 response.Error = request.IsAuthorizationRequest() ?
@@ -540,15 +517,6 @@ namespace AspNet.Security.OpenIdConnect.Server
             {
                 foreach (var parameter in response.GetParameters())
                 {
-                    switch (parameter.Key)
-                    {
-                        // Always exclude post_logout_redirect_uri, redirect_uri and response_mode.
-                        case OpenIdConnectConstants.Parameters.PostLogoutRedirectUri:
-                        case OpenIdConnectConstants.Parameters.RedirectUri:
-                        case OpenIdConnectConstants.Parameters.ResponseMode:
-                            continue;
-                    }
-
                     // Ignore null or empty parameters, including JSON
                     // objects that can't be represented as strings.
                     var value = (string) parameter.Value;

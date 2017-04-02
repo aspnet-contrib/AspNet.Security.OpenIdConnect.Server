@@ -130,24 +130,6 @@ namespace AspNet.Security.OpenIdConnect.Primitives
         }
 
         /// <summary>
-        /// Gets or sets the "post_logout_redirect_uri" parameter.
-        /// </summary>
-        public string PostLogoutRedirectUri
-        {
-            get { return (string) GetParameter(OpenIdConnectConstants.Parameters.PostLogoutRedirectUri); }
-            set { SetParameter(OpenIdConnectConstants.Parameters.PostLogoutRedirectUri, value); }
-        }
-
-        /// <summary>
-        /// Gets or sets the "redirect_uri" parameter.
-        /// </summary>
-        public string RedirectUri
-        {
-            get { return (string) GetParameter(OpenIdConnectConstants.Parameters.RedirectUri); }
-            set { SetParameter(OpenIdConnectConstants.Parameters.RedirectUri, value); }
-        }
-
-        /// <summary>
         /// Gets or sets the "refresh_token" parameter.
         /// </summary>
         public string RefreshToken
@@ -163,15 +145,6 @@ namespace AspNet.Security.OpenIdConnect.Primitives
         {
             get { return (string) GetParameter(OpenIdConnectConstants.Parameters.Resource); }
             set { SetParameter(OpenIdConnectConstants.Parameters.Resource, value); }
-        }
-
-        /// <summary>
-        /// Gets or sets the "response_mode" parameter.
-        /// </summary>
-        public string ResponseMode
-        {
-            get { return (string) GetParameter(OpenIdConnectConstants.Parameters.ResponseMode); }
-            set { SetParameter(OpenIdConnectConstants.Parameters.ResponseMode, value); }
         }
 
         /// <summary>

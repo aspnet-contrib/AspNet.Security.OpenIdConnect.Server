@@ -194,7 +194,12 @@ namespace Owin.Security.OpenIdConnect.Server
             response.SetProperty(OpenIdConnectConstants.Properties.MessageType,
                                  OpenIdConnectConstants.MessageTypes.LogoutResponse);
 
-            var notification = new ApplyLogoutResponseContext(Context, Options, request, response);
+            // Note: as this stage, the request may be null (e.g if it couldn't be extracted from the HTTP request).
+            var notification = new ApplyLogoutResponseContext(Context, Options, request, response)
+            {
+                PostLogoutRedirectUri = request?.GetProperty<string>(OpenIdConnectConstants.Properties.PostLogoutRedirectUri)
+            };
+
             await Options.Provider.ApplyLogoutResponse(notification);
 
             if (notification.HandledResponse)
@@ -233,22 +238,19 @@ namespace Owin.Security.OpenIdConnect.Server
 
             // Don't redirect the user agent if no explicit post_logout_redirect_uri was
             // provided or if the URI was not fully validated by the application code.
-            if (string.IsNullOrEmpty(response.PostLogoutRedirectUri))
+            if (string.IsNullOrEmpty(notification.PostLogoutRedirectUri))
             {
                 return true;
             }
+
+            // Attach the request state to the end session response.
+            response.State = request.State;
 
             // Create a new parameters dictionary holding the name/value pairs.
             var parameters = new Dictionary<string, string>();
 
             foreach (var parameter in response.GetParameters())
             {
-                // Don't include post_logout_redirect_uri in the parameters dictionary.
-                if (string.Equals(parameter.Key, OpenIdConnectConstants.Parameters.PostLogoutRedirectUri, StringComparison.Ordinal))
-                {
-                    continue;
-                }
-
                 // Ignore null or empty parameters, including JSON
                 // objects that can't be represented as strings.
                 var value = (string) parameter.Value;
@@ -260,7 +262,7 @@ namespace Owin.Security.OpenIdConnect.Server
                 parameters.Add(parameter.Key, value);
             }
 
-            var location = WebUtilities.AddQueryString(response.PostLogoutRedirectUri, parameters);
+            var location = WebUtilities.AddQueryString(notification.PostLogoutRedirectUri, parameters);
             Response.Redirect(location);
 
             return true;

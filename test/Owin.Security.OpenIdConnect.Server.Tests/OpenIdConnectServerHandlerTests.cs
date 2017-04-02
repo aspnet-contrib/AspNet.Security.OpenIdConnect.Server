@@ -852,53 +852,12 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     ClientId = "Fabrikam",
                     RedirectUri = "http://www.fabrikam.com/path",
-                    ResponseType = OpenIdConnectConstants.ResponseTypes.Code,
-                    State = "af0ifjsldkj"
+                    ResponseType = OpenIdConnectConstants.ResponseTypes.Code
                 });
             });
 
             Assert.Equal("The authentication ticket was rejected because " +
                          "it doesn't contain the mandatory subject claim.", exception.Message);
-        }
-
-        [Fact]
-        public async Task HandleSignInAsync_AuthorizationResponseFlowsState()
-        {
-            // Arrange
-            var server = CreateAuthorizationServer(options =>
-            {
-                options.Provider.OnValidateAuthorizationRequest = context =>
-                {
-                    context.Validate();
-
-                    return Task.FromResult(0);
-                };
-
-                options.Provider.OnHandleAuthorizationRequest = context =>
-                {
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
-
-                    context.OwinContext.Authentication.SignIn(identity);
-                    context.HandleResponse();
-
-                    return Task.FromResult(0);
-                };
-            });
-
-            var client = new OpenIdConnectClient(server.HttpClient);
-
-            // Act
-            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest
-            {
-                ClientId = "Fabrikam",
-                RedirectUri = "http://www.fabrikam.com/path",
-                ResponseType = OpenIdConnectConstants.ResponseTypes.Code,
-                State = "af0ifjsldkj"
-            });
-
-            // Assert
-            Assert.Equal("af0ifjsldkj", response.State);
         }
 
         [Fact]
@@ -2149,41 +2108,6 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public async Task HandleSignOutAsync_LogoutResponseFlowsState()
-        {
-            // Arrange
-            var server = CreateAuthorizationServer(options =>
-            {
-                options.Provider.OnValidateLogoutRequest = context =>
-                {
-                    context.Validate();
-
-                    return Task.FromResult(0);
-                };
-
-                options.Provider.OnHandleLogoutRequest = context =>
-                {
-                    context.OwinContext.Authentication.SignOut(context.Options.AuthenticationType);
-                    context.HandleResponse();
-
-                    return Task.FromResult(0);
-                };
-            });
-
-            var client = new OpenIdConnectClient(server.HttpClient);
-
-            // Act
-            var response = await client.PostAsync(LogoutEndpoint, new OpenIdConnectRequest
-            {
-                PostLogoutRedirectUri = "http://www.fabrikam.com/path",
-                State = "af0ifjsldkj"
-            });
-
-            // Assert
-            Assert.Equal("af0ifjsldkj", response.State);
-        }
-
-        [Fact]
         public async Task HandleChallengeAsync_InvalidEndpointCausesAnException()
         {
             // Arrange
@@ -2208,45 +2132,6 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
             });
 
             Assert.Equal("An OpenID Connect response cannot be returned from this endpoint.", exception.Message);
-        }
-
-        [Fact]
-        public async Task HandleChallengeAsync_AuthorizationResponseFlowsState()
-        {
-            // Arrange
-            var server = CreateAuthorizationServer(options =>
-            {
-                options.Provider.OnValidateAuthorizationRequest = context =>
-                {
-                    context.Validate();
-
-                    return Task.FromResult(0);
-                };
-
-                options.Provider.OnHandleAuthorizationRequest = context =>
-                {
-                    context.OwinContext.Authentication.Challenge(context.Options.AuthenticationType);
-                    context.HandleResponse();
-
-                    return Task.FromResult(0);
-                };
-            });
-
-            var client = new OpenIdConnectClient(server.HttpClient);
-
-            // Act
-            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest
-            {
-                ClientId = "Fabrikam",
-                RedirectUri = "http://www.fabrikam.com/path",
-                ResponseType = OpenIdConnectConstants.ResponseTypes.Code,
-                State = "af0ifjsldkj"
-            });
-
-            // Assert
-            Assert.Equal("af0ifjsldkj", response.State);
-            Assert.Equal(OpenIdConnectConstants.Errors.AccessDenied, response.Error);
-            Assert.Equal("The authorization grant has been denied by the resource owner.", response.ErrorDescription);
         }
 
         [Fact]

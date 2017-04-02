@@ -392,5 +392,67 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
             // Assert
             Assert.Equal("custom_value", (string) response["custom_parameter"]);
         }
+
+        [Fact]
+        public async Task SendLogoutResponseAsync_DoesNotSetStateWhenUserIsNotRedirected()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnHandleLogoutRequest = context =>
+                {
+                    context.OwinContext.Authentication.SignOut(context.Options.AuthenticationType);
+                    context.HandleResponse();
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(LogoutEndpoint, new OpenIdConnectRequest
+            {
+                State = "af0ifjsldkj"
+            });
+
+            // Assert
+            Assert.Null(response.State);
+        }
+
+        [Fact]
+        public async Task SendLogoutResponseAsync_FlowsStateWhenRedirectUriIsUsed()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateLogoutRequest = context =>
+                {
+                    context.Validate();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnHandleLogoutRequest = context =>
+                {
+                    context.OwinContext.Authentication.SignOut(context.Options.AuthenticationType);
+                    context.HandleResponse();
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(LogoutEndpoint, new OpenIdConnectRequest
+            {
+                PostLogoutRedirectUri = "http://www.fabrikam.com/path",
+                State = "af0ifjsldkj"
+            });
+
+            // Assert
+            Assert.Equal("af0ifjsldkj", response.State);
+        }
     }
 }

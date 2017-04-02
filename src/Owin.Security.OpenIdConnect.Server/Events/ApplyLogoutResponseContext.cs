@@ -53,5 +53,13 @@ namespace Owin.Security.OpenIdConnect.Server
         /// this property returns <c>null</c>.
         /// </summary>
         public string Error => Response.Error;
+
+        /// <summary>
+        /// Gets or sets the callback URL the user agent will be redirected to, if applicable.
+        /// Note: manually changing the value of this property is generally not recommended
+        /// and extreme caution must be taken to ensure the user agent is not redirected to
+        /// an untrusted address, which would result in an "open redirection" vulnerability.
+        /// </summary>
+        public string PostLogoutRedirectUri { get; set; }
     }
 }
