@@ -58,8 +58,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives
         }
 
         /// <summary>
-        /// Determines whether the scope exposed by the <paramref name="request"/>
-        /// contains the given <paramref name="prompt"/> or not.
+        /// Determines whether the requested prompt contains the specified value.
         /// </summary>
         /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
         /// <param name="prompt">The component to look for in the parameter.</param>
@@ -84,8 +83,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives
         }
 
         /// <summary>
-        /// Determines whether the response_type exposed by the
-        /// <paramref name="request"/> contains the given <paramref name="type"/> or not.
+        /// Determines whether the requested response type contains the specified value.
         /// </summary>
         /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
         /// <param name="type">The component to look for in the parameter.</param>
@@ -110,8 +108,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives
         }
 
         /// <summary>
-        /// Determines whether the scope exposed by the <paramref name="request"/>
-        /// contains the given <paramref name="scope"/> or not.
+        /// Determines whether the requested scope contains the specified value.
         /// </summary>
         /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
         /// <param name="scope">The component to look for in the parameter.</param>

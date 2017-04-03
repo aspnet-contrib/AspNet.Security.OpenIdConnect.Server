@@ -45,7 +45,7 @@ namespace Owin.Security.OpenIdConnect.Server
 
         /// <summary>
         /// Gets or sets the flag indicating
-        /// whether the token is active or not.
+        /// whether the token is active or inactive.
         /// </summary>
         public bool Active { get; set; }
 
