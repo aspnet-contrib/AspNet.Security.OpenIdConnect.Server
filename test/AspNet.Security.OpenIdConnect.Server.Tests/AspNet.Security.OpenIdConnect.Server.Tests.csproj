@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Certificate.cer" />
     <EmbeddedResource Include="Certificate.pfx" />
   </ItemGroup>
 

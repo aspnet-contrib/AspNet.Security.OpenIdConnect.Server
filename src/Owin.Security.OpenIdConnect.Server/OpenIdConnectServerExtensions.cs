@@ -147,7 +147,7 @@ namespace Owin
 
             if (string.IsNullOrEmpty(resource))
             {
-                throw new ArgumentException("The resource cannot be null or empty.", nameof(password));
+                throw new ArgumentException("The resource cannot be null or empty.", nameof(resource));
             }
 
             if (string.IsNullOrEmpty(password))

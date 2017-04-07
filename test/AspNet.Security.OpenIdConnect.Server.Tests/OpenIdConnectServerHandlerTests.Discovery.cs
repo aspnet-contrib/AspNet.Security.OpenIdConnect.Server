@@ -1058,7 +1058,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         public async Task InvokeCryptographyEndpointAsync_UnsupportedSecurityKeysAreIgnored(string algorithm)
         {
             // Arrange
-            var factory = Mock.Of<CryptoProviderFactory>(mock => !mock.IsSupportedAlgorithm(algorithm));
+            var factory = Mock.Of<CryptoProviderFactory>(mock => !mock.IsSupportedAlgorithm(algorithm, It.IsAny<SecurityKey>()));
             var key = Mock.Of<SecurityKey>(mock => mock.CryptoProviderFactory == factory);
 
             var server = CreateAuthorizationServer(options =>

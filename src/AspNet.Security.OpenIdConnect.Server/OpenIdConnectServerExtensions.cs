@@ -22,13 +22,13 @@ namespace Microsoft.AspNetCore.Builder
 {
     /// <summary>
     /// Provides extension methods allowing to easily register an
-    /// ASP.NET-powered OpenID Connect server and to retrieve various
-    /// OpenID Connect-related contexts from the ASP.NET environment.
+    /// ASP.NET Core-powered OpenID Connect server and to retrieve various
+    /// OpenID Connect-related contexts from the ASP.NET Core environment.
     /// </summary>
     public static class OpenIdConnectServerExtensions
     {
         /// <summary>
-        /// Adds a new OpenID Connect server instance in the ASP.NET pipeline.
+        /// Adds a new OpenID Connect server instance in the ASP.NET Core pipeline.
         /// </summary>
         /// <param name="app">The web application builder.</param>
         /// <param name="configuration">
@@ -57,7 +57,7 @@ namespace Microsoft.AspNetCore.Builder
         }
 
         /// <summary>
-        /// Adds a new OpenID Connect server instance in the ASP.NET pipeline.
+        /// Adds a new OpenID Connect server instance in the ASP.NET Core pipeline.
         /// </summary>
         /// <param name="app">The web application builder.</param>
         /// <param name="options">The options controlling the behavior of the OpenID Connect server.</param>
@@ -131,7 +131,7 @@ namespace Microsoft.AspNetCore.Builder
 
             if (string.IsNullOrEmpty(resource))
             {
-                throw new ArgumentException("The resource cannot be null or empty.", nameof(password));
+                throw new ArgumentException("The resource cannot be null or empty.", nameof(resource));
             }
 
             if (string.IsNullOrEmpty(password))
@@ -402,7 +402,7 @@ namespace Microsoft.AspNetCore.Builder
                 case SecurityAlgorithms.EcdsaSha256Signature:
                 case SecurityAlgorithms.EcdsaSha384Signature:
                 case SecurityAlgorithms.EcdsaSha512Signature:
-                    throw new InvalidOperationException("ECDSA signing keys are not supported on this platform.");
+                    throw new PlatformNotSupportedException("ECDSA signing keys are not supported on this platform.");
 #endif
 
                 default: throw new InvalidOperationException("The specified algorithm is not supported.");
@@ -483,7 +483,7 @@ namespace Microsoft.AspNetCore.Builder
                      key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha384Signature) ||
                      key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha512Signature))
             {
-                throw new InvalidOperationException("ECDSA signing keys are not supported on this platform.");
+                throw new PlatformNotSupportedException("ECDSA signing keys are not supported on this platform.");
             }
 #endif
 
