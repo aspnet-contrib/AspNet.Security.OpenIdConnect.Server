@@ -35,6 +35,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives
             public const string ClientId = "client_id";
             public const string CodeHash = "c_hash";
             public const string ConfidentialityLevel = "cfd_lvl";
+            public const string Country = "country";
             public const string Email = "email";
             public const string EmailVerified = "email_verified";
             public const string ExpiresAt = "exp";
