@@ -597,10 +597,13 @@ namespace Owin.Security.OpenIdConnect.Server
                 keys.Add(item);
             }
 
-            return await SendCryptographyResponseAsync(new OpenIdConnectResponse
-            {
-                [OpenIdConnectConstants.Parameters.Keys] = keys
-            });
+            // Note: AddParameter() is used here to ensure the mandatory "keys" node
+            // is returned to the caller, even if the key set doesn't expose any key.
+            // See https://tools.ietf.org/html/rfc7517#section-5 for more information.
+            var response = new OpenIdConnectResponse();
+            response.AddParameter(OpenIdConnectConstants.Parameters.Keys, keys);
+
+            return await SendCryptographyResponseAsync(response);
         }
 
         private async Task<bool> SendConfigurationResponseAsync(OpenIdConnectResponse response)

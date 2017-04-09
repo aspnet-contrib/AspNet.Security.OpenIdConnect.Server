@@ -15,6 +15,7 @@ using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin;
 using Moq;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Xunit;
 using static System.Net.Http.HttpMethod;
 
@@ -1064,7 +1065,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
             var response = await client.GetAsync(CryptographyEndpoint);
 
             // Assert
-            Assert.Null(response[OpenIdConnectConstants.Parameters.Keys]);
+            Assert.Empty((JArray) response[OpenIdConnectConstants.Parameters.Keys]);
         }
 
         [Fact]

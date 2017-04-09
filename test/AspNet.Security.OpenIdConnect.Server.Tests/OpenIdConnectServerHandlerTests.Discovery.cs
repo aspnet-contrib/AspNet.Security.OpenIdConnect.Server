@@ -16,6 +16,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
 using Moq;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Xunit;
 using static System.Net.Http.HttpMethod;
 
@@ -1073,7 +1074,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
             var response = await client.GetAsync(CryptographyEndpoint);
 
             // Assert
-            Assert.Null(response[OpenIdConnectConstants.Parameters.Keys]);
+            Assert.Empty((JArray) response[OpenIdConnectConstants.Parameters.Keys]);
         }
 
         [Fact]
