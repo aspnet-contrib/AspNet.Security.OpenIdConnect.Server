@@ -316,12 +316,16 @@ namespace Microsoft.AspNetCore.Builder
                         rsa.KeySize = 2048;
                     }
 
-#if NET451
-                    // Note: RSACng cannot be used as it's not available on <.NET 4.6.
+#if SUPPORTS_CAPI
                     if (rsa.KeySize < 2048 && rsa is RSACryptoServiceProvider)
                     {
                         rsa.Dispose();
+
+#if SUPPORTS_CNG
+                        rsa = new RSACng(2048);
+#else
                         rsa = new RSACryptoServiceProvider(2048);
+#endif
                     }
 #endif
 
@@ -334,7 +338,7 @@ namespace Microsoft.AspNetCore.Builder
                     // the underlying algorithm when it can be cast to RSACryptoServiceProvider. To work around
                     // this bug, the RSA public/private parameters are manually exported and re-imported when needed.
                     SecurityKey key;
-#if NET451
+#if SUPPORTS_CAPI
                     if (rsa is RSACryptoServiceProvider)
                     {
                         var parameters = rsa.ExportParameters(includePrivateParameters: true);
@@ -350,7 +354,7 @@ namespace Microsoft.AspNetCore.Builder
 #endif
                         key = new RsaSecurityKey(rsa);
                         key.KeyId = key.GetKeyIdentifier();
-#if NET451
+#if SUPPORTS_CAPI
                     }
 #endif
 
