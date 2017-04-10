@@ -1117,7 +1117,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
 #if SUPPORTS_ECDSA
-        [Theory(Skip = "This test currently fails on Linux")]
+        [Theory]
         [InlineData(
             /* oid: */ "1.2.840.10045.3.1.7",
             /* curve: */ nameof(ECCurve.NamedCurves.nistP256),
@@ -1133,9 +1133,9 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         [InlineData(
             /* oid: */ "1.3.132.0.35",
             /* curve: */ nameof(ECCurve.NamedCurves.nistP521),
-            /* d: */ "AflWZggytTANhVkuNQTCoHT3+GPM9qv2+3QQ/8as+Q+OyC9pbFZqBa9lBDkOX9ZtFRYwSLOJH0ufowpewNK5+Zrj",
-            /* x: */ "ACdbdEhmEcbJTPT0iAF5MmxPy1ROFOO00mucc92ZrXGroplslbDuRI3WoDXkH7sP2yUxOoxKX75Cgf++Oqm9cAHn",
-            /* y: */ "AM5llFbo3yBMf36xMnJrg7vCX8sVLYyCYIBrRQp6WWIyhmEb3iol5qIOUzkKwuff/4JGef7lk5hskhEd1VRohubQ")]
+            /* d: */ "ALong1stsWvTLufObn3SPfM8s9VsTG73nXv4mkzGFUmB1r7rda+cpYXU99rFV/kX6zBkFl7Y9TZ2ZyZLFnyUpE4j",
+            /* x: */ "AS+aCMpMbSO4ga/hUsVIIidqmcQiiT+N9o/5hJ9UVA/vHAKDvWTjuKz+JZfOiR9J+GDUcDZS56UbGG83IosMJMM6",
+            /* y: */ "AcYkfsb/kTKpcPhYsRPAYV7ibwTN/CdiAM8QuCElAV6wBGfuX1LUmK6ldDVJjytpSz1EmGvzR0T7UCcZcgITqWc2")]
         public async Task InvokeCryptographyEndpointAsync_EcdsaSecurityKeysAreCorrectlyExposed(
             string oid, string curve, string d, string x, string y)
         {
