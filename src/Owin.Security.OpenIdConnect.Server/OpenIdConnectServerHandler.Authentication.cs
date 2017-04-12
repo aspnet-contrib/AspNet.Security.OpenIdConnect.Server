@@ -41,8 +41,7 @@ namespace Owin.Security.OpenIdConnect.Server
                     return await SendAuthorizationResponseAsync(new OpenIdConnectResponse
                     {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                        ErrorDescription = "A malformed authorization request has been received: " +
-                            "the mandatory 'Content-Type' header was missing from the POST request."
+                        ErrorDescription = "The mandatory 'Content-Type' header must be specified."
                     });
                 }
 
@@ -50,14 +49,12 @@ namespace Owin.Security.OpenIdConnect.Server
                 if (!Request.ContentType.StartsWith("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase))
                 {
                     Logger.LogError("The authorization request was rejected because an invalid 'Content-Type' " +
-                                    "header was received: {ContentType}.", Request.ContentType);
+                                    "header was specified: {ContentType}.", Request.ContentType);
 
                     return await SendAuthorizationResponseAsync(new OpenIdConnectResponse
                     {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                        ErrorDescription = "A malformed authorization request has been received: " +
-                            "the 'Content-Type' header contained an unexcepted value. " +
-                            "Make sure to use 'application/x-www-form-urlencoded'."
+                        ErrorDescription = "The specified 'Content-Type' header is not valid."
                     });
                 }
 
@@ -67,13 +64,12 @@ namespace Owin.Security.OpenIdConnect.Server
             else
             {
                 Logger.LogError("The authorization request was rejected because an invalid " +
-                                "HTTP method was received: {Method}.", Request.Method);
+                                "HTTP method was specified: {Method}.", Request.Method);
 
                 return await SendAuthorizationResponseAsync(new OpenIdConnectResponse
                 {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                    ErrorDescription = "A malformed authorization request has been received: " +
-                                       "make sure to use either GET or POST."
+                    ErrorDescription = "The specified HTTP method is not valid."
                 });
             }
 
@@ -131,7 +127,7 @@ namespace Owin.Security.OpenIdConnect.Server
                 return await SendAuthorizationResponseAsync(new OpenIdConnectResponse
                 {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                    ErrorDescription = "client_id was missing"
+                    ErrorDescription = "The mandatory 'client_id' parameter is missing."
                 });
             }
 
@@ -148,7 +144,7 @@ namespace Owin.Security.OpenIdConnect.Server
                 return await SendAuthorizationResponseAsync(new OpenIdConnectResponse
                 {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                    ErrorDescription = "redirect_uri must be included when making an OpenID Connect request"
+                    ErrorDescription = "The mandatory 'redirect_uri' parameter is missing."
                 });
             }
 
@@ -165,7 +161,7 @@ namespace Owin.Security.OpenIdConnect.Server
                     return await SendAuthorizationResponseAsync(new OpenIdConnectResponse
                     {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                        ErrorDescription = "redirect_uri must be absolute"
+                        ErrorDescription = "The 'redirect_uri' parameter must be an absolute URL."
                     });
                 }
 
@@ -180,7 +176,7 @@ namespace Owin.Security.OpenIdConnect.Server
                     return await SendAuthorizationResponseAsync(new OpenIdConnectResponse
                     {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                        ErrorDescription = "redirect_uri must not include a fragment"
+                        ErrorDescription = "The 'redirect_uri' parameter must not include a fragment."
                     });
                 }
             }
@@ -194,7 +190,7 @@ namespace Owin.Security.OpenIdConnect.Server
                 return await SendAuthorizationResponseAsync(new OpenIdConnectResponse
                 {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                    ErrorDescription = "response_type parameter missing"
+                    ErrorDescription = "The mandatory 'response_type' parameter is missing."
                 });
             }
 
@@ -210,7 +206,7 @@ namespace Owin.Security.OpenIdConnect.Server
                 return await SendAuthorizationResponseAsync(new OpenIdConnectResponse
                 {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                    ErrorDescription = "response_type/response_mode combination unsupported"
+                    ErrorDescription = "The specified 'response_type'/'response_mode' combination is invalid."
                 });
             }
 
@@ -227,7 +223,7 @@ namespace Owin.Security.OpenIdConnect.Server
                 return await SendAuthorizationResponseAsync(new OpenIdConnectResponse
                 {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                    ErrorDescription = "nonce parameter missing"
+                    ErrorDescription = "The mandatory 'nonce' parameter is missing."
                 });
             }
 
@@ -240,7 +236,7 @@ namespace Owin.Security.OpenIdConnect.Server
                 return await SendAuthorizationResponseAsync(new OpenIdConnectResponse
                 {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                    ErrorDescription = "openid scope missing"
+                    ErrorDescription = "The mandatory 'openid' scope is missing."
                 });
             }
 
@@ -254,7 +250,7 @@ namespace Owin.Security.OpenIdConnect.Server
                 return await SendAuthorizationResponseAsync(new OpenIdConnectResponse
                 {
                     Error = OpenIdConnectConstants.Errors.UnsupportedResponseType,
-                    ErrorDescription = "The specified response type is not supported by this server."
+                    ErrorDescription = "The specified 'response_type' is not supported by this server."
                 });
             }
 
@@ -266,7 +262,7 @@ namespace Owin.Security.OpenIdConnect.Server
                 return await SendAuthorizationResponseAsync(new OpenIdConnectResponse
                 {
                     Error = OpenIdConnectConstants.Errors.UnsupportedResponseType,
-                    ErrorDescription = "response_type=code is not supported by this server"
+                    ErrorDescription = "The specified 'response_type' is not supported by this server."
                 });
             }
 
@@ -555,7 +551,7 @@ namespace Owin.Security.OpenIdConnect.Server
                                           "using the fragment response mode: {Response}", response);
 
                     var location = notification.RedirectUri;
-                    var appender = new Appender(location, '#');
+                    var appender = new OpenIdConnectServerHelpers.Appender(location, '#');
 
                     foreach (var parameter in parameters)
                     {

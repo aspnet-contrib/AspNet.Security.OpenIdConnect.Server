@@ -43,7 +43,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
-            Assert.Equal("Invalid HTTP method: make sure to use GET.", response.ErrorDescription);
+            Assert.Equal("The specified HTTP method is not valid.", response.ErrorDescription);
         }
 
         [Theory]
@@ -878,7 +878,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
-            Assert.Equal("Invalid HTTP method: make sure to use GET.", response.ErrorDescription);
+            Assert.Equal("The specified HTTP method is not valid.", response.ErrorDescription);
         }
 
         [Theory]

@@ -41,8 +41,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
-            Assert.Equal("A malformed userinfo request has been received: " +
-                         "make sure to use either GET or POST.", response.ErrorDescription);
+            Assert.Equal("The specified HTTP method is not valid.", response.ErrorDescription);
         }
 
         [Theory]
@@ -144,7 +143,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
-            Assert.Equal("A malformed userinfo request has been received.", response.ErrorDescription);
+            Assert.Equal("The mandatory 'access_token' parameter is missing.", response.ErrorDescription);
         }
 
         [Theory]
@@ -255,7 +254,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.InvalidGrant, response.Error);
-            Assert.Equal("Invalid token.", response.ErrorDescription);
+            Assert.Equal("The specified access token is not valid.", response.ErrorDescription);
         }
 
         [Fact]
@@ -289,7 +288,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.InvalidGrant, response.Error);
-            Assert.Equal("Expired token.", response.ErrorDescription);
+            Assert.Equal("The specified access token is no longer valid.", response.ErrorDescription);
         }
 
         [Fact]

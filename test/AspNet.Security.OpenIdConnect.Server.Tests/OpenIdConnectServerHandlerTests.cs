@@ -875,7 +875,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
             });
 
             Assert.Equal("The authentication ticket was rejected because " +
-                         "it doesn't contain the mandatory subject claim.", exception.Message);
+                         "the mandatory subject claim was missing.", exception.Message);
         }
 
         [Fact]

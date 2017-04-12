@@ -27,12 +27,12 @@ namespace Owin.Security.OpenIdConnect.Server
             if (!string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase))
             {
                 Logger.LogError("The token request was rejected because an invalid " +
-                                "HTTP method was received: {Method}.", Request.Method);
+                                "HTTP method was specified: {Method}.", Request.Method);
 
                 return await SendTokenResponseAsync(new OpenIdConnectResponse
                 {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                    ErrorDescription = "A malformed token request has been received: make sure to use POST."
+                    ErrorDescription = "The specified HTTP method is not valid."
                 });
             }
 
@@ -45,8 +45,7 @@ namespace Owin.Security.OpenIdConnect.Server
                 return await SendTokenResponseAsync(new OpenIdConnectResponse
                 {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                    ErrorDescription = "A malformed token request has been received: " +
-                        "the mandatory 'Content-Type' header was missing from the POST request."
+                    ErrorDescription = "The mandatory 'Content-Type' header must be specified."
                 });
             }
 
@@ -54,14 +53,12 @@ namespace Owin.Security.OpenIdConnect.Server
             if (!Request.ContentType.StartsWith("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase))
             {
                 Logger.LogError("The token request was rejected because an invalid 'Content-Type' " +
-                                "header was received: {ContentType}.", Request.ContentType);
+                                "header was specified: {ContentType}.", Request.ContentType);
 
                 return await SendTokenResponseAsync(new OpenIdConnectResponse
                 {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                    ErrorDescription = "A malformed token request has been received: " +
-                        "the 'Content-Type' header contained an unexcepted value. " +
-                        "Make sure to use 'application/x-www-form-urlencoded'."
+                    ErrorDescription = "The specified 'Content-Type' header is not valid."
                 });
             }
 
@@ -116,7 +113,7 @@ namespace Owin.Security.OpenIdConnect.Server
                 return await SendTokenResponseAsync(new OpenIdConnectResponse
                 {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                    ErrorDescription = "The mandatory 'grant_type' parameter was missing.",
+                    ErrorDescription = "The mandatory 'grant_type' parameter is missing.",
                 });
             }
 
@@ -141,7 +138,7 @@ namespace Owin.Security.OpenIdConnect.Server
                 return await SendTokenResponseAsync(new OpenIdConnectResponse
                 {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                    ErrorDescription = "The mandatory 'code' parameter was missing."
+                    ErrorDescription = "The mandatory 'code' parameter is missing."
                 });
             }
 
@@ -154,7 +151,7 @@ namespace Owin.Security.OpenIdConnect.Server
                 return await SendTokenResponseAsync(new OpenIdConnectResponse
                 {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                    ErrorDescription = "The mandatory 'refresh_token' parameter was missing."
+                    ErrorDescription = "The mandatory 'refresh_token' parameter is missing."
                 });
             }
 
@@ -168,8 +165,7 @@ namespace Owin.Security.OpenIdConnect.Server
                 return await SendTokenResponseAsync(new OpenIdConnectResponse
                 {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                    ErrorDescription = "The mandatory 'username' and/or 'password' parameters " +
-                                       "was/were missing from the request message."
+                    ErrorDescription = "The mandatory 'username' and/or 'password' parameters are missing."
                 });
             }
 
@@ -242,7 +238,7 @@ namespace Owin.Security.OpenIdConnect.Server
                 return await SendTokenResponseAsync(new OpenIdConnectResponse
                 {
                     Error = OpenIdConnectConstants.Errors.InvalidGrant,
-                    ErrorDescription = "Client authentication is required when using client_credentials."
+                    ErrorDescription = "Client authentication is required when using the client credentials grant."
                 });
             }
 
@@ -257,7 +253,7 @@ namespace Owin.Security.OpenIdConnect.Server
                 return await SendTokenResponseAsync(new OpenIdConnectResponse
                 {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                    ErrorDescription = "client_id was missing from the token request"
+                    ErrorDescription = "The mandatory 'client_id' parameter is missing."
                 });
             }
 
@@ -285,7 +281,9 @@ namespace Owin.Security.OpenIdConnect.Server
                     return await SendTokenResponseAsync(new OpenIdConnectResponse
                     {
                         Error = OpenIdConnectConstants.Errors.InvalidGrant,
-                        ErrorDescription = "Invalid ticket"
+                        ErrorDescription = request.IsAuthorizationCodeGrantType() ?
+                            "The specified authorization code is invalid." :
+                            "The specified refresh token is invalid."
                     });
                 }
 
@@ -299,7 +297,7 @@ namespace Owin.Security.OpenIdConnect.Server
                     return await SendTokenResponseAsync(new OpenIdConnectResponse
                     {
                         Error = OpenIdConnectConstants.Errors.InvalidGrant,
-                        ErrorDescription = "Client authentication is required to use this ticket"
+                        ErrorDescription = "Client authentication is required to use the specified refresh token."
                     });
                 }
 
@@ -312,7 +310,9 @@ namespace Owin.Security.OpenIdConnect.Server
                     return await SendTokenResponseAsync(new OpenIdConnectResponse
                     {
                         Error = OpenIdConnectConstants.Errors.InvalidGrant,
-                        ErrorDescription = "Expired ticket"
+                        ErrorDescription = request.IsAuthorizationCodeGrantType() ?
+                            "The specified authorization code is no longer valid." :
+                            "The specified refresh token is no longer valid."
                     });
                 }
 
@@ -338,7 +338,9 @@ namespace Owin.Security.OpenIdConnect.Server
                     return await SendTokenResponseAsync(new OpenIdConnectResponse
                     {
                         Error = OpenIdConnectConstants.Errors.InvalidGrant,
-                        ErrorDescription = "Ticket does not contain matching client_id"
+                        ErrorDescription = request.IsAuthorizationCodeGrantType() ?
+                            "The specified authorization code cannot be used by this client application." :
+                            "The specified refresh token cannot be used by this client application."
                     });
                 }
 
@@ -360,7 +362,7 @@ namespace Owin.Security.OpenIdConnect.Server
                         return await SendTokenResponseAsync(new OpenIdConnectResponse
                         {
                             Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                            ErrorDescription = "redirect_uri was missing from the token request"
+                            ErrorDescription = "The mandatory 'redirect_uri' parameter is missing."
                         });
                     }
 
@@ -372,7 +374,8 @@ namespace Owin.Security.OpenIdConnect.Server
                         return await SendTokenResponseAsync(new OpenIdConnectResponse
                         {
                             Error = OpenIdConnectConstants.Errors.InvalidGrant,
-                            ErrorDescription = "Authorization code does not contain matching redirect_uri"
+                            ErrorDescription = "The specified 'redirect_uri' parameter doesn't match the client " +
+                                               "redirection endpoint the authorization code was initially sent to."
                         });
                     }
                 }
@@ -393,7 +396,7 @@ namespace Owin.Security.OpenIdConnect.Server
                         return await SendTokenResponseAsync(new OpenIdConnectResponse
                         {
                             Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                            ErrorDescription = "The required 'code_verifier' was missing from the token request."
+                            ErrorDescription = "The mandatory 'code_verifier' parameter is missing."
                         });
                     }
 
@@ -427,7 +430,7 @@ namespace Owin.Security.OpenIdConnect.Server
                         return await SendTokenResponseAsync(new OpenIdConnectResponse
                         {
                             Error = OpenIdConnectConstants.Errors.InvalidGrant,
-                            ErrorDescription = "The specified 'code_verifier' was invalid."
+                            ErrorDescription = "The specified 'code_verifier' parameter is invalid."
                         });
                     }
                 }
@@ -444,8 +447,7 @@ namespace Owin.Security.OpenIdConnect.Server
                         return await SendTokenResponseAsync(new OpenIdConnectResponse
                         {
                             Error = OpenIdConnectConstants.Errors.InvalidGrant,
-                            ErrorDescription = "Token request cannot contain a resource parameter " +
-                                               "if the authorization request didn't contain one"
+                            ErrorDescription = "The 'resource' parameter is not valid in this context."
                         });
                     }
 
@@ -459,7 +461,7 @@ namespace Owin.Security.OpenIdConnect.Server
                         return await SendTokenResponseAsync(new OpenIdConnectResponse
                         {
                             Error = OpenIdConnectConstants.Errors.InvalidGrant,
-                            ErrorDescription = "Token request doesn't contain a valid resource parameter"
+                            ErrorDescription = "The specified 'resource' parameter is invalid."
                         });
                     }
                 }
@@ -477,8 +479,7 @@ namespace Owin.Security.OpenIdConnect.Server
                         return await SendTokenResponseAsync(new OpenIdConnectResponse
                         {
                             Error = OpenIdConnectConstants.Errors.InvalidGrant,
-                            ErrorDescription = "Token request cannot contain a scope parameter " +
-                                               "if the authorization request didn't contain one"
+                            ErrorDescription = "The 'scope' parameter is not valid in this context."
                         });
                     }
 
@@ -493,7 +494,7 @@ namespace Owin.Security.OpenIdConnect.Server
                         return await SendTokenResponseAsync(new OpenIdConnectResponse
                         {
                             Error = OpenIdConnectConstants.Errors.InvalidGrant,
-                            ErrorDescription = "Token request doesn't contain a valid scope parameter"
+                            ErrorDescription = "The specified 'scope' parameter is invalid."
                         });
                     }
                 }
@@ -543,7 +544,7 @@ namespace Owin.Security.OpenIdConnect.Server
                 return await SendTokenResponseAsync(new OpenIdConnectResponse
                 {
                     Error = OpenIdConnectConstants.Errors.UnsupportedGrantType,
-                    ErrorDescription = "The specified grant_type parameter is not supported."
+                    ErrorDescription = "The specified 'grant_type' parameter is not supported."
                 });
             }
 

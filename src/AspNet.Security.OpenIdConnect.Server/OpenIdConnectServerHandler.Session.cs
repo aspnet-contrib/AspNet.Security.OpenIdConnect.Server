@@ -40,8 +40,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                     return await SendLogoutResponseAsync(new OpenIdConnectResponse
                     {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                        ErrorDescription = "A malformed logout request has been received: " +
-                            "the mandatory 'Content-Type' header was missing from the POST request."
+                        ErrorDescription = "The mandatory 'Content-Type' header must be specified."
                     });
                 }
 
@@ -49,14 +48,12 @@ namespace AspNet.Security.OpenIdConnect.Server
                 if (!Request.ContentType.StartsWith("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase))
                 {
                     Logger.LogError("The logout request was rejected because an invalid 'Content-Type' " +
-                                    "header was received: {ContentType}.", Request.ContentType);
+                                    "header was specified: {ContentType}.", Request.ContentType);
 
                     return await SendLogoutResponseAsync(new OpenIdConnectResponse
                     {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                        ErrorDescription = "A malformed logout request has been received: " +
-                            "the 'Content-Type' header contained an unexcepted value. " +
-                            "Make sure to use 'application/x-www-form-urlencoded'."
+                        ErrorDescription = "The specified 'Content-Type' header is not valid."
                     });
                 }
 
@@ -66,13 +63,12 @@ namespace AspNet.Security.OpenIdConnect.Server
             else
             {
                 Logger.LogError("The logout request was rejected because an invalid " +
-                                "HTTP method was received: {Method}.", Request.Method);
+                                "HTTP method was specified: {Method}.", Request.Method);
 
                 return await SendLogoutResponseAsync(new OpenIdConnectResponse
                 {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                    ErrorDescription = "A malformed logout request has been received: " +
-                                       "make sure to use either GET or POST."
+                    ErrorDescription = "The specified HTTP method is not valid."
                 });
             }
 

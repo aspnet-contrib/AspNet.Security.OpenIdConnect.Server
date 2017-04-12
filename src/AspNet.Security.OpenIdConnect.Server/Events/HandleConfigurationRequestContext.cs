@@ -83,63 +83,63 @@ namespace AspNet.Security.OpenIdConnect.Server
             new HashSet<string>(StringComparer.Ordinal);
 
         /// <summary>
-        /// Gets a list of the grant types
+        /// Gets the list of grant types
         /// supported by the authorization server.
         /// </summary>
         public ISet<string> GrantTypes { get; } =
             new HashSet<string>(StringComparer.Ordinal);
 
         /// <summary>
-        /// Gets a list of the signing algorithms supported by the
+        /// Gets a list of signing algorithms supported by the
         /// authorization server for signing the identity tokens.
         /// </summary>
         public ISet<string> IdTokenSigningAlgorithms { get; } =
             new HashSet<string>(StringComparer.Ordinal);
 
         /// <summary>
-        /// Gets a list of the client authentication methods supported by
+        /// Gets a list of client authentication methods supported by
         /// the introspection endpoint provided by the authorization server.
         /// </summary>
         public ISet<string> IntrospectionEndpointAuthenticationMethods { get; } =
             new HashSet<string>(StringComparer.Ordinal);
 
         /// <summary>
-        /// Gets a list of the response modes
+        /// Gets the list of response modes
         /// supported by the authorization server.
         /// </summary>
         public ISet<string> ResponseModes { get; } =
             new HashSet<string>(StringComparer.Ordinal);
 
         /// <summary>
-        /// Gets a list of the response types
+        /// Gets the list of response types
         /// supported by the authorization server.
         /// </summary>
         public ISet<string> ResponseTypes { get; } =
             new HashSet<string>(StringComparer.Ordinal);
 
         /// <summary>
-        /// Gets a list of the client authentication methods supported by
+        /// Gets a list of client authentication methods supported by
         /// the revocation endpoint provided by the authorization server.
         /// </summary>
         public ISet<string> RevocationEndpointAuthenticationMethods { get; } =
             new HashSet<string>(StringComparer.Ordinal);
 
         /// <summary>
-        /// Gets a list of the scope values
+        /// Gets the list of scope values
         /// supported by the authorization server.
         /// </summary>
         public ISet<string> Scopes { get; } =
             new HashSet<string>(StringComparer.Ordinal);
 
         /// <summary>
-        /// Gets a list of the subject types
+        /// Gets the list of subject types
         /// supported by the authorization server.
         /// </summary>
         public ISet<string> SubjectTypes { get; } =
             new HashSet<string>(StringComparer.Ordinal);
 
         /// <summary>
-        /// Gets a list of the client authentication methods supported by
+        /// Gets a list of client authentication methods supported by
         /// the token endpoint provided by the authorization server.
         /// </summary>
         public ISet<string> TokenEndpointAuthenticationMethods { get; } =

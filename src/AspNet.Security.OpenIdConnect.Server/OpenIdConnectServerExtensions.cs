@@ -22,8 +22,8 @@ namespace Microsoft.AspNetCore.Builder
 {
     /// <summary>
     /// Provides extension methods allowing to easily register an
-    /// ASP.NET Core-powered OpenID Connect server and to retrieve various
-    /// OpenID Connect-related contexts from the ASP.NET Core environment.
+    /// ASP.NET Core-powered OpenID Connect server and to retrieve
+    /// various OpenID Connect primitives from the ASP.NET Core environment.
     /// </summary>
     public static class OpenIdConnectServerExtensions
     {

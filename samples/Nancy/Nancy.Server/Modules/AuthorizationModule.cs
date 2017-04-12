@@ -41,8 +41,8 @@ namespace Nancy.Server.Modules
                 {
                     return View["Error.cshtml", new OpenIdConnectResponse
                     {
-                        Error = "invalid_request",
-                        ErrorDescription = "An internal error has occurred"
+                        Error = OpenIdConnectConstants.Errors.ServerError,
+                        ErrorDescription = "An internal error has occurred."
                     }];
                 }
 
@@ -55,8 +55,8 @@ namespace Nancy.Server.Modules
                 {
                     return View["Error.cshtml", new OpenIdConnectResponse
                     {
-                        Error = "invalid_client",
-                        ErrorDescription = "Details concerning the calling client application cannot be found in the database"
+                        Error = OpenIdConnectConstants.Errors.InvalidClient,
+                        ErrorDescription = "The specified client identifier is invalid."
                     }];
                 }
 
@@ -81,8 +81,8 @@ namespace Nancy.Server.Modules
                 {
                     return View["Error.cshtml", new OpenIdConnectResponse
                     {
-                        Error = "invalid_request",
-                        ErrorDescription = "An internal error has occurred"
+                        Error = OpenIdConnectConstants.Errors.ServerError,
+                        ErrorDescription = "An internal error has occurred."
                     }];
                 }
 
@@ -110,8 +110,8 @@ namespace Nancy.Server.Modules
                 {
                     return View["Error.cshtml", new OpenIdConnectResponse
                     {
-                        Error = "invalid_client",
-                        ErrorDescription = "Details concerning the calling client application cannot be found in the database"
+                        Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                        ErrorDescription = "The specified client identifier is invalid."
                     }];
                 }
 
@@ -150,17 +150,6 @@ namespace Nancy.Server.Modules
                     return View["Error.cshtml", response];
                 }
 
-                // Extract the authorization request from the cache, the query string or the request form.
-                var request = OwinContext.GetOpenIdConnectRequest();
-                if (request == null)
-                {
-                    return View["Error.cshtml", new OpenIdConnectResponse
-                    {
-                        Error = "invalid_request",
-                        ErrorDescription = "An internal error has occurred"
-                    }];
-                }
-
                 // Notify ASOS that the authorization grant has been denied by the resource owner.
                 // Note: OpenIdConnectServerHandler will automatically take care of redirecting
                 // the user agent to the client application using the appropriate response_mode.
@@ -188,8 +177,8 @@ namespace Nancy.Server.Modules
                 {
                     return View["Error.cshtml", new OpenIdConnectResponse
                     {
-                        Error = "invalid_request",
-                        ErrorDescription = "An internal error has occurred"
+                        Error = OpenIdConnectConstants.Errors.ServerError,
+                        ErrorDescription = "An internal error has occurred."
                     }];
                 }
 

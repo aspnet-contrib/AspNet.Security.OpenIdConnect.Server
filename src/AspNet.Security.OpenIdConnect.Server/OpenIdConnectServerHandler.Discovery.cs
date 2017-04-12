@@ -28,12 +28,12 @@ namespace AspNet.Security.OpenIdConnect.Server
             if (!string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase))
             {
                 Logger.LogError("The discovery request was rejected because an invalid " +
-                                "HTTP method was used: {Method}.", Request.Method);
+                                "HTTP method was specified: {Method}.", Request.Method);
 
                 return await SendConfigurationResponseAsync(new OpenIdConnectResponse
                 {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                    ErrorDescription = "Invalid HTTP method: make sure to use GET."
+                    ErrorDescription = "The specified HTTP method is not valid."
                 });
             }
 
@@ -327,12 +327,12 @@ namespace AspNet.Security.OpenIdConnect.Server
             if (!string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase))
             {
                 Logger.LogError("The discovery request was rejected because an invalid " +
-                                "HTTP method was used: {Method}.", Request.Method);
+                                "HTTP method was specified: {Method}.", Request.Method);
 
                 return await SendCryptographyResponseAsync(new OpenIdConnectResponse
                 {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                    ErrorDescription = "Invalid HTTP method: make sure to use GET."
+                    ErrorDescription = "The specified HTTP method is not valid."
                 });
             }
 

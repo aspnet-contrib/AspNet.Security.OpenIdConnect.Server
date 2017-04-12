@@ -43,14 +43,12 @@ namespace AspNet.Security.OpenIdConnect.Server
                     if (!Request.ContentType.StartsWith("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase))
                     {
                         Logger.LogError("The userinfo request was rejected because an invalid 'Content-Type' " +
-                                        "header was received: {ContentType}.", Request.ContentType);
+                                        "header was specified: {ContentType}.", Request.ContentType);
 
                         return await SendUserinfoResponseAsync(new OpenIdConnectResponse
                         {
                             Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                            ErrorDescription = "A malformed userinfo request has been received: " +
-                                "the 'Content-Type' header contained an unexcepted value. " +
-                                "Make sure to use 'application/x-www-form-urlencoded'."
+                            ErrorDescription = "The specified 'Content-Type' header is not valid."
                         });
                     }
 
@@ -61,13 +59,12 @@ namespace AspNet.Security.OpenIdConnect.Server
             else
             {
                 Logger.LogError("The userinfo request was rejected because an invalid " +
-                                "HTTP method was received: {Method}.", Request.Method);
+                                "HTTP method was specified: {Method}.", Request.Method);
 
                 return await SendUserinfoResponseAsync(new OpenIdConnectResponse
                 {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                    ErrorDescription = "A malformed userinfo request has been received: " +
-                                       "make sure to use either GET or POST."
+                    ErrorDescription = "The specified HTTP method is not valid."
                 });
             }
 
@@ -112,7 +109,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             Logger.LogInformation("The userinfo request was successfully extracted " +
                                   "from the HTTP request: {Request}", request);
 
-            string token;
+            string token = null;
             if (!string.IsNullOrEmpty(request.AccessToken))
             {
                 token = request.AccessToken;
@@ -121,41 +118,33 @@ namespace AspNet.Security.OpenIdConnect.Server
             else
             {
                 string header = Request.Headers[HeaderNames.Authorization];
-                if (string.IsNullOrEmpty(header))
+                if (!string.IsNullOrEmpty(header))
                 {
-                    Logger.LogError("The userinfo request was rejected because " +
-                                    "the 'Authorization' header was missing.");
-
-                    return await SendUserinfoResponseAsync(new OpenIdConnectResponse
+                    if (!header.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
                     {
-                        Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                        ErrorDescription = "A malformed userinfo request has been received."
-                    });
-                }
+                        Logger.LogError("The userinfo request was rejected because the " +
+                                        "'Authorization' header was invalid: {Header}.", header);
 
-                if (!header.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                        return await SendUserinfoResponseAsync(new OpenIdConnectResponse
+                        {
+                            Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                            ErrorDescription = "The specified 'Authorization' header is invalid."
+                        });
+                    }
+
+                    token = header.Substring("Bearer ".Length);
+                }
+            }
+
+            if (string.IsNullOrEmpty(token))
+            {
+                Logger.LogError("The userinfo request was rejected because the access token was missing.");
+
+                return await SendUserinfoResponseAsync(new OpenIdConnectResponse
                 {
-                    Logger.LogError("The userinfo request was rejected because the " +
-                                    "'Authorization' header was invalid: {Header}.", header);
-
-                    return await SendUserinfoResponseAsync(new OpenIdConnectResponse
-                    {
-                        Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                        ErrorDescription = "A malformed userinfo request has been received."
-                    });
-                }
-
-                token = header.Substring("Bearer ".Length);
-                if (string.IsNullOrEmpty(token))
-                {
-                    Logger.LogError("The userinfo request was rejected because the access token was missing.");
-
-                    return await SendUserinfoResponseAsync(new OpenIdConnectResponse
-                    {
-                        Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                        ErrorDescription = "A malformed userinfo request has been received."
-                    });
-                }
+                    Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = "The mandatory 'access_token' parameter is missing."
+                });
             }
 
             var context = new ValidateUserinfoRequestContext(Context, Options, request);
@@ -204,7 +193,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                 return await SendUserinfoResponseAsync(new OpenIdConnectResponse
                 {
                     Error = OpenIdConnectConstants.Errors.InvalidGrant,
-                    ErrorDescription = "Invalid token."
+                    ErrorDescription = "The specified access token is not valid."
                 });
             }
 
@@ -221,7 +210,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                 return await SendUserinfoResponseAsync(new OpenIdConnectResponse
                 {
                     Error = OpenIdConnectConstants.Errors.InvalidGrant,
-                    ErrorDescription = "Expired token."
+                    ErrorDescription = "The specified access token is no longer valid."
                 });
             }
 

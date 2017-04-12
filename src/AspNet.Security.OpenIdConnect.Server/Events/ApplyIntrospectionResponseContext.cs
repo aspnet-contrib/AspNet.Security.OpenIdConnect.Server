@@ -40,7 +40,7 @@ namespace AspNet.Security.OpenIdConnect.Server
         /// Gets the introspection request.
         /// </summary>
         /// <remarks>
-        /// Note: this property may be null if an error occurred when
+        /// Note: this property may be null if an error occurred while
         /// extracting the introspection request from the HTTP request.
         /// </remarks>
         public new OpenIdConnectRequest Request { get; }

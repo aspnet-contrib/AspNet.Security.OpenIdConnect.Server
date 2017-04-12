@@ -22,8 +22,8 @@ namespace Owin
 {
     /// <summary>
     /// Provides extension methods allowing to easily register an
-    /// OWIN-powered OpenID Connect server and to retrieve various
-    /// OpenID Connect-related contexts from the OWIN environment.
+    /// OWIN/Katana-powered OpenID Connect server and to retrieve
+    /// various OpenID Connect primitives from the OWIN environment.
     /// </summary>
     public static class OpenIdConnectServerExtensions
     {

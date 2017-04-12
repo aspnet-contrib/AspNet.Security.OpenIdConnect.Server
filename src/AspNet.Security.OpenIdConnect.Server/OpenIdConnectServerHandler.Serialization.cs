@@ -329,7 +329,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             if (string.IsNullOrEmpty(identity.GetClaim(OpenIdConnectConstants.Claims.Subject)))
             {
                 throw new InvalidOperationException("The authentication ticket was rejected because " +
-                                                    "it doesn't contain the mandatory subject claim.");
+                                                    "the mandatory subject claim was missing.");
             }
 
             // Note: identity tokens must be signed but an exception is made by the OpenID Connect specification

@@ -34,7 +34,7 @@ namespace Owin.Security.OpenIdConnect.Server
         /// Gets the configuration request.
         /// </summary>
         /// <remarks>
-        /// Note: this property may be null if an error occurred when
+        /// Note: this property may be null if an error occurred while
         /// extracting the configuration request from the HTTP request.
         /// </remarks>
         public new OpenIdConnectRequest Request { get; }

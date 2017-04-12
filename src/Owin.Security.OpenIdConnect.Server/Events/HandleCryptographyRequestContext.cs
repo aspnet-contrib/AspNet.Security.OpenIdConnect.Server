@@ -30,7 +30,7 @@ namespace Owin.Security.OpenIdConnect.Server
         }
 
         /// <summary>
-        /// Gets a list of the JSON Web Keys found by the authorization server.
+        /// Gets the list of JSON Web Keys exposed by the JWKS endpoint.
         /// </summary>
         public IList<JsonWebKey> Keys { get; } = new List<JsonWebKey>();
     }

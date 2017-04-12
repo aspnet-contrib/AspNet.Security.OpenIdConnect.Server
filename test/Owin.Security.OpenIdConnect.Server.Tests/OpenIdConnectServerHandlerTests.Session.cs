@@ -34,8 +34,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
-            Assert.Equal("A malformed logout request has been received: " +
-                         "make sure to use either GET or POST.", response.ErrorDescription);
+            Assert.Equal("The specified HTTP method is not valid.", response.ErrorDescription);
         }
 
         [Theory]

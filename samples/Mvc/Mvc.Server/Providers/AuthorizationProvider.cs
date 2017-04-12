@@ -23,7 +23,7 @@ namespace Mvc.Server.Providers
             {
                 context.Reject(
                     error: OpenIdConnectConstants.Errors.UnsupportedResponseType,
-                    description: "Only the authorization code flow is supported by this authorization server");
+                    description: "Only the authorization code flow is supported by this authorization server.");
 
                 return;
             }
@@ -37,7 +37,7 @@ namespace Mvc.Server.Providers
             {
                 context.Reject(
                     error: OpenIdConnectConstants.Errors.InvalidRequest,
-                    description: "The specified response_mode is unsupported.");
+                    description: "The specified 'response_mode' is unsupported.");
 
                 return;
             }
@@ -51,7 +51,7 @@ namespace Mvc.Server.Providers
             {
                 context.Reject(
                     error: OpenIdConnectConstants.Errors.InvalidClient,
-                    description: "Application not found in the database: ensure that your client_id is correct");
+                    description: "The specified client identifier is invalid.");
 
                 return;
             }
@@ -61,7 +61,7 @@ namespace Mvc.Server.Providers
             {
                 context.Reject(
                     error: OpenIdConnectConstants.Errors.InvalidClient,
-                    description: "Invalid redirect_uri");
+                    description: "The specified 'redirect_uri' is invalid.");
 
                 return;
             }
@@ -81,7 +81,7 @@ namespace Mvc.Server.Providers
                 context.Reject(
                     error: OpenIdConnectConstants.Errors.UnsupportedGrantType,
                     description: "Only authorization code and refresh token grant types " +
-                                 "are accepted by this authorization server");
+                                 "are accepted by this authorization server.");
 
                 return;
             }
@@ -96,8 +96,7 @@ namespace Mvc.Server.Providers
             {
                 context.Reject(
                     error: OpenIdConnectConstants.Errors.InvalidRequest,
-                    description: "Missing credentials: ensure that your credentials were correctly " +
-                                 "flowed in the request body or in the authorization header");
+                    description: "The mandatory 'client_id'/'client_secret' parameters are missing.");
 
                 return;
             }
@@ -111,7 +110,7 @@ namespace Mvc.Server.Providers
             {
                 context.Reject(
                     error: OpenIdConnectConstants.Errors.InvalidClient,
-                    description: "Application not found in the database: ensure that your client_id is correct");
+                    description: "The specified client identifier is invalid.");
 
                 return;
             }
@@ -126,7 +125,7 @@ namespace Mvc.Server.Providers
             {
                 context.Reject(
                     error: OpenIdConnectConstants.Errors.InvalidClient,
-                    description: "Invalid credentials: ensure that you specified a correct client_secret");
+                    description: "The specified client credentials are invalid.");
 
                 return;
             }
@@ -144,8 +143,8 @@ namespace Mvc.Server.Providers
                 !await database.Applications.AnyAsync(application => application.LogoutRedirectUri == context.PostLogoutRedirectUri))
             {
                 context.Reject(
-                    error: OpenIdConnectConstants.Errors.InvalidClient,
-                    description: "Invalid post_logout_redirect_uri");
+                    error: OpenIdConnectConstants.Errors.InvalidRequest,
+                    description: "The specified 'post_logout_redirect_uri' is invalid.");
 
                 return;
             }

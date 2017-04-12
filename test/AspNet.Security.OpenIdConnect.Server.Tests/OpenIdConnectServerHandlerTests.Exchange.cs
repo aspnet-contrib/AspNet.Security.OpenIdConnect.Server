@@ -42,7 +42,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
-            Assert.Equal("A malformed token request has been received: make sure to use POST.", response.ErrorDescription);
+            Assert.Equal("The specified HTTP method is not valid.", response.ErrorDescription);
         }
 
         [Theory]
@@ -144,7 +144,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
-            Assert.Equal("The mandatory 'grant_type' parameter was missing.", response.ErrorDescription);
+            Assert.Equal("The mandatory 'grant_type' parameter is missing.", response.ErrorDescription);
         }
 
         [Fact]
@@ -186,7 +186,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
-            Assert.Equal("The mandatory 'code' parameter was missing.", response.ErrorDescription);
+            Assert.Equal("The mandatory 'code' parameter is missing.", response.ErrorDescription);
         }
 
         [Fact]
@@ -206,7 +206,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
-            Assert.Equal("The mandatory 'refresh_token' parameter was missing.", response.ErrorDescription);
+            Assert.Equal("The mandatory 'refresh_token' parameter is missing.", response.ErrorDescription);
         }
 
         [Theory]
@@ -230,8 +230,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
-            Assert.Equal("The mandatory 'username' and/or 'password' parameters " +
-                         "was/were missing from the request message.", response.ErrorDescription);
+            Assert.Equal("The mandatory 'username' and/or 'password' parameters are missing.", response.ErrorDescription);
         }
 
         [Fact]
@@ -388,7 +387,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.InvalidGrant, response.Error);
-            Assert.Equal("Client authentication is required when using client_credentials.", response.ErrorDescription);
+            Assert.Equal("Client authentication is required when using the client credentials grant.", response.ErrorDescription);
         }
 
         [Fact]
@@ -479,7 +478,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
-            Assert.Equal("client_id was missing from the token request", response.ErrorDescription);
+            Assert.Equal("The mandatory 'client_id' parameter is missing.", response.ErrorDescription);
         }
 
         [Fact]
@@ -508,7 +507,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.InvalidGrant, response.Error);
-            Assert.Equal("Invalid ticket", response.ErrorDescription);
+            Assert.Equal("The specified authorization code is invalid.", response.ErrorDescription);
         }
 
         [Fact]
@@ -536,7 +535,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.InvalidGrant, response.Error);
-            Assert.Equal("Invalid ticket", response.ErrorDescription);
+            Assert.Equal("The specified refresh token is invalid.", response.ErrorDescription);
         }
 
         [Fact]
@@ -580,7 +579,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.InvalidGrant, response.Error);
-            Assert.Equal("Client authentication is required to use this ticket", response.ErrorDescription);
+            Assert.Equal("Client authentication is required to use the specified refresh token.", response.ErrorDescription);
         }
 
         [Fact]
@@ -623,7 +622,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.InvalidGrant, response.Error);
-            Assert.Equal("Expired ticket", response.ErrorDescription);
+            Assert.Equal("The specified authorization code is no longer valid.", response.ErrorDescription);
         }
 
         [Fact]
@@ -665,7 +664,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.InvalidGrant, response.Error);
-            Assert.Equal("Expired ticket", response.ErrorDescription);
+            Assert.Equal("The specified refresh token is no longer valid.", response.ErrorDescription);
         }
 
         [Fact]
@@ -752,7 +751,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.InvalidGrant, response.Error);
-            Assert.Equal("Ticket does not contain matching client_id", response.ErrorDescription);
+            Assert.Equal("The specified authorization code cannot be used by this client application.", response.ErrorDescription);
         }
 
         [Fact]
@@ -798,7 +797,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.InvalidGrant, response.Error);
-            Assert.Equal("Ticket does not contain matching client_id", response.ErrorDescription);
+            Assert.Equal("The specified refresh token cannot be used by this client application.", response.ErrorDescription);
         }
 
         [Fact]
@@ -846,7 +845,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
-            Assert.Equal("redirect_uri was missing from the token request", response.ErrorDescription);
+            Assert.Equal("The mandatory 'redirect_uri' parameter is missing.", response.ErrorDescription);
         }
 
         [Fact]
@@ -894,7 +893,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.InvalidGrant, response.Error);
-            Assert.Equal("Authorization code does not contain matching redirect_uri", response.ErrorDescription);
+            Assert.Equal("The specified 'redirect_uri' parameter doesn't match the client " +
+                         "redirection endpoint the authorization code was initially sent to.", response.ErrorDescription);
         }
 
         [Fact]
@@ -946,7 +946,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
-            Assert.Equal("The required 'code_verifier' was missing from the token request.", response.ErrorDescription);
+            Assert.Equal("The mandatory 'code_verifier' parameter is missing.", response.ErrorDescription);
         }
 
         [Theory]
@@ -994,7 +994,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.InvalidGrant, response.Error);
-            Assert.Equal("The specified 'code_verifier' was invalid.", response.ErrorDescription);
+            Assert.Equal("The specified 'code_verifier' parameter is invalid.", response.ErrorDescription);
         }
 
         [Theory]
@@ -1092,8 +1092,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.InvalidGrant, response.Error);
-            Assert.Equal("Token request cannot contain a resource parameter " +
-                         "if the authorization request didn't contain one", response.ErrorDescription);
+            Assert.Equal("The 'resource' parameter is not valid in this context.", response.ErrorDescription);
         }
 
         [Fact]
@@ -1136,7 +1135,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.InvalidGrant, response.Error);
-            Assert.Equal("Token request doesn't contain a valid resource parameter", response.ErrorDescription);
+            Assert.Equal("The specified 'resource' parameter is invalid.", response.ErrorDescription);
         }
 
         [Fact]
@@ -1179,8 +1178,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.InvalidGrant, response.Error);
-            Assert.Equal("Token request cannot contain a scope parameter " +
-                         "if the authorization request didn't contain one", response.ErrorDescription);
+            Assert.Equal("The 'scope' parameter is not valid in this context.", response.ErrorDescription);
         }
 
         [Fact]
@@ -1223,7 +1221,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.InvalidGrant, response.Error);
-            Assert.Equal("Token request doesn't contain a valid scope parameter", response.ErrorDescription);
+            Assert.Equal("The specified 'scope' parameter is invalid.", response.ErrorDescription);
         }
 
         [Theory]

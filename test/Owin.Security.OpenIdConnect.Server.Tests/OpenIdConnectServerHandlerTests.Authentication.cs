@@ -38,8 +38,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
-            Assert.Equal("A malformed authorization request has been received: " +
-                         "make sure to use either GET or POST.", response.ErrorDescription);
+            Assert.Equal("The specified HTTP method is not valid.", response.ErrorDescription);
         }
 
         [Theory]
@@ -141,7 +140,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
-            Assert.Equal("client_id was missing", response.ErrorDescription);
+            Assert.Equal("The mandatory 'client_id' parameter is missing.", response.ErrorDescription);
         }
 
         [Fact]
@@ -162,12 +161,12 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
-            Assert.Equal("redirect_uri must be included when making an OpenID Connect request", response.ErrorDescription);
+            Assert.Equal("The mandatory 'redirect_uri' parameter is missing.", response.ErrorDescription);
         }
 
         [Theory]
-        [InlineData("/path", "redirect_uri must be absolute")]
-        [InlineData("http://www.fabrikam.com/path#param=value", "redirect_uri must not include a fragment")]
+        [InlineData("/path", "The 'redirect_uri' parameter must be an absolute URL.")]
+        [InlineData("http://www.fabrikam.com/path#param=value", "The 'redirect_uri' parameter must not include a fragment.")]
         public async Task InvokeAuthorizationEndpointAsync_InvalidRedirectUriCausesAnError(string address, string message)
         {
             // Arrange
@@ -207,7 +206,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
-            Assert.Equal("response_type parameter missing", response.ErrorDescription);
+            Assert.Equal("The mandatory 'response_type' parameter is missing.", response.ErrorDescription);
         }
 
         [Theory]
@@ -236,7 +235,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
-            Assert.Equal("response_type/response_mode combination unsupported", response.ErrorDescription);
+            Assert.Equal("The specified 'response_type'/'response_mode' combination is invalid.", response.ErrorDescription);
         }
 
         [Theory]
@@ -264,7 +263,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
-            Assert.Equal("nonce parameter missing", response.ErrorDescription);
+            Assert.Equal("The mandatory 'nonce' parameter is missing.", response.ErrorDescription);
         }
 
         [Theory]
@@ -289,7 +288,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
-            Assert.Equal("openid scope missing", response.ErrorDescription);
+            Assert.Equal("The mandatory 'openid' scope is missing.", response.ErrorDescription);
         }
 
         [Theory]
@@ -320,7 +319,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.UnsupportedResponseType, response.Error);
-            Assert.Equal("The specified response type is not supported by this server.", response.ErrorDescription);
+            Assert.Equal("The specified 'response_type' is not supported by this server.", response.ErrorDescription);
         }
 
         [Theory]
@@ -429,7 +428,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.UnsupportedResponseType, response.Error);
-            Assert.Equal("response_type=code is not supported by this server", response.ErrorDescription);
+            Assert.Equal("The specified 'response_type' is not supported by this server.", response.ErrorDescription);
         }
 
         [Theory]

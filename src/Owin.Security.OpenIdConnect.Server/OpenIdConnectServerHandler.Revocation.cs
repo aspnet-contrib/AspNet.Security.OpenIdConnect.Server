@@ -21,13 +21,12 @@ namespace Owin.Security.OpenIdConnect.Server
             if (!string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase))
             {
                 Logger.LogError("The revocation request was rejected because an invalid " +
-                                "HTTP method was received: {Method}.", Request.Method);
+                                "HTTP method was specified: {Method}.", Request.Method);
 
                 return await SendRevocationResponseAsync(new OpenIdConnectResponse
                 {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                    ErrorDescription = "A malformed revocation request has been received: " +
-                                       "make sure to use either GET or POST."
+                    ErrorDescription = "The specified HTTP method is not valid."
                 });
             }
 
@@ -40,8 +39,7 @@ namespace Owin.Security.OpenIdConnect.Server
                 return await SendRevocationResponseAsync(new OpenIdConnectResponse
                 {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                    ErrorDescription = "A malformed revocation request has been received: " +
-                        "the mandatory 'Content-Type' header was missing from the POST request."
+                    ErrorDescription = "The mandatory 'Content-Type' header must be specified."
                 });
             }
 
@@ -49,14 +47,12 @@ namespace Owin.Security.OpenIdConnect.Server
             if (!Request.ContentType.StartsWith("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase))
             {
                 Logger.LogError("The revocation request was rejected because an invalid 'Content-Type' " +
-                                "header was received: {ContentType}.", Request.ContentType);
+                                "header was specified: {ContentType}.", Request.ContentType);
 
                 return await SendRevocationResponseAsync(new OpenIdConnectResponse
                 {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                    ErrorDescription = "A malformed revocation request has been received: " +
-                        "the 'Content-Type' header contained an unexcepted value. " +
-                        "Make sure to use 'application/x-www-form-urlencoded'."
+                    ErrorDescription = "The specified 'Content-Type' header is not valid."
                 });
             }
 
@@ -103,13 +99,12 @@ namespace Owin.Security.OpenIdConnect.Server
             Logger.LogInformation("The revocation request was successfully extracted " +
                                   "from the HTTP request: {Request}", request);
 
-            if (string.IsNullOrWhiteSpace(request.Token))
+            if (string.IsNullOrEmpty(request.Token))
             {
                 return await SendRevocationResponseAsync(new OpenIdConnectResponse
                 {
                     Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                    ErrorDescription = "A malformed revocation request has been received: " +
-                        "a 'token' parameter with an access or refresh token is required."
+                    ErrorDescription = "The mandatory 'token' parameter is missing."
                 });
             }
 
@@ -125,7 +120,7 @@ namespace Owin.Security.OpenIdConnect.Server
                     Logger.LogError("The revocation request was rejected because " +
                                     "multiple client credentials were specified.");
 
-                    return await SendTokenResponseAsync(new OpenIdConnectResponse
+                    return await SendRevocationResponseAsync(new OpenIdConnectResponse
                     {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
                         ErrorDescription = "Multiple client credentials cannot be specified."
@@ -334,7 +329,7 @@ namespace Owin.Security.OpenIdConnect.Server
                 return await SendRevocationResponseAsync(new OpenIdConnectResponse
                 {
                     Error = OpenIdConnectConstants.Errors.UnsupportedTokenType,
-                    ErrorDescription = "The token cannot be revoked."
+                    ErrorDescription = "The specified token cannot be revoked."
                 });
             }
 

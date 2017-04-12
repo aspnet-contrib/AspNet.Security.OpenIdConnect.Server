@@ -38,8 +38,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
-            Assert.Equal("A malformed revocation request has been received: " +
-                         "make sure to use either GET or POST.", response.ErrorDescription);
+            Assert.Equal("The specified HTTP method is not valid.", response.ErrorDescription);
         }
 
         [Theory]
@@ -141,8 +140,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
-            Assert.Equal("A malformed revocation request has been received: a 'token' parameter " +
-                         "with an access or refresh token is required.", response.ErrorDescription);
+            Assert.Equal("The mandatory 'token' parameter is missing.", response.ErrorDescription);
         }
 
         [Fact]

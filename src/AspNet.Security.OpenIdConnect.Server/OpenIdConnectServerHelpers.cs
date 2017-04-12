@@ -394,5 +394,34 @@ namespace AspNet.Security.OpenIdConnect.Server
 
             return result;
         }
+
+        public class Appender
+        {
+            private readonly char _delimiter;
+            private readonly StringBuilder _sb;
+            private bool _hasDelimiter;
+
+            public Appender(string value, char delimiter)
+            {
+                _sb = new StringBuilder(value);
+                _delimiter = delimiter;
+                _hasDelimiter = value.IndexOf(delimiter) != -1;
+            }
+
+            public Appender Append(string name, string value)
+            {
+                _sb.Append(_hasDelimiter ? '&' : _delimiter)
+                   .Append(Uri.EscapeDataString(name))
+                   .Append('=')
+                   .Append(Uri.EscapeDataString(value));
+                _hasDelimiter = true;
+                return this;
+            }
+
+            public override string ToString()
+            {
+                return _sb.ToString();
+            }
+        }
     }
 }

@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Claims;
-using System.Text;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Primitives;
@@ -277,7 +276,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             if (string.IsNullOrEmpty(ticket.Principal.GetClaim(OpenIdConnectConstants.Claims.Subject)))
             {
                 throw new InvalidOperationException("The authentication ticket was rejected because " +
-                                                    "it doesn't contain the mandatory subject claim.");
+                                                    "the mandatory subject claim was missing.");
             }
 
             // Prepare a new OpenID Connect response.
@@ -498,7 +497,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             if (string.IsNullOrEmpty(response.ErrorDescription))
             {
                 response.ErrorDescription = request.IsAuthorizationRequest() ?
-                    "The authorization grant has been denied by the resource owner." :
+                    "The authorization grant was denied by the resource owner." :
                     "The token request was rejected by the authorization server.";
             }
 
@@ -593,35 +592,6 @@ namespace AspNet.Security.OpenIdConnect.Server
 
                 // Return true to stop processing the request.
                 return true;
-            }
-        }
-
-        private class Appender
-        {
-            private readonly char _delimiter;
-            private readonly StringBuilder _sb;
-            private bool _hasDelimiter;
-
-            public Appender(string value, char delimiter)
-            {
-                _sb = new StringBuilder(value);
-                _delimiter = delimiter;
-                _hasDelimiter = value.IndexOf(delimiter) != -1;
-            }
-
-            public Appender Append(string name, string value)
-            {
-                _sb.Append(_hasDelimiter ? '&' : _delimiter)
-                   .Append(Uri.EscapeDataString(name))
-                   .Append('=')
-                   .Append(Uri.EscapeDataString(value));
-                _hasDelimiter = true;
-                return this;
-            }
-
-            public override string ToString()
-            {
-                return _sb.ToString();
             }
         }
     }

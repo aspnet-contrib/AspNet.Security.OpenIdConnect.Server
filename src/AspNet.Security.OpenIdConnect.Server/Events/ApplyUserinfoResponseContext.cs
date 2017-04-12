@@ -43,7 +43,7 @@ namespace AspNet.Security.OpenIdConnect.Server
         /// Gets the token request.
         /// </summary>
         /// <remarks>
-        /// Note: this property may be null if an error occurred when
+        /// Note: this property may be null if an error occurred while
         /// extracting the userinfo request from the HTTP request.
         /// </remarks>
         public new OpenIdConnectRequest Request { get; }

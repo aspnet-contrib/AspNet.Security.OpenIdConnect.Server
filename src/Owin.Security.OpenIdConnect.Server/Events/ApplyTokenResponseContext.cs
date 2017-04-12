@@ -47,7 +47,7 @@ namespace Owin.Security.OpenIdConnect.Server
         /// Gets the token request.
         /// </summary>
         /// <remarks>
-        /// Note: this property may be null if an error occurred when
+        /// Note: this property may be null if an error occurred while
         /// extracting the token request from the HTTP request.
         /// </remarks>
         public new OpenIdConnectRequest Request { get; }

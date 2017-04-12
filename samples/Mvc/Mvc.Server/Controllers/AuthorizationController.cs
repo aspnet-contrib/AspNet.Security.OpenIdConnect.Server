@@ -47,7 +47,7 @@ namespace Mvc.Server.Controllers
                 return View("Error", new OpenIdConnectResponse
                 {
                     Error = OpenIdConnectConstants.Errors.ServerError,
-                    ErrorDescription = "An internal error has occurred"
+                    ErrorDescription = "An internal error has occurred."
                 });
             }
 
@@ -61,7 +61,7 @@ namespace Mvc.Server.Controllers
                 return View("Error", new OpenIdConnectResponse
                 {
                     Error = OpenIdConnectConstants.Errors.InvalidClient,
-                    ErrorDescription = "Details concerning the calling client application cannot be found in the database"
+                    ErrorDescription = "The specified client identifier is invalid."
                 });
             }
 
@@ -85,7 +85,7 @@ namespace Mvc.Server.Controllers
                 return View("Error", new OpenIdConnectResponse
                 {
                     Error = OpenIdConnectConstants.Errors.ServerError,
-                    ErrorDescription = "An internal error has occurred"
+                    ErrorDescription = "An internal error has occurred."
                 });
             }
 
@@ -113,7 +113,7 @@ namespace Mvc.Server.Controllers
                 return View("Error", new OpenIdConnectResponse
                 {
                     Error = OpenIdConnectConstants.Errors.InvalidClient,
-                    ErrorDescription = "Details concerning the calling client application cannot be found in the database"
+                    ErrorDescription = "The specified client identifier is invalid."
                 });
             }
 
@@ -152,16 +152,6 @@ namespace Mvc.Server.Controllers
                 return View("Error", response);
             }
 
-            var request = HttpContext.GetOpenIdConnectRequest();
-            if (request == null)
-            {
-                return View("Error", new OpenIdConnectResponse
-                {
-                    Error = OpenIdConnectConstants.Errors.ServerError,
-                    ErrorDescription = "An internal error has occurred"
-                });
-            }
-
             // Notify ASOS that the authorization grant has been denied by the resource owner.
             // Note: OpenIdConnectServerHandler will automatically take care of redirecting
             // the user agent to the client application using the appropriate response_mode.
@@ -188,7 +178,7 @@ namespace Mvc.Server.Controllers
                 return View("Error", new OpenIdConnectResponse
                 {
                     Error = OpenIdConnectConstants.Errors.ServerError,
-                    ErrorDescription = "An internal error has occurred"
+                    ErrorDescription = "An internal error has occurred."
                 });
             }
 
