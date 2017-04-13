@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <Import Project="..\..\..\build\dependencies.props" />
+  <Import Project="..\..\..\build\common.props" />
 
   <PropertyGroup>
-    <TargetFrameworks>net451</TargetFrameworks>
+    <TargetFramework>net451</TargetFramework>
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
