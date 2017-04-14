@@ -8,7 +8,7 @@
     <JetBrainsVersion>10.3.0</JetBrainsVersion>
     <JsonNetVersion>9.0.1</JsonNetVersion>
     <NetStandardImplicitPackageVersion>1.6.0</NetStandardImplicitPackageVersion>
-    <MoqVersion>4.6.38-alpha</MoqVersion>
+    <MoqVersion>4.7.8</MoqVersion>
     <OwinVersion>3.0.1</OwinVersion>
     <RuntimeFrameworkVersion>1.0.0</RuntimeFrameworkVersion>
     <TestSdkVersion>15.0.0</TestSdkVersion>
