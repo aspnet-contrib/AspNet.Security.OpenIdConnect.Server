@@ -52,7 +52,7 @@ namespace AspNet.Security.OpenIdConnect.Server
         /// </summary>
         public new OpenIdConnectResponse Response
         {
-            get { throw new InvalidOperationException("The OpenID Connect response is not available at this stage."); }
+            get => throw new InvalidOperationException("The OpenID Connect response is not available at this stage.");
         }
 
         /// <summary>

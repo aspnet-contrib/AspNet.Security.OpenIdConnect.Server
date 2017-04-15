@@ -9,7 +9,6 @@ namespace Nancy.Client
         {
             const string address = "http://localhost:56765/";
 
-            // Start OWIN host
             using (WebApp.Start<Startup>(address))
             {
                 Console.WriteLine($"Client is running on {address}, press CTRL+C to stop.");

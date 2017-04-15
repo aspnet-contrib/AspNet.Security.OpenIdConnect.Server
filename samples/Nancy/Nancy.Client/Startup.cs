@@ -61,7 +61,7 @@ namespace Nancy.Client
                             notification.Response.Redirect("/");
                         }
 
-                        return Task.FromResult<object>(null);
+                        return Task.FromResult(0);
                     },
 
                     // Retrieve an access token from the remote token endpoint
@@ -111,7 +111,7 @@ namespace Nancy.Client
                             }
                         }
 
-                        return Task.FromResult<object>(null);
+                        return Task.FromResult(0);
                     }
                 }
             });

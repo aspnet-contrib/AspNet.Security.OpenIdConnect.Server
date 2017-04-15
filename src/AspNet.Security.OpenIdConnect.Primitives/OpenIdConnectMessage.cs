@@ -152,8 +152,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives
         /// <returns>The parameter value.</returns>
         public OpenIdConnectParameter? this[string name]
         {
-            get { return GetParameter(name); }
-            set { SetParameter(name, value); }
+            get => GetParameter(name);
+            set => SetParameter(name, value);
         }
 
         /// <summary>
