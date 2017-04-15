@@ -1101,6 +1101,55 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
+        public async Task SendAuthorizationResponseAsync_DoesNotOverrideStateSetByApplicationCode()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateAuthorizationRequest = context =>
+                {
+                    context.Validate();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnHandleAuthorizationRequest = context =>
+                {
+                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
+
+                    var principal = new ClaimsPrincipal(identity);
+
+                    context.HandleResponse();
+
+                    return context.HttpContext.Authentication.SignInAsync(
+                        context.Options.AuthenticationScheme, principal);
+                };
+
+                options.Provider.OnApplyAuthorizationResponse = context =>
+                {
+                    context.Response.State = "custom_state";
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest
+            {
+                ClientId = "Fabrikam",
+                RedirectUri = "http://www.fabrikam.com/path",
+                ResponseType = OpenIdConnectConstants.ResponseTypes.Code,
+                State = "af0ifjsldkj"
+            });
+
+            // Assert
+            Assert.Equal("custom_state", response.State);
+        }
+
+        [Fact]
         public async Task SendAuthorizationResponseAsync_UnsupportedResponseModeCausesAnError()
         {
             // Note: response_mode validation is deliberately delayed until an authorization response

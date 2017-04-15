@@ -244,8 +244,17 @@ namespace AspNet.Security.OpenIdConnect.Server
                 return true;
             }
 
+            // At this stage, throw an exception if the request was not properly extracted,
+            if (request == null)
+            {
+                throw new InvalidOperationException("The logout response cannot be returned.");
+            }
+
             // Attach the request state to the end session response.
-            response.State = request.State;
+            if (string.IsNullOrEmpty(response.State))
+            {
+                response.State = request.State;
+            }
 
             // Create a new parameters dictionary holding the name/value pairs.
             var parameters = new Dictionary<string, string>();

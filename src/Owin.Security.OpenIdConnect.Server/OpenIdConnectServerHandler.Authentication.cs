@@ -450,38 +450,37 @@ namespace Owin.Security.OpenIdConnect.Server
                 return false;
             }
 
-            if (!string.IsNullOrEmpty(response.Error))
+            // Directly display an error page if redirect_uri cannot be used to
+            // redirect the user agent back to the client application.
+            if (!string.IsNullOrEmpty(response.Error) && string.IsNullOrEmpty(notification.RedirectUri))
             {
-                // Directly display an error page if redirect_uri cannot be used to
-                // redirect the user agent back to the client application.
-                if (string.IsNullOrEmpty(notification.RedirectUri))
+                // Apply a 400 status code by default.
+                Response.StatusCode = 400;
+
+                if (Options.ApplicationCanDisplayErrors)
                 {
-                    // Apply a 400 status code by default.
-                    Response.StatusCode = 400;
-
-                    if (Options.ApplicationCanDisplayErrors)
-                    {
-                        // Return false to allow the rest of
-                        // the pipeline to handle the request.
-                        return false;
-                    }
-
-                    Logger.LogInformation("The authorization response was successfully returned " +
-                                          "as a plain-text document: {Response}", response);
-
-                    return await SendNativePageAsync(response);
+                    // Return false to allow the rest of
+                    // the pipeline to handle the request.
+                    return false;
                 }
+
+                Logger.LogInformation("The authorization response was successfully returned " +
+                                      "as a plain-text document: {Response}", response);
+
+                return await SendNativePageAsync(response);
             }
 
-            // At this stage, throw an exception if the request was not properly extracted,
-            // as the rest of this method depends on the request to determine the response mode.
+            // At this stage, throw an exception if the request was not properly extracted.
             if (request == null)
             {
                 throw new InvalidOperationException("The authorization response cannot be returned.");
             }
 
             // Attach the request state to the authorization response.
-            response.State = request.State;
+            if (string.IsNullOrEmpty(response.State))
+            {
+                response.State = request.State;
+            }
 
             // Create a new parameters dictionary holding the name/value pairs.
             var parameters = new Dictionary<string, string>();

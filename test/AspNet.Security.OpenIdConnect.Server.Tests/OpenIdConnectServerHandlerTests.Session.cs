@@ -4,6 +4,7 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
+using System;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Client;
 using AspNet.Security.OpenIdConnect.Primitives;
@@ -394,6 +395,36 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
+        public async Task SendLogoutResponseAsync_ThrowsAnExceptionWhenRequestIsMissing()
+        {
+            // Note: an exception is only thrown if the request was not properly extracted
+            // AND if the developer decided to override the error to return a custom response.
+            // To emulate this behavior, the error property is manually set to null.
+
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnApplyLogoutResponse = context =>
+                {
+                    context.Response.Error = null;
+                    context.PostLogoutRedirectUri = "http://www.fabrikam.com/path";
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act and assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate
+            {
+                return client.SendAsync(Put, LogoutEndpoint, new OpenIdConnectRequest());
+            });
+
+            Assert.Equal("The logout response cannot be returned.", exception.Message);
+        }
+
+        [Fact]
         public async Task SendLogoutResponseAsync_DoesNotSetStateWhenUserIsNotRedirected()
         {
             // Arrange
@@ -451,6 +482,47 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal("af0ifjsldkj", response.State);
+        }
+
+        [Fact]
+        public async Task SendLogoutResponseAsync_DoesNotOverrideStateSetByApplicationCode()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateLogoutRequest = context =>
+                {
+                    context.Validate();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnHandleLogoutRequest = context =>
+                {
+                    context.HandleResponse();
+
+                    return context.HttpContext.Authentication.SignOutAsync(context.Options.AuthenticationScheme);
+                };
+
+                options.Provider.OnApplyLogoutResponse = context =>
+                {
+                    context.Response.State = "custom_state";
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(LogoutEndpoint, new OpenIdConnectRequest
+            {
+                PostLogoutRedirectUri = "http://www.fabrikam.com/path",
+                State = "af0ifjsldkj"
+            });
+
+            // Assert
+            Assert.Equal("custom_state", response.State);
         }
     }
 }
