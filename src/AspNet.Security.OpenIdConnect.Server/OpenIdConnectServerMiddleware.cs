@@ -99,7 +99,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             if (Options.AccessTokenFormat == null)
             {
                 var protector = Options.DataProtectionProvider.CreateProtector(
-                    nameof(OpenIdConnectServerMiddleware),
+                    nameof(OpenIdConnectServerHandler),
                     nameof(Options.AccessTokenFormat), Options.AuthenticationScheme);
 
                 Options.AccessTokenFormat = new TicketDataFormat(protector);
@@ -108,7 +108,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             if (Options.AuthorizationCodeFormat == null)
             {
                 var protector = Options.DataProtectionProvider.CreateProtector(
-                    nameof(OpenIdConnectServerMiddleware),
+                    nameof(OpenIdConnectServerHandler),
                     nameof(Options.AuthorizationCodeFormat), Options.AuthenticationScheme);
 
                 Options.AuthorizationCodeFormat = new TicketDataFormat(protector);
@@ -117,7 +117,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             if (Options.RefreshTokenFormat == null)
             {
                 var protector = Options.DataProtectionProvider.CreateProtector(
-                    nameof(OpenIdConnectServerMiddleware),
+                    nameof(OpenIdConnectServerHandler),
                     nameof(Options.RefreshTokenFormat), Options.AuthenticationScheme);
 
                 Options.RefreshTokenFormat = new TicketDataFormat(protector);
