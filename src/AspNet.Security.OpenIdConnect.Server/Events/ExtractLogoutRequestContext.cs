@@ -10,16 +10,14 @@ using Microsoft.AspNetCore.Http;
 namespace AspNet.Security.OpenIdConnect.Server
 {
     /// <summary>
-    /// Provides context information used when extracting a logout request.
+    /// Represents the context class associated with the
+    /// <see cref="OpenIdConnectServerProvider.ExtractLogoutRequest"/> event.
     /// </summary>
     public class ExtractLogoutRequestContext : BaseValidatingContext
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ExtractLogoutRequestContext"/> class.
+        /// Creates a new instance of the <see cref="ExtractLogoutRequestContext"/> class.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="options"></param>
-        /// <param name="request"></param>
         public ExtractLogoutRequestContext(
             HttpContext context,
             OpenIdConnectServerOptions options,

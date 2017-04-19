@@ -14,18 +14,14 @@ using Owin.Security.OpenIdConnect.Extensions;
 namespace Owin.Security.OpenIdConnect.Server
 {
     /// <summary>
-    /// Provides context information used when issuing an authorization code.
+    /// Represents the context class associated with the
+    /// <see cref="OpenIdConnectServerProvider.SerializeAuthorizationCode"/> event.
     /// </summary>
     public class SerializeAuthorizationCodeContext : BaseNotification<OpenIdConnectServerOptions>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="SerializeAuthorizationCodeContext"/> class
+        /// Creates a new instance of the <see cref="SerializeAuthorizationCodeContext"/> class.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="options"></param>
-        /// <param name="request"></param>
-        /// <param name="response"></param>
-        /// <param name="ticket"></param>
         public SerializeAuthorizationCodeContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
@@ -59,8 +55,8 @@ namespace Owin.Security.OpenIdConnect.Server
         /// </summary>
         public IEnumerable<string> Presenters
         {
-            get { return Ticket.GetPresenters(); }
-            set { Ticket.SetPresenters(value); }
+            get => Ticket.GetPresenters();
+            set => Ticket.SetPresenters(value);
         }
 
         /// <summary>

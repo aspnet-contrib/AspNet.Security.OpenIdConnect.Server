@@ -14,13 +14,13 @@ using Newtonsoft.Json.Linq;
 namespace AspNet.Security.OpenIdConnect.Server
 {
     /// <summary>
-    /// An event raised after the Authorization Server has processed the request, but before it is passed on to the web application.
-    /// Calling RequestCompleted will prevent the request from passing on to the web application.
+    /// Represents the context class associated with the
+    /// <see cref="OpenIdConnectServerProvider.HandleUserinfoRequest"/> event.
     /// </summary>
     public class HandleUserinfoRequestContext : BaseValidatingContext
     {
         /// <summary>
-        /// Creates an instance of this context
+        /// Creates a new instance of the <see cref="HandleUserinfoRequestContext"/> class.
         /// </summary>
         public HandleUserinfoRequestContext(
             HttpContext context,

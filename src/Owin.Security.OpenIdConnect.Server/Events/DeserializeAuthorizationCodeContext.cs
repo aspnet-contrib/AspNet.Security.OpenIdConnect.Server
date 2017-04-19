@@ -13,17 +13,14 @@ using Microsoft.Owin.Security.Notifications;
 namespace Owin.Security.OpenIdConnect.Server
 {
     /// <summary>
-    /// Provides context information used when receiving an authorization code.
+    /// Represents the context class associated with the
+    /// <see cref="OpenIdConnectServerProvider.DeserializeAuthorizationCode"/> event.
     /// </summary>
     public class DeserializeAuthorizationCodeContext : BaseNotification<OpenIdConnectServerOptions>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="DeserializeAuthorizationCodeContext"/> class
+        /// Creates a new instance of the <see cref="DeserializeAuthorizationCodeContext"/> class.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="options"></param>
-        /// <param name="request"></param>
-        /// <param name="code"></param>
         public DeserializeAuthorizationCodeContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,

@@ -11,16 +11,14 @@ using Microsoft.AspNetCore.Http;
 namespace AspNet.Security.OpenIdConnect.Server
 {
     /// <summary>
-    /// Provides context information used when validating a logout request.
+    /// Represents the context class associated with the
+    /// <see cref="OpenIdConnectServerProvider.ValidateLogoutRequest"/> event.
     /// </summary>
     public class ValidateLogoutRequestContext : BaseValidatingContext
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ValidateLogoutRequestContext"/> class.
+        /// Creates a new instance of the <see cref="ValidateLogoutRequestContext"/> class.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="options"></param>
-        /// <param name="request"></param>
         public ValidateLogoutRequestContext(
             HttpContext context,
             OpenIdConnectServerOptions options,

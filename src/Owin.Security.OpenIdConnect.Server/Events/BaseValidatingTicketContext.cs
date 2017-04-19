@@ -13,12 +13,12 @@ using Microsoft.Owin.Security;
 namespace Owin.Security.OpenIdConnect.Server
 {
     /// <summary>
-    /// Base class used for certain event contexts
+    /// Represents an abstract base class used for certain event contexts.
     /// </summary>
     public abstract class BaseValidatingTicketContext : BaseValidatingContext
     {
         /// <summary>
-        /// Initializes base class used for certain event contexts
+        /// Creates a new instance of the <see cref="BaseValidatingTicketContext"/> class.
         /// </summary>
         protected BaseValidatingTicketContext(
             IOwinContext context,
@@ -31,17 +31,16 @@ namespace Owin.Security.OpenIdConnect.Server
         }
 
         /// <summary>
-        /// Contains the identity and properties for the application to authenticate. If the Validated method
-        /// is invoked with an AuthenticationTicket or ClaimsIdentity argument, that new value is assigned to
-        /// this property in addition to changing IsValidated to true.
+        /// Gets or sets the authentication ticket that will be
+        /// used to generate an authorization or token response.
         /// </summary>
         public AuthenticationTicket Ticket { get; private set; }
 
         /// <summary>
-        /// Replaces the ticket information on this context and marks it as as validated by the application.
-        /// IsValidated becomes true and HasError becomes false as a result of calling.
+        /// Validates the request and sets the authentication ticket that
+        /// will be used to generate an authorization or token response.
         /// </summary>
-        /// <param name="ticket">Assigned to the Ticket property</param>
+        /// <param name="ticket">The authentication ticket.</param>
         public void Validate(AuthenticationTicket ticket)
         {
             if (ticket == null)
@@ -50,14 +49,14 @@ namespace Owin.Security.OpenIdConnect.Server
             }
 
             Ticket = ticket;
-            base.Validate();
+            Validate();
         }
 
         /// <summary>
-        /// Alters the ticket information on this context and marks it as as validated by the application.
-        /// IsValidated becomes true and HasError becomes false as a result of calling.
+        /// Validates the request and sets the claims principal that
+        /// will be used to generate an authorization or token response.
         /// </summary>
-        /// <param name="identity">Assigned to the Ticket.Identity property</param>
+        /// <param name="identity">The claims identity.</param>
         public void Validate(ClaimsIdentity identity)
         {
             if (identity == null)

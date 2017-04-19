@@ -11,13 +11,13 @@ using Microsoft.Owin.Security;
 namespace Owin.Security.OpenIdConnect.Server
 {
     /// <summary>
-    /// An event raised before the authorization server handles
-    /// the request made to the token revocation endpoint.
+    /// Represents the context class associated with the
+    /// <see cref="OpenIdConnectServerProvider.HandleRevocationRequest"/> event.
     /// </summary>
     public class HandleRevocationRequestContext : BaseValidatingContext
     {
         /// <summary>
-        /// Creates an instance of this context.
+        /// Creates a new instance of the <see cref="HandleRevocationRequestContext"/> class.
         /// </summary>
         public HandleRevocationRequestContext(
             IOwinContext context,
@@ -31,9 +31,9 @@ namespace Owin.Security.OpenIdConnect.Server
         }
 
         /// <summary>
-        /// Gets or sets the authentication ticket.
+        /// Gets the authentication ticket.
         /// </summary>
-        public AuthenticationTicket Ticket { get; set; }
+        public AuthenticationTicket Ticket { get; }
 
         /// <summary>
         /// Gets or sets a boolean indicating whether

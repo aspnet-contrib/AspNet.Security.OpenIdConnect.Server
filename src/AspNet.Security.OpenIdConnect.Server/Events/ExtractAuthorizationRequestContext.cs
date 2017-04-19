@@ -10,16 +10,14 @@ using Microsoft.AspNetCore.Http;
 namespace AspNet.Security.OpenIdConnect.Server
 {
     /// <summary>
-    /// Provides context information used when extracting an authorization request.
+    /// Represents the context class associated with the
+    /// <see cref="OpenIdConnectServerProvider.ExtractAuthorizationRequest"/> event.
     /// </summary>
     public class ExtractAuthorizationRequestContext : BaseValidatingContext
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ExtractAuthorizationRequestContext"/> class.
+        /// Creates a new instance of the <see cref="ExtractAuthorizationRequestContext"/> class.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="options"></param>
-        /// <param name="request"></param>
         public ExtractAuthorizationRequestContext(
             HttpContext context,
             OpenIdConnectServerOptions options,

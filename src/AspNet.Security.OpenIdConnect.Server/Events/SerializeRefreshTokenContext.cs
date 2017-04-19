@@ -13,18 +13,14 @@ using Microsoft.AspNetCore.Http;
 namespace AspNet.Security.OpenIdConnect.Server
 {
     /// <summary>
-    /// Provides context information used when issuing a refresh token.
+    /// Represents the context class associated with the
+    /// <see cref="OpenIdConnectServerProvider.SerializeRefreshToken"/> event.
     /// </summary>
     public class SerializeRefreshTokenContext : BaseControlContext
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="SerializeRefreshTokenContext"/> class
+        /// Creates a new instance of the <see cref="SerializeRefreshTokenContext"/> class.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="options"></param>
-        /// <param name="request"></param>
-        /// <param name="response"></param>
-        /// <param name="ticket"></param>
         public SerializeRefreshTokenContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
@@ -59,8 +55,8 @@ namespace AspNet.Security.OpenIdConnect.Server
         /// </summary>
         public IEnumerable<string> Presenters
         {
-            get { return Ticket.GetPresenters(); }
-            set { Ticket.SetPresenters(value); }
+            get => Ticket.GetPresenters();
+            set => Ticket.SetPresenters(value);
         }
 
         /// <summary>

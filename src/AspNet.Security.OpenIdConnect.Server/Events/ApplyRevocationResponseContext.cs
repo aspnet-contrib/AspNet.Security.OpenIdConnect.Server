@@ -11,13 +11,13 @@ using Microsoft.AspNetCore.Http;
 namespace AspNet.Security.OpenIdConnect.Server
 {
     /// <summary>
-    /// An event raised before the authorization server starts
-    /// writing the revocation response to the response stream.
+    /// Represents the context class associated with the
+    /// <see cref="OpenIdConnectServerProvider.ApplyRevocationResponse"/> event.
     /// </summary>
     public class ApplyRevocationResponseContext : BaseControlContext
     {
         /// <summary>
-        /// Creates an instance of this context.
+        /// Creates a new instance of the <see cref="ApplyRevocationResponseContext"/> class.
         /// </summary>
         public ApplyRevocationResponseContext(
             HttpContext context,
@@ -27,7 +27,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             : base(context)
         {
             Options = options;
-            Request = Request;
+            Request = request;
             Response = response;
         }
 

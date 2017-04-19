@@ -10,16 +10,14 @@ using Microsoft.Owin;
 namespace Owin.Security.OpenIdConnect.Server
 {
     /// <summary>
-    /// Provides context information used when validating an introspection request.
+    /// Represents the context class associated with the
+    /// <see cref="OpenIdConnectServerProvider.ValidateIntrospectionRequest"/> event.
     /// </summary>
     public class ValidateIntrospectionRequestContext : BaseValidatingClientContext
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ValidateIntrospectionRequestContext"/> class.
+        /// Creates a new instance of the <see cref="ValidateIntrospectionRequestContext"/> class.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="options"></param>
-        /// <param name="request"></param>
         public ValidateIntrospectionRequestContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,

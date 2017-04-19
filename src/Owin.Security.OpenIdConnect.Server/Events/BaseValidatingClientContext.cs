@@ -11,12 +11,12 @@ using Microsoft.Owin;
 namespace Owin.Security.OpenIdConnect.Server
 {
     /// <summary>
-    /// Base class used for certain event contexts
+    /// Represents an abstract base class used for certain event contexts.
     /// </summary>
     public abstract class BaseValidatingClientContext : BaseValidatingContext
     {
         /// <summary>
-        /// Initializes base class used for certain event contexts
+        /// Creates a new instance of the <see cref="BaseValidatingClientContext"/> class.
         /// </summary>
         protected BaseValidatingClientContext(
             IOwinContext context,
@@ -28,27 +28,27 @@ namespace Owin.Security.OpenIdConnect.Server
         }
 
         /// <summary>
-        /// The "client_id" parameter for the current request.
+        /// Gets the "client_id" parameter for the current request.
         /// The authorization server application is responsible for
         /// validating this value to ensure it identifies a registered client.
         /// </summary>
         public string ClientId { get; private set; }
 
         /// <summary>
-        /// The "client_secret" parameter for the current request.
+        /// Gets the "client_secret" parameter for the current request.
         /// The authorization server application is responsible for
         /// validating this value to ensure it identifies a registered client.
         /// </summary>
         public string ClientSecret => Request.ClientSecret;
 
         /// <summary>
-        /// Gets whether the <see cref="Skip()"/>
-        /// method has been called or not.
+        /// Gets a boolean indicating whether the
+        /// <see cref="Skip()"/> method was called.
         /// </summary>
         public bool IsSkipped { get; private set; }
 
         /// <summary>
-        /// Marks the context as skipped by the application.
+        /// Skips the request validation.
         /// </summary>
         public virtual void Skip()
         {
@@ -58,7 +58,7 @@ namespace Owin.Security.OpenIdConnect.Server
         }
 
         /// <summary>
-        /// Marks this context as not validated by the application.
+        /// Rejects the request.
         /// </summary>
         public override void Reject()
         {
@@ -68,9 +68,8 @@ namespace Owin.Security.OpenIdConnect.Server
         }
 
         /// <summary>
-        /// Marks this context as validated by the application.
-        /// IsValidated becomes true and HasError becomes false as a result of calling.
-        /// </summary>>
+        /// Validates the request.
+        /// </summary>
         public override void Validate()
         {
             // Don't allow default validation when the client_id
@@ -88,10 +87,9 @@ namespace Owin.Security.OpenIdConnect.Server
         }
 
         /// <summary>
-        /// Sets client_id and marks the context
-        /// as validated by the application.
+        /// Validates the request and uses the specified identifier as the client identifier.
         /// </summary>
-        /// <param name="identifier"></param>
+        /// <param name="identifier">The "client_id" validated by the user code.</param>
         public void Validate(string identifier)
         {
             if (string.IsNullOrEmpty(identifier))

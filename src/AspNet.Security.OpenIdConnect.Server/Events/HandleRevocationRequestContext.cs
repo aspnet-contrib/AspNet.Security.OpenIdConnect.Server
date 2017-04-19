@@ -11,13 +11,13 @@ using Microsoft.AspNetCore.Http;
 namespace AspNet.Security.OpenIdConnect.Server
 {
     /// <summary>
-    /// An event raised before the authorization server handles
-    /// the request made to the token revocation endpoint.
+    /// Represents the context class associated with the
+    /// <see cref="OpenIdConnectServerProvider.HandleRevocationRequest"/> event.
     /// </summary>
     public class HandleRevocationRequestContext : BaseValidatingContext
     {
         /// <summary>
-        /// Creates an instance of this context.
+        /// Creates a new instance of the <see cref="HandleRevocationRequestContext"/> class.
         /// </summary>
         public HandleRevocationRequestContext(
             HttpContext context,

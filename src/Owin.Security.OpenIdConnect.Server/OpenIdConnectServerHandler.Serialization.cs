@@ -223,7 +223,6 @@ namespace Owin.Security.OpenIdConnect.Server
             {
                 Subject = ticket.Identity,
                 TokenIssuerName = notification.Issuer,
-                EncryptingCredentials = notification.EncryptingCredentials,
                 SigningCredentials = notification.SigningCredentials,
                 Lifetime = new Lifetime(
                     notification.Ticket.Properties.IssuedUtc?.UtcDateTime,

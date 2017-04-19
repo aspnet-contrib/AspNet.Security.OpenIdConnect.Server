@@ -10,13 +10,13 @@ using Microsoft.AspNetCore.Http;
 namespace AspNet.Security.OpenIdConnect.Server
 {
     /// <summary>
-    /// An event raised after the Authorization Server has processed the logout request, but before it is passed on to the web application.
-    /// Calling RequestCompleted will prevent the request from passing on to the web application.
+    /// Represents the context class associated with the
+    /// <see cref="OpenIdConnectServerProvider.HandleLogoutRequest"/> event.
     /// </summary>
     public class HandleLogoutRequestContext : BaseValidatingContext
     {
         /// <summary>
-        /// Creates an instance of this context
+        /// Creates a new instance of the <see cref="HandleLogoutRequestContext"/> class.
         /// </summary>
         public HandleLogoutRequestContext(
             HttpContext context,

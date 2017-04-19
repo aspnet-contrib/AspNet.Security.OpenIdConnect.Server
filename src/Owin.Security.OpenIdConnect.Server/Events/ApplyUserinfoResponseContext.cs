@@ -11,17 +11,14 @@ using Microsoft.Owin.Security.Notifications;
 namespace Owin.Security.OpenIdConnect.Server
 {
     /// <summary>
-    /// Provides context information used at the end of a userinfo request.
+    /// Represents the context class associated with the
+    /// <see cref="OpenIdConnectServerProvider.ApplyUserinfoResponse"/> event.
     /// </summary>
     public class ApplyUserinfoResponseContext : BaseNotification<OpenIdConnectServerOptions>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ApplyUserinfoResponseContext"/> class
+        /// Creates a new instance of the <see cref="ApplyUserinfoResponseContext"/> class.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="options"></param>
-        /// <param name="request"></param>
-        /// <param name="response"></param>
         public ApplyUserinfoResponseContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,

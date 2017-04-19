@@ -11,13 +11,13 @@ using Microsoft.AspNetCore.Http;
 namespace AspNet.Security.OpenIdConnect.Server
 {
     /// <summary>
-    /// An event raised before the authorization server starts
-    /// writing the JWKS metadata to the response stream.
+    /// Represents the context class associated with the
+    /// <see cref="OpenIdConnectServerProvider.ApplyCryptographyResponse"/> event.
     /// </summary>
     public class ApplyCryptographyResponseContext : BaseControlContext
     {
         /// <summary>
-        /// Creates an instance of this context.
+        /// Creates a new instance of the <see cref="ApplyCryptographyResponseContext"/> class.
         /// </summary>
         public ApplyCryptographyResponseContext(
             HttpContext context,

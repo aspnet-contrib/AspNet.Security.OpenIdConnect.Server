@@ -10,15 +10,14 @@ using Microsoft.Owin.Security.Notifications;
 namespace Owin.Security.OpenIdConnect.Server
 {
     /// <summary>
-    /// Provides context information used when determining the OpenIdConnect flow type based on the request.
+    /// Represents the context class associated with the
+    /// <see cref="OpenIdConnectServerProvider.MatchEndpoint"/> event.
     /// </summary>
     public class MatchEndpointContext : BaseNotification<OpenIdConnectServerOptions>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="MatchEndpointContext"/> class
+        /// Creates a new instance of the <see cref="MatchEndpointContext"/> class.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="options"></param>
         public MatchEndpointContext(
             IOwinContext context,
             OpenIdConnectServerOptions options)
@@ -27,51 +26,56 @@ namespace Owin.Security.OpenIdConnect.Server
         }
 
         /// <summary>
-        /// Gets whether or not the endpoint is an
-        /// OAuth2/OpenID Connect authorization endpoint.
+        /// Gets a boolean indicating whether the request
+        /// should be handled by the authorization endpoint.
         /// </summary>
         public bool IsAuthorizationEndpoint { get; private set; }
 
         /// <summary>
-        /// Gets whether or not the endpoint is an
-        /// OpenID Connect configuration metadata endpoint.
+        /// Gets a boolean indicating whether the request
+        /// should be handled by the configuration endpoint.
         /// </summary>
         public bool IsConfigurationEndpoint { get; private set; }
 
         /// <summary>
-        /// Gets whether or not the endpoint is an
-        /// OpenID Connect JWKS endpoint.
+        /// Gets a boolean indicating whether the request
+        /// should be handled by the cryptography endpoint.
         /// </summary>
         public bool IsCryptographyEndpoint { get; private set; }
 
         /// <summary>
-        /// Gets whether or not the endpoint is an introspection endpoint.
+        /// Gets a boolean indicating whether the request
+        /// should be handled by the introspection endpoint.
         /// </summary>
         public bool IsIntrospectionEndpoint { get; private set; }
 
         /// <summary>
-        /// Gets whether or not the endpoint is a logout endpoint.
+        /// Gets a boolean indicating whether the request
+        /// should be handled by the logout endpoint.
         /// </summary>
         public bool IsLogoutEndpoint { get; private set; }
 
         /// <summary>
-        /// Gets whether or not the endpoint is a revocation endpoint.
+        /// Gets a boolean indicating whether the request
+        /// should be handled by the revocation endpoint.
         /// </summary>
         public bool IsRevocationEndpoint { get; private set; }
 
         /// <summary>
-        /// Gets whether or not the endpoint is an
-        /// OAuth2/OpenID Connect token endpoint.
+        /// Gets a boolean indicating whether the request
+        /// should be handled by the token endpoint.
         /// </summary>
         public bool IsTokenEndpoint { get; private set; }
 
         /// <summary>
-        /// Gets whether or not the endpoint is an userinfo endpoint.
+        /// Gets a boolean indicating whether the request
+        /// should be handled by the userinfo endpoint.
         /// </summary>
         public bool IsUserinfoEndpoint { get; private set; }
 
         /// <summary>
-        /// Sets the endpoint type to the authorization endpoint.
+        /// Indicates that the request should be
+        /// handled by the authorization endpoint.
         /// </summary>
         public void MatchAuthorizationEndpoint()
         {
@@ -86,7 +90,8 @@ namespace Owin.Security.OpenIdConnect.Server
         }
 
         /// <summary>
-        /// Sets the endpoint type to the configuration endpoint.
+        /// Indicates that the request should be
+        /// handled by the configuration endpoint.
         /// </summary>
         public void MatchConfigurationEndpoint()
         {
@@ -101,7 +106,8 @@ namespace Owin.Security.OpenIdConnect.Server
         }
 
         /// <summary>
-        /// Sets the endpoint type to the JWKS endpoint.
+        /// Indicates that the request should be
+        /// handled by the cryptography endpoint.
         /// </summary>
         public void MatchCryptographyEndpoint()
         {
@@ -116,7 +122,8 @@ namespace Owin.Security.OpenIdConnect.Server
         }
 
         /// <summary>
-        /// Sets the endpoint type to introspection endpoint.
+        /// Indicates that the request should be
+        /// handled by the introspection endpoint.
         /// </summary>
         public void MatchIntrospectionEndpoint()
         {
@@ -131,7 +138,8 @@ namespace Owin.Security.OpenIdConnect.Server
         }
 
         /// <summary>
-        /// Sets the endpoint type to logout endpoint.
+        /// Indicates that the request should be
+        /// handled by the logout endpoint.
         /// </summary>
         public void MatchLogoutEndpoint()
         {
@@ -146,7 +154,8 @@ namespace Owin.Security.OpenIdConnect.Server
         }
 
         /// <summary>
-        /// Sets the endpoint type to revocation endpoint.
+        /// Indicates that the request should be
+        /// handled by the revocation endpoint.
         /// </summary>
         public void MatchRevocationEndpoint()
         {
@@ -161,7 +170,8 @@ namespace Owin.Security.OpenIdConnect.Server
         }
 
         /// <summary>
-        /// Sets the endpoint type to token endpoint.
+        /// Indicates that the request should be
+        /// handled by the token endpoint.
         /// </summary>
         public void MatchTokenEndpoint()
         {
@@ -176,7 +186,8 @@ namespace Owin.Security.OpenIdConnect.Server
         }
 
         /// <summary>
-        /// Sets the endpoint type to userinfo endpoint.
+        /// Indicates that the request should be
+        /// handled by the userinfo endpoint.
         /// </summary>
         public void MatchUserinfoEndpoint()
         {
@@ -191,7 +202,8 @@ namespace Owin.Security.OpenIdConnect.Server
         }
 
         /// <summary>
-        /// Sets the endpoint type to unknown.
+        /// Indicates that the request shouldn't be handled
+        /// by the OpenID Connect server middleware.
         /// </summary>
         public void MatchNothing()
         {

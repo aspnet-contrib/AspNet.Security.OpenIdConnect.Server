@@ -10,16 +10,14 @@ using Microsoft.AspNetCore.Http;
 namespace AspNet.Security.OpenIdConnect.Server
 {
     /// <summary>
-    /// Provides context information used when validating a cryptography request.
+    /// Represents the context class associated with the
+    /// <see cref="OpenIdConnectServerProvider.ValidateCryptographyRequest"/> event.
     /// </summary>
     public class ValidateCryptographyRequestContext : BaseValidatingContext
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ValidateCryptographyRequestContext"/> class.
+        /// Creates a new instance of the <see cref="ValidateCryptographyRequestContext"/> class.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="options"></param>
-        /// <param name="request"></param>
         public ValidateCryptographyRequestContext(
             HttpContext context,
             OpenIdConnectServerOptions options,

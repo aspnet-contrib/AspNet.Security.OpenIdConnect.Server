@@ -14,12 +14,12 @@ using Microsoft.AspNetCore.Http.Authentication;
 namespace AspNet.Security.OpenIdConnect.Server
 {
     /// <summary>
-    /// Base class used for certain event contexts
+    /// Represents an abstract base class used for certain event contexts.
     /// </summary>
     public abstract class BaseValidatingTicketContext : BaseValidatingContext
     {
         /// <summary>
-        /// Initializes base class used for certain event contexts
+        /// Creates a new instance of the <see cref="BaseValidatingTicketContext"/> class.
         /// </summary>
         protected BaseValidatingTicketContext(
             HttpContext context,
@@ -32,10 +32,10 @@ namespace AspNet.Security.OpenIdConnect.Server
         }
 
         /// <summary>
-        /// Replaces the ticket information on this context and marks it as as validated by the application.
-        /// IsValidated becomes true and HasError becomes false as a result of calling.
+        /// Validates the request and sets the authentication ticket that
+        /// will be used to generate an authorization or token response.
         /// </summary>
-        /// <param name="ticket">Assigned to the Ticket property</param>
+        /// <param name="ticket">The authentication ticket.</param>
         public void Validate(AuthenticationTicket ticket)
         {
             if (ticket == null)
@@ -48,10 +48,17 @@ namespace AspNet.Security.OpenIdConnect.Server
         }
 
         /// <summary>
-        /// Alters the ticket information on this context and marks it as as validated by the application.
-        /// IsValidated becomes true and HasError becomes false as a result of calling.
+        /// Validates the request and sets the claims principal that
+        /// will be used to generate an authorization or token response.
         /// </summary>
-        /// <param name="principal">Assigned to the Ticket.Principal property</param>
+        /// <param name="identity">The claims identity.</param>
+        public void Validate(ClaimsIdentity identity) => Validate(new ClaimsPrincipal(identity));
+
+        /// <summary>
+        /// Validates the request and sets the claims principal that
+        /// will be used to generate an authorization or token response.
+        /// </summary>
+        /// <param name="principal">The claims principal.</param>
         public void Validate(ClaimsPrincipal principal)
         {
             if (principal == null)

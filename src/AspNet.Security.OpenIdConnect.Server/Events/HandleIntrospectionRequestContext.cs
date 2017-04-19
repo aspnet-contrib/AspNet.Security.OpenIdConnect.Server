@@ -13,13 +13,13 @@ using Microsoft.AspNetCore.Http;
 namespace AspNet.Security.OpenIdConnect.Server
 {
     /// <summary>
-    /// An event raised before the authorization server handles
-    /// the request made to the token introspection endpoint.
+    /// Represents the context class associated with the
+    /// <see cref="OpenIdConnectServerProvider.HandleIntrospectionRequest"/> event.
     /// </summary>
     public class HandleIntrospectionRequestContext : BaseValidatingContext
     {
         /// <summary>
-        /// Creates an instance of this context.
+        /// Creates a new instance of the <see cref="HandleIntrospectionRequestContext"/> class.
         /// </summary>
         public HandleIntrospectionRequestContext(
             HttpContext context,

@@ -12,18 +12,14 @@ using Microsoft.Owin.Security.Notifications;
 namespace Owin.Security.OpenIdConnect.Server
 {
     /// <summary>
-    /// Provides context information when processing an Authorization Response
+    /// Represents the context class associated with the
+    /// <see cref="OpenIdConnectServerProvider.ApplyAuthorizationResponse"/> event.
     /// </summary>
     public class ApplyAuthorizationResponseContext : BaseNotification<OpenIdConnectServerOptions>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ApplyAuthorizationResponseContext"/> class
+        /// Creates a new instance of the <see cref="ApplyAuthorizationResponseContext"/> class.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="options"></param>
-        /// <param name="ticket"></param>
-        /// <param name="request"></param>
-        /// <param name="response"></param>
         public ApplyAuthorizationResponseContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
@@ -36,12 +32,6 @@ namespace Owin.Security.OpenIdConnect.Server
             Request = request;
             Response = response;
         }
-
-        /// <summary>
-        /// Gets the authentication ticket containing the
-        /// claims representing the authenticated user.
-        /// </summary>
-        public AuthenticationTicket Ticket { get; }
 
         /// <summary>
         /// Gets the authorization request.
@@ -58,16 +48,21 @@ namespace Owin.Security.OpenIdConnect.Server
         public new OpenIdConnectResponse Response { get; }
 
         /// <summary>
+        /// Gets the authentication ticket.
+        /// </summary>
+        public AuthenticationTicket Ticket { get; }
+
+        /// <summary>
         /// Gets the access code expected to
         /// be returned to the client application.
-        /// Depending on the flow, it can be null.
+        /// Depending on the flow, it may be null.
         /// </summary>
         public string AccessToken => Response.AccessToken;
 
         /// <summary>
         /// Gets the authorization code expected to
         /// be returned to the client application.
-        /// Depending on the flow, it can be null.
+        /// Depending on the flow, it may be null.
         /// </summary>
         public string AuthorizationCode => Response.Code;
 

@@ -13,13 +13,13 @@ using Microsoft.Owin.Security;
 namespace Owin.Security.OpenIdConnect.Server
 {
     /// <summary>
-    /// An event raised before the authorization server handles
-    /// the request made to the token introspection endpoint.
+    /// Represents the context class associated with the
+    /// <see cref="OpenIdConnectServerProvider.HandleIntrospectionRequest"/> event.
     /// </summary>
     public class HandleIntrospectionRequestContext : BaseValidatingContext
     {
         /// <summary>
-        /// Creates an instance of this context.
+        /// Creates a new instance of the <see cref="HandleIntrospectionRequestContext"/> class.
         /// </summary>
         public HandleIntrospectionRequestContext(
             IOwinContext context,
@@ -33,9 +33,9 @@ namespace Owin.Security.OpenIdConnect.Server
         }
 
         /// <summary>
-        /// Gets or sets the authentication ticket.
+        /// Gets the authentication ticket.
         /// </summary>
-        public AuthenticationTicket Ticket { get; set; }
+        public AuthenticationTicket Ticket { get; }
 
         /// <summary>
         /// Gets the additional claims returned to the caller.

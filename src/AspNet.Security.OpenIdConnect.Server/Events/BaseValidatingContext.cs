@@ -12,12 +12,12 @@ using Microsoft.AspNetCore.Http;
 namespace AspNet.Security.OpenIdConnect.Server
 {
     /// <summary>
-    /// Base class used for certain event contexts.
+    /// Represents an abstract base class used for certain event contexts.
     /// </summary>
     public abstract class BaseValidatingContext : BaseControlContext
     {
         /// <summary>
-        /// Initializes base class used for certain event contexts.
+        /// Creates a new instance of the <see cref="BaseValidatingContext"/> class.
         /// </summary>
         protected BaseValidatingContext(
             HttpContext context,
@@ -48,37 +48,34 @@ namespace AspNet.Security.OpenIdConnect.Server
         public OpenIdConnectServerOptions Options { get; }
 
         /// <summary>
-        /// Gets whether the <see cref="Validate()"/>
-        /// method has been called or not.
+        /// Gets a boolean indicating whether the
+        /// <see cref="Validate()"/> method was called.
         /// </summary>
         public bool IsValidated { get; protected set; }
 
         /// <summary>
-        /// Gets whether the <see cref="Reject()"/>
-        /// method has been called or not.
+        /// Gets a boolean indicating whether the
+        /// <see cref="Reject()"/> method was called.
         /// </summary>
         public bool IsRejected { get; protected set; } = true;
 
         /// <summary>
-        /// The error argument provided when <see cref="Reject()"/> was called on this context.
-        /// This is eventually returned to the client app as the OAuth2 "error" parameter.
+        /// Gets or sets the "error" parameter returned to the client application.
         /// </summary>
         public string Error { get; private set; }
 
         /// <summary>
-        /// The optional description argument provided when <see cref="Reject()"/> was called on this context.
-        /// This is eventually returned to the client app as the OAuth2 "error_description" parameter.
+        /// Gets or sets the "error_description" parameter returned to the client application.
         /// </summary>
         public string ErrorDescription { get; private set; }
 
         /// <summary>
-        /// The optional uri argument provided when <see cref="Reject()"/> was called on this context.
-        /// This is eventually returned to the client app as the OpenIdConnect "error_uri" parameter.
+        /// Gets or sets the "error_uri" parameter returned to the client application.
         /// </summary>
         public string ErrorUri { get; private set; }
 
         /// <summary>
-        /// Marks this context as validated by the application.
+        /// Validates the request.
         /// </summary>
         public virtual void Validate()
         {
@@ -87,7 +84,7 @@ namespace AspNet.Security.OpenIdConnect.Server
         }
 
         /// <summary>
-        /// Marks this context as not validated by the application.
+        /// Rejects the request.
         /// </summary>
         public virtual void Reject()
         {
@@ -96,10 +93,9 @@ namespace AspNet.Security.OpenIdConnect.Server
         }
 
         /// <summary>
-        /// Marks this context as not validated by the application
-        /// and assigns various error information properties.
+        /// Rejects the request.
         /// </summary>
-        /// <param name="error">Assigned to the <see cref="Error"/> property.</param>
+        /// <param name="error">The "error" parameter returned to the client application.</param>
         public virtual void Reject(string error)
         {
             Error = error;
@@ -108,11 +104,10 @@ namespace AspNet.Security.OpenIdConnect.Server
         }
 
         /// <summary>
-        /// Marks this context as not validated by the application
-        /// and assigns various error information properties.
+        /// Rejects the request.
         /// </summary>
-        /// <param name="error">Assigned to the <see cref="Error"/> property.</param>
-        /// <param name="description">Assigned to the <see cref="ErrorDescription"/> property.</param>
+        /// <param name="error">The "error" parameter returned to the client application.</param>
+        /// <param name="description">The "error_description" parameter returned to the client application.</param>
         public virtual void Reject(string error, string description)
         {
             Error = error;
@@ -122,12 +117,11 @@ namespace AspNet.Security.OpenIdConnect.Server
         }
 
         /// <summary>
-        /// Marks this context as not validated by the application
-        /// and assigns various error information properties.
+        /// Rejects the request.
         /// </summary>
-        /// <param name="error">Assigned to the <see cref="Error"/> property</param>
-        /// <param name="description">Assigned to the <see cref="ErrorDescription"/> property</param>
-        /// <param name="uri">Assigned to the <see cref="ErrorUri"/> property</param>
+        /// <param name="error">The "error" parameter returned to the client application.</param>
+        /// <param name="description">The "error_description" parameter returned to the client application.</param>
+        /// <param name="uri">The "error_uri" parameter returned to the client application.</param>
         public virtual void Reject(string error, string description, string uri)
         {
             Error = error;

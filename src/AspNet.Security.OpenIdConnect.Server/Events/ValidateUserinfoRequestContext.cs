@@ -10,16 +10,14 @@ using Microsoft.AspNetCore.Http;
 namespace AspNet.Security.OpenIdConnect.Server
 {
     /// <summary>
-    /// Provides context information used when validating a userinfo request.
+    /// Represents the context class associated with the
+    /// <see cref="OpenIdConnectServerProvider.ValidateUserinfoRequest"/> event.
     /// </summary>
     public class ValidateUserinfoRequestContext : BaseValidatingContext
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ValidateUserinfoRequestContext"/> class.
+        /// Creates a new instance of the <see cref="ValidateUserinfoRequestContext"/> class.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="options"></param>
-        /// <param name="request"></param>
         public ValidateUserinfoRequestContext(
             HttpContext context,
             OpenIdConnectServerOptions options,

@@ -10,16 +10,14 @@ using Microsoft.Owin;
 namespace Owin.Security.OpenIdConnect.Server
 {
     /// <summary>
-    /// Provides context information used when extracting a token request.
+    /// Represents the context class associated with the
+    /// <see cref="OpenIdConnectServerProvider.ExtractTokenRequest"/> event.
     /// </summary>
     public class ExtractTokenRequestContext : BaseValidatingContext
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ExtractTokenRequestContext"/> class.
+        /// Creates a new instance of the <see cref="ExtractTokenRequestContext"/> class.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="options"></param>
-        /// <param name="request"></param>
         public ExtractTokenRequestContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,

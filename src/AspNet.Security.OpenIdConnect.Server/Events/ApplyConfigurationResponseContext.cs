@@ -11,13 +11,13 @@ using Microsoft.AspNetCore.Http;
 namespace AspNet.Security.OpenIdConnect.Server
 {
     /// <summary>
-    /// An event raised before the authorization server starts
-    /// writing the configuration metadata to the response stream.
+    /// Represents the context class associated with the
+    /// <see cref="OpenIdConnectServerProvider.ApplyConfigurationResponse"/> event.
     /// </summary>
     public class ApplyConfigurationResponseContext : BaseControlContext
     {
         /// <summary>
-        /// Creates an instance of this context.
+        /// Creates a new instance of the <see cref="ApplyConfigurationResponseContext"/> class.
         /// </summary>
         public ApplyConfigurationResponseContext(
             HttpContext context,

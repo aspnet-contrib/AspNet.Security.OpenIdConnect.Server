@@ -14,18 +14,14 @@ using Microsoft.IdentityModel.Tokens;
 namespace AspNet.Security.OpenIdConnect.Server
 {
     /// <summary>
-    /// Provides context information used when issuing an access token.
+    /// Represents the context class associated with the
+    /// <see cref="OpenIdConnectServerProvider.SerializeAccessToken"/> event.
     /// </summary>
     public class SerializeAccessTokenContext : BaseControlContext
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="SerializeAccessTokenContext"/> class
+        /// Creates a new instance of the <see cref="SerializeAccessTokenContext"/> class.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="options"></param>
-        /// <param name="request"></param>
-        /// <param name="response"></param>
-        /// <param name="ticket"></param>
         public SerializeAccessTokenContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
@@ -65,8 +61,8 @@ namespace AspNet.Security.OpenIdConnect.Server
         /// </summary>
         public IEnumerable<string> Audiences
         {
-            get { return Ticket.GetAudiences(); }
-            set { Ticket.SetAudiences(value); }
+            get => Ticket.GetAudiences();
+            set => Ticket.SetAudiences(value);
         }
 
         /// <summary>
@@ -74,8 +70,8 @@ namespace AspNet.Security.OpenIdConnect.Server
         /// </summary>
         public IEnumerable<string> Presenters
         {
-            get { return Ticket.GetPresenters(); }
-            set { Ticket.SetPresenters(value); }
+            get => Ticket.GetPresenters();
+            set => Ticket.SetPresenters(value);
         }
 
         /// <summary>
@@ -83,8 +79,8 @@ namespace AspNet.Security.OpenIdConnect.Server
         /// </summary>
         public IEnumerable<string> Scopes
         {
-            get { return Ticket.GetScopes(); }
-            set { Ticket.SetScopes(value); }
+            get => Ticket.GetScopes();
+            set => Ticket.SetScopes(value);
         }
 
         /// <summary>

@@ -14,17 +14,14 @@ using Microsoft.IdentityModel.Tokens;
 namespace AspNet.Security.OpenIdConnect.Server
 {
     /// <summary>
-    /// Provides context information used when receiving an identity token.
+    /// Represents the context class associated with the
+    /// <see cref="OpenIdConnectServerProvider.DeserializeIdentityToken"/> event.
     /// </summary>
     public class DeserializeIdentityTokenContext : BaseControlContext
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="DeserializeIdentityTokenContext"/> class
+        /// Creates a new instance of the <see cref="DeserializeIdentityTokenContext"/> class.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="options"></param>
-        /// <param name="request"></param>
-        /// <param name="token"></param>
         public DeserializeIdentityTokenContext(
             HttpContext context,
             OpenIdConnectServerOptions options,

@@ -14,17 +14,14 @@ using Microsoft.Owin.Security.Notifications;
 namespace Owin.Security.OpenIdConnect.Server
 {
     /// <summary>
-    /// Provides context information used when receiving an identity token.
+    /// Represents the context class associated with the
+    /// <see cref="OpenIdConnectServerProvider.DeserializeIdentityToken"/> event.
     /// </summary>
     public class DeserializeIdentityTokenContext : BaseNotification<OpenIdConnectServerOptions>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="DeserializeAccessTokenContext"/> class
+        /// Creates a new instance of the <see cref="DeserializeIdentityTokenContext"/> class.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="options"></param>
-        /// <param name="request"></param>
-        /// <param name="token"></param>
         public DeserializeIdentityTokenContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,

@@ -11,17 +11,14 @@ using Microsoft.AspNetCore.Http;
 namespace AspNet.Security.OpenIdConnect.Server
 {
     /// <summary>
-    /// Provides context information used at the end of a userinfo request.
+    /// Represents the context class associated with the
+    /// <see cref="OpenIdConnectServerProvider.ApplyUserinfoResponse"/> event.
     /// </summary>
     public class ApplyUserinfoResponseContext : BaseControlContext
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ApplyUserinfoResponseContext"/> class
+        /// Creates a new instance of the <see cref="ApplyUserinfoResponseContext"/> class.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="options"></param>
-        /// <param name="request"></param>
-        /// <param name="response"></param>
         public ApplyUserinfoResponseContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
@@ -40,7 +37,7 @@ namespace AspNet.Security.OpenIdConnect.Server
         public OpenIdConnectServerOptions Options { get; }
 
         /// <summary>
-        /// Gets the token request.
+        /// Gets the userinfo request.
         /// </summary>
         /// <remarks>
         /// Note: this property may be null if an error occurred while

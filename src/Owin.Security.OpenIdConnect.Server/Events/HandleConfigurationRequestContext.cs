@@ -12,13 +12,13 @@ using Microsoft.Owin;
 namespace Owin.Security.OpenIdConnect.Server
 {
     /// <summary>
-    /// An event raised before the authorization server handles
-    /// the request made to the configuration metadata endpoint.
+    /// Represents the context class associated with the
+    /// <see cref="OpenIdConnectServerProvider.HandleConfigurationRequest"/> event.
     /// </summary>
     public class HandleConfigurationRequestContext : BaseValidatingContext
     {
         /// <summary>
-        /// Creates an instance of this context.
+        /// Creates a new instance of the <see cref="HandleConfigurationRequestContext"/> class.
         /// </summary>
         public HandleConfigurationRequestContext(
             IOwinContext context,

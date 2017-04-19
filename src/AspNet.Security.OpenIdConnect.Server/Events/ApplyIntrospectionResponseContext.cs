@@ -11,13 +11,13 @@ using Microsoft.AspNetCore.Http;
 namespace AspNet.Security.OpenIdConnect.Server
 {
     /// <summary>
-    /// An event raised before the authorization server starts
-    /// writing the token status/metadata to the response stream.
+    /// Represents the context class associated with the
+    /// <see cref="OpenIdConnectServerProvider.ApplyIntrospectionResponse"/> event.
     /// </summary>
     public class ApplyIntrospectionResponseContext : BaseControlContext
     {
         /// <summary>
-        /// Creates an instance of this context.
+        /// Creates a new instance of the <see cref="ApplyIntrospectionResponseContext"/> class.
         /// </summary>
         public ApplyIntrospectionResponseContext(
             HttpContext context,
@@ -27,7 +27,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             : base(context)
         {
             Options = options;
-            Request = Request;
+            Request = request;
             Response = response;
         }
 

@@ -12,17 +12,14 @@ using Microsoft.AspNetCore.Http;
 namespace AspNet.Security.OpenIdConnect.Server
 {
     /// <summary>
-    /// Provides context information used when receiving a refresh token.
+    /// Represents the context class associated with the
+    /// <see cref="OpenIdConnectServerProvider.DeserializeRefreshToken"/> event.
     /// </summary>
     public class DeserializeRefreshTokenContext : BaseControlContext
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="DeserializeRefreshTokenContext"/> class
+        /// Creates a new instance of the <see cref="DeserializeRefreshTokenContext"/> class.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="options"></param>
-        /// <param name="request"></param>
-        /// <param name="token"></param>
         public DeserializeRefreshTokenContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
@@ -59,8 +56,7 @@ namespace AspNet.Security.OpenIdConnect.Server
         public ISecureDataFormat<AuthenticationTicket> DataFormat { get; set; }
 
         /// <summary>
-        /// Gets the refresh code used
-        /// by the client application.
+        /// Gets the refresh token used by the client application.
         /// </summary>
         public string RefreshToken { get; }
     }

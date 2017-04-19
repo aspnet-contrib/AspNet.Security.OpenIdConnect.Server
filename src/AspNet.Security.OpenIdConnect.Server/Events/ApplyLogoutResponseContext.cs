@@ -11,17 +11,14 @@ using Microsoft.AspNetCore.Http;
 namespace AspNet.Security.OpenIdConnect.Server
 {
     /// <summary>
-    /// Provides context information when processing a logout response.
+    /// Represents the context class associated with the
+    /// <see cref="OpenIdConnectServerProvider.ApplyLogoutResponse"/> event.
     /// </summary>
     public class ApplyLogoutResponseContext : BaseControlContext
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ApplyLogoutResponseContext"/> class
+        /// Creates a new instance of the <see cref="ApplyLogoutResponseContext"/> class.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="options"></param>
-        /// <param name="request"></param>
-        /// <param name="response"></param>
         public ApplyLogoutResponseContext(
             HttpContext context,
             OpenIdConnectServerOptions options,

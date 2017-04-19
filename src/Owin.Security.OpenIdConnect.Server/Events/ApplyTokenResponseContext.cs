@@ -12,18 +12,14 @@ using Microsoft.Owin.Security.Notifications;
 namespace Owin.Security.OpenIdConnect.Server
 {
     /// <summary>
-    /// Provides context information used at the end of a token-endpoint-request.
+    /// Represents the context class associated with the
+    /// <see cref="OpenIdConnectServerProvider.ApplyTokenResponse"/> event.
     /// </summary>
     public class ApplyTokenResponseContext : BaseNotification<OpenIdConnectServerOptions>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ApplyTokenResponseContext"/> class
+        /// Creates a new instance of the <see cref="ApplyTokenResponseContext"/> class.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="options"></param>
-        /// <param name="ticket"></param>
-        /// <param name="request"></param>
-        /// <param name="response"></param>
         public ApplyTokenResponseContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
@@ -38,12 +34,6 @@ namespace Owin.Security.OpenIdConnect.Server
         }
 
         /// <summary>
-        /// Gets the authentication ticket containing the
-        /// claims representing the authenticated user.
-        /// </summary>
-        public AuthenticationTicket Ticket { get; }
-
-        /// <summary>
         /// Gets the token request.
         /// </summary>
         /// <remarks>
@@ -56,6 +46,11 @@ namespace Owin.Security.OpenIdConnect.Server
         /// Gets the token response.
         /// </summary>
         public new OpenIdConnectResponse Response { get; }
+
+        /// <summary>
+        /// Gets the authentication ticket.
+        /// </summary>
+        public AuthenticationTicket Ticket { get; }
 
         /// <summary>
         /// Gets the error code returned to the client application.

@@ -10,16 +10,14 @@ using Microsoft.Owin;
 namespace Owin.Security.OpenIdConnect.Server
 {
     /// <summary>
-    /// Provides context information used when validating a discovery request.
+    /// Represents the context class associated with the
+    /// <see cref="OpenIdConnectServerProvider.ValidateConfigurationRequest"/> event.
     /// </summary>
     public class ValidateConfigurationRequestContext : BaseValidatingContext
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ValidateConfigurationRequestContext"/> class.
+        /// Creates a new instance of the <see cref="ValidateConfigurationRequestContext"/> class.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="options"></param>
-        /// <param name="request"></param>
         public ValidateConfigurationRequestContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,

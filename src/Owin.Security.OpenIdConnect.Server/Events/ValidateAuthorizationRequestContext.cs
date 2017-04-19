@@ -11,16 +11,14 @@ using Microsoft.Owin;
 namespace Owin.Security.OpenIdConnect.Server
 {
     /// <summary>
-    /// Provides context information used when validating an authorization request.
+    /// Represents the context class associated with the
+    /// <see cref="OpenIdConnectServerProvider.ValidateAuthorizationRequest"/> event.
     /// </summary>
     public class ValidateAuthorizationRequestContext : BaseValidatingContext
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ValidateAuthorizationRequestContext"/> class.
+        /// Creates a new instance of the <see cref="ValidateAuthorizationRequestContext"/> class.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="options"></param>
-        /// <param name="request"></param>
         public ValidateAuthorizationRequestContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
@@ -31,7 +29,7 @@ namespace Owin.Security.OpenIdConnect.Server
         }
 
         /// <summary>
-        /// Gets the client identifier specified by the client application.
+        /// Gets the client_id specified by the client application.
         /// </summary>
         public string ClientId => Request.ClientId;
 
