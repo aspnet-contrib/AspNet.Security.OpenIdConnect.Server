@@ -19,7 +19,7 @@ using Newtonsoft.Json.Linq;
 
 namespace AspNet.Security.OpenIdConnect.Server
 {
-    public partial class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions>
+    public partial class OpenIdConnectServerHandler
     {
         private async Task<bool> InvokeConfigurationEndpointAsync()
         {
@@ -46,21 +46,24 @@ namespace AspNet.Security.OpenIdConnect.Server
             // Store the configuration request in the ASP.NET context.
             Context.SetOpenIdConnectRequest(request);
 
-            var @event = new ExtractConfigurationRequestContext(Context, Options, request);
-            await Options.Provider.ExtractConfigurationRequest(@event);
+            var @event = new ExtractConfigurationRequestContext(Context, Scheme, Options, request);
+            await Provider.ExtractConfigurationRequest(@event);
 
-            if (@event.HandledResponse)
+            if (@event.Result != null)
             {
-                Logger.LogDebug("The configuration request was handled in user code.");
+                if (@event.Result.Handled)
+                {
+                    Logger.LogDebug("The configuration request was handled in user code.");
 
-                return true;
-            }
+                    return true;
+                }
 
-            else if (@event.Skipped)
-            {
-                Logger.LogDebug("The default configuration request handling was skipped from user code.");
+                else if (@event.Result.Skipped)
+                {
+                    Logger.LogDebug("The default configuration request handling was skipped from user code.");
 
-                return false;
+                    return false;
+                }
             }
 
             else if (@event.IsRejected)
@@ -80,21 +83,24 @@ namespace AspNet.Security.OpenIdConnect.Server
             Logger.LogInformation("The configuration request was successfully extracted " +
                                   "from the HTTP request: {Request}.", request);
 
-            var context = new ValidateConfigurationRequestContext(Context, Options, request);
-            await Options.Provider.ValidateConfigurationRequest(context);
+            var context = new ValidateConfigurationRequestContext(Context, Scheme, Options, request);
+            await Provider.ValidateConfigurationRequest(context);
 
-            if (context.HandledResponse)
+            if (context.Result != null)
             {
-                Logger.LogDebug("The configuration request was handled in user code.");
+                if (context.Result.Handled)
+                {
+                    Logger.LogDebug("The configuration request was handled in user code.");
 
-                return true;
-            }
+                    return true;
+                }
 
-            else if (context.Skipped)
-            {
-                Logger.LogDebug("The default configuration request handling was skipped from user code.");
+                else if (context.Result.Skipped)
+                {
+                    Logger.LogDebug("The default configuration request handling was skipped from user code.");
 
-                return false;
+                    return false;
+                }
             }
 
             else if (context.IsRejected)
@@ -113,7 +119,7 @@ namespace AspNet.Security.OpenIdConnect.Server
 
             Logger.LogInformation("The configuration request was successfully validated.");
 
-            var notification = new HandleConfigurationRequestContext(Context, Options, request)
+            var notification = new HandleConfigurationRequestContext(Context, Scheme, Options, request)
             {
                 Issuer = Context.GetIssuer(Options)
             };
@@ -260,20 +266,23 @@ namespace AspNet.Security.OpenIdConnect.Server
                 notification.IdTokenSigningAlgorithms.Add(algorithm);
             }
 
-            await Options.Provider.HandleConfigurationRequest(notification);
+            await Provider.HandleConfigurationRequest(notification);
 
-            if (notification.HandledResponse)
+            if (notification.Result != null)
             {
-                Logger.LogDebug("The configuration request was handled in user code.");
+                if (notification.Result.Handled)
+                {
+                    Logger.LogDebug("The configuration request was handled in user code.");
 
-                return true;
-            }
+                    return true;
+                }
 
-            else if (notification.Skipped)
-            {
-                Logger.LogDebug("The default configuration request handling was skipped from user code.");
+                else if (notification.Result.Skipped)
+                {
+                    Logger.LogDebug("The default configuration request handling was skipped from user code.");
 
-                return false;
+                    return false;
+                }
             }
 
             else if (notification.IsRejected)
@@ -345,21 +354,24 @@ namespace AspNet.Security.OpenIdConnect.Server
             // Store the cryptography request in the ASP.NET context.
             Context.SetOpenIdConnectRequest(request);
 
-            var @event = new ExtractCryptographyRequestContext(Context, Options, request);
-            await Options.Provider.ExtractCryptographyRequest(@event);
+            var @event = new ExtractCryptographyRequestContext(Context, Scheme, Options, request);
+            await Provider.ExtractCryptographyRequest(@event);
 
-            if (@event.HandledResponse)
+            if (@event.Result != null)
             {
-                Logger.LogDebug("The cryptography request was handled in user code.");
+                if (@event.Result.Handled)
+                {
+                    Logger.LogDebug("The cryptography request was handled in user code.");
 
-                return true;
-            }
+                    return true;
+                }
 
-            else if (@event.Skipped)
-            {
-                Logger.LogDebug("The default cryptography request handling was skipped from user code.");
+                else if (@event.Result.Skipped)
+                {
+                    Logger.LogDebug("The default cryptography request handling was skipped from user code.");
 
-                return false;
+                    return false;
+                }
             }
 
             else if (@event.IsRejected)
@@ -379,21 +391,24 @@ namespace AspNet.Security.OpenIdConnect.Server
             Logger.LogInformation("The cryptography request was successfully extracted " +
                                   "from the HTTP request: {Request}.", request);
 
-            var context = new ValidateCryptographyRequestContext(Context, Options, request);
-            await Options.Provider.ValidateCryptographyRequest(context);
+            var context = new ValidateCryptographyRequestContext(Context, Scheme, Options, request);
+            await Provider.ValidateCryptographyRequest(context);
 
-            if (context.HandledResponse)
+            if (context.Result != null)
             {
-                Logger.LogDebug("The cryptography request was handled in user code.");
+                if (context.Result.Handled)
+                {
+                    Logger.LogDebug("The cryptography request was handled in user code.");
 
-                return true;
-            }
+                    return true;
+                }
 
-            else if (context.Skipped)
-            {
-                Logger.LogDebug("The default cryptography request handling was skipped from user code.");
+                else if (context.Result.Skipped)
+                {
+                    Logger.LogDebug("The default cryptography request handling was skipped from user code.");
 
-                return false;
+                    return false;
+                }
             }
 
             else if (context.IsRejected)
@@ -410,7 +425,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                 });
             }
 
-            var notification = new HandleCryptographyRequestContext(Context, Options, request);
+            var notification = new HandleCryptographyRequestContext(Context, Scheme, Options, request);
 
             foreach (var credentials in Options.SigningCredentials)
             {
@@ -571,20 +586,23 @@ namespace AspNet.Security.OpenIdConnect.Server
                 notification.Keys.Add(key);
             }
 
-            await Options.Provider.HandleCryptographyRequest(notification);
+            await Provider.HandleCryptographyRequest(notification);
 
-            if (notification.HandledResponse)
+            if (notification.Result != null)
             {
-                Logger.LogDebug("The cryptography request was handled in user code.");
+                if (notification.Result.Handled)
+                {
+                    Logger.LogDebug("The cryptography request was handled in user code.");
 
-                return true;
-            }
+                    return true;
+                }
 
-            else if (notification.Skipped)
-            {
-                Logger.LogDebug("The default cryptography request handling was skipped from user code.");
+                else if (notification.Result.Skipped)
+                {
+                    Logger.LogDebug("The default cryptography request handling was skipped from user code.");
 
-                return false;
+                    return false;
+                }
             }
 
             else if (notification.IsRejected)
@@ -672,21 +690,24 @@ namespace AspNet.Security.OpenIdConnect.Server
             response.SetProperty(OpenIdConnectConstants.Properties.MessageType,
                                  OpenIdConnectConstants.MessageTypes.ConfigurationResponse);
 
-            var notification = new ApplyConfigurationResponseContext(Context, Options, request, response);
-            await Options.Provider.ApplyConfigurationResponse(notification);
+            var notification = new ApplyConfigurationResponseContext(Context, Scheme, Options, request, response);
+            await Provider.ApplyConfigurationResponse(notification);
 
-            if (notification.HandledResponse)
+            if (notification.Result != null)
             {
-                Logger.LogDebug("The configuration request was handled in user code.");
+                if (notification.Result.Handled)
+                {
+                    Logger.LogDebug("The configuration request was handled in user code.");
 
-                return true;
-            }
+                    return true;
+                }
 
-            else if (notification.Skipped)
-            {
-                Logger.LogDebug("The default configuration request handling was skipped from user code.");
+                else if (notification.Result.Skipped)
+                {
+                    Logger.LogDebug("The default configuration request handling was skipped from user code.");
 
-                return false;
+                    return false;
+                }
             }
 
             Logger.LogInformation("The configuration response was successfully returned: {Response}.", response);
@@ -702,21 +723,24 @@ namespace AspNet.Security.OpenIdConnect.Server
             response.SetProperty(OpenIdConnectConstants.Properties.MessageType,
                                  OpenIdConnectConstants.MessageTypes.CryptographyResponse);
 
-            var notification = new ApplyCryptographyResponseContext(Context, Options, request, response);
-            await Options.Provider.ApplyCryptographyResponse(notification);
+            var notification = new ApplyCryptographyResponseContext(Context, Scheme, Options, request, response);
+            await Provider.ApplyCryptographyResponse(notification);
 
-            if (notification.HandledResponse)
+            if (notification.Result != null)
             {
-                Logger.LogDebug("The cryptography request was handled in user code.");
+                if (notification.Result.Handled)
+                {
+                    Logger.LogDebug("The cryptography request was handled in user code.");
 
-                return true;
-            }
+                    return true;
+                }
 
-            else if (notification.Skipped)
-            {
-                Logger.LogDebug("The default cryptography request handling was skipped from user code.");
+                else if (notification.Result.Skipped)
+                {
+                    Logger.LogDebug("The default cryptography request handling was skipped from user code.");
 
-                return false;
+                    return false;
+                }
             }
 
             Logger.LogInformation("The cryptography response was successfully returned: {Response}.", response);

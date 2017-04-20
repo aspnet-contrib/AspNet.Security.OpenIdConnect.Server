@@ -14,7 +14,35 @@ namespace Mvc.Client
         {
             services.AddAuthentication(options =>
             {
-                options.SignInScheme = "ClientCookie";
+                options.DefaultScheme = "ClientCookie";
+            })
+
+            .AddCookie("ClientCookie", options =>
+            {
+                options.Cookie.Name = CookieAuthenticationDefaults.CookiePrefix + "ClientCookie";
+                options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
+                options.LoginPath = new PathString("/signin");
+                options.LogoutPath = new PathString("/signout");
+            })
+
+            .AddOpenIdConnect(options =>
+            {
+                options.RequireHttpsMetadata = false;
+                options.SaveTokens = true;
+                options.GetClaimsFromUserInfoEndpoint = true;
+
+                // Note: these settings must match the application details
+                // inserted in the database at the server level.
+                options.ClientId = "myClient";
+                options.ClientSecret = "secret_secret_secret";
+
+                // Use the authorization code flow.
+                options.ResponseType = OpenIdConnectResponseType.Code;
+
+                // Note: setting the Authority allows the OIDC client middleware to automatically
+                // retrieve the identity provider's configuration and spare you from setting
+                // the different endpoints URIs or the token validation parameters explicitly.
+                options.Authority = "http://localhost:54540/";
             });
 
             services.AddMvc();
@@ -26,39 +54,7 @@ namespace Mvc.Client
         {
             app.UseDeveloperExceptionPage();
 
-            // Insert a new cookies middleware in the pipeline to store the user
-            // identity after he has been redirected from the identity provider.
-            app.UseCookieAuthentication(new CookieAuthenticationOptions
-            {
-                AutomaticAuthenticate = true,
-                AutomaticChallenge = true,
-                AuthenticationScheme = "ClientCookie",
-                CookieName = CookieAuthenticationDefaults.CookiePrefix + "ClientCookie",
-                ExpireTimeSpan = TimeSpan.FromMinutes(5),
-                LoginPath = new PathString("/signin"),
-                LogoutPath = new PathString("/signout")
-            });
-
-            app.UseOpenIdConnectAuthentication(new OpenIdConnectOptions
-            {
-                RequireHttpsMetadata = false,
-                SaveTokens = true,
-                GetClaimsFromUserInfoEndpoint = true,
-
-                // Note: these settings must match the application details
-                // inserted in the database at the server level.
-                ClientId = "myClient",
-                ClientSecret = "secret_secret_secret",
-                PostLogoutRedirectUri = "http://localhost:53507/",
-
-                // Use the authorization code flow.
-                ResponseType = OpenIdConnectResponseType.Code,
-
-                // Note: setting the Authority allows the OIDC client middleware to automatically
-                // retrieve the identity provider's configuration and spare you from setting
-                // the different endpoints URIs or the token validation parameters explicitly.
-                Authority = "http://localhost:54540/"
-            });
+            app.UseAuthentication();
 
             app.UseStaticFiles();
 

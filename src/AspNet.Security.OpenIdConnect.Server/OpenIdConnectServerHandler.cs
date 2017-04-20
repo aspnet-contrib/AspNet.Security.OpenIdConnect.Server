@@ -8,14 +8,15 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Claims;
+using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Primitives;
+using JetBrains.Annotations;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http.Authentication;
-using Microsoft.AspNetCore.Http.Features.Authentication;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -25,11 +26,19 @@ namespace AspNet.Security.OpenIdConnect.Server
     /// <summary>
     /// Provides the logic necessary to extract, validate and handle OpenID Connect requests.
     /// </summary>
-    public partial class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions>
+    public partial class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions>,
+        IAuthenticationRequestHandler, IAuthenticationSignInHandler, IAuthenticationSignOutHandler
     {
-        public override async Task<bool> HandleRequestAsync()
+        public OpenIdConnectServerHandler(
+            [NotNull] IOptionsMonitor<OpenIdConnectServerOptions> options,
+            [NotNull] ILoggerFactory logger,
+            [NotNull] UrlEncoder encoder,
+            [NotNull] ISystemClock clock)
+            : base(options, logger, encoder, clock) { }
+
+        public async Task<bool> HandleRequestAsync()
         {
-            var notification = new MatchEndpointContext(Context, Options);
+            var notification = new MatchEndpointContext(Context, Scheme, Options);
 
             if (Options.AuthorizationEndpointPath.HasValue &&
                 Options.AuthorizationEndpointPath.IsEquivalentTo(Request.Path))
@@ -79,20 +88,23 @@ namespace AspNet.Security.OpenIdConnect.Server
                 notification.MatchUserinfoEndpoint();
             }
 
-            await Options.Provider.MatchEndpoint(notification);
+            await Provider.MatchEndpoint(notification);
 
-            if (notification.HandledResponse)
+            if (notification.Result != null)
             {
-                Logger.LogDebug("The request was handled in user code.");
+                if (notification.Result.Handled)
+                {
+                    Logger.LogDebug("The request was handled in user code.");
 
-                return true;
-            }
+                    return true;
+                }
 
-            else if (notification.Skipped)
-            {
-                Logger.LogDebug("The default request handling was skipped from user code.");
+                else if (notification.Result.Skipped)
+                {
+                    Logger.LogDebug("The default request handling was skipped from user code.");
 
-                return false;
+                    return false;
+                }
             }
 
             // Reject non-HTTPS requests handled by ASOS if AllowInsecureHttp is not set to true.
@@ -184,7 +196,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             {
                 if (string.IsNullOrEmpty(request.IdTokenHint))
                 {
-                    return AuthenticateResult.Skip();
+                    return AuthenticateResult.NoResult();
                 }
 
                 var ticket = await DeserializeIdentityTokenAsync(request.IdTokenHint, request);
@@ -193,7 +205,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                     Logger.LogWarning("The identity token extracted from the 'id_token_hint' " +
                                       "parameter was invalid or malformed and was ignored.");
 
-                    return AuthenticateResult.Skip();
+                    return AuthenticateResult.NoResult();
                 }
 
                 // Tickets are returned even if they
@@ -209,7 +221,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                 {
                     if (string.IsNullOrEmpty(request.Code))
                     {
-                        return AuthenticateResult.Skip();
+                        return AuthenticateResult.NoResult();
                     }
 
                     var ticket = await DeserializeAuthorizationCodeAsync(request.Code, request);
@@ -218,7 +230,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                         Logger.LogWarning("The authorization code extracted from the " +
                                           "token request was invalid and was ignored.");
 
-                        return AuthenticateResult.Skip();
+                        return AuthenticateResult.NoResult();
                     }
 
                     return AuthenticateResult.Success(ticket);
@@ -228,7 +240,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                 {
                     if (string.IsNullOrEmpty(request.RefreshToken))
                     {
-                        return AuthenticateResult.Skip();
+                        return AuthenticateResult.NoResult();
                     }
 
                     var ticket = await DeserializeRefreshTokenAsync(request.RefreshToken, request);
@@ -237,28 +249,24 @@ namespace AspNet.Security.OpenIdConnect.Server
                         Logger.LogWarning("The refresh token extracted from the " +
                                           "token request was invalid and was ignored.");
 
-                        return AuthenticateResult.Skip();
+                        return AuthenticateResult.NoResult();
                     }
 
                     return AuthenticateResult.Success(ticket);
                 }
 
-                return AuthenticateResult.Skip();
+                return AuthenticateResult.NoResult();
             }
 
             throw new InvalidOperationException("An identity cannot be extracted from this request.");
         }
 
-        protected override Task HandleSignInAsync(SignInContext context)
+        public Task SignInAsync(ClaimsPrincipal user, AuthenticationProperties properties)
         {
-            var ticket = new AuthenticationTicket(context.Principal,
-                new AuthenticationProperties(context.Properties),
-                context.AuthenticationScheme);
-
-            return HandleSignInAsync(ticket);
+            return SignInAsync(new AuthenticationTicket(user, properties, Scheme.Name));
         }
 
-        private async Task<bool> HandleSignInAsync(AuthenticationTicket ticket)
+        private async Task<bool> SignInAsync(AuthenticationTicket ticket)
         {
             // Extract the OpenID Connect request from the ASP.NET Core context.
             // If it cannot be found or doesn't correspond to an authorization
@@ -431,7 +439,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             return await SendTokenResponseAsync(response, ticket);
         }
 
-        protected override Task HandleSignOutAsync(SignOutContext context)
+        public Task SignOutAsync(AuthenticationProperties properties)
         {
             // Extract the OpenID Connect request from the ASP.NET Core context.
             // If it cannot be found or doesn't correspond to a logout request,
@@ -449,14 +457,14 @@ namespace AspNet.Security.OpenIdConnect.Server
                 throw new InvalidOperationException("A response has already been sent.");
             }
 
-            Logger.LogTrace("A log-out operation was triggered: {Properties}.", context.Properties);
+            Logger.LogTrace("A log-out operation was triggered: {Properties}.", properties);
 
             return SendLogoutResponseAsync(new OpenIdConnectResponse());
         }
 
-        protected override Task<bool> HandleForbiddenAsync(ChallengeContext context) => HandleUnauthorizedAsync(context);
+        protected override Task HandleForbiddenAsync(AuthenticationProperties properties) => HandleChallengeAsync(properties);
 
-        protected override async Task<bool> HandleUnauthorizedAsync(ChallengeContext context)
+        protected override Task HandleChallengeAsync(AuthenticationProperties properties)
         {
             // Extract the OpenID Connect request from the ASP.NET Core context.
             // If it cannot be found or doesn't correspond to an authorization
@@ -478,8 +486,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             // the authentication properties extracted from the challenge.
             var ticket = new AuthenticationTicket(
                 new ClaimsPrincipal(new ClaimsIdentity()),
-                new AuthenticationProperties(context.Properties),
-                context.AuthenticationScheme);
+                properties, Scheme.Name);
 
             // Prepare a new OpenID Connect response.
             response = new OpenIdConnectResponse
@@ -508,14 +515,14 @@ namespace AspNet.Security.OpenIdConnect.Server
                     "The token request was rejected by the authorization server.";
             }
 
-            Logger.LogTrace("A challenge operation was triggered: {Properties}.", context.Properties);
+            Logger.LogTrace("A challenge operation was triggered: {Properties}.", properties);
 
             if (request.IsAuthorizationRequest())
             {
-                return await SendAuthorizationResponseAsync(response, ticket);
+                return SendAuthorizationResponseAsync(response, ticket);
             }
 
-            return await SendTokenResponseAsync(response, ticket);
+            return SendTokenResponseAsync(response, ticket);
         }
 
         private async Task<bool> SendNativePageAsync(OpenIdConnectResponse response)
@@ -603,5 +610,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                 return true;
             }
         }
+
+        private OpenIdConnectServerProvider Provider => (OpenIdConnectServerProvider) base.Events;
     }
 }

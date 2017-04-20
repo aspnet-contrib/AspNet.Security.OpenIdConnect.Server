@@ -10,7 +10,6 @@ using System.Linq;
 using System.Security.Claims;
 using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Http.Authentication;
 using Xunit;
 
 namespace AspNet.Security.OpenIdConnect.Extensions.Tests
@@ -91,7 +90,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
             // Act and assert
             var exception = Assert.Throws<ArgumentException>(() => claim.SetDestinations(destination));
 
-            Assert.Equal(exception.ParamName, "destinations");
+            Assert.Equal("destinations", exception.ParamName);
             Assert.StartsWith("Destinations cannot be null or empty.", exception.Message);
         }
 

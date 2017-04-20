@@ -406,7 +406,7 @@ namespace Owin
         /// <returns>The options used to configure the OpenID Connect server.</returns>
         public static OpenIdConnectServerOptions UseLogging(
             [NotNull] this OpenIdConnectServerOptions options,
-            [NotNull] Action<ILoggerFactory> configuration)
+            [NotNull] Action<LoggerFactory> configuration)
         {
             if (options == null)
             {

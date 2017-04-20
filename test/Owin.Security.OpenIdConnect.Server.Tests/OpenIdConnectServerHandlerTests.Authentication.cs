@@ -58,7 +58,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Reject(error, description, uri);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -111,7 +111,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.SkipToNextMiddleware();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -367,7 +367,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleAuthorizationRequest = context =>
@@ -377,7 +377,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Validate(identity);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -518,7 +518,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleAuthorizationRequest = context =>
@@ -528,7 +528,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Validate(identity);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -565,7 +565,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Reject(error, description, uri);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -630,7 +630,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.SkipToNextMiddleware();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -659,7 +659,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -691,7 +691,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate("http://www.contoso.com/path");
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -730,14 +730,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleAuthorizationRequest = context =>
                 {
                     context.Reject(error, description, uri);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -768,7 +768,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleAuthorizationRequest = context =>
@@ -809,14 +809,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleAuthorizationRequest = context =>
                 {
                     context.SkipToNextMiddleware();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -845,7 +845,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleAuthorizationRequest = context =>
@@ -855,7 +855,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Validate(identity);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnApplyAuthorizationResponse = context =>
@@ -903,7 +903,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleAuthorizationRequest = context =>
@@ -913,14 +913,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Validate(identity);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnApplyAuthorizationResponse = context =>
                 {
                     context.Response["inferred_response_mode"] = context.ResponseMode;
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -950,7 +950,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleAuthorizationRequest = context =>
@@ -960,14 +960,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Validate(identity);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnApplyAuthorizationResponse = context =>
                 {
                     context.Response["custom_parameter"] = "custom_value";
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1000,7 +1000,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Response.Error = null;
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1025,7 +1025,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Reject();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1053,7 +1053,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleAuthorizationRequest = context =>
@@ -1064,7 +1064,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     context.OwinContext.Authentication.SignIn(identity);
                     context.HandleResponse();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1093,7 +1093,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleAuthorizationRequest = context =>
@@ -1104,14 +1104,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     context.OwinContext.Authentication.SignIn(identity);
                     context.HandleResponse();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnApplyAuthorizationResponse = context =>
                 {
                     context.Response.State = "custom_state";
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1145,7 +1145,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleAuthorizationRequest = context =>
@@ -1155,7 +1155,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Validate(identity);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 

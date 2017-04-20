@@ -20,7 +20,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace AspNet.Security.OpenIdConnect.Server
 {
-    public partial class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions>
+    public partial class OpenIdConnectServerHandler
     {
         private async Task<bool> InvokeTokenEndpointAsync()
         {
@@ -71,21 +71,24 @@ namespace AspNet.Security.OpenIdConnect.Server
             // Store the token request in the ASP.NET context.
             Context.SetOpenIdConnectRequest(request);
 
-            var @event = new ExtractTokenRequestContext(Context, Options, request);
-            await Options.Provider.ExtractTokenRequest(@event);
+            var @event = new ExtractTokenRequestContext(Context, Scheme, Options, request);
+            await Provider.ExtractTokenRequest(@event);
 
-            if (@event.HandledResponse)
+            if (@event.Result != null)
             {
-                Logger.LogDebug("The token request was handled in user code.");
+                if (@event.Result.Handled)
+                {
+                    Logger.LogDebug("The token request was handled in user code.");
 
-                return true;
-            }
+                    return true;
+                }
 
-            else if (@event.Skipped)
-            {
-                Logger.LogDebug("The default token request handling was skipped from user code.");
+                else if (@event.Result.Skipped)
+                {
+                    Logger.LogDebug("The default token request handling was skipped from user code.");
 
-                return false;
+                    return false;
+                }
             }
 
             else if (@event.IsRejected)
@@ -191,8 +194,8 @@ namespace AspNet.Security.OpenIdConnect.Server
                 request.ClientSecret = credentials?.Value;
             }
 
-            var context = new ValidateTokenRequestContext(Context, Options, request);
-            await Options.Provider.ValidateTokenRequest(context);
+            var context = new ValidateTokenRequestContext(Context, Scheme, Options, request);
+            await Provider.ValidateTokenRequest(context);
 
             // If the validation context was set as fully validated,
             // mark the OpenID Connect request as confidential.
@@ -202,18 +205,21 @@ namespace AspNet.Security.OpenIdConnect.Server
                                     OpenIdConnectConstants.ConfidentialityLevels.Private);
             }
 
-            if (context.HandledResponse)
+            if (context.Result != null)
             {
-                Logger.LogDebug("The token request was handled in user code.");
+                if (context.Result.Handled)
+                {
+                    Logger.LogDebug("The token request was handled in user code.");
 
-                return true;
-            }
+                    return true;
+                }
 
-            else if (context.Skipped)
-            {
-                Logger.LogDebug("The default token request handling was skipped from user code.");
+                else if (context.Result.Skipped)
+                {
+                    Logger.LogDebug("The default token request handling was skipped from user code.");
 
-                return false;
+                    return false;
+                }
             }
 
             else if (context.IsRejected)
@@ -500,21 +506,24 @@ namespace AspNet.Security.OpenIdConnect.Server
                 }
             }
 
-            var notification = new HandleTokenRequestContext(Context, Options, request, ticket);
-            await Options.Provider.HandleTokenRequest(notification);
+            var notification = new HandleTokenRequestContext(Context, Scheme, Options, request, ticket);
+            await Provider.HandleTokenRequest(notification);
 
-            if (notification.HandledResponse)
+            if (notification.Result != null)
             {
-                Logger.LogDebug("The token request was handled in user code.");
+                if (notification.Result.Handled)
+                {
+                    Logger.LogDebug("The token request was handled in user code.");
 
-                return true;
-            }
+                    return true;
+                }
 
-            else if (notification.Skipped)
-            {
-                Logger.LogDebug("The default token request handling was skipped from user code.");
+                else if (notification.Result.Skipped)
+                {
+                    Logger.LogDebug("The default token request handling was skipped from user code.");
 
-                return false;
+                    return false;
+                }
             }
 
             else if (notification.IsRejected)
@@ -547,7 +556,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                 });
             }
 
-            return await HandleSignInAsync(ticket);
+            return await SignInAsync(ticket);
         }
 
         private async Task<bool> SendTokenResponseAsync(OpenIdConnectResponse response, AuthenticationTicket ticket = null)
@@ -558,21 +567,24 @@ namespace AspNet.Security.OpenIdConnect.Server
             response.SetProperty(OpenIdConnectConstants.Properties.MessageType,
                                  OpenIdConnectConstants.MessageTypes.TokenResponse);
 
-            var notification = new ApplyTokenResponseContext(Context, Options, ticket, request, response);
-            await Options.Provider.ApplyTokenResponse(notification);
+            var notification = new ApplyTokenResponseContext(Context, Scheme, Options, ticket, request, response);
+            await Provider.ApplyTokenResponse(notification);
 
-            if (notification.HandledResponse)
+            if (notification.Result != null)
             {
-                Logger.LogDebug("The token request was handled in user code.");
+                if (notification.Result.Handled)
+                {
+                    Logger.LogDebug("The token request was handled in user code.");
 
-                return true;
-            }
+                    return true;
+                }
 
-            else if (notification.Skipped)
-            {
-                Logger.LogDebug("The default token request handling was skipped from user code.");
+                else if (notification.Result.Skipped)
+                {
+                    Logger.LogDebug("The default token request handling was skipped from user code.");
 
-                return false;
+                    return false;
+                }
             }
 
             Logger.LogInformation("The token response was successfully returned: {Response}.", response);

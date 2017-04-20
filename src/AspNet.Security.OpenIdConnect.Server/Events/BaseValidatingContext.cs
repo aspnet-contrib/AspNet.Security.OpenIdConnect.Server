@@ -14,18 +14,18 @@ namespace AspNet.Security.OpenIdConnect.Server
     /// <summary>
     /// Represents an abstract base class used for certain event contexts.
     /// </summary>
-    public abstract class BaseValidatingContext : BaseControlContext
+    public abstract class BaseValidatingContext : HandleRequestContext<OpenIdConnectServerOptions>
     {
         /// <summary>
         /// Creates a new instance of the <see cref="BaseValidatingContext"/> class.
         /// </summary>
         protected BaseValidatingContext(
             HttpContext context,
+            AuthenticationScheme scheme,
             OpenIdConnectServerOptions options,
             OpenIdConnectRequest request)
-            : base(context)
+            : base(context, scheme, options)
         {
-            Options = options;
             Request = request;
         }
 
@@ -41,11 +41,6 @@ namespace AspNet.Security.OpenIdConnect.Server
         {
             get => throw new InvalidOperationException("The OpenID Connect response is not available at this stage.");
         }
-
-        /// <summary>
-        /// Gets the options used by the OpenID Connect server.
-        /// </summary>
-        public OpenIdConnectServerOptions Options { get; }
 
         /// <summary>
         /// Gets a boolean indicating whether the

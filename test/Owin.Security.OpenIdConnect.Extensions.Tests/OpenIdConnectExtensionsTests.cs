@@ -90,7 +90,7 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests
             // Act and assert
             var exception = Assert.Throws<ArgumentException>(() => claim.SetDestinations(destination));
 
-            Assert.Equal(exception.ParamName, "destinations");
+            Assert.Equal("destinations", exception.ParamName);
             Assert.StartsWith("Destinations cannot be null or empty.", exception.Message);
         }
 

@@ -10,6 +10,7 @@ using System.IdentityModel.Tokens;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Owin;
 using Microsoft.Owin.BuilderProperties;
 using Microsoft.Owin.Security;
@@ -33,14 +34,14 @@ namespace Owin.Security.OpenIdConnect.Server
             [NotNull] OpenIdConnectServerOptions options)
             : base(next, options)
         {
-            if (Options.HtmlEncoder == null)
-            {
-                throw new ArgumentException("The HTML encoder registered in the options cannot be null.", nameof(options));
-            }
-
             if (Options.Provider == null)
             {
                 throw new ArgumentException("The authorization provider registered in the options cannot be null.", nameof(options));
+            }
+
+            if (Options.HtmlEncoder == null)
+            {
+                throw new ArgumentException("The HTML encoder registered in the options cannot be null.", nameof(options));
             }
 
             if (Options.SystemClock == null)
@@ -95,7 +96,7 @@ namespace Owin.Security.OpenIdConnect.Server
 
             if (Options.Logger == null)
             {
-                Options.Logger = new LoggerFactory().CreateLogger<OpenIdConnectServerMiddleware>();
+                options.Logger = NullLogger.Instance;
             }
 
             if (Options.DataProtectionProvider == null)

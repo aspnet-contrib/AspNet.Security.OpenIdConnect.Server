@@ -14,12 +14,11 @@ using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.Extensions.Logging;
 using Microsoft.Owin.Infrastructure;
 using Microsoft.Owin.Security;
-using Microsoft.Owin.Security.Infrastructure;
 using Owin.Security.OpenIdConnect.Extensions;
 
 namespace Owin.Security.OpenIdConnect.Server
 {
-    public partial class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions>
+    public partial class OpenIdConnectServerHandler
     {
         private async Task<bool> InvokeAuthorizationEndpointAsync()
         {

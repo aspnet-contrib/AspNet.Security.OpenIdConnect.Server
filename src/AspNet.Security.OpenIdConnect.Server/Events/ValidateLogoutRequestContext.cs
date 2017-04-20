@@ -6,6 +6,7 @@
 
 using System;
 using AspNet.Security.OpenIdConnect.Primitives;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 
 namespace AspNet.Security.OpenIdConnect.Server
@@ -21,9 +22,10 @@ namespace AspNet.Security.OpenIdConnect.Server
         /// </summary>
         public ValidateLogoutRequestContext(
             HttpContext context,
+            AuthenticationScheme scheme,
             OpenIdConnectServerOptions options,
             OpenIdConnectRequest request)
-            : base(context, options, request)
+            : base(context, scheme, options, request)
         {
             // Note: if the optional post_logout_redirect_uri parameter
             // is missing, mark the validation context as validated.

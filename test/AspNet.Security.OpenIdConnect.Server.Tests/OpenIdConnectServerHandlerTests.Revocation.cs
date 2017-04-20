@@ -12,7 +12,6 @@ using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Authentication;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 using Xunit;
@@ -61,7 +60,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Reject(error, description, uri);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -105,16 +104,16 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public async Task InvokeRevocationEndpointAsync_ExtractRevocationRequest_AllowsSkippingToNextMiddleware()
+        public async Task InvokeRevocationEndpointAsync_ExtractRevocationRequest_AllowsSkippingHandler()
         {
             // Arrange
             var server = CreateAuthorizationServer(options =>
             {
                 options.Provider.OnExtractRevocationRequest = context =>
                 {
-                    context.SkipToNextMiddleware();
+                    context.SkipHandler();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -156,7 +155,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.HttpContext.Request.Headers[HeaderNames.Authorization] = "Basic czZCaGRSa3F0MzpnWDFmQmF0M2JW";
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -192,7 +191,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Reject(error, description, uri);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -242,16 +241,16 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public async Task InvokeRevocationEndpointAsync_ValidateRevocationRequest_AllowsSkippingToNextMiddleware()
+        public async Task InvokeRevocationEndpointAsync_ValidateRevocationRequest_AllowsSkippingHandler()
         {
             // Arrange
             var server = CreateAuthorizationServer(options =>
             {
                 options.Provider.OnValidateRevocationRequest = context =>
                 {
-                    context.SkipToNextMiddleware();
+                    context.SkipHandler();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -277,7 +276,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -307,7 +306,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate("Contoso");
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -340,20 +339,20 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     // Mark the refresh token as private.
                     context.Ticket.SetProperty(OpenIdConnectConstants.Properties.ConfidentialityLevel,
                                                OpenIdConnectConstants.ConfidentialityLevels.Private);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateRevocationRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -383,18 +382,18 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     context.Ticket.SetPresenters("Contoso");
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateRevocationRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -425,19 +424,19 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     context.Ticket.SetAudiences("AdventureWorks");
                     context.Ticket.SetPresenters("Contoso");
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateRevocationRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -468,18 +467,18 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     context.Ticket.SetAudiences("AdventureWorks");
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateRevocationRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -510,18 +509,18 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     context.Ticket.SetPresenters("Contoso");
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateRevocationRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -559,23 +558,23 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateRevocationRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleRevocationRequest = context =>
                 {
                     context.Reject(error, description, uri);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -606,16 +605,16 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateRevocationRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleRevocationRequest = context =>
@@ -644,7 +643,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public async Task InvokeRevocationEndpointAsync_HandleRevocationRequest_AllowsSkippingToNextMiddleware()
+        public async Task InvokeRevocationEndpointAsync_HandleRevocationRequest_AllowsSkippingHandler()
         {
             // Arrange
             var server = CreateAuthorizationServer(options =>
@@ -656,23 +655,23 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateRevocationRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleRevocationRequest = context =>
                 {
-                    context.SkipToNextMiddleware();
+                    context.SkipHandler();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -701,16 +700,16 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateRevocationRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnApplyRevocationResponse = context =>
@@ -751,23 +750,23 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateRevocationRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnApplyRevocationResponse = context =>
                 {
                     context.Response["custom_parameter"] = "custom_value";
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 

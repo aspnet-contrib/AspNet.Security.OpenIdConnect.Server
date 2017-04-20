@@ -8,6 +8,7 @@ using System;
 using System.IdentityModel.Tokens;
 using System.Reflection;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Owin.BuilderProperties;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Testing;
@@ -161,7 +162,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     // Note: overriding the default data protection provider is not necessary for the tests to pass,
                     // but is useful to ensure unnecessary keys are not persisted in testing environments, which also
                     // helps make the unit tests run faster, as no registry or disk access is required in this case.
-                    options.DataProtectionProvider = new EphemeralDataProtectionProvider();
+                    options.DataProtectionProvider = new EphemeralDataProtectionProvider(new LoggerFactory());
 
                     // Run the configuration delegate
                     // registered by the unit tests.

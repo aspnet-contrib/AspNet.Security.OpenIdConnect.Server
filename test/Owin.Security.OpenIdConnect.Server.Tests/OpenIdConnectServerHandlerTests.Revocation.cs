@@ -58,7 +58,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Reject(error, description, uri);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -111,7 +111,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.SkipToNextMiddleware();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -153,7 +153,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.OwinContext.Request.Headers["Authorization"] = "Basic czZCaGRSa3F0MzpnWDFmQmF0M2JW";
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -189,7 +189,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Reject(error, description, uri);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -248,7 +248,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.SkipToNextMiddleware();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -274,7 +274,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -304,7 +304,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate("Contoso");
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -342,14 +342,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     context.Ticket.SetProperty(OpenIdConnectConstants.Properties.ConfidentialityLevel,
                                                OpenIdConnectConstants.ConfidentialityLevels.Private);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateRevocationRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -382,14 +382,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Ticket.SetPresenters("Contoso");
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateRevocationRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -424,14 +424,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     context.Ticket.SetAudiences("AdventureWorks");
                     context.Ticket.SetPresenters("Contoso");
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateRevocationRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -465,14 +465,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Ticket.SetAudiences("AdventureWorks");
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateRevocationRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -506,14 +506,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Ticket.SetPresenters("Contoso");
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateRevocationRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -552,21 +552,21 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                         new ClaimsIdentity(context.Options.AuthenticationType),
                         new AuthenticationProperties());
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateRevocationRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleRevocationRequest = context =>
                 {
                     context.Reject(error, description, uri);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -598,14 +598,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                         new ClaimsIdentity(context.Options.AuthenticationType),
                         new AuthenticationProperties());
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateRevocationRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleRevocationRequest = context =>
@@ -647,21 +647,21 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                         new ClaimsIdentity(context.Options.AuthenticationType),
                         new AuthenticationProperties());
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateRevocationRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleRevocationRequest = context =>
                 {
                     context.SkipToNextMiddleware();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -691,14 +691,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                         new ClaimsIdentity(context.Options.AuthenticationType),
                         new AuthenticationProperties());
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateRevocationRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnApplyRevocationResponse = context =>
@@ -740,21 +740,21 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                         new ClaimsIdentity(context.Options.AuthenticationType),
                         new AuthenticationProperties());
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateRevocationRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnApplyRevocationResponse = context =>
                 {
                     context.Response["custom_parameter"] = "custom_value";
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 

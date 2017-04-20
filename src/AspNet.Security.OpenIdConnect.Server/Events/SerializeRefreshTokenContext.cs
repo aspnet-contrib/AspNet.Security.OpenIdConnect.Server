@@ -16,39 +16,21 @@ namespace AspNet.Security.OpenIdConnect.Server
     /// Represents the context class associated with the
     /// <see cref="OpenIdConnectServerProvider.SerializeRefreshToken"/> event.
     /// </summary>
-    public class SerializeRefreshTokenContext : BaseControlContext
+    public class SerializeRefreshTokenContext : BaseSerializingContext
     {
         /// <summary>
         /// Creates a new instance of the <see cref="SerializeRefreshTokenContext"/> class.
         /// </summary>
         public SerializeRefreshTokenContext(
             HttpContext context,
+            AuthenticationScheme scheme,
             OpenIdConnectServerOptions options,
             OpenIdConnectRequest request,
             OpenIdConnectResponse response,
             AuthenticationTicket ticket)
-            : base(context)
+            : base(context, scheme, options, request, response, ticket)
         {
-            Options = options;
-            Request = request;
-            Response = response;
-            Ticket = ticket;
         }
-
-        /// <summary>
-        /// Gets the options used by the OpenID Connect server.
-        /// </summary>
-        public OpenIdConnectServerOptions Options { get; }
-
-        /// <summary>
-        /// Gets the OpenID Connect request.
-        /// </summary>
-        public new OpenIdConnectRequest Request { get; }
-
-        /// <summary>
-        /// Gets the OpenID Connect response.
-        /// </summary>
-        public new OpenIdConnectResponse Response { get; }
 
         /// <summary>
         /// Gets or sets the presenters associated with the authentication ticket.

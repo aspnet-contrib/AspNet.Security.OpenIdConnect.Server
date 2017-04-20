@@ -9,7 +9,6 @@ using System.IdentityModel.Tokens;
 using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
-using Microsoft.Owin.Security.Notifications;
 using Owin.Security.OpenIdConnect.Extensions;
 
 namespace Owin.Security.OpenIdConnect.Server
@@ -18,7 +17,7 @@ namespace Owin.Security.OpenIdConnect.Server
     /// Represents the context class associated with the
     /// <see cref="OpenIdConnectServerProvider.SerializeAccessToken"/> event.
     /// </summary>
-    public class SerializeAccessTokenContext : BaseNotification<OpenIdConnectServerOptions>
+    public class SerializeAccessTokenContext : BaseSerializingContext
     {
         /// <summary>
         /// Creates a new instance of the <see cref="SerializeAccessTokenContext"/> class.
@@ -29,27 +28,9 @@ namespace Owin.Security.OpenIdConnect.Server
             OpenIdConnectRequest request,
             OpenIdConnectResponse response,
             AuthenticationTicket ticket)
-            : base(context, options)
+            : base(context, options, request, response, ticket)
         {
-            Request = request;
-            Response = response;
-            Ticket = ticket;
         }
-
-        /// <summary>
-        /// Gets the OpenID Connect request.
-        /// </summary>
-        public new OpenIdConnectRequest Request { get; }
-
-        /// <summary>
-        /// Gets the OpenID Connect response.
-        /// </summary>
-        public new OpenIdConnectResponse Response { get; }
-
-        /// <summary>
-        /// Gets the authentication ticket.
-        /// </summary>
-        public AuthenticationTicket Ticket { get; }
 
         /// <summary>
         /// Gets or sets the issuer address.

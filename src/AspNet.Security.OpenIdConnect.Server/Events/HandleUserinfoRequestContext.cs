@@ -24,14 +24,20 @@ namespace AspNet.Security.OpenIdConnect.Server
         /// </summary>
         public HandleUserinfoRequestContext(
             HttpContext context,
+            AuthenticationScheme scheme,
             OpenIdConnectServerOptions options,
             OpenIdConnectRequest request,
             AuthenticationTicket ticket)
-            : base(context, options, request)
+            : base(context, scheme, options, request)
         {
             Ticket = ticket;
             Validate();
         }
+
+        /// <summary>
+        /// Gets the authentication ticket.
+        /// </summary>
+        public AuthenticationTicket Ticket { get; }
 
         /// <summary>
         /// Gets the additional claims returned to the client application.

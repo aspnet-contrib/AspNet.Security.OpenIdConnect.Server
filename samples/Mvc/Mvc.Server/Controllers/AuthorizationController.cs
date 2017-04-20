@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Mvc.Server.Helpers;
@@ -170,7 +169,7 @@ namespace Mvc.Server.Controllers
             // When invoked, the logout endpoint might receive an unauthenticated request if the server cookie has expired.
             // When the client application sends an id_token_hint parameter, the corresponding identity can be retrieved
             // using AuthenticateAsync or using User when the authorization server is declared as AuthenticationMode.Active.
-            var identity = await HttpContext.Authentication.AuthenticateAsync(OpenIdConnectServerDefaults.AuthenticationScheme);
+            var result = await HttpContext.AuthenticateAsync(OpenIdConnectServerDefaults.AuthenticationScheme);
 
             var request = HttpContext.GetOpenIdConnectRequest();
             if (request == null)
@@ -182,7 +181,7 @@ namespace Mvc.Server.Controllers
                 });
             }
 
-            return View("Logout", Tuple.Create(request, identity));
+            return View("Logout", Tuple.Create(request, result?.Principal));
         }
 
         [HttpPost("~/connect/logout")]

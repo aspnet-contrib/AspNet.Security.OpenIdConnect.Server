@@ -96,7 +96,7 @@ namespace Owin.Security.OpenIdConnect.Server
         public PathString UserinfoEndpointPath { get; set; }
 
         /// <summary>
-        /// Gets or sets the <see cref="OpenIdConnectServerProvider"/> that the <see cref="OpenIdConnectServerMiddleware" />
+        /// Gets or sets the <see cref="OpenIdConnectServerProvider"/> that the OpenID Connect server
         /// invokes to enable developer control over the entire authentication/authorization process.
         /// </summary>
         public OpenIdConnectServerProvider Provider { get; set; } = new OpenIdConnectServerProvider();
@@ -187,12 +187,12 @@ namespace Owin.Security.OpenIdConnect.Server
 
         /// <summary>
         /// Gets or sets the data protection provider used to create the default
-        /// data protectors used by <see cref="OpenIdConnectServerMiddleware"/>.
+        /// data protectors used by the OpenID Connect server handler.
         /// </summary>
         public IDataProtectionProvider DataProtectionProvider { get; set; }
 
         /// <summary>
-        /// Gets or sets the logger used by <see cref="OpenIdConnectServerMiddleware"/>.
+        /// Gets or sets the logger used by the OpenID Connect server handler.
         /// When unassigned, a default instance is created using the default logger factory.
         /// </summary>
         public ILogger Logger { get; set; }

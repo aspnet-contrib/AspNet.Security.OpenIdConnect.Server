@@ -5,6 +5,7 @@
  */
 
 using AspNet.Security.OpenIdConnect.Primitives;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 
 namespace AspNet.Security.OpenIdConnect.Server
@@ -20,9 +21,10 @@ namespace AspNet.Security.OpenIdConnect.Server
         /// </summary>
         public HandleAuthorizationRequestContext(
             HttpContext context,
+            AuthenticationScheme scheme,
             OpenIdConnectServerOptions options,
             OpenIdConnectRequest request)
-            : base(context, options, request, null)
+            : base(context, scheme, options, request, null)
         {
             Validate();
         }

@@ -62,7 +62,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Reject(error, description, uri);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -115,7 +115,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.SkipToNextMiddleware();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -157,7 +157,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.OwinContext.Request.Headers["Authorization"] = "Basic czZCaGRSa3F0MzpnWDFmQmF0M2JW";
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -193,7 +193,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Reject(error, description, uri);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -252,7 +252,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.SkipToNextMiddleware();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -278,7 +278,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -308,7 +308,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate("Contoso");
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -338,7 +338,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -372,14 +372,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     context.Ticket.SetProperty(OpenIdConnectConstants.Properties.ConfidentialityLevel,
                                                OpenIdConnectConstants.ConfidentialityLevels.Private);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -412,14 +412,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Ticket.Properties.ExpiresUtc = context.Options.SystemClock.UtcNow - TimeSpan.FromDays(1);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -452,14 +452,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Ticket.SetPresenters("Contoso");
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -494,14 +494,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     context.Ticket.SetAudiences("AdventureWorks");
                     context.Ticket.SetPresenters("Contoso");
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -535,14 +535,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Ticket.SetAudiences("AdventureWorks");
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -576,14 +576,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Ticket.SetPresenters("Contoso");
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -628,14 +628,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     context.Ticket.Properties.IssuedUtc = new DateTimeOffset(2016, 1, 1, 0, 0, 0, TimeSpan.Zero);
                     context.Ticket.Properties.ExpiresUtc = new DateTimeOffset(2017, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -769,14 +769,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     context.Ticket.SetScopes(OpenIdConnectConstants.Scopes.OpenId,
                                              OpenIdConnectConstants.Scopes.Profile);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -859,14 +859,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     context.Ticket.SetScopes(OpenIdConnectConstants.Scopes.OpenId,
                                              OpenIdConnectConstants.Scopes.Profile);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -949,14 +949,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1000,14 +1000,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1058,14 +1058,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1116,21 +1116,21 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                         new ClaimsIdentity(context.Options.AuthenticationType),
                         new AuthenticationProperties());
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleIntrospectionRequest = context =>
                 {
                     context.Reject(error, description, uri);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1162,14 +1162,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                         new ClaimsIdentity(context.Options.AuthenticationType),
                         new AuthenticationProperties());
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleIntrospectionRequest = context =>
@@ -1211,21 +1211,21 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                         new ClaimsIdentity(context.Options.AuthenticationType),
                         new AuthenticationProperties());
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleIntrospectionRequest = context =>
                 {
                     context.SkipToNextMiddleware();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1255,14 +1255,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                         new ClaimsIdentity(context.Options.AuthenticationType),
                         new AuthenticationProperties());
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnApplyIntrospectionResponse = context =>
@@ -1304,21 +1304,21 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                         new ClaimsIdentity(context.Options.AuthenticationType),
                         new AuthenticationProperties());
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnApplyIntrospectionResponse = context =>
                 {
                     context.Response["custom_parameter"] = "custom_value";
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 

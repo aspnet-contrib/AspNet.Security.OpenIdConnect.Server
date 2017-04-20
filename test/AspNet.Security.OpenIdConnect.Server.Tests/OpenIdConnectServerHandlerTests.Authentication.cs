@@ -13,7 +13,6 @@ using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Authentication;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
@@ -62,7 +61,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Reject(error, description, uri);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -106,16 +105,16 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public async Task InvokeAuthorizationEndpointAsync_ExtractAuthorizationRequest_AllowsSkippingToNextMiddleware()
+        public async Task InvokeAuthorizationEndpointAsync_ExtractAuthorizationRequest_AllowsSkippingHandler()
         {
             // Arrange
             var server = CreateAuthorizationServer(options =>
             {
                 options.Provider.OnExtractAuthorizationRequest = context =>
                 {
-                    context.SkipToNextMiddleware();
+                    context.SkipHandler();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -371,22 +370,22 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleAuthorizationRequest = context =>
                 {
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     var ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     context.Validate(ticket);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -527,22 +526,22 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleAuthorizationRequest = context =>
                 {
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     var ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     context.Validate(ticket);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -579,7 +578,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Reject(error, description, uri);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -635,16 +634,16 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public async Task InvokeAuthorizationEndpointAsync_ValidateAuthorizationRequest_AllowsSkippingToNextMiddleware()
+        public async Task InvokeAuthorizationEndpointAsync_ValidateAuthorizationRequest_AllowsSkippingHandler()
         {
             // Arrange
             var server = CreateAuthorizationServer(options =>
             {
                 options.Provider.OnValidateAuthorizationRequest = context =>
                 {
-                    context.SkipToNextMiddleware();
+                    context.SkipHandler();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -673,7 +672,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -705,7 +704,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate("http://www.contoso.com/path");
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -744,14 +743,14 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleAuthorizationRequest = context =>
                 {
                     context.Reject(error, description, uri);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -782,7 +781,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleAuthorizationRequest = context =>
@@ -814,7 +813,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public async Task InvokeAuthorizationEndpointAsync_HandleAuthorizationRequest_AllowsSkippingToNextMiddleware()
+        public async Task InvokeAuthorizationEndpointAsync_HandleAuthorizationRequest_AllowsSkippingHandler()
         {
             // Arrange
             var server = CreateAuthorizationServer(options =>
@@ -823,14 +822,14 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleAuthorizationRequest = context =>
                 {
-                    context.SkipToNextMiddleware();
+                    context.SkipHandler();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -866,24 +865,24 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleAuthorizationRequest = context =>
                 {
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(new ClaimsPrincipal(identity));
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnApplyAuthorizationResponse = context =>
                 {
                     context.Response["inferred_response_mode"] = context.ResponseMode;
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -913,17 +912,17 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleAuthorizationRequest = context =>
                 {
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(new ClaimsPrincipal(identity));
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnApplyAuthorizationResponse = context =>
@@ -964,24 +963,24 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleAuthorizationRequest = context =>
                 {
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(new ClaimsPrincipal(identity));
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnApplyAuthorizationResponse = context =>
                 {
                     context.Response["custom_parameter"] = "custom_value";
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1014,7 +1013,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Response.Error = null;
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1039,7 +1038,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Reject();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1067,20 +1066,20 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleAuthorizationRequest = context =>
                 {
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     var principal = new ClaimsPrincipal(identity);
 
                     context.HandleResponse();
 
-                    return context.HttpContext.Authentication.SignInAsync(
-                        context.Options.AuthenticationScheme, principal);
+                    return context.HttpContext.SignInAsync(
+                        OpenIdConnectServerDefaults.AuthenticationScheme, principal);
                 };
             });
 
@@ -1109,27 +1108,27 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleAuthorizationRequest = context =>
                 {
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     var principal = new ClaimsPrincipal(identity);
 
                     context.HandleResponse();
 
-                    return context.HttpContext.Authentication.SignInAsync(
-                        context.Options.AuthenticationScheme, principal);
+                    return context.HttpContext.SignInAsync(
+                        OpenIdConnectServerDefaults.AuthenticationScheme, principal);
                 };
 
                 options.Provider.OnApplyAuthorizationResponse = context =>
                 {
                     context.Response.State = "custom_state";
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1163,17 +1162,17 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleAuthorizationRequest = context =>
                 {
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(new ClaimsPrincipal(identity));
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 

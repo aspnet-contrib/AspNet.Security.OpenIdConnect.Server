@@ -58,7 +58,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Reject(error, description, uri);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -111,7 +111,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.SkipToNextMiddleware();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -160,7 +160,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Reject(error, description, uri);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -219,7 +219,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.SkipToNextMiddleware();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -270,7 +270,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Ticket.Properties.ExpiresUtc = options.SystemClock.UtcNow - TimeSpan.FromDays(1);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -301,7 +301,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                         new ClaimsIdentity(context.Options.AuthenticationType),
                         new AuthenticationProperties());
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -335,7 +335,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
                     context.Ticket.SetPresenters("Fabrikam", "Contoso");
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -375,7 +375,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
                     context.Ticket.SetPresenters("Fabrikam");
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -414,7 +414,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     context.Ticket.SetPresenters("Fabrikam");
                     context.Ticket.SetScopes(OpenIdConnectConstants.Scopes.Profile);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -450,7 +450,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     context.Ticket.SetPresenters("Fabrikam");
                     context.Ticket.SetScopes(OpenIdConnectConstants.Scopes.Email);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -484,7 +484,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     context.Ticket.SetPresenters("Fabrikam");
                     context.Ticket.SetScopes(OpenIdConnectConstants.Scopes.Phone);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -521,14 +521,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                         new ClaimsIdentity(context.Options.AuthenticationType),
                         new AuthenticationProperties());
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleUserinfoRequest = context =>
                 {
                     context.Reject(error, description, uri);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -560,7 +560,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                         new ClaimsIdentity(context.Options.AuthenticationType),
                         new AuthenticationProperties());
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleUserinfoRequest = context =>
@@ -602,14 +602,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                         new ClaimsIdentity(context.Options.AuthenticationType),
                         new AuthenticationProperties());
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleUserinfoRequest = context =>
                 {
                     context.SkipToNextMiddleware();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -639,7 +639,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                         new ClaimsIdentity(context.Options.AuthenticationType),
                         new AuthenticationProperties());
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnApplyUserinfoResponse = context =>
@@ -681,14 +681,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                         new ClaimsIdentity(context.Options.AuthenticationType),
                         new AuthenticationProperties());
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnApplyUserinfoResponse = context =>
                 {
                     context.Response["custom_parameter"] = "custom_value";
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 

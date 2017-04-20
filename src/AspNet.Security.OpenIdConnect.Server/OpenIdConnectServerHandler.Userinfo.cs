@@ -17,7 +17,7 @@ using Newtonsoft.Json.Linq;
 
 namespace AspNet.Security.OpenIdConnect.Server
 {
-    public partial class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions>
+    public partial class OpenIdConnectServerHandler
     {
         private async Task<bool> InvokeUserinfoEndpointAsync()
         {
@@ -75,21 +75,24 @@ namespace AspNet.Security.OpenIdConnect.Server
             // Insert the userinfo request in the ASP.NET context.
             Context.SetOpenIdConnectRequest(request);
 
-            var @event = new ExtractUserinfoRequestContext(Context, Options, request);
-            await Options.Provider.ExtractUserinfoRequest(@event);
+            var @event = new ExtractUserinfoRequestContext(Context, Scheme, Options, request);
+            await Provider.ExtractUserinfoRequest(@event);
 
-            if (@event.HandledResponse)
+            if (@event.Result != null)
             {
-                Logger.LogDebug("The userinfo request was handled in user code.");
+                if (@event.Result.Handled)
+                {
+                    Logger.LogDebug("The userinfo request was handled in user code.");
 
-                return true;
-            }
+                    return true;
+                }
 
-            else if (@event.Skipped)
-            {
-                Logger.LogDebug("The default userinfo request handling was skipped from user code.");
+                else if (@event.Result.Skipped)
+                {
+                    Logger.LogDebug("The default userinfo request handling was skipped from user code.");
 
-                return false;
+                    return false;
+                }
             }
 
             else if (@event.IsRejected)
@@ -147,21 +150,24 @@ namespace AspNet.Security.OpenIdConnect.Server
                 });
             }
 
-            var context = new ValidateUserinfoRequestContext(Context, Options, request);
-            await Options.Provider.ValidateUserinfoRequest(context);
+            var context = new ValidateUserinfoRequestContext(Context, Scheme, Options, request);
+            await Provider.ValidateUserinfoRequest(context);
 
-            if (context.HandledResponse)
+            if (context.Result != null)
             {
-                Logger.LogDebug("The userinfo request was handled in user code.");
+                if (context.Result.Handled)
+                {
+                    Logger.LogDebug("The userinfo request was handled in user code.");
 
-                return true;
-            }
+                    return true;
+                }
 
-            else if (context.Skipped)
-            {
-                Logger.LogDebug("The default userinfo request handling was skipped from user code.");
+                else if (context.Result.Skipped)
+                {
+                    Logger.LogDebug("The default userinfo request handling was skipped from user code.");
 
-                return false;
+                    return false;
+                }
             }
 
             else if (context.IsRejected)
@@ -214,7 +220,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                 });
             }
 
-            var notification = new HandleUserinfoRequestContext(Context, Options, request, ticket)
+            var notification = new HandleUserinfoRequestContext(Context, Scheme, Options, request, ticket)
             {
                 Issuer = Context.GetIssuer(Options),
                 Subject = ticket.Principal.GetClaim(OpenIdConnectConstants.Claims.Subject)
@@ -244,20 +250,23 @@ namespace AspNet.Security.OpenIdConnect.Server
                 notification.PhoneNumber = ticket.Principal.GetClaim(OpenIdConnectConstants.Claims.PhoneNumber);
             }
 
-            await Options.Provider.HandleUserinfoRequest(notification);
+            await Provider.HandleUserinfoRequest(notification);
 
-            if (notification.HandledResponse)
+            if (notification.Result != null)
             {
-                Logger.LogDebug("The userinfo request was handled in user code.");
+                if (notification.Result.Handled)
+                {
+                    Logger.LogDebug("The userinfo request was handled in user code.");
 
-                return true;
-            }
+                    return true;
+                }
 
-            else if (notification.Skipped)
-            {
-                Logger.LogDebug("The default userinfo request handling was skipped from user code.");
+                else if (notification.Result.Skipped)
+                {
+                    Logger.LogDebug("The default userinfo request handling was skipped from user code.");
 
-                return false;
+                    return false;
+                }
             }
 
             else if (notification.IsRejected)
@@ -326,21 +335,24 @@ namespace AspNet.Security.OpenIdConnect.Server
             response.SetProperty(OpenIdConnectConstants.Properties.MessageType,
                                  OpenIdConnectConstants.MessageTypes.UserinfoResponse);
 
-            var notification = new ApplyUserinfoResponseContext(Context, Options, request, response);
-            await Options.Provider.ApplyUserinfoResponse(notification);
+            var notification = new ApplyUserinfoResponseContext(Context, Scheme, Options, request, response);
+            await Provider.ApplyUserinfoResponse(notification);
 
-            if (notification.HandledResponse)
+            if (notification.Result != null)
             {
-                Logger.LogDebug("The userinfo request was handled in user code.");
+                if (notification.Result.Handled)
+                {
+                    Logger.LogDebug("The userinfo request was handled in user code.");
 
-                return true;
-            }
+                    return true;
+                }
 
-            else if (notification.Skipped)
-            {
-                Logger.LogDebug("The default userinfo request handling was skipped from user code.");
+                else if (notification.Result.Skipped)
+                {
+                    Logger.LogDebug("The default userinfo request handling was skipped from user code.");
 
-                return false;
+                    return false;
+                }
             }
 
             Logger.LogInformation("The userinfo response was successfully returned: {Response}.", response);

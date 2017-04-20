@@ -9,7 +9,6 @@ using System.Security.Claims;
 using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Authentication;
 
 namespace AspNet.Security.OpenIdConnect.Server
 {
@@ -23,13 +22,20 @@ namespace AspNet.Security.OpenIdConnect.Server
         /// </summary>
         protected BaseValidatingTicketContext(
             HttpContext context,
+            AuthenticationScheme scheme,
             OpenIdConnectServerOptions options,
             OpenIdConnectRequest request,
             AuthenticationTicket ticket)
-            : base(context, options, request)
+            : base(context, scheme, options, request)
         {
             Ticket = ticket;
         }
+
+        /// <summary>
+        /// Gets or sets the authentication ticket that will be
+        /// used to generate an authorization or token response.
+        /// </summary>
+        public AuthenticationTicket Ticket { get; private set; }
 
         /// <summary>
         /// Validates the request and sets the authentication ticket that
@@ -67,7 +73,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             }
 
             var properties = Ticket?.Properties ?? new AuthenticationProperties();
-            Validate(new AuthenticationTicket(principal, properties, Options.AuthenticationScheme));
+            Validate(new AuthenticationTicket(principal, properties, Scheme.Name));
         }
     }
 }

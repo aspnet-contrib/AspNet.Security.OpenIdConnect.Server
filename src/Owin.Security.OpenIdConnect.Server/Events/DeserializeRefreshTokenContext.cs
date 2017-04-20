@@ -16,7 +16,7 @@ namespace Owin.Security.OpenIdConnect.Server
     /// Represents the context class associated with the
     /// <see cref="OpenIdConnectServerProvider.DeserializeRefreshToken"/> event.
     /// </summary>
-    public class DeserializeRefreshTokenContext : BaseNotification<OpenIdConnectServerOptions>
+    public class DeserializeRefreshTokenContext : BaseDeserializingContext
     {
         /// <summary>
         /// Creates a new instance of the <see cref="DeserializeRefreshTokenContext"/> class.
@@ -26,29 +26,10 @@ namespace Owin.Security.OpenIdConnect.Server
             OpenIdConnectServerOptions options,
             OpenIdConnectRequest request,
             string token)
-            : base(context, options)
+            : base(context, options, request)
         {
-            Request = request;
             RefreshToken = token;
         }
-
-        /// <summary>
-        /// Gets the OpenID Connect request.
-        /// </summary>
-        public new OpenIdConnectRequest Request { get; }
-
-        /// <summary>
-        /// Gets the OpenID Connect response.
-        /// </summary>
-        public new OpenIdConnectResponse Response
-        {
-            get => throw new InvalidOperationException("The OpenID Connect response is not available at this stage.");
-        }
-
-        /// <summary>
-        /// Gets or sets the authentication ticket.
-        /// </summary>
-        public AuthenticationTicket Ticket { get; set; }
 
         /// <summary>
         /// Gets or sets the data format used to deserialize the authentication ticket.

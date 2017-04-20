@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Client;
 using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
@@ -122,7 +123,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     Assert.Equal(context.IsTokenEndpoint, endpoint == TokenEndpoint);
                     Assert.Equal(context.IsUserinfoEndpoint, endpoint == UserinfoEndpoint);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -194,7 +195,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     Assert.Equal(context.IsTokenEndpoint, address == "/custom/connect/token");
                     Assert.Equal(context.IsUserinfoEndpoint, address == "/custom/connect/userinfo");
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -260,7 +261,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.SkipToNextMiddleware();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -329,7 +330,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.SkipToNextMiddleware();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -416,9 +417,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
 
-                    context.HandleResponse();
-
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleLogoutRequest = async context =>
@@ -486,7 +485,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnApplyTokenResponse = async context =>
@@ -532,16 +531,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
                     context.Ticket.SetPresenters("Fabrikam");
 
-                    context.HandleResponse();
-
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateTokenRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = async context =>
@@ -612,7 +609,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnApplyTokenResponse = async context =>
@@ -656,16 +653,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
 
-                    context.HandleResponse();
-
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateTokenRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = async context =>
@@ -704,7 +699,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnApplyTokenResponse = async context =>
@@ -762,7 +757,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.SkipToNextMiddleware();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -787,7 +782,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleAuthorizationRequest = context =>
@@ -799,7 +794,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Validate(identity);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -829,7 +824,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleAuthorizationRequest = context =>
@@ -839,7 +834,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     context.OwinContext.Authentication.SignIn(identity);
                     context.HandleResponse();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -871,14 +866,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     // Assert
                     Assert.True(context.Ticket.IsConfidential());
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateTokenRequest = context =>
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = context =>
@@ -891,7 +886,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Validate(ticket);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -923,14 +918,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     // Assert
                     Assert.Equal("openid", context.Ticket.GetProperty(OpenIdConnectConstants.Properties.Scopes));
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateTokenRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = context =>
@@ -940,7 +935,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Validate(identity);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -966,7 +961,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     // Assert
                     Assert.Equal(new[] { "http://www.fabrikam.com/" }, context.Ticket.GetResources());
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnSerializeRefreshToken = context =>
@@ -974,14 +969,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     // Assert
                     Assert.Equal(new[] { "http://www.fabrikam.com/" }, context.Ticket.GetResources());
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateTokenRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = context =>
@@ -995,7 +990,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Validate(ticket);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1028,7 +1023,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleAuthorizationRequest = context =>
@@ -1038,7 +1033,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Validate(identity);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1074,7 +1069,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
                     context.Ticket.SetResources("http://www.fabrikam.com/", "http://www.contoso.com/");
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnSerializeAccessToken = context =>
@@ -1082,14 +1077,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     // Assert
                     Assert.Equal(new[] { "http://www.fabrikam.com/" }, context.Ticket.GetResources());
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateTokenRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1127,7 +1122,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                         OpenIdConnectConstants.Scopes.Phone,
                         OpenIdConnectConstants.Scopes.Profile);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnSerializeAccessToken = context =>
@@ -1135,14 +1130,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     // Assert
                     Assert.Equal(new[] { OpenIdConnectConstants.Scopes.Profile }, context.Ticket.GetScopes());
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateTokenRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1170,7 +1165,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = context =>
@@ -1183,7 +1178,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Validate(ticket);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1212,7 +1207,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = context =>
@@ -1225,7 +1220,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Validate(ticket);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1258,7 +1253,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleAuthorizationRequest = context =>
@@ -1268,7 +1263,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Validate(identity);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1304,14 +1299,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
                     context.Ticket.SetPresenters("Fabrikam");
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateTokenRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1344,14 +1339,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateTokenRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1378,7 +1373,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = context =>
@@ -1388,7 +1383,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Validate(identity);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1416,7 +1411,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = context =>
@@ -1426,7 +1421,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Validate(identity);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1454,7 +1449,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = context =>
@@ -1464,7 +1459,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Validate(identity);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1490,7 +1485,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = context =>
@@ -1500,7 +1495,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Validate(identity);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1528,7 +1523,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = context =>
@@ -1538,7 +1533,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Validate(identity);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1573,14 +1568,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     context.Ticket.SetPresenters("Fabrikam");
                     context.Ticket.SetScopes(OpenIdConnectConstants.Scopes.OfflineAccess);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateTokenRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1614,14 +1609,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
                     context.Ticket.SetScopes(OpenIdConnectConstants.Scopes.OfflineAccess);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateTokenRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1656,14 +1651,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
                     context.Ticket.SetScopes(OpenIdConnectConstants.Scopes.OfflineAccess);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateTokenRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1690,7 +1685,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = context =>
@@ -1703,7 +1698,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Validate(ticket);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1731,7 +1726,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = context =>
@@ -1744,7 +1739,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Validate(ticket);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1772,7 +1767,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = context =>
@@ -1785,7 +1780,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Validate(ticket);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1811,7 +1806,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = context =>
@@ -1821,7 +1816,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Validate(identity);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1853,7 +1848,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleAuthorizationRequest = context =>
@@ -1863,7 +1858,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Validate(identity);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1900,14 +1895,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     context.Ticket.SetPresenters("Fabrikam");
                     context.Ticket.SetScopes(OpenIdConnectConstants.Scopes.OpenId);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateTokenRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1941,14 +1936,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
                     context.Ticket.SetScopes(OpenIdConnectConstants.Scopes.OpenId);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateTokenRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1975,7 +1970,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = context =>
@@ -1985,7 +1980,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Validate(identity);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -2014,7 +2009,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = context =>
@@ -2024,7 +2019,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Validate(identity);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -2053,7 +2048,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = context =>
@@ -2063,7 +2058,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Validate(identity);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -2092,7 +2087,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.SkipToNextMiddleware();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -2119,7 +2114,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.SkipToNextMiddleware();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -2144,7 +2139,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = context =>
@@ -2159,7 +2154,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     context.OwinContext.Authentication.Challenge(properties, context.Options.AuthenticationType);
                     context.HandleResponse();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -2229,7 +2224,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = context =>
@@ -2237,7 +2232,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     context.OwinContext.Authentication.Challenge(context.Options.AuthenticationType);
                     context.HandleResponse();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -2291,7 +2286,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     // Note: overriding the default data protection provider is not necessary for the tests to pass,
                     // but is useful to ensure unnecessary keys are not persisted in testing environments, which also
                     // helps make the unit tests run faster, as no registry or disk access is required in this case.
-                    options.DataProtectionProvider = new EphemeralDataProtectionProvider();
+                    options.DataProtectionProvider = new EphemeralDataProtectionProvider(new LoggerFactory());
 
                     // Run the configuration delegate
                     // registered by the unit tests.
@@ -2307,21 +2302,21 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                         context.Authentication.SignIn(identity);
 
-                        return Task.FromResult(0);
+                        return Task.CompletedTask;
                     }
 
                     else if (context.Request.Path == new PathString("/invalid-signout"))
                     {
                         context.Authentication.SignOut(OpenIdConnectServerDefaults.AuthenticationType);
 
-                        return Task.FromResult(0);
+                        return Task.CompletedTask;
                     }
 
                     else if (context.Request.Path == new PathString("/invalid-challenge"))
                     {
                         context.Authentication.Challenge(OpenIdConnectServerDefaults.AuthenticationType);
 
-                        return Task.FromResult(0);
+                        return Task.CompletedTask;
                     }
 
                     else if (context.Request.Path == new PathString("/invalid-authenticate"))

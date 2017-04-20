@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http.Authentication;
+﻿using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Mvc.Server.Extensions;
 
@@ -7,7 +8,7 @@ namespace Mvc.Server.Controllers
     public class AuthenticationController : Controller
     {
         [HttpGet("~/signin")]
-        public ActionResult SignIn(string returnUrl = null)
+        public async Task<ActionResult> SignIn(string returnUrl = null)
         {
             // Note: the "returnUrl" parameter corresponds to the endpoint the user agent
             // will be redirected to after a successful authentication and not
@@ -15,11 +16,11 @@ namespace Mvc.Server.Controllers
             ViewBag.ReturnUrl = returnUrl;
 
             // Note: in a real world application, you'd probably prefer creating a specific view model.
-            return View("SignIn", HttpContext.GetExternalProviders());
+            return View("SignIn", await HttpContext.GetExternalProvidersAsync());
         }
 
         [HttpPost("~/signin")]
-        public ActionResult SignIn(string provider, string returnUrl)
+        public async Task<ActionResult> SignIn(string provider, string returnUrl)
         {
             // Note: the "provider" parameter corresponds to the external
             // authentication provider choosen by the user agent.
@@ -28,7 +29,7 @@ namespace Mvc.Server.Controllers
                 return BadRequest();
             }
 
-            if (!HttpContext.IsProviderSupported(provider))
+            if (!await HttpContext.IsProviderSupportedAsync(provider))
             {
                 return BadRequest();
             }

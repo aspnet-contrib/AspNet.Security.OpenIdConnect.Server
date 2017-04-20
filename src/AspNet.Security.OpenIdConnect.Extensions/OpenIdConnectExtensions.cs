@@ -14,7 +14,6 @@ using System.Security.Claims;
 using AspNet.Security.OpenIdConnect.Primitives;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Http.Authentication;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 

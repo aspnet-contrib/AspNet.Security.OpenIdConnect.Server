@@ -15,7 +15,7 @@ using Microsoft.Extensions.Logging;
 
 namespace AspNet.Security.OpenIdConnect.Server
 {
-    public partial class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions>
+    public partial class OpenIdConnectServerHandler
     {
         private async Task<bool> InvokeLogoutEndpointAsync()
         {
@@ -79,21 +79,24 @@ namespace AspNet.Security.OpenIdConnect.Server
             // Store the logout request in the ASP.NET context.
             Context.SetOpenIdConnectRequest(request);
 
-            var @event = new ExtractLogoutRequestContext(Context, Options, request);
-            await Options.Provider.ExtractLogoutRequest(@event);
+            var @event = new ExtractLogoutRequestContext(Context, Scheme, Options, request);
+            await Provider.ExtractLogoutRequest(@event);
 
-            if (@event.HandledResponse)
+            if (@event.Result != null)
             {
-                Logger.LogDebug("The logout request was handled in user code.");
+                if (@event.Result.Handled)
+                {
+                    Logger.LogDebug("The logout request was handled in user code.");
 
-                return true;
-            }
+                    return true;
+                }
 
-            else if (@event.Skipped)
-            {
-                Logger.LogDebug("The default logout request handling was skipped from user code.");
+                else if (@event.Result.Skipped)
+                {
+                    Logger.LogDebug("The default logout request handling was skipped from user code.");
 
-                return false;
+                    return false;
+                }
             }
 
             else if (@event.IsRejected)
@@ -113,21 +116,24 @@ namespace AspNet.Security.OpenIdConnect.Server
             Logger.LogInformation("The logout request was successfully extracted " +
                                   "from the HTTP request: {Request}.", request);
 
-            var context = new ValidateLogoutRequestContext(Context, Options, request);
-            await Options.Provider.ValidateLogoutRequest(context);
+            var context = new ValidateLogoutRequestContext(Context, Scheme, Options, request);
+            await Provider.ValidateLogoutRequest(context);
 
-            if (context.HandledResponse)
+            if (context.Result != null)
             {
-                Logger.LogDebug("The logout request was handled in user code.");
+                if (context.Result.Handled)
+                {
+                    Logger.LogDebug("The logout request was handled in user code.");
 
-                return true;
-            }
+                    return true;
+                }
 
-            else if (context.Skipped)
-            {
-                Logger.LogDebug("The default logout request handling was skipped from user code.");
+                else if (context.Result.Skipped)
+                {
+                    Logger.LogDebug("The default logout request handling was skipped from user code.");
 
-                return false;
+                    return false;
+                }
             }
 
             else if (context.IsRejected)
@@ -149,21 +155,24 @@ namespace AspNet.Security.OpenIdConnect.Server
 
             Logger.LogInformation("The logout request was successfully validated.");
 
-            var notification = new HandleLogoutRequestContext(Context, Options, request);
-            await Options.Provider.HandleLogoutRequest(notification);
+            var notification = new HandleLogoutRequestContext(Context, Scheme, Options, request);
+            await Provider.HandleLogoutRequest(notification);
 
-            if (notification.HandledResponse)
+            if (notification.Result != null)
             {
-                Logger.LogDebug("The logout request was handled in user code.");
+                if (notification.Result.Handled)
+                {
+                    Logger.LogDebug("The logout request was handled in user code.");
 
-                return true;
-            }
+                    return true;
+                }
 
-            else if (notification.Skipped)
-            {
-                Logger.LogDebug("The default logout request handling was skipped from user code.");
+                else if (notification.Result.Skipped)
+                {
+                    Logger.LogDebug("The default logout request handling was skipped from user code.");
 
-                return false;
+                    return false;
+                }
             }
 
             else if (notification.IsRejected)
@@ -192,25 +201,28 @@ namespace AspNet.Security.OpenIdConnect.Server
                                  OpenIdConnectConstants.MessageTypes.LogoutResponse);
 
             // Note: as this stage, the request may be null (e.g if it couldn't be extracted from the HTTP request).
-            var notification = new ApplyLogoutResponseContext(Context, Options, request, response)
+            var notification = new ApplyLogoutResponseContext(Context, Scheme, Options, request, response)
             {
                 PostLogoutRedirectUri = request?.GetProperty<string>(OpenIdConnectConstants.Properties.PostLogoutRedirectUri)
             };
 
-            await Options.Provider.ApplyLogoutResponse(notification);
+            await Provider.ApplyLogoutResponse(notification);
 
-            if (notification.HandledResponse)
+            if (notification.Result != null)
             {
-                Logger.LogDebug("The logout request was handled in user code.");
+                if (notification.Result.Handled)
+                {
+                    Logger.LogDebug("The logout request was handled in user code.");
 
-                return true;
-            }
+                    return true;
+                }
 
-            else if (notification.Skipped)
-            {
-                Logger.LogDebug("The default logout request handling was skipped from user code.");
+                else if (notification.Result.Skipped)
+                {
+                    Logger.LogDebug("The default logout request handling was skipped from user code.");
 
-                return false;
+                    return false;
+                }
             }
 
             if (!string.IsNullOrEmpty(response.Error))

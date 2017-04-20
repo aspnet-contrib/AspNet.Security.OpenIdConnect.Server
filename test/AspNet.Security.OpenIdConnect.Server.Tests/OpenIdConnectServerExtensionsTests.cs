@@ -10,7 +10,9 @@ using System.IO;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Primitives;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Builder.Internal;
 using Microsoft.AspNetCore.Http;
@@ -25,63 +27,53 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
     public class OpenIdConnectServerExtensionsTests
     {
         [Fact]
-        public void UseOpenIdConnectServer_ThrowsAnExceptionForNullBuilder()
+        public void AddOpenIdConnectServer_ThrowsAnExceptionForNullBuilder()
         {
             // Arrange
-            var builder = (IApplicationBuilder) null;
+            var builder = (AuthenticationBuilder) null;
 
             // Act and assert
             var exception = Assert.Throws<ArgumentNullException>(delegate
             {
-                builder.UseOpenIdConnectServer(new OpenIdConnectServerOptions());
+                builder.AddOpenIdConnectServer(options => { });
             });
 
-            Assert.Equal("app", exception.ParamName);
+            Assert.Equal("builder", exception.ParamName);
         }
 
         [Fact]
-        public void UseOpenIdConnectServer_ThrowsAnExceptionForNullConfiguration()
+        public void AddOpenIdConnectServer_ThrowsAnExceptionForNullConfiguration()
         {
             // Arrange
-            var services = new ServiceCollection();
-            var builder = new ApplicationBuilder(services.BuildServiceProvider());
+            var builder = new AuthenticationBuilder(new ServiceCollection());
 
             // Act and assert
             var exception = Assert.Throws<ArgumentNullException>(delegate
             {
-                builder.UseOpenIdConnectServer(configuration: null);
+                builder.AddOpenIdConnectServer(configuration: null);
             });
 
             Assert.Equal("configuration", exception.ParamName);
         }
 
         [Fact]
-        public void UseOpenIdConnectServer_ThrowsAnExceptionForNullOptions()
+        public async Task AddOpenIdConnectServer_HandlerIsRegistered()
         {
             // Arrange
             var services = new ServiceCollection();
-            var builder = new ApplicationBuilder(services.BuildServiceProvider());
+            services.AddAuthentication();
 
-            // Act and assert
-            var exception = Assert.Throws<ArgumentNullException>(delegate
-            {
-                builder.UseOpenIdConnectServer(options: null);
-            });
-
-            Assert.Equal("options", exception.ParamName);
-        }
-
-        [Fact]
-        public void UseOpenIdConnectServer_MiddlewareIsRegistered()
-        {
-            // Arrange
-            var builder = new Mock<IApplicationBuilder>();
+            var builder = new AuthenticationBuilder(services);
 
             // Act
-            builder.Object.UseOpenIdConnectServer(new OpenIdConnectServerOptions());
+            builder.AddOpenIdConnectServer(options => { });
+
+            var provider = services.BuildServiceProvider();
+            var schemes = provider.GetRequiredService<IAuthenticationSchemeProvider>();
 
             // Assert
-            builder.Verify(mock => mock.Use(It.IsAny<Func<RequestDelegate, RequestDelegate>>()), Times.Once());
+            Assert.Contains(await schemes.GetAllSchemesAsync(),
+                scheme => scheme.Name == OpenIdConnectServerDefaults.AuthenticationScheme);
         }
 
         [Fact]
@@ -136,7 +128,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
-            var assembly = typeof(OpenIdConnectServerMiddlewareTests).GetTypeInfo().Assembly;
+            var assembly = typeof(OpenIdConnectServerHandlerTests).GetTypeInfo().Assembly;
 
             // Act and assert
             var exception = Assert.Throws<ArgumentException>(delegate
@@ -155,7 +147,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
-            var assembly = typeof(OpenIdConnectServerMiddlewareTests).GetTypeInfo().Assembly;
+            var assembly = typeof(OpenIdConnectServerHandlerTests).GetTypeInfo().Assembly;
             var resource = "AspNet.Security.OpenIdConnect.Server.Tests.Certificate.cer";
 
             // Act and assert
@@ -191,7 +183,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
-            var assembly = typeof(OpenIdConnectServerMiddlewareTests).GetTypeInfo().Assembly;
+            var assembly = typeof(OpenIdConnectServerHandlerTests).GetTypeInfo().Assembly;
 
             // Act and assert
             var exception = Assert.Throws<InvalidOperationException>(delegate
@@ -222,7 +214,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
-            var assembly = typeof(OpenIdConnectServerMiddlewareTests).GetTypeInfo().Assembly;
+            var assembly = typeof(OpenIdConnectServerHandlerTests).GetTypeInfo().Assembly;
             var resource = "AspNet.Security.OpenIdConnect.Server.Tests.Certificate.cer";
 
             X509Certificate2 certificate;
@@ -251,7 +243,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Act
             credentials.AddCertificate(
-                assembly: typeof(OpenIdConnectServerMiddlewareTests).GetTypeInfo().Assembly,
+                assembly: typeof(OpenIdConnectServerHandlerTests).GetTypeInfo().Assembly,
                 resource: "AspNet.Security.OpenIdConnect.Server.Tests.Certificate.pfx",
                 password: "Owin.Security.OpenIdConnect.Server");
 

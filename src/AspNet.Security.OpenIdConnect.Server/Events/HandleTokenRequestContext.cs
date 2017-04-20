@@ -21,10 +21,11 @@ namespace AspNet.Security.OpenIdConnect.Server
         /// </summary>
         public HandleTokenRequestContext(
             HttpContext context,
+            AuthenticationScheme scheme,
             OpenIdConnectServerOptions options,
             OpenIdConnectRequest request,
             AuthenticationTicket ticket)
-            : base(context, options, request, ticket)
+            : base(context, scheme, options, request, ticket)
         {
             Validate();
         }

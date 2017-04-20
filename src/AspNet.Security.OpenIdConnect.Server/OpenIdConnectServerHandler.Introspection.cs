@@ -17,7 +17,7 @@ using Newtonsoft.Json.Linq;
 
 namespace AspNet.Security.OpenIdConnect.Server
 {
-    public partial class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions>
+    public partial class OpenIdConnectServerHandler
     {
         private async Task<bool> InvokeIntrospectionEndpointAsync()
         {
@@ -80,21 +80,24 @@ namespace AspNet.Security.OpenIdConnect.Server
             // Store the introspection request in the ASP.NET context.
             Context.SetOpenIdConnectRequest(request);
 
-            var @event = new ExtractIntrospectionRequestContext(Context, Options, request);
-            await Options.Provider.ExtractIntrospectionRequest(@event);
+            var @event = new ExtractIntrospectionRequestContext(Context, Scheme, Options, request);
+            await Provider.ExtractIntrospectionRequest(@event);
 
-            if (@event.HandledResponse)
+            if (@event.Result != null)
             {
-                Logger.LogDebug("The introspection request was handled in user code.");
+                if (@event.Result.Handled)
+                {
+                    Logger.LogDebug("The introspection request was handled in user code.");
 
-                return true;
-            }
+                    return true;
+                }
 
-            else if (@event.Skipped)
-            {
-                Logger.LogDebug("The default introspection request handling was skipped from user code.");
+                else if (@event.Result.Skipped)
+                {
+                    Logger.LogDebug("The default introspection request handling was skipped from user code.");
 
-                return false;
+                    return false;
+                }
             }
 
             else if (@event.IsRejected)
@@ -146,8 +149,8 @@ namespace AspNet.Security.OpenIdConnect.Server
                 request.ClientSecret = credentials?.Value;
             }
 
-            var context = new ValidateIntrospectionRequestContext(Context, Options, request);
-            await Options.Provider.ValidateIntrospectionRequest(context);
+            var context = new ValidateIntrospectionRequestContext(Context, Scheme, Options, request);
+            await Provider.ValidateIntrospectionRequest(context);
 
             // If the validation context was set as fully validated,
             // mark the OpenID Connect request as confidential.
@@ -157,18 +160,21 @@ namespace AspNet.Security.OpenIdConnect.Server
                                     OpenIdConnectConstants.ConfidentialityLevels.Private);
             }
 
-            if (context.HandledResponse)
+            if (context.Result != null)
             {
-                Logger.LogDebug("The introspection request was handled in user code.");
+                if (context.Result.Handled)
+                {
+                    Logger.LogDebug("The introspection request was handled in user code.");
 
-                return true;
-            }
+                    return true;
+                }
 
-            else if (context.Skipped)
-            {
-                Logger.LogDebug("The default introspection request handling was skipped from user code.");
+                else if (context.Result.Skipped)
+                {
+                    Logger.LogDebug("The default introspection request handling was skipped from user code.");
 
-                return false;
+                    return false;
+                }
             }
 
             else if (context.IsRejected)
@@ -314,7 +320,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                 }
             }
 
-            var notification = new HandleIntrospectionRequestContext(Context, Options, request, ticket)
+            var notification = new HandleIntrospectionRequestContext(Context, Scheme, Options, request, ticket)
             {
                 Active = true,
                 Issuer = Context.GetIssuer(Options),
@@ -400,20 +406,23 @@ namespace AspNet.Security.OpenIdConnect.Server
                 }
             }
 
-            await Options.Provider.HandleIntrospectionRequest(notification);
+            await Provider.HandleIntrospectionRequest(notification);
 
-            if (notification.HandledResponse)
+            if (notification.Result != null)
             {
-                Logger.LogDebug("The introspection request was handled in user code.");
+                if (notification.Result.Handled)
+                {
+                    Logger.LogDebug("The introspection request was handled in user code.");
 
-                return true;
-            }
+                    return true;
+                }
 
-            else if (notification.Skipped)
-            {
-                Logger.LogDebug("The default introspection request handling was skipped from user code.");
+                else if (notification.Result.Skipped)
+                {
+                    Logger.LogDebug("The default introspection request handling was skipped from user code.");
 
-                return false;
+                    return false;
+                }
             }
 
             else if (notification.IsRejected)
@@ -496,21 +505,24 @@ namespace AspNet.Security.OpenIdConnect.Server
             response.SetProperty(OpenIdConnectConstants.Properties.MessageType,
                                  OpenIdConnectConstants.MessageTypes.IntrospectionResponse);
 
-            var notification = new ApplyIntrospectionResponseContext(Context, Options, request, response);
-            await Options.Provider.ApplyIntrospectionResponse(notification);
+            var notification = new ApplyIntrospectionResponseContext(Context, Scheme, Options, request, response);
+            await Provider.ApplyIntrospectionResponse(notification);
 
-            if (notification.HandledResponse)
+            if (notification.Result != null)
             {
-                Logger.LogDebug("The introspection request was handled in user code.");
+                if (notification.Result.Handled)
+                {
+                    Logger.LogDebug("The introspection request was handled in user code.");
 
-                return true;
-            }
+                    return true;
+                }
 
-            else if (notification.Skipped)
-            {
-                Logger.LogDebug("The default introspection request handling was skipped from user code.");
+                else if (notification.Result.Skipped)
+                {
+                    Logger.LogDebug("The default introspection request handling was skipped from user code.");
 
-                return false;
+                    return false;
+                }
             }
 
             Logger.LogInformation("The introspection response was successfully returned: {Response}.", response);

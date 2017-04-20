@@ -18,7 +18,7 @@ namespace Owin.Security.OpenIdConnect.Server
     /// Represents the context class associated with the
     /// <see cref="OpenIdConnectServerProvider.SerializeIdentityToken"/> event.
     /// </summary>
-    public class SerializeIdentityTokenContext : BaseNotification<OpenIdConnectServerOptions>
+    public class SerializeIdentityTokenContext : BaseSerializingContext
     {
         /// <summary>
         /// Creates a new instance of the <see cref="SerializeIdentityTokenContext"/> class.
@@ -29,27 +29,9 @@ namespace Owin.Security.OpenIdConnect.Server
             OpenIdConnectRequest request,
             OpenIdConnectResponse response,
             AuthenticationTicket ticket)
-            : base(context, options)
+            : base(context, options, request, response, ticket)
         {
-            Request = request;
-            Response = response;
-            Ticket = ticket;
         }
-
-        /// <summary>
-        /// Gets the OpenID Connect request.
-        /// </summary>
-        public new OpenIdConnectRequest Request { get; }
-
-        /// <summary>
-        /// Gets the OpenID Connect response.
-        /// </summary>
-        public new OpenIdConnectResponse Response { get; }
-
-        /// <summary>
-        /// Gets the authentication ticket.
-        /// </summary>
-        public AuthenticationTicket Ticket { get; }
 
         /// <summary>
         /// Gets or sets the issuer address.

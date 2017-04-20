@@ -17,10 +17,9 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Authentication;
-using Microsoft.AspNetCore.Http.Features.Authentication;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 using Xunit;
@@ -126,7 +125,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     Assert.Equal(context.IsTokenEndpoint, endpoint == TokenEndpoint);
                     Assert.Equal(context.IsUserinfoEndpoint, endpoint == UserinfoEndpoint);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -198,7 +197,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     Assert.Equal(context.IsTokenEndpoint, address == "/custom/connect/token");
                     Assert.Equal(context.IsUserinfoEndpoint, address == "/custom/connect/userinfo");
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -255,16 +254,16 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         [InlineData(RevocationEndpoint)]
         [InlineData(TokenEndpoint)]
         [InlineData(UserinfoEndpoint)]
-        public async Task HandleRequestAsync_MatchEndpoint_AllowsSkippingToNextMiddleware(string address)
+        public async Task HandleRequestAsync_MatchEndpoint_AllowsSkippingHandler(string address)
         {
             // Arrange
             var server = CreateAuthorizationServer(options =>
             {
                 options.Provider.OnMatchEndpoint = context =>
                 {
-                    context.SkipToNextMiddleware();
+                    context.SkipHandler();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -331,9 +330,9 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
                 options.Provider.OnHandleConfigurationRequest = context =>
                 {
-                    context.SkipToNextMiddleware();
+                    context.SkipHandler();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -356,11 +355,11 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
             {
                 options.Provider.OnHandleLogoutRequest = async context =>
                 {
-                    var principal = await context.HttpContext.Authentication.AuthenticateAsync(
+                    var result = await context.HttpContext.AuthenticateAsync(
                         OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     // Assert
-                    Assert.Null(principal);
+                    Assert.Null(result.Principal);
                 };
             });
 
@@ -384,11 +383,11 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
             {
                 options.Provider.OnHandleLogoutRequest = async context =>
                 {
-                    var principal = await context.HttpContext.Authentication.AuthenticateAsync(
+                    var result = await context.HttpContext.AuthenticateAsync(
                         OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     // Assert
-                    Assert.Null(principal);
+                    Assert.Null(result.Principal);
                 };
             });
 
@@ -415,27 +414,25 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     // Assert
                     Assert.Equal("id_token", context.IdentityToken);
 
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
-                    context.HandleResponse();
-
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleLogoutRequest = async context =>
                 {
-                    var principal = await context.HttpContext.Authentication.AuthenticateAsync(
+                    var result = await context.HttpContext.AuthenticateAsync(
                         OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     // Assert
-                    Assert.NotNull(principal);
-                    Assert.Equal("Bob le Magnifique", principal.FindFirst(OpenIdConnectConstants.Claims.Subject)?.Value);
+                    Assert.NotNull(result.Principal);
+                    Assert.Equal("Bob le Magnifique", result.Principal.FindFirst(OpenIdConnectConstants.Claims.Subject)?.Value);
                 };
             });
 
@@ -459,13 +456,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
             {
                 options.Provider.OnApplyTokenResponse = async context =>
                 {
-                    var principal = await context.HttpContext.Authentication.AuthenticateAsync(
+                    var result = await context.HttpContext.AuthenticateAsync(
                         OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     // Assert
-                    Assert.Null(principal);
+                    Assert.Null(result.Principal);
 
-                    context.SkipToNextMiddleware();
+                    context.SkipHandler();
                 };
             });
 
@@ -493,18 +490,18 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnApplyTokenResponse = async context =>
                 {
-                    var principal = await context.HttpContext.Authentication.AuthenticateAsync(
+                    var result = await context.HttpContext.AuthenticateAsync(
                         OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     // Assert
-                    Assert.Null(principal);
+                    Assert.Null(result.Principal);
 
-                    context.SkipToNextMiddleware();
+                    context.SkipHandler();
                 };
             });
 
@@ -533,38 +530,36 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     // Assert
                     Assert.Equal("authorization_code", context.AuthorizationCode);
 
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     context.Ticket.SetPresenters("Fabrikam");
 
-                    context.HandleResponse();
-
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateTokenRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = async context =>
                 {
-                    var principal = await context.HttpContext.Authentication.AuthenticateAsync(
+                    var result = await context.HttpContext.AuthenticateAsync(
                         OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     // Assert
-                    Assert.NotNull(principal);
-                    Assert.Equal("Bob le Magnifique", principal.FindFirst(OpenIdConnectConstants.Claims.Subject)?.Value);
+                    Assert.NotNull(result.Principal);
+                    Assert.Equal("Bob le Magnifique", result.Principal.FindFirst(OpenIdConnectConstants.Claims.Subject)?.Value);
 
-                    context.SkipToNextMiddleware();
+                    context.SkipHandler();
                 };
             });
 
@@ -590,13 +585,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
             {
                 options.Provider.OnApplyTokenResponse = async context =>
                 {
-                    var principal = await context.HttpContext.Authentication.AuthenticateAsync(
+                    var result = await context.HttpContext.AuthenticateAsync(
                         OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     // Assert
-                    Assert.Null(principal);
+                    Assert.Null(result.Principal);
 
-                    context.SkipToNextMiddleware();
+                    context.SkipHandler();
                 };
             });
 
@@ -623,18 +618,18 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnApplyTokenResponse = async context =>
                 {
-                    var principal = await context.HttpContext.Authentication.AuthenticateAsync(
+                    var result = await context.HttpContext.AuthenticateAsync(
                         OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     // Assert
-                    Assert.Null(principal);
+                    Assert.Null(result.Principal);
 
-                    context.SkipToNextMiddleware();
+                    context.SkipHandler();
                 };
             });
 
@@ -662,38 +657,36 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     // Assert
                     Assert.Equal("refresh_token", context.RefreshToken);
 
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     context.Ticket.SetPresenters("Fabrikam");
 
-                    context.HandleResponse();
-
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateTokenRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = async context =>
                 {
-                    var principal = await context.HttpContext.Authentication.AuthenticateAsync(
+                    var result = await context.HttpContext.AuthenticateAsync(
                         OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     // Assert
-                    Assert.NotNull(principal);
-                    Assert.Equal("Bob le Magnifique", principal.FindFirst(OpenIdConnectConstants.Claims.Subject)?.Value);
+                    Assert.NotNull(result.Principal);
+                    Assert.Equal("Bob le Magnifique", result.Principal.FindFirst(OpenIdConnectConstants.Claims.Subject)?.Value);
 
-                    context.SkipToNextMiddleware();
+                    context.SkipHandler();
                 };
             });
 
@@ -720,18 +713,18 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnApplyTokenResponse = async context =>
                 {
-                    var principal = await context.HttpContext.Authentication.AuthenticateAsync(
+                    var result = await context.HttpContext.AuthenticateAsync(
                         OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     // Assert
-                    Assert.Null(principal);
+                    Assert.Null(result.Principal);
 
-                    context.SkipToNextMiddleware();
+                    context.SkipHandler();
                 };
             });
 
@@ -776,9 +769,9 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
                 options.Provider.OnHandleConfigurationRequest = context =>
                 {
-                    context.SkipToNextMiddleware();
+                    context.SkipHandler();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -803,7 +796,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleAuthorizationRequest = async context =>
@@ -813,7 +806,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
                     var principal = new ClaimsPrincipal(identity);
 
-                    await context.HttpContext.Authentication.SignInAsync(
+                    await context.HttpContext.SignInAsync(
                         OpenIdConnectServerDefaults.AuthenticationScheme, principal);
 
                     context.Validate(principal);
@@ -846,18 +839,18 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleAuthorizationRequest = context =>
                 {
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     var principal = new ClaimsPrincipal(identity);
 
                     context.HandleResponse();
 
-                    return context.HttpContext.Authentication.SignInAsync(
-                        context.Options.AuthenticationScheme, principal);
+                    return context.HttpContext.SignInAsync(
+                        OpenIdConnectServerDefaults.AuthenticationScheme, principal);
                 };
             });
 
@@ -889,31 +882,31 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     // Assert
                     Assert.True(context.Ticket.IsConfidential());
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateTokenRequest = context =>
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = context =>
                 {
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     var ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     ticket.SetScopes(OpenIdConnectConstants.Scopes.OfflineAccess);
 
                     context.Validate(ticket);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -945,24 +938,24 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     // Assert
                     Assert.Equal("openid", context.Ticket.GetProperty(OpenIdConnectConstants.Properties.Scopes));
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateTokenRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = context =>
                 {
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(new ClaimsPrincipal(identity));
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -988,7 +981,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     // Assert
                     Assert.Equal(new[] { "http://www.fabrikam.com/" }, context.Ticket.GetResources());
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnSerializeRefreshToken = context =>
@@ -996,32 +989,32 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     // Assert
                     Assert.Equal(new[] { "http://www.fabrikam.com/" }, context.Ticket.GetResources());
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateTokenRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = context =>
                 {
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     var ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     ticket.SetAudiences("http://www.fabrikam.com/");
                     ticket.SetScopes(OpenIdConnectConstants.Scopes.OfflineAccess);
 
                     context.Validate(ticket);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1054,17 +1047,17 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleAuthorizationRequest = context =>
                 {
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(new ClaimsPrincipal(identity));
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1094,17 +1087,17 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     Assert.Equal("8xLOxBtZp8", context.RefreshToken);
 
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     context.Ticket.SetResources("http://www.fabrikam.com/", "http://www.contoso.com/");
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnSerializeAccessToken = context =>
@@ -1112,14 +1105,14 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     // Assert
                     Assert.Equal(new[] { "http://www.fabrikam.com/" }, context.Ticket.GetResources());
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateTokenRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1147,20 +1140,20 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     Assert.Equal("8xLOxBtZp8", context.RefreshToken);
 
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     context.Ticket.SetScopes(
                         OpenIdConnectConstants.Scopes.OpenId,
                         OpenIdConnectConstants.Scopes.Phone,
                         OpenIdConnectConstants.Scopes.Profile);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnSerializeAccessToken = context =>
@@ -1168,14 +1161,14 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     // Assert
                     Assert.Equal(new[] { OpenIdConnectConstants.Scopes.Profile }, context.Ticket.GetScopes());
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateTokenRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1203,24 +1196,24 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = context =>
                 {
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     var ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     ticket.SetResources("http://www.fabrikam.com/");
 
                     context.Validate(ticket);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1249,24 +1242,24 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = context =>
                 {
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     var ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     ticket.SetScopes(OpenIdConnectConstants.Scopes.Profile);
 
                     context.Validate(ticket);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1299,17 +1292,17 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleAuthorizationRequest = context =>
                 {
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(new ClaimsPrincipal(identity));
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1339,24 +1332,24 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     Assert.Equal("SplxlOBeZQQYbYS6WxSbIA", context.AuthorizationCode);
 
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     context.Ticket.SetPresenters("Fabrikam");
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateTokenRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1384,22 +1377,22 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     Assert.Equal("8xLOxBtZp8", context.RefreshToken);
 
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateTokenRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1426,17 +1419,17 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = context =>
                 {
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(new ClaimsPrincipal(identity));
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1464,17 +1457,17 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = context =>
                 {
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Fabrikam");
 
                     context.Validate(new ClaimsPrincipal(identity));
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1502,17 +1495,17 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = context =>
                 {
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(new ClaimsPrincipal(identity));
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1538,17 +1531,17 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = context =>
                 {
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(new ClaimsPrincipal(identity));
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1576,17 +1569,17 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = context =>
                 {
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(new ClaimsPrincipal(identity));
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1614,25 +1607,25 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     Assert.Equal("SplxlOBeZQQYbYS6WxSbIA", context.AuthorizationCode);
 
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     context.Ticket.SetPresenters("Fabrikam");
                     context.Ticket.SetScopes(OpenIdConnectConstants.Scopes.OfflineAccess);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateTokenRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1660,24 +1653,24 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     Assert.Equal("8xLOxBtZp8", context.RefreshToken);
 
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     context.Ticket.SetScopes(OpenIdConnectConstants.Scopes.OfflineAccess);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateTokenRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1706,24 +1699,24 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     Assert.Equal("8xLOxBtZp8", context.RefreshToken);
 
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     context.Ticket.SetScopes(OpenIdConnectConstants.Scopes.OfflineAccess);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateTokenRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1750,24 +1743,24 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = context =>
                 {
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     var ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     ticket.SetScopes(OpenIdConnectConstants.Scopes.OfflineAccess);
 
                     context.Validate(ticket);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1795,24 +1788,24 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = context =>
                 {
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Fabrikam");
 
                     var ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     ticket.SetScopes(OpenIdConnectConstants.Scopes.OfflineAccess);
 
                     context.Validate(ticket);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1840,24 +1833,24 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = context =>
                 {
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     var ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     ticket.SetScopes(OpenIdConnectConstants.Scopes.OfflineAccess);
 
                     context.Validate(ticket);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1883,17 +1876,17 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = context =>
                 {
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(new ClaimsPrincipal(identity));
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1925,17 +1918,17 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleAuthorizationRequest = context =>
                 {
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(new ClaimsPrincipal(identity));
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1965,25 +1958,25 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     Assert.Equal("SplxlOBeZQQYbYS6WxSbIA", context.AuthorizationCode);
 
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     context.Ticket.SetPresenters("Fabrikam");
                     context.Ticket.SetScopes(OpenIdConnectConstants.Scopes.OpenId);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateTokenRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -2011,24 +2004,24 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     Assert.Equal("8xLOxBtZp8", context.RefreshToken);
 
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     context.Ticket.SetScopes(OpenIdConnectConstants.Scopes.OpenId);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateTokenRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -2055,17 +2048,17 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = context =>
                 {
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(new ClaimsPrincipal(identity));
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -2094,17 +2087,17 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = context =>
                 {
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Fabrikam");
 
                     context.Validate(new ClaimsPrincipal(identity));
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -2133,17 +2126,17 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = context =>
                 {
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(new ClaimsPrincipal(identity));
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -2170,9 +2163,9 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
                 options.Provider.OnHandleConfigurationRequest = context =>
                 {
-                    context.SkipToNextMiddleware();
+                    context.SkipHandler();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -2195,10 +2188,10 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
             {
                 options.Provider.OnHandleLogoutRequest = async context =>
                 {
-                    await context.HttpContext.Authentication.SignOutAsync(
+                    await context.HttpContext.SignOutAsync(
                         OpenIdConnectServerDefaults.AuthenticationScheme);
 
-                    await context.HttpContext.Authentication.SignOutAsync(
+                    await context.HttpContext.SignOutAsync(
                         OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     context.HandleResponse();
@@ -2226,9 +2219,9 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
                 options.Provider.OnHandleConfigurationRequest = context =>
                 {
-                    context.SkipToNextMiddleware();
+                    context.SkipHandler();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -2253,15 +2246,15 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleAuthorizationRequest = async context =>
                 {
-                    await context.HttpContext.Authentication.ForbidAsync(
+                    await context.HttpContext.ForbidAsync(
                         OpenIdConnectServerDefaults.AuthenticationScheme);
 
-                    await context.HttpContext.Authentication.ChallengeAsync(
+                    await context.HttpContext.ChallengeAsync(
                         OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     context.HandleResponse();
@@ -2294,7 +2287,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = context =>
@@ -2308,7 +2301,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                         [OpenIdConnectConstants.Properties.ErrorUri] = "custom_error_uri"
                     });
 
-                    return context.HttpContext.Authentication.ChallengeAsync(context.Options.AuthenticationScheme, properties);
+                    return context.HttpContext.ChallengeAsync(OpenIdConnectServerDefaults.AuthenticationScheme, properties);
                 };
             });
 
@@ -2345,7 +2338,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.HandleResponse();
 
-                    return context.HttpContext.Authentication.ForbidAsync(context.Options.AuthenticationScheme);
+                    return context.HttpContext.ForbidAsync(OpenIdConnectServerDefaults.AuthenticationScheme);
                 };
             });
 
@@ -2377,14 +2370,14 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = context =>
                 {
                     context.HandleResponse();
 
-                    return context.HttpContext.Authentication.ChallengeAsync(context.Options.AuthenticationScheme);
+                    return context.HttpContext.ChallengeAsync(OpenIdConnectServerDefaults.AuthenticationScheme);
                 };
             });
 
@@ -2410,44 +2403,46 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             builder.UseEnvironment("Testing");
 
-            builder.ConfigureServices(services => services.AddAuthentication());
+            builder.ConfigureServices(services =>
+            {
+                services.AddAuthentication()
+                    .AddCookie(options =>
+                    {
+                        options.LoginPath = "/login";
+                        options.LogoutPath = "/logout";
+                    })
+
+                    .AddOpenIdConnectServer(options =>
+                    {
+                        options.AllowInsecureHttp = true;
+
+                        // Enable the tested endpoints.
+                        options.AuthorizationEndpointPath = AuthorizationEndpoint;
+                        options.IntrospectionEndpointPath = IntrospectionEndpoint;
+                        options.LogoutEndpointPath = LogoutEndpoint;
+                        options.RevocationEndpointPath = RevocationEndpoint;
+                        options.TokenEndpointPath = TokenEndpoint;
+                        options.UserinfoEndpointPath = UserinfoEndpoint;
+
+                        options.SigningCredentials.AddCertificate(
+                            assembly: typeof(OpenIdConnectServerHandlerTests).GetTypeInfo().Assembly,
+                            resource: "AspNet.Security.OpenIdConnect.Server.Tests.Certificate.pfx",
+                            password: "Owin.Security.OpenIdConnect.Server");
+
+                        // Note: overriding the default data protection provider is not necessary for the tests to pass,
+                        // but is useful to ensure unnecessary keys are not persisted in testing environments, which also
+                        // helps make the unit tests run faster, as no registry or disk access is required in this case.
+                        options.DataProtectionProvider = new EphemeralDataProtectionProvider(new LoggerFactory());
+
+                        // Run the configuration delegate
+                        // registered by the unit tests.
+                        configuration?.Invoke(options);
+                    });
+            });
 
             builder.Configure(app =>
             {
-                app.UseCookieAuthentication(new CookieAuthenticationOptions
-                {
-                    AutomaticAuthenticate = true,
-                    AutomaticChallenge = true,
-                    LoginPath = "/login",
-                    LogoutPath = "/logout"
-                });
-
-                app.UseOpenIdConnectServer(options =>
-                {
-                    options.AllowInsecureHttp = true;
-
-                    // Enable the tested endpoints.
-                    options.AuthorizationEndpointPath = AuthorizationEndpoint;
-                    options.IntrospectionEndpointPath = IntrospectionEndpoint;
-                    options.LogoutEndpointPath = LogoutEndpoint;
-                    options.RevocationEndpointPath = RevocationEndpoint;
-                    options.TokenEndpointPath = TokenEndpoint;
-                    options.UserinfoEndpointPath = UserinfoEndpoint;
-
-                    options.SigningCredentials.AddCertificate(
-                        assembly: typeof(OpenIdConnectServerMiddlewareTests).GetTypeInfo().Assembly,
-                        resource: "AspNet.Security.OpenIdConnect.Server.Tests.Certificate.pfx",
-                        password: "Owin.Security.OpenIdConnect.Server");
-
-                    // Note: overriding the default data protection provider is not necessary for the tests to pass,
-                    // but is useful to ensure unnecessary keys are not persisted in testing environments, which also
-                    // helps make the unit tests run faster, as no registry or disk access is required in this case.
-                    options.DataProtectionProvider = new EphemeralDataProtectionProvider(app.ApplicationServices);
-
-                    // Run the configuration delegate
-                    // registered by the unit tests.
-                    configuration?.Invoke(options);
-                });
+                app.UseAuthentication();
 
                 app.Use(next => context =>
                 {
@@ -2458,25 +2453,24 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
                         var principal = new ClaimsPrincipal(identity);
 
-                        return context.Authentication.SignInAsync(OpenIdConnectServerDefaults.AuthenticationScheme, principal);
+                        return context.SignInAsync(OpenIdConnectServerDefaults.AuthenticationScheme, principal);
                     }
 
                     else if (context.Request.Path == "/invalid-signout")
                     {
-                        return context.Authentication.SignOutAsync(OpenIdConnectServerDefaults.AuthenticationScheme);
+                        return context.SignOutAsync(OpenIdConnectServerDefaults.AuthenticationScheme);
                     }
 
                     else if (context.Request.Path == "/invalid-challenge")
                     {
-                        return context.Authentication.ChallengeAsync(
+                        return context.ChallengeAsync(
                             OpenIdConnectServerDefaults.AuthenticationScheme,
-                            new AuthenticationProperties(),
-                            ChallengeBehavior.Unauthorized);
+                            new AuthenticationProperties());
                     }
 
                     else if (context.Request.Path == "/invalid-authenticate")
                     {
-                        return context.Authentication.AuthenticateAsync(OpenIdConnectServerDefaults.AuthenticationScheme);
+                        return context.AuthenticateAsync(OpenIdConnectServerDefaults.AuthenticationScheme);
                     }
 
                     return next(context);

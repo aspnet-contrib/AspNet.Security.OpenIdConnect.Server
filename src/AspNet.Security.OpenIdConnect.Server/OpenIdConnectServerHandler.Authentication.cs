@@ -18,7 +18,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace AspNet.Security.OpenIdConnect.Server
 {
-    public partial class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions>
+    public partial class OpenIdConnectServerHandler
     {
         private async Task<bool> InvokeAuthorizationEndpointAsync()
         {
@@ -79,21 +79,24 @@ namespace AspNet.Security.OpenIdConnect.Server
             // Store the authorization request in the ASP.NET context.
             Context.SetOpenIdConnectRequest(request);
 
-            var @event = new ExtractAuthorizationRequestContext(Context, Options, request);
-            await Options.Provider.ExtractAuthorizationRequest(@event);
+            var @event = new ExtractAuthorizationRequestContext(Context, Scheme, Options, request);
+            await Provider.ExtractAuthorizationRequest(@event);
 
-            if (@event.HandledResponse)
+            if (@event.Result != null)
             {
-                Logger.LogDebug("The authorization request was handled in user code.");
+                if (@event.Result.Handled)
+                {
+                    Logger.LogDebug("The authorization request was handled in user code.");
 
-                return true;
-            }
+                    return true;
+                }
 
-            else if (@event.Skipped)
-            {
-                Logger.LogDebug("The default authorization request handling was skipped from user code.");
+                else if (@event.Result.Skipped)
+                {
+                    Logger.LogDebug("The default authorization request handling was skipped from user code.");
 
-                return false;
+                    return false;
+                }
             }
 
             else if (@event.IsRejected)
@@ -325,21 +328,24 @@ namespace AspNet.Security.OpenIdConnect.Server
                 }
             }
 
-            var context = new ValidateAuthorizationRequestContext(Context, Options, request);
-            await Options.Provider.ValidateAuthorizationRequest(context);
+            var context = new ValidateAuthorizationRequestContext(Context, Scheme, Options, request);
+            await Provider.ValidateAuthorizationRequest(context);
 
-            if (context.HandledResponse)
+            if (context.Result != null)
             {
-                Logger.LogDebug("The authorization request was handled in user code.");
+                if (context.Result.Handled)
+                {
+                    Logger.LogDebug("The authorization request was handled in user code.");
 
-                return true;
-            }
+                    return true;
+                }
 
-            else if (context.Skipped)
-            {
-                Logger.LogDebug("The default authorization request handling was skipped from user code.");
+                else if (context.Result.Skipped)
+                {
+                    Logger.LogDebug("The default authorization request handling was skipped from user code.");
 
-                return false;
+                    return false;
+                }
             }
 
             else if (context.IsRejected)
@@ -362,21 +368,24 @@ namespace AspNet.Security.OpenIdConnect.Server
 
             Logger.LogInformation("The authorization request was successfully validated.");
 
-            var notification = new HandleAuthorizationRequestContext(Context, Options, request);
-            await Options.Provider.HandleAuthorizationRequest(notification);
+            var notification = new HandleAuthorizationRequestContext(Context, Scheme, Options, request);
+            await Provider.HandleAuthorizationRequest(notification);
 
-            if (notification.HandledResponse)
+            if (notification.Result != null)
             {
-                Logger.LogDebug("The authorization request was handled in user code.");
+                if (notification.Result.Handled)
+                {
+                    Logger.LogDebug("The authorization request was handled in user code.");
 
-                return true;
-            }
+                    return true;
+                }
 
-            else if (notification.Skipped)
-            {
-                Logger.LogDebug("The default authorization request handling was skipped from user code.");
+                else if (notification.Result.Skipped)
+                {
+                    Logger.LogDebug("The default authorization request handling was skipped from user code.");
 
-                return false;
+                    return false;
+                }
             }
 
             else if (notification.IsRejected)
@@ -401,7 +410,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                 return false;
             }
 
-            return await HandleSignInAsync(ticket);
+            return await SignInAsync(ticket);
         }
 
         private async Task<bool> SendAuthorizationResponseAsync(OpenIdConnectResponse response, AuthenticationTicket ticket = null)
@@ -413,7 +422,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                                  OpenIdConnectConstants.MessageTypes.AuthorizationResponse);
 
             // Note: as this stage, the request may be null (e.g if it couldn't be extracted from the HTTP request).
-            var notification = new ApplyAuthorizationResponseContext(Context, Options, ticket, request, response)
+            var notification = new ApplyAuthorizationResponseContext(Context, Scheme, Options, ticket, request, response)
             {
                 RedirectUri = request?.GetProperty<string>(OpenIdConnectConstants.Properties.ValidatedRedirectUri),
                 ResponseMode = request?.ResponseMode
@@ -428,20 +437,24 @@ namespace AspNet.Security.OpenIdConnect.Server
                     request.IsQueryResponseMode() ? OpenIdConnectConstants.ResponseModes.Query : null;
             }
 
-            await Options.Provider.ApplyAuthorizationResponse(notification);
+            await Provider.ApplyAuthorizationResponse(notification);
 
-            if (notification.HandledResponse)
+
+            if (notification.Result != null)
             {
-                Logger.LogDebug("The authorization request was handled in user code.");
+                if (notification.Result.Handled)
+                {
+                    Logger.LogDebug("The authorization request was handled in user code.");
 
-                return true;
-            }
+                    return true;
+                }
 
-            else if (notification.Skipped)
-            {
-                Logger.LogDebug("The default authorization request handling was skipped from user code.");
+                else if (notification.Result.Skipped)
+                {
+                    Logger.LogDebug("The default authorization request handling was skipped from user code.");
 
-                return false;
+                    return false;
+                }
             }
 
             // Directly display an error page if redirect_uri cannot be used to

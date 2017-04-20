@@ -3,7 +3,7 @@
   <Import Project="..\..\..\build\common.props" />
 
   <PropertyGroup>
-    <TargetFramework>net451</TargetFramework>
+    <TargetFramework>net461</TargetFramework>
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
@@ -30,7 +30,7 @@
     <PackageReference Include="Microsoft.Owin.Security.Jwt" Version="$(OwinVersion)" />
     <PackageReference Include="Microsoft.Owin.Security.OAuth" Version="$(OwinVersion)" />
     <PackageReference Include="Microsoft.Owin.SelfHost" Version="$(OwinVersion)" />
-    <PackageReference Include="Nancy.MSOwinSecurity" Version="1.0.1" />
+    <PackageReference Include="Nancy.MSOwinSecurity" Version="2.0.0" />
     <PackageReference Include="Nancy.Owin" Version="1.3.0" />
     <PackageReference Include="Nancy.Viewengines.Razor" Version="1.3.0" />
     <PackageReference Include="Owin.Security.OAuth.Introspection" Version="$(AspNetContribOpenIdExtensionsVersion)" />

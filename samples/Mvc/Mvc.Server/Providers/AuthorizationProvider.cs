@@ -4,17 +4,21 @@ using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Primitives;
 using AspNet.Security.OpenIdConnect.Server;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Mvc.Server.Models;
 
 namespace Mvc.Server.Providers
 {
     public sealed class AuthorizationProvider : OpenIdConnectServerProvider
     {
+        private readonly ApplicationContext _database;
+
+        public AuthorizationProvider(ApplicationContext database)
+        {
+            _database = database;
+        }
+
         public override async Task ValidateAuthorizationRequest(ValidateAuthorizationRequestContext context)
         {
-            var database = context.HttpContext.RequestServices.GetRequiredService<ApplicationContext>();
-
             // Note: the OpenID Connect server middleware supports the authorization code, implicit and hybrid flows
             // but this authorization provider only accepts response_type=code authorization/authentication requests.
             // You may consider relaxing it to support the implicit or hybrid flows. In this case, consider adding
@@ -43,7 +47,7 @@ namespace Mvc.Server.Providers
             }
 
             // Retrieve the application details corresponding to the requested client_id.
-            var application = await (from entity in database.Applications
+            var application = await (from entity in _database.Applications
                                      where entity.ApplicationID == context.ClientId
                                      select entity).SingleOrDefaultAsync(context.HttpContext.RequestAborted);
 
@@ -71,8 +75,6 @@ namespace Mvc.Server.Providers
 
         public override async Task ValidateTokenRequest(ValidateTokenRequestContext context)
         {
-            var database = context.HttpContext.RequestServices.GetRequiredService<ApplicationContext>();
-
             // Note: the OpenID Connect server middleware supports authorization code, refresh token, client credentials
             // and resource owner password credentials grant types but this authorization provider uses a safer policy
             // rejecting the last two ones. You may consider relaxing it to support the ROPC or client credentials grant types.
@@ -102,7 +104,7 @@ namespace Mvc.Server.Providers
             }
 
             // Retrieve the application details corresponding to the requested client_id.
-            var application = await (from entity in database.Applications
+            var application = await (from entity in _database.Applications
                                      where entity.ApplicationID == context.ClientId
                                      select entity).SingleOrDefaultAsync(context.HttpContext.RequestAborted);
 
@@ -135,12 +137,10 @@ namespace Mvc.Server.Providers
 
         public override async Task ValidateLogoutRequest(ValidateLogoutRequestContext context)
         {
-            var database = context.HttpContext.RequestServices.GetRequiredService<ApplicationContext>();
-
             // When provided, post_logout_redirect_uri must exactly
             // match the address registered by the client application.
             if (!string.IsNullOrEmpty(context.PostLogoutRedirectUri) &&
-                !await database.Applications.AnyAsync(application => application.LogoutRedirectUri == context.PostLogoutRedirectUri))
+                !await _database.Applications.AnyAsync(application => application.LogoutRedirectUri == context.PostLogoutRedirectUri))
             {
                 context.Reject(
                     error: OpenIdConnectConstants.Errors.InvalidRequest,

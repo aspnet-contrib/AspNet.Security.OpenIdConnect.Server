@@ -14,27 +14,22 @@ namespace AspNet.Security.OpenIdConnect.Server
     /// Represents the context class associated with the
     /// <see cref="OpenIdConnectServerProvider.ApplyCryptographyResponse"/> event.
     /// </summary>
-    public class ApplyCryptographyResponseContext : BaseControlContext
+    public class ApplyCryptographyResponseContext : HandleRequestContext<OpenIdConnectServerOptions>
     {
         /// <summary>
         /// Creates a new instance of the <see cref="ApplyCryptographyResponseContext"/> class.
         /// </summary>
         public ApplyCryptographyResponseContext(
             HttpContext context,
+            AuthenticationScheme scheme,
             OpenIdConnectServerOptions options,
             OpenIdConnectRequest request,
             OpenIdConnectResponse response)
-            : base(context)
+            : base(context, scheme, options)
         {
-            Options = options;
             Request = request;
             Response = response;
         }
-
-        /// <summary>
-        /// Gets the options used by the OpenID Connect server.
-        /// </summary>
-        public OpenIdConnectServerOptions Options { get; }
 
         /// <summary>
         /// Gets the cryptography request.

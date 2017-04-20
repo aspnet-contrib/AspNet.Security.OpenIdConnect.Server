@@ -3,7 +3,7 @@
   <Import Project="..\..\build\packages.props" />
 
   <PropertyGroup>
-    <TargetFramework>net451</TargetFramework>
+    <TargetFramework>net461</TargetFramework>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -21,43 +21,12 @@
     <PackageReference Include="Microsoft.Extensions.Logging" Version="$(AspNetCoreVersion)" />
     <PackageReference Include="Microsoft.IdentityModel.Protocol.Extensions" Version="$(IdentityModelVersion)" />
     <PackageReference Include="Microsoft.Owin.Security.Interop" Version="$(AspNetCoreVersion)" />
-    <PackageReference Include="System.Text.Encodings.Web" Version="4.0.0" />
+    <PackageReference Include="System.Text.Encodings.Web" Version="$(CoreFxVersion)" />
   </ItemGroup>
 
   <ItemGroup>
     <Reference Include="System.IdentityModel" />
     <Reference Include="System.Xml" />
   </ItemGroup>
-
-  <!--
-    Warning: due to a design change in NuGet, framework assemblies (represented as 'References' nodes in this file)
-    are no longer automatically added to the .nuspec file published with this package. To avoid a breaking change that
-    would force final users to reference the framework assemblies in their own project, automatic .nuspec generation
-    is disabled and replaced by a custom Owin.Security.OpenIdConnect.Server.nuspec file that explicitly references
-    them under the 'frameworkAssemblies' node. See https://github.com/NuGet/Home/issues/4853 for more information.
-  -->
-
-  <PropertyGroup>
-    <NuSpecFile>$(MSBuildThisFileDirectory)$(MSBuildProjectName).nuspec</NuSpecFile>
-  </PropertyGroup>
-
-  <Target Name="SetPackageProperties" BeforeTargets="GenerateNuspec">
-    <PropertyGroup>
-      <NuspecProperties>$(NuspecProperties);id=$(PackageId)</NuspecProperties>
-      <NuspecProperties>$(NuspecProperties);version=$(PackageVersion)</NuspecProperties>
-      <NuspecProperties>$(NuspecProperties);authors=$(Authors)</NuspecProperties>
-      <NuspecProperties>$(NuspecProperties);requireLicenseAcceptance=$(PackageRequireLicenseAcceptance)</NuspecProperties>
-      <NuspecProperties>$(NuspecProperties);licenseUrl=$(PackageLicenseUrl)</NuspecProperties>
-      <NuspecProperties>$(NuspecProperties);projectUrl=$(PackageProjectUrl)</NuspecProperties>
-      <NuspecProperties>$(NuspecProperties);iconUrl=$(PackageIconUrl)</NuspecProperties>
-      <NuspecProperties>$(NuspecProperties);description=$(Description)</NuspecProperties>
-      <NuspecProperties>$(NuspecProperties);tags=$(PackageTags.Replace(";"," "))</NuspecProperties>
-      <NuspecProperties>$(NuspecProperties);repositoryType=$(RepositoryType)</NuspecProperties>
-      <NuspecProperties>$(NuspecProperties);repositoryUrl=$(RepositoryUrl)</NuspecProperties>
-      <NuspecProperties>$(NuspecProperties);configuration=$(Configuration)</NuspecProperties>
-      <NuspecProperties>$(NuspecProperties);aspNetCoreVersion=$(AspNetCoreVersion)</NuspecProperties>
-      <NuspecProperties>$(NuspecProperties);identityModelVersion=$(IdentityModelVersion)</NuspecProperties>
-    </PropertyGroup>
-  </Target>
 
 </Project>

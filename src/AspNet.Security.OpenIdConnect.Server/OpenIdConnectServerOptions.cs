@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
@@ -20,14 +19,14 @@ namespace AspNet.Security.OpenIdConnect.Server
     /// Exposes various settings needed to control
     /// the behavior of the OpenID Connect server.
     /// </summary>
-    public class OpenIdConnectServerOptions : AuthenticationOptions
+    public class OpenIdConnectServerOptions : AuthenticationSchemeOptions
     {
         /// <summary>
         /// Creates a new instance of the <see cref="OpenIdConnectServerOptions"/> class.
         /// </summary>
         public OpenIdConnectServerOptions()
         {
-            AuthenticationScheme = OpenIdConnectServerDefaults.AuthenticationScheme;
+            Provider = new OpenIdConnectServerProvider();
         }
 
         /// <summary>
@@ -95,10 +94,28 @@ namespace AspNet.Security.OpenIdConnect.Server
         public PathString UserinfoEndpointPath { get; set; }
 
         /// <summary>
-        /// Gets or sets the <see cref="OpenIdConnectServerProvider"/> that the <see cref="OpenIdConnectServerMiddleware" />
+        /// Gets or sets the <see cref="OpenIdConnectServerProvider"/> that the OpenID Connect server
         /// invokes to enable developer control over the entire authentication/authorization process.
+        /// Note: this property is ignored when <see cref="ProviderType"/> is explicitly set.
         /// </summary>
-        public OpenIdConnectServerProvider Provider { get; set; } = new OpenIdConnectServerProvider();
+        public OpenIdConnectServerProvider Provider
+        {
+            get => (OpenIdConnectServerProvider) Events;
+            set => Events = value;
+        }
+
+        /// <summary>
+        /// Gets or sets the provider type that the OpenID Connect server handler instantiates
+        /// to enable developer control over the entire authentication/authorization process.
+        /// When this property is set, the <see cref="Provider"/> property is ignored and the provider
+        /// is resolved from the services container. If the provider is not guaranteed to be thread-safe,
+        /// registering it as a scoped dependency is strongly recommended to avoid concurrency issues.
+        /// </summary>
+        public Type ProviderType
+        {
+            get => EventsType;
+            set => EventsType = value;
+        }
 
         /// <summary>
         /// Gets or sets the ticket format used to serialize and encrypt the
@@ -174,7 +191,7 @@ namespace AspNet.Security.OpenIdConnect.Server
         /// Gets or sets the system clock used by the OpenID Connect server middleware to determine the current time.
         /// If necessary, the default instance can be replaced by a mocked clock for unit testing purposes.
         /// </summary>
-        public ISystemClock SystemClock { get; set; } = new SystemClock();
+        public ISystemClock SystemClock { get; set; }
 
         /// <summary>
         /// Gets or sets a boolean indicating whether incoming requests arriving on non-HTTPS endpoints should be rejected.
@@ -190,7 +207,7 @@ namespace AspNet.Security.OpenIdConnect.Server
 
         /// <summary>
         /// Gets or sets the data protection provider used to create the default
-        /// data protectors used by <see cref="OpenIdConnectServerMiddleware"/>.
+        /// data protectors used by the OpenID Connect server handler.
         /// When this property is set to <c>null</c>, the data protection provider
         /// is directly retrieved from the dependency injection container.
         /// </summary>

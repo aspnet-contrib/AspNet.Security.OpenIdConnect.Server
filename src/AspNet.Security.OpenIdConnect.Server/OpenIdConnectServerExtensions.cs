@@ -14,7 +14,10 @@ using System.Security.Cryptography.X509Certificates;
 using AspNet.Security.OpenIdConnect.Primitives;
 using AspNet.Security.OpenIdConnect.Server;
 using JetBrains.Annotations;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -30,19 +33,60 @@ namespace Microsoft.AspNetCore.Builder
         /// <summary>
         /// Adds a new OpenID Connect server instance in the ASP.NET Core pipeline.
         /// </summary>
-        /// <param name="app">The web application builder.</param>
+        /// <param name="builder">The authentication builder.</param>
+        /// <returns>The authentication builder.</returns>
+        public static AuthenticationBuilder AddOpenIdConnectServer([NotNull] this AuthenticationBuilder builder)
+        {
+            return builder.AddOpenIdConnectServer(OpenIdConnectServerDefaults.AuthenticationScheme);
+        }
+
+        /// <summary>
+        /// Adds a new OpenID Connect server instance in the ASP.NET Core pipeline.
+        /// </summary>
+        /// <param name="builder">The authentication builder.</param>
         /// <param name="configuration">
         /// A delegate allowing to modify the options
         /// controlling the behavior of the OpenID Connect server.
         /// </param>
-        /// <returns>The application builder.</returns>
-        public static IApplicationBuilder UseOpenIdConnectServer(
-            [NotNull] this IApplicationBuilder app,
+        /// <returns>The authentication builder.</returns>
+        public static AuthenticationBuilder AddOpenIdConnectServer(
+            [NotNull] this AuthenticationBuilder builder,
             [NotNull] Action<OpenIdConnectServerOptions> configuration)
         {
-            if (app == null)
+            return builder.AddOpenIdConnectServer(OpenIdConnectServerDefaults.AuthenticationScheme, configuration);
+        }
+
+        /// <summary>
+        /// Adds a new OpenID Connect server instance in the ASP.NET Core pipeline.
+        /// </summary>
+        /// <param name="builder">The authentication builder.</param>
+        /// <param name="scheme">The authentication scheme associated with this instance.</param>
+        /// <returns>The authentication builder.</returns>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
+        public static AuthenticationBuilder AddOpenIdConnectServer(
+            [NotNull] this AuthenticationBuilder builder, [NotNull] string scheme)
+        {
+            return builder.AddOpenIdConnectServer(scheme, options => { });
+        }
+
+        /// <summary>
+        /// Adds a new OpenID Connect server instance in the ASP.NET Core pipeline.
+        /// </summary>
+        /// <param name="builder">The authentication builder.</param>
+        /// <param name="scheme">The authentication scheme associated with this instance.</param>
+        /// <param name="configuration">
+        /// A delegate allowing to modify the options
+        /// controlling the behavior of the OpenID Connect server.
+        /// </param>
+        /// <returns>The authentication builder.</returns>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
+        public static AuthenticationBuilder AddOpenIdConnectServer(
+            [NotNull] this AuthenticationBuilder builder, [NotNull] string scheme,
+            [NotNull] Action<OpenIdConnectServerOptions> configuration)
+        {
+            if (builder == null)
             {
-                throw new ArgumentNullException(nameof(app));
+                throw new ArgumentNullException(nameof(builder));
             }
 
             if (configuration == null)
@@ -50,33 +94,17 @@ namespace Microsoft.AspNetCore.Builder
                 throw new ArgumentNullException(nameof(configuration));
             }
 
-            var options = new OpenIdConnectServerOptions();
-            configuration(options);
-
-            return app.UseMiddleware<OpenIdConnectServerMiddleware>(Options.Create(options));
-        }
-
-        /// <summary>
-        /// Adds a new OpenID Connect server instance in the ASP.NET Core pipeline.
-        /// </summary>
-        /// <param name="app">The web application builder.</param>
-        /// <param name="options">The options controlling the behavior of the OpenID Connect server.</param>
-        /// <returns>The application builder.</returns>
-        public static IApplicationBuilder UseOpenIdConnectServer(
-            [NotNull] this IApplicationBuilder app,
-            [NotNull] OpenIdConnectServerOptions options)
-        {
-            if (app == null)
+            if (string.IsNullOrEmpty(scheme))
             {
-                throw new ArgumentNullException(nameof(app));
+                throw new ArgumentException("The scheme cannot be null or empty.", nameof(scheme));
             }
 
-            if (options == null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
+            // Note: TryAddEnumerable() is used here to ensure the initializer is only registered once.
+            builder.Services.TryAddEnumerable(
+                ServiceDescriptor.Singleton<IPostConfigureOptions<OpenIdConnectServerOptions>,
+                                            OpenIdConnectServerInitializer>());
 
-            return app.UseMiddleware<OpenIdConnectServerMiddleware>(Options.Create(options));
+            return builder.AddScheme<OpenIdConnectServerOptions, OpenIdConnectServerHandler>(scheme, configuration);
         }
 
         /// <summary>
@@ -316,47 +344,23 @@ namespace Microsoft.AspNetCore.Builder
                         rsa.KeySize = 2048;
                     }
 
-#if SUPPORTS_CAPI
                     if (rsa.KeySize < 2048 && rsa is RSACryptoServiceProvider)
                     {
                         rsa.Dispose();
-
 #if SUPPORTS_CNG
                         rsa = new RSACng(2048);
 #else
                         rsa = new RSACryptoServiceProvider(2048);
 #endif
                     }
-#endif
 
                     if (rsa.KeySize < 2048)
                     {
                         throw new InvalidOperationException("The ephemeral key generation failed.");
                     }
 
-                    // Note: the RSA instance cannot be flowed as-is due to a bug in IdentityModel that disposes
-                    // the underlying algorithm when it can be cast to RSACryptoServiceProvider. To work around
-                    // this bug, the RSA public/private parameters are manually exported and re-imported when needed.
-                    SecurityKey key;
-#if SUPPORTS_CAPI
-                    if (rsa is RSACryptoServiceProvider)
-                    {
-                        var parameters = rsa.ExportParameters(includePrivateParameters: true);
-                        key = new RsaSecurityKey(parameters);
-                        key.KeyId = key.GetKeyIdentifier();
-
-                        // Dispose the algorithm instance.
-                        rsa.Dispose();
-                    }
-
-                    else
-                    {
-#endif
-                        key = new RsaSecurityKey(rsa);
-                        key.KeyId = key.GetKeyIdentifier();
-#if SUPPORTS_CAPI
-                    }
-#endif
+                    var key = new RsaSecurityKey(rsa);
+                    key.KeyId = key.GetKeyIdentifier();
 
                     credentials.Add(new SigningCredentials(key, algorithm));
 
@@ -433,7 +437,7 @@ namespace Microsoft.AspNetCore.Builder
             }
 
             // If the signing key is an asymmetric security key, ensure it has a private key.
-            if (key is AsymmetricSecurityKey && !((AsymmetricSecurityKey) key).HasPrivateKey)
+            if (key is AsymmetricSecurityKey asymmetricSecurityKey && !asymmetricSecurityKey.HasPrivateKey)
             {
                 throw new InvalidOperationException("The asymmetric signing key doesn't contain the required private key.");
             }

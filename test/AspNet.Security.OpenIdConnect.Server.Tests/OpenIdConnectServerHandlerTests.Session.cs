@@ -8,6 +8,7 @@ using System;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Client;
 using AspNet.Security.OpenIdConnect.Primitives;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
@@ -56,7 +57,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Reject(error, description, uri);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -100,16 +101,16 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public async Task InvokeLogoutEndpointAsync_ExtractLogoutRequest_AllowsSkippingToNextMiddleware()
+        public async Task InvokeLogoutEndpointAsync_ExtractLogoutRequest_AllowsSkippingHandler()
         {
             // Arrange
             var server = CreateAuthorizationServer(options =>
             {
                 options.Provider.OnExtractLogoutRequest = context =>
                 {
-                    context.SkipToNextMiddleware();
+                    context.SkipHandler();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -139,7 +140,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Reject(error, description, uri);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -183,16 +184,16 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public async Task InvokeLogoutEndpointAsync_ValidateLogoutRequest_AllowsSkippingToNextMiddleware()
+        public async Task InvokeLogoutEndpointAsync_ValidateLogoutRequest_AllowsSkippingHandler()
         {
             // Arrange
             var server = CreateAuthorizationServer(options =>
             {
                 options.Provider.OnValidateLogoutRequest = context =>
                 {
-                    context.SkipToNextMiddleware();
+                    context.SkipHandler();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -222,14 +223,14 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleLogoutRequest = context =>
                 {
                     context.Reject(error, description, uri);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -254,7 +255,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleLogoutRequest = context =>
@@ -280,7 +281,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public async Task InvokeLogoutEndpointAsync_HandleLogoutRequest_AllowsSkippingToNextMiddleware()
+        public async Task InvokeLogoutEndpointAsync_HandleLogoutRequest_AllowsSkippingHandler()
         {
             // Arrange
             var server = CreateAuthorizationServer(options =>
@@ -289,14 +290,14 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleLogoutRequest = context =>
                 {
-                    context.SkipToNextMiddleware();
+                    context.SkipHandler();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -319,14 +320,14 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleLogoutRequest = context =>
                 {
                     context.HandleResponse();
 
-                    return context.HttpContext.Authentication.SignOutAsync(
+                    return context.HttpContext.SignOutAsync(
                         OpenIdConnectServerDefaults.AuthenticationScheme);
                 };
 
@@ -362,14 +363,14 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleLogoutRequest = context =>
                 {
                     context.HandleResponse();
 
-                    return context.HttpContext.Authentication.SignOutAsync(
+                    return context.HttpContext.SignOutAsync(
                         OpenIdConnectServerDefaults.AuthenticationScheme);
                 };
 
@@ -377,7 +378,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Response["custom_parameter"] = "custom_value";
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -408,7 +409,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     context.Response.Error = null;
                     context.PostLogoutRedirectUri = "http://www.fabrikam.com/path";
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -433,7 +434,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.HandleResponse();
 
-                    return context.HttpContext.Authentication.SignOutAsync(context.Options.AuthenticationScheme);
+                    return context.HttpContext.SignOutAsync(OpenIdConnectServerDefaults.AuthenticationScheme);
                 };
             });
 
@@ -459,14 +460,14 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleLogoutRequest = context =>
                 {
                     context.HandleResponse();
 
-                    return context.HttpContext.Authentication.SignOutAsync(context.Options.AuthenticationScheme);
+                    return context.HttpContext.SignOutAsync(OpenIdConnectServerDefaults.AuthenticationScheme);
                 };
             });
 
@@ -493,21 +494,21 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleLogoutRequest = context =>
                 {
                     context.HandleResponse();
 
-                    return context.HttpContext.Authentication.SignOutAsync(context.Options.AuthenticationScheme);
+                    return context.HttpContext.SignOutAsync(OpenIdConnectServerDefaults.AuthenticationScheme);
                 };
 
                 options.Provider.OnApplyLogoutResponse = context =>
                 {
                     context.Response.State = "custom_state";
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 

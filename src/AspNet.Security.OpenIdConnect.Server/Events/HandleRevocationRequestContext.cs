@@ -21,14 +21,20 @@ namespace AspNet.Security.OpenIdConnect.Server
         /// </summary>
         public HandleRevocationRequestContext(
             HttpContext context,
+            AuthenticationScheme scheme,
             OpenIdConnectServerOptions options,
             OpenIdConnectRequest request,
             AuthenticationTicket ticket)
-            : base(context, options, request)
+            : base(context, scheme, options, request)
         {
             Ticket = ticket;
             Validate();
         }
+
+        /// <summary>
+        /// Gets the authentication ticket.
+        /// </summary>
+        public AuthenticationTicket Ticket { get; }
 
         /// <summary>
         /// Gets or sets a boolean indicating whether

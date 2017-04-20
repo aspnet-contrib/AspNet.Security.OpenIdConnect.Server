@@ -6,6 +6,7 @@
 
 using System;
 using AspNet.Security.OpenIdConnect.Primitives;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 
 namespace AspNet.Security.OpenIdConnect.Server
@@ -20,9 +21,10 @@ namespace AspNet.Security.OpenIdConnect.Server
         /// </summary>
         protected BaseValidatingClientContext(
             HttpContext context,
+            AuthenticationScheme scheme,
             OpenIdConnectServerOptions options,
             OpenIdConnectRequest request)
-            : base(context, options, request)
+            : base(context, scheme, options, request)
         {
             ClientId = request.ClientId;
         }

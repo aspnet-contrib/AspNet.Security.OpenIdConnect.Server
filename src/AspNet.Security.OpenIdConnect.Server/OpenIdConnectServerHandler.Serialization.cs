@@ -12,13 +12,12 @@ using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Http.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 
 namespace AspNet.Security.OpenIdConnect.Server
 {
-    public partial class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions>
+    public partial class OpenIdConnectServerHandler
     {
         private async Task<string> SerializeAuthorizationCodeAsync(
             ClaimsPrincipal principal, AuthenticationProperties properties,
@@ -29,7 +28,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             // that subsequent access and identity tokens are correctly filtered.
 
             // Create a new ticket containing the updated properties.
-            var ticket = new AuthenticationTicket(principal, properties, Options.AuthenticationScheme);
+            var ticket = new AuthenticationTicket(principal, properties, Scheme.Name);
             ticket.Properties.IssuedUtc = Options.SystemClock.UtcNow;
             ticket.Properties.ExpiresUtc = ticket.Properties.IssuedUtc;
             ticket.Properties.ExpiresUtc += ticket.GetAuthorizationCodeLifetime() ?? Options.AuthorizationCodeLifetime;
@@ -50,26 +49,16 @@ namespace AspNet.Security.OpenIdConnect.Server
             ticket.RemoveProperty(OpenIdConnectConstants.Properties.AuthorizationCodeLifetime)
                   .RemoveProperty(OpenIdConnectConstants.Properties.TokenUsage);
 
-            var notification = new SerializeAuthorizationCodeContext(Context, Options, request, response, ticket)
+            var notification = new SerializeAuthorizationCodeContext(Context, Scheme, Options, request, response, ticket)
             {
                 DataFormat = Options.AuthorizationCodeFormat
             };
 
-            await Options.Provider.SerializeAuthorizationCode(notification);
+            await Provider.SerializeAuthorizationCode(notification);
 
-            if (notification.HandledResponse || !string.IsNullOrEmpty(notification.AuthorizationCode))
+            if (notification.IsHandled || !string.IsNullOrEmpty(notification.AuthorizationCode))
             {
                 return notification.AuthorizationCode;
-            }
-
-            else if (notification.Skipped)
-            {
-                return null;
-            }
-
-            if (!ReferenceEquals(ticket, notification.Ticket))
-            {
-                throw new InvalidOperationException("The authentication ticket cannot be replaced.");
             }
 
             if (notification.DataFormat == null)
@@ -121,7 +110,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             var identity = (ClaimsIdentity) principal.Identity;
 
             // Create a new ticket containing the updated properties and the filtered principal.
-            var ticket = new AuthenticationTicket(principal, properties, Options.AuthenticationScheme);
+            var ticket = new AuthenticationTicket(principal, properties, Scheme.Name);
             ticket.Properties.IssuedUtc = Options.SystemClock.UtcNow;
             ticket.Properties.ExpiresUtc = ticket.Properties.IssuedUtc;
             ticket.Properties.ExpiresUtc += ticket.GetAccessTokenLifetime() ?? Options.AccessTokenLifetime;
@@ -141,7 +130,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                   .RemoveProperty(OpenIdConnectConstants.Properties.RefreshTokenLifetime)
                   .RemoveProperty(OpenIdConnectConstants.Properties.TokenUsage);
 
-            var notification = new SerializeAccessTokenContext(Context, Options, request, response, ticket)
+            var notification = new SerializeAccessTokenContext(Context, Scheme, Options, request, response, ticket)
             {
                 DataFormat = Options.AccessTokenFormat,
                 Issuer = Context.GetIssuer(Options),
@@ -150,21 +139,11 @@ namespace AspNet.Security.OpenIdConnect.Server
                                      Options.SigningCredentials.FirstOrDefault()
             };
 
-            await Options.Provider.SerializeAccessToken(notification);
+            await Provider.SerializeAccessToken(notification);
 
-            if (notification.HandledResponse || !string.IsNullOrEmpty(notification.AccessToken))
+            if (notification.IsHandled || !string.IsNullOrEmpty(notification.AccessToken))
             {
                 return notification.AccessToken;
-            }
-
-            else if (notification.Skipped)
-            {
-                return null;
-            }
-
-            if (!ReferenceEquals(ticket, notification.Ticket))
-            {
-                throw new InvalidOperationException("The authentication ticket cannot be replaced.");
             }
 
             if (notification.SecurityTokenHandler == null)
@@ -291,7 +270,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             var identity = (ClaimsIdentity) principal.Identity;
 
             // Create a new ticket containing the updated properties and the filtered principal.
-            var ticket = new AuthenticationTicket(principal, properties, Options.AuthenticationScheme);
+            var ticket = new AuthenticationTicket(principal, properties, Scheme.Name);
             ticket.Properties.IssuedUtc = Options.SystemClock.UtcNow;
             ticket.Properties.ExpiresUtc = ticket.Properties.IssuedUtc;
             ticket.Properties.ExpiresUtc += ticket.GetIdentityTokenLifetime() ?? Options.IdentityTokenLifetime;
@@ -311,28 +290,18 @@ namespace AspNet.Security.OpenIdConnect.Server
 
             ticket.SetAudiences(ticket.GetPresenters());
 
-            var notification = new SerializeIdentityTokenContext(Context, Options, request, response, ticket)
+            var notification = new SerializeIdentityTokenContext(Context, Scheme, Options, request, response, ticket)
             {
                 Issuer = Context.GetIssuer(Options),
                 SecurityTokenHandler = Options.IdentityTokenHandler,
                 SigningCredentials = Options.SigningCredentials.FirstOrDefault(key => key.Key is AsymmetricSecurityKey)
             };
 
-            await Options.Provider.SerializeIdentityToken(notification);
+            await Provider.SerializeIdentityToken(notification);
 
-            if (notification.HandledResponse || !string.IsNullOrEmpty(notification.IdentityToken))
+            if (notification.IsHandled || !string.IsNullOrEmpty(notification.IdentityToken))
             {
                 return notification.IdentityToken;
-            }
-
-            else if (notification.Skipped)
-            {
-                return null;
-            }
-
-            if (!ReferenceEquals(ticket, notification.Ticket))
-            {
-                throw new InvalidOperationException("The authentication ticket cannot be replaced.");
             }
 
             if (notification.SecurityTokenHandler == null)
@@ -467,7 +436,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             // that subsequent access and identity tokens are correctly filtered.
 
             // Create a new ticket containing the updated properties.
-            var ticket = new AuthenticationTicket(principal, properties, Options.AuthenticationScheme);
+            var ticket = new AuthenticationTicket(principal, properties, Scheme.Name);
             ticket.Properties.IssuedUtc = Options.SystemClock.UtcNow;
             ticket.Properties.ExpiresUtc = ticket.Properties.IssuedUtc;
             ticket.Properties.ExpiresUtc += ticket.GetRefreshTokenLifetime() ?? Options.RefreshTokenLifetime;
@@ -483,26 +452,16 @@ namespace AspNet.Security.OpenIdConnect.Server
                   .RemoveProperty(OpenIdConnectConstants.Properties.OriginalRedirectUri)
                   .RemoveProperty(OpenIdConnectConstants.Properties.TokenUsage);
 
-            var notification = new SerializeRefreshTokenContext(Context, Options, request, response, ticket)
+            var notification = new SerializeRefreshTokenContext(Context, Scheme, Options, request, response, ticket)
             {
                 DataFormat = Options.RefreshTokenFormat
             };
 
-            await Options.Provider.SerializeRefreshToken(notification);
+            await Provider.SerializeRefreshToken(notification);
 
-            if (notification.HandledResponse || !string.IsNullOrEmpty(notification.RefreshToken))
+            if (notification.IsHandled || !string.IsNullOrEmpty(notification.RefreshToken))
             {
                 return notification.RefreshToken;
-            }
-
-            else if (notification.Skipped)
-            {
-                return null;
-            }
-
-            if (!ReferenceEquals(ticket, notification.Ticket))
-            {
-                throw new InvalidOperationException("The authentication ticket cannot be replaced.");
             }
 
             if (notification.DataFormat == null)
@@ -521,23 +480,18 @@ namespace AspNet.Security.OpenIdConnect.Server
 
         private async Task<AuthenticationTicket> DeserializeAuthorizationCodeAsync(string code, OpenIdConnectRequest request)
         {
-            var notification = new DeserializeAuthorizationCodeContext(Context, Options, request, code)
+            var notification = new DeserializeAuthorizationCodeContext(Context, Scheme, Options, request, code)
             {
                 DataFormat = Options.AuthorizationCodeFormat
             };
 
-            await Options.Provider.DeserializeAuthorizationCode(notification);
+            await Provider.DeserializeAuthorizationCode(notification);
 
-            if (notification.HandledResponse || notification.Ticket != null)
+            if (notification.IsHandled || notification.Ticket != null)
             {
-                notification.Ticket.SetTokenUsage(OpenIdConnectConstants.TokenUsages.AuthorizationCode);
+                notification.Ticket?.SetTokenUsage(OpenIdConnectConstants.TokenUsages.AuthorizationCode);
 
                 return notification.Ticket;
-            }
-
-            else if (notification.Skipped)
-            {
-                return null;
             }
 
             if (notification.DataFormat == null)
@@ -566,7 +520,7 @@ namespace AspNet.Security.OpenIdConnect.Server
 
         private async Task<AuthenticationTicket> DeserializeAccessTokenAsync(string token, OpenIdConnectRequest request)
         {
-            var notification = new DeserializeAccessTokenContext(Context, Options, request, token)
+            var notification = new DeserializeAccessTokenContext(Context, Scheme, Options, request, token)
             {
                 DataFormat = Options.AccessTokenFormat,
                 SecurityTokenHandler = Options.AccessTokenHandler
@@ -585,18 +539,13 @@ namespace AspNet.Security.OpenIdConnect.Server
                 ValidateLifetime = false
             };
 
-            await Options.Provider.DeserializeAccessToken(notification);
+            await Provider.DeserializeAccessToken(notification);
 
-            if (notification.HandledResponse || notification.Ticket != null)
+            if (notification.IsHandled || notification.Ticket != null)
             {
-                notification.Ticket.SetTokenUsage(OpenIdConnectConstants.TokenUsages.AccessToken);
+                notification.Ticket?.SetTokenUsage(OpenIdConnectConstants.TokenUsages.AccessToken);
 
                 return notification.Ticket;
-            }
-
-            else if (notification.Skipped)
-            {
-                return null;
             }
 
             var handler = notification.SecurityTokenHandler as ISecurityTokenValidator;
@@ -657,7 +606,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                 IssuedUtc = securityToken.ValidFrom
             };
 
-            var ticket = new AuthenticationTicket(principal, properties, Options.AuthenticationScheme)
+            var ticket = new AuthenticationTicket(principal, properties, Scheme.Name)
                 .SetAudiences(principal.FindAll(OpenIdConnectConstants.Claims.Audience).Select(claim => claim.Value))
                 .SetConfidentialityLevel(principal.GetClaim(OpenIdConnectConstants.Claims.ConfidentialityLevel))
                 .SetPresenters(principal.FindAll(OpenIdConnectConstants.Claims.AuthorizedParty).Select(claim => claim.Value))
@@ -682,7 +631,7 @@ namespace AspNet.Security.OpenIdConnect.Server
 
         private async Task<AuthenticationTicket> DeserializeIdentityTokenAsync(string token, OpenIdConnectRequest request)
         {
-            var notification = new DeserializeIdentityTokenContext(Context, Options, request, token)
+            var notification = new DeserializeIdentityTokenContext(Context, Scheme, Options, request, token)
             {
                 SecurityTokenHandler = Options.IdentityTokenHandler
             };
@@ -702,18 +651,13 @@ namespace AspNet.Security.OpenIdConnect.Server
                 ValidateLifetime = false
             };
 
-            await Options.Provider.DeserializeIdentityToken(notification);
+            await Provider.DeserializeIdentityToken(notification);
 
-            if (notification.HandledResponse || notification.Ticket != null)
+            if (notification.IsHandled || notification.Ticket != null)
             {
-                notification.Ticket.SetTokenUsage(OpenIdConnectConstants.TokenUsages.IdToken);
+                notification.Ticket?.SetTokenUsage(OpenIdConnectConstants.TokenUsages.IdToken);
 
                 return notification.Ticket;
-            }
-
-            else if (notification.Skipped)
-            {
-                return null;
             }
 
             if (notification.SecurityTokenHandler == null)
@@ -752,7 +696,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                 IssuedUtc = securityToken.ValidFrom
             };
 
-            var ticket = new AuthenticationTicket(principal, properties, Options.AuthenticationScheme)
+            var ticket = new AuthenticationTicket(principal, properties, Scheme.Name)
                 .SetAudiences(principal.FindAll(OpenIdConnectConstants.Claims.Audience).Select(claim => claim.Value))
                 .SetConfidentialityLevel(principal.GetClaim(OpenIdConnectConstants.Claims.ConfidentialityLevel))
                 .SetPresenters(principal.FindAll(OpenIdConnectConstants.Claims.AuthorizedParty).Select(claim => claim.Value))
@@ -776,23 +720,18 @@ namespace AspNet.Security.OpenIdConnect.Server
 
         private async Task<AuthenticationTicket> DeserializeRefreshTokenAsync(string token, OpenIdConnectRequest request)
         {
-            var notification = new DeserializeRefreshTokenContext(Context, Options, request, token)
+            var notification = new DeserializeRefreshTokenContext(Context, Scheme, Options, request, token)
             {
                 DataFormat = Options.RefreshTokenFormat
             };
 
-            await Options.Provider.DeserializeRefreshToken(notification);
+            await Provider.DeserializeRefreshToken(notification);
 
-            if (notification.HandledResponse || notification.Ticket != null)
+            if (notification.IsHandled || notification.Ticket != null)
             {
-                notification.Ticket.SetTokenUsage(OpenIdConnectConstants.TokenUsages.RefreshToken);
+                notification.Ticket?.SetTokenUsage(OpenIdConnectConstants.TokenUsages.RefreshToken);
 
                 return notification.Ticket;
-            }
-
-            else if (notification.Skipped)
-            {
-                return null;
             }
 
             if (notification.DataFormat == null)

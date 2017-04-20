@@ -21,7 +21,7 @@ namespace Nancy.Server.Providers
                 context.MatchAuthorizationEndpoint();
             }
 
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
 
         public override async Task ValidateAuthorizationRequest(ValidateAuthorizationRequestContext context)

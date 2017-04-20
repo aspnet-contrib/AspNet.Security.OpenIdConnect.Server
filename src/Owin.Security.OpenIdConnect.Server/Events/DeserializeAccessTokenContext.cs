@@ -4,12 +4,10 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
-using System;
 using System.IdentityModel.Tokens;
 using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
-using Microsoft.Owin.Security.Notifications;
 
 namespace Owin.Security.OpenIdConnect.Server
 {
@@ -17,7 +15,7 @@ namespace Owin.Security.OpenIdConnect.Server
     /// Represents the context class associated with the
     /// <see cref="OpenIdConnectServerProvider.DeserializeAccessToken"/> event.
     /// </summary>
-    public class DeserializeAccessTokenContext : BaseNotification<OpenIdConnectServerOptions>
+    public class DeserializeAccessTokenContext : BaseDeserializingContext
     {
         /// <summary>
         /// Creates a new instance of the <see cref="DeserializeAccessTokenContext"/> class.
@@ -27,29 +25,10 @@ namespace Owin.Security.OpenIdConnect.Server
             OpenIdConnectServerOptions options,
             OpenIdConnectRequest request,
             string token)
-            : base(context, options)
+            : base(context, options, request)
         {
-            Request = request;
             AccessToken = token;
         }
-
-        /// <summary>
-        /// Gets the OpenID Connect request.
-        /// </summary>
-        public new OpenIdConnectRequest Request { get; }
-
-        /// <summary>
-        /// Gets the OpenID Connect response.
-        /// </summary>
-        public new OpenIdConnectResponse Response
-        {
-            get => throw new InvalidOperationException("The OpenID Connect response is not available at this stage.");
-        }
-
-        /// <summary>
-        /// Gets or sets the authentication ticket.
-        /// </summary>
-        public AuthenticationTicket Ticket { get; set; }
 
         /// <summary>
         /// Gets or sets the validation parameters used to verify the authenticity of access tokens.

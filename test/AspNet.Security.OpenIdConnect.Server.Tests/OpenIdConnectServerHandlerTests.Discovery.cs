@@ -63,7 +63,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Reject(error, description, uri);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -107,16 +107,16 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public async Task InvokeConfigurationEndpointAsync_ExtractConfigurationRequest_AllowsSkippingToNextMiddleware()
+        public async Task InvokeConfigurationEndpointAsync_ExtractConfigurationRequest_AllowsSkippingHandler()
         {
             // Arrange
             var server = CreateAuthorizationServer(options =>
             {
                 options.Provider.OnExtractConfigurationRequest = context =>
                 {
-                    context.SkipToNextMiddleware();
+                    context.SkipHandler();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -146,7 +146,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Reject(error, description, uri);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -190,16 +190,16 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public async Task InvokeConfigurationEndpointAsync_ValidateConfigurationRequest_AllowsSkippingToNextMiddleware()
+        public async Task InvokeConfigurationEndpointAsync_ValidateConfigurationRequest_AllowsSkippingHandler()
         {
             // Arrange
             var server = CreateAuthorizationServer(options =>
             {
                 options.Provider.OnValidateConfigurationRequest = context =>
                 {
-                    context.SkipToNextMiddleware();
+                    context.SkipHandler();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -714,14 +714,14 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleConfigurationRequest = context =>
                 {
                     context.Reject(error, description, uri);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -746,7 +746,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleConfigurationRequest = context =>
@@ -772,7 +772,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public async Task InvokeConfigurationEndpointAsync_HandleConfigurationRequest_AllowsSkippingToNextMiddleware()
+        public async Task InvokeConfigurationEndpointAsync_HandleConfigurationRequest_AllowsSkippingHandler()
         {
             // Arrange
             var server = CreateAuthorizationServer(options =>
@@ -781,14 +781,14 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleConfigurationRequest = context =>
                 {
-                    context.SkipToNextMiddleware();
+                    context.SkipHandler();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -811,7 +811,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnApplyConfigurationResponse = context =>
@@ -846,7 +846,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Response["custom_parameter"] = "custom_value";
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -898,7 +898,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Reject(error, description, uri);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -942,16 +942,16 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public async Task InvokeCryptographyEndpointAsync_ExtractCryptographyRequest_AllowsSkippingToNextMiddleware()
+        public async Task InvokeCryptographyEndpointAsync_ExtractCryptographyRequest_AllowsSkippingHandler()
         {
             // Arrange
             var server = CreateAuthorizationServer(options =>
             {
                 options.Provider.OnExtractCryptographyRequest = context =>
                 {
-                    context.SkipToNextMiddleware();
+                    context.SkipHandler();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -981,7 +981,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Reject(error, description, uri);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1025,16 +1025,16 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public async Task InvokeCryptographyEndpointAsync_ValidateCryptographyRequest_AllowsSkippingToNextMiddleware()
+        public async Task InvokeCryptographyEndpointAsync_ValidateCryptographyRequest_AllowsSkippingHandler()
         {
             // Arrange
             var server = CreateAuthorizationServer(options =>
             {
                 options.Provider.OnValidateCryptographyRequest = context =>
                 {
-                    context.SkipToNextMiddleware();
+                    context.SkipHandler();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1207,14 +1207,14 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleCryptographyRequest = context =>
                 {
                     context.Reject(error, description, uri);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1239,7 +1239,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleCryptographyRequest = context =>
@@ -1265,7 +1265,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public async Task InvokeCryptographyEndpointAsync_HandleCryptographyRequest_AllowsSkippingToNextMiddleware()
+        public async Task InvokeCryptographyEndpointAsync_HandleCryptographyRequest_AllowsSkippingHandler()
         {
             // Arrange
             var server = CreateAuthorizationServer(options =>
@@ -1274,14 +1274,14 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleCryptographyRequest = context =>
                 {
-                    context.SkipToNextMiddleware();
+                    context.SkipHandler();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1304,7 +1304,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnApplyCryptographyResponse = context =>
@@ -1339,7 +1339,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Response["custom_parameter"] = "custom_value";
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 

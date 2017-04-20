@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
-using Mvc.Server.Extensions;
 using Mvc.Server.Models;
 using Mvc.Server.Providers;
 
@@ -15,78 +14,42 @@ namespace Mvc.Server
     {
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddEntityFramework()
-                .AddEntityFrameworkInMemoryDatabase()
+            services.AddEntityFrameworkInMemoryDatabase()
                 .AddDbContext<ApplicationContext>(options =>
                 {
-                    options.UseInMemoryDatabase();
+                    options.UseInMemoryDatabase(nameof(ApplicationContext));
                 });
 
             services.AddAuthentication(options =>
             {
-                options.SignInScheme = "ServerCookie";
-            });
+                options.DefaultScheme = "ServerCookie";
+            })
 
-            services.AddMvc();
-
-            services.AddDistributedMemoryCache();
-        }
-
-        public void Configure(IApplicationBuilder app)
-        {
-            app.UseDeveloperExceptionPage();
-
-            // Create a new branch where the registered middleware will be executed only for API calls.
-            app.UseWhen(context => context.Request.Path.StartsWithSegments(new PathString("/api")), branch =>
+            .AddCookie("ServerCookie", options =>
             {
-                branch.UseOAuthValidation();
+                options.Cookie.Name = CookieAuthenticationDefaults.CookiePrefix + "ServerCookie";
+                options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
+                options.LoginPath = new PathString("/signin");
+                options.LogoutPath = new PathString("/signout");
+            })
 
-                // Alternatively, you can also use the introspection middleware.
-                // Using it is recommended if your resource server is in a
-                // different application/separated from the authorization server.
-                //
-                // branch.UseOAuthIntrospection(options =>
-                // {
-                //     options.Authority = new Uri("http://localhost:54540/");
-                //     options.Audiences.Add("resource_server");
-                //     options.ClientId = "resource_server";
-                //     options.ClientSecret = "875sqd4s5d748z78z7ds1ff8zz8814ff88ed8ea4z4zzd";
-                //     options.RequireHttpsMetadata = false;
-                // });
-            });
-
-            // Create a new branch where the registered middleware will be executed only for non API calls.
-            app.UseWhen(context => !context.Request.Path.StartsWithSegments(new PathString("/api")), branch =>
+            .AddGoogle(options =>
             {
-                // Insert a new cookies middleware in the pipeline to store
-                // the user identity returned by the external identity provider.
-                branch.UseCookieAuthentication(new CookieAuthenticationOptions
-                {
-                    AutomaticAuthenticate = true,
-                    AutomaticChallenge = true,
-                    AuthenticationScheme = "ServerCookie",
-                    CookieName = CookieAuthenticationDefaults.CookiePrefix + "ServerCookie",
-                    ExpireTimeSpan = TimeSpan.FromMinutes(5),
-                    LoginPath = new PathString("/signin"),
-                    LogoutPath = new PathString("/signout")
-                });
+                options.ClientId = "560027070069-37ldt4kfuohhu3m495hk2j4pjp92d382.apps.googleusercontent.com";
+                options.ClientSecret = "n2Q-GEw9RQjzcRbU3qhfTj8f";
+            })
 
-                branch.UseGoogleAuthentication(new GoogleOptions
-                {
-                    ClientId = "560027070069-37ldt4kfuohhu3m495hk2j4pjp92d382.apps.googleusercontent.com",
-                    ClientSecret = "n2Q-GEw9RQjzcRbU3qhfTj8f"
-                });
-
-                branch.UseTwitterAuthentication(new TwitterOptions
-                {
-                    ConsumerKey = "6XaCTaLbMqfj6ww3zvZ5g",
-                    ConsumerSecret = "Il2eFzGIrYhz6BWjYhVXBPQSfZuS4xoHpSSyD9PI"
-                });
-            });
-
-            app.UseOpenIdConnectServer(options =>
+            .AddTwitter(options =>
             {
-                options.Provider = new AuthorizationProvider();
+                options.ConsumerKey = "6XaCTaLbMqfj6ww3zvZ5g";
+                options.ConsumerSecret = "Il2eFzGIrYhz6BWjYhVXBPQSfZuS4xoHpSSyD9PI";
+            })
+
+            .AddOAuthValidation()
+
+            .AddOpenIdConnectServer(options =>
+            {
+                options.ProviderType = typeof(AuthorizationProvider);
 
                 // Enable the authorization, logout, token and userinfo endpoints.
                 options.AuthorizationEndpointPath = "/connect/authorize";
@@ -130,6 +93,19 @@ namespace Mvc.Server
                 //     password: "Owin.Security.OpenIdConnect.Server");
             });
 
+            services.AddScoped<AuthorizationProvider>();
+
+            services.AddMvc();
+
+            services.AddDistributedMemoryCache();
+        }
+
+        public void Configure(IApplicationBuilder app)
+        {
+            app.UseDeveloperExceptionPage();
+
+            app.UseAuthentication();
+
             app.UseStaticFiles();
 
             app.UseMvc();
@@ -153,7 +129,7 @@ namespace Mvc.Server
                     ApplicationID = "myClient",
                     DisplayName = "My client application",
                     RedirectUri = "http://localhost:53507/signin-oidc",
-                    LogoutRedirectUri = "http://localhost:53507/",
+                    LogoutRedirectUri = "http://localhost:53507/signout-callback-oidc",
                     Secret = "secret_secret_secret"
                 });
 

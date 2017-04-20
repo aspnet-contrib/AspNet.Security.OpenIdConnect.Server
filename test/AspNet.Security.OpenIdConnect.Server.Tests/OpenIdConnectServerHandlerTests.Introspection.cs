@@ -14,7 +14,6 @@ using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Authentication;
 using Microsoft.Net.Http.Headers;
 using Moq;
 using Newtonsoft.Json;
@@ -64,7 +63,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Reject(error, description, uri);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -108,16 +107,16 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public async Task InvokeIntrospectionEndpointAsync_ExtractIntrospectionRequest_AllowsSkippingToNextMiddleware()
+        public async Task InvokeIntrospectionEndpointAsync_ExtractIntrospectionRequest_AllowsSkippingHandler()
         {
             // Arrange
             var server = CreateAuthorizationServer(options =>
             {
                 options.Provider.OnExtractIntrospectionRequest = context =>
                 {
-                    context.SkipToNextMiddleware();
+                    context.SkipHandler();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -159,7 +158,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.HttpContext.Request.Headers[HeaderNames.Authorization] = "Basic czZCaGRSa3F0MzpnWDFmQmF0M2JW";
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -195,7 +194,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Reject(error, description, uri);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -245,16 +244,16 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public async Task InvokeIntrospectionEndpointAsync_ValidateIntrospectionRequest_AllowsSkippingToNextMiddleware()
+        public async Task InvokeIntrospectionEndpointAsync_ValidateIntrospectionRequest_AllowsSkippingHandler()
         {
             // Arrange
             var server = CreateAuthorizationServer(options =>
             {
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
-                    context.SkipToNextMiddleware();
+                    context.SkipHandler();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -280,7 +279,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -310,7 +309,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate("Contoso");
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -340,7 +339,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -369,20 +368,20 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     // Mark the refresh token as private.
                     context.Ticket.SetProperty(OpenIdConnectConstants.Properties.ConfidentialityLevel,
                                                OpenIdConnectConstants.ConfidentialityLevels.Private);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -412,18 +411,18 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     context.Ticket.Properties.ExpiresUtc = context.Options.SystemClock.UtcNow - TimeSpan.FromDays(1);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -453,18 +452,18 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     context.Ticket.SetPresenters("Contoso");
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -495,19 +494,19 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     context.Ticket.SetAudiences("AdventureWorks");
                     context.Ticket.SetPresenters("Contoso");
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -538,18 +537,18 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     context.Ticket.SetAudiences("AdventureWorks");
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -580,18 +579,18 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     context.Ticket.SetPresenters("Contoso");
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -625,13 +624,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     Assert.Equal("2YotnFZFEjr1zCsicMWpAA", context.AccessToken);
 
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     context.Ticket.SetAudiences("Fabrikam");
                     context.Ticket.SetPresenters("Contoso", "AdventureWorks Cycles");
@@ -640,14 +639,14 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     context.Ticket.Properties.IssuedUtc = new DateTimeOffset(2016, 1, 1, 0, 0, 0, TimeSpan.Zero);
                     context.Ticket.Properties.ExpiresUtc = new DateTimeOffset(2017, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -685,14 +684,14 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     Assert.Equal("2YotnFZFEjr1zCsicMWpAA", context.AuthorizationCode);
 
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Username, "Bob");
                     identity.AddClaim("custom_claim", "secret_value");
 
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     return Task.FromResult(0);
                 };
@@ -731,14 +730,14 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     Assert.Equal("2YotnFZFEjr1zCsicMWpAA", context.RefreshToken);
 
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Username, "Bob");
                     identity.AddClaim("custom_claim", "secret_value");
 
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     return Task.FromResult(0);
                 };
@@ -777,28 +776,28 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     Assert.Equal("2YotnFZFEjr1zCsicMWpAA", context.AccessToken);
 
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Username, "Bob");
                     identity.AddClaim("custom_claim", "secret_value");
 
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     context.Ticket.SetAudiences("Contoso");
                     context.Ticket.SetPresenters("Contoso", "AdventureWorks Cycles");
                     context.Ticket.SetScopes(OpenIdConnectConstants.Scopes.OpenId,
                                              OpenIdConnectConstants.Scopes.Profile);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -828,14 +827,14 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     Assert.Equal("2YotnFZFEjr1zCsicMWpAA", context.IdentityToken);
 
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Username, "Bob");
                     identity.AddClaim("custom_claim", "secret_value");
 
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     context.Ticket.SetAudiences("Fabrikam");
 
@@ -875,28 +874,28 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     Assert.Equal("2YotnFZFEjr1zCsicMWpAA", context.AccessToken);
 
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Username, "Bob");
                     identity.AddClaim("custom_claim", "secret_value");
 
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     context.Ticket.SetAudiences("Fabrikam");
                     context.Ticket.SetPresenters("Contoso", "AdventureWorks Cycles");
                     context.Ticket.SetScopes(OpenIdConnectConstants.Scopes.OpenId,
                                              OpenIdConnectConstants.Scopes.Profile);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -927,14 +926,14 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     Assert.Equal("2YotnFZFEjr1zCsicMWpAA", context.IdentityToken);
 
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(OpenIdConnectConstants.Claims.Username, "Bob");
                     identity.AddClaim("custom_claim", "secret_value");
 
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
                     context.Ticket.SetAudiences("Fabrikam");
 
@@ -975,7 +974,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     Assert.Equal("2YotnFZFEjr1zCsicMWpAA", context.AccessToken);
 
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(new Claim("boolean_claim", "true", ClaimValueTypes.Boolean));
                     identity.AddClaim(new Claim("integer_claim", "42", ClaimValueTypes.Integer));
                     identity.AddClaim(new Claim("array_claim", @"[""Contoso"",""Fabrikam""]", JsonClaimValueTypes.JsonArray));
@@ -984,16 +983,16 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1029,7 +1028,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     Assert.Equal("2YotnFZFEjr1zCsicMWpAA", context.AccessToken);
 
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(new Claim("boolean_claim", "Contoso", ClaimValueTypes.Boolean));
                     identity.AddClaim(new Claim("integer_claim", "Contoso", ClaimValueTypes.Integer));
                     identity.AddClaim(new Claim("array_claim", "Contoso", JsonClaimValueTypes.JsonArray));
@@ -1038,16 +1037,16 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1083,7 +1082,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     Assert.Equal("2YotnFZFEjr1zCsicMWpAA", context.AccessToken);
 
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
                     identity.AddClaim(new Claim("boolean_claim", "true", ClaimValueTypes.Boolean));
                     identity.AddClaim(new Claim("boolean_claim", "false", ClaimValueTypes.Boolean));
 
@@ -1099,16 +1098,16 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(identity),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1158,23 +1157,23 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleIntrospectionRequest = context =>
                 {
                     context.Reject(error, description, uri);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1205,16 +1204,16 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleIntrospectionRequest = context =>
@@ -1243,7 +1242,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public async Task InvokeIntrospectionEndpointAsync_HandleIntrospectionRequest_AllowsSkippingToNextMiddleware()
+        public async Task InvokeIntrospectionEndpointAsync_HandleIntrospectionRequest_AllowsSkippingHandler()
         {
             // Arrange
             var server = CreateAuthorizationServer(options =>
@@ -1255,23 +1254,23 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleIntrospectionRequest = context =>
                 {
-                    context.SkipToNextMiddleware();
+                    context.SkipHandler();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1300,16 +1299,16 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnApplyIntrospectionResponse = context =>
@@ -1350,23 +1349,23 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     context.Ticket = new AuthenticationTicket(
                         new ClaimsPrincipal(),
                         new AuthenticationProperties(),
-                        context.Options.AuthenticationScheme);
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnApplyIntrospectionResponse = context =>
                 {
                     context.Response["custom_parameter"] = "custom_value";
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 

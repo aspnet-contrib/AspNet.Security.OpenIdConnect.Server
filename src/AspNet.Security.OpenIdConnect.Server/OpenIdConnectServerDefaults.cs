@@ -4,7 +4,7 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
-using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Authentication;
 
 namespace AspNet.Security.OpenIdConnect.Server
 {
@@ -14,7 +14,7 @@ namespace AspNet.Security.OpenIdConnect.Server
     public static class OpenIdConnectServerDefaults
     {
         /// <summary>
-        /// Default value for <see cref="AuthenticationOptions.AuthenticationScheme"/>.
+        /// Default value for <see cref="AuthenticationScheme.Name"/>.
         /// </summary>
         public const string AuthenticationScheme = "ASOS";
     }

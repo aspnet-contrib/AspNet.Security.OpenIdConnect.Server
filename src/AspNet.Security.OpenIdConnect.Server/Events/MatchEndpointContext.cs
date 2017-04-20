@@ -13,15 +13,16 @@ namespace AspNet.Security.OpenIdConnect.Server
     /// Represents the context class associated with the
     /// <see cref="OpenIdConnectServerProvider.MatchEndpoint"/> event.
     /// </summary>
-    public class MatchEndpointContext : BaseControlContext
+    public class MatchEndpointContext : HandleRequestContext<OpenIdConnectServerOptions>
     {
         /// <summary>
         /// Creates a new instance of the <see cref="MatchEndpointContext"/> class.
         /// </summary>
         public MatchEndpointContext(
             HttpContext context,
+            AuthenticationScheme scheme,
             OpenIdConnectServerOptions options)
-            : base(context)
+            : base(context, scheme, options)
         {
         }
 

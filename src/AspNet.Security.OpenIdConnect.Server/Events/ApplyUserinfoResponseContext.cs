@@ -14,27 +14,22 @@ namespace AspNet.Security.OpenIdConnect.Server
     /// Represents the context class associated with the
     /// <see cref="OpenIdConnectServerProvider.ApplyUserinfoResponse"/> event.
     /// </summary>
-    public class ApplyUserinfoResponseContext : BaseControlContext
+    public class ApplyUserinfoResponseContext : HandleRequestContext<OpenIdConnectServerOptions>
     {
         /// <summary>
         /// Creates a new instance of the <see cref="ApplyUserinfoResponseContext"/> class.
         /// </summary>
         public ApplyUserinfoResponseContext(
             HttpContext context,
+            AuthenticationScheme scheme,
             OpenIdConnectServerOptions options,
             OpenIdConnectRequest request,
             OpenIdConnectResponse response)
-            : base(context)
+            : base(context, scheme, options)
         {
-            Options = options;
             Request = request;
             Response = response;
         }
-
-        /// <summary>
-        /// Gets the options used by the OpenID Connect server.
-        /// </summary>
-        public OpenIdConnectServerOptions Options { get; }
 
         /// <summary>
         /// Gets the userinfo request.

@@ -14,7 +14,7 @@ using Microsoft.Extensions.Logging;
 
 namespace AspNet.Security.OpenIdConnect.Server
 {
-    public partial class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions>
+    public partial class OpenIdConnectServerHandler
     {
         private async Task<bool> InvokeRevocationEndpointAsync()
         {
@@ -65,21 +65,24 @@ namespace AspNet.Security.OpenIdConnect.Server
             // Insert the revocation request in the ASP.NET context.
             Context.SetOpenIdConnectRequest(request);
 
-            var @event = new ExtractRevocationRequestContext(Context, Options, request);
-            await Options.Provider.ExtractRevocationRequest(@event);
+            var @event = new ExtractRevocationRequestContext(Context, Scheme, Options, request);
+            await Provider.ExtractRevocationRequest(@event);
 
-            if (@event.HandledResponse)
+            if (@event.Result != null)
             {
-                Logger.LogDebug("The revocation request was handled in user code.");
+                if (@event.Result.Handled)
+                {
+                    Logger.LogDebug("The revocation request was handled in user code.");
 
-                return true;
-            }
+                    return true;
+                }
 
-            else if (@event.Skipped)
-            {
-                Logger.LogDebug("The default revocation request handling was skipped from user code.");
+                else if (@event.Result.Skipped)
+                {
+                    Logger.LogDebug("The default revocation request handling was skipped from user code.");
 
-                return false;
+                    return false;
+                }
             }
 
             else if (@event.IsRejected)
@@ -131,8 +134,8 @@ namespace AspNet.Security.OpenIdConnect.Server
                 request.ClientSecret = credentials?.Value;
             }
 
-            var context = new ValidateRevocationRequestContext(Context, Options, request);
-            await Options.Provider.ValidateRevocationRequest(context);
+            var context = new ValidateRevocationRequestContext(Context, Scheme, Options, request);
+            await Provider.ValidateRevocationRequest(context);
 
             // If the validation context was set as fully validated,
             // mark the OpenID Connect request as confidential.
@@ -142,18 +145,21 @@ namespace AspNet.Security.OpenIdConnect.Server
                                     OpenIdConnectConstants.ConfidentialityLevels.Private);
             }
 
-            if (context.HandledResponse)
+            if (context.Result != null)
             {
-                Logger.LogDebug("The revocation request was handled in user code.");
+                if (context.Result.Handled)
+                {
+                    Logger.LogDebug("The revocation request was handled in user code.");
 
-                return true;
-            }
+                    return true;
+                }
 
-            else if (context.Skipped)
-            {
-                Logger.LogDebug("The default revocation request handling was skipped from user code.");
+                else if (context.Result.Skipped)
+                {
+                    Logger.LogDebug("The default revocation request handling was skipped from user code.");
 
-                return false;
+                    return false;
+                }
             }
 
             else if (context.IsRejected)
@@ -293,21 +299,24 @@ namespace AspNet.Security.OpenIdConnect.Server
                 }
             }
 
-            var notification = new HandleRevocationRequestContext(Context, Options, request, ticket);
-            await Options.Provider.HandleRevocationRequest(notification);
+            var notification = new HandleRevocationRequestContext(Context, Scheme, Options, request, ticket);
+            await Provider.HandleRevocationRequest(notification);
 
-            if (notification.HandledResponse)
+            if (notification.Result != null)
             {
-                Logger.LogDebug("The revocation request was handled in user code.");
+                if (notification.Result.Handled)
+                {
+                    Logger.LogDebug("The revocation request was handled in user code.");
 
-                return true;
-            }
+                    return true;
+                }
 
-            else if (notification.Skipped)
-            {
-                Logger.LogDebug("The default revocation request handling was skipped from user code.");
+                else if (notification.Result.Skipped)
+                {
+                    Logger.LogDebug("The default revocation request handling was skipped from user code.");
 
-                return false;
+                    return false;
+                }
             }
 
             else if (notification.IsRejected)
@@ -344,21 +353,24 @@ namespace AspNet.Security.OpenIdConnect.Server
             response.SetProperty(OpenIdConnectConstants.Properties.MessageType,
                                  OpenIdConnectConstants.MessageTypes.RevocationResponse);
 
-            var notification = new ApplyRevocationResponseContext(Context, Options, request, response);
-            await Options.Provider.ApplyRevocationResponse(notification);
+            var notification = new ApplyRevocationResponseContext(Context, Scheme, Options, request, response);
+            await Provider.ApplyRevocationResponse(notification);
 
-            if (notification.HandledResponse)
+            if (notification.Result != null)
             {
-                Logger.LogDebug("The revocation request was handled in user code.");
+                if (notification.Result.Handled)
+                {
+                    Logger.LogDebug("The revocation request was handled in user code.");
 
-                return true;
-            }
+                    return true;
+                }
 
-            else if (notification.Skipped)
-            {
-                Logger.LogDebug("The default revocation request handling was skipped from user code.");
+                else if (notification.Result.Skipped)
+                {
+                    Logger.LogDebug("The default revocation request handling was skipped from user code.");
 
-                return false;
+                    return false;
+                }
             }
 
             Logger.LogInformation("The revocation response was successfully returned: {Response}.", response);

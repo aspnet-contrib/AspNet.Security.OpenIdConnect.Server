@@ -16,12 +16,11 @@ using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Protocols;
-using Microsoft.Owin.Security.Infrastructure;
 using Newtonsoft.Json.Linq;
 
 namespace Owin.Security.OpenIdConnect.Server
 {
-    public partial class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions>
+    public partial class OpenIdConnectServerHandler
     {
         private async Task<bool> InvokeConfigurationEndpointAsync()
         {

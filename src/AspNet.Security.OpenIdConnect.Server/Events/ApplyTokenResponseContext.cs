@@ -14,29 +14,24 @@ namespace AspNet.Security.OpenIdConnect.Server
     /// Represents the context class associated with the
     /// <see cref="OpenIdConnectServerProvider.ApplyTokenResponse"/> event.
     /// </summary>
-    public class ApplyTokenResponseContext : BaseControlContext
+    public class ApplyTokenResponseContext : HandleRequestContext<OpenIdConnectServerOptions>
     {
         /// <summary>
         /// Creates a new instance of the <see cref="ApplyTokenResponseContext"/> class.
         /// </summary>
         public ApplyTokenResponseContext(
             HttpContext context,
+            AuthenticationScheme scheme,
             OpenIdConnectServerOptions options,
             AuthenticationTicket ticket,
             OpenIdConnectRequest request,
             OpenIdConnectResponse response)
-            : base(context)
+            : base(context, scheme, options)
         {
-            Options = options;
             Ticket = ticket;
             Request = request;
             Response = response;
         }
-
-        /// <summary>
-        /// Gets the options used by the OpenID Connect server.
-        /// </summary>
-        public OpenIdConnectServerOptions Options { get; }
 
         /// <summary>
         /// Gets the token request.
@@ -51,6 +46,11 @@ namespace AspNet.Security.OpenIdConnect.Server
         /// Gets the token response.
         /// </summary>
         public new OpenIdConnectResponse Response { get; }
+
+        /// <summary>
+        /// Gets the authentication ticket.
+        /// </summary>
+        public AuthenticationTicket Ticket { get; }
 
         /// <summary>
         /// Gets the error code returned to the client application.

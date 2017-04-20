@@ -28,24 +28,13 @@ namespace AspNet.Security.OpenIdConnect.Server
     {
         public static X509Certificate2 GetCertificate(StoreName name, StoreLocation location, string thumbprint)
         {
-            var store = new X509Store(name, location);
-
-            try
+            using (var store = new X509Store(name, location))
             {
                 store.Open(OpenFlags.ReadOnly);
 
                 var certificates = store.Certificates.Find(X509FindType.FindByThumbprint, thumbprint, validOnly: false);
 
                 return certificates.OfType<X509Certificate2>().SingleOrDefault();
-            }
-
-            finally
-            {
-#if NET451
-                store.Close();
-#else
-                store.Dispose();
-#endif
             }
         }
 
@@ -257,9 +246,7 @@ namespace AspNet.Security.OpenIdConnect.Server
 
                 else if (curve.Oid.FriendlyName == ECCurve.NamedCurves.nistP521.Oid.FriendlyName)
                 {
-                    // Note: JsonWebKeyECTypes.P512 cannot be used as it doesn't represent a valid curve.
-                    // See https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet/issues/486
-                    return "P-521";
+                    return JsonWebKeyECTypes.P521;
                 }
             }
 

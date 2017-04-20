@@ -20,7 +20,7 @@ using Owin.Security.OpenIdConnect.Extensions;
 namespace Owin.Security.OpenIdConnect.Server
 {
     /// <summary>
-    /// Provides the logic necessary to extract, validate and handle  OpenID Connect requests.
+    /// Provides the logic necessary to extract, validate and handle OpenID Connect requests.
     /// </summary>
     public partial class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions>
     {

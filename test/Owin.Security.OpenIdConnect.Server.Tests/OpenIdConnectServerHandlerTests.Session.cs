@@ -54,7 +54,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Reject(error, description, uri);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -107,7 +107,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.SkipToNextMiddleware();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -137,7 +137,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Reject(error, description, uri);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -190,7 +190,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.SkipToNextMiddleware();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -220,14 +220,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleLogoutRequest = context =>
                 {
                     context.Reject(error, description, uri);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -252,7 +252,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleLogoutRequest = context =>
@@ -287,14 +287,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleLogoutRequest = context =>
                 {
                     context.SkipToNextMiddleware();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -317,7 +317,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleLogoutRequest = context =>
@@ -326,7 +326,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                         OpenIdConnectServerDefaults.AuthenticationType);
                     context.HandleResponse();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnApplyLogoutResponse = context =>
@@ -361,7 +361,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleLogoutRequest = context =>
@@ -370,14 +370,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                         OpenIdConnectServerDefaults.AuthenticationType);
                     context.HandleResponse();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnApplyLogoutResponse = context =>
                 {
                     context.Response["custom_parameter"] = "custom_value";
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -408,7 +408,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     context.Response.Error = null;
                     context.PostLogoutRedirectUri = "http://www.fabrikam.com/path";
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -434,7 +434,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     context.OwinContext.Authentication.SignOut(context.Options.AuthenticationType);
                     context.HandleResponse();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -460,7 +460,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleLogoutRequest = context =>
@@ -468,7 +468,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     context.OwinContext.Authentication.SignOut(context.Options.AuthenticationType);
                     context.HandleResponse();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -495,7 +495,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleLogoutRequest = context =>
@@ -503,14 +503,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     context.OwinContext.Authentication.SignOut(context.Options.AuthenticationType);
                     context.HandleResponse();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnApplyLogoutResponse = context =>
                 {
                     context.Response.State = "custom_state";
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 

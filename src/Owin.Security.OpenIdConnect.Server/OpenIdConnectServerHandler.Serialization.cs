@@ -15,12 +15,11 @@ using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.Extensions.Logging;
 using Microsoft.Owin.Security;
-using Microsoft.Owin.Security.Infrastructure;
 using Owin.Security.OpenIdConnect.Extensions;
 
 namespace Owin.Security.OpenIdConnect.Server
 {
-    public partial class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions>
+    public partial class OpenIdConnectServerHandler
     {
         private async Task<string> SerializeAuthorizationCodeAsync(
             ClaimsIdentity identity, AuthenticationProperties properties,
@@ -59,14 +58,9 @@ namespace Owin.Security.OpenIdConnect.Server
 
             await Options.Provider.SerializeAuthorizationCode(notification);
 
-            if (notification.HandledResponse || !string.IsNullOrEmpty(notification.AuthorizationCode))
+            if (notification.IsHandled || !string.IsNullOrEmpty(notification.AuthorizationCode))
             {
                 return notification.AuthorizationCode;
-            }
-
-            else if (notification.Skipped)
-            {
-                return null;
             }
 
             if (notification.DataFormat == null)
@@ -147,14 +141,9 @@ namespace Owin.Security.OpenIdConnect.Server
 
             await Options.Provider.SerializeAccessToken(notification);
 
-            if (notification.HandledResponse || !string.IsNullOrEmpty(notification.AccessToken))
+            if (notification.IsHandled || !string.IsNullOrEmpty(notification.AccessToken))
             {
                 return notification.AccessToken;
-            }
-
-            else if (notification.Skipped)
-            {
-                return null;
             }
 
             if (notification.SecurityTokenHandler == null)
@@ -313,14 +302,9 @@ namespace Owin.Security.OpenIdConnect.Server
 
             await Options.Provider.SerializeIdentityToken(notification);
 
-            if (notification.HandledResponse || !string.IsNullOrEmpty(notification.IdentityToken))
+            if (notification.IsHandled || !string.IsNullOrEmpty(notification.IdentityToken))
             {
                 return notification.IdentityToken;
-            }
-
-            else if (notification.Skipped)
-            {
-                return null;
             }
 
             if (notification.SecurityTokenHandler == null)
@@ -483,14 +467,9 @@ namespace Owin.Security.OpenIdConnect.Server
 
             await Options.Provider.SerializeRefreshToken(notification);
 
-            if (notification.HandledResponse || !string.IsNullOrEmpty(notification.RefreshToken))
+            if (notification.IsHandled || !string.IsNullOrEmpty(notification.RefreshToken))
             {
                 return notification.RefreshToken;
-            }
-
-            else if (notification.Skipped)
-            {
-                return null;
             }
 
             if (notification.DataFormat == null)
@@ -516,16 +495,11 @@ namespace Owin.Security.OpenIdConnect.Server
 
             await Options.Provider.DeserializeAuthorizationCode(notification);
 
-            if (notification.HandledResponse || notification.Ticket != null)
+            if (notification.IsHandled || notification.Ticket != null)
             {
-                notification.Ticket.SetTokenUsage(OpenIdConnectConstants.TokenUsages.AuthorizationCode);
+                notification.Ticket?.SetTokenUsage(OpenIdConnectConstants.TokenUsages.AuthorizationCode);
 
                 return notification.Ticket;
-            }
-
-            else if (notification.Skipped)
-            {
-                return null;
             }
 
             if (notification.DataFormat == null)
@@ -575,16 +549,11 @@ namespace Owin.Security.OpenIdConnect.Server
 
             await Options.Provider.DeserializeAccessToken(notification);
 
-            if (notification.HandledResponse || notification.Ticket != null)
+            if (notification.IsHandled || notification.Ticket != null)
             {
-                notification.Ticket.SetTokenUsage(OpenIdConnectConstants.TokenUsages.AccessToken);
+                notification.Ticket?.SetTokenUsage(OpenIdConnectConstants.TokenUsages.AccessToken);
 
                 return notification.Ticket;
-            }
-
-            else if (notification.Skipped)
-            {
-                return null;
             }
 
             var handler = notification.SecurityTokenHandler as ISecurityTokenValidator;
@@ -692,16 +661,11 @@ namespace Owin.Security.OpenIdConnect.Server
 
             await Options.Provider.DeserializeIdentityToken(notification);
 
-            if (notification.HandledResponse || notification.Ticket != null)
+            if (notification.IsHandled || notification.Ticket != null)
             {
-                notification.Ticket.SetTokenUsage(OpenIdConnectConstants.TokenUsages.IdToken);
+                notification.Ticket?.SetTokenUsage(OpenIdConnectConstants.TokenUsages.IdToken);
 
                 return notification.Ticket;
-            }
-
-            else if (notification.Skipped)
-            {
-                return null;
             }
 
             if (notification.SecurityTokenHandler == null)
@@ -771,16 +735,11 @@ namespace Owin.Security.OpenIdConnect.Server
 
             await Options.Provider.DeserializeRefreshToken(notification);
 
-            if (notification.HandledResponse || notification.Ticket != null)
+            if (notification.IsHandled || notification.Ticket != null)
             {
-                notification.Ticket.SetTokenUsage(OpenIdConnectConstants.TokenUsages.RefreshToken);
+                notification.Ticket?.SetTokenUsage(OpenIdConnectConstants.TokenUsages.RefreshToken);
 
                 return notification.Ticket;
-            }
-
-            else if (notification.Skipped)
-            {
-                return null;
             }
 
             if (notification.DataFormat == null)

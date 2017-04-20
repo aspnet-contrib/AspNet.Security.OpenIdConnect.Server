@@ -17,39 +17,20 @@ namespace AspNet.Security.OpenIdConnect.Server
     /// Represents the context class associated with the
     /// <see cref="OpenIdConnectServerProvider.DeserializeIdentityToken"/> event.
     /// </summary>
-    public class DeserializeIdentityTokenContext : BaseControlContext
+    public class DeserializeIdentityTokenContext : BaseDeserializingContext
     {
         /// <summary>
         /// Creates a new instance of the <see cref="DeserializeIdentityTokenContext"/> class.
         /// </summary>
         public DeserializeIdentityTokenContext(
             HttpContext context,
+            AuthenticationScheme scheme,
             OpenIdConnectServerOptions options,
             OpenIdConnectRequest request,
             string token)
-            : base(context)
+            : base(context, scheme, options, request)
         {
-            Options = options;
-            Request = request;
             IdentityToken = token;
-        }
-
-        /// <summary>
-        /// Gets the options used by the OpenID Connect server.
-        /// </summary>
-        public OpenIdConnectServerOptions Options { get; }
-
-        /// <summary>
-        /// Gets the OpenID Connect request.
-        /// </summary>
-        public new OpenIdConnectRequest Request { get; }
-
-        /// <summary>
-        /// Gets the OpenID Connect response.
-        /// </summary>
-        public new OpenIdConnectResponse Response
-        {
-            get => throw new InvalidOperationException("The OpenID Connect response is not available at this stage.");
         }
 
         /// <summary>

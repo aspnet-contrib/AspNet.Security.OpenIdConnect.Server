@@ -4,7 +4,6 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
-using System;
 using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
@@ -15,39 +14,20 @@ namespace AspNet.Security.OpenIdConnect.Server
     /// Represents the context class associated with the
     /// <see cref="OpenIdConnectServerProvider.DeserializeAuthorizationCode"/> event.
     /// </summary>
-    public class DeserializeAuthorizationCodeContext : BaseControlContext
+    public class DeserializeAuthorizationCodeContext : BaseDeserializingContext
     {
         /// <summary>
         /// Creates a new instance of the <see cref="DeserializeAuthorizationCodeContext"/> class.
         /// </summary>
         public DeserializeAuthorizationCodeContext(
             HttpContext context,
+            AuthenticationScheme scheme,
             OpenIdConnectServerOptions options,
             OpenIdConnectRequest request,
             string code)
-            : base(context)
+            : base(context, scheme, options, request)
         {
-            Options = options;
-            Request = request;
             AuthorizationCode = code;
-        }
-
-        /// <summary>
-        /// Gets the options used by the OpenID Connect server.
-        /// </summary>
-        public OpenIdConnectServerOptions Options { get; }
-
-        /// <summary>
-        /// Gets the OpenID Connect request.
-        /// </summary>
-        public new OpenIdConnectRequest Request { get; }
-
-        /// <summary>
-        /// Gets the OpenID Connect response.
-        /// </summary>
-        public new OpenIdConnectResponse Response
-        {
-            get => throw new InvalidOperationException("The OpenID Connect response is not available at this stage.");
         }
 
         /// <summary>
