@@ -19,6 +19,9 @@ using Owin.Security.OpenIdConnect.Extensions;
 
 namespace Owin.Security.OpenIdConnect.Server
 {
+    /// <summary>
+    /// Provides the logic necessary to extract, validate and handle  OpenID Connect requests.
+    /// </summary>
     public partial class OpenIdConnectServerHandler : AuthenticationHandler<OpenIdConnectServerOptions>
     {
         public override async Task<bool> InvokeAsync()
@@ -294,14 +297,14 @@ namespace Owin.Security.OpenIdConnect.Server
             var request = Context.GetOpenIdConnectRequest();
             if (request == null || (!request.IsAuthorizationRequest() && !request.IsTokenRequest()))
             {
-                throw new InvalidOperationException("An OpenID Connect response cannot be returned from this endpoint.");
+                throw new InvalidOperationException("An authorization or token response cannot be returned from this endpoint.");
             }
 
-            // Note: if an OpenID Connect response was already generated, throw an exception.
+            // Note: if a response was already generated, throw an exception.
             var response = Context.GetOpenIdConnectResponse();
             if (response != null)
             {
-                throw new InvalidOperationException("An OpenID Connect response has already been sent.");
+                throw new InvalidOperationException("A response has already been sent.");
             }
 
             if (string.IsNullOrEmpty(ticket.Identity.GetClaim(OpenIdConnectConstants.Claims.Subject)))
@@ -465,14 +468,14 @@ namespace Owin.Security.OpenIdConnect.Server
             var request = Context.GetOpenIdConnectRequest();
             if (request == null || !request.IsLogoutRequest())
             {
-                throw new InvalidOperationException("An OpenID Connect response cannot be returned from this endpoint.");
+                throw new InvalidOperationException("A logout response cannot be returned from this endpoint.");
             }
 
-            // Note: if an OpenID Connect response was already generated, throw an exception.
+            // Note: if a response was already generated, throw an exception.
             var response = Context.GetOpenIdConnectResponse();
             if (response != null)
             {
-                throw new InvalidOperationException("An OpenID Connect response has already been sent.");
+                throw new InvalidOperationException("A response has already been sent.");
             }
 
             return await SendLogoutResponseAsync(new OpenIdConnectResponse());
@@ -486,14 +489,14 @@ namespace Owin.Security.OpenIdConnect.Server
             var request = Context.GetOpenIdConnectRequest();
             if (request == null || (!request.IsAuthorizationRequest() && !request.IsTokenRequest()))
             {
-                throw new InvalidOperationException("An OpenID Connect response cannot be returned from this endpoint.");
+                throw new InvalidOperationException("An authorization or token response cannot be returned from this endpoint.");
             }
 
-            // Note: if an OpenID Connect response was already generated, throw an exception.
+            // Note: if a response was already generated, throw an exception.
             var response = Context.GetOpenIdConnectResponse();
             if (response != null)
             {
-                throw new InvalidOperationException("An OpenID Connect response has already been sent.");
+                throw new InvalidOperationException("A response has already been sent.");
             }
 
             // Create a new ticket containing an empty identity and

@@ -115,7 +115,7 @@ namespace Owin.Security.OpenIdConnect.Server
             {
                 // Reject requests that use multiple client authentication methods.
                 // See https://tools.ietf.org/html/rfc6749#section-2.3 for more information.
-                if ( !string.IsNullOrEmpty(request.ClientSecret))
+                if (!string.IsNullOrEmpty(request.ClientSecret))
                 {
                     Logger.LogError("The revocation request was rejected because " +
                                     "multiple client credentials were specified.");

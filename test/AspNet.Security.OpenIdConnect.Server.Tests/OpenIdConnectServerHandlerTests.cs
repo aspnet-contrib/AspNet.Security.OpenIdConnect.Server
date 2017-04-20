@@ -763,7 +763,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 return client.PostAsync("/invalid-signin", new OpenIdConnectRequest());
             });
 
-            Assert.Equal("An OpenID Connect response cannot be returned from this endpoint.", exception.Message);
+            Assert.Equal("An authorization or token response cannot be returned from this endpoint.", exception.Message);
         }
 
         [Fact]
@@ -790,7 +790,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 return client.GetAsync("/invalid-signin");
             });
 
-            Assert.Equal("An OpenID Connect response cannot be returned from this endpoint.", exception.Message);
+            Assert.Equal("An authorization or token response cannot be returned from this endpoint.", exception.Message);
         }
 
         [Fact]
@@ -833,7 +833,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 });
             });
 
-            Assert.Equal("An OpenID Connect response has already been sent.", exception.Message);
+            Assert.Equal("A response has already been sent.", exception.Message);
         }
 
         [Fact]
@@ -2184,7 +2184,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 return client.GetAsync("/invalid-signout");
             });
 
-            Assert.Equal("An OpenID Connect response cannot be returned from this endpoint.", exception.Message);
+            Assert.Equal("A logout response cannot be returned from this endpoint.", exception.Message);
         }
 
         [Fact]
@@ -2213,7 +2213,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 return client.PostAsync(LogoutEndpoint, new OpenIdConnectRequest());
             });
 
-            Assert.Equal("An OpenID Connect response has already been sent.", exception.Message);
+            Assert.Equal("A response has already been sent.", exception.Message);
         }
 
         [Fact]
@@ -2240,7 +2240,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 return client.GetAsync("/invalid-challenge");
             });
 
-            Assert.Equal("An OpenID Connect response cannot be returned from this endpoint.", exception.Message);
+            Assert.Equal("An authorization or token response cannot be returned from this endpoint.", exception.Message);
         }
 
         [Fact]
@@ -2281,7 +2281,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 });
             });
 
-            Assert.Equal("An OpenID Connect response has already been sent.", exception.Message);
+            Assert.Equal("A response has already been sent.", exception.Message);
         }
 
         [Fact]
