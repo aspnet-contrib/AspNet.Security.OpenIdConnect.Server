@@ -517,7 +517,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             // Ensure the received ticket is an authorization code.
             if (!ticket.IsAuthorizationCode())
             {
-                Logger.LogDebug("The received token was not an authorization code: {Code}.", code);
+                Logger.LogTrace("The received token was not an authorization code: {Code}.", code);
 
                 return null;
             }
@@ -573,7 +573,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             {
                 if (!handler.CanReadToken(token))
                 {
-                    Logger.LogDebug("The access token handler refused to read the token: {Token}", token);
+                    Logger.LogTrace("The access token handler refused to read the token: {Token}.", token);
 
                     return null;
                 }
@@ -638,7 +638,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             // Ensure that e received ticket is an access token.
             if (!ticket.IsAccessToken())
             {
-                Logger.LogDebug("The received token was not an access token: {Token}.", token);
+                Logger.LogTrace("The received token was not an access token: {Token}.", token);
 
                 return null;
             }
@@ -694,7 +694,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             {
                 if (!notification.SecurityTokenHandler.CanReadToken(token))
                 {
-                    Logger.LogDebug("The identity token handler refused to read the token: {Token}", token);
+                    Logger.LogTrace("The identity token handler refused to read the token: {Token}.", token);
 
                     return null;
                 }
@@ -753,7 +753,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             // Ensure the received ticket is an identity token.
             if (!ticket.IsIdentityToken())
             {
-                Logger.LogDebug("The received token was not an identity token: {Token}.", token);
+                Logger.LogTrace("The received token was not an identity token: {Token}.", token);
 
                 return null;
             }
@@ -791,7 +791,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             // Ensure the received ticket is a refresh token.
             if (!ticket.IsRefreshToken())
             {
-                Logger.LogDebug("The received token was not a refresh token: {Token}.", token);
+                Logger.LogTrace("The received token was not a refresh token: {Token}.", token);
 
                 return null;
             }

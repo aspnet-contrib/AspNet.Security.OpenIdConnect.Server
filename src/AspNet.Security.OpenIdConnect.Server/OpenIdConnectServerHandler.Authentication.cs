@@ -114,7 +114,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             request.SetProperty(OpenIdConnectConstants.Properties.OriginalRedirectUri, request.RedirectUri);
 
             Logger.LogInformation("The authorization request was successfully extracted " +
-                                  "from the HTTP request: {Request}", request);
+                                  "from the HTTP request: {Request}.", request);
 
             // client_id is mandatory parameter and MUST cause an error when missing.
             // See http://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
@@ -459,7 +459,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                 }
 
                 Logger.LogInformation("The authorization response was successfully returned " +
-                                      "as a plain-text document: {Response}", response);
+                                      "as a plain-text document: {Response}.", response);
 
                 return await SendNativePageAsync(response);
             }
@@ -497,8 +497,9 @@ namespace AspNet.Security.OpenIdConnect.Server
             {
                 case OpenIdConnectConstants.ResponseModes.FormPost:
                 {
-                    Logger.LogInformation("The authorization response was successfully returned " +
-                                          "using the form post response mode: {Response}", response);
+                    Logger.LogInformation("The authorization response was successfully returned to " +
+                                          "{RedirectUri} using the form post response mode: {Response}.",
+                                          notification.RedirectUri, response);
 
                     using (var buffer = new MemoryStream())
                     using (var writer = new StreamWriter(buffer))
@@ -545,8 +546,9 @@ namespace AspNet.Security.OpenIdConnect.Server
 
                 case OpenIdConnectConstants.ResponseModes.Fragment:
                 {
-                    Logger.LogInformation("The authorization response was successfully returned " +
-                                          "using the fragment response mode: {Response}", response);
+                    Logger.LogInformation("The authorization response was successfully returned to " +
+                                          "{RedirectUri} using the fragment response mode: {Response}.",
+                                          notification.RedirectUri, response);
 
                     var location = notification.RedirectUri;
                     var appender = new OpenIdConnectServerHelpers.Appender(location, '#');
@@ -562,8 +564,9 @@ namespace AspNet.Security.OpenIdConnect.Server
 
                 case OpenIdConnectConstants.ResponseModes.Query:
                 {
-                    Logger.LogInformation("The authorization response was successfully returned " +
-                                          "using the query response mode: {Response}", response);
+                    Logger.LogInformation("The authorization response was successfully returned to " +
+                                          "{RedirectUri} using the query response mode: {Response}.",
+                                          notification.RedirectUri, response);
 
                     var location = QueryHelpers.AddQueryString(notification.RedirectUri, parameters);
 
@@ -579,7 +582,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                     return await SendNativePageAsync(new OpenIdConnectResponse
                     {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                        ErrorDescription = "response_mode unsupported"
+                        ErrorDescription = "The specified 'response_mode' parameter is not supported."
                     });
                 }
             }

@@ -103,7 +103,7 @@ namespace Owin.Security.OpenIdConnect.Server
             }
 
             Logger.LogInformation("The token request was successfully extracted " +
-                                  "from the HTTP request: {Request}", request);
+                                  "from the HTTP request: {Request}.", request);
 
             // Reject token requests missing the mandatory grant_type parameter.
             if (string.IsNullOrEmpty(request.GrantType))
@@ -576,7 +576,7 @@ namespace Owin.Security.OpenIdConnect.Server
                 return false;
             }
 
-            Logger.LogInformation("The token response was successfully returned: {Response}", response);
+            Logger.LogInformation("The token response was successfully returned: {Response}.", response);
 
             return await SendPayloadAsync(response);
         }

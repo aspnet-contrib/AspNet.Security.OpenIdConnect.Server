@@ -225,8 +225,8 @@ namespace Owin.Security.OpenIdConnect.Server
                 var ticket = await DeserializeIdentityTokenAsync(request.IdTokenHint, request);
                 if (ticket == null)
                 {
-                    Logger.LogWarning("The identity token extracted from the id_token_hint " +
-                                      "parameter was invalid and has been ignored.");
+                    Logger.LogWarning("The identity token extracted from the 'id_token_hint' " +
+                                      "parameter was invalid and was ignored.");
 
                     return null;
                 }
@@ -251,7 +251,7 @@ namespace Owin.Security.OpenIdConnect.Server
                     if (ticket == null)
                     {
                         Logger.LogWarning("The authorization code extracted from the " +
-                                          "token request was invalid and has been ignored.");
+                                          "token request was invalid and was ignored.");
 
                         return null;
                     }
@@ -270,7 +270,7 @@ namespace Owin.Security.OpenIdConnect.Server
                     if (ticket == null)
                     {
                         Logger.LogWarning("The refresh token extracted from the " +
-                                          "token request was invalid and has been ignored.");
+                                          "token request was invalid and was ignored.");
 
                         return null;
                     }
@@ -373,8 +373,8 @@ namespace Owin.Security.OpenIdConnect.Server
                 {
                     if (!string.IsNullOrEmpty(request.Resource))
                     {
-                        Logger.LogDebug("The access token resources will be limited to the resources " +
-                                        "requested by the client application: {Resources}.", request.GetResources());
+                        Logger.LogDebug("The access token resources will be limited to the resources requested " +
+                                        "by the client application: {Resources}.", request.GetResources());
 
                         // Replace the resources initially granted by the resources listed by the client
                         // application in the token request. Note: request.GetResources() automatically
@@ -385,8 +385,8 @@ namespace Owin.Security.OpenIdConnect.Server
 
                     if (!string.IsNullOrEmpty(request.Scope))
                     {
-                        Logger.LogDebug("The access token scopes will be limited to the scopes " +
-                                        "requested by the client application: {Scopes}.", request.GetScopes());
+                        Logger.LogDebug("The access token scopes will be limited to the scopes requested " +
+                                        "by the client application: {Scopes}.", request.GetScopes());
 
                         // Replace the scopes initially granted by the scopes listed by the client
                         // application in the token request. Note: request.GetScopes() automatically

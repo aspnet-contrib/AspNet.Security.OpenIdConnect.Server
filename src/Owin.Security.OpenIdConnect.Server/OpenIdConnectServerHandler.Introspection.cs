@@ -112,7 +112,7 @@ namespace Owin.Security.OpenIdConnect.Server
             }
 
             Logger.LogInformation("The introspection request was successfully extracted " +
-                                  "from the HTTP request: {Request}", request);
+                                  "from the HTTP request: {Request}.", request);
 
             if (string.IsNullOrEmpty(request.Token))
             {
@@ -509,7 +509,7 @@ namespace Owin.Security.OpenIdConnect.Server
                 return false;
             }
 
-            Logger.LogInformation("The introspection response was successfully returned: {Response}", response);
+            Logger.LogInformation("The introspection response was successfully returned: {Response}.", response);
 
             return await SendPayloadAsync(response);
         }

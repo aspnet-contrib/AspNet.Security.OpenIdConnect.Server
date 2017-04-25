@@ -107,7 +107,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             }
 
             Logger.LogInformation("The userinfo request was successfully extracted " +
-                                  "from the HTTP request: {Request}", request);
+                                  "from the HTTP request: {Request}.", request);
 
             string token = null;
             if (!string.IsNullOrEmpty(request.AccessToken))
@@ -343,7 +343,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                 return false;
             }
 
-            Logger.LogInformation("The userinfo response was successfully returned: {Response}", response);
+            Logger.LogInformation("The userinfo response was successfully returned: {Response}.", response);
 
             return await SendPayloadAsync(response);
         }

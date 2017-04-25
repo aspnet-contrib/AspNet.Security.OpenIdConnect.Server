@@ -110,7 +110,7 @@ namespace Owin.Security.OpenIdConnect.Server
             }
 
             Logger.LogInformation("The logout request was successfully extracted " +
-                                  "from the HTTP request: {Request}", request);
+                                  "from the HTTP request: {Request}.", request);
 
             var context = new ValidateLogoutRequestContext(Context, Options, request);
             await Options.Provider.ValidateLogoutRequest(context);
@@ -225,17 +225,17 @@ namespace Owin.Security.OpenIdConnect.Server
                 }
 
                 Logger.LogInformation("The logout response was successfully returned " +
-                                      "as a plain-text document: {Response}", response);
+                                      "as a plain-text document: {Response}.", response);
 
                 return await SendNativePageAsync(response);
             }
-
-            Logger.LogInformation("The logout response was successfully returned: {Response}", response);
 
             // Don't redirect the user agent if no explicit post_logout_redirect_uri was
             // provided or if the URI was not fully validated by the application code.
             if (string.IsNullOrEmpty(notification.PostLogoutRedirectUri))
             {
+                Logger.LogInformation("The logout response was successfully returned: {Response}.", response);
+
                 return true;
             }
 
@@ -266,6 +266,9 @@ namespace Owin.Security.OpenIdConnect.Server
 
                 parameters.Add(parameter.Key, value);
             }
+
+            Logger.LogInformation("The logout response was successfully returned to {PostLogoutRedirectUri}: {Response}.",
+                                  notification.PostLogoutRedirectUri, response);
 
             var location = WebUtilities.AddQueryString(notification.PostLogoutRedirectUri, parameters);
             Response.Redirect(location);

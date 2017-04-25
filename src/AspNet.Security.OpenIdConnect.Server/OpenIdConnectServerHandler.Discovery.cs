@@ -78,7 +78,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             }
 
             Logger.LogInformation("The discovery request was successfully extracted " +
-                                  "from the HTTP request: {Request}", request);
+                                  "from the HTTP request: {Request}.", request);
 
             var context = new ValidateConfigurationRequestContext(Context, Options, request);
             await Options.Provider.ValidateConfigurationRequest(context);
@@ -377,7 +377,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             }
 
             Logger.LogInformation("The discovery request was successfully extracted " +
-                                  "from the HTTP request: {Request}", request);
+                                  "from the HTTP request: {Request}.", request);
 
             var context = new ValidateCryptographyRequestContext(Context, Options, request);
             await Options.Provider.ValidateCryptographyRequest(context);
@@ -686,7 +686,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                 return false;
             }
 
-            Logger.LogInformation("The discovery response was successfully returned: {Response}", response);
+            Logger.LogInformation("The discovery response was successfully returned: {Response}.", response);
 
             return await SendPayloadAsync(response);
         }
@@ -716,7 +716,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                 return false;
             }
 
-            Logger.LogInformation("The discovery response was successfully returned: {Response}", response);
+            Logger.LogInformation("The discovery response was successfully returned: {Response}.", response);
 
             return await SendPayloadAsync(response);
         }

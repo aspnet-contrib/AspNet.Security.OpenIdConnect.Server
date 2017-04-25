@@ -1173,7 +1173,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
-            Assert.Equal("response_mode unsupported", response.ErrorDescription);
+            Assert.Equal("The specified 'response_mode' parameter is not supported.", response.ErrorDescription);
         }
     }
 }
