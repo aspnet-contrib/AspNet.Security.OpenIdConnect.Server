@@ -526,7 +526,7 @@ namespace Owin.Security.OpenIdConnect.Server
             if (string.IsNullOrEmpty(response.ErrorDescription))
             {
                 response.ErrorDescription = request.IsAuthorizationRequest() ?
-                    "The authorization grant was denied by the resource owner." :
+                    "The authorization was denied by the resource owner." :
                     "The token request was rejected by the authorization server.";
             }
 

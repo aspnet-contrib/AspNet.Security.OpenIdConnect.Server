@@ -4,7 +4,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>net451;netstandard1.4;netstandard1.6</TargetFrameworks>
-    <TargetFrameworks Condition=" $([Microsoft.Build.Utilities.ToolLocationHelper]::GetPathToReferenceAssemblies('.NETFramework', '4.7', '').Count) != 0">$(TargetFrameworks);net47</TargetFrameworks>
+    <TargetFrameworks Condition=" $([Microsoft.Build.Utilities.ToolLocationHelper]::GetPathToReferenceAssemblies('.NETFramework', '4.7', '').Count) != 0 ">$(TargetFrameworks);net47</TargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup>

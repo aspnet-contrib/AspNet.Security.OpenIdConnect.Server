@@ -2180,7 +2180,47 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public async Task HandleChallengeAsync_ReturnsDefaultErrorWhenNoneIsSpecified()
+        public async Task HandleChallengeAsync_ReturnsDefaultErrorForAuthorizationRequestsWhenNoneIsSpecified()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateAuthorizationRequest = context =>
+                {
+                    context.Validate();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnHandleAuthorizationRequest = context =>
+                {
+                    context.OwinContext.Authentication.Challenge(context.Options.AuthenticationType);
+                    context.HandleResponse();
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest
+            {
+                ClientId = "Fabrikam",
+                Nonce = "n-0S6_WzA2Mj",
+                RedirectUri = "http://www.fabrikam.com/path",
+                ResponseType = OpenIdConnectConstants.ResponseTypes.Code,
+                Scope = OpenIdConnectConstants.Scopes.OpenId
+            });
+
+            // Assert
+            Assert.Equal(OpenIdConnectConstants.Errors.AccessDenied, response.Error);
+            Assert.Equal("The authorization was denied by the resource owner.", response.ErrorDescription);
+            Assert.Null(response.ErrorUri);
+        }
+
+        [Fact]
+        public async Task HandleChallengeAsync_ReturnsDefaultErrorForTokenRequestsWhenNoneIsSpecified()
         {
             // Arrange
             var server = CreateAuthorizationServer(options =>

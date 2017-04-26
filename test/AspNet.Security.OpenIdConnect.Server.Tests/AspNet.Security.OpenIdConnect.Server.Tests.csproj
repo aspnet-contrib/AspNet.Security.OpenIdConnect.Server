@@ -4,7 +4,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>netcoreapp1.0;net452</TargetFrameworks>
-    <TargetFrameworks Condition=" $([Microsoft.Build.Utilities.ToolLocationHelper]::GetPathToReferenceAssemblies('.NETFramework', '4.7', '').Count) != 0">$(TargetFrameworks);net47</TargetFrameworks>
+    <TargetFrameworks Condition=" $([Microsoft.Build.Utilities.ToolLocationHelper]::GetPathToReferenceAssemblies('.NETFramework', '4.7', '').Count) != 0 ">$(TargetFrameworks);net47</TargetFrameworks>
     <TargetFrameworks Condition=" '$(OS)' != 'Windows_NT' ">netcoreapp1.0</TargetFrameworks>
   </PropertyGroup>
 
