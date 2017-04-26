@@ -258,7 +258,7 @@ namespace Owin.Security.OpenIdConnect.Server
             }
 
             // Store the validated client_id as a request property.
-            request.SetProperty(OpenIdConnectConstants.Properties.ClientId, context.ClientId);
+            request.SetProperty(OpenIdConnectConstants.Properties.ValidatedClientId, context.ClientId);
 
             Logger.LogInformation("The token request was successfully validated.");
 
@@ -351,7 +351,7 @@ namespace Owin.Security.OpenIdConnect.Server
                 // if the authorization request didn't contain an explicit redirect_uri.
                 // See https://tools.ietf.org/html/rfc6749#section-4.1.3
                 // and http://openid.net/specs/openid-connect-core-1_0.html#TokenRequestValidation
-                var address = ticket.GetProperty(OpenIdConnectConstants.Properties.RedirectUri);
+                var address = ticket.GetProperty(OpenIdConnectConstants.Properties.OriginalRedirectUri);
                 if (request.IsAuthorizationCodeGrantType() && !string.IsNullOrEmpty(address))
                 {
                     if (string.IsNullOrEmpty(request.RedirectUri))

@@ -186,7 +186,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             }
 
             // Store the validated client_id as a request property.
-            request.SetProperty(OpenIdConnectConstants.Properties.ClientId, context.ClientId);
+            request.SetProperty(OpenIdConnectConstants.Properties.ValidatedClientId, context.ClientId);
 
             Logger.LogInformation("The introspection request was successfully validated.");
 

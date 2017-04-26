@@ -47,12 +47,11 @@ namespace Owin.Security.OpenIdConnect.Server
                   .SetProperty(OpenIdConnectConstants.Properties.Nonce, request.Nonce);
 
             // Store the original redirect_uri sent by the client application for later comparison.
-            ticket.SetProperty(OpenIdConnectConstants.Properties.RedirectUri,
+            ticket.SetProperty(OpenIdConnectConstants.Properties.OriginalRedirectUri,
                 request.GetProperty<string>(OpenIdConnectConstants.Properties.OriginalRedirectUri));
 
             // Remove the unwanted properties from the authentication ticket.
-            ticket.RemoveProperty(OpenIdConnectConstants.Properties.AuthorizationCodeLifetime)
-                  .RemoveProperty(OpenIdConnectConstants.Properties.ClientId);
+            ticket.RemoveProperty(OpenIdConnectConstants.Properties.AuthorizationCodeLifetime);
 
             var notification = new SerializeAuthorizationCodeContext(Context, Options, request, response, ticket)
             {
@@ -71,12 +70,7 @@ namespace Owin.Security.OpenIdConnect.Server
                 return null;
             }
 
-            if (notification.DataFormat == null)
-            {
-                return null;
-            }
-
-            return notification.DataFormat.Protect(ticket);
+            return notification.DataFormat?.Protect(ticket);
         }
 
         private async Task<string> SerializeAccessTokenAsync(
@@ -126,12 +120,11 @@ namespace Owin.Security.OpenIdConnect.Server
             // Remove the unwanted properties from the authentication ticket.
             ticket.RemoveProperty(OpenIdConnectConstants.Properties.AccessTokenLifetime)
                   .RemoveProperty(OpenIdConnectConstants.Properties.AuthorizationCodeLifetime)
-                  .RemoveProperty(OpenIdConnectConstants.Properties.ClientId)
                   .RemoveProperty(OpenIdConnectConstants.Properties.CodeChallenge)
                   .RemoveProperty(OpenIdConnectConstants.Properties.CodeChallengeMethod)
                   .RemoveProperty(OpenIdConnectConstants.Properties.IdentityTokenLifetime)
                   .RemoveProperty(OpenIdConnectConstants.Properties.Nonce)
-                  .RemoveProperty(OpenIdConnectConstants.Properties.RedirectUri)
+                  .RemoveProperty(OpenIdConnectConstants.Properties.OriginalRedirectUri)
                   .RemoveProperty(OpenIdConnectConstants.Properties.RefreshTokenLifetime);
 
             var notification = new SerializeAccessTokenContext(Context, Options, request, response, ticket)
@@ -278,11 +271,10 @@ namespace Owin.Security.OpenIdConnect.Server
             // Remove the unwanted properties from the authentication ticket.
             ticket.RemoveProperty(OpenIdConnectConstants.Properties.AccessTokenLifetime)
                   .RemoveProperty(OpenIdConnectConstants.Properties.AuthorizationCodeLifetime)
-                  .RemoveProperty(OpenIdConnectConstants.Properties.ClientId)
                   .RemoveProperty(OpenIdConnectConstants.Properties.CodeChallenge)
                   .RemoveProperty(OpenIdConnectConstants.Properties.CodeChallengeMethod)
                   .RemoveProperty(OpenIdConnectConstants.Properties.IdentityTokenLifetime)
-                  .RemoveProperty(OpenIdConnectConstants.Properties.RedirectUri)
+                  .RemoveProperty(OpenIdConnectConstants.Properties.OriginalRedirectUri)
                   .RemoveProperty(OpenIdConnectConstants.Properties.RefreshTokenLifetime);
 
             ticket.SetAudiences(ticket.GetPresenters());
@@ -449,11 +441,10 @@ namespace Owin.Security.OpenIdConnect.Server
 
             // Remove the unwanted properties from the authentication ticket.
             ticket.RemoveProperty(OpenIdConnectConstants.Properties.AuthorizationCodeLifetime)
-                  .RemoveProperty(OpenIdConnectConstants.Properties.ClientId)
                   .RemoveProperty(OpenIdConnectConstants.Properties.CodeChallenge)
                   .RemoveProperty(OpenIdConnectConstants.Properties.CodeChallengeMethod)
                   .RemoveProperty(OpenIdConnectConstants.Properties.Nonce)
-                  .RemoveProperty(OpenIdConnectConstants.Properties.RedirectUri);
+                  .RemoveProperty(OpenIdConnectConstants.Properties.OriginalRedirectUri);
 
             var notification = new SerializeRefreshTokenContext(Context, Options, request, response, ticket)
             {

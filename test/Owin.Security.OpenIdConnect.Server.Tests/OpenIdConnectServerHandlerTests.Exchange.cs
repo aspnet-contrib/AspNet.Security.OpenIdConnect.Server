@@ -807,7 +807,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                         new AuthenticationProperties());
 
                     context.Ticket.SetProperty(
-                        OpenIdConnectConstants.Properties.RedirectUri,
+                        OpenIdConnectConstants.Properties.OriginalRedirectUri,
                         "http://www.fabrikam.com/callback");
 
                     context.Ticket.SetPresenters("Fabrikam");
@@ -854,7 +854,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                         new AuthenticationProperties());
 
                     context.Ticket.SetProperty(
-                        OpenIdConnectConstants.Properties.RedirectUri,
+                        OpenIdConnectConstants.Properties.OriginalRedirectUri,
                         "http://www.fabrikam.com/callback");
 
                     context.Ticket.SetPresenters("Fabrikam");

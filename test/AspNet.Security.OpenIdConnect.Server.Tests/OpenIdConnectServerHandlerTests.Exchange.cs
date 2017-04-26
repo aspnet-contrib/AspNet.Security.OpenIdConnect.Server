@@ -816,7 +816,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                         context.Options.AuthenticationScheme);
 
                     context.Ticket.SetProperty(
-                        OpenIdConnectConstants.Properties.RedirectUri,
+                        OpenIdConnectConstants.Properties.OriginalRedirectUri,
                         "http://www.fabrikam.com/callback");
 
                     context.Ticket.SetPresenters("Fabrikam");
@@ -864,7 +864,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                         context.Options.AuthenticationScheme);
 
                     context.Ticket.SetProperty(
-                        OpenIdConnectConstants.Properties.RedirectUri,
+                        OpenIdConnectConstants.Properties.OriginalRedirectUri,
                         "http://www.fabrikam.com/callback");
 
                     context.Ticket.SetPresenters("Fabrikam");

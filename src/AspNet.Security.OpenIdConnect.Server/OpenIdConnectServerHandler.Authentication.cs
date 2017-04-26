@@ -357,8 +357,8 @@ namespace AspNet.Security.OpenIdConnect.Server
             }
 
             // Store the validated client_id/redirect_uri as request properties.
-            request.SetProperty(OpenIdConnectConstants.Properties.ClientId, context.ClientId)
-                   .SetProperty(OpenIdConnectConstants.Properties.RedirectUri, context.RedirectUri);
+            request.SetProperty(OpenIdConnectConstants.Properties.ValidatedClientId, context.ClientId)
+                   .SetProperty(OpenIdConnectConstants.Properties.ValidatedRedirectUri, context.RedirectUri);
 
             Logger.LogInformation("The authorization request was successfully validated.");
 
@@ -415,7 +415,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             // Note: as this stage, the request may be null (e.g if it couldn't be extracted from the HTTP request).
             var notification = new ApplyAuthorizationResponseContext(Context, Options, ticket, request, response)
             {
-                RedirectUri = request?.GetProperty<string>(OpenIdConnectConstants.Properties.RedirectUri),
+                RedirectUri = request?.GetProperty<string>(OpenIdConnectConstants.Properties.ValidatedRedirectUri),
                 ResponseMode = request?.ResponseMode
             };
 

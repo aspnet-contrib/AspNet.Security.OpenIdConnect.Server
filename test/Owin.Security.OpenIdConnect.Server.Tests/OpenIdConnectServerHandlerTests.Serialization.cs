@@ -143,7 +143,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     Assert.Equal("n-0S6_WzA2Mj", context.Ticket.GetProperty(OpenIdConnectConstants.Properties.Nonce));
 
                     Assert.Equal("http://www.fabrikam.com/path",
-                        context.Ticket.GetProperty(OpenIdConnectConstants.Properties.RedirectUri));
+                        context.Ticket.GetProperty(OpenIdConnectConstants.Properties.OriginalRedirectUri));
 
                     return Task.FromResult(0);
                 };

@@ -340,7 +340,7 @@ namespace Owin.Security.OpenIdConnect.Server
 
             // Add the validated client_id to the list of authorized presenters,
             // unless the presenters were explicitly set by the developer.
-            var presenter = request.GetProperty<string>(OpenIdConnectConstants.Properties.ClientId);
+            var presenter = request.GetProperty<string>(OpenIdConnectConstants.Properties.ValidatedClientId);
             if (!string.IsNullOrEmpty(presenter) && !ticket.HasPresenter())
             {
                 ticket.SetPresenters(presenter);
