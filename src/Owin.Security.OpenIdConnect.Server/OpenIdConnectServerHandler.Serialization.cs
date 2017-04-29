@@ -70,7 +70,18 @@ namespace Owin.Security.OpenIdConnect.Server
                 return null;
             }
 
-            return notification.DataFormat?.Protect(ticket);
+            if (notification.DataFormat == null)
+            {
+                throw new InvalidOperationException("A data formatter must be provided.");
+            }
+
+            var result = notification.DataFormat.Protect(ticket);
+
+            Logger.LogTrace("A new authorization code was successfully generated using " +
+                            "the specified data format: {Code} ; {Claims} ; {Properties}.",
+                            result, ticket.Identity.Claims, ticket.Properties.Dictionary);
+
+            return result;
         }
 
         private async Task<string> SerializeAccessTokenAsync(
@@ -150,7 +161,18 @@ namespace Owin.Security.OpenIdConnect.Server
 
             if (notification.SecurityTokenHandler == null)
             {
-                return notification.DataFormat?.Protect(ticket);
+                if (notification.DataFormat == null)
+                {
+                    throw new InvalidOperationException("A security token handler or data formatter must be provided.");
+                }
+
+                var value = notification.DataFormat.Protect(ticket);
+
+                Logger.LogTrace("A new access token was successfully generated using the " +
+                                "specified data format: {Token} ; {Claims} ; {Properties}.",
+                                value, ticket.Identity.Claims, ticket.Properties.Dictionary);
+
+                return value;
             }
 
             // At this stage, throw an exception if no signing credentials were provided.
@@ -222,7 +244,13 @@ namespace Owin.Security.OpenIdConnect.Server
                     notification.Ticket.Properties.ExpiresUtc?.UtcDateTime)
             });
 
-            return notification.SecurityTokenHandler.WriteToken(token);
+            var result = notification.SecurityTokenHandler.WriteToken(token);
+
+            Logger.LogTrace("A new access token was successfully generated using the specified " +
+                            "security token handler: {Token} ; {Claims} ; {Properties}.",
+                            result, ticket.Identity.Claims, ticket.Properties.Dictionary);
+
+            return result;
         }
 
         private async Task<string> SerializeIdentityTokenAsync(
@@ -300,7 +328,7 @@ namespace Owin.Security.OpenIdConnect.Server
 
             if (notification.SecurityTokenHandler == null)
             {
-                return null;
+                throw new InvalidOperationException("A security token handler must be provided.");
             }
 
             if (string.IsNullOrEmpty(identity.GetClaim(OpenIdConnectConstants.Claims.Subject)))
@@ -417,7 +445,13 @@ namespace Owin.Security.OpenIdConnect.Server
                     notification.Ticket.Properties.ExpiresUtc?.UtcDateTime)
             });
 
-            return notification.SecurityTokenHandler.WriteToken(token);
+            var result = notification.SecurityTokenHandler.WriteToken(token);
+
+            Logger.LogTrace("A new identity token was successfully generated using the specified " +
+                            "security token handler: {Token} ; {Claims} ; {Properties}.",
+                            result, ticket.Identity.Claims, ticket.Properties.Dictionary);
+
+            return result;
         }
 
         private async Task<string> SerializeRefreshTokenAsync(
@@ -463,7 +497,18 @@ namespace Owin.Security.OpenIdConnect.Server
                 return null;
             }
 
-            return notification.DataFormat?.Protect(ticket);
+            if (notification.DataFormat == null)
+            {
+                throw new InvalidOperationException("A data formatter must be provided.");
+            }
+
+            var result = notification.DataFormat.Protect(ticket);
+
+            Logger.LogTrace("A new refresh token was successfully generated using the " +
+                            "specified data format: {Token} ; {Claims} ; {Properties}.",
+                            result, ticket.Identity.Claims, ticket.Properties.Dictionary);
+
+            return result;
         }
 
         private async Task<AuthenticationTicket> DeserializeAuthorizationCodeAsync(string code, OpenIdConnectRequest request)
@@ -487,9 +532,16 @@ namespace Owin.Security.OpenIdConnect.Server
                 return null;
             }
 
-            var ticket = notification.DataFormat?.Unprotect(code);
+            if (notification.DataFormat == null)
+            {
+                throw new InvalidOperationException("A data formatter must be provided.");
+            }
+
+            var ticket = notification.DataFormat.Unprotect(code);
             if (ticket == null)
             {
+                Logger.LogTrace("The received token was invalid or malformed: {Code}.", code);
+
                 return null;
             }
 
@@ -500,6 +552,10 @@ namespace Owin.Security.OpenIdConnect.Server
 
                 return null;
             }
+
+            Logger.LogTrace("The authorization code '{Code}' was successfully validated using " +
+                            "the specified token data format: {Claims} ; {Properties}.",
+                            code, ticket.Identity.Claims, ticket.Properties.Dictionary);
 
             return ticket;
         }
@@ -542,7 +598,24 @@ namespace Owin.Security.OpenIdConnect.Server
             var handler = notification.SecurityTokenHandler as ISecurityTokenValidator;
             if (handler == null)
             {
-                return notification.DataFormat?.Unprotect(token);
+                if (notification.DataFormat == null)
+                {
+                    throw new InvalidOperationException("A security token handler or data formatter must be provided.");
+                }
+
+                var value = notification.DataFormat.Unprotect(token);
+                if (value == null)
+                {
+                    Logger.LogTrace("The received token was invalid or malformed: {Token}.", value);
+
+                    return null;
+                }
+
+                Logger.LogTrace("The access token '{Token}' was successfully validated using " +
+                                "the specified token data format: {Claims} ; {Properties}.",
+                                token, value.Identity.Claims, value.Properties.Dictionary);
+
+                return value;
             }
 
             SecurityToken securityToken;
@@ -552,7 +625,7 @@ namespace Owin.Security.OpenIdConnect.Server
             {
                 if (!handler.CanReadToken(token))
                 {
-                    Logger.LogTrace("The access token handler refused to read the token: {Token}.", token);
+                    Logger.LogTrace("The access token '{Token}' was rejected by the security token handler.", token);
 
                     return null;
                 }
@@ -562,7 +635,7 @@ namespace Owin.Security.OpenIdConnect.Server
 
             catch (Exception exception)
             {
-                Logger.LogDebug("An exception occured when deserializing an access token: {Message}", exception.Message);
+                Logger.LogDebug("An exception occured while deserializing an access token: {Exception}.", exception);
 
                 return null;
             }
@@ -622,6 +695,10 @@ namespace Owin.Security.OpenIdConnect.Server
                 return null;
             }
 
+            Logger.LogTrace("The access token '{Token}' was successfully validated using " +
+                            "the specified security token handler: {Claims} ; {Properties}.",
+                            token, ticket.Identity.Claims, ticket.Properties.Dictionary);
+
             return ticket;
         }
 
@@ -663,7 +740,7 @@ namespace Owin.Security.OpenIdConnect.Server
 
             if (notification.SecurityTokenHandler == null)
             {
-                return null;
+                throw new InvalidOperationException("A security token handler must be provided.");
             }
 
             SecurityToken securityToken;
@@ -673,7 +750,7 @@ namespace Owin.Security.OpenIdConnect.Server
             {
                 if (!notification.SecurityTokenHandler.CanReadToken(token))
                 {
-                    Logger.LogTrace("The identity token handler refused to read the token: {Token}.", token);
+                    Logger.LogTrace("The identity token '{Token}' was rejected by the security token handler.", token);
 
                     return null;
                 }
@@ -683,7 +760,7 @@ namespace Owin.Security.OpenIdConnect.Server
 
             catch (Exception exception)
             {
-                Logger.LogDebug("An exception occured when deserializing an identity token: {Message}", exception.Message);
+                Logger.LogDebug("An exception occured while deserializing an identity token: {Exception}.", exception);
 
                 return null;
             }
@@ -737,6 +814,10 @@ namespace Owin.Security.OpenIdConnect.Server
                 return null;
             }
 
+            Logger.LogTrace("The identity token '{Token}' was successfully validated using " +
+                            "the specified security token handler: {Claims} ; {Properties}.",
+                            token, ticket.Identity.Claims, ticket.Properties.Dictionary);
+
             return ticket;
         }
 
@@ -761,9 +842,16 @@ namespace Owin.Security.OpenIdConnect.Server
                 return null;
             }
 
-            var ticket = notification.DataFormat?.Unprotect(token);
+            if (notification.DataFormat == null)
+            {
+                throw new InvalidOperationException("A data formatter must be provided.");
+            }
+
+            var ticket = notification.DataFormat.Unprotect(token);
             if (ticket == null)
             {
+                Logger.LogTrace("The received token was invalid or malformed: {Token}.", token);
+
                 return null;
             }
 
@@ -774,6 +862,10 @@ namespace Owin.Security.OpenIdConnect.Server
 
                 return null;
             }
+
+            Logger.LogTrace("The refresh token '{Token}' was successfully validated using " +
+                            "the specified token data format: {Claims} ; {Properties}.",
+                            token, ticket.Identity.Claims, ticket.Properties.Dictionary);
 
             return ticket;
         }

@@ -384,6 +384,54 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
+        public async Task SerializeAuthorizationCodeAsync_ThrowsAnExceptionForNullDataFormat()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnSerializeAuthorizationCode = context =>
+                {
+                    context.DataFormat = null;
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnValidateAuthorizationRequest = context =>
+                {
+                    context.Validate();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnHandleAuthorizationRequest = context =>
+                {
+                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
+
+                    context.Validate(new ClaimsPrincipal(identity));
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act and assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate
+            {
+                return client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest
+                {
+                    ClientId = "Fabrikam",
+                    RedirectUri = "http://www.fabrikam.com/path",
+                    ResponseType = OpenIdConnectConstants.ResponseTypes.Code,
+                    Scope = OpenIdConnectConstants.Scopes.OpenId
+                });
+            });
+
+            Assert.Equal("A data formatter must be provided.", exception.Message);
+        }
+
+        [Fact]
         public async Task SerializeAuthorizationCodeAsync_UsesAuthorizationCodeFormat()
         {
             // Arrange
@@ -922,6 +970,54 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
             });
 
             Assert.Equal("The authentication ticket cannot be replaced.", exception.Message);
+        }
+
+        [Fact]
+        public async Task SerializeAccessTokenAsync_ThrowsAnExceptionForNullDataFormat()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnSerializeAccessToken = context =>
+                {
+                    context.SecurityTokenHandler = null;
+                    context.DataFormat = null;
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnValidateTokenRequest = context =>
+                {
+                    context.Skip();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnHandleTokenRequest = context =>
+                {
+                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
+
+                    context.Validate(new ClaimsPrincipal(identity));
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act and assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate
+            {
+                return client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+                {
+                    GrantType = OpenIdConnectConstants.GrantTypes.Password,
+                    Username = "johndoe",
+                    Password = "A3ddj3w"
+                });
+            });
+
+            Assert.Equal("A security token handler or data formatter must be provided.", exception.Message);
         }
 
         [Fact]
@@ -1577,6 +1673,54 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
             Assert.Equal("The authentication ticket cannot be replaced.", exception.Message);
         }
 
+        [Fact]
+        public async Task SerializeIdentityTokenAsync_ThrowsAnExceptionForNullSecurityTokenHandler()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnSerializeIdentityToken = context =>
+                {
+                    context.SecurityTokenHandler = null;
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnValidateTokenRequest = context =>
+                {
+                    context.Skip();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnHandleTokenRequest = context =>
+                {
+                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
+
+                    context.Validate(new ClaimsPrincipal(identity));
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act and assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate
+            {
+                return client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+                {
+                    GrantType = OpenIdConnectConstants.GrantTypes.Password,
+                    Username = "johndoe",
+                    Password = "A3ddj3w",
+                    Scope = OpenIdConnectConstants.Scopes.OpenId
+                });
+            });
+
+            Assert.Equal("A security token handler must be provided.", exception.Message);
+        }
+
         [Theory]
         [InlineData("code id_token")]
         [InlineData("code id_token token")]
@@ -2025,6 +2169,61 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
+        public async Task SerializeRefreshTokenAsync_ThrowsAnExceptionForNullDataFormat()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnSerializeRefreshToken = context =>
+                {
+                    context.DataFormat = null;
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnValidateTokenRequest = context =>
+                {
+                    context.Skip();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnHandleTokenRequest = context =>
+                {
+                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
+
+                    var ticket = new AuthenticationTicket(
+                        new ClaimsPrincipal(identity),
+                        new AuthenticationProperties(),
+                        context.Options.AuthenticationScheme);
+
+                    ticket.SetScopes(OpenIdConnectConstants.Scopes.OfflineAccess);
+
+                    context.Validate(ticket);
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act and assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate
+            {
+                return client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+                {
+                    GrantType = OpenIdConnectConstants.GrantTypes.Password,
+                    Username = "johndoe",
+                    Password = "A3ddj3w",
+                    Scope = OpenIdConnectConstants.Scopes.OfflineAccess
+                });
+            });
+
+            Assert.Equal("A data formatter must be provided.", exception.Message);
+        }
+
+        [Fact]
         public async Task SerializeRefreshTokenAsync_UsesRefreshTokenFormat()
         {
             // Arrange
@@ -2158,6 +2357,42 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
+        public async Task DeserializeAuthorizationCodeAsync_ThrowsAnExceptionForNullDataFormat()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAuthorizationCode = context =>
+                {
+                    context.DataFormat = null;
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnValidateIntrospectionRequest = context =>
+                {
+                    context.Skip();
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act and assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate
+            {
+                return client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+                {
+                    Token = "authorization_code",
+                    TokenTypeHint = OpenIdConnectConstants.TokenTypeHints.AuthorizationCode
+                });
+            });
+
+            Assert.Equal("A data formatter must be provided.", exception.Message);
+        }
+
+        [Fact]
         public async Task DeserializeAuthorizationCodeAsync_UsesAuthorizationCodeFormat()
         {
             // Arrange
@@ -2276,6 +2511,43 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.False((bool) response[OpenIdConnectConstants.Claims.Active]);
+        }
+
+        [Fact]
+        public async Task DeserializeAccessTokenAsync_ThrowsAnExceptionForNullDataFormat()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAccessToken = context =>
+                {
+                    context.SecurityTokenHandler = null;
+                    context.DataFormat = null;
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnValidateIntrospectionRequest = context =>
+                {
+                    context.Skip();
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act and assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate
+            {
+                return client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+                {
+                    Token = "access_token",
+                    TokenTypeHint = OpenIdConnectConstants.TokenTypeHints.AccessToken
+                });
+            });
+
+            Assert.Equal("A security token handler or data formatter must be provided.", exception.Message);
         }
 
         [Fact]
@@ -2454,6 +2726,42 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
+        public async Task DeserializeIdentityTokenAsync_ThrowsAnExceptionForNullSecurityTokenHandler()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeIdentityToken = context =>
+                {
+                    context.SecurityTokenHandler = null;
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnValidateIntrospectionRequest = context =>
+                {
+                    context.Skip();
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act and assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate
+            {
+                return client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+                {
+                    Token = "id_token",
+                    TokenTypeHint = OpenIdConnectConstants.TokenTypeHints.IdToken
+                });
+            });
+
+            Assert.Equal("A security token handler must be provided.", exception.Message);
+        }
+
+        [Fact]
         public async Task DeserializeIdentityTokenAsync_UsesIdentityTokenHandler()
         {
             // Arrange
@@ -2588,6 +2896,42 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.False((bool) response[OpenIdConnectConstants.Claims.Active]);
+        }
+
+        [Fact]
+        public async Task DeserializeRefreshTokenAsync_ThrowsAnExceptionForNullDataFormat()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeRefreshToken = context =>
+                {
+                    context.DataFormat = null;
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnValidateIntrospectionRequest = context =>
+                {
+                    context.Skip();
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(delegate
+            {
+                return client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+                {
+                    Token = "refresh_token",
+                    TokenTypeHint = OpenIdConnectConstants.TokenTypeHints.RefreshToken
+                });
+            });
+
+            Assert.Equal("A data formatter must be provided.", exception.Message);
         }
 
         [Fact]

@@ -191,7 +191,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                 if (ticket == null)
                 {
                     Logger.LogWarning("The identity token extracted from the 'id_token_hint' " +
-                                      "parameter was invalid and was ignored.");
+                                      "parameter was invalid or malformed and was ignored.");
 
                     return AuthenticateResult.Skip();
                 }
@@ -260,7 +260,7 @@ namespace AspNet.Security.OpenIdConnect.Server
 
         private async Task<bool> HandleSignInAsync(AuthenticationTicket ticket)
         {
-            // Extract the OpenID Connect request from the ASP.NET context.
+            // Extract the OpenID Connect request from the ASP.NET Core context.
             // If it cannot be found or doesn't correspond to an authorization
             // or a token request, throw an InvalidOperationException.
             var request = Context.GetOpenIdConnectRequest();
@@ -281,6 +281,9 @@ namespace AspNet.Security.OpenIdConnect.Server
                 throw new InvalidOperationException("The authentication ticket was rejected because " +
                                                     "the mandatory subject claim was missing.");
             }
+
+            Logger.LogTrace("A sign-in operation was triggered: {Claims} ; {Properties}.",
+                            ticket.Principal.Claims, ticket.Properties.Items);
 
             // Prepare a new OpenID Connect response.
             response = new OpenIdConnectResponse();
@@ -431,7 +434,7 @@ namespace AspNet.Security.OpenIdConnect.Server
 
         protected override Task HandleSignOutAsync(SignOutContext context)
         {
-            // Extract the OpenID Connect request from the ASP.NET context.
+            // Extract the OpenID Connect request from the ASP.NET Core context.
             // If it cannot be found or doesn't correspond to a logout request,
             // throw an InvalidOperationException.
             var request = Context.GetOpenIdConnectRequest();
@@ -447,6 +450,8 @@ namespace AspNet.Security.OpenIdConnect.Server
                 throw new InvalidOperationException("A response has already been sent.");
             }
 
+            Logger.LogTrace("A log-out operation was triggered: {Properties}.", context.Properties);
+
             return SendLogoutResponseAsync(new OpenIdConnectResponse());
         }
 
@@ -454,7 +459,7 @@ namespace AspNet.Security.OpenIdConnect.Server
 
         protected override async Task<bool> HandleUnauthorizedAsync(ChallengeContext context)
         {
-            // Extract the OpenID Connect request from the ASP.NET context.
+            // Extract the OpenID Connect request from the ASP.NET Core context.
             // If it cannot be found or doesn't correspond to an authorization
             // or a token request, throw an InvalidOperationException.
             var request = Context.GetOpenIdConnectRequest();
@@ -503,6 +508,8 @@ namespace AspNet.Security.OpenIdConnect.Server
                     "The authorization was denied by the resource owner." :
                     "The token request was rejected by the authorization server.";
             }
+
+            Logger.LogTrace("A challenge operation was triggered: {Properties}.", context.Properties);
 
             if (request.IsAuthorizationRequest())
             {

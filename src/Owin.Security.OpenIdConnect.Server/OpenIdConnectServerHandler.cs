@@ -226,7 +226,7 @@ namespace Owin.Security.OpenIdConnect.Server
                 if (ticket == null)
                 {
                     Logger.LogWarning("The identity token extracted from the 'id_token_hint' " +
-                                      "parameter was invalid and was ignored.");
+                                      "parameter was invalid or malformed and was ignored.");
 
                     return null;
                 }
@@ -312,6 +312,9 @@ namespace Owin.Security.OpenIdConnect.Server
                 throw new InvalidOperationException("The authentication ticket was rejected because " +
                                                     "the mandatory subject claim was missing.");
             }
+
+            Logger.LogTrace("A sign-in operation was triggered: {Claims} ; {Properties}.",
+                            ticket.Identity.Claims, ticket.Properties.Dictionary);
 
             // Prepare a new OpenID Connect response.
             response = new OpenIdConnectResponse();
@@ -478,6 +481,8 @@ namespace Owin.Security.OpenIdConnect.Server
                 throw new InvalidOperationException("A response has already been sent.");
             }
 
+            Logger.LogTrace("A log-out operation was triggered: {Properties}.", context.Properties.Dictionary);
+
             return await SendLogoutResponseAsync(new OpenIdConnectResponse());
         }
 
@@ -529,6 +534,8 @@ namespace Owin.Security.OpenIdConnect.Server
                     "The authorization was denied by the resource owner." :
                     "The token request was rejected by the authorization server.";
             }
+
+            Logger.LogTrace("A challenge operation was triggered: {Properties}.", context.Properties.Dictionary);
 
             if (request.IsAuthorizationRequest())
             {
