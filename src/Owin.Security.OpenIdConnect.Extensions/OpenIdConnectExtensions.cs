@@ -1286,6 +1286,22 @@ namespace Owin.Security.OpenIdConnect.Extensions
         }
 
         /// <summary>
+        /// Sets the confidentiality level associated with the authentication ticket.
+        /// </summary>
+        /// <param name="ticket">The authentication ticket.</param>
+        /// <param name="level">The confidentiality level of the token.</param>
+        /// <returns>The authentication ticket.</returns>
+        public static AuthenticationTicket SetConfidentialityLevel([NotNull] this AuthenticationTicket ticket, string level)
+        {
+            if (ticket == null)
+            {
+                throw new ArgumentNullException(nameof(ticket));
+            }
+
+            return ticket.SetProperty(OpenIdConnectConstants.Properties.ConfidentialityLevel, level);
+        }
+
+        /// <summary>
         /// Sets the access token lifetime associated with the authentication ticket.
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>

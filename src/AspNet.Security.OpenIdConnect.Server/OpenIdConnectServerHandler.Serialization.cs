@@ -557,7 +557,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                 return null;
             }
 
-            // Ensure the received ticket is an authorization code.
+            // Ensure that the received ticket is an authorization code.
             if (!ticket.IsAuthorizationCode())
             {
                 Logger.LogTrace("The received token was not an authorization code: {Code}.", code);
@@ -661,45 +661,15 @@ namespace AspNet.Security.OpenIdConnect.Server
                 IssuedUtc = securityToken.ValidFrom
             };
 
-            var ticket = new AuthenticationTicket(principal, properties, Options.AuthenticationScheme);
+            var ticket = new AuthenticationTicket(principal, properties, Options.AuthenticationScheme)
+                .SetAudiences(principal.FindAll(OpenIdConnectConstants.Claims.Audience).Select(claim => claim.Value))
+                .SetConfidentialityLevel(principal.GetClaim(OpenIdConnectConstants.Claims.ConfidentialityLevel))
+                .SetPresenters(principal.FindAll(OpenIdConnectConstants.Claims.AuthorizedParty).Select(claim => claim.Value))
+                .SetScopes(principal.FindAll(OpenIdConnectConstants.Claims.Scope).Select(claim => claim.Value))
+                .SetTicketId(principal.GetClaim(OpenIdConnectConstants.Claims.JwtId))
+                .SetUsage(principal.GetClaim(OpenIdConnectConstants.Claims.Usage));
 
-            var audiences = principal.FindAll(OpenIdConnectConstants.Claims.Audience);
-            if (audiences.Any())
-            {
-                ticket.SetAudiences(audiences.Select(claim => claim.Value));
-            }
-
-            var presenters = principal.FindAll(OpenIdConnectConstants.Claims.AuthorizedParty);
-            if (presenters.Any())
-            {
-                ticket.SetPresenters(presenters.Select(claim => claim.Value));
-            }
-
-            var scopes = principal.FindAll(OpenIdConnectConstants.Claims.Scope);
-            if (scopes.Any())
-            {
-                ticket.SetScopes(scopes.Select(claim => claim.Value));
-            }
-
-            var identifier = principal.FindFirst(OpenIdConnectConstants.Claims.JwtId);
-            if (identifier != null)
-            {
-                ticket.SetTicketId(identifier.Value);
-            }
-
-            var usage = principal.FindFirst(OpenIdConnectConstants.Claims.Usage);
-            if (usage != null)
-            {
-                ticket.SetUsage(usage.Value);
-            }
-
-            var confidentiality = principal.FindFirst(OpenIdConnectConstants.Claims.ConfidentialityLevel);
-            if (confidentiality != null)
-            {
-                ticket.SetProperty(OpenIdConnectConstants.Properties.ConfidentialityLevel, confidentiality.Value);
-            }
-
-            // Ensure that e received ticket is an access token.
+            // Ensure that the received ticket is an access token.
             if (!ticket.IsAccessToken())
             {
                 Logger.LogTrace("The received token was not an access token: {Token}.", token);
@@ -786,39 +756,14 @@ namespace AspNet.Security.OpenIdConnect.Server
                 IssuedUtc = securityToken.ValidFrom
             };
 
-            var ticket = new AuthenticationTicket(principal, properties, Options.AuthenticationScheme);
+            var ticket = new AuthenticationTicket(principal, properties, Options.AuthenticationScheme)
+                .SetAudiences(principal.FindAll(OpenIdConnectConstants.Claims.Audience).Select(claim => claim.Value))
+                .SetConfidentialityLevel(principal.GetClaim(OpenIdConnectConstants.Claims.ConfidentialityLevel))
+                .SetPresenters(principal.FindAll(OpenIdConnectConstants.Claims.AuthorizedParty).Select(claim => claim.Value))
+                .SetTicketId(principal.GetClaim(OpenIdConnectConstants.Claims.JwtId))
+                .SetUsage(principal.GetClaim(OpenIdConnectConstants.Claims.Usage));
 
-            var audiences = principal.FindAll(OpenIdConnectConstants.Claims.Audience);
-            if (audiences.Any())
-            {
-                ticket.SetAudiences(audiences.Select(claim => claim.Value));
-            }
-
-            var presenters = principal.FindAll(OpenIdConnectConstants.Claims.AuthorizedParty);
-            if (presenters.Any())
-            {
-                ticket.SetPresenters(presenters.Select(claim => claim.Value));
-            }
-
-            var identifier = principal.FindFirst(OpenIdConnectConstants.Claims.JwtId);
-            if (identifier != null)
-            {
-                ticket.SetTicketId(identifier.Value);
-            }
-
-            var usage = principal.FindFirst(OpenIdConnectConstants.Claims.Usage);
-            if (usage != null)
-            {
-                ticket.SetUsage(usage.Value);
-            }
-
-            var confidentiality = principal.FindFirst(OpenIdConnectConstants.Claims.ConfidentialityLevel);
-            if (confidentiality != null)
-            {
-                ticket.SetProperty(OpenIdConnectConstants.Properties.ConfidentialityLevel, confidentiality.Value);
-            }
-
-            // Ensure the received ticket is an identity token.
+            // Ensure that the received ticket is an identity token.
             if (!ticket.IsIdentityToken())
             {
                 Logger.LogTrace("The received token was not an identity token: {Token}.", token);
@@ -867,7 +812,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                 return null;
             }
 
-            // Ensure the received ticket is a refresh token.
+            // Ensure that the received ticket is a refresh token.
             if (!ticket.IsRefreshToken())
             {
                 Logger.LogTrace("The received token was not a refresh token: {Token}.", token);

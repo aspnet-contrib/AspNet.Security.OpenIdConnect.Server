@@ -291,8 +291,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             // Copy the confidentiality level associated with the request to the authentication ticket.
             if (!ticket.HasProperty(OpenIdConnectConstants.Properties.ConfidentialityLevel))
             {
-                ticket.SetProperty(OpenIdConnectConstants.Properties.ConfidentialityLevel,
-                    request.GetProperty<string>(OpenIdConnectConstants.Properties.ConfidentialityLevel));
+                ticket.SetConfidentialityLevel(request.GetProperty<string>(OpenIdConnectConstants.Properties.ConfidentialityLevel));
             }
 
             // Always include the "openid" scope when the developer doesn't explicitly call SetScopes.
