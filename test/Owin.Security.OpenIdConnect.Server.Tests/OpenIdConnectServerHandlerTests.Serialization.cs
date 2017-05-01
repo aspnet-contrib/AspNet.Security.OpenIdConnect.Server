@@ -193,7 +193,6 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 options.Provider.OnSerializeAuthorizationCode = context =>
                 {
                     // Assert
-                    Assert.Equal(OpenIdConnectConstants.Usages.AuthorizationCode, context.Ticket.GetUsage());
                     Assert.Equal(new[] { "Fabrikam" }, context.Ticket.GetPresenters());
                     Assert.NotNull(context.Ticket.GetTicketId());
 
@@ -628,7 +627,6 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 options.Provider.OnSerializeAccessToken = context =>
                 {
                     // Assert
-                    Assert.Equal(OpenIdConnectConstants.Usages.AccessToken, context.Ticket.GetUsage());
                     Assert.Equal(new[] { "Fabrikam" }, context.Ticket.GetPresenters());
                     Assert.NotNull(context.Ticket.GetTicketId());
 
@@ -1272,7 +1270,6 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 options.Provider.OnSerializeIdentityToken = context =>
                 {
                     // Assert
-                    Assert.Equal(OpenIdConnectConstants.Usages.IdentityToken, context.Ticket.GetUsage());
                     Assert.Equal(new[] { "Fabrikam" }, context.Ticket.GetPresenters());
                     Assert.NotNull(context.Ticket.GetTicketId());
 
@@ -1786,7 +1783,6 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 options.Provider.OnSerializeRefreshToken = context =>
                 {
                     // Assert
-                    Assert.Equal(OpenIdConnectConstants.Usages.RefreshToken, context.Ticket.GetUsage());
                     Assert.Equal(new[] { "Fabrikam" }, context.Ticket.GetPresenters());
                     Assert.NotNull(context.Ticket.GetTicketId());
 
@@ -2152,8 +2148,6 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationType),
                 new AuthenticationProperties());
 
-            ticket.SetUsage(OpenIdConnectConstants.Usages.AuthorizationCode);
-
             var format = new Mock<ISecureDataFormat<AuthenticationTicket>>();
             format.Setup(mock => mock.Unprotect("7F82F1A3-8C9F-489F-B838-4B644B7C92B2"))
                 .Returns(ticket)
@@ -2308,8 +2302,6 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationType),
                 new AuthenticationProperties());
 
-            ticket.SetUsage(OpenIdConnectConstants.Usages.AccessToken);
-
             var format = new Mock<ISecureDataFormat<AuthenticationTicket>>();
             format.Setup(mock => mock.Unprotect("7F82F1A3-8C9F-489F-B838-4B644B7C92B2"))
                 .Returns(ticket)
@@ -2393,6 +2385,54 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
             format.Verify(mock => mock.ValidateToken(
                     "7F82F1A3-8C9F-489F-B838-4B644B7C92B2",
                     It.IsAny<TokenValidationParameters>(), out token), Times.Once());
+        }
+
+        [Fact]
+        public async Task DeserializeAccessTokenAsync_ReturnsNullForInvalidTokenType()
+        {
+            // Arrange
+            var token = Mock.Of<SecurityToken>(mock =>
+                mock.ValidFrom == DateTime.UtcNow.AddDays(-1) &&
+                mock.ValidTo == DateTime.UtcNow.AddDays(1));
+
+            var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationType);
+            identity.AddClaim(OpenIdConnectConstants.Claims.Usage, OpenIdConnectConstants.Usages.IdentityToken);
+
+            var format = new Mock<JwtSecurityTokenHandler>();
+
+            format.Setup(mock => mock.CanReadToken("7F82F1A3-8C9F-489F-B838-4B644B7C92B2"))
+                .Returns(true)
+                .Verifiable();
+
+            format.Setup(mock => mock.ValidateToken(
+                "7F82F1A3-8C9F-489F-B838-4B644B7C92B2",
+                It.IsAny<TokenValidationParameters>(), out token))
+                .Returns(new ClaimsPrincipal(identity))
+                .Verifiable();
+
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.AccessTokenHandler = format.Object;
+
+                options.Provider.OnValidateIntrospectionRequest = context =>
+                {
+                    context.Skip();
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+            {
+                Token = "7F82F1A3-8C9F-489F-B838-4B644B7C92B2",
+                TokenTypeHint = OpenIdConnectConstants.TokenTypeHints.AccessToken
+            });
+
+            // Assert
+            Assert.False((bool) response[OpenIdConnectConstants.Claims.Active]);
         }
 
         [Fact]
@@ -2568,6 +2608,56 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
+        public async Task DeserializeIdentityTokenAsync_ReturnsNullForInvalidTokenType()
+        {
+            // Arrange
+            var token = Mock.Of<SecurityToken>(mock =>
+                mock.ValidFrom == DateTime.UtcNow.AddDays(-1) &&
+                mock.ValidTo == DateTime.UtcNow.AddDays(1));
+
+            var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationType);
+            identity.AddClaim(OpenIdConnectConstants.Claims.Usage, OpenIdConnectConstants.Usages.AccessToken);
+
+            var format = new Mock<JwtSecurityTokenHandler>();
+
+            format.As<ISecurityTokenValidator>()
+                .Setup(mock => mock.CanReadToken("7F82F1A3-8C9F-489F-B838-4B644B7C92B2"))
+                .Returns(true)
+                .Verifiable();
+
+            format.As<ISecurityTokenValidator>()
+                .Setup(mock => mock.ValidateToken(
+                    "7F82F1A3-8C9F-489F-B838-4B644B7C92B2",
+                    It.IsAny<TokenValidationParameters>(), out token))
+                .Returns(new ClaimsPrincipal(identity))
+                .Verifiable();
+
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.IdentityTokenHandler = format.Object;
+
+                options.Provider.OnValidateIntrospectionRequest = context =>
+                {
+                    context.Skip();
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+            {
+                Token = "7F82F1A3-8C9F-489F-B838-4B644B7C92B2",
+                TokenTypeHint = OpenIdConnectConstants.TokenTypeHints.IdToken
+            });
+
+            // Assert
+            Assert.False((bool) response[OpenIdConnectConstants.Claims.Active]);
+        }
+
+        [Fact]
         public async Task DeserializeRefreshTokenAsync_AllowsHandlingSerialization()
         {
             // Arrange
@@ -2688,8 +2778,6 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationType),
                 new AuthenticationProperties());
-
-            ticket.SetUsage(OpenIdConnectConstants.Usages.RefreshToken);
 
             var format = new Mock<ISecureDataFormat<AuthenticationTicket>>();
             format.Setup(mock => mock.Unprotect("7F82F1A3-8C9F-489F-B838-4B644B7C92B2"))

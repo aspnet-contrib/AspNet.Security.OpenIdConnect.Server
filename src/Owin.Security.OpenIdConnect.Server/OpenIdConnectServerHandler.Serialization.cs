@@ -36,8 +36,6 @@ namespace Owin.Security.OpenIdConnect.Server
             ticket.Properties.ExpiresUtc = ticket.Properties.IssuedUtc;
             ticket.Properties.ExpiresUtc += ticket.GetAuthorizationCodeLifetime() ?? Options.AuthorizationCodeLifetime;
 
-            ticket.SetUsage(OpenIdConnectConstants.Usages.AuthorizationCode);
-
             // Associate a random identifier with the authorization code.
             ticket.SetTicketId(Guid.NewGuid().ToString());
 
@@ -122,11 +120,9 @@ namespace Owin.Security.OpenIdConnect.Server
             ticket.Properties.ExpiresUtc = ticket.Properties.IssuedUtc;
             ticket.Properties.ExpiresUtc += ticket.GetAccessTokenLifetime() ?? Options.AccessTokenLifetime;
 
-            ticket.SetUsage(OpenIdConnectConstants.Usages.AccessToken);
-            ticket.SetAudiences(ticket.GetResources());
-
             // Associate a random identifier with the access token.
             ticket.SetTicketId(Guid.NewGuid().ToString());
+            ticket.SetAudiences(ticket.GetResources());
 
             // Remove the unwanted properties from the authentication ticket.
             ticket.RemoveProperty(OpenIdConnectConstants.Properties.AccessTokenLifetime)
@@ -181,11 +177,11 @@ namespace Owin.Security.OpenIdConnect.Server
                 throw new InvalidOperationException("A signing key must be provided.");
             }
 
+            // Store the "usage" property as a claim.
+            ticket.Identity.AddClaim(OpenIdConnectConstants.Claims.Usage, OpenIdConnectConstants.Usages.AccessToken);
+
             // Store the "unique_id" property as a claim.
             ticket.Identity.AddClaim(OpenIdConnectConstants.Claims.JwtId, ticket.GetTicketId());
-
-            // Store the "usage" property as a claim.
-            ticket.Identity.AddClaim(OpenIdConnectConstants.Claims.Usage, ticket.GetUsage());
 
             // Store the "confidentiality_level" property as a claim.
             var confidentiality = ticket.GetProperty(OpenIdConnectConstants.Properties.ConfidentialityLevel);
@@ -291,8 +287,6 @@ namespace Owin.Security.OpenIdConnect.Server
             ticket.Properties.ExpiresUtc = ticket.Properties.IssuedUtc;
             ticket.Properties.ExpiresUtc += ticket.GetIdentityTokenLifetime() ?? Options.IdentityTokenLifetime;
 
-            ticket.SetUsage(OpenIdConnectConstants.Usages.IdentityToken);
-
             // Associate a random identifier with the identity token.
             ticket.SetTicketId(Guid.NewGuid().ToString());
 
@@ -346,11 +340,11 @@ namespace Owin.Security.OpenIdConnect.Server
                 throw new InvalidOperationException("A signing key must be provided.");
             }
 
+            // Store the "usage" property as a claim.
+            ticket.Identity.AddClaim(OpenIdConnectConstants.Claims.Usage, OpenIdConnectConstants.Usages.IdentityToken);
+
             // Store the "unique_id" property as a claim.
             ticket.Identity.AddClaim(OpenIdConnectConstants.Claims.JwtId, ticket.GetTicketId());
-
-            // Store the "usage" property as a claim.
-            ticket.Identity.AddClaim(OpenIdConnectConstants.Claims.Usage, ticket.GetUsage());
 
             // Store the "confidentiality_level" property as a claim.
             var confidentiality = ticket.GetProperty(OpenIdConnectConstants.Properties.ConfidentialityLevel);
@@ -468,8 +462,6 @@ namespace Owin.Security.OpenIdConnect.Server
             ticket.Properties.ExpiresUtc = ticket.Properties.IssuedUtc;
             ticket.Properties.ExpiresUtc += ticket.GetRefreshTokenLifetime() ?? Options.RefreshTokenLifetime;
 
-            ticket.SetUsage(OpenIdConnectConstants.Usages.RefreshToken);
-
             // Associate a random identifier with the refresh token.
             ticket.SetTicketId(Guid.NewGuid().ToString());
 
@@ -545,13 +537,9 @@ namespace Owin.Security.OpenIdConnect.Server
                 return null;
             }
 
-            // Ensure that the received ticket is an authorization code.
-            if (!ticket.IsAuthorizationCode())
-            {
-                Logger.LogTrace("The received token was not an authorization code: {Code}.", code);
-
-                return null;
-            }
+            // Note: since the data formatter relies on a data protector using different "purposes" strings
+            // per token type, the ticket returned by Unprotect() is guaranteed to be an authorization code.
+            ticket.SetUsage(OpenIdConnectConstants.Usages.AuthorizationCode);
 
             Logger.LogTrace("The authorization code '{Code}' was successfully validated using " +
                             "the specified token data format: {Claims} ; {Properties}.",
@@ -610,6 +598,10 @@ namespace Owin.Security.OpenIdConnect.Server
 
                     return null;
                 }
+
+                // Note: since the data formatter relies on a data protector using different "purposes" strings
+                // per token type, the ticket returned by Unprotect() is guaranteed to be an access token.
+                value.SetUsage(OpenIdConnectConstants.Usages.AccessToken);
 
                 Logger.LogTrace("The access token '{Token}' was successfully validated using " +
                                 "the specified token data format: {Claims} ; {Properties}.",
@@ -800,13 +792,9 @@ namespace Owin.Security.OpenIdConnect.Server
                 return null;
             }
 
-            // Ensure that the received ticket is an identity token.
-            if (!ticket.IsRefreshToken())
-            {
-                Logger.LogTrace("The received token was not a refresh token: {Token}.", token);
-
-                return null;
-            }
+            // Note: since the data formatter relies on a data protector using different "purposes" strings
+            // per token type, the ticket returned by Unprotect() is guaranteed to be a refresh token.
+            ticket.SetUsage(OpenIdConnectConstants.Usages.RefreshToken);
 
             Logger.LogTrace("The refresh token '{Token}' was successfully validated using " +
                             "the specified token data format: {Claims} ; {Properties}.",
