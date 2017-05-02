@@ -15,8 +15,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AspNet.Security.OAuth.Introspection" Version="1.0.0-*" />
-    <PackageReference Include="AspNet.Security.OAuth.Validation" Version="1.0.0-*" />
+    <PackageReference Include="AspNet.Security.OAuth.Introspection" Version="$(AspNetContribOpenIdExtensionsVersion)" />
+    <PackageReference Include="AspNet.Security.OAuth.Validation" Version="$(AspNetContribOpenIdExtensionsVersion)" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Cookies" Version="$(AspNetCoreVersion)" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="$(AspNetCoreVersion)" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Twitter" Version="$(AspNetCoreVersion)" />
