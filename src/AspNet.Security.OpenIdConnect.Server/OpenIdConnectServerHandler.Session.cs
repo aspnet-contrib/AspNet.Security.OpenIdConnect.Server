@@ -268,7 +268,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                 parameters.Add(parameter.Key, value);
             }
 
-            Logger.LogInformation("The logout response was successfully returned to {PostLogoutRedirectUri}: {Response}.",
+            Logger.LogInformation("The logout response was successfully returned to '{PostLogoutRedirectUri}': {Response}.",
                                   notification.PostLogoutRedirectUri, response);
 
             var location = QueryHelpers.AddQueryString(notification.PostLogoutRedirectUri, parameters);

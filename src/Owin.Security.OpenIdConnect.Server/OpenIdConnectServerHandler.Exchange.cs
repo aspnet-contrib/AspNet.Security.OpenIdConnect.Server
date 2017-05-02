@@ -535,16 +535,15 @@ namespace Owin.Security.OpenIdConnect.Server
             ticket = notification.Ticket;
 
             // Ensure an authentication ticket has been provided or return
-            // an error code indicating that the grant type is not supported.
+            // an error code indicating that the request was rejected.
             if (ticket == null)
             {
-                Logger.LogError("The token request was rejected because no authentication " +
-                                "ticket was returned by application code.");
+                Logger.LogError("The token request was rejected because it was not handled by the user code.");
 
                 return await SendTokenResponseAsync(new OpenIdConnectResponse
                 {
-                    Error = OpenIdConnectConstants.Errors.UnsupportedGrantType,
-                    ErrorDescription = "The specified 'grant_type' parameter is not supported."
+                    Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = "The token request was rejected by the authorization server."
                 });
             }
 

@@ -498,7 +498,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                 case OpenIdConnectConstants.ResponseModes.FormPost:
                 {
                     Logger.LogInformation("The authorization response was successfully returned to " +
-                                          "{RedirectUri} using the form post response mode: {Response}.",
+                                          "'{RedirectUri}' using the form post response mode: {Response}.",
                                           notification.RedirectUri, response);
 
                     using (var buffer = new MemoryStream())
@@ -547,7 +547,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                 case OpenIdConnectConstants.ResponseModes.Fragment:
                 {
                     Logger.LogInformation("The authorization response was successfully returned to " +
-                                          "{RedirectUri} using the fragment response mode: {Response}.",
+                                          "'{RedirectUri}' using the fragment response mode: {Response}.",
                                           notification.RedirectUri, response);
 
                     var location = notification.RedirectUri;
@@ -565,7 +565,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                 case OpenIdConnectConstants.ResponseModes.Query:
                 {
                     Logger.LogInformation("The authorization response was successfully returned to " +
-                                          "{RedirectUri} using the query response mode: {Response}.",
+                                          "'{RedirectUri}' using the query response mode: {Response}.",
                                           notification.RedirectUri, response);
 
                     var location = QueryHelpers.AddQueryString(notification.RedirectUri, parameters);

@@ -1324,6 +1324,35 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
+        public async Task InvokeTokenEndpointAsync_RejectsUnhandledRequestsWithDefaultError()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
+                    context.Skip();
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
+                GrantType = OpenIdConnectConstants.GrantTypes.Password,
+                Username = "johndoe",
+                Password = "A3ddj3w"
+            });
+
+            // Assert
+            Assert.Equal(OpenIdConnectConstants.Errors.InvalidRequest, response.Error);
+            Assert.Equal("The token request was rejected by the authorization server.", response.ErrorDescription);
+        }
+
+        [Fact]
         public async Task SendTokenResponseAsync_ApplyTokenResponse_AllowsHandlingResponse()
         {
             // Arrange
