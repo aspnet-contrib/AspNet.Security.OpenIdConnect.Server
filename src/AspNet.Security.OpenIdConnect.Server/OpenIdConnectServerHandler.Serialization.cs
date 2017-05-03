@@ -47,7 +47,8 @@ namespace AspNet.Security.OpenIdConnect.Server
                 request.GetProperty<string>(OpenIdConnectConstants.Properties.OriginalRedirectUri));
 
             // Remove the unwanted properties from the authentication ticket.
-            ticket.RemoveProperty(OpenIdConnectConstants.Properties.AuthorizationCodeLifetime);
+            ticket.RemoveProperty(OpenIdConnectConstants.Properties.AuthorizationCodeLifetime)
+                  .RemoveProperty(OpenIdConnectConstants.Properties.Usage);
 
             var notification = new SerializeAuthorizationCodeContext(Context, Options, request, response, ticket)
             {
@@ -137,7 +138,8 @@ namespace AspNet.Security.OpenIdConnect.Server
                   .RemoveProperty(OpenIdConnectConstants.Properties.IdentityTokenLifetime)
                   .RemoveProperty(OpenIdConnectConstants.Properties.Nonce)
                   .RemoveProperty(OpenIdConnectConstants.Properties.OriginalRedirectUri)
-                  .RemoveProperty(OpenIdConnectConstants.Properties.RefreshTokenLifetime);
+                  .RemoveProperty(OpenIdConnectConstants.Properties.RefreshTokenLifetime)
+                  .RemoveProperty(OpenIdConnectConstants.Properties.Usage);
 
             var notification = new SerializeAccessTokenContext(Context, Options, request, response, ticket)
             {
@@ -304,7 +306,8 @@ namespace AspNet.Security.OpenIdConnect.Server
                   .RemoveProperty(OpenIdConnectConstants.Properties.CodeChallengeMethod)
                   .RemoveProperty(OpenIdConnectConstants.Properties.IdentityTokenLifetime)
                   .RemoveProperty(OpenIdConnectConstants.Properties.OriginalRedirectUri)
-                  .RemoveProperty(OpenIdConnectConstants.Properties.RefreshTokenLifetime);
+                  .RemoveProperty(OpenIdConnectConstants.Properties.RefreshTokenLifetime)
+                  .RemoveProperty(OpenIdConnectConstants.Properties.Usage);
 
             ticket.SetAudiences(ticket.GetPresenters());
 
@@ -477,7 +480,8 @@ namespace AspNet.Security.OpenIdConnect.Server
                   .RemoveProperty(OpenIdConnectConstants.Properties.CodeChallenge)
                   .RemoveProperty(OpenIdConnectConstants.Properties.CodeChallengeMethod)
                   .RemoveProperty(OpenIdConnectConstants.Properties.Nonce)
-                  .RemoveProperty(OpenIdConnectConstants.Properties.OriginalRedirectUri);
+                  .RemoveProperty(OpenIdConnectConstants.Properties.OriginalRedirectUri)
+                  .RemoveProperty(OpenIdConnectConstants.Properties.Usage);
 
             var notification = new SerializeRefreshTokenContext(Context, Options, request, response, ticket)
             {
