@@ -622,6 +622,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
                     context.Ticket.SetAudiences("Fabrikam");
+                    context.Ticket.SetPresenters("Contoso", "AdventureWorks Cycles");
                     context.Ticket.SetTicketId("66B65AED-4033-4E9C-B975-A8CA7FB6FA79");
 
                     context.Ticket.Properties.IssuedUtc = new DateTimeOffset(2016, 1, 1, 0, 0, 0, TimeSpan.Zero);
@@ -648,7 +649,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
             });
 
             // Assert
-            Assert.Equal(9, response.GetParameters().Count());
+            Assert.Equal(10, response.GetParameters().Count());
             Assert.True((bool) response[OpenIdConnectConstants.Claims.Active]);
             Assert.Equal("66B65AED-4033-4E9C-B975-A8CA7FB6FA79", (string) response[OpenIdConnectConstants.Claims.JwtId]);
             Assert.Equal(OpenIdConnectConstants.TokenTypes.Bearer, (string) response[OpenIdConnectConstants.Claims.TokenType]);
@@ -658,6 +659,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
             Assert.Equal(1451606400, (long) response[OpenIdConnectConstants.Claims.NotBefore]);
             Assert.Equal(1483228800, (long) response[OpenIdConnectConstants.Claims.ExpiresAt]);
             Assert.Equal("Fabrikam", (string) response[OpenIdConnectConstants.Claims.Audience]);
+            Assert.Equal("Contoso", (string) response[OpenIdConnectConstants.Claims.ClientId]);
         }
 
         [Fact]
@@ -679,6 +681,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                         new AuthenticationProperties());
 
                     context.Ticket.SetAudiences("Contoso");
+                    context.Ticket.SetPresenters("Contoso", "AdventureWorks Cycles");
                     context.Ticket.SetScopes(OpenIdConnectConstants.Scopes.OpenId,
                                              OpenIdConnectConstants.Scopes.Profile);
 
@@ -725,6 +728,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
                     context.Ticket.SetAudiences("Fabrikam");
+                    context.Ticket.SetPresenters("Contoso", "AdventureWorks Cycles");
                     context.Ticket.SetScopes(OpenIdConnectConstants.Scopes.OpenId,
                                              OpenIdConnectConstants.Scopes.Profile);
 

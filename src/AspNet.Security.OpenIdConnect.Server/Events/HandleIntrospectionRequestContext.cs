@@ -52,6 +52,12 @@ namespace AspNet.Security.OpenIdConnect.Server
             new HashSet<string>(StringComparer.Ordinal);
 
         /// <summary>
+        /// Gets or sets the "client_id" claim
+        /// returned to the caller, if applicable.
+        /// </summary>
+        public string ClientId { get; set; }
+
+        /// <summary>
         /// Gets or sets the "exp" claim
         /// returned to the caller, if applicable.
         /// </summary>

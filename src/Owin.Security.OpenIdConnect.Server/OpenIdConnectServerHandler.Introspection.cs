@@ -336,8 +336,11 @@ namespace Owin.Security.OpenIdConnect.Server
             notification.NotBefore = ticket.Properties.IssuedUtc;
             notification.ExpiresAt = ticket.Properties.ExpiresUtc;
 
-            // Copy the audiences extracted from the "aud" claim.
+            // Infer the audiences/client_id claims from the properties stored in the authentication ticket.
+            // Note: the client_id claim must be a unique string so multiple presenters cannot be returned.
+            // To work around this limitation, only the first one is returned if multiple values are listed.
             notification.Audiences.UnionWith(ticket.GetAudiences());
+            notification.ClientId = ticket.GetPresenters().FirstOrDefault();
 
             // Note: non-metadata claims are only added if the caller is authenticated
             // AND is in the specified audiences, unless there's so explicit audience.
@@ -443,6 +446,7 @@ namespace Owin.Security.OpenIdConnect.Server
                 response[OpenIdConnectConstants.Claims.Scope] = string.Join(" ", notification.Scopes);
                 response[OpenIdConnectConstants.Claims.JwtId] = notification.TokenId;
                 response[OpenIdConnectConstants.Claims.TokenType] = notification.TokenType;
+                response[OpenIdConnectConstants.Claims.ClientId] = notification.ClientId;
 
                 if (notification.IssuedAt != null)
                 {
