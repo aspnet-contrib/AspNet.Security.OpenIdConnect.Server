@@ -638,14 +638,14 @@ namespace AspNet.Security.OpenIdConnect.Extensions
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
         /// <returns>The unique identifier or <c>null</c> is the property cannot be found.</returns>
-        public static string GetTicketId([NotNull] this AuthenticationTicket ticket)
+        public static string GetTokenId([NotNull] this AuthenticationTicket ticket)
         {
             if (ticket == null)
             {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            return ticket.GetProperty(OpenIdConnectConstants.Properties.TicketId);
+            return ticket.GetProperty(OpenIdConnectConstants.Properties.TokenId);
         }
 
         /// <summary>
@@ -1382,14 +1382,14 @@ namespace AspNet.Security.OpenIdConnect.Extensions
         /// <param name="ticket">The authentication ticket.</param>
         /// <param name="identifier">The unique identifier to store.</param>
         /// <returns>The authentication ticket.</returns>
-        public static AuthenticationTicket SetTicketId([NotNull] this AuthenticationTicket ticket, string identifier)
+        public static AuthenticationTicket SetTokenId([NotNull] this AuthenticationTicket ticket, string identifier)
         {
             if (ticket == null)
             {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            return ticket.SetProperty(OpenIdConnectConstants.Properties.TicketId, identifier);
+            return ticket.SetProperty(OpenIdConnectConstants.Properties.TokenId, identifier);
         }
 
         /// <summary>

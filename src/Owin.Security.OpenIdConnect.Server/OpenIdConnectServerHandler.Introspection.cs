@@ -318,7 +318,7 @@ namespace Owin.Security.OpenIdConnect.Server
             {
                 Active = true,
                 Issuer = Context.GetIssuer(Options),
-                TokenId = ticket.GetTicketId(),
+                TokenId = ticket.GetTokenId(),
                 TokenUsage = ticket.GetProperty(OpenIdConnectConstants.Properties.TokenUsage),
                 Subject = ticket.Identity.GetClaim(OpenIdConnectConstants.Claims.Subject)
             };

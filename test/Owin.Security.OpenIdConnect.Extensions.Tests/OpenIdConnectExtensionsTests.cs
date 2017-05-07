@@ -711,7 +711,7 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests
         }
 
         [Fact]
-        public void GetTicketId_ThrowsAnExceptionForNullTicket()
+        public void GetTokenId_ThrowsAnExceptionForNullTicket()
         {
             // Arrange
             var ticket = (AuthenticationTicket) null;
@@ -719,7 +719,7 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests
             // Act and assert
             var exception = Assert.Throws<ArgumentNullException>(delegate
             {
-                ticket.GetTicketId();
+                ticket.GetTokenId();
             });
 
             Assert.Equal("ticket", exception.ParamName);
@@ -728,17 +728,17 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests
         [Theory]
         [InlineData(null)]
         [InlineData("identifier")]
-        public void GetTicketId_ReturnsExpectedResult(string identifier)
+        public void GetTokenId_ReturnsExpectedResult(string identifier)
         {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
                 new AuthenticationProperties());
 
-            ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.TicketId] = identifier;
+            ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.TokenId] = identifier;
 
             // Act and assert
-            Assert.Equal(identifier, ticket.GetTicketId());
+            Assert.Equal(identifier, ticket.GetTokenId());
         }
 
         [Fact]
@@ -1760,7 +1760,7 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests
         }
 
         [Fact]
-        public void SetTicketId_ThrowsAnExceptionForNullTicket()
+        public void SetTokenId_ThrowsAnExceptionForNullTicket()
         {
             // Arrange
             var ticket = (AuthenticationTicket) null;
@@ -1768,7 +1768,7 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests
             // Act and assert
             var exception = Assert.Throws<ArgumentNullException>(delegate
             {
-                ticket.SetTicketId(null);
+                ticket.SetTokenId(null);
             });
 
             Assert.Equal("ticket", exception.ParamName);
@@ -1777,7 +1777,7 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests
         [Theory]
         [InlineData(null)]
         [InlineData("identifier")]
-        public void SetTicketId_AddsScopes(string identifier)
+        public void SetTokenId_AddsScopes(string identifier)
         {
             // Arrange
             var ticket = new AuthenticationTicket(
@@ -1785,10 +1785,10 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests
                 new AuthenticationProperties());
 
             // Act
-            ticket.SetTicketId(identifier);
+            ticket.SetTokenId(identifier);
 
             // Assert
-            Assert.Equal(identifier, ticket.GetProperty(OpenIdConnectConstants.Properties.TicketId));
+            Assert.Equal(identifier, ticket.GetProperty(OpenIdConnectConstants.Properties.TokenId));
         }
 
         [Fact]

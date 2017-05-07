@@ -635,7 +635,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
                     context.Ticket.SetAudiences("Fabrikam");
                     context.Ticket.SetPresenters("Contoso", "AdventureWorks Cycles");
-                    context.Ticket.SetTicketId("66B65AED-4033-4E9C-B975-A8CA7FB6FA79");
+                    context.Ticket.SetTokenId("66B65AED-4033-4E9C-B975-A8CA7FB6FA79");
 
                     context.Ticket.Properties.IssuedUtc = new DateTimeOffset(2016, 1, 1, 0, 0, 0, TimeSpan.Zero);
                     context.Ticket.Properties.ExpiresUtc = new DateTimeOffset(2017, 1, 1, 0, 0, 0, TimeSpan.Zero);

@@ -318,7 +318,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             {
                 Active = true,
                 Issuer = Context.GetIssuer(Options),
-                TokenId = ticket.GetTicketId(),
+                TokenId = ticket.GetTokenId(),
                 TokenUsage = ticket.GetProperty(OpenIdConnectConstants.Properties.TokenUsage),
                 Subject = ticket.Principal.GetClaim(OpenIdConnectConstants.Claims.Subject)
             };

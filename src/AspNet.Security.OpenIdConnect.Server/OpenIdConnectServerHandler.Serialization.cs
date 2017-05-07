@@ -35,7 +35,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             ticket.Properties.ExpiresUtc += ticket.GetAuthorizationCodeLifetime() ?? Options.AuthorizationCodeLifetime;
 
             // Associate a random identifier with the authorization code.
-            ticket.SetTicketId(Guid.NewGuid().ToString());
+            ticket.SetTokenId(Guid.NewGuid().ToString());
 
             // Store the code_challenge, code_challenge_method and nonce parameters for later comparison.
             ticket.SetProperty(OpenIdConnectConstants.Properties.CodeChallenge, request.CodeChallenge)
@@ -127,7 +127,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             ticket.Properties.ExpiresUtc += ticket.GetAccessTokenLifetime() ?? Options.AccessTokenLifetime;
 
             // Associate a random identifier with the access token.
-            ticket.SetTicketId(Guid.NewGuid().ToString());
+            ticket.SetTokenId(Guid.NewGuid().ToString());
             ticket.SetAudiences(ticket.GetResources());
 
             // Remove the unwanted properties from the authentication ticket.
@@ -196,7 +196,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             identity.AddClaim(OpenIdConnectConstants.Claims.TokenUsage, OpenIdConnectConstants.TokenUsages.AccessToken);
 
             // Store the "unique_id" property as a claim.
-            identity.AddClaim(OpenIdConnectConstants.Claims.JwtId, ticket.GetTicketId());
+            identity.AddClaim(OpenIdConnectConstants.Claims.JwtId, ticket.GetTokenId());
 
             // Store the "confidentiality_level" property as a claim.
             var confidentiality = ticket.GetProperty(OpenIdConnectConstants.Properties.ConfidentialityLevel);
@@ -297,7 +297,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             ticket.Properties.ExpiresUtc += ticket.GetIdentityTokenLifetime() ?? Options.IdentityTokenLifetime;
 
             // Associate a random identifier with the identity token.
-            ticket.SetTicketId(Guid.NewGuid().ToString());
+            ticket.SetTokenId(Guid.NewGuid().ToString());
 
             // Remove the unwanted properties from the authentication ticket.
             ticket.RemoveProperty(OpenIdConnectConstants.Properties.AccessTokenLifetime)
@@ -362,7 +362,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             identity.AddClaim(OpenIdConnectConstants.Claims.TokenUsage, OpenIdConnectConstants.TokenUsages.IdToken);
 
             // Store the "unique_id" property as a claim.
-            identity.AddClaim(OpenIdConnectConstants.Claims.JwtId, ticket.GetTicketId());
+            identity.AddClaim(OpenIdConnectConstants.Claims.JwtId, ticket.GetTokenId());
 
             // Store the "confidentiality_level" property as a claim.
             var confidentiality = ticket.GetProperty(OpenIdConnectConstants.Properties.ConfidentialityLevel);
@@ -473,7 +473,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             ticket.Properties.ExpiresUtc += ticket.GetRefreshTokenLifetime() ?? Options.RefreshTokenLifetime;
 
             // Associate a random identifier with the refresh token.
-            ticket.SetTicketId(Guid.NewGuid().ToString());
+            ticket.SetTokenId(Guid.NewGuid().ToString());
 
             // Remove the unwanted properties from the authentication ticket.
             ticket.RemoveProperty(OpenIdConnectConstants.Properties.AuthorizationCodeLifetime)
@@ -662,7 +662,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                 .SetConfidentialityLevel(principal.GetClaim(OpenIdConnectConstants.Claims.ConfidentialityLevel))
                 .SetPresenters(principal.FindAll(OpenIdConnectConstants.Claims.AuthorizedParty).Select(claim => claim.Value))
                 .SetScopes(principal.FindAll(OpenIdConnectConstants.Claims.Scope).Select(claim => claim.Value))
-                .SetTicketId(principal.GetClaim(OpenIdConnectConstants.Claims.JwtId))
+                .SetTokenId(principal.GetClaim(OpenIdConnectConstants.Claims.JwtId))
                 .SetTokenUsage(principal.GetClaim(OpenIdConnectConstants.Claims.TokenUsage));
 
             // Ensure that the received ticket is an access token.
@@ -756,7 +756,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                 .SetAudiences(principal.FindAll(OpenIdConnectConstants.Claims.Audience).Select(claim => claim.Value))
                 .SetConfidentialityLevel(principal.GetClaim(OpenIdConnectConstants.Claims.ConfidentialityLevel))
                 .SetPresenters(principal.FindAll(OpenIdConnectConstants.Claims.AuthorizedParty).Select(claim => claim.Value))
-                .SetTicketId(principal.GetClaim(OpenIdConnectConstants.Claims.JwtId))
+                .SetTokenId(principal.GetClaim(OpenIdConnectConstants.Claims.JwtId))
                 .SetTokenUsage(principal.GetClaim(OpenIdConnectConstants.Claims.TokenUsage));
 
             // Ensure that the received ticket is an identity token.

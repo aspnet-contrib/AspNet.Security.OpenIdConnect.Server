@@ -273,7 +273,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives
             public const string RefreshTokenLifetime = ".refresh_token_lifetime";
             public const string Resources = ".resources";
             public const string Scopes = ".scopes";
-            public const string TicketId = ".ticket_id";
+            public const string TokenId = ".token_id";
             public const string TokenUsage = ".token_usage";
             public const string ValidatedClientId = ".validated_client_id";
             public const string ValidatedRedirectUri = ".validated_redirect_uri";

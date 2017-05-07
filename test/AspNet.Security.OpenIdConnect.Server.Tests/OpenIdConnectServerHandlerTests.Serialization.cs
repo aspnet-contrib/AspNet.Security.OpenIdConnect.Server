@@ -200,7 +200,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     // Assert
                     Assert.Equal(new[] { "Fabrikam" }, context.Ticket.GetPresenters());
-                    Assert.NotNull(context.Ticket.GetTicketId());
+                    Assert.NotNull(context.Ticket.GetTokenId());
 
                     return Task.FromResult(0);
                 };
@@ -737,7 +737,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     // Assert
                     Assert.Equal(new[] { "Fabrikam" }, context.Ticket.GetPresenters());
-                    Assert.NotNull(context.Ticket.GetTicketId());
+                    Assert.NotNull(context.Ticket.GetTokenId());
 
                     return Task.FromResult(0);
                 };
@@ -1485,7 +1485,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     // Assert
                     Assert.Equal(new[] { "Fabrikam" }, context.Ticket.GetPresenters());
-                    Assert.NotNull(context.Ticket.GetTicketId());
+                    Assert.NotNull(context.Ticket.GetTokenId());
 
                     return Task.FromResult(0);
                 };
@@ -2111,7 +2111,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     // Assert
                     Assert.Equal(new[] { "Fabrikam" }, context.Ticket.GetPresenters());
-                    Assert.NotNull(context.Ticket.GetTicketId());
+                    Assert.NotNull(context.Ticket.GetTokenId());
 
                     return Task.FromResult(0);
                 };
