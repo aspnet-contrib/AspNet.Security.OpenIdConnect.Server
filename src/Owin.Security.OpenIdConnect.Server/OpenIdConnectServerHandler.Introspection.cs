@@ -341,16 +341,16 @@ namespace Owin.Security.OpenIdConnect.Server
             notification.Audiences.UnionWith(ticket.GetAudiences());
             notification.ClientId = ticket.GetPresenters().FirstOrDefault();
 
-            // Note: non-metadata claims are only added if the caller is authenticated
-            // AND is in the specified audiences, unless there's so explicit audience.
+            // Note: non-metadata claims are only added if the caller's client_id is known
+            // AND is in the specified audiences, unless there's no explicit audience.
             if (!ticket.HasAudience() || (!string.IsNullOrEmpty(context.ClientId) && ticket.HasAudience(context.ClientId)))
             {
                 notification.Username = ticket.Identity.Name;
                 notification.Scopes.UnionWith(ticket.GetScopes());
 
-                // Potentially sensitive claims are only exposed to trusted callers
-                // if the ticket corresponds to an access or identity token.
-                if (ticket.IsAccessToken() || ticket.IsIdentityToken())
+                // Potentially sensitive claims are only exposed if the client was authenticated
+                // and if the authentication ticket corresponds to an identity or access token.
+                if (context.IsValidated && (ticket.IsAccessToken() || ticket.IsIdentityToken()))
                 {
                     foreach (var grouping in ticket.Identity.Claims.GroupBy(claim => claim.Type))
                     {

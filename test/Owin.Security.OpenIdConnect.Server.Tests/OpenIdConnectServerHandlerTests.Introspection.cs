@@ -664,7 +664,93 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public async Task InvokeIntrospectionEndpointAsync_NonBasicClaimsAreNotReturnedToUntrustedCallers()
+        public async Task InvokeIntrospectionEndpointAsync_NonBasicAuthorizationCodeClaimsAreNotReturned()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAuthorizationCode = context =>
+                {
+                    Assert.Equal("2YotnFZFEjr1zCsicMWpAA", context.AuthorizationCode);
+
+                    var identity = new ClaimsIdentity(context.Options.AuthenticationType);
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Username, "Bob");
+                    identity.AddClaim("custom_claim", "secret_value");
+
+                    context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnValidateIntrospectionRequest = context =>
+                {
+                    context.Validate();
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+            {
+                ClientId = "Fabrikam",
+                ClientSecret = "7Fjfp0ZBr1KtDRbnfVdmIw",
+                Token = "2YotnFZFEjr1zCsicMWpAA",
+                TokenTypeHint = OpenIdConnectConstants.TokenTypeHints.AuthorizationCode
+            });
+
+            // Assert
+            Assert.Null(response["custom_claim"]);
+            Assert.Null(response[OpenIdConnectConstants.Claims.Username]);
+        }
+
+        [Fact]
+        public async Task InvokeIntrospectionEndpointAsync_NonBasicRefreshTokenClaimsAreNotReturned()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeRefreshToken = context =>
+                {
+                    Assert.Equal("2YotnFZFEjr1zCsicMWpAA", context.RefreshToken);
+
+                    var identity = new ClaimsIdentity(context.Options.AuthenticationType);
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Username, "Bob");
+                    identity.AddClaim("custom_claim", "secret_value");
+
+                    context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnValidateIntrospectionRequest = context =>
+                {
+                    context.Validate();
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+            {
+                ClientId = "Fabrikam",
+                ClientSecret = "7Fjfp0ZBr1KtDRbnfVdmIw",
+                Token = "2YotnFZFEjr1zCsicMWpAA",
+                TokenTypeHint = OpenIdConnectConstants.TokenTypeHints.RefreshToken
+            });
+
+            // Assert
+            Assert.Null(response["custom_claim"]);
+            Assert.Null(response[OpenIdConnectConstants.Claims.Username]);
+        }
+
+        [Fact]
+        public async Task InvokeIntrospectionEndpointAsync_NonBasicAccessTokenClaimsAreNotReturnedWhenValidationIsSkipped()
         {
             // Arrange
             var server = CreateAuthorizationServer(options =>
@@ -677,10 +763,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     identity.AddClaim(OpenIdConnectConstants.Claims.Username, "Bob");
                     identity.AddClaim("custom_claim", "secret_value");
 
-                    context.Ticket = new AuthenticationTicket(
-                        new ClaimsIdentity(context.Options.AuthenticationType),
-                        new AuthenticationProperties());
-
+                    context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
                     context.Ticket.SetAudiences("Contoso");
                     context.Ticket.SetPresenters("Contoso", "AdventureWorks Cycles");
                     context.Ticket.SetScopes(OpenIdConnectConstants.Scopes.OpenId,
@@ -714,7 +797,50 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public async Task InvokeIntrospectionEndpointAsync_NonBasicClaimsAreReturnedToTrustedCallers()
+        public async Task InvokeIntrospectionEndpointAsync_NonBasicIdentityTokenClaimsAreNotReturnedWhenValidationIsSkipped()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeIdentityToken = context =>
+                {
+                    Assert.Equal("2YotnFZFEjr1zCsicMWpAA", context.IdentityToken);
+
+                    var identity = new ClaimsIdentity(context.Options.AuthenticationType);
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Username, "Bob");
+                    identity.AddClaim("custom_claim", "secret_value");
+
+                    context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
+                    context.Ticket.SetAudiences("Fabrikam");
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnValidateIntrospectionRequest = context =>
+                {
+                    context.Skip();
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+            {
+                ClientId = "Fabrikam",
+                Token = "2YotnFZFEjr1zCsicMWpAA",
+                TokenTypeHint = OpenIdConnectConstants.TokenTypeHints.IdToken
+            });
+
+            // Assert
+            Assert.Null(response["custom_claim"]);
+            Assert.Null(response[OpenIdConnectConstants.Claims.Username]);
+        }
+
+        [Fact]
+        public async Task InvokeIntrospectionEndpointAsync_NonBasicAccessTokenClaimsAreReturnedToTrustedAudiences()
         {
             // Arrange
             var server = CreateAuthorizationServer(options =>
@@ -738,7 +864,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
-                    context.Skip();
+                    context.Validate();
 
                     return Task.FromResult(0);
                 };
@@ -750,6 +876,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
             var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
             {
                 ClientId = "Fabrikam",
+                ClientSecret = "7Fjfp0ZBr1KtDRbnfVdmIw",
                 Token = "2YotnFZFEjr1zCsicMWpAA",
                 TokenTypeHint = OpenIdConnectConstants.TokenTypeHints.AccessToken
             });
@@ -758,6 +885,50 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
             Assert.Equal("secret_value", (string) response["custom_claim"]);
             Assert.Equal("Bob", (string) response[OpenIdConnectConstants.Claims.Username]);
             Assert.Equal("openid profile", (string) response[OpenIdConnectConstants.Claims.Scope]);
+        }
+
+        [Fact]
+        public async Task InvokeIntrospectionEndpointAsync_NonBasicIdentityClaimsAreReturnedToTrustedAudiences()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeIdentityToken = context =>
+                {
+                    Assert.Equal("2YotnFZFEjr1zCsicMWpAA", context.IdentityToken);
+
+                    var identity = new ClaimsIdentity(context.Options.AuthenticationType);
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Username, "Bob");
+                    identity.AddClaim("custom_claim", "secret_value");
+
+                    context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
+                    context.Ticket.SetAudiences("Fabrikam");
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnValidateIntrospectionRequest = context =>
+                {
+                    context.Validate();
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+            {
+                ClientId = "Fabrikam",
+                ClientSecret = "7Fjfp0ZBr1KtDRbnfVdmIw",
+                Token = "2YotnFZFEjr1zCsicMWpAA",
+                TokenTypeHint = OpenIdConnectConstants.TokenTypeHints.IdToken
+            });
+
+            // Assert
+            Assert.Equal("secret_value", (string) response["custom_claim"]);
+            Assert.Equal("Bob", (string) response[OpenIdConnectConstants.Claims.Username]);
         }
 
         [Fact]
@@ -783,7 +954,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
-                    context.Skip();
+                    context.Validate();
 
                     return Task.FromResult(0);
                 };
@@ -794,6 +965,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
             // Act
             var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
             {
+                ClientId = "Fabrikam",
+                ClientSecret = "7Fjfp0ZBr1KtDRbnfVdmIw",
                 Token = "2YotnFZFEjr1zCsicMWpAA",
                 TokenTypeHint = OpenIdConnectConstants.TokenTypeHints.AccessToken
             });
@@ -832,7 +1005,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
-                    context.Skip();
+                    context.Validate();
 
                     return Task.FromResult(0);
                 };
@@ -843,6 +1016,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
             // Act
             var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
             {
+                ClientId = "Fabrikam",
+                ClientSecret = "7Fjfp0ZBr1KtDRbnfVdmIw",
                 Token = "2YotnFZFEjr1zCsicMWpAA",
                 TokenTypeHint = OpenIdConnectConstants.TokenTypeHints.AccessToken
             });
@@ -888,7 +1063,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
-                    context.Skip();
+                    context.Validate();
 
                     return Task.FromResult(0);
                 };
@@ -899,6 +1074,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
             // Act
             var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
             {
+                ClientId = "Fabrikam",
+                ClientSecret = "7Fjfp0ZBr1KtDRbnfVdmIw",
                 Token = "2YotnFZFEjr1zCsicMWpAA",
                 TokenTypeHint = OpenIdConnectConstants.TokenTypeHints.AccessToken
             });
