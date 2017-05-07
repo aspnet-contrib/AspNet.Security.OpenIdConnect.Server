@@ -107,6 +107,12 @@ namespace AspNet.Security.OpenIdConnect.Server
         public string TokenType { get; set; }
 
         /// <summary>
+        /// Gets or sets the "token_usage" claim
+        /// returned to the caller, if applicable.
+        /// </summary>
+        public string TokenUsage { get; set; }
+
+        /// <summary>
         /// Gets or sets the "username" claim
         /// returned to the caller, if applicable.
         /// </summary>

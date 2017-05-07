@@ -66,8 +66,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives
             public const string StreetAddress = "street_address";
             public const string Subject = "sub";
             public const string TokenType = "token_type";
+            public const string TokenUsage = "token_usage";
             public const string UpdatedAt = "updated_at";
-            public const string Usage = "usage";
             public const string Username = "username";
             public const string Website = "website";
             public const string Zoneinfo = "zoneinfo";
@@ -274,7 +274,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives
             public const string Resources = ".resources";
             public const string Scopes = ".scopes";
             public const string TicketId = ".ticket_id";
-            public const string Usage = ".usage";
+            public const string TokenUsage = ".token_usage";
             public const string ValidatedClientId = ".validated_client_id";
             public const string ValidatedRedirectUri = ".validated_redirect_uri";
         }
@@ -329,11 +329,11 @@ namespace AspNet.Security.OpenIdConnect.Primitives
             public const string Bearer = "Bearer";
         }
 
-        public static class Usages
+        public static class TokenUsages
         {
             public const string AccessToken = "access_token";
             public const string AuthorizationCode = "authorization_code";
-            public const string IdentityToken = "identity_token";
+            public const string IdToken = "id_token";
             public const string RefreshToken = "refresh_token";
         }
     }

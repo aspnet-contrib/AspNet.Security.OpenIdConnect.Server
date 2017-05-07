@@ -742,7 +742,7 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests
         }
 
         [Fact]
-        public void GetUsage_ThrowsAnExceptionForNullTicket()
+        public void GetTokenUsage_ThrowsAnExceptionForNullTicket()
         {
             // Arrange
             var ticket = (AuthenticationTicket) null;
@@ -750,7 +750,7 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests
             // Act and assert
             var exception = Assert.Throws<ArgumentNullException>(delegate
             {
-                ticket.GetUsage();
+                ticket.GetTokenUsage();
             });
 
             Assert.Equal("ticket", exception.ParamName);
@@ -759,17 +759,17 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests
         [Theory]
         [InlineData(null)]
         [InlineData("access_token")]
-        public void GetUsage_ReturnsExpectedResult(string usage)
+        public void GetTokenUsage_ReturnsExpectedResult(string usage)
         {
             // Arrange
             var ticket = new AuthenticationTicket(
                 new ClaimsIdentity(),
                 new AuthenticationProperties());
 
-            ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.Usage] = usage;
+            ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.TokenUsage] = usage;
 
             // Act and assert
-            Assert.Equal(usage, ticket.GetUsage());
+            Assert.Equal(usage, ticket.GetTokenUsage());
         }
 
         [Fact]
@@ -1187,10 +1187,10 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests
         [Theory]
         [InlineData(null, false)]
         [InlineData("unknown", false)]
-        [InlineData(OpenIdConnectConstants.Usages.AccessToken, true)]
-        [InlineData(OpenIdConnectConstants.Usages.AuthorizationCode, false)]
-        [InlineData(OpenIdConnectConstants.Usages.IdentityToken, false)]
-        [InlineData(OpenIdConnectConstants.Usages.RefreshToken, false)]
+        [InlineData(OpenIdConnectConstants.TokenUsages.AccessToken, true)]
+        [InlineData(OpenIdConnectConstants.TokenUsages.AuthorizationCode, false)]
+        [InlineData(OpenIdConnectConstants.TokenUsages.IdToken, false)]
+        [InlineData(OpenIdConnectConstants.TokenUsages.RefreshToken, false)]
         public void IsAccessToken_ReturnsExpectedResult(string usage, bool result)
         {
             // Arrange
@@ -1198,7 +1198,7 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests
                 new ClaimsIdentity(),
                 new AuthenticationProperties());
 
-            ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.Usage] = usage;
+            ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.TokenUsage] = usage;
 
             // Act and assert
             Assert.Equal(result, ticket.IsAccessToken());
@@ -1222,10 +1222,10 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests
         [Theory]
         [InlineData(null, false)]
         [InlineData("unknown", false)]
-        [InlineData(OpenIdConnectConstants.Usages.AccessToken, false)]
-        [InlineData(OpenIdConnectConstants.Usages.AuthorizationCode, true)]
-        [InlineData(OpenIdConnectConstants.Usages.IdentityToken, false)]
-        [InlineData(OpenIdConnectConstants.Usages.RefreshToken, false)]
+        [InlineData(OpenIdConnectConstants.TokenUsages.AccessToken, false)]
+        [InlineData(OpenIdConnectConstants.TokenUsages.AuthorizationCode, true)]
+        [InlineData(OpenIdConnectConstants.TokenUsages.IdToken, false)]
+        [InlineData(OpenIdConnectConstants.TokenUsages.RefreshToken, false)]
         public void IsAuthorizationCode_ReturnsExpectedResult(string usage, bool result)
         {
             // Arrange
@@ -1233,7 +1233,7 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests
                 new ClaimsIdentity(),
                 new AuthenticationProperties());
 
-            ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.Usage] = usage;
+            ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.TokenUsage] = usage;
 
             // Act and assert
             Assert.Equal(result, ticket.IsAuthorizationCode());
@@ -1257,10 +1257,10 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests
         [Theory]
         [InlineData(null, false)]
         [InlineData("unknown", false)]
-        [InlineData(OpenIdConnectConstants.Usages.AccessToken, false)]
-        [InlineData(OpenIdConnectConstants.Usages.AuthorizationCode, false)]
-        [InlineData(OpenIdConnectConstants.Usages.IdentityToken, true)]
-        [InlineData(OpenIdConnectConstants.Usages.RefreshToken, false)]
+        [InlineData(OpenIdConnectConstants.TokenUsages.AccessToken, false)]
+        [InlineData(OpenIdConnectConstants.TokenUsages.AuthorizationCode, false)]
+        [InlineData(OpenIdConnectConstants.TokenUsages.IdToken, true)]
+        [InlineData(OpenIdConnectConstants.TokenUsages.RefreshToken, false)]
         public void IsIdentityToken_ReturnsExpectedResult(string usage, bool result)
         {
             // Arrange
@@ -1268,7 +1268,7 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests
                 new ClaimsIdentity(),
                 new AuthenticationProperties());
 
-            ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.Usage] = usage;
+            ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.TokenUsage] = usage;
 
             // Act and assert
             Assert.Equal(result, ticket.IsIdentityToken());
@@ -1292,10 +1292,10 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests
         [Theory]
         [InlineData(null, false)]
         [InlineData("unknown", false)]
-        [InlineData(OpenIdConnectConstants.Usages.AccessToken, false)]
-        [InlineData(OpenIdConnectConstants.Usages.AuthorizationCode, false)]
-        [InlineData(OpenIdConnectConstants.Usages.IdentityToken, false)]
-        [InlineData(OpenIdConnectConstants.Usages.RefreshToken, true)]
+        [InlineData(OpenIdConnectConstants.TokenUsages.AccessToken, false)]
+        [InlineData(OpenIdConnectConstants.TokenUsages.AuthorizationCode, false)]
+        [InlineData(OpenIdConnectConstants.TokenUsages.IdToken, false)]
+        [InlineData(OpenIdConnectConstants.TokenUsages.RefreshToken, true)]
         public void IsRefreshToken_ReturnsExpectedResult(string usage, bool result)
         {
             // Arrange
@@ -1303,7 +1303,7 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests
                 new ClaimsIdentity(),
                 new AuthenticationProperties());
 
-            ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.Usage] = usage;
+            ticket.Properties.Dictionary[OpenIdConnectConstants.Properties.TokenUsage] = usage;
 
             // Act and assert
             Assert.Equal(result, ticket.IsRefreshToken());
@@ -1792,7 +1792,7 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests
         }
 
         [Fact]
-        public void SetUsage_ThrowsAnExceptionForNullTicket()
+        public void SetTokenUsage_ThrowsAnExceptionForNullTicket()
         {
             // Arrange
             var ticket = (AuthenticationTicket) null;
@@ -1800,7 +1800,7 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests
             // Act and assert
             var exception = Assert.Throws<ArgumentNullException>(delegate
             {
-                ticket.SetUsage(null);
+                ticket.SetTokenUsage(null);
             });
 
             Assert.Equal("ticket", exception.ParamName);
@@ -1809,7 +1809,7 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests
         [Theory]
         [InlineData(null)]
         [InlineData("usage")]
-        public void SetUsage_AddsScopes(string usage)
+        public void SetTokenUsage_AddsScopes(string usage)
         {
             // Arrange
             var ticket = new AuthenticationTicket(
@@ -1817,10 +1817,10 @@ namespace Owin.Security.OpenIdConnect.Extensions.Tests
                 new AuthenticationProperties());
 
             // Act
-            ticket.SetUsage(usage);
+            ticket.SetTokenUsage(usage);
 
             // Assert
-            Assert.Equal(usage, ticket.GetProperty(OpenIdConnectConstants.Properties.Usage));
+            Assert.Equal(usage, ticket.GetProperty(OpenIdConnectConstants.Properties.TokenUsage));
         }
     }
 }

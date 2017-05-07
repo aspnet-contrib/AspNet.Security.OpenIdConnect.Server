@@ -653,14 +653,14 @@ namespace AspNet.Security.OpenIdConnect.Extensions
         /// </summary>
         /// <param name="ticket">The authentication ticket.</param>
         /// <returns>The usage of the token or <c>null</c> is the property cannot be found.</returns>
-        public static string GetUsage([NotNull] this AuthenticationTicket ticket)
+        public static string GetTokenUsage([NotNull] this AuthenticationTicket ticket)
         {
             if (ticket == null)
             {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            return ticket.GetProperty(OpenIdConnectConstants.Properties.Usage);
+            return ticket.GetProperty(OpenIdConnectConstants.Properties.TokenUsage);
         }
 
         /// <summary>
@@ -932,13 +932,13 @@ namespace AspNet.Security.OpenIdConnect.Extensions
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            var value = ticket.GetProperty(OpenIdConnectConstants.Properties.Usage);
+            var value = ticket.GetProperty(OpenIdConnectConstants.Properties.TokenUsage);
             if (string.IsNullOrEmpty(value))
             {
                 return false;
             }
 
-            return string.Equals(value, OpenIdConnectConstants.Usages.AccessToken, StringComparison.OrdinalIgnoreCase);
+            return string.Equals(value, OpenIdConnectConstants.TokenUsages.AccessToken, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -954,13 +954,13 @@ namespace AspNet.Security.OpenIdConnect.Extensions
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            var value = ticket.GetProperty(OpenIdConnectConstants.Properties.Usage);
+            var value = ticket.GetProperty(OpenIdConnectConstants.Properties.TokenUsage);
             if (string.IsNullOrEmpty(value))
             {
                 return false;
             }
 
-            return string.Equals(value, OpenIdConnectConstants.Usages.AuthorizationCode, StringComparison.OrdinalIgnoreCase);
+            return string.Equals(value, OpenIdConnectConstants.TokenUsages.AuthorizationCode, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -976,13 +976,13 @@ namespace AspNet.Security.OpenIdConnect.Extensions
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            var value = ticket.GetProperty(OpenIdConnectConstants.Properties.Usage);
+            var value = ticket.GetProperty(OpenIdConnectConstants.Properties.TokenUsage);
             if (string.IsNullOrEmpty(value))
             {
                 return false;
             }
 
-            return string.Equals(value, OpenIdConnectConstants.Usages.IdentityToken, StringComparison.OrdinalIgnoreCase);
+            return string.Equals(value, OpenIdConnectConstants.TokenUsages.IdToken, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -998,13 +998,13 @@ namespace AspNet.Security.OpenIdConnect.Extensions
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            var value = ticket.GetProperty(OpenIdConnectConstants.Properties.Usage);
+            var value = ticket.GetProperty(OpenIdConnectConstants.Properties.TokenUsage);
             if (string.IsNullOrEmpty(value))
             {
                 return false;
             }
 
-            return string.Equals(value, OpenIdConnectConstants.Usages.RefreshToken, StringComparison.OrdinalIgnoreCase);
+            return string.Equals(value, OpenIdConnectConstants.TokenUsages.RefreshToken, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -1398,14 +1398,14 @@ namespace AspNet.Security.OpenIdConnect.Extensions
         /// <param name="ticket">The authentication ticket.</param>
         /// <param name="usage">The usage of the token.</param>
         /// <returns>The authentication ticket.</returns>
-        public static AuthenticationTicket SetUsage([NotNull] this AuthenticationTicket ticket, string usage)
+        public static AuthenticationTicket SetTokenUsage([NotNull] this AuthenticationTicket ticket, string usage)
         {
             if (ticket == null)
             {
                 throw new ArgumentNullException(nameof(ticket));
             }
 
-            return ticket.SetProperty(OpenIdConnectConstants.Properties.Usage, usage);
+            return ticket.SetProperty(OpenIdConnectConstants.Properties.TokenUsage, usage);
         }
 
         private static AuthenticationTicket SetProperty(

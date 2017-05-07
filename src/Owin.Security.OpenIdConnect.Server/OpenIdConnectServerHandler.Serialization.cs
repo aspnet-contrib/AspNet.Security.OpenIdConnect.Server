@@ -50,7 +50,7 @@ namespace Owin.Security.OpenIdConnect.Server
 
             // Remove the unwanted properties from the authentication ticket.
             ticket.RemoveProperty(OpenIdConnectConstants.Properties.AuthorizationCodeLifetime)
-                  .RemoveProperty(OpenIdConnectConstants.Properties.Usage);
+                  .RemoveProperty(OpenIdConnectConstants.Properties.TokenUsage);
 
             var notification = new SerializeAuthorizationCodeContext(Context, Options, request, response, ticket)
             {
@@ -134,7 +134,7 @@ namespace Owin.Security.OpenIdConnect.Server
                   .RemoveProperty(OpenIdConnectConstants.Properties.Nonce)
                   .RemoveProperty(OpenIdConnectConstants.Properties.OriginalRedirectUri)
                   .RemoveProperty(OpenIdConnectConstants.Properties.RefreshTokenLifetime)
-                  .RemoveProperty(OpenIdConnectConstants.Properties.Usage);
+                  .RemoveProperty(OpenIdConnectConstants.Properties.TokenUsage);
 
             var notification = new SerializeAccessTokenContext(Context, Options, request, response, ticket)
             {
@@ -180,7 +180,7 @@ namespace Owin.Security.OpenIdConnect.Server
             }
 
             // Store the "usage" property as a claim.
-            ticket.Identity.AddClaim(OpenIdConnectConstants.Claims.Usage, OpenIdConnectConstants.Usages.AccessToken);
+            ticket.Identity.AddClaim(OpenIdConnectConstants.Claims.TokenUsage, OpenIdConnectConstants.TokenUsages.AccessToken);
 
             // Store the "unique_id" property as a claim.
             ticket.Identity.AddClaim(OpenIdConnectConstants.Claims.JwtId, ticket.GetTicketId());
@@ -300,7 +300,7 @@ namespace Owin.Security.OpenIdConnect.Server
                   .RemoveProperty(OpenIdConnectConstants.Properties.IdentityTokenLifetime)
                   .RemoveProperty(OpenIdConnectConstants.Properties.OriginalRedirectUri)
                   .RemoveProperty(OpenIdConnectConstants.Properties.RefreshTokenLifetime)
-                  .RemoveProperty(OpenIdConnectConstants.Properties.Usage);
+                  .RemoveProperty(OpenIdConnectConstants.Properties.TokenUsage);
 
             ticket.SetAudiences(ticket.GetPresenters());
 
@@ -344,7 +344,7 @@ namespace Owin.Security.OpenIdConnect.Server
             }
 
             // Store the "usage" property as a claim.
-            ticket.Identity.AddClaim(OpenIdConnectConstants.Claims.Usage, OpenIdConnectConstants.Usages.IdentityToken);
+            ticket.Identity.AddClaim(OpenIdConnectConstants.Claims.TokenUsage, OpenIdConnectConstants.TokenUsages.IdToken);
 
             // Store the "unique_id" property as a claim.
             ticket.Identity.AddClaim(OpenIdConnectConstants.Claims.JwtId, ticket.GetTicketId());
@@ -474,7 +474,7 @@ namespace Owin.Security.OpenIdConnect.Server
                   .RemoveProperty(OpenIdConnectConstants.Properties.CodeChallengeMethod)
                   .RemoveProperty(OpenIdConnectConstants.Properties.Nonce)
                   .RemoveProperty(OpenIdConnectConstants.Properties.OriginalRedirectUri)
-                  .RemoveProperty(OpenIdConnectConstants.Properties.Usage);
+                  .RemoveProperty(OpenIdConnectConstants.Properties.TokenUsage);
 
             var notification = new SerializeRefreshTokenContext(Context, Options, request, response, ticket)
             {
@@ -518,7 +518,7 @@ namespace Owin.Security.OpenIdConnect.Server
 
             if (notification.HandledResponse || notification.Ticket != null)
             {
-                notification.Ticket.SetUsage(OpenIdConnectConstants.Usages.AuthorizationCode);
+                notification.Ticket.SetTokenUsage(OpenIdConnectConstants.TokenUsages.AuthorizationCode);
 
                 return notification.Ticket;
             }
@@ -543,7 +543,7 @@ namespace Owin.Security.OpenIdConnect.Server
 
             // Note: since the data formatter relies on a data protector using different "purposes" strings
             // per token type, the ticket returned by Unprotect() is guaranteed to be an authorization code.
-            ticket.SetUsage(OpenIdConnectConstants.Usages.AuthorizationCode);
+            ticket.SetTokenUsage(OpenIdConnectConstants.TokenUsages.AuthorizationCode);
 
             Logger.LogTrace("The authorization code '{Code}' was successfully validated using " +
                             "the specified token data format: {Claims} ; {Properties}.",
@@ -577,7 +577,7 @@ namespace Owin.Security.OpenIdConnect.Server
 
             if (notification.HandledResponse || notification.Ticket != null)
             {
-                notification.Ticket.SetUsage(OpenIdConnectConstants.Usages.AccessToken);
+                notification.Ticket.SetTokenUsage(OpenIdConnectConstants.TokenUsages.AccessToken);
 
                 return notification.Ticket;
             }
@@ -598,14 +598,14 @@ namespace Owin.Security.OpenIdConnect.Server
                 var value = notification.DataFormat.Unprotect(token);
                 if (value == null)
                 {
-                    Logger.LogTrace("The received token was invalid or malformed: {Token}.", value);
+                    Logger.LogTrace("The received token was invalid or malformed: {Token}.", token);
 
                     return null;
                 }
 
                 // Note: since the data formatter relies on a data protector using different "purposes" strings
                 // per token type, the ticket returned by Unprotect() is guaranteed to be an access token.
-                value.SetUsage(OpenIdConnectConstants.Usages.AccessToken);
+                value.SetTokenUsage(OpenIdConnectConstants.TokenUsages.AccessToken);
 
                 Logger.LogTrace("The access token '{Token}' was successfully validated using " +
                                 "the specified token data format: {Claims} ; {Properties}.",
@@ -651,7 +651,7 @@ namespace Owin.Security.OpenIdConnect.Server
                 .SetPresenters(principal.FindAll(OpenIdConnectConstants.Claims.AuthorizedParty).Select(claim => claim.Value))
                 .SetScopes(principal.FindAll(OpenIdConnectConstants.Claims.Scope).Select(claim => claim.Value))
                 .SetTicketId(principal.GetClaim(OpenIdConnectConstants.Claims.JwtId))
-                .SetUsage(principal.GetClaim(OpenIdConnectConstants.Claims.Usage));
+                .SetTokenUsage(principal.GetClaim(OpenIdConnectConstants.Claims.TokenUsage));
 
             // Ensure that the received ticket is an access token.
             if (!ticket.IsAccessToken())
@@ -694,7 +694,7 @@ namespace Owin.Security.OpenIdConnect.Server
 
             if (notification.HandledResponse || notification.Ticket != null)
             {
-                notification.Ticket.SetUsage(OpenIdConnectConstants.Usages.IdentityToken);
+                notification.Ticket.SetTokenUsage(OpenIdConnectConstants.TokenUsages.IdToken);
 
                 return notification.Ticket;
             }
@@ -745,7 +745,7 @@ namespace Owin.Security.OpenIdConnect.Server
                 .SetConfidentialityLevel(principal.GetClaim(OpenIdConnectConstants.Claims.ConfidentialityLevel))
                 .SetPresenters(principal.FindAll(OpenIdConnectConstants.Claims.AuthorizedParty).Select(claim => claim.Value))
                 .SetTicketId(principal.GetClaim(OpenIdConnectConstants.Claims.JwtId))
-                .SetUsage(principal.GetClaim(OpenIdConnectConstants.Claims.Usage));
+                .SetTokenUsage(principal.GetClaim(OpenIdConnectConstants.Claims.TokenUsage));
 
             // Ensure that the received ticket is an identity token.
             if (!ticket.IsIdentityToken())
@@ -773,7 +773,7 @@ namespace Owin.Security.OpenIdConnect.Server
 
             if (notification.HandledResponse || notification.Ticket != null)
             {
-                notification.Ticket.SetUsage(OpenIdConnectConstants.Usages.RefreshToken);
+                notification.Ticket.SetTokenUsage(OpenIdConnectConstants.TokenUsages.RefreshToken);
 
                 return notification.Ticket;
             }
@@ -798,7 +798,7 @@ namespace Owin.Security.OpenIdConnect.Server
 
             // Note: since the data formatter relies on a data protector using different "purposes" strings
             // per token type, the ticket returned by Unprotect() is guaranteed to be a refresh token.
-            ticket.SetUsage(OpenIdConnectConstants.Usages.RefreshToken);
+            ticket.SetTokenUsage(OpenIdConnectConstants.TokenUsages.RefreshToken);
 
             Logger.LogTrace("The refresh token '{Token}' was successfully validated using " +
                             "the specified token data format: {Claims} ; {Properties}.",

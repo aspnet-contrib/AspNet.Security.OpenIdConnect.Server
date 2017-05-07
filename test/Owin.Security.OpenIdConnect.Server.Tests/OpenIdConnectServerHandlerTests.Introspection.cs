@@ -649,10 +649,11 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
             });
 
             // Assert
-            Assert.Equal(10, response.GetParameters().Count());
+            Assert.Equal(11, response.GetParameters().Count());
             Assert.True((bool) response[OpenIdConnectConstants.Claims.Active]);
             Assert.Equal("66B65AED-4033-4E9C-B975-A8CA7FB6FA79", (string) response[OpenIdConnectConstants.Claims.JwtId]);
             Assert.Equal(OpenIdConnectConstants.TokenTypes.Bearer, (string) response[OpenIdConnectConstants.Claims.TokenType]);
+            Assert.Equal(OpenIdConnectConstants.TokenUsages.AccessToken, (string) response[OpenIdConnectConstants.Claims.TokenUsage]);
             Assert.Equal(server.BaseAddress.AbsoluteUri, (string) response[OpenIdConnectConstants.Claims.Issuer]);
             Assert.Equal("Bob le Magnifique", (string) response[OpenIdConnectConstants.Claims.Subject]);
             Assert.Equal(1451606400, (long) response[OpenIdConnectConstants.Claims.IssuedAt]);

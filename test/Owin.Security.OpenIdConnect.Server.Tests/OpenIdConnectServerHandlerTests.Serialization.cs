@@ -242,7 +242,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     // Assert
                     Assert.Null(context.Ticket.GetProperty(OpenIdConnectConstants.Properties.AuthorizationCodeLifetime));
-                    Assert.Null(context.Ticket.GetProperty(OpenIdConnectConstants.Properties.Usage));
+                    Assert.Null(context.Ticket.GetProperty(OpenIdConnectConstants.Properties.TokenUsage));
 
                     return Task.FromResult(0);
                 };
@@ -731,7 +731,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     Assert.Null(context.Ticket.GetProperty(OpenIdConnectConstants.Properties.Nonce));
                     Assert.Null(context.Ticket.GetProperty(OpenIdConnectConstants.Properties.OriginalRedirectUri));
                     Assert.Null(context.Ticket.GetProperty(OpenIdConnectConstants.Properties.RefreshTokenLifetime));
-                    Assert.Null(context.Ticket.GetProperty(OpenIdConnectConstants.Properties.Usage));
+                    Assert.Null(context.Ticket.GetProperty(OpenIdConnectConstants.Properties.TokenUsage));
 
                     return Task.FromResult(0);
                 };
@@ -1429,7 +1429,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     Assert.Null(context.Ticket.GetProperty(OpenIdConnectConstants.Properties.IdentityTokenLifetime));
                     Assert.Null(context.Ticket.GetProperty(OpenIdConnectConstants.Properties.OriginalRedirectUri));
                     Assert.Null(context.Ticket.GetProperty(OpenIdConnectConstants.Properties.RefreshTokenLifetime));
-                    Assert.Null(context.Ticket.GetProperty(OpenIdConnectConstants.Properties.Usage));
+                    Assert.Null(context.Ticket.GetProperty(OpenIdConnectConstants.Properties.TokenUsage));
 
                     return Task.FromResult(0);
                 };
@@ -1998,7 +1998,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     Assert.Null(context.Ticket.GetProperty(OpenIdConnectConstants.Properties.CodeChallengeMethod));
                     Assert.Null(context.Ticket.GetProperty(OpenIdConnectConstants.Properties.Nonce));
                     Assert.Null(context.Ticket.GetProperty(OpenIdConnectConstants.Properties.OriginalRedirectUri));
-                    Assert.Null(context.Ticket.GetProperty(OpenIdConnectConstants.Properties.Usage));
+                    Assert.Null(context.Ticket.GetProperty(OpenIdConnectConstants.Properties.TokenUsage));
 
                     return Task.FromResult(0);
                 };
@@ -2556,7 +2556,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 mock.ValidTo == DateTime.UtcNow.AddDays(1));
 
             var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationType);
-            identity.AddClaim(OpenIdConnectConstants.Claims.Usage, OpenIdConnectConstants.Usages.AccessToken);
+            identity.AddClaim(OpenIdConnectConstants.Claims.TokenUsage, OpenIdConnectConstants.TokenUsages.AccessToken);
 
             var format = new Mock<JwtSecurityTokenHandler>();
 
@@ -2610,7 +2610,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 mock.ValidTo == DateTime.UtcNow.AddDays(1));
 
             var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationType);
-            identity.AddClaim(OpenIdConnectConstants.Claims.Usage, OpenIdConnectConstants.Usages.IdentityToken);
+            identity.AddClaim(OpenIdConnectConstants.Claims.TokenUsage, OpenIdConnectConstants.TokenUsages.IdToken);
 
             var format = new Mock<JwtSecurityTokenHandler>();
 
@@ -2772,7 +2772,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 mock.ValidTo == DateTime.UtcNow.AddDays(1));
 
             var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationType);
-            identity.AddClaim(OpenIdConnectConstants.Claims.Usage, OpenIdConnectConstants.Usages.IdentityToken);
+            identity.AddClaim(OpenIdConnectConstants.Claims.TokenUsage, OpenIdConnectConstants.TokenUsages.IdToken);
 
             var format = new Mock<JwtSecurityTokenHandler>();
 
@@ -2830,7 +2830,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 mock.ValidTo == DateTime.UtcNow.AddDays(1));
 
             var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationType);
-            identity.AddClaim(OpenIdConnectConstants.Claims.Usage, OpenIdConnectConstants.Usages.AccessToken);
+            identity.AddClaim(OpenIdConnectConstants.Claims.TokenUsage, OpenIdConnectConstants.TokenUsages.AccessToken);
 
             var format = new Mock<JwtSecurityTokenHandler>();
 

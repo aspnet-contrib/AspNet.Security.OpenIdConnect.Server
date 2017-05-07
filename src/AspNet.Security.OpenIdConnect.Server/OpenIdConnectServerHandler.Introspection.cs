@@ -318,10 +318,9 @@ namespace AspNet.Security.OpenIdConnect.Server
             {
                 Active = true,
                 Issuer = Context.GetIssuer(Options),
-                Subject = ticket.Principal.GetClaim(OpenIdConnectConstants.Claims.Subject),
-
-                // Use the unique ticket identifier to populate the "jti" claim.
-                TokenId = ticket.GetTicketId()
+                TokenId = ticket.GetTicketId(),
+                TokenUsage = ticket.GetProperty(OpenIdConnectConstants.Properties.TokenUsage),
+                Subject = ticket.Principal.GetClaim(OpenIdConnectConstants.Claims.Subject)
             };
 
             // Note: only set "token_type" when the received token is an access token.
@@ -368,6 +367,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                             case OpenIdConnectConstants.Claims.Scope:
                             case OpenIdConnectConstants.Claims.Subject:
                             case OpenIdConnectConstants.Claims.TokenType:
+                            case OpenIdConnectConstants.Claims.TokenUsage:
                                 continue;
                         }
 
@@ -445,6 +445,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                 response[OpenIdConnectConstants.Claims.Scope] = string.Join(" ", notification.Scopes);
                 response[OpenIdConnectConstants.Claims.JwtId] = notification.TokenId;
                 response[OpenIdConnectConstants.Claims.TokenType] = notification.TokenType;
+                response[OpenIdConnectConstants.Claims.TokenUsage] = notification.TokenUsage;
                 response[OpenIdConnectConstants.Claims.ClientId] = notification.ClientId;
 
                 if (notification.IssuedAt != null)
