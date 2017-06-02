@@ -23,7 +23,13 @@ namespace AspNet.Security.OpenIdConnect.Server
             OpenIdConnectServerOptions options)
             : base(context)
         {
+            Options = options;
         }
+
+        /// <summary>
+        /// Gets the options used by the OpenID Connect server.
+        /// </summary>
+        public OpenIdConnectServerOptions Options { get; }
 
         /// <summary>
         /// Gets a boolean indicating whether the request
