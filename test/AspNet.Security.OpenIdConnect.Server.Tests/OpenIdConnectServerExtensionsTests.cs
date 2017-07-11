@@ -199,7 +199,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 credentials.AddCertificate(assembly, "resource", "password");
             });
 
-            Assert.Equal("The certificate was not found in the given assembly.", exception.Message);
+            Assert.Equal("The certificate was not found in the specified assembly.", exception.Message);
         }
 
         [Fact]
@@ -214,7 +214,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 credentials.AddCertificate("thumbprint", StoreName.Root, StoreLocation.LocalMachine);
             });
 
-            Assert.Equal("The certificate corresponding to the given thumbprint was not found.", exception.Message);
+            Assert.Equal("The certificate corresponding to the specified thumbprint was not found.", exception.Message);
         }
 
         [Fact]
@@ -240,7 +240,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 credentials.AddCertificate(certificate);
             });
 
-            Assert.Equal("The certificate doesn't contain the required private key.", exception.Message);
+            Assert.Equal("The specified certificate doesn't contain the required private key.", exception.Message);
         }
 
         [Fact]
