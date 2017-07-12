@@ -152,7 +152,12 @@ namespace Owin.Security.OpenIdConnect.Server
                 // Note: when specified, redirect_uri MUST be an absolute URI.
                 // See http://tools.ietf.org/html/rfc6749#section-3.1.2
                 // and http://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
-                if (!Uri.TryCreate(request.RedirectUri, UriKind.Absolute, out Uri uri))
+                //
+                // Note: on Linux/macOS, "/path" URLs are treated as valid absolute file URLs.
+                // To ensure relative redirect_uris are correctly rejected on these platforms,
+                // an additional check using IsWellFormedOriginalString() is made here.
+                // See https://github.com/dotnet/corefx/issues/22098 for more information.
+                if (!Uri.TryCreate(request.RedirectUri, UriKind.Absolute, out Uri uri) || !uri.IsWellFormedOriginalString())
                 {
                     Logger.LogError("The authorization request was rejected because the 'redirect_uri' parameter " +
                                     "didn't correspond to a valid absolute URL: {RedirectUri}.", request.RedirectUri);
@@ -160,7 +165,7 @@ namespace Owin.Security.OpenIdConnect.Server
                     return await SendAuthorizationResponseAsync(new OpenIdConnectResponse
                     {
                         Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                        ErrorDescription = "The 'redirect_uri' parameter must be an absolute URL."
+                        ErrorDescription = "The 'redirect_uri' parameter must be a valid absolute URL."
                     });
                 }
 

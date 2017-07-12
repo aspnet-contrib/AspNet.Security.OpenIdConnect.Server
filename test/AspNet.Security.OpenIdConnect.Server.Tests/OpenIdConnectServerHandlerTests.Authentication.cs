@@ -168,7 +168,9 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Theory]
-        [InlineData("/path", "The 'redirect_uri' parameter must be an absolute URL.")]
+        [InlineData("/path", "The 'redirect_uri' parameter must be a valid absolute URL.")]
+        [InlineData("/tmp/file.xml", "The 'redirect_uri' parameter must be a valid absolute URL.")]
+        [InlineData("C:\\tmp\\file.xml", "The 'redirect_uri' parameter must be a valid absolute URL.")]
         [InlineData("http://www.fabrikam.com/path#param=value", "The 'redirect_uri' parameter must not include a fragment.")]
         public async Task InvokeAuthorizationEndpointAsync_InvalidRedirectUriCausesAnError(string address, string message)
         {
