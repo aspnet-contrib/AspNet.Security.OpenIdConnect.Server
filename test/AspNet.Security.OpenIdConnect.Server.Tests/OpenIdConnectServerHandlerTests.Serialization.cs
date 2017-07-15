@@ -6,12 +6,16 @@
 
 using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
+using System.Reflection;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Client;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.IdentityModel.Tokens;
 using Moq;
 using Xunit;
@@ -733,12 +737,131 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
+        public async Task SerializeAccessTokenAsync_IgnoresAsymmetricEncryptingKeys()
+        {
+            // Arrange
+            var parameters = new RSAParameters
+            {
+                D = Convert.FromBase64String("Uj6NrYBnyddhlJefYEP2nleCntAKlWyIttJC4cJnNxNN+OT2fQXhpTXRwW4R5YIS3HDqK/Fg2yoYm+OTVntAAgRFKveRx/WKwFo6UpnJc5u3lElhFa7IfosO9qXjErpX9ruAVqipekDLwQ++KmVVdgH4PK/o//nEx5zklGCdlEJURZYJPs9/7g1cx3UwvPp8jM7LgZL5OZRNyI3Jz4efrwiI2/vd8P28lAbpv/Ao4NwUDq/WKEnZ8JYSjLEKnZCfbX1ZEwf0Ic48jEKHmi1WEwpru1fMPoYfakrsY/VEfatPiDs8a5HABP/KaXcM4AZsr7HbzqAaNycV2xgdZimGcQ=="),
+                DP = Convert.FromBase64String("hi1e+0eQ/iYrfT4zpZVbx3dyfA7Ch/aujMt6nGMF+1LGaut86vDHM2JI0Gc2BKc+uPEu2bNAorhSmuSyGpfGYl0MYFQoVF/jyiGpzYPmhYpL5yLuN9jWAqNwjfstuRDLU9zTEfZnr3OSN85rZcgT7NUxlY8im1Y2TWYxGiEXw9E="),
+                DQ = Convert.FromBase64String("laVNkWIbnSuGo7nAxyUSdL2sXU3GZWwItwzTG0IK/0woFjArtCxGgNXW+V+GhxT7iHGAVJJSBvJ65TXrUYuBmoWj2CsoUs2mzK8ax4zg3CXrU61esCsGUoS2owR4FXlhYPmoVnglGu89bH72eXKixZsuF7vKW19nG703BXYEaEU="),
+                Exponent = Convert.FromBase64String("AQAB"),
+                InverseQ = Convert.FromBase64String("dhzLDS4F5WYHX+vH4+uL3Ei/K5lxw2A/dBHGtbS2X54gm7vARl+FrptOFFwIjjmsLuTjttAq9K1EP/XZIq8bjW6dXJ/IytnobIPSFkclEeQlMi4/2VDMG5915J0DwnKO9M+B8F3JViUyMv0pvb+ub+HHDVFkIr7zooCmY25i77Q="),
+                Modulus = Convert.FromBase64String("kXv7Pxf6mSf7mu6mPAOAoKAXl5kU7Q3h9zevC5i4Mm5bMk17XCh7ZvVxDzGA+1JmyxOX6sw3gMUl31FtIFlDhis8VnXKAPn8i1zrmebq+7QKzpE2GpoIpXjXbkPaHG/DbC67M1bux7/dE7lSUSifHRRLsbMUC2D4UahJ6miH2iPFNFyoa6CLtwosD8tIJKwmZ9r9zfqc9BrVGu24lZySjTSRttpLaTkgkBjxHmYhinKNEtj9wUfi1S1wPJUvf+roc6o+7jeBBV3EXJCsb6XCCXI7/e3umWp19odeRShXLQNQbNuuVC7yre4iidUDrWJ1jiaB06svUG+fVEi4FCMvEQ=="),
+                P = Convert.FromBase64String("xQGczmp4qD7Sez/ZqgW+O4cciTHvSqJqJUSdDd2l1Pd/szQ8avvzorrbSWOIULyv6eJb32+HuyLgy6rTSJ6THFobAnUv4ZTR7EGK26AJmP/BhD+3G+n21+4fzfbAxpHihkCYmO8aEl8fm/r4qPVXmCzFoXDZLMNIxFsdEXiFRS0="),
+                Q = Convert.FromBase64String("vQy5C++AzF+TRh6qwbKzOqt87ZHEHidIAh6ivRNewjzIgCWXpseVl7DimY1YdViOnw1VI7xY+EyiyTanq5caTqqB3KcDm2t40bJfrZuUcn/5puRIh1bKNDwIMLsuNCrjHmDlNbocqpYMOh0Pgw7ARNbqrnPjWsYGJPuMNFpax/U=")
+            };
+
+            var credentials = new EncryptingCredentials(
+                new RsaSecurityKey(parameters),
+                SecurityAlgorithms.RsaOAEP,
+                SecurityAlgorithms.Aes256CbcHmacSha512);
+
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.EncryptingCredentials.Insert(0, credentials);
+                options.EncryptingCredentials.AddKey(new SymmetricSecurityKey(new byte[256 / 8]));
+
+                options.Provider.OnSerializeAccessToken = context =>
+                {
+                    // Assert
+                    Assert.NotSame(credentials, context.EncryptingCredentials);
+                    Assert.Same(context.Options.EncryptingCredentials[1], context.EncryptingCredentials);
+                    Assert.IsType<SymmetricSecurityKey>(context.EncryptingCredentials.Key);
+
+                    return Task.CompletedTask;
+                };
+
+                options.Provider.OnValidateTokenRequest = context =>
+                {
+                    context.Skip();
+
+                    return Task.CompletedTask;
+                };
+
+                options.Provider.OnHandleTokenRequest = context =>
+                {
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
+
+                    context.Validate(new ClaimsPrincipal(identity));
+
+                    return Task.CompletedTask;
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
+                ClientId = "Fabrikam",
+                GrantType = OpenIdConnectConstants.GrantTypes.Password,
+                Username = "johndoe",
+                Password = "A3ddj3w"
+            });
+
+            // Assert
+            Assert.NotNull(response.AccessToken);
+        }
+
+        [Fact]
+        public async Task SerializeAccessTokenAsync_UsesSymmetricEncryptingKey()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.EncryptingCredentials.AddKey(new SymmetricSecurityKey(new byte[256 / 8]));
+
+                options.Provider.OnSerializeAccessToken = context =>
+                {
+                    // Assert
+                    Assert.Same(context.Options.EncryptingCredentials[0], context.EncryptingCredentials);
+                    Assert.IsType<SymmetricSecurityKey>(context.EncryptingCredentials.Key);
+
+                    return Task.CompletedTask;
+                };
+
+                options.Provider.OnValidateTokenRequest = context =>
+                {
+                    context.Skip();
+
+                    return Task.CompletedTask;
+                };
+
+                options.Provider.OnHandleTokenRequest = context =>
+                {
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
+
+                    context.Validate(new ClaimsPrincipal(identity));
+
+                    return Task.CompletedTask;
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
+                ClientId = "Fabrikam",
+                GrantType = OpenIdConnectConstants.GrantTypes.Password,
+                Username = "johndoe",
+                Password = "A3ddj3w"
+            });
+
+            // Assert
+            Assert.NotNull(response.AccessToken);
+        }
+
+        [Fact]
         public async Task SerializeAccessTokenAsync_PrefersSymmetricSigningKeyWhenAvailable()
         {
             // Arrange
             var credentials = new SigningCredentials(
                 new SymmetricSecurityKey(new byte[256 / 8]),
-                SecurityAlgorithms.HmacSha256Signature);
+                SecurityAlgorithms.HmacSha256);
 
             var server = CreateAuthorizationServer(options =>
             {
@@ -1387,12 +1510,80 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
+        public async Task SerializeIdentityTokenAsync_IgnoresEncryptingKeys()
+        {
+            // Arrange
+            var parameters = new RSAParameters
+            {
+                D = Convert.FromBase64String("Uj6NrYBnyddhlJefYEP2nleCntAKlWyIttJC4cJnNxNN+OT2fQXhpTXRwW4R5YIS3HDqK/Fg2yoYm+OTVntAAgRFKveRx/WKwFo6UpnJc5u3lElhFa7IfosO9qXjErpX9ruAVqipekDLwQ++KmVVdgH4PK/o//nEx5zklGCdlEJURZYJPs9/7g1cx3UwvPp8jM7LgZL5OZRNyI3Jz4efrwiI2/vd8P28lAbpv/Ao4NwUDq/WKEnZ8JYSjLEKnZCfbX1ZEwf0Ic48jEKHmi1WEwpru1fMPoYfakrsY/VEfatPiDs8a5HABP/KaXcM4AZsr7HbzqAaNycV2xgdZimGcQ=="),
+                DP = Convert.FromBase64String("hi1e+0eQ/iYrfT4zpZVbx3dyfA7Ch/aujMt6nGMF+1LGaut86vDHM2JI0Gc2BKc+uPEu2bNAorhSmuSyGpfGYl0MYFQoVF/jyiGpzYPmhYpL5yLuN9jWAqNwjfstuRDLU9zTEfZnr3OSN85rZcgT7NUxlY8im1Y2TWYxGiEXw9E="),
+                DQ = Convert.FromBase64String("laVNkWIbnSuGo7nAxyUSdL2sXU3GZWwItwzTG0IK/0woFjArtCxGgNXW+V+GhxT7iHGAVJJSBvJ65TXrUYuBmoWj2CsoUs2mzK8ax4zg3CXrU61esCsGUoS2owR4FXlhYPmoVnglGu89bH72eXKixZsuF7vKW19nG703BXYEaEU="),
+                Exponent = Convert.FromBase64String("AQAB"),
+                InverseQ = Convert.FromBase64String("dhzLDS4F5WYHX+vH4+uL3Ei/K5lxw2A/dBHGtbS2X54gm7vARl+FrptOFFwIjjmsLuTjttAq9K1EP/XZIq8bjW6dXJ/IytnobIPSFkclEeQlMi4/2VDMG5915J0DwnKO9M+B8F3JViUyMv0pvb+ub+HHDVFkIr7zooCmY25i77Q="),
+                Modulus = Convert.FromBase64String("kXv7Pxf6mSf7mu6mPAOAoKAXl5kU7Q3h9zevC5i4Mm5bMk17XCh7ZvVxDzGA+1JmyxOX6sw3gMUl31FtIFlDhis8VnXKAPn8i1zrmebq+7QKzpE2GpoIpXjXbkPaHG/DbC67M1bux7/dE7lSUSifHRRLsbMUC2D4UahJ6miH2iPFNFyoa6CLtwosD8tIJKwmZ9r9zfqc9BrVGu24lZySjTSRttpLaTkgkBjxHmYhinKNEtj9wUfi1S1wPJUvf+roc6o+7jeBBV3EXJCsb6XCCXI7/e3umWp19odeRShXLQNQbNuuVC7yre4iidUDrWJ1jiaB06svUG+fVEi4FCMvEQ=="),
+                P = Convert.FromBase64String("xQGczmp4qD7Sez/ZqgW+O4cciTHvSqJqJUSdDd2l1Pd/szQ8avvzorrbSWOIULyv6eJb32+HuyLgy6rTSJ6THFobAnUv4ZTR7EGK26AJmP/BhD+3G+n21+4fzfbAxpHihkCYmO8aEl8fm/r4qPVXmCzFoXDZLMNIxFsdEXiFRS0="),
+                Q = Convert.FromBase64String("vQy5C++AzF+TRh6qwbKzOqt87ZHEHidIAh6ivRNewjzIgCWXpseVl7DimY1YdViOnw1VI7xY+EyiyTanq5caTqqB3KcDm2t40bJfrZuUcn/5puRIh1bKNDwIMLsuNCrjHmDlNbocqpYMOh0Pgw7ARNbqrnPjWsYGJPuMNFpax/U=")
+            };
+
+            var credentials = new EncryptingCredentials(
+                new RsaSecurityKey(parameters),
+                SecurityAlgorithms.RsaOAEP,
+                SecurityAlgorithms.Aes256CbcHmacSha512);
+
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.EncryptingCredentials.AddKey(new SymmetricSecurityKey(new byte[256 / 8]));
+                options.EncryptingCredentials.Add(credentials);
+
+                options.Provider.OnSerializeIdentityToken = context =>
+                {
+                    // Assert
+                    Assert.Null(context.EncryptingCredentials);
+
+                    return Task.CompletedTask;
+                };
+
+                options.Provider.OnValidateTokenRequest = context =>
+                {
+                    context.Skip();
+
+                    return Task.CompletedTask;
+                };
+
+                options.Provider.OnHandleTokenRequest = context =>
+                {
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
+
+                    context.Validate(new ClaimsPrincipal(identity));
+
+                    return Task.CompletedTask;
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
+                ClientId = "Fabrikam",
+                GrantType = OpenIdConnectConstants.GrantTypes.Password,
+                Username = "johndoe",
+                Password = "A3ddj3w",
+                Scope = OpenIdConnectConstants.Scopes.OpenId
+            });
+
+            // Assert
+            Assert.NotNull(response.IdToken);
+        }
+
+        [Fact]
         public async Task SerializeIdentityTokenAsync_IgnoresSymmetricSigningKeys()
         {
             // Arrange
             var credentials = new SigningCredentials(
                 new SymmetricSecurityKey(new byte[256 / 8]),
-                SecurityAlgorithms.HmacSha256Signature);
+                SecurityAlgorithms.HmacSha256);
 
             var server = CreateAuthorizationServer(options =>
             {
@@ -2288,6 +2479,73 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
+        public async Task DeserializeAccessTokenAsync_IgnoresAsymmetricEncryptingKeys()
+        {
+            // Arrange
+            var parameters = new RSAParameters
+            {
+                D = Convert.FromBase64String("Uj6NrYBnyddhlJefYEP2nleCntAKlWyIttJC4cJnNxNN+OT2fQXhpTXRwW4R5YIS3HDqK/Fg2yoYm+OTVntAAgRFKveRx/WKwFo6UpnJc5u3lElhFa7IfosO9qXjErpX9ruAVqipekDLwQ++KmVVdgH4PK/o//nEx5zklGCdlEJURZYJPs9/7g1cx3UwvPp8jM7LgZL5OZRNyI3Jz4efrwiI2/vd8P28lAbpv/Ao4NwUDq/WKEnZ8JYSjLEKnZCfbX1ZEwf0Ic48jEKHmi1WEwpru1fMPoYfakrsY/VEfatPiDs8a5HABP/KaXcM4AZsr7HbzqAaNycV2xgdZimGcQ=="),
+                DP = Convert.FromBase64String("hi1e+0eQ/iYrfT4zpZVbx3dyfA7Ch/aujMt6nGMF+1LGaut86vDHM2JI0Gc2BKc+uPEu2bNAorhSmuSyGpfGYl0MYFQoVF/jyiGpzYPmhYpL5yLuN9jWAqNwjfstuRDLU9zTEfZnr3OSN85rZcgT7NUxlY8im1Y2TWYxGiEXw9E="),
+                DQ = Convert.FromBase64String("laVNkWIbnSuGo7nAxyUSdL2sXU3GZWwItwzTG0IK/0woFjArtCxGgNXW+V+GhxT7iHGAVJJSBvJ65TXrUYuBmoWj2CsoUs2mzK8ax4zg3CXrU61esCsGUoS2owR4FXlhYPmoVnglGu89bH72eXKixZsuF7vKW19nG703BXYEaEU="),
+                Exponent = Convert.FromBase64String("AQAB"),
+                InverseQ = Convert.FromBase64String("dhzLDS4F5WYHX+vH4+uL3Ei/K5lxw2A/dBHGtbS2X54gm7vARl+FrptOFFwIjjmsLuTjttAq9K1EP/XZIq8bjW6dXJ/IytnobIPSFkclEeQlMi4/2VDMG5915J0DwnKO9M+B8F3JViUyMv0pvb+ub+HHDVFkIr7zooCmY25i77Q="),
+                Modulus = Convert.FromBase64String("kXv7Pxf6mSf7mu6mPAOAoKAXl5kU7Q3h9zevC5i4Mm5bMk17XCh7ZvVxDzGA+1JmyxOX6sw3gMUl31FtIFlDhis8VnXKAPn8i1zrmebq+7QKzpE2GpoIpXjXbkPaHG/DbC67M1bux7/dE7lSUSifHRRLsbMUC2D4UahJ6miH2iPFNFyoa6CLtwosD8tIJKwmZ9r9zfqc9BrVGu24lZySjTSRttpLaTkgkBjxHmYhinKNEtj9wUfi1S1wPJUvf+roc6o+7jeBBV3EXJCsb6XCCXI7/e3umWp19odeRShXLQNQbNuuVC7yre4iidUDrWJ1jiaB06svUG+fVEi4FCMvEQ=="),
+                P = Convert.FromBase64String("xQGczmp4qD7Sez/ZqgW+O4cciTHvSqJqJUSdDd2l1Pd/szQ8avvzorrbSWOIULyv6eJb32+HuyLgy6rTSJ6THFobAnUv4ZTR7EGK26AJmP/BhD+3G+n21+4fzfbAxpHihkCYmO8aEl8fm/r4qPVXmCzFoXDZLMNIxFsdEXiFRS0="),
+                Q = Convert.FromBase64String("vQy5C++AzF+TRh6qwbKzOqt87ZHEHidIAh6ivRNewjzIgCWXpseVl7DimY1YdViOnw1VI7xY+EyiyTanq5caTqqB3KcDm2t40bJfrZuUcn/5puRIh1bKNDwIMLsuNCrjHmDlNbocqpYMOh0Pgw7ARNbqrnPjWsYGJPuMNFpax/U=")
+            };
+
+            var credentials = new EncryptingCredentials(
+                new RsaSecurityKey(parameters),
+                SecurityAlgorithms.RsaOAEP,
+                SecurityAlgorithms.Aes256CbcHmacSha512);
+
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.EncryptingCredentials.Add(credentials);
+                options.EncryptingCredentials.AddKey(new SymmetricSecurityKey(new byte[256 / 8]));
+
+                options.Provider.OnDeserializeAccessToken = context =>
+                {
+                    var keys = context.TokenValidationParameters.TokenDecryptionKeys.ToArray();
+
+                    // Assert
+                    Assert.Equal(1, keys.Length);
+                    Assert.NotSame(credentials, keys[0]);
+                    Assert.Same(context.Options.EncryptingCredentials[1].Key, keys[0]);
+                    Assert.IsType<SymmetricSecurityKey>(keys[0]);
+
+                    context.Ticket = new AuthenticationTicket(
+                        new ClaimsPrincipal(),
+                        new AuthenticationProperties(),
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
+
+                    context.HandleDeserialization();
+
+                    return Task.CompletedTask;
+                };
+
+                options.Provider.OnValidateIntrospectionRequest = context =>
+                {
+                    context.Skip();
+
+                    return Task.CompletedTask;
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+            {
+                Token = "access_token",
+                TokenTypeHint = OpenIdConnectConstants.TokenTypeHints.AccessToken
+            });
+
+            // Assert
+            Assert.True((bool) response[OpenIdConnectConstants.Claims.Active]);
+        }
+
+        [Fact]
         public async Task DeserializeAccessTokenAsync_UsesAccessTokenFormatByDefault()
         {
             // Arrange
@@ -2505,6 +2763,122 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
             });
 
             Assert.Equal("A security token handler must be provided.", exception.Message);
+        }
+
+        [Fact]
+        public async Task DeserializeIdentityTokenAsync_IgnoresEncryptingKeys()
+        {
+            // Arrange
+            var parameters = new RSAParameters
+            {
+                D = Convert.FromBase64String("Uj6NrYBnyddhlJefYEP2nleCntAKlWyIttJC4cJnNxNN+OT2fQXhpTXRwW4R5YIS3HDqK/Fg2yoYm+OTVntAAgRFKveRx/WKwFo6UpnJc5u3lElhFa7IfosO9qXjErpX9ruAVqipekDLwQ++KmVVdgH4PK/o//nEx5zklGCdlEJURZYJPs9/7g1cx3UwvPp8jM7LgZL5OZRNyI3Jz4efrwiI2/vd8P28lAbpv/Ao4NwUDq/WKEnZ8JYSjLEKnZCfbX1ZEwf0Ic48jEKHmi1WEwpru1fMPoYfakrsY/VEfatPiDs8a5HABP/KaXcM4AZsr7HbzqAaNycV2xgdZimGcQ=="),
+                DP = Convert.FromBase64String("hi1e+0eQ/iYrfT4zpZVbx3dyfA7Ch/aujMt6nGMF+1LGaut86vDHM2JI0Gc2BKc+uPEu2bNAorhSmuSyGpfGYl0MYFQoVF/jyiGpzYPmhYpL5yLuN9jWAqNwjfstuRDLU9zTEfZnr3OSN85rZcgT7NUxlY8im1Y2TWYxGiEXw9E="),
+                DQ = Convert.FromBase64String("laVNkWIbnSuGo7nAxyUSdL2sXU3GZWwItwzTG0IK/0woFjArtCxGgNXW+V+GhxT7iHGAVJJSBvJ65TXrUYuBmoWj2CsoUs2mzK8ax4zg3CXrU61esCsGUoS2owR4FXlhYPmoVnglGu89bH72eXKixZsuF7vKW19nG703BXYEaEU="),
+                Exponent = Convert.FromBase64String("AQAB"),
+                InverseQ = Convert.FromBase64String("dhzLDS4F5WYHX+vH4+uL3Ei/K5lxw2A/dBHGtbS2X54gm7vARl+FrptOFFwIjjmsLuTjttAq9K1EP/XZIq8bjW6dXJ/IytnobIPSFkclEeQlMi4/2VDMG5915J0DwnKO9M+B8F3JViUyMv0pvb+ub+HHDVFkIr7zooCmY25i77Q="),
+                Modulus = Convert.FromBase64String("kXv7Pxf6mSf7mu6mPAOAoKAXl5kU7Q3h9zevC5i4Mm5bMk17XCh7ZvVxDzGA+1JmyxOX6sw3gMUl31FtIFlDhis8VnXKAPn8i1zrmebq+7QKzpE2GpoIpXjXbkPaHG/DbC67M1bux7/dE7lSUSifHRRLsbMUC2D4UahJ6miH2iPFNFyoa6CLtwosD8tIJKwmZ9r9zfqc9BrVGu24lZySjTSRttpLaTkgkBjxHmYhinKNEtj9wUfi1S1wPJUvf+roc6o+7jeBBV3EXJCsb6XCCXI7/e3umWp19odeRShXLQNQbNuuVC7yre4iidUDrWJ1jiaB06svUG+fVEi4FCMvEQ=="),
+                P = Convert.FromBase64String("xQGczmp4qD7Sez/ZqgW+O4cciTHvSqJqJUSdDd2l1Pd/szQ8avvzorrbSWOIULyv6eJb32+HuyLgy6rTSJ6THFobAnUv4ZTR7EGK26AJmP/BhD+3G+n21+4fzfbAxpHihkCYmO8aEl8fm/r4qPVXmCzFoXDZLMNIxFsdEXiFRS0="),
+                Q = Convert.FromBase64String("vQy5C++AzF+TRh6qwbKzOqt87ZHEHidIAh6ivRNewjzIgCWXpseVl7DimY1YdViOnw1VI7xY+EyiyTanq5caTqqB3KcDm2t40bJfrZuUcn/5puRIh1bKNDwIMLsuNCrjHmDlNbocqpYMOh0Pgw7ARNbqrnPjWsYGJPuMNFpax/U=")
+            };
+
+            var credentials = new EncryptingCredentials(
+                new RsaSecurityKey(parameters),
+                SecurityAlgorithms.RsaOAEP,
+                SecurityAlgorithms.Aes256CbcHmacSha512);
+
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.EncryptingCredentials.AddKey(new SymmetricSecurityKey(new byte[256 / 8]));
+                options.EncryptingCredentials.Add(credentials);
+
+                options.Provider.OnDeserializeIdentityToken = context =>
+                {
+                    // Assert
+                    Assert.Null(context.TokenValidationParameters.TokenDecryptionKey);
+                    Assert.Null(context.TokenValidationParameters.TokenDecryptionKeys);
+
+                    context.Ticket = new AuthenticationTicket(
+                        new ClaimsPrincipal(),
+                        new AuthenticationProperties(),
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
+
+                    context.HandleDeserialization();
+
+                    return Task.CompletedTask;
+                };
+
+                options.Provider.OnValidateIntrospectionRequest = context =>
+                {
+                    context.Skip();
+
+                    return Task.CompletedTask;
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+            {
+                Token = "id_token",
+                TokenTypeHint = OpenIdConnectConstants.TokenTypeHints.IdToken
+            });
+
+            // Assert
+            Assert.True((bool) response[OpenIdConnectConstants.Claims.Active]);
+        }
+
+        [Fact]
+        public async Task DeserializeIdentityTokenAsync_IgnoresSymmetricSigningKeys()
+        {
+            // Arrange
+            var credentials = new SigningCredentials(
+                new SymmetricSecurityKey(new byte[256 / 8]),
+                SecurityAlgorithms.HmacSha256);
+
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.SigningCredentials.Insert(0, credentials);
+
+                options.Provider.OnDeserializeIdentityToken = context =>
+                {
+                    var keys = context.TokenValidationParameters.IssuerSigningKeys.ToArray();
+
+                    // Assert
+                    Assert.Equal(1, keys.Length);
+                    Assert.NotSame(credentials, keys[0]);
+                    Assert.Same(context.Options.SigningCredentials[1].Key, keys[0]);
+                    Assert.IsType<X509SecurityKey>(keys[0]);
+
+                    context.Ticket = new AuthenticationTicket(
+                        new ClaimsPrincipal(),
+                        new AuthenticationProperties(),
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
+
+                    context.HandleDeserialization();
+
+                    return Task.CompletedTask;
+                };
+
+                options.Provider.OnValidateIntrospectionRequest = context =>
+                {
+                    context.Skip();
+
+                    return Task.CompletedTask;
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+            {
+                Token = "id_token",
+                TokenTypeHint = OpenIdConnectConstants.TokenTypeHints.IdToken
+            });
+
+            // Assert
+            Assert.True((bool) response[OpenIdConnectConstants.Claims.Active]);
         }
 
         [Fact]

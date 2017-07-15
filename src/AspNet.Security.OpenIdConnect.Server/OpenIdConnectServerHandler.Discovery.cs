@@ -439,10 +439,10 @@ namespace AspNet.Security.OpenIdConnect.Server
                 }
 
 #if SUPPORTS_ECDSA
-                if (!credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature) &&
-                    !credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha256Signature) &&
-                    !credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha384Signature) &&
-                    !credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha512Signature))
+                if (!credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256) &&
+                    !credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha256) &&
+                    !credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha384) &&
+                    !credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha512))
                 {
                     Logger.LogInformation("An unsupported signing key of type '{Type}' was ignored and excluded " +
                                           "from the key set. Only RSA and ECDSA asymmetric security keys can be " +
@@ -451,7 +451,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                     continue;
                 }
 #else
-                if (!credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature))
+                if (!credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256))
                 {
                     Logger.LogInformation("An unsupported signing key of type '{Type}' was ignored and excluded " +
                                           "from the key set. Only RSA asymmetric security keys can be exposed " +
@@ -472,7 +472,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                     Kid = credentials.Kid,
                 };
 
-                if (credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature))
+                if (credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256))
                 {
                     RSA algorithm = null;
 
@@ -525,9 +525,9 @@ namespace AspNet.Security.OpenIdConnect.Server
                 }
 
 #if SUPPORTS_ECDSA
-                else if (credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha256Signature) ||
-                         credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha384Signature) ||
-                         credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha512Signature))
+                else if (credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha256) ||
+                         credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha384) ||
+                         credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha512))
                 {
                     ECDsa algorithm = null;
 

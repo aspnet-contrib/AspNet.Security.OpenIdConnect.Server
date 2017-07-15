@@ -77,7 +77,71 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public void AddCertificate_ThrowsAnExceptionForNullCredentials()
+        public void EncryptingCredentials_AddKey_ThrowsAnExceptionForNullCredentials()
+        {
+            // Arrange
+            var credentials = (IList<EncryptingCredentials>) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                credentials.AddKey(null);
+            });
+
+            Assert.Equal("credentials", exception.ParamName);
+        }
+
+        [Fact]
+        public void EncryptingCredentials_AddKey_ThrowsAnExceptionForNullKey()
+        {
+            // Arrange
+            var credentials = new List<EncryptingCredentials>();
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                credentials.AddKey(null);
+            });
+
+            Assert.Equal("key", exception.ParamName);
+        }
+
+        [Fact]
+        public void EncryptingCredentials_AddKey_ThrowsAnExceptionForUnsupportedAlgorithm()
+        {
+            // Arrange
+            var credentials = new List<EncryptingCredentials>();
+            var key = Mock.Of<SecurityKey>();
+
+            // Act and assert
+            var exception = Assert.Throws<InvalidOperationException>(delegate
+            {
+                credentials.AddKey(key);
+            });
+
+            Assert.Equal("An encryption algorithm cannot be automatically inferred from the encrypting key. " +
+                         "Consider using 'options.EncryptingCredentials.Add(EncryptingCredentials)' instead.", exception.Message);
+        }
+
+        [Fact]
+        public void EncryptingCredentials_AddKey_RegistersCredentials()
+        {
+            // Arrange
+            var credentials = new List<EncryptingCredentials>();
+            var factory = Mock.Of<CryptoProviderFactory>(mock => mock.IsSupportedAlgorithm(SecurityAlgorithms.Aes256KW, It.IsAny<SecurityKey>()));
+            var key = Mock.Of<SecurityKey>(mock => mock.CryptoProviderFactory == factory);
+
+            // Act
+            credentials.AddKey(key);
+
+            // Assert
+            Assert.Equal(1, credentials.Count);
+            Assert.Equal(SecurityAlgorithms.Aes256KW, credentials[0].Alg);
+            Assert.Equal(SecurityAlgorithms.Aes256CbcHmacSha512, credentials[0].Enc);
+        }
+
+        [Fact]
+        public void SigningCredentials_AddCertificate_ThrowsAnExceptionForNullCredentials()
         {
             // Arrange
             var credentials = (IList<SigningCredentials>) null;
@@ -92,7 +156,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public void AddCertificate_ThrowsAnExceptionForNullCertificate()
+        public void SigningCredentials_AddCertificate_ThrowsAnExceptionForNullCertificate()
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
@@ -107,7 +171,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public void AddCertificate_ThrowsAnExceptionForNullAssembly()
+        public void SigningCredentials_AddCertificate_ThrowsAnExceptionForNullAssembly()
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
@@ -124,7 +188,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         [Theory]
         [InlineData("")]
         [InlineData(null)]
-        public void AddCertificate_ThrowsAnExceptionForNullOrEmptyResource(string resource)
+        public void SigningCredentials_AddCertificate_ThrowsAnExceptionForNullOrEmptyResource(string resource)
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
@@ -143,7 +207,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         [Theory]
         [InlineData("")]
         [InlineData(null)]
-        public void AddCertificate_ThrowsAnExceptionForNullOrEmptyPassword(string password)
+        public void SigningCredentials_AddCertificate_ThrowsAnExceptionForNullOrEmptyPassword(string password)
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
@@ -163,7 +227,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         [Theory]
         [InlineData("")]
         [InlineData(null)]
-        public void AddCertificate_ThrowsAnExceptionForNullOrEmptyThumbprint(string thumbprint)
+        public void SigningCredentials_AddCertificate_ThrowsAnExceptionForNullOrEmptyThumbprint(string thumbprint)
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
@@ -179,7 +243,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public void AddCertificate_ThrowsAnExceptionForInvalidResource()
+        public void SigningCredentials_AddCertificate_ThrowsAnExceptionForInvalidResource()
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
@@ -195,7 +259,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public void AddCertificate_ThrowsAnExceptionForInvalidThumbprint()
+        public void SigningCredentials_AddCertificate_ThrowsAnExceptionForInvalidThumbprint()
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
@@ -210,7 +274,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public void AddCertificate_ThrowsAnExceptionForCertificateWithNoPrivateKey()
+        public void SigningCredentials_AddCertificate_ThrowsAnExceptionForCertificateWithNoPrivateKey()
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
@@ -236,7 +300,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public void AddCertificate_RegistersSigningCredentials()
+        public void SigningCredentials_AddCertificate_RegistersCredentials()
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
@@ -249,12 +313,12 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(1, credentials.Count);
-            Assert.Equal(SecurityAlgorithms.RsaSha256Signature, credentials[0].Algorithm);
+            Assert.Equal(SecurityAlgorithms.RsaSha256, credentials[0].Algorithm);
             Assert.NotNull(credentials[0].Kid);
         }
 
         [Fact]
-        public void AddEphemeralKey_ThrowsAnExceptionForNullCredentials()
+        public void SigningCredentials_AddEphemeralKeyThrowsAnExceptionForNullCredentials()
         {
             // Arrange
             var credentials = (IList<SigningCredentials>) null;
@@ -262,7 +326,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
             // Act and assert
             var exception = Assert.Throws<ArgumentNullException>(delegate
             {
-                credentials.AddEphemeralKey(SecurityAlgorithms.RsaSha256Signature);
+                credentials.AddEphemeralKey(SecurityAlgorithms.RsaSha256);
             });
 
             Assert.Equal("credentials", exception.ParamName);
@@ -271,7 +335,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         [Theory]
         [InlineData("")]
         [InlineData(null)]
-        public void AddEphemeralKey_ThrowsAnExceptionForNullOrEmptyAlgorithm(string algorithm)
+        public void SigningCredentials_AddEphemeralKeyThrowsAnExceptionForNullOrEmptyAlgorithm(string algorithm)
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
@@ -288,10 +352,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
 #if !SUPPORTS_ECDSA
         [Theory]
+        [InlineData(SecurityAlgorithms.EcdsaSha256)]
+        [InlineData(SecurityAlgorithms.EcdsaSha384)]
+        [InlineData(SecurityAlgorithms.EcdsaSha512)]
         [InlineData(SecurityAlgorithms.EcdsaSha256Signature)]
         [InlineData(SecurityAlgorithms.EcdsaSha384Signature)]
         [InlineData(SecurityAlgorithms.EcdsaSha512Signature)]
-        public void AddEphemeralKey_ThrowsAnExceptionForEcdsaAlgorithmsOnUnsupportedPlatforms(string algorithm)
+        public void SigningCredentials_AddEphemeralKeyThrowsAnExceptionForEcdsaAlgorithmsOnUnsupportedPlatforms(string algorithm)
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
@@ -307,10 +374,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 #endif
 
         [Theory]
+        [InlineData(SecurityAlgorithms.HmacSha256)]
+        [InlineData(SecurityAlgorithms.HmacSha384)]
+        [InlineData(SecurityAlgorithms.HmacSha512)]
         [InlineData(SecurityAlgorithms.HmacSha256Signature)]
         [InlineData(SecurityAlgorithms.HmacSha384Signature)]
         [InlineData(SecurityAlgorithms.HmacSha512Signature)]
-        public void AddEphemeralKey_ThrowsAnExceptionForUnsupportedAlgorithms(string algorithm)
+        public void SigningCredentials_AddEphemeralKeyThrowsAnExceptionForUnsupportedAlgorithms(string algorithm)
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
@@ -325,15 +395,15 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Theory]
-        [InlineData(SecurityAlgorithms.RsaSha256Signature)]
-        [InlineData(SecurityAlgorithms.RsaSha384Signature)]
-        [InlineData(SecurityAlgorithms.RsaSha512Signature)]
+        [InlineData(SecurityAlgorithms.RsaSha256)]
+        [InlineData(SecurityAlgorithms.RsaSha384)]
+        [InlineData(SecurityAlgorithms.RsaSha512)]
 #if SUPPORTS_ECDSA
-        [InlineData(SecurityAlgorithms.EcdsaSha256Signature)]
-        [InlineData(SecurityAlgorithms.EcdsaSha384Signature)]
-        [InlineData(SecurityAlgorithms.EcdsaSha512Signature)]
+        [InlineData(SecurityAlgorithms.EcdsaSha256)]
+        [InlineData(SecurityAlgorithms.EcdsaSha384)]
+        [InlineData(SecurityAlgorithms.EcdsaSha512)]
 #endif
-        public void AddEphemeralKey_RegistersSigningCredentials(string algorithm)
+        public void SigningCredentials_AddEphemeralKeyRegistersSigningCredentials(string algorithm)
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
@@ -348,7 +418,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public void AddEphemeralKey_UsesRsaSha256ByDefault()
+        public void SigningCredentials_AddEphemeralKeyUsesRsaSha256ByDefault()
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
@@ -358,12 +428,12 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(1, credentials.Count);
-            Assert.Equal(SecurityAlgorithms.RsaSha256Signature, credentials[0].Algorithm);
+            Assert.Equal(SecurityAlgorithms.RsaSha256, credentials[0].Algorithm);
             Assert.NotNull(credentials[0].Kid);
         }
 
         [Fact]
-        public void AddKey_ThrowsAnExceptionForNullCredentials()
+        public void SigningCredentials_AddKey_ThrowsAnExceptionForNullCredentials()
         {
             // Arrange
             var credentials = (IList<SigningCredentials>) null;
@@ -378,7 +448,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public void AddKey_ThrowsAnExceptionForNullKey()
+        public void SigningCredentials_AddKey_ThrowsAnExceptionForNullKey()
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
@@ -393,7 +463,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public void AddKey_ThrowsAnExceptionForNonPrivateKey()
+        public void SigningCredentials_AddKey_ThrowsAnExceptionForNonPrivateKey()
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
@@ -410,10 +480,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
 #if !SUPPORTS_ECDSA
         [Theory]
+        [InlineData(SecurityAlgorithms.EcdsaSha256)]
+        [InlineData(SecurityAlgorithms.EcdsaSha384)]
+        [InlineData(SecurityAlgorithms.EcdsaSha512)]
         [InlineData(SecurityAlgorithms.EcdsaSha256Signature)]
         [InlineData(SecurityAlgorithms.EcdsaSha384Signature)]
         [InlineData(SecurityAlgorithms.EcdsaSha512Signature)]
-        public void AddKey_ThrowsAnExceptionForEcdsaKeyOnUnsupportedPlatforms(string algorithm)
+        public void SigningCredentials_AddKey_ThrowsAnExceptionForEcdsaKeyOnUnsupportedPlatforms(string algorithm)
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
@@ -430,7 +503,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 #endif
 
         [Fact]
-        public void AddKey_ThrowsAnExceptionForUnsupportedAlgorithm()
+        public void SigningCredentials_AddKey_ThrowsAnExceptionForUnsupportedAlgorithm()
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
@@ -447,14 +520,14 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Theory]
-        [InlineData(SecurityAlgorithms.HmacSha256Signature)]
-        [InlineData(SecurityAlgorithms.RsaSha256Signature)]
+        [InlineData(SecurityAlgorithms.HmacSha256)]
+        [InlineData(SecurityAlgorithms.RsaSha256)]
 #if SUPPORTS_ECDSA
-        [InlineData(SecurityAlgorithms.EcdsaSha256Signature)]
-        [InlineData(SecurityAlgorithms.EcdsaSha384Signature)]
-        [InlineData(SecurityAlgorithms.EcdsaSha512Signature)]
+        [InlineData(SecurityAlgorithms.EcdsaSha256)]
+        [InlineData(SecurityAlgorithms.EcdsaSha384)]
+        [InlineData(SecurityAlgorithms.EcdsaSha512)]
 #endif
-        public void AddKey_RegistersSigningCredentials(string algorithm)
+        public void SigningCredentials_AddKey_RegistersSigningCredentials(string algorithm)
         {
             // Arrange
             var credentials = new List<SigningCredentials>();

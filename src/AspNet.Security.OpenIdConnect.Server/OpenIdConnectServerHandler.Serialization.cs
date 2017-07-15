@@ -133,6 +133,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             var notification = new SerializeAccessTokenContext(Context, Scheme, Options, request, response, ticket)
             {
                 DataFormat = Options.AccessTokenFormat,
+                EncryptingCredentials = Options.EncryptingCredentials.FirstOrDefault(key => key.Key is SymmetricSecurityKey),
                 Issuer = Context.GetIssuer(Options),
                 SecurityTokenHandler = Options.AccessTokenHandler,
                 SigningCredentials = Options.SigningCredentials.FirstOrDefault(key => key.Key is SymmetricSecurityKey) ??
@@ -220,6 +221,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             {
                 Subject = identity,
                 Issuer = notification.Issuer,
+                EncryptingCredentials = notification.EncryptingCredentials,
                 SigningCredentials = notification.SigningCredentials,
                 IssuedAt = notification.Ticket.Properties.IssuedUtc?.UtcDateTime,
                 NotBefore = notification.Ticket.Properties.IssuedUtc?.UtcDateTime,
@@ -412,6 +414,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             {
                 Subject = identity,
                 Issuer = notification.Issuer,
+                EncryptingCredentials = notification.EncryptingCredentials,
                 SigningCredentials = notification.SigningCredentials,
                 IssuedAt = notification.Ticket.Properties.IssuedUtc?.UtcDateTime,
                 NotBefore = notification.Ticket.Properties.IssuedUtc?.UtcDateTime,
@@ -534,6 +537,8 @@ namespace AspNet.Security.OpenIdConnect.Server
                 IssuerSigningKeys = Options.SigningCredentials.Select(credentials => credentials.Key),
                 NameClaimType = OpenIdConnectConstants.Claims.Name,
                 RoleClaimType = OpenIdConnectConstants.Claims.Role,
+                TokenDecryptionKeys = Options.EncryptingCredentials.Select(credentials => credentials.Key)
+                                                                   .Where(key => key is SymmetricSecurityKey),
                 ValidIssuer = Context.GetIssuer(Options),
                 ValidateAudience = false,
                 ValidateLifetime = false

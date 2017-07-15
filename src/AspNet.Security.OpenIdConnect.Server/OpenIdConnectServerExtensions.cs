@@ -302,7 +302,7 @@ namespace Microsoft.AspNetCore.Builder
         /// <returns>The signing credentials.</returns>
         public static IList<SigningCredentials> AddEphemeralKey([NotNull] this IList<SigningCredentials> credentials)
         {
-            return credentials.AddEphemeralKey(SecurityAlgorithms.RsaSha256Signature);
+            return credentials.AddEphemeralKey(SecurityAlgorithms.RsaSha256);
         }
 
         /// <summary>
@@ -329,6 +329,9 @@ namespace Microsoft.AspNetCore.Builder
 
             switch (algorithm)
             {
+                case SecurityAlgorithms.RsaSha256:
+                case SecurityAlgorithms.RsaSha384:
+                case SecurityAlgorithms.RsaSha512:
                 case SecurityAlgorithms.RsaSha256Signature:
                 case SecurityAlgorithms.RsaSha384Signature:
                 case SecurityAlgorithms.RsaSha512Signature:
@@ -368,6 +371,7 @@ namespace Microsoft.AspNetCore.Builder
                 }
 
 #if SUPPORTS_ECDSA
+                case SecurityAlgorithms.EcdsaSha256:
                 case SecurityAlgorithms.EcdsaSha256Signature:
                 {
                     // Generate a new ECDSA key using the P-256 curve.
@@ -381,6 +385,7 @@ namespace Microsoft.AspNetCore.Builder
                     return credentials;
                 }
 
+                case SecurityAlgorithms.EcdsaSha384:
                 case SecurityAlgorithms.EcdsaSha384Signature:
                 {
                     // Generate a new ECDSA key using the P-384 curve.
@@ -394,6 +399,7 @@ namespace Microsoft.AspNetCore.Builder
                     return credentials;
                 }
 
+                case SecurityAlgorithms.EcdsaSha512:
                 case SecurityAlgorithms.EcdsaSha512Signature:
                 {
                     // Generate a new ECDSA key using the P-521 curve.
@@ -407,6 +413,9 @@ namespace Microsoft.AspNetCore.Builder
                     return credentials;
                 }
 #else
+                case SecurityAlgorithms.EcdsaSha256:
+                case SecurityAlgorithms.EcdsaSha384:
+                case SecurityAlgorithms.EcdsaSha512:
                 case SecurityAlgorithms.EcdsaSha256Signature:
                 case SecurityAlgorithms.EcdsaSha384Signature:
                 case SecurityAlgorithms.EcdsaSha512Signature:
@@ -415,6 +424,36 @@ namespace Microsoft.AspNetCore.Builder
 
                 default: throw new InvalidOperationException("The specified algorithm is not supported.");
             }
+        }
+
+        /// <summary>
+        /// Adds a specific <see cref="SecurityKey"/> to encrypt the tokens issued by the OpenID Connect server.
+        /// </summary>
+        /// <param name="credentials">The options used to configure the OpenID Connect server.</param>
+        /// <param name="key">The key used to sign security tokens issued by the server.</param>
+        /// <returns>The encryption credentials.</returns>
+        public static IList<EncryptingCredentials> AddKey(
+            [NotNull] this IList<EncryptingCredentials> credentials, [NotNull] SecurityKey key)
+        {
+            if (credentials == null)
+            {
+                throw new ArgumentNullException(nameof(credentials));
+            }
+
+            if (key == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+
+            if (key.IsSupportedAlgorithm(SecurityAlgorithms.Aes256KW))
+            {
+                credentials.Add(new EncryptingCredentials(key, SecurityAlgorithms.Aes256KW, SecurityAlgorithms.Aes256CbcHmacSha512));
+
+                return credentials;
+            }
+
+            throw new InvalidOperationException("An encryption algorithm cannot be automatically inferred from the encrypting key. " +
+                                                "Consider using 'options.EncryptingCredentials.Add(EncryptingCredentials)' instead.");
         }
 
         /// <summary>
@@ -450,46 +489,46 @@ namespace Microsoft.AspNetCore.Builder
                 key.KeyId = key.GetKeyIdentifier();
             }
 
-            if (key.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature))
+            if (key.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256))
             {
-                credentials.Add(new SigningCredentials(key, SecurityAlgorithms.RsaSha256Signature));
+                credentials.Add(new SigningCredentials(key, SecurityAlgorithms.RsaSha256));
 
                 return credentials;
             }
 
-            else if (key.IsSupportedAlgorithm(SecurityAlgorithms.HmacSha256Signature))
+            else if (key.IsSupportedAlgorithm(SecurityAlgorithms.HmacSha256))
             {
-                credentials.Add(new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature));
+                credentials.Add(new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
 
                 return credentials;
             }
 
 #if SUPPORTS_ECDSA
             // Note: ECDSA algorithms are bound to specific curves and must be treated separately.
-            else if (key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha256Signature))
+            else if (key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha256))
             {
-                credentials.Add(new SigningCredentials(key, SecurityAlgorithms.EcdsaSha256Signature));
+                credentials.Add(new SigningCredentials(key, SecurityAlgorithms.EcdsaSha256));
 
                 return credentials;
             }
 
-            else if (key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha384Signature))
+            else if (key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha384))
             {
-                credentials.Add(new SigningCredentials(key, SecurityAlgorithms.EcdsaSha384Signature));
+                credentials.Add(new SigningCredentials(key, SecurityAlgorithms.EcdsaSha384));
 
                 return credentials;
             }
 
-            else if (key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha512Signature))
+            else if (key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha512))
             {
-                credentials.Add(new SigningCredentials(key, SecurityAlgorithms.EcdsaSha512Signature));
+                credentials.Add(new SigningCredentials(key, SecurityAlgorithms.EcdsaSha512));
 
                 return credentials;
             }
 #else
-            else if (key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha256Signature) ||
-                     key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha384Signature) ||
-                     key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha512Signature))
+            else if (key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha256) ||
+                     key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha384) ||
+                     key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha512))
             {
                 throw new PlatformNotSupportedException("ECDSA signing keys are not supported on this platform.");
             }

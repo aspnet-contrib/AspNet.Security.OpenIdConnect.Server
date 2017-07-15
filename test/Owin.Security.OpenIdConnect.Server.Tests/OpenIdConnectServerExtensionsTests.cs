@@ -79,7 +79,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public void AddCertificate_ThrowsAnExceptionForNullCredentials()
+        public void SigningCredentials_AddCertificate_ThrowsAnExceptionForNullCredentials()
         {
             // Arrange
             var credentials = (IList<SigningCredentials>) null;
@@ -94,7 +94,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public void AddCertificate_ThrowsAnExceptionForNullCertificate()
+        public void SigningCredentials_AddCertificate_ThrowsAnExceptionForNullCertificate()
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
@@ -109,7 +109,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public void AddCertificate_ThrowsAnExceptionForNullAssembly()
+        public void SigningCredentials_AddCertificate_ThrowsAnExceptionForNullAssembly()
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
@@ -126,7 +126,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         [Theory]
         [InlineData("")]
         [InlineData(null)]
-        public void AddCertificate_ThrowsAnExceptionForNullOrEmptyResource(string resource)
+        public void SigningCredentials_AddCertificate_ThrowsAnExceptionForNullOrEmptyResource(string resource)
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
@@ -145,7 +145,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         [Theory]
         [InlineData("")]
         [InlineData(null)]
-        public void AddCertificate_ThrowsAnExceptionForNullOrEmptyPassword(string password)
+        public void SigningCredentials_AddCertificate_ThrowsAnExceptionForNullOrEmptyPassword(string password)
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
@@ -165,7 +165,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         [Theory]
         [InlineData("")]
         [InlineData(null)]
-        public void AddCertificate_ThrowsAnExceptionForNullOrEmptyThumbprint(string thumbprint)
+        public void SigningCredentials_AddCertificate_ThrowsAnExceptionForNullOrEmptyThumbprint(string thumbprint)
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
@@ -181,7 +181,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public void AddCertificate_ThrowsAnExceptionForInvalidResource()
+        public void SigningCredentials_AddCertificate_ThrowsAnExceptionForInvalidResource()
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
@@ -197,7 +197,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public void AddCertificate_ThrowsAnExceptionForInvalidThumbprint()
+        public void SigningCredentials_AddCertificate_ThrowsAnExceptionForInvalidThumbprint()
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
@@ -212,7 +212,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public void AddCertificate_ThrowsAnExceptionForCertificateWithNoPrivateKey()
+        public void SigningCredentials_AddCertificate_ThrowsAnExceptionForCertificateWithNoPrivateKey()
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
@@ -238,7 +238,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public void AddCertificate_RegistersSigningCredentials()
+        public void SigningCredentials_AddCertificate_RegistersSigningCredentials()
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
@@ -257,7 +257,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public void AddEphemeralKey_ThrowsAnExceptionForNullCredentials()
+        public void SigningCredentials_AddEphemeralKey_ThrowsAnExceptionForNullCredentials()
         {
             // Arrange
             var credentials = (IList<SigningCredentials>) null;
@@ -274,7 +274,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         [Theory]
         [InlineData("")]
         [InlineData(null)]
-        public void AddEphemeralKey_ThrowsAnExceptionForNullOrEmptyAlgorithm(string algorithm)
+        public void SigningCredentials_AddEphemeralKey_ThrowsAnExceptionForNullOrEmptyAlgorithm(string algorithm)
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
@@ -290,7 +290,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public void AddEphemeralKey_ThrowsAnExceptionForUnsupportedAlgorithm()
+        public void SigningCredentials_AddEphemeralKey_ThrowsAnExceptionForUnsupportedAlgorithm()
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
@@ -305,7 +305,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public void AddEphemeralKey_RegistersSigningCredentials()
+        public void SigningCredentials_AddEphemeralKey_RegistersSigningCredentials()
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
@@ -321,7 +321,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public void AddEphemeralKey_UsesRsaSha256ByDefault()
+        public void SigningCredentials_AddEphemeralKey_UsesRsaSha256ByDefault()
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
@@ -337,7 +337,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public void AddKey_ThrowsAnExceptionForNullCredentials()
+        public void SigningCredentials_AddKey_ThrowsAnExceptionForNullCredentials()
         {
             // Arrange
             var credentials = (IList<SigningCredentials>) null;
@@ -352,7 +352,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public void AddKey_ThrowsAnExceptionForNullKey()
+        public void SigningCredentials_AddKey_ThrowsAnExceptionForNullKey()
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
@@ -367,7 +367,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public void AddKey_ThrowsAnExceptionForNonPrivateKey()
+        public void SigningCredentials_AddKey_ThrowsAnExceptionForNonPrivateKey()
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
@@ -383,7 +383,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public void AddKey_ThrowsAnExceptionForUnsupportedAlgorithm()
+        public void SigningCredentials_AddKey_ThrowsAnExceptionForUnsupportedAlgorithm()
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
@@ -402,7 +402,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         [Theory]
         [InlineData(SecurityAlgorithms.HmacSha256Signature)]
         [InlineData(SecurityAlgorithms.RsaSha256Signature)]
-        public void AddKey_RegistersSigningCredentials(string algorithm)
+        public void SigningCredentials_AddKey_RegistersCredentials(string algorithm)
         {
             // Arrange
             var credentials = new List<SigningCredentials>();

@@ -66,6 +66,11 @@ namespace AspNet.Security.OpenIdConnect.Server
         }
 
         /// <summary>
+        /// Gets or sets the encrypting credentials used to encrypt the access token.
+        /// </summary>
+        public EncryptingCredentials EncryptingCredentials { get; set; }
+
+        /// <summary>
         /// Gets or sets the signing credentials used to sign the access token.
         /// </summary>
         public SigningCredentials SigningCredentials { get; set; }

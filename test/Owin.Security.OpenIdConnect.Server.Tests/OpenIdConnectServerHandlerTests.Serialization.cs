@@ -6,6 +6,7 @@
 
 using System;
 using System.IdentityModel.Tokens;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Client;
@@ -2464,6 +2465,59 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
             });
 
             Assert.Equal("A security token handler must be provided.", exception.Message);
+        }
+
+        [Fact]
+        public async Task DeserializeIdentityTokenAsync_IgnoresSymmetricSigningKeys()
+        {
+            // Arrange
+            var credentials = new SigningCredentials(
+                new InMemorySymmetricSecurityKey(new byte[256 / 8]),
+                SecurityAlgorithms.HmacSha256Signature,
+                SecurityAlgorithms.Sha256Digest);
+
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.SigningCredentials.Insert(0, credentials);
+
+                options.Provider.OnDeserializeIdentityToken = context =>
+                {
+                    var keys = context.TokenValidationParameters.IssuerSigningKeys.ToArray();
+
+                    // Assert
+                    Assert.Equal(1, keys.Length);
+                    Assert.NotSame(credentials, keys[0]);
+                    Assert.Same(context.Options.SigningCredentials[1].SigningKey, keys[0]);
+                    Assert.IsType<X509AsymmetricSecurityKey>(keys[0]);
+
+                    context.Ticket = new AuthenticationTicket(
+                        new ClaimsIdentity(),
+                        new AuthenticationProperties());
+
+                    context.HandleDeserialization();
+
+                    return Task.CompletedTask;
+                };
+
+                options.Provider.OnValidateIntrospectionRequest = context =>
+                {
+                    context.Skip();
+
+                    return Task.CompletedTask;
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+            {
+                Token = "id_token",
+                TokenTypeHint = OpenIdConnectConstants.TokenTypeHints.IdToken
+            });
+
+            // Assert
+            Assert.True((bool) response[OpenIdConnectConstants.Claims.Active]);
         }
 
         [Fact]

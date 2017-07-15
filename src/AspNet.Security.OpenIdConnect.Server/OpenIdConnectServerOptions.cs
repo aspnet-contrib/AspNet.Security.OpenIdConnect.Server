@@ -37,7 +37,13 @@ namespace AspNet.Security.OpenIdConnect.Server
         public Uri Issuer { get; set; }
 
         /// <summary>
-        /// Gets the list of credentials used to sign the JWT tokens issued by the OpenID Connect server middleware.
+        /// Gets the list of credentials used to encrypt the JWT access tokens issued by the
+        /// OpenID Connect server handler. Note: only symmetric credentials are supported.
+        /// </summary>
+        public IList<EncryptingCredentials> EncryptingCredentials { get; } = new List<EncryptingCredentials>();
+
+        /// <summary>
+        /// Gets the list of credentials used to sign the JWT tokens issued by the OpenID Connect server handler.
         /// Both asymmetric and symmetric keys are supported, but only asymmetric keys can be used to sign identity tokens.
         /// Note that only asymmetric RSA and ECDSA keys can be exposed by the JWKS metadata endpoint.
         /// </summary>
