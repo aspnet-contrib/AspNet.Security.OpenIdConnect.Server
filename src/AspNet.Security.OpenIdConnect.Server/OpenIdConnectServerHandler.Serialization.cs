@@ -133,11 +133,12 @@ namespace AspNet.Security.OpenIdConnect.Server
             var notification = new SerializeAccessTokenContext(Context, Scheme, Options, request, response, ticket)
             {
                 DataFormat = Options.AccessTokenFormat,
-                EncryptingCredentials = Options.EncryptingCredentials.FirstOrDefault(key => key.Key is SymmetricSecurityKey),
+                EncryptingCredentials = Options.EncryptingCredentials.FirstOrDefault(
+                    credentials => credentials.Key is SymmetricSecurityKey),
                 Issuer = Context.GetIssuer(Options),
                 SecurityTokenHandler = Options.AccessTokenHandler,
-                SigningCredentials = Options.SigningCredentials.FirstOrDefault(key => key.Key is SymmetricSecurityKey) ??
-                                     Options.SigningCredentials.FirstOrDefault()
+                SigningCredentials = Options.SigningCredentials.FirstOrDefault(
+                    credentials => credentials.Key is SymmetricSecurityKey) ?? Options.SigningCredentials.FirstOrDefault()
             };
 
             await Provider.SerializeAccessToken(notification);
@@ -296,7 +297,8 @@ namespace AspNet.Security.OpenIdConnect.Server
             {
                 Issuer = Context.GetIssuer(Options),
                 SecurityTokenHandler = Options.IdentityTokenHandler,
-                SigningCredentials = Options.SigningCredentials.FirstOrDefault(key => key.Key is AsymmetricSecurityKey)
+                SigningCredentials = Options.SigningCredentials.FirstOrDefault(
+                    credentials => credentials.Key is AsymmetricSecurityKey)
             };
 
             await Provider.SerializeIdentityToken(notification);

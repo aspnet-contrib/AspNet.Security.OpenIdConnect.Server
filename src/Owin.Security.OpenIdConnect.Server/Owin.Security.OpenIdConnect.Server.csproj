@@ -3,7 +3,8 @@
   <Import Project="..\..\build\packages.props" />
 
   <PropertyGroup>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFrameworks>net461</TargetFrameworks>
+    <TargetFrameworks Condition=" $([Microsoft.Build.Utilities.ToolLocationHelper]::GetPathToReferenceAssemblies('.NETFramework', '4.7', '').Count) != 0 ">$(TargetFrameworks);net47</TargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -19,14 +20,13 @@
   <ItemGroup>
     <PackageReference Include="JetBrains.Annotations" Version="$(JetBrainsVersion)" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="$(AspNetCoreVersion)" />
-    <PackageReference Include="Microsoft.IdentityModel.Protocol.Extensions" Version="$(IdentityModelVersion)" />
+    <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="$(IdentityModelCoreVersion)" />
     <PackageReference Include="Microsoft.Owin.Security.Interop" Version="$(AspNetCoreVersion)" />
     <PackageReference Include="System.Text.Encodings.Web" Version="$(CoreFxVersion)" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="System.IdentityModel" />
-    <Reference Include="System.Xml" />
-  </ItemGroup>
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net47' ">
+    <DefineConstants>$(DefineConstants);SUPPORTS_CNG;SUPPORTS_ECDSA</DefineConstants>
+  </PropertyGroup>
 
 </Project>

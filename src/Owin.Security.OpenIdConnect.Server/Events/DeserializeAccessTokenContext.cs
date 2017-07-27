@@ -4,8 +4,8 @@
  * for more information concerning the license and the contributors participating to this project.
  */
 
-using System.IdentityModel.Tokens;
 using AspNet.Security.OpenIdConnect.Primitives;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 

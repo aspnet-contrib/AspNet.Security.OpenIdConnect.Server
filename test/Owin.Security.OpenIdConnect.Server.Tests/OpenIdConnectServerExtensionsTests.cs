@@ -6,11 +6,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.IdentityModel.Tokens;
 using System.IO;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using AspNet.Security.OpenIdConnect.Primitives;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.Owin;
 using Microsoft.Owin.Builder;
 using Moq;
@@ -79,6 +80,70 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
+        public void EncryptingCredentials_AddKey_ThrowsAnExceptionForNullCredentials()
+        {
+            // Arrange
+            var credentials = (IList<EncryptingCredentials>) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                credentials.AddKey(null);
+            });
+
+            Assert.Equal("credentials", exception.ParamName);
+        }
+
+        [Fact]
+        public void EncryptingCredentials_AddKey_ThrowsAnExceptionForNullKey()
+        {
+            // Arrange
+            var credentials = new List<EncryptingCredentials>();
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                credentials.AddKey(null);
+            });
+
+            Assert.Equal("key", exception.ParamName);
+        }
+
+        [Fact]
+        public void EncryptingCredentials_AddKey_ThrowsAnExceptionForUnsupportedAlgorithm()
+        {
+            // Arrange
+            var credentials = new List<EncryptingCredentials>();
+            var key = Mock.Of<SecurityKey>();
+
+            // Act and assert
+            var exception = Assert.Throws<InvalidOperationException>(delegate
+            {
+                credentials.AddKey(key);
+            });
+
+            Assert.Equal("An encryption algorithm cannot be automatically inferred from the encrypting key. " +
+                         "Consider using 'options.EncryptingCredentials.Add(EncryptingCredentials)' instead.", exception.Message);
+        }
+
+        [Fact]
+        public void EncryptingCredentials_AddKey_RegistersCredentials()
+        {
+            // Arrange
+            var credentials = new List<EncryptingCredentials>();
+            var factory = Mock.Of<CryptoProviderFactory>(mock => mock.IsSupportedAlgorithm(SecurityAlgorithms.Aes256KW, It.IsAny<SecurityKey>()));
+            var key = Mock.Of<SecurityKey>(mock => mock.CryptoProviderFactory == factory);
+
+            // Act
+            credentials.AddKey(key);
+
+            // Assert
+            Assert.Equal(1, credentials.Count);
+            Assert.Equal(SecurityAlgorithms.Aes256KW, credentials[0].Alg);
+            Assert.Equal(SecurityAlgorithms.Aes256CbcHmacSha512, credentials[0].Enc);
+        }
+
+        [Fact]
         public void SigningCredentials_AddCertificate_ThrowsAnExceptionForNullCredentials()
         {
             // Arrange
@@ -130,7 +195,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
-            var assembly = typeof(OpenIdConnectServerMiddlewareTests).GetTypeInfo().Assembly;
+            var assembly = typeof(OpenIdConnectServerHandlerTests).GetTypeInfo().Assembly;
 
             // Act and assert
             var exception = Assert.Throws<ArgumentException>(delegate
@@ -149,7 +214,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
-            var assembly = typeof(OpenIdConnectServerMiddlewareTests).GetTypeInfo().Assembly;
+            var assembly = typeof(OpenIdConnectServerHandlerTests).GetTypeInfo().Assembly;
             var resource = "AspNet.Security.OpenIdConnect.Server.Tests.Certificate.cer";
 
             // Act and assert
@@ -185,7 +250,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
-            var assembly = typeof(OpenIdConnectServerMiddlewareTests).GetTypeInfo().Assembly;
+            var assembly = typeof(OpenIdConnectServerHandlerTests).GetTypeInfo().Assembly;
 
             // Act and assert
             var exception = Assert.Throws<InvalidOperationException>(delegate
@@ -216,7 +281,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
-            var assembly = typeof(OpenIdConnectServerMiddlewareTests).GetTypeInfo().Assembly;
+            var assembly = typeof(OpenIdConnectServerHandlerTests).GetTypeInfo().Assembly;
             var resource = "Owin.Security.OpenIdConnect.Server.Tests.Certificate.cer";
 
             X509Certificate2 certificate;
@@ -238,26 +303,25 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public void SigningCredentials_AddCertificate_RegistersSigningCredentials()
+        public void SigningCredentials_AddCertificate_RegistersCredentials()
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
 
             // Act
             credentials.AddCertificate(
-                assembly: typeof(OpenIdConnectServerMiddlewareTests).GetTypeInfo().Assembly,
+                assembly: typeof(OpenIdConnectServerHandlerTests).GetTypeInfo().Assembly,
                 resource: "Owin.Security.OpenIdConnect.Server.Tests.Certificate.pfx",
                 password: "Owin.Security.OpenIdConnect.Server");
 
             // Assert
             Assert.Equal(1, credentials.Count);
-            Assert.Equal(SecurityAlgorithms.Sha256Digest, credentials[0].DigestAlgorithm);
-            Assert.Equal(SecurityAlgorithms.RsaSha256Signature, credentials[0].SignatureAlgorithm);
-            Assert.NotNull(credentials[0].SigningKeyIdentifier);
+            Assert.Equal(SecurityAlgorithms.RsaSha256, credentials[0].Algorithm);
+            Assert.NotNull(credentials[0].Kid);
         }
 
         [Fact]
-        public void SigningCredentials_AddEphemeralKey_ThrowsAnExceptionForNullCredentials()
+        public void SigningCredentials_AddEphemeralKeyThrowsAnExceptionForNullCredentials()
         {
             // Arrange
             var credentials = (IList<SigningCredentials>) null;
@@ -265,7 +329,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
             // Act and assert
             var exception = Assert.Throws<ArgumentNullException>(delegate
             {
-                credentials.AddEphemeralKey(SecurityAlgorithms.RsaSha256Signature);
+                credentials.AddEphemeralKey(SecurityAlgorithms.RsaSha256);
             });
 
             Assert.Equal("credentials", exception.ParamName);
@@ -274,7 +338,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         [Theory]
         [InlineData("")]
         [InlineData(null)]
-        public void SigningCredentials_AddEphemeralKey_ThrowsAnExceptionForNullOrEmptyAlgorithm(string algorithm)
+        public void SigningCredentials_AddEphemeralKeyThrowsAnExceptionForNullOrEmptyAlgorithm(string algorithm)
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
@@ -289,8 +353,37 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
             Assert.StartsWith("The algorithm cannot be null or empty.", exception.Message);
         }
 
-        [Fact]
-        public void SigningCredentials_AddEphemeralKey_ThrowsAnExceptionForUnsupportedAlgorithm()
+#if !SUPPORTS_ECDSA
+        [Theory]
+        [InlineData(SecurityAlgorithms.EcdsaSha256)]
+        [InlineData(SecurityAlgorithms.EcdsaSha384)]
+        [InlineData(SecurityAlgorithms.EcdsaSha512)]
+        [InlineData(SecurityAlgorithms.EcdsaSha256Signature)]
+        [InlineData(SecurityAlgorithms.EcdsaSha384Signature)]
+        [InlineData(SecurityAlgorithms.EcdsaSha512Signature)]
+        public void SigningCredentials_AddEphemeralKeyThrowsAnExceptionForEcdsaAlgorithmsOnUnsupportedPlatforms(string algorithm)
+        {
+            // Arrange
+            var credentials = new List<SigningCredentials>();
+
+            // Act and assert
+            var exception = Assert.Throws<PlatformNotSupportedException>(delegate
+            {
+                credentials.AddEphemeralKey(algorithm);
+            });
+
+            Assert.Equal("ECDSA signing keys are not supported on this platform.", exception.Message);
+        }
+#endif
+
+        [Theory]
+        [InlineData(SecurityAlgorithms.HmacSha256)]
+        [InlineData(SecurityAlgorithms.HmacSha384)]
+        [InlineData(SecurityAlgorithms.HmacSha512)]
+        [InlineData(SecurityAlgorithms.HmacSha256Signature)]
+        [InlineData(SecurityAlgorithms.HmacSha384Signature)]
+        [InlineData(SecurityAlgorithms.HmacSha512Signature)]
+        public void SigningCredentials_AddEphemeralKeyThrowsAnExceptionForUnsupportedAlgorithms(string algorithm)
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
@@ -298,30 +391,37 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
             // Act and assert
             var exception = Assert.Throws<InvalidOperationException>(delegate
             {
-                credentials.AddEphemeralKey(SecurityAlgorithms.HmacSha256Signature);
+                credentials.AddEphemeralKey(algorithm);
             });
 
             Assert.Equal("The specified algorithm is not supported.", exception.Message);
         }
 
-        [Fact]
-        public void SigningCredentials_AddEphemeralKey_RegistersSigningCredentials()
+        [Theory]
+        [InlineData(SecurityAlgorithms.RsaSha256)]
+        [InlineData(SecurityAlgorithms.RsaSha384)]
+        [InlineData(SecurityAlgorithms.RsaSha512)]
+#if SUPPORTS_ECDSA
+        [InlineData(SecurityAlgorithms.EcdsaSha256)]
+        [InlineData(SecurityAlgorithms.EcdsaSha384)]
+        [InlineData(SecurityAlgorithms.EcdsaSha512)]
+#endif
+        public void SigningCredentials_AddEphemeralKeyRegistersSigningCredentials(string algorithm)
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
 
             // Act
-            credentials.AddEphemeralKey(SecurityAlgorithms.RsaSha256Signature);
+            credentials.AddEphemeralKey(algorithm);
 
             // Assert
             Assert.Equal(1, credentials.Count);
-            Assert.Equal(SecurityAlgorithms.Sha256Digest, credentials[0].DigestAlgorithm);
-            Assert.Equal(SecurityAlgorithms.RsaSha256Signature, credentials[0].SignatureAlgorithm);
-            Assert.NotNull(credentials[0].SigningKeyIdentifier);
+            Assert.Equal(algorithm, credentials[0].Algorithm);
+            Assert.NotNull(credentials[0].Kid);
         }
 
         [Fact]
-        public void SigningCredentials_AddEphemeralKey_UsesRsaSha256ByDefault()
+        public void SigningCredentials_AddEphemeralKeyUsesRsaSha256ByDefault()
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
@@ -331,9 +431,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal(1, credentials.Count);
-            Assert.Equal(SecurityAlgorithms.Sha256Digest, credentials[0].DigestAlgorithm);
-            Assert.Equal(SecurityAlgorithms.RsaSha256Signature, credentials[0].SignatureAlgorithm);
-            Assert.NotNull(credentials[0].SigningKeyIdentifier);
+            Assert.Equal(SecurityAlgorithms.RsaSha256, credentials[0].Algorithm);
+            Assert.NotNull(credentials[0].Kid);
         }
 
         [Fact]
@@ -371,7 +470,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
-            var key = Mock.Of<AsymmetricSecurityKey>(mock => !mock.HasPrivateKey());
+            var key = Mock.Of<AsymmetricSecurityKey>(mock => !mock.HasPrivateKey);
 
             // Act and assert
             var exception = Assert.Throws<InvalidOperationException>(delegate
@@ -381,6 +480,30 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
             Assert.Equal("The asymmetric signing key doesn't contain the required private key.", exception.Message);
         }
+
+#if !SUPPORTS_ECDSA
+        [Theory]
+        [InlineData(SecurityAlgorithms.EcdsaSha256)]
+        [InlineData(SecurityAlgorithms.EcdsaSha384)]
+        [InlineData(SecurityAlgorithms.EcdsaSha512)]
+        [InlineData(SecurityAlgorithms.EcdsaSha256Signature)]
+        [InlineData(SecurityAlgorithms.EcdsaSha384Signature)]
+        [InlineData(SecurityAlgorithms.EcdsaSha512Signature)]
+        public void SigningCredentials_AddKey_ThrowsAnExceptionForEcdsaKeyOnUnsupportedPlatforms(string algorithm)
+        {
+            // Arrange
+            var credentials = new List<SigningCredentials>();
+            var key = new ECDsaSecurityKey(Mock.Of<ECDsa>());
+
+            // Act and assert
+            var exception = Assert.Throws<PlatformNotSupportedException>(delegate
+            {
+                credentials.AddKey(key);
+            });
+
+            Assert.Equal("ECDSA signing keys are not supported on this platform.", exception.Message);
+        }
+#endif
 
         [Fact]
         public void SigningCredentials_AddKey_ThrowsAnExceptionForUnsupportedAlgorithm()
@@ -400,21 +523,26 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         }
 
         [Theory]
-        [InlineData(SecurityAlgorithms.HmacSha256Signature)]
-        [InlineData(SecurityAlgorithms.RsaSha256Signature)]
-        public void SigningCredentials_AddKey_RegistersCredentials(string algorithm)
+        [InlineData(SecurityAlgorithms.HmacSha256)]
+        [InlineData(SecurityAlgorithms.RsaSha256)]
+#if SUPPORTS_ECDSA
+        [InlineData(SecurityAlgorithms.EcdsaSha256)]
+        [InlineData(SecurityAlgorithms.EcdsaSha384)]
+        [InlineData(SecurityAlgorithms.EcdsaSha512)]
+#endif
+        public void SigningCredentials_AddKey_RegistersSigningCredentials(string algorithm)
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
-            var key = Mock.Of<SecurityKey>(mock => mock.IsSupportedAlgorithm(algorithm));
+            var factory = Mock.Of<CryptoProviderFactory>(mock => mock.IsSupportedAlgorithm(algorithm, It.IsAny<SecurityKey>()));
+            var key = Mock.Of<SecurityKey>(mock => mock.CryptoProviderFactory == factory);
 
             // Act
             credentials.AddKey(key);
 
             // Assert
             Assert.Equal(1, credentials.Count);
-            Assert.Equal(SecurityAlgorithms.Sha256Digest, credentials[0].DigestAlgorithm);
-            Assert.Equal(algorithm, credentials[0].SignatureAlgorithm);
+            Assert.Equal(algorithm, credentials[0].Algorithm);
         }
 
         [Fact]

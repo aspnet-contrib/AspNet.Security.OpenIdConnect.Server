@@ -2657,8 +2657,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 .Verifiable();
 
             format.Setup(mock => mock.ValidateToken(
-                    "7F82F1A3-8C9F-489F-B838-4B644B7C92B2",
-                    It.IsAny<TokenValidationParameters>(), out token))
+                "7F82F1A3-8C9F-489F-B838-4B644B7C92B2",
+                It.IsAny<TokenValidationParameters>(), out token))
                 .Returns(new ClaimsPrincipal(identity))
                 .Verifiable();
 

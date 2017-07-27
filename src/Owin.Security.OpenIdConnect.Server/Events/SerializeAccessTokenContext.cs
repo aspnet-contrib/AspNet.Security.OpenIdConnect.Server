@@ -5,8 +5,8 @@
  */
 
 using System.Collections.Generic;
-using System.IdentityModel.Tokens;
 using AspNet.Security.OpenIdConnect.Primitives;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Owin.Security.OpenIdConnect.Extensions;
@@ -63,6 +63,11 @@ namespace Owin.Security.OpenIdConnect.Server
             get => Ticket.GetScopes();
             set => Ticket.SetScopes(value);
         }
+
+        /// <summary>
+        /// Gets or sets the encrypting credentials used to encrypt the access token.
+        /// </summary>
+        public EncryptingCredentials EncryptingCredentials { get; set; }
 
         /// <summary>
         /// Gets or sets the signing credentials used to sign the access token.

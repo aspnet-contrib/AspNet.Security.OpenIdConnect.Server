@@ -6,7 +6,7 @@
 
 using System.Collections.Generic;
 using AspNet.Security.OpenIdConnect.Primitives;
-using Microsoft.IdentityModel.Protocols;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.Owin;
 
 namespace Owin.Security.OpenIdConnect.Server

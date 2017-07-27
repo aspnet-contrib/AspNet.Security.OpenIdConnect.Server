@@ -7,15 +7,12 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IdentityModel.Tokens;
 using System.Linq;
-using System.Reflection;
 using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Protocols;
+using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json.Linq;
 
 namespace Owin.Security.OpenIdConnect.Server
@@ -215,7 +212,7 @@ namespace Owin.Security.OpenIdConnect.Server
                 }
 
                 // Only expose the response types containing id_token if an asymmetric signing key is available.
-                if (Options.SigningCredentials.Any(credentials => credentials.SigningKey is AsymmetricSecurityKey))
+                if (Options.SigningCredentials.Any(credentials => credentials.Key is AsymmetricSecurityKey))
                 {
                     notification.ResponseTypes.Add(OpenIdConnectConstants.ResponseTypes.IdToken);
 
@@ -246,13 +243,13 @@ namespace Owin.Security.OpenIdConnect.Server
             foreach (var credentials in Options.SigningCredentials)
             {
                 // If the signing key is not an asymmetric key, ignore it.
-                if (!(credentials.SigningKey is AsymmetricSecurityKey))
+                if (!(credentials.Key is AsymmetricSecurityKey))
                 {
                     continue;
                 }
 
                 // Try to resolve the JWA algorithm short name. If a null value is returned, ignore it.
-                var algorithm = OpenIdConnectServerHelpers.GetJwtAlgorithm(credentials.SignatureAlgorithm);
+                var algorithm = OpenIdConnectServerHelpers.GetJwtAlgorithm(credentials.Algorithm);
                 if (string.IsNullOrEmpty(algorithm))
                 {
                     continue;
@@ -416,95 +413,147 @@ namespace Owin.Security.OpenIdConnect.Server
             foreach (var credentials in Options.SigningCredentials)
             {
                 // If the signing key is not an asymmetric key, ignore it.
-                if (!(credentials.SigningKey is AsymmetricSecurityKey))
+                if (!(credentials.Key is AsymmetricSecurityKey))
                 {
                     Logger.LogDebug("A non-asymmetric signing key of type '{Type}' was excluded " +
-                                    "from the key set.", credentials.SigningKey.GetType().FullName);
+                                    "from the key set.", credentials.Key.GetType().FullName);
 
                     continue;
                 }
 
-                if (!credentials.SigningKey.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256Signature))
+#if SUPPORTS_ECDSA
+                if (!credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256) &&
+                    !credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha256) &&
+                    !credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha384) &&
+                    !credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha512))
+                {
+                    Logger.LogInformation("An unsupported signing key of type '{Type}' was ignored and excluded " +
+                                          "from the key set. Only RSA and ECDSA asymmetric security keys can be " +
+                                          "exposed via the JWKS endpoint.", credentials.Key.GetType().Name);
+
+                    continue;
+                }
+#else
+                if (!credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256))
                 {
                     Logger.LogInformation("An unsupported signing key of type '{Type}' was ignored and excluded " +
                                           "from the key set. Only RSA asymmetric security keys can be exposed " +
-                                          "via the JWKS endpoint.", credentials.SigningKey.GetType().Name);
+                                          "via the JWKS endpoint.", credentials.Key.GetType().Name);
 
                     continue;
                 }
-
-                // Try to extract a key identifier from the credentials.
-                LocalIdKeyIdentifierClause identifier = null;
-                credentials.SigningKeyIdentifier?.TryFind(out identifier);
-
-                // Resolve the underlying algorithm from the security key.
-                var algorithm = ((AsymmetricSecurityKey) credentials.SigningKey)
-                    .GetAsymmetricAlgorithm(
-                        algorithm: SecurityAlgorithms.RsaSha256Signature,
-                        privateKey: false) as RSA;
-
-                // Skip the key if an algorithm instance cannot be extracted.
-                if (algorithm == null)
-                {
-                    Logger.LogWarning("A signing key was ignored because it was unable " +
-                                      "to provide the requested algorithm instance.");
-
-                    continue;
-                }
-
-                // Export the RSA public key to create a new JSON Web Key
-                // exposing the exponent and the modulus parameters.
-                var parameters = algorithm.ExportParameters(includePrivateParameters: false);
-
-                Debug.Assert(parameters.Exponent != null &&
-                             parameters.Modulus != null,
-                    "RSA.ExportParameters() shouldn't return null parameters.");
+#endif
 
                 var key = new JsonWebKey
                 {
                     Use = JsonWebKeyUseNames.Sig,
-                    Kty = JsonWebAlgorithmsKeyTypes.RSA,
 
                     // Resolve the JWA identifier from the algorithm specified in the credentials.
-                    Alg = OpenIdConnectServerHelpers.GetJwtAlgorithm(credentials.SignatureAlgorithm),
+                    Alg = OpenIdConnectServerHelpers.GetJwtAlgorithm(credentials.Algorithm),
 
-                    // Use the key identifier specified
-                    // in the signing credentials.
-                    Kid = identifier?.LocalId,
-
-                    // Note: both E and N must be base64url-encoded.
-                    // See https://tools.ietf.org/html/rfc7518#section-6.2.1.2
-                    E = Base64UrlEncoder.Encode(parameters.Exponent),
-                    N = Base64UrlEncoder.Encode(parameters.Modulus)
+                    // Use the key identifier specified in the signing credentials.
+                    Kid = credentials.Kid,
                 };
 
-                X509Certificate2 certificate = null;
-
-                // Determine whether the security key is an asymmetric key embedded in a X.509 certificate.
-                if (credentials is X509SigningCredentials x509SigningCredentials)
+                if (credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.RsaSha256))
                 {
-                    certificate = x509SigningCredentials.Certificate;
+                    RSA algorithm = null;
+
+                    // Note: IdentityModel 5 doesn't expose a method allowing to retrieve the underlying algorithm
+                    // from a generic asymmetric security key. To work around this limitation, try to cast
+                    // the security key to the built-in IdentityModel types to extract the required RSA instance.
+                    // See https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet/issues/395
+                    if (credentials.Key is X509SecurityKey x509SecurityKey)
+                    {
+                        algorithm = x509SecurityKey.PublicKey as RSA;
+                    }
+
+                    else if (credentials.Key is RsaSecurityKey rsaSecurityKey)
+                    {
+                        algorithm = rsaSecurityKey.Rsa;
+
+                        // If no RSA instance can be found, create one using
+                        // the RSA parameters attached to the security key.
+                        if (algorithm == null)
+                        {
+                            var rsa = RSA.Create();
+                            rsa.ImportParameters(rsaSecurityKey.Parameters);
+                            algorithm = rsa;
+                        }
+                    }
+
+                    // Skip the key if an algorithm instance cannot be extracted.
+                    if (algorithm == null)
+                    {
+                        Logger.LogWarning("A signing key was ignored because it was unable " +
+                                          "to provide the requested algorithm instance.");
+
+                        continue;
+                    }
+
+                    // Export the RSA public key to create a new JSON Web Key
+                    // exposing the exponent and the modulus parameters.
+                    var parameters = algorithm.ExportParameters(includePrivateParameters: false);
+
+                    Debug.Assert(parameters.Exponent != null &&
+                                 parameters.Modulus != null,
+                        "RSA.ExportParameters() shouldn't return null parameters.");
+
+                    key.Kty = JsonWebAlgorithmsKeyTypes.RSA;
+
+                    // Note: both E and N must be base64url-encoded.
+                    // See https://tools.ietf.org/html/rfc7518#section-6.3.1.1
+                    key.E = Base64UrlEncoder.Encode(parameters.Exponent);
+                    key.N = Base64UrlEncoder.Encode(parameters.Modulus);
                 }
 
-                else if (credentials.SigningKey is X509SecurityKey x509SecurityKey)
+#if SUPPORTS_ECDSA
+                else if (credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha256) ||
+                         credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha384) ||
+                         credentials.Key.IsSupportedAlgorithm(SecurityAlgorithms.EcdsaSha512))
                 {
-                    certificate = x509SecurityKey.Certificate;
-                }
+                    ECDsa algorithm = null;
 
-                else if (credentials.SigningKey is X509AsymmetricSecurityKey x509AsymmetricSecurityKey)
-                {
-                    // The X.509 certificate is not directly accessible when using X509AsymmetricSecurityKey.
-                    // Reflection is the only way to get the certificate used to create the security key.
-                    var field = typeof(X509AsymmetricSecurityKey).GetField(
-                        name: "certificate",
-                        bindingAttr: BindingFlags.Instance | BindingFlags.NonPublic);
-                    Debug.Assert(field != null);
+                    if (credentials.Key is X509SecurityKey x509SecurityKey)
+                    {
+                        algorithm = x509SecurityKey.PublicKey as ECDsa;
+                    }
 
-                    certificate = (X509Certificate2) field.GetValue(x509AsymmetricSecurityKey);
+                    else if (credentials.Key is ECDsaSecurityKey ecdsaSecurityKey)
+                    {
+                        algorithm = ecdsaSecurityKey.ECDsa;
+                    }
+
+                    // Skip the key if an algorithm instance cannot be extracted.
+                    if (algorithm == null)
+                    {
+                        Logger.LogWarning("A signing key was ignored because it was unable " +
+                                          "to provide the requested algorithm instance.");
+
+                        continue;
+                    }
+
+                    // Export the ECDsa public key to create a new JSON Web Key
+                    // exposing the coordinates of the point on the curve.
+                    var parameters = algorithm.ExportParameters(includePrivateParameters: false);
+
+                    Debug.Assert(parameters.Q.X != null &&
+                                 parameters.Q.Y != null,
+                        "ECDsa.ExportParameters() shouldn't return null coordinates.");
+
+                    key.Kty = JsonWebAlgorithmsKeyTypes.EllipticCurve;
+                    key.Crv = OpenIdConnectServerHelpers.GetJwtAlgorithmCurve(parameters.Curve);
+
+                    // Note: both X and Y must be base64url-encoded.
+                    // See https://tools.ietf.org/html/rfc7518#section-6.2.1.2
+                    key.X = Base64UrlEncoder.Encode(parameters.Q.X);
+                    key.Y = Base64UrlEncoder.Encode(parameters.Q.Y);
                 }
+#endif
 
                 // If the signing key is embedded in a X.509 certificate, set
                 // the x5t and x5c parameters using the certificate details.
+                var certificate = (credentials.Key as X509SecurityKey)?.Certificate;
                 if (certificate != null)
                 {
                     // x5t must be base64url-encoded.
@@ -573,10 +622,12 @@ namespace Owin.Security.OpenIdConnect.Server
                     [JsonWebKeyParameterNames.Kid] = key.Kid,
                     [JsonWebKeyParameterNames.Use] = key.Use,
                     [JsonWebKeyParameterNames.Kty] = key.Kty,
-                    [JsonWebKeyParameterNames.KeyOps] = key.KeyOps,
                     [JsonWebKeyParameterNames.Alg] = key.Alg,
+                    [JsonWebKeyParameterNames.Crv] = key.Crv,
                     [JsonWebKeyParameterNames.E] = key.E,
                     [JsonWebKeyParameterNames.N] = key.N,
+                    [JsonWebKeyParameterNames.X] = key.X,
+                    [JsonWebKeyParameterNames.Y] = key.Y,
                     [JsonWebKeyParameterNames.X5t] = key.X5t,
                     [JsonWebKeyParameterNames.X5u] = key.X5u
                 };
@@ -587,6 +638,11 @@ namespace Owin.Security.OpenIdConnect.Server
                     {
                         item.Add(parameter.Key, parameter.Value);
                     }
+                }
+
+                if (key.KeyOps.Count != 0)
+                {
+                    item.Add(JsonWebKeyParameterNames.KeyOps, new JArray(key.KeyOps));
                 }
 
                 if (key.X5c.Count != 0)

@@ -5,11 +5,11 @@
  */
 
 using System;
-using System.IdentityModel.Tokens;
 using System.Linq;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.Owin.Security;
 using Newtonsoft.Json.Linq;
 using Owin.Security.OpenIdConnect.Extensions;

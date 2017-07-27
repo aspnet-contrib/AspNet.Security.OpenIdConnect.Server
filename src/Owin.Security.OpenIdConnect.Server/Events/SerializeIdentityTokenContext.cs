@@ -5,11 +5,11 @@
  */
 
 using System.Collections.Generic;
-using System.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 using AspNet.Security.OpenIdConnect.Primitives;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
-using Microsoft.Owin.Security.Notifications;
 using Owin.Security.OpenIdConnect.Extensions;
 
 namespace Owin.Security.OpenIdConnect.Server
@@ -55,6 +55,11 @@ namespace Owin.Security.OpenIdConnect.Server
             get => Ticket.GetPresenters();
             set => Ticket.SetPresenters(value);
         }
+
+        /// <summary>
+        /// Gets or sets the encrypting credentials used to encrypt the identity token.
+        /// </summary>
+        public EncryptingCredentials EncryptingCredentials { get; set; }
 
         /// <summary>
         /// Gets or sets the signing credentials used to sign the identity token.

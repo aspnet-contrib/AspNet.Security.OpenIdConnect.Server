@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Client;
 using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.IdentityModel.Protocols;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.Owin;
 using Moq;
 using Newtonsoft.Json;
@@ -565,7 +566,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
             var server = CreateAuthorizationServer(options =>
             {
                 options.SigningCredentials.Clear();
-                options.SigningCredentials.AddKey(new InMemorySymmetricSecurityKey(new byte[256 / 8]));
+                options.SigningCredentials.AddKey(new SymmetricSecurityKey(new byte[256 / 8]));
             });
 
             var client = new OpenIdConnectClient(server.HttpClient);
@@ -624,13 +625,18 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         }
 
         [Theory]
-        [InlineData(OpenIdConnectConstants.Algorithms.RsaSha256, "http://www.w3.org/2001/04/xmlenc#sha256")]
-        [InlineData(OpenIdConnectConstants.Algorithms.RsaSha384, "http://www.w3.org/2001/04/xmlenc#sha384")]
-        [InlineData(OpenIdConnectConstants.Algorithms.RsaSha512, "http://www.w3.org/2001/04/xmlenc#sha512")]
-        public async Task InvokeConfigurationEndpointAsync_SigningAlgorithmsAreCorrectlyReturned(string algorithm, string digest)
+        [InlineData(OpenIdConnectConstants.Algorithms.RsaSha256)]
+        [InlineData(OpenIdConnectConstants.Algorithms.RsaSha384)]
+        [InlineData(OpenIdConnectConstants.Algorithms.RsaSha512)]
+#if SUPPORTS_ECDSA
+        [InlineData(OpenIdConnectConstants.Algorithms.EcdsaSha256)]
+        [InlineData(OpenIdConnectConstants.Algorithms.EcdsaSha384)]
+        [InlineData(OpenIdConnectConstants.Algorithms.EcdsaSha512)]
+#endif
+        public async Task InvokeConfigurationEndpointAsync_SigningAlgorithmsAreCorrectlyReturned(string algorithm)
         {
             // Arrange
-            var credentials = new SigningCredentials(Mock.Of<AsymmetricSecurityKey>(), algorithm, digest);
+            var credentials = new SigningCredentials(Mock.Of<AsymmetricSecurityKey>(), algorithm);
 
             var server = CreateAuthorizationServer(options =>
             {
@@ -655,7 +661,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
             var server = CreateAuthorizationServer(options =>
             {
                 options.SigningCredentials.Clear();
-                options.SigningCredentials.AddKey(new InMemorySymmetricSecurityKey(new byte[256 / 8]));
+                options.SigningCredentials.AddKey(new SymmetricSecurityKey(new byte[256 / 8]));
             });
 
             var client = new OpenIdConnectClient(server.HttpClient);
@@ -671,10 +677,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         public async Task InvokeConfigurationEndpointAsync_DuplicateSigningAlgorithmsAreIgnored()
         {
             // Arrange
-            var credentials = new SigningCredentials(
-                Mock.Of<AsymmetricSecurityKey>(),
-                SecurityAlgorithms.RsaSha256Signature,
-                SecurityAlgorithms.Sha256Digest);
+            var credentials = new SigningCredentials(Mock.Of<AsymmetricSecurityKey>(), SecurityAlgorithms.RsaSha256Signature);
 
             var server = CreateAuthorizationServer(options =>
             {
@@ -1045,18 +1048,24 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         }
 
         [Theory]
-        [InlineData("http://www.w3.org/2001/04/xmldsig-more#hmac-sha256", "http://www.w3.org/2001/04/xmlenc#sha256")]
-        [InlineData("http://www.w3.org/2001/04/xmldsig-more#hmac-sha384", "http://www.w3.org/2001/04/xmlenc#sha384")]
-        [InlineData("http://www.w3.org/2001/04/xmldsig-more#hmac-sha512", "http://www.w3.org/2001/04/xmlenc#sha512")]
-        public async Task InvokeCryptographyEndpointAsync_UnsupportedSecurityKeysAreIgnored(string algorithm, string digest)
+        [InlineData(SecurityAlgorithms.HmacSha256Signature)]
+        [InlineData(SecurityAlgorithms.HmacSha384Signature)]
+        [InlineData(SecurityAlgorithms.HmacSha512Signature)]
+#if !SUPPORTS_ECDSA
+        [InlineData(SecurityAlgorithms.EcdsaSha256Signature)]
+        [InlineData(SecurityAlgorithms.EcdsaSha384Signature)]
+        [InlineData(SecurityAlgorithms.EcdsaSha512Signature)]
+#endif
+        public async Task InvokeCryptographyEndpointAsync_UnsupportedSecurityKeysAreIgnored(string algorithm)
         {
             // Arrange
-            var key = Mock.Of<SecurityKey>(mock => !mock.IsSupportedAlgorithm(algorithm));
+            var factory = Mock.Of<CryptoProviderFactory>(mock => !mock.IsSupportedAlgorithm(algorithm, It.IsAny<SecurityKey>()));
+            var key = Mock.Of<SecurityKey>(mock => mock.CryptoProviderFactory == factory);
 
             var server = CreateAuthorizationServer(options =>
             {
                 options.SigningCredentials.Clear();
-                options.SigningCredentials.Add(new SigningCredentials(key, algorithm, algorithm));
+                options.SigningCredentials.Add(new SigningCredentials(key, algorithm));
             });
 
             var client = new OpenIdConnectClient(server.HttpClient);
@@ -1084,13 +1093,10 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 Q = Convert.FromBase64String("vQy5C++AzF+TRh6qwbKzOqt87ZHEHidIAh6ivRNewjzIgCWXpseVl7DimY1YdViOnw1VI7xY+EyiyTanq5caTqqB3KcDm2t40bJfrZuUcn/5puRIh1bKNDwIMLsuNCrjHmDlNbocqpYMOh0Pgw7ARNbqrnPjWsYGJPuMNFpax/U=")
             };
 
-            var rsa = RSA.Create();
-            rsa.ImportParameters(parameters);
-
             var server = CreateAuthorizationServer(options =>
             {
                 options.SigningCredentials.Clear();
-                options.SigningCredentials.AddKey(new RsaSecurityKey(rsa));
+                options.SigningCredentials.AddKey(new RsaSecurityKey(parameters));
             });
 
             var client = new OpenIdConnectClient(server.HttpClient);
@@ -1100,9 +1106,72 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
             var key = response[OpenIdConnectConstants.Parameters.Keys]?[0];
 
             // Assert
+            Assert.Null(key?[JsonWebKeyParameterNames.D]);
+            Assert.Null(key?[JsonWebKeyParameterNames.DP]);
+            Assert.Null(key?[JsonWebKeyParameterNames.DQ]);
+            Assert.Null(key?[JsonWebKeyParameterNames.P]);
+            Assert.Null(key?[JsonWebKeyParameterNames.Q]);
+
             Assert.Equal(parameters.Exponent, Base64UrlEncoder.DecodeBytes((string) key?[JsonWebKeyParameterNames.E]));
             Assert.Equal(parameters.Modulus, Base64UrlEncoder.DecodeBytes((string) key?[JsonWebKeyParameterNames.N]));
         }
+
+#if SUPPORTS_ECDSA
+        [Theory]
+        [InlineData(
+            /* oid: */ "1.2.840.10045.3.1.7",
+            /* curve: */ nameof(ECCurve.NamedCurves.nistP256),
+            /* d: */ "C0vacBwq1FnQ1N0FHXuuwTlw7Or0neOm2r3AdIKLDKI=",
+            /* x: */ "7eu+fVtuma+LVD4eH6CxrBX8366cnhPpvgeoeYL7oqw=",
+            /* y: */ "4qRkITJZ4p5alm0VpLPd+I11wq8vMUHUhbJm1Crx+Zs=")]
+        [InlineData(
+            /* oid: */ "1.3.132.0.34",
+            /* curve: */ nameof(ECCurve.NamedCurves.nistP384),
+            /* d: */ "B2JSdvTbRD/T5Sv7QsGBHPX9yGo2zn3Et5OWrjNauQ2kl+jFkXg5Iy2Vfak7W0ZQ",
+            /* x: */ "qqsUwddWjXhCWiaUCOUORJIzvp6QDXv1vroHPR4N0C3UqSKkJ5hNiBHaYdRYCnvC",
+            /* y: */ "QpbQFKBOXgeAKQQub/9QWZPvzNEjXq7aJjHlw4hiY+9QhGPn4qHUaeeI0qlaJ/t2")]
+        [InlineData(
+            /* oid: */ "1.3.132.0.35",
+            /* curve: */ nameof(ECCurve.NamedCurves.nistP521),
+            /* d: */ "ALong1stsWvTLufObn3SPfM8s9VsTG73nXv4mkzGFUmB1r7rda+cpYXU99rFV/kX6zBkFl7Y9TZ2ZyZLFnyUpE4j",
+            /* x: */ "AS+aCMpMbSO4ga/hUsVIIidqmcQiiT+N9o/5hJ9UVA/vHAKDvWTjuKz+JZfOiR9J+GDUcDZS56UbGG83IosMJMM6",
+            /* y: */ "AcYkfsb/kTKpcPhYsRPAYV7ibwTN/CdiAM8QuCElAV6wBGfuX1LUmK6ldDVJjytpSz1EmGvzR0T7UCcZcgITqWc2")]
+        public async Task InvokeCryptographyEndpointAsync_EcdsaSecurityKeysAreCorrectlyExposed(
+            string oid, string curve, string d, string x, string y)
+        {
+            // Arrange
+            var parameters = new ECParameters
+            {
+                Curve = ECCurve.CreateFromOid(new Oid(oid, curve)),
+                D = Convert.FromBase64String(d),
+                Q = new ECPoint
+                {
+                    X = Convert.FromBase64String(x),
+                    Y = Convert.FromBase64String(y)
+                }
+            };
+
+            var algorithm = ECDsa.Create(parameters);
+
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.SigningCredentials.Clear();
+                options.SigningCredentials.AddKey(new ECDsaSecurityKey(algorithm));
+            });
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.GetAsync(CryptographyEndpoint);
+            var key = response[OpenIdConnectConstants.Parameters.Keys]?[0];
+
+            // Assert
+            Assert.Null(key?[JsonWebKeyParameterNames.D]);
+
+            Assert.Equal(parameters.Q.X, Base64UrlEncoder.DecodeBytes((string) key?[JsonWebKeyParameterNames.X]));
+            Assert.Equal(parameters.Q.Y, Base64UrlEncoder.DecodeBytes((string) key?[JsonWebKeyParameterNames.Y]));
+        }
+#endif
 
         [Fact]
         public async Task InvokeCryptographyEndpointAsync_X509CertificatesAreCorrectlyExposed()
