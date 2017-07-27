@@ -1,5 +1,4 @@
 using System;
-using System.IdentityModel.Tokens;
 using System.IO;
 using Microsoft.Extensions.Logging;
 using Microsoft.Owin;
@@ -15,9 +14,6 @@ namespace Nancy.Server
     {
         public void Configuration(IAppBuilder app)
         {
-            JwtSecurityTokenHandler.InboundClaimTypeMap.Clear();
-            JwtSecurityTokenHandler.OutboundClaimTypeMap.Clear();
-
             app.SetDefaultSignInAsAuthenticationType("ServerCookie");
 
             app.UseWhen(context => context.Request.Path.StartsWithSegments(new PathString("/api")), branch =>
@@ -112,6 +108,22 @@ namespace Nancy.Server
                 // This method should only be used during development.
                 options.SigningCredentials.AddEphemeralKey();
 
+                // Note: to override the default access token format and use JWT, assign AccessTokenHandler:
+                //
+                // options.AccessTokenHandler = new JwtSecurityTokenHandler
+                // {
+                //     InboundClaimTypeMap = new Dictionary<string, string>(),
+                //     OutboundClaimTypeMap = new Dictionary<string, string>()
+                // };
+                //
+                // Note: when using JWT as the access token format, you have to register a signing key.
+                //
+                // You can register a new ephemeral key, that is discarded when the application shuts down.
+                // Tokens signed using this key are automatically invalidated and thus this method
+                // should only be used during development:
+                //
+                // options.SigningCredentials.AddEphemeralKey();
+                //
                 // On production, using a X.509 certificate stored in the machine store is recommended.
                 // You can generate a self-signed certificate using Pluralsight's self-cert utility:
                 // https://s3.amazonaws.com/pluralsight-free/keith-brown/samples/SelfCert.zip
@@ -125,10 +137,6 @@ namespace Nancy.Server
                 //     assembly: typeof(Startup).GetTypeInfo().Assembly,
                 //     resource: "Nancy.Server.Certificate.pfx",
                 //     password: "Owin.Security.OpenIdConnect.Server");
-
-                // Note: to override the default access token format and use JWT, assign AccessTokenHandler:
-                //
-                // options.AccessTokenHandler = new JwtSecurityTokenHandler();
 
                 // Register the logging listeners used by the OpenID Connect server middleware.
                 options.UseLogging(logger => logger.AddConsole().AddDebug());

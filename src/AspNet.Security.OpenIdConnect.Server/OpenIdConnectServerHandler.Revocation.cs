@@ -338,7 +338,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                 return await SendRevocationResponseAsync(new OpenIdConnectResponse
                 {
                     Error = OpenIdConnectConstants.Errors.UnsupportedTokenType,
-                    ErrorDescription = "The token cannot be revoked."
+                    ErrorDescription = "The specified token cannot be revoked."
                 });
             }
 

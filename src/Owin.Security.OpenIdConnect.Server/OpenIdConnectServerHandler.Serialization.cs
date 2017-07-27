@@ -5,15 +5,13 @@
  */
 
 using System;
-using System.IdentityModel.Protocols.WSTrust;
-using System.IdentityModel.Tokens;
 using System.Linq;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.Owin.Security;
 using Owin.Security.OpenIdConnect.Extensions;
 
@@ -133,10 +131,12 @@ namespace Owin.Security.OpenIdConnect.Server
             var notification = new SerializeAccessTokenContext(Context, Options, request, response, ticket)
             {
                 DataFormat = Options.AccessTokenFormat,
+                EncryptingCredentials = Options.EncryptingCredentials.FirstOrDefault(
+                    credentials => credentials.Key is SymmetricSecurityKey),
                 Issuer = Context.GetIssuer(Options),
                 SecurityTokenHandler = Options.AccessTokenHandler,
-                SigningCredentials = Options.SigningCredentials.FirstOrDefault(key => key.SigningKey is SymmetricSecurityKey) ??
-                                     Options.SigningCredentials.FirstOrDefault()
+                SigningCredentials = Options.SigningCredentials.FirstOrDefault(
+                    credentials => credentials.Key is SymmetricSecurityKey) ?? Options.SigningCredentials.FirstOrDefault()
             };
 
             await Options.Provider.SerializeAccessToken(notification);
@@ -213,22 +213,15 @@ namespace Owin.Security.OpenIdConnect.Server
                     break;
             }
 
-            if (ticket.Properties.IssuedUtc != null)
-            {
-                ticket.Identity.AddClaim(new Claim(
-                    OpenIdConnectConstants.Claims.IssuedAt,
-                    EpochTime.GetIntDate(ticket.Properties.IssuedUtc.Value.UtcDateTime).ToString(),
-                    ClaimValueTypes.Integer64));
-            }
-
             var token = notification.SecurityTokenHandler.CreateToken(new SecurityTokenDescriptor
             {
-                Subject = ticket.Identity,
-                TokenIssuerName = notification.Issuer,
+                Subject = identity,
+                Issuer = notification.Issuer,
+                EncryptingCredentials = notification.EncryptingCredentials,
                 SigningCredentials = notification.SigningCredentials,
-                Lifetime = new Lifetime(
-                    notification.Ticket.Properties.IssuedUtc?.UtcDateTime,
-                    notification.Ticket.Properties.ExpiresUtc?.UtcDateTime)
+                IssuedAt = notification.Ticket.Properties.IssuedUtc?.UtcDateTime,
+                NotBefore = notification.Ticket.Properties.IssuedUtc?.UtcDateTime,
+                Expires = notification.Ticket.Properties.ExpiresUtc?.UtcDateTime
             });
 
             var result = notification.SecurityTokenHandler.WriteToken(token);
@@ -297,7 +290,8 @@ namespace Owin.Security.OpenIdConnect.Server
             {
                 Issuer = Context.GetIssuer(Options),
                 SecurityTokenHandler = Options.IdentityTokenHandler,
-                SigningCredentials = Options.SigningCredentials.FirstOrDefault(key => key.SigningKey is AsymmetricSecurityKey)
+                SigningCredentials = Options.SigningCredentials.FirstOrDefault(
+                    credentials => credentials.Key is AsymmetricSecurityKey)
             };
 
             await Options.Provider.SerializeIdentityToken(notification);
@@ -365,7 +359,7 @@ namespace Owin.Security.OpenIdConnect.Server
             if (notification.SigningCredentials != null && (!string.IsNullOrEmpty(response.Code) ||
                                                             !string.IsNullOrEmpty(response.AccessToken)))
             {
-                using (var algorithm = HashAlgorithm.Create(notification.SigningCredentials.DigestAlgorithm))
+                using (var algorithm = OpenIdConnectServerHelpers.GetHashAlgorithm(notification.SigningCredentials.Algorithm))
                 {
                     // Create an authorization code hash if necessary.
                     if (!string.IsNullOrEmpty(response.Code))
@@ -408,22 +402,15 @@ namespace Owin.Security.OpenIdConnect.Server
                     break;
             }
 
-            if (ticket.Properties.IssuedUtc != null)
-            {
-                ticket.Identity.AddClaim(new Claim(
-                    OpenIdConnectConstants.Claims.IssuedAt,
-                    EpochTime.GetIntDate(ticket.Properties.IssuedUtc.Value.UtcDateTime).ToString(),
-                    ClaimValueTypes.Integer64));
-            }
-
             var token = notification.SecurityTokenHandler.CreateToken(new SecurityTokenDescriptor
             {
-                Subject = ticket.Identity,
-                TokenIssuerName = notification.Issuer,
+                Subject = identity,
+                Issuer = notification.Issuer,
+                EncryptingCredentials = notification.EncryptingCredentials,
                 SigningCredentials = notification.SigningCredentials,
-                Lifetime = new Lifetime(
-                    notification.Ticket.Properties.IssuedUtc?.UtcDateTime,
-                    notification.Ticket.Properties.ExpiresUtc?.UtcDateTime)
+                IssuedAt = notification.Ticket.Properties.IssuedUtc?.UtcDateTime,
+                NotBefore = notification.Ticket.Properties.IssuedUtc?.UtcDateTime,
+                Expires = notification.Ticket.Properties.ExpiresUtc?.UtcDateTime
             });
 
             var result = notification.SecurityTokenHandler.WriteToken(token);
@@ -539,9 +526,11 @@ namespace Owin.Security.OpenIdConnect.Server
             // in InvokeIntrospectionEndpointAsync or InvokeTokenEndpointAsync.
             notification.TokenValidationParameters = new TokenValidationParameters
             {
-                IssuerSigningKeys = Options.SigningCredentials.Select(credentials => credentials.SigningKey),
+                IssuerSigningKeys = Options.SigningCredentials.Select(credentials => credentials.Key),
                 NameClaimType = OpenIdConnectConstants.Claims.Name,
                 RoleClaimType = OpenIdConnectConstants.Claims.Role,
+                TokenDecryptionKeys = Options.EncryptingCredentials.Select(credentials => credentials.Key)
+                                                                   .Where(key => key is SymmetricSecurityKey),
                 ValidIssuer = Context.GetIssuer(Options),
                 ValidateAudience = false,
                 ValidateLifetime = false
@@ -649,7 +638,7 @@ namespace Owin.Security.OpenIdConnect.Server
             // in InvokeIntrospectionEndpointAsync or InvokeTokenEndpointAsync.
             notification.TokenValidationParameters = new TokenValidationParameters
             {
-                IssuerSigningKeys = Options.SigningCredentials.Select(credentials => credentials.SigningKey)
+                IssuerSigningKeys = Options.SigningCredentials.Select(credentials => credentials.Key)
                                                               .Where(key => key is AsymmetricSecurityKey),
 
                 NameClaimType = OpenIdConnectConstants.Claims.Name,

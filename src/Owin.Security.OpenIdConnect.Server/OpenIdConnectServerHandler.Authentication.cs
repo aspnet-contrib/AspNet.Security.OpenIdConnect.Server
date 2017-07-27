@@ -6,12 +6,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.IdentityModel.Tokens;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.Owin.Infrastructure;
 using Microsoft.Owin.Security;
 using Owin.Security.OpenIdConnect.Extensions;
@@ -205,7 +205,7 @@ namespace Owin.Security.OpenIdConnect.Server
                                                   request.HasResponseType(OpenIdConnectConstants.ResponseTypes.Token)))
             {
                 Logger.LogError("The authorization request was rejected because the 'response_type'/'response_mode' combination " +
-                                "was unsafe: {ResponseType} ; {ResponseMode}.", request.ResponseType, request.ResponseMode);
+                                "was invalid: {ResponseType} ; {ResponseMode}.", request.ResponseType, request.ResponseMode);
 
                 return await SendAuthorizationResponseAsync(new OpenIdConnectResponse
                 {
@@ -221,8 +221,7 @@ namespace Owin.Security.OpenIdConnect.Server
             if (string.IsNullOrEmpty(request.Nonce) && request.HasScope(OpenIdConnectConstants.Scopes.OpenId) &&
                                                       (request.IsImplicitFlow() || request.IsHybridFlow()))
             {
-                Logger.LogError("The authorization request was rejected because " +
-                                "the mandatory 'nonce' parameter was missing.");
+                Logger.LogError("The authorization request was rejected because the mandatory 'nonce' parameter was missing.");
 
                 return await SendAuthorizationResponseAsync(new OpenIdConnectResponse
                 {
@@ -246,7 +245,7 @@ namespace Owin.Security.OpenIdConnect.Server
 
             // Reject requests containing the id_token response_type if no asymmetric signing key has been registered.
             if (request.HasResponseType(OpenIdConnectConstants.ResponseTypes.IdToken) &&
-               !Options.SigningCredentials.Any(credentials => credentials.SigningKey is AsymmetricSecurityKey))
+               !Options.SigningCredentials.Any(credentials => credentials.Key is AsymmetricSecurityKey))
             {
                 Logger.LogError("The authorization request was rejected because the 'id_token' response type could not be honored. " +
                                 "To fix this error, consider registering a X.509 signing certificate or an ephemeral signing key.");
@@ -362,11 +361,11 @@ namespace Owin.Security.OpenIdConnect.Server
                 });
             }
 
-            Logger.LogInformation("The authorization request was successfully validated.");
-
             // Store the validated client_id/redirect_uri as request properties.
             request.SetProperty(OpenIdConnectConstants.Properties.ValidatedClientId, context.ClientId)
                    .SetProperty(OpenIdConnectConstants.Properties.ValidatedRedirectUri, context.RedirectUri);
+
+            Logger.LogInformation("The authorization request was successfully validated.");
 
             var notification = new HandleAuthorizationRequestContext(Context, Options, request);
             await Options.Provider.HandleAuthorizationRequest(notification);

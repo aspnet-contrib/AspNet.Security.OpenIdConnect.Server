@@ -8,15 +8,15 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
-using System.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using AspNet.Security.OpenIdConnect.Primitives;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.Owin;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -45,81 +45,52 @@ namespace Owin.Security.OpenIdConnect.Server
             }
         }
 
-        public static SecurityKeyIdentifier GetKeyIdentifier(this SecurityKey key)
+        public static string GetKeyIdentifier(this SecurityKey key)
         {
             if (key == null)
             {
                 throw new ArgumentNullException(nameof(key));
             }
 
-            SecurityKeyIdentifier identifier = null;
-            X509Certificate2 certificate = null;
-
             if (key is X509SecurityKey x509SecurityKey)
             {
-                certificate = x509SecurityKey.Certificate;
+                return x509SecurityKey.Certificate.Thumbprint;
             }
 
-            if (key is X509AsymmetricSecurityKey x509AsymmetricSecurityKey)
+            if (key is RsaSecurityKey rsaSecurityKey)
             {
-                // The X.509 certificate is not directly accessible when using X509AsymmetricSecurityKey.
-                // Reflection is the only way to get the certificate used to create the security key.
-                var field = typeof(X509AsymmetricSecurityKey).GetField(
-                    name: "certificate",
-                    bindingAttr: BindingFlags.Instance | BindingFlags.NonPublic);
-                Debug.Assert(field != null, "The 'certificate' field shouldn't be missing.");
-
-                certificate = (X509Certificate2) field.GetValue(x509AsymmetricSecurityKey);
-            }
-
-            if (certificate != null)
-            {
-                identifier = new SecurityKeyIdentifier
+                // Note: if the RSA parameters are not attached to the signing key,
+                // extract them by calling ExportParameters on the RSA instance.
+                var parameters = rsaSecurityKey.Parameters;
+                if (parameters.Modulus == null)
                 {
-                    new X509IssuerSerialKeyIdentifierClause(certificate),
-                    new X509RawDataKeyIdentifierClause(certificate),
-                    new X509ThumbprintKeyIdentifierClause(certificate),
-                    new LocalIdKeyIdentifierClause(certificate.Thumbprint.ToUpperInvariant()),
-                    new NamedKeySecurityKeyIdentifierClause(JwtHeaderParameterNames.X5t, certificate.Thumbprint.ToUpperInvariant())
-                };
-            }
-
-            if (identifier == null)
-            {
-                // Create an empty security key identifier.
-                identifier = new SecurityKeyIdentifier();
-
-                if (key is RsaSecurityKey rsaSecurityKey)
-                {
-                    // Resolve the underlying algorithm from the security key.
-                    var algorithm = (RSA) rsaSecurityKey.GetAsymmetricAlgorithm(
-                        algorithm: SecurityAlgorithms.RsaSha256Signature,
-                        requiresPrivateKey: false);
-
-                    Debug.Assert(algorithm != null,
-                        "SecurityKey.GetAsymmetricAlgorithm() shouldn't return a null algorithm.");
-
-                    // Export the RSA public key to extract a key identifier based on the modulus component.
-                    var parameters = algorithm.ExportParameters(includePrivateParameters: false);
+                    parameters = rsaSecurityKey.Rsa.ExportParameters(includePrivateParameters: false);
 
                     Debug.Assert(parameters.Modulus != null,
-                        "RSA.ExportParameters() shouldn't return a null modulus.");
-
-                    // Only use the 40 first chars of the base64url-encoded modulus.
-                    var kid = Base64UrlEncoder.Encode(parameters.Modulus);
-                    kid = kid.Substring(0, Math.Min(kid.Length, 40)).ToUpperInvariant();
-
-                    identifier.Add(new RsaKeyIdentifierClause(algorithm));
-                    identifier.Add(new LocalIdKeyIdentifierClause(kid));
-                    identifier.Add(new NamedKeySecurityKeyIdentifierClause(JwtHeaderParameterNames.Kid, kid));
+                        "A null modulus shouldn't be returned by RSA.ExportParameters().");
                 }
+
+                // Only use the 40 first chars of the base64url-encoded modulus.
+                var identifier = Base64UrlEncoder.Encode(parameters.Modulus);
+                return identifier.Substring(0, Math.Min(identifier.Length, 40)).ToUpperInvariant();
             }
 
-            // Mark the security key identifier as read-only to
-            // ensure it can't be altered during a request.
-            identifier.MakeReadOnly();
+#if SUPPORTS_ECDSA
+            if (key is ECDsaSecurityKey ecsdaSecurityKey)
+            {
+                // Extract the ECDSA parameters from the signing credentials.
+                var parameters = ecsdaSecurityKey.ECDsa.ExportParameters(includePrivateParameters: false);
 
-            return identifier;
+                Debug.Assert(parameters.Q.X != null,
+                    "Invalid coordinates shouldn't be returned by ECDsa.ExportParameters().");
+
+                // Only use the 40 first chars of the base64url-encoded X coordinate.
+                var identifier = Base64UrlEncoder.Encode(parameters.Q.X);
+                return identifier.Substring(0, Math.Min(identifier.Length, 40)).ToUpperInvariant();
+            }
+#endif
+
+            return null;
         }
 
         public static string GetIssuer(this IOwinContext context, OpenIdConnectServerOptions options)
@@ -167,6 +138,48 @@ namespace Owin.Security.OpenIdConnect.Server
             return false;
         }
 
+        public static bool IsSupportedAlgorithm(this SecurityKey key, string algorithm)
+        {
+            return key.CryptoProviderFactory.IsSupportedAlgorithm(algorithm, key);
+        }
+
+        public static HashAlgorithm GetHashAlgorithm(string algorithm)
+        {
+            if (string.IsNullOrEmpty(algorithm))
+            {
+                throw new ArgumentNullException(nameof(algorithm));
+            }
+
+            switch (algorithm)
+            {
+            case SecurityAlgorithms.RsaSha256:
+            case SecurityAlgorithms.HmacSha256:
+            case SecurityAlgorithms.EcdsaSha256:
+            case SecurityAlgorithms.RsaSha256Signature:
+            case SecurityAlgorithms.HmacSha256Signature:
+            case SecurityAlgorithms.EcdsaSha256Signature:
+                return SHA256.Create();
+
+            case SecurityAlgorithms.RsaSha384:
+            case SecurityAlgorithms.HmacSha384:
+            case SecurityAlgorithms.EcdsaSha384:
+            case SecurityAlgorithms.RsaSha384Signature:
+            case SecurityAlgorithms.HmacSha384Signature:
+            case SecurityAlgorithms.EcdsaSha384Signature:
+                return SHA384.Create();
+
+            case SecurityAlgorithms.RsaSha512:
+            case SecurityAlgorithms.HmacSha512:
+            case SecurityAlgorithms.EcdsaSha512:
+            case SecurityAlgorithms.RsaSha512Signature:
+            case SecurityAlgorithms.HmacSha512Signature:
+            case SecurityAlgorithms.EcdsaSha512Signature:
+                return SHA512.Create();
+            }
+
+            throw new NotSupportedException($"The hash algorithm cannot be inferred from the '{algorithm}' signature algorithm.");
+        }
+
         public static string GetJwtAlgorithm(string algorithm)
         {
             if (string.IsNullOrEmpty(algorithm))
@@ -176,40 +189,77 @@ namespace Owin.Security.OpenIdConnect.Server
 
             switch (algorithm)
             {
-                case OpenIdConnectConstants.Algorithms.HmacSha256:
-                case SecurityAlgorithms.HmacSha256Signature:
-                    return JwtAlgorithms.HMAC_SHA256;
+            case SecurityAlgorithms.EcdsaSha256:
+            case SecurityAlgorithms.EcdsaSha256Signature:
+                return SecurityAlgorithms.EcdsaSha256;
 
-                case OpenIdConnectConstants.Algorithms.HmacSha384:
-                case "http://www.w3.org/2001/04/xmldsig-more#hmac-sha384":
-                    return JwtAlgorithms.HMAC_SHA384;
+            case SecurityAlgorithms.EcdsaSha384:
+            case SecurityAlgorithms.EcdsaSha384Signature:
+                return SecurityAlgorithms.EcdsaSha384;
 
-                case OpenIdConnectConstants.Algorithms.HmacSha512:
-                case "http://www.w3.org/2001/04/xmldsig-more#hmac-sha512":
-                    return JwtAlgorithms.HMAC_SHA512;
+            case SecurityAlgorithms.EcdsaSha512:
+            case SecurityAlgorithms.EcdsaSha512Signature:
+                return SecurityAlgorithms.EcdsaSha512;
 
-                case OpenIdConnectConstants.Algorithms.RsaSha256:
-                case SecurityAlgorithms.RsaSha256Signature:
-                    return JwtAlgorithms.RSA_SHA256;
+            case SecurityAlgorithms.HmacSha256:
+            case SecurityAlgorithms.HmacSha256Signature:
+                return SecurityAlgorithms.HmacSha256;
 
-                case OpenIdConnectConstants.Algorithms.RsaSha384:
-                case "http://www.w3.org/2001/04/xmldsig-more#rsa-sha384":
-                    return JwtAlgorithms.RSA_SHA384;
+            case SecurityAlgorithms.HmacSha384:
+            case SecurityAlgorithms.HmacSha384Signature:
+                return SecurityAlgorithms.HmacSha384;
 
-                case OpenIdConnectConstants.Algorithms.RsaSha512:
-                case "http://www.w3.org/2001/04/xmldsig-more#rsa-sha512":
-                    return JwtAlgorithms.RSA_SHA512;
+            case SecurityAlgorithms.HmacSha512:
+            case SecurityAlgorithms.HmacSha512Signature:
+                return SecurityAlgorithms.HmacSha512;
 
-                case SecurityAlgorithms.RsaOaepKeyWrap:
-                    return "RSA-OAEP";
+            case SecurityAlgorithms.RsaSha256:
+            case SecurityAlgorithms.RsaSha256Signature:
+                return SecurityAlgorithms.RsaSha256;
 
-                case SecurityAlgorithms.RsaV15KeyWrap:
-                    return "RSA1_5";
+            case SecurityAlgorithms.RsaSha384:
+            case SecurityAlgorithms.RsaSha384Signature:
+                return SecurityAlgorithms.RsaSha384;
 
-                default:
-                    return null;
+            case SecurityAlgorithms.RsaSha512:
+            case SecurityAlgorithms.RsaSha512Signature:
+                return SecurityAlgorithms.RsaSha512;
+
+            case SecurityAlgorithms.RsaOaepKeyWrap:
+                return "RSA-OAEP";
+
+            case SecurityAlgorithms.RsaV15KeyWrap:
+                return "RSA1_5";
+
+            default:
+                return null;
             }
         }
+
+#if SUPPORTS_ECDSA
+        public static string GetJwtAlgorithmCurve(ECCurve curve)
+        {
+            if (curve.IsNamed)
+            {
+                if (curve.Oid.FriendlyName == ECCurve.NamedCurves.nistP256.Oid.FriendlyName)
+                {
+                    return JsonWebKeyECTypes.P256;
+                }
+
+                else if (curve.Oid.FriendlyName == ECCurve.NamedCurves.nistP384.Oid.FriendlyName)
+                {
+                    return JsonWebKeyECTypes.P384;
+                }
+
+                else if (curve.Oid.FriendlyName == ECCurve.NamedCurves.nistP521.Oid.FriendlyName)
+                {
+                    return JsonWebKeyECTypes.P521;
+                }
+            }
+
+            return null;
+        }
+#endif
 
         public static OpenIdConnectParameter AsParameter(this Claim claim)
         {
@@ -242,7 +292,8 @@ namespace Owin.Security.OpenIdConnect.Server
                     goto default;
                 }
 
-                case JwtConstants.JsonClaimValueType:
+                case JsonClaimValueTypes.Json:
+                case JsonClaimValueTypes.JsonArray:
                 {
                     try
                     {

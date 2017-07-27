@@ -6,6 +6,7 @@
 
 using System;
 using System.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -944,8 +945,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
                     identity.AddClaim(new Claim("boolean_claim", "true", ClaimValueTypes.Boolean));
                     identity.AddClaim(new Claim("integer_claim", "42", ClaimValueTypes.Integer));
-                    identity.AddClaim(new Claim("array_claim", @"[""Contoso"",""Fabrikam""]", JwtConstants.JsonClaimValueType));
-                    identity.AddClaim(new Claim("object_claim", @"{""parameter"":""value""}", JwtConstants.JsonClaimValueType));
+                    identity.AddClaim(new Claim("array_claim", @"[""Contoso"",""Fabrikam""]", JsonClaimValueTypes.JsonArray));
+                    identity.AddClaim(new Claim("object_claim", @"{""parameter"":""value""}", JsonClaimValueTypes.Json));
 
                     context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
 
@@ -995,8 +996,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     var identity = new ClaimsIdentity(context.Options.AuthenticationType);
                     identity.AddClaim(new Claim("boolean_claim", "Contoso", ClaimValueTypes.Boolean));
                     identity.AddClaim(new Claim("integer_claim", "Contoso", ClaimValueTypes.Integer));
-                    identity.AddClaim(new Claim("array_claim", "Contoso", JwtConstants.JsonClaimValueType));
-                    identity.AddClaim(new Claim("object_claim", "Contoso", JwtConstants.JsonClaimValueType));
+                    identity.AddClaim(new Claim("array_claim", "Contoso", JsonClaimValueTypes.JsonArray));
+                    identity.AddClaim(new Claim("object_claim", "Contoso", JsonClaimValueTypes.Json));
 
                     context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
 
@@ -1050,11 +1051,11 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     identity.AddClaim(new Claim("integer_claim", "42", ClaimValueTypes.Integer));
                     identity.AddClaim(new Claim("integer_claim", "43", ClaimValueTypes.Integer));
 
-                    identity.AddClaim(new Claim("array_claim", @"[""Contoso"",""Fabrikam""]", JwtConstants.JsonClaimValueType));
-                    identity.AddClaim(new Claim("array_claim", @"[""Microsoft"",""Google""]", JwtConstants.JsonClaimValueType));
+                    identity.AddClaim(new Claim("array_claim", @"[""Contoso"",""Fabrikam""]", JsonClaimValueTypes.JsonArray));
+                    identity.AddClaim(new Claim("array_claim", @"[""Microsoft"",""Google""]", JsonClaimValueTypes.JsonArray));
 
-                    identity.AddClaim(new Claim("object_claim", @"{""parameter_1"":""value-1""}", JwtConstants.JsonClaimValueType));
-                    identity.AddClaim(new Claim("object_claim", @"{""parameter_2"":""value-2""}", JwtConstants.JsonClaimValueType));
+                    identity.AddClaim(new Claim("object_claim", @"{""parameter_1"":""value-1""}", JsonClaimValueTypes.Json));
+                    identity.AddClaim(new Claim("object_claim", @"{""parameter_2"":""value-2""}", JsonClaimValueTypes.Json));
 
                     context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
 

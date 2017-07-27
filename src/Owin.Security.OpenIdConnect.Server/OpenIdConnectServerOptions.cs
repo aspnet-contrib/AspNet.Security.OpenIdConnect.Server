@@ -6,10 +6,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.Owin;
 using Microsoft.Owin.Infrastructure;
 using Microsoft.Owin.Security;
@@ -39,9 +40,15 @@ namespace Owin.Security.OpenIdConnect.Server
         public Uri Issuer { get; set; }
 
         /// <summary>
-        /// Gets the list of credentials used to sign the JWT tokens issued by the OpenID Connect server middleware.
+        /// Gets the list of credentials used to encrypt the JWT access tokens issued by the
+        /// OpenID Connect server handler. Note: only symmetric credentials are supported.
+        /// </summary>
+        public IList<EncryptingCredentials> EncryptingCredentials { get; } = new List<EncryptingCredentials>();
+
+        /// <summary>
+        /// Gets the list of credentials used to sign the JWT tokens issued by the OpenID Connect server handler.
         /// Both asymmetric and symmetric keys are supported, but only asymmetric keys can be used to sign identity tokens.
-        /// Note that only asymmetric RSA keys can be exposed by the JWKS metadata endpoint.
+        /// Note that only asymmetric RSA and ECDSA keys can be exposed by the JWKS metadata endpoint.
         /// </summary>
         public IList<SigningCredentials> SigningCredentials { get; } = new List<SigningCredentials>();
 
@@ -129,7 +136,11 @@ namespace Owin.Security.OpenIdConnect.Server
         /// Gets or sets the security token handler used to serialize and
         /// the identity tokens issued by the OpenID Connect server middleware.
         /// </summary>
-        public JwtSecurityTokenHandler IdentityTokenHandler { get; set; } = new JwtSecurityTokenHandler();
+        public JwtSecurityTokenHandler IdentityTokenHandler { get; set; } = new JwtSecurityTokenHandler
+        {
+            InboundClaimTypeMap = new Dictionary<string, string>(),
+            OutboundClaimTypeMap = new Dictionary<string, string>()
+        };
 
         /// <summary>
         /// Gets or sets the period of time the authorization codes remain valid after being issued.
