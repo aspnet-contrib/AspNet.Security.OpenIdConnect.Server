@@ -693,14 +693,14 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                         new AuthenticationProperties(),
                         OpenIdConnectServerDefaults.AuthenticationScheme);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -739,14 +739,14 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                         new AuthenticationProperties(),
                         OpenIdConnectServerDefaults.AuthenticationScheme);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -838,14 +838,14 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
                     context.Ticket.SetAudiences("Fabrikam");
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -937,14 +937,14 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
                     context.Ticket.SetAudiences("Fabrikam");
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 

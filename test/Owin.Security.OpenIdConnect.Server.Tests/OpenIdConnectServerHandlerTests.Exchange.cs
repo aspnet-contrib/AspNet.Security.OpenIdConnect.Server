@@ -1333,7 +1333,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 

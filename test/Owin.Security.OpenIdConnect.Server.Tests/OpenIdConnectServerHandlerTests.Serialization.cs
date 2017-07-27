@@ -200,14 +200,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     Assert.Equal(new[] { "Fabrikam" }, context.Ticket.GetPresenters());
                     Assert.NotNull(context.Ticket.GetTokenId());
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateAuthorizationRequest = context =>
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleAuthorizationRequest = context =>
@@ -217,7 +217,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Validate(identity);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -341,14 +341,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.DataFormat = null;
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateAuthorizationRequest = context =>
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleAuthorizationRequest = context =>
@@ -358,7 +358,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Validate(identity);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -636,14 +636,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     Assert.Equal(new[] { "Fabrikam" }, context.Ticket.GetPresenters());
                     Assert.NotNull(context.Ticket.GetTokenId());
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateTokenRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = context =>
@@ -653,7 +653,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Validate(identity);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1005,14 +1005,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     context.SecurityTokenHandler = null;
                     context.DataFormat = null;
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateTokenRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = context =>
@@ -1022,7 +1022,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Validate(identity);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1405,14 +1405,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     Assert.Equal(new[] { "Fabrikam" }, context.Ticket.GetPresenters());
                     Assert.NotNull(context.Ticket.GetTokenId());
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateTokenRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = context =>
@@ -1422,7 +1422,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Validate(identity);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1781,14 +1781,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.SigningCredentials = null;
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateAuthorizationRequest = context =>
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleAuthorizationRequest = context =>
@@ -1798,7 +1798,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Validate(identity);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -1994,14 +1994,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     Assert.Equal(new[] { "Fabrikam" }, context.Ticket.GetPresenters());
                     Assert.NotNull(context.Ticket.GetTokenId());
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateTokenRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = context =>
@@ -2014,7 +2014,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Validate(ticket);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -2150,14 +2150,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.DataFormat = null;
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateTokenRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleTokenRequest = context =>
@@ -2170,7 +2170,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Validate(ticket);
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -2292,14 +2292,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.DataFormat = null;
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -2409,14 +2409,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     context.SecurityTokenHandler = null;
                     context.DataFormat = null;
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -2625,7 +2625,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -2693,14 +2693,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.SecurityTokenHandler = null;
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -2924,7 +2924,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -2992,14 +2992,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.DataFormat = null;
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 

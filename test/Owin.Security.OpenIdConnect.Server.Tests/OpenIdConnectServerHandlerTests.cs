@@ -2184,7 +2184,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleAuthorizationRequest = context =>
@@ -2192,7 +2192,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     context.OwinContext.Authentication.Challenge(context.Options.AuthenticationType);
                     context.HandleResponse();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
