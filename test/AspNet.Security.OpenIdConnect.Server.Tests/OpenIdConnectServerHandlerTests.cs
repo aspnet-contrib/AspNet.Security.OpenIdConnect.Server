@@ -2331,7 +2331,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnHandleAuthorizationRequest = context =>

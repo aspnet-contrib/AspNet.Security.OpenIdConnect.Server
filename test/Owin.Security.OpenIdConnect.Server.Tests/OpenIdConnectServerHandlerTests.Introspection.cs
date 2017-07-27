@@ -680,14 +680,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -723,14 +723,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                     context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -814,14 +814,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
                     context.Ticket.SetAudiences("Fabrikam");
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Skip();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
@@ -905,14 +905,14 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     context.Ticket = new AuthenticationTicket(identity, new AuthenticationProperties());
                     context.Ticket.SetAudiences("Fabrikam");
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
 
                 options.Provider.OnValidateIntrospectionRequest = context =>
                 {
                     context.Validate();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 };
             });
 
