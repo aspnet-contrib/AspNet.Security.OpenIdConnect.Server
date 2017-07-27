@@ -126,9 +126,19 @@ namespace Microsoft.AspNetCore.Builder
                 throw new ArgumentNullException(nameof(certificate));
             }
 
+            if (certificate.NotBefore > DateTime.Now)
+            {
+                throw new InvalidOperationException("The specified certificate is not yet valid.");
+            }
+
+            if (certificate.NotAfter < DateTime.Now)
+            {
+                throw new InvalidOperationException("The specified certificate is no longer valid.");
+            }
+
             if (!certificate.HasPrivateKey)
             {
-                throw new InvalidOperationException("The certificate doesn't contain the required private key.");
+                throw new InvalidOperationException("The specified certificate doesn't contain the required private key.");
             }
 
             return credentials.AddKey(new X509SecurityKey(certificate));
@@ -171,7 +181,7 @@ namespace Microsoft.AspNetCore.Builder
             {
                 if (stream == null)
                 {
-                    throw new InvalidOperationException("The certificate was not found in the given assembly.");
+                    throw new InvalidOperationException("The certificate was not found in the specified assembly.");
                 }
 
                 return credentials.AddCertificate(stream, password);
@@ -254,7 +264,7 @@ namespace Microsoft.AspNetCore.Builder
 
             if (certificate == null)
             {
-                throw new InvalidOperationException("The certificate corresponding to the given thumbprint was not found.");
+                throw new InvalidOperationException("The certificate corresponding to the specified thumbprint was not found.");
             }
 
             return credentials.AddCertificate(certificate);
@@ -286,7 +296,7 @@ namespace Microsoft.AspNetCore.Builder
             var certificate = OpenIdConnectServerHelpers.GetCertificate(name, location, thumbprint);
             if (certificate == null)
             {
-                throw new InvalidOperationException("The certificate corresponding to the given thumbprint was not found.");
+                throw new InvalidOperationException("The certificate corresponding to the specified thumbprint was not found.");
             }
 
             return credentials.AddCertificate(certificate);
