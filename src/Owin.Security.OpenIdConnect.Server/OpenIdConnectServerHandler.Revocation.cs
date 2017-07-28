@@ -349,16 +349,6 @@ namespace Owin.Security.OpenIdConnect.Server
 
             if (notification.HandledResponse)
             {
-                return true;
-            }
-
-            else if (notification.Skipped)
-            {
-                return false;
-            }
-
-            if (notification.HandledResponse)
-            {
                 Logger.LogDebug("The revocation request was handled in user code.");
 
                 return true;

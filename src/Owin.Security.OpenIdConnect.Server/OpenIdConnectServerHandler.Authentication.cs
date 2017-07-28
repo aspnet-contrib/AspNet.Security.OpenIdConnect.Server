@@ -358,11 +358,11 @@ namespace Owin.Security.OpenIdConnect.Server
                 });
             }
 
-            Logger.LogInformation("The authorization request was successfully validated.");
-
             // Store the validated client_id/redirect_uri as request properties.
             request.SetProperty(OpenIdConnectConstants.Properties.ValidatedClientId, context.ClientId)
                    .SetProperty(OpenIdConnectConstants.Properties.ValidatedRedirectUri, context.RedirectUri);
+
+            Logger.LogInformation("The authorization request was successfully validated.");
 
             var notification = new HandleAuthorizationRequestContext(Context, Options, request);
             await Options.Provider.HandleAuthorizationRequest(notification);
