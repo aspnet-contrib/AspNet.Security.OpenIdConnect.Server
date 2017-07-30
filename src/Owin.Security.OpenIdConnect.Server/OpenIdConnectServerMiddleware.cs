@@ -81,11 +81,6 @@ namespace Owin.Security.OpenIdConnect.Server
                                             "the OpenID Connect server middleware.", nameof(options));
             }
 
-            if (Options.AccessTokenHandler != null && !(Options.AccessTokenHandler is JwtSecurityTokenHandler))
-            {
-                throw new ArgumentException("The access token handler must be derived from 'JwtSecurityTokenHandler'.", nameof(options));
-            }
-
             // Ensure at least one signing certificate/key was registered if an access token handler was registered.
             if (Options.AccessTokenHandler != null && Options.SigningCredentials.Count == 0)
             {

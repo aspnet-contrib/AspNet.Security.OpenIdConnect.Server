@@ -5,6 +5,7 @@
  */
 
 using System;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
@@ -218,7 +219,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                     break;
             }
 
-            var token = notification.SecurityTokenHandler.CreateToken(new SecurityTokenDescriptor
+            var token = notification.SecurityTokenHandler.CreateEncodedJwt(new SecurityTokenDescriptor
             {
                 Subject = identity,
                 Issuer = notification.Issuer,
@@ -229,13 +230,11 @@ namespace AspNet.Security.OpenIdConnect.Server
                 Expires = notification.Ticket.Properties.ExpiresUtc?.UtcDateTime
             });
 
-            var result = notification.SecurityTokenHandler.WriteToken(token);
-
             Logger.LogTrace("A new access token was successfully generated using the specified " +
                             "security token handler: {Token} ; {Claims} ; {Properties}.",
-                            result, ticket.Principal.Claims, ticket.Properties.Items);
+                            token, ticket.Principal.Claims, ticket.Properties.Items);
 
-            return result;
+            return token;
         }
 
         private async Task<string> SerializeIdentityTokenAsync(
@@ -412,7 +411,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                     break;
             }
 
-            var token = notification.SecurityTokenHandler.CreateToken(new SecurityTokenDescriptor
+            var token = notification.SecurityTokenHandler.CreateEncodedJwt(new SecurityTokenDescriptor
             {
                 Subject = identity,
                 Issuer = notification.Issuer,
@@ -423,13 +422,11 @@ namespace AspNet.Security.OpenIdConnect.Server
                 Expires = notification.Ticket.Properties.ExpiresUtc?.UtcDateTime
             });
 
-            var result = notification.SecurityTokenHandler.WriteToken(token);
-
             Logger.LogTrace("A new identity token was successfully generated using the specified " +
                             "security token handler: {Token} ; {Claims} ; {Properties}.",
-                            result, ticket.Principal.Claims, ticket.Properties.Items);
+                            token, ticket.Principal.Claims, ticket.Properties.Items);
 
-            return result;
+            return token;
         }
 
         private async Task<string> SerializeRefreshTokenAsync(

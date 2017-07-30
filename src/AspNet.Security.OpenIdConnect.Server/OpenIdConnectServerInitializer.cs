@@ -104,11 +104,6 @@ namespace AspNet.Security.OpenIdConnect.Server
                 }
             }
 
-            if (options.AccessTokenHandler != null && !(options.AccessTokenHandler is JwtSecurityTokenHandler))
-            {
-                throw new InvalidOperationException("The access token handler must be derived from 'JwtSecurityTokenHandler'.");
-            }
-
             // Ensure at least one signing certificate/key was registered if an access token handler was registered.
             if (options.AccessTokenHandler != null && options.SigningCredentials.Count == 0)
             {

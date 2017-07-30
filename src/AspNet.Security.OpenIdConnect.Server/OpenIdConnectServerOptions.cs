@@ -145,7 +145,7 @@ namespace AspNet.Security.OpenIdConnect.Server
         /// Gets or sets the optional security token handler used to serialize
         /// and the access tokens issued by the OpenID Connect server middleware.
         /// </summary>
-        public SecurityTokenHandler AccessTokenHandler { get; set; }
+        public JwtSecurityTokenHandler AccessTokenHandler { get; set; }
 
         /// <summary>
         /// Gets or sets the security token handler used to serialize and

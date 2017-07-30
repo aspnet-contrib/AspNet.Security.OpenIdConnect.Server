@@ -213,7 +213,7 @@ namespace Owin.Security.OpenIdConnect.Server
                     break;
             }
 
-            var token = notification.SecurityTokenHandler.CreateToken(new SecurityTokenDescriptor
+            var token = notification.SecurityTokenHandler.CreateEncodedJwt(new SecurityTokenDescriptor
             {
                 Subject = identity,
                 Issuer = notification.Issuer,
@@ -224,13 +224,11 @@ namespace Owin.Security.OpenIdConnect.Server
                 Expires = notification.Ticket.Properties.ExpiresUtc?.UtcDateTime
             });
 
-            var result = notification.SecurityTokenHandler.WriteToken(token);
-
             Logger.LogTrace("A new access token was successfully generated using the specified " +
                             "security token handler: {Token} ; {Claims} ; {Properties}.",
-                            result, ticket.Identity.Claims, ticket.Properties.Dictionary);
+                            token, ticket.Identity.Claims, ticket.Properties.Dictionary);
 
-            return result;
+            return token;
         }
 
         private async Task<string> SerializeIdentityTokenAsync(
@@ -402,7 +400,7 @@ namespace Owin.Security.OpenIdConnect.Server
                     break;
             }
 
-            var token = notification.SecurityTokenHandler.CreateToken(new SecurityTokenDescriptor
+            var token = notification.SecurityTokenHandler.CreateEncodedJwt(new SecurityTokenDescriptor
             {
                 Subject = identity,
                 Issuer = notification.Issuer,
@@ -413,13 +411,11 @@ namespace Owin.Security.OpenIdConnect.Server
                 Expires = notification.Ticket.Properties.ExpiresUtc?.UtcDateTime
             });
 
-            var result = notification.SecurityTokenHandler.WriteToken(token);
-
             Logger.LogTrace("A new identity token was successfully generated using the specified " +
                             "security token handler: {Token} ; {Claims} ; {Properties}.",
-                            result, ticket.Identity.Claims, ticket.Properties.Dictionary);
+                            token, ticket.Identity.Claims, ticket.Properties.Dictionary);
 
-            return result;
+            return token;
         }
 
         private async Task<string> SerializeRefreshTokenAsync(

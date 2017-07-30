@@ -5,6 +5,7 @@
  */
 
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Owin;
@@ -83,7 +84,7 @@ namespace Owin.Security.OpenIdConnect.Server
         /// <summary>
         /// Gets or sets the security token handler used to serialize the authentication ticket.
         /// </summary>
-        public SecurityTokenHandler SecurityTokenHandler { get; set; }
+        public JwtSecurityTokenHandler SecurityTokenHandler { get; set; }
 
         /// <summary>
         /// Gets or sets the access token returned to the client application.

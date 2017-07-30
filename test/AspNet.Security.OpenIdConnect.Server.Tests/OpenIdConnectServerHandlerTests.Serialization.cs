@@ -1150,14 +1150,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         public async Task SerializeAccessTokenAsync_UsesAccessTokenHandlerWhenRegistered()
         {
             // Arrange
-            var token = Mock.Of<SecurityToken>();
-
             var format = new Mock<JwtSecurityTokenHandler>();
-            format.Setup(mock => mock.CreateToken(It.IsAny<SecurityTokenDescriptor>()))
-                .Returns(token)
-                .Verifiable();
-
-            format.Setup(mock => mock.WriteToken(token))
+            format.Setup(mock => mock.CreateEncodedJwt(It.IsAny<SecurityTokenDescriptor>()))
                 .Returns("7F82F1A3-8C9F-489F-B838-4B644B7C92B2")
                 .Verifiable();
 
@@ -1195,8 +1189,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal("7F82F1A3-8C9F-489F-B838-4B644B7C92B2", response.AccessToken);
-            format.Verify(mock => mock.CreateToken(It.IsAny<SecurityTokenDescriptor>()), Times.Once());
-            format.Verify(mock => mock.WriteToken(token), Times.Once());
+            format.Verify(mock => mock.CreateEncodedJwt(It.IsAny<SecurityTokenDescriptor>()), Times.Once());
         }
 
         [Fact]
@@ -1837,11 +1830,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         {
             // Arrange
             var format = new Mock<JwtSecurityTokenHandler>();
-            format.Setup(mock => mock.CreateToken(It.IsAny<SecurityTokenDescriptor>()))
-                .Returns(It.IsAny<SecurityToken>())
-                .Verifiable();
-
-            format.Setup(mock => mock.WriteToken(It.IsAny<SecurityToken>()))
+            format.Setup(mock => mock.CreateEncodedJwt(It.IsAny<SecurityTokenDescriptor>()))
                 .Returns("7F82F1A3-8C9F-489F-B838-4B644B7C92B2")
                 .Verifiable();
 
@@ -1880,8 +1869,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal("7F82F1A3-8C9F-489F-B838-4B644B7C92B2", response.IdToken);
-            format.Verify(mock => mock.CreateToken(It.IsAny<SecurityTokenDescriptor>()), Times.Once());
-            format.Verify(mock => mock.WriteToken(It.IsAny<SecurityToken>()), Times.Once());
+            format.Verify(mock => mock.CreateEncodedJwt(It.IsAny<SecurityTokenDescriptor>()), Times.Once());
         }
 
         [Fact]
