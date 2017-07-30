@@ -302,6 +302,61 @@ namespace Microsoft.AspNetCore.Builder
             return credentials.AddCertificate(certificate);
         }
 
+#if SUPPORTS_CERTIFICATE_CREATION
+        /// <summary>
+        /// Registers (and generates if necessary) a user-specific development certificate
+        /// used to sign the tokens issued by the OpenID Connect server.
+        /// </summary>
+        /// <param name="credentials">The signing credentials.</param>
+        /// <returns>The signing credentials.</returns>
+        public static IList<SigningCredentials> AddDevelopmentCertificate(
+            [NotNull] this IList<SigningCredentials> credentials)
+        {
+            return credentials.AddDevelopmentCertificate(new X500DistinguishedName("CN=OpenID Connect Server"));
+        }
+
+        /// <summary>
+        /// Registers (and generates if necessary) a user-specific development certificate
+        /// used to sign the tokens issued by the OpenID Connect server.
+        /// </summary>
+        /// <param name="credentials">The signing credentials.</param>
+        /// <param name="subject">The subject name associated with the certificate.</param>
+        /// <returns>The signing credentials.</returns>
+        public static IList<SigningCredentials> AddDevelopmentCertificate(
+            [NotNull] this IList<SigningCredentials> credentials, [NotNull] X500DistinguishedName subject)
+        {
+            if (credentials == null)
+            {
+                throw new ArgumentNullException(nameof(credentials));
+            }
+
+            if (subject == null)
+            {
+                throw new ArgumentNullException(nameof(subject));
+            }
+
+            // Try to retrieve the development certificate from the specified store.
+            // If a certificate was found but is not yet or no longer valid, remove it
+            // from the store before creating and persisting a new signing certificate.
+            var certificate = OpenIdConnectServerHelpers.GetDevelopmentCertificate(subject);
+            if (certificate != null && (certificate.NotBefore > DateTime.Now || certificate.NotAfter < DateTime.Now))
+            {
+                OpenIdConnectServerHelpers.RemoveDevelopmentCertificate(certificate);
+                certificate = null;
+            }
+
+            // If no appropriate certificate can be found, generate
+            // and persist a new certificate in the specified store.
+            if (certificate == null)
+            {
+                certificate = OpenIdConnectServerHelpers.GenerateDevelopmentCertificate(subject);
+                OpenIdConnectServerHelpers.PersistDevelopmentCertificate(certificate);
+            }
+
+            return credentials.AddCertificate(certificate);
+        }
+#endif
+
         /// <summary>
         /// Adds a new ephemeral key used to sign the tokens issued by the OpenID Connect server:
         /// the key is discarded when the application shuts down and tokens signed using this key
@@ -346,33 +401,7 @@ namespace Microsoft.AspNetCore.Builder
                 case SecurityAlgorithms.RsaSha384Signature:
                 case SecurityAlgorithms.RsaSha512Signature:
                 {
-                    // Note: a 1024-bit key might be returned by RSA.Create() on .NET Desktop/Mono,
-                    // where RSACryptoServiceProvider is still the default implementation and
-                    // where custom implementations can be registered via CryptoConfig.
-                    // To ensure the key size is always acceptable, replace it if necessary.
-                    var rsa = RSA.Create();
-
-                    if (rsa.KeySize < 2048)
-                    {
-                        rsa.KeySize = 2048;
-                    }
-
-                    if (rsa.KeySize < 2048 && rsa is RSACryptoServiceProvider)
-                    {
-                        rsa.Dispose();
-#if SUPPORTS_CNG
-                        rsa = new RSACng(2048);
-#else
-                        rsa = new RSACryptoServiceProvider(2048);
-#endif
-                    }
-
-                    if (rsa.KeySize < 2048)
-                    {
-                        throw new InvalidOperationException("The ephemeral key generation failed.");
-                    }
-
-                    var key = new RsaSecurityKey(rsa);
+                    var key = new RsaSecurityKey(OpenIdConnectServerHelpers.GenerateRsaKey(2048));
                     key.KeyId = key.GetKeyIdentifier();
 
                     credentials.Add(new SigningCredentials(key, algorithm));

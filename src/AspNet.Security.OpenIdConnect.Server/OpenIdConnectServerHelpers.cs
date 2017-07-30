@@ -11,6 +11,7 @@ using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -26,6 +27,37 @@ namespace AspNet.Security.OpenIdConnect.Server
 {
     internal static class OpenIdConnectServerHelpers
     {
+        public static RSA GenerateRsaKey(int size)
+        {
+            // Note: a 1024-bit key might be returned by RSA.Create() on .NET Desktop/Mono,
+            // where RSACryptoServiceProvider is still the default implementation and
+            // where custom implementations can be registered via CryptoConfig.
+            // To ensure the key size is always acceptable, replace it if necessary.
+            var rsa = RSA.Create();
+
+            if (rsa.KeySize < size)
+            {
+                rsa.KeySize = size;
+            }
+
+            if (rsa.KeySize < size && rsa is RSACryptoServiceProvider)
+            {
+                rsa.Dispose();
+#if SUPPORTS_CNG
+                rsa = new RSACng(size);
+#else
+                rsa = new RSACryptoServiceProvider(size);
+#endif
+            }
+
+            if (rsa.KeySize < size)
+            {
+                throw new InvalidOperationException("The RSA key generation failed.");
+            }
+
+            return rsa;
+        }
+
         public static X509Certificate2 GetCertificate(StoreName name, StoreLocation location, string thumbprint)
         {
             using (var store = new X509Store(name, location))
@@ -37,6 +69,83 @@ namespace AspNet.Security.OpenIdConnect.Server
                 return certificates.OfType<X509Certificate2>().SingleOrDefault();
             }
         }
+
+#if SUPPORTS_CERTIFICATE_CREATION
+        public static X509Certificate2 GetDevelopmentCertificate(X500DistinguishedName subject)
+        {
+            using (var store = new X509Store(StoreName.My, StoreLocation.CurrentUser))
+            {
+                store.Open(OpenFlags.ReadOnly);
+
+                var certificates = store.Certificates.Find(X509FindType.FindBySubjectDistinguishedName, subject.Name, validOnly: false);
+
+                return certificates.OfType<X509Certificate2>().SingleOrDefault();
+            }
+        }
+
+        public static void PersistDevelopmentCertificate(X509Certificate2 certificate)
+        {
+            using (var store = new X509Store(StoreName.My, StoreLocation.CurrentUser))
+            {
+                store.Open(OpenFlags.ReadWrite);
+                store.Add(certificate);
+            }
+        }
+
+        public static void RemoveDevelopmentCertificate(X509Certificate2 certificate)
+        {
+            using (var store = new X509Store(StoreName.My, StoreLocation.CurrentUser))
+            {
+                store.Open(OpenFlags.ReadWrite);
+                store.Remove(certificate);
+            }
+        }
+
+        public static X509Certificate2 GenerateDevelopmentCertificate(X500DistinguishedName subject)
+        {
+            using (var key = GenerateRsaKey(2048))
+            {
+                var request = new CertificateRequest(subject, key, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+                request.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension(
+                    new OidCollection { new Oid("1.3.6.1.5.5.7.3.1", "Server Authentication") }, critical: true));
+                request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature, critical: true));
+
+                var certificate = request.CreateSelfSigned(DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddYears(2));
+
+                // Note: setting the friendly name is not supported on Unix machines (including Linux and macOS).
+                // To ensure an exception is not thrown by the property setter, an OS runtime check is used here.
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    certificate.FriendlyName = "OpenID Connect Server Development Certificate";
+                }
+
+                // Note: CertificateRequest.CreateSelfSigned() doesn't mark the key set associated with the certificate
+                // as "persisted", which eventually prevents X509Store.Add() from correctly storing the private key.
+                // To work around this issue, the certificate payload is manually exported and imported back
+                // into a new X509Certificate2 instance specifying the X509KeyStorageFlags.PersistKeySet flag.
+                var payload = certificate.Export(X509ContentType.Pfx, string.Empty);
+
+                try
+                {
+                    var flags = X509KeyStorageFlags.PersistKeySet;
+
+                    // Note: macOS requires marking the certificate private key as exportable.
+                    // If this flag is not set, a CryptographicException is thrown at runtime.
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                    {
+                        flags |= X509KeyStorageFlags.Exportable;
+                    }
+
+                    return new X509Certificate2(payload, string.Empty, flags);
+                }
+
+                finally
+                {
+                    Array.Clear(payload, 0, payload.Length);
+                }
+            }
+        }
+#endif
 
         public static string GetKeyIdentifier(this SecurityKey key)
         {
