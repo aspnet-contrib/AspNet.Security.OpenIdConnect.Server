@@ -242,7 +242,11 @@ namespace Owin.Security.OpenIdConnect.Server
                     notification.Ticket.Properties.ExpiresUtc?.UtcDateTime)
             });
 
-            var result = notification.SecurityTokenHandler.WriteToken(token);
+            // When the access token is a JWT token, directly use RawData instead of calling
+            // JwtSecurityTokenHandler.WriteToken(token) to avoid signing the token twice.
+            var result = token is JwtSecurityToken jwtSecurityToken ?
+                jwtSecurityToken.RawData :
+                notification.SecurityTokenHandler.WriteToken(token);
 
             Logger.LogTrace("A new access token was successfully generated using the specified " +
                             "security token handler: {Token} ; {Claims} ; {Properties}.",
@@ -442,7 +446,7 @@ namespace Owin.Security.OpenIdConnect.Server
                     notification.Ticket.Properties.ExpiresUtc?.UtcDateTime)
             });
 
-            var result = notification.SecurityTokenHandler.WriteToken(token);
+            var result = ((JwtSecurityToken) token).RawData;
 
             Logger.LogTrace("A new identity token was successfully generated using the specified " +
                             "security token handler: {Token} ; {Claims} ; {Properties}.",

@@ -1774,13 +1774,21 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         public async Task SerializeIdentityTokenAsync_UsesIdentityTokenHandler()
         {
             // Arrange
+            var token = new JwtSecurityToken(
+                "eyJhbGciOiJSUzI1NiIsImtpZCI6IjFlOWdkazcifQ.ewogImlzc" +
+                "yI6ICJodHRwOi8vc2VydmVyLmV4YW1wbGUuY29tIiwKICJzdWIiOiAiMjQ4Mjg5" +
+                "NzYxMDAxIiwKICJhdWQiOiAiczZCaGRSa3F0MyIsCiAibm9uY2UiOiAibi0wUzZ" +
+                "fV3pBMk1qIiwKICJleHAiOiAxMzExMjgxOTcwLAogImlhdCI6IDEzMTEyODA5Nz" +
+                "AKfQ.ggW8hZ1EuVLuxNuuIJKX_V8a_OMXzR0EHR9R6jgdqrOOF4daGU96Sr_P6q" +
+                "Jp6IcmD3HP99Obi1PRs-cwh3LO-p146waJ8IhehcwL7F09JdijmBqkvPeB2T9CJ" +
+                "NqeGpe-gccMg4vfKjkM8FcGvnzZUN4_KSP0aAp1tOJ1zZwgjxqGByKHiOtX7Tpd" +
+                "QyHE5lcMiKPXfEIQILVq0pc_E2DzL7emopWoaoZTF_m0_N0YzFC6g6EJbOEoRoS" +
+                "K5hoDalrcvRYLSrQAZZKflyuVCyixEoV9GfNQC3_osjzw2PAithfubEEBLuVVk4" +
+                "XUVrWOLrLl0nx7RkKU8NXNHq-rvKMzqg");
+
             var format = new Mock<JwtSecurityTokenHandler>();
             format.Setup(mock => mock.CreateToken(It.IsAny<SecurityTokenDescriptor>()))
-                .Returns(It.IsAny<SecurityToken>())
-                .Verifiable();
-
-            format.Setup(mock => mock.WriteToken(It.IsAny<SecurityToken>()))
-                .Returns("7F82F1A3-8C9F-489F-B838-4B644B7C92B2")
+                .Returns(token)
                 .Verifiable();
 
             var server = CreateAuthorizationServer(options =>
@@ -1817,9 +1825,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
             });
 
             // Assert
-            Assert.Equal("7F82F1A3-8C9F-489F-B838-4B644B7C92B2", response.IdToken);
+            Assert.Equal(token.RawData, response.IdToken);
             format.Verify(mock => mock.CreateToken(It.IsAny<SecurityTokenDescriptor>()), Times.Once());
-            format.Verify(mock => mock.WriteToken(It.IsAny<SecurityToken>()), Times.Once());
         }
 
         [Fact]
