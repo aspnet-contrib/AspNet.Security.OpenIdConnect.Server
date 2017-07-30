@@ -317,6 +317,53 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
             Assert.NotNull(credentials[0].Kid);
         }
 
+#if SUPPORTS_CERTIFICATE_CREATION
+        [Fact]
+        public void SigningCredentials_AddDevelopmentCertificateThrowsAnExceptionForNullCredentials()
+        {
+            // Arrange
+            var credentials = (IList<SigningCredentials>) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                credentials.AddDevelopmentCertificate();
+            });
+
+            Assert.Equal("credentials", exception.ParamName);
+        }
+
+        [Fact]
+        public void SigningCredentials_AddDevelopmentCertificateThrowsAnExceptionForNullSubject()
+        {
+            // Arrange
+            var credentials = new List<SigningCredentials>();
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                credentials.AddDevelopmentCertificate(subject: null);
+            });
+
+            Assert.Equal("subject", exception.ParamName);
+        }
+
+        [Fact]
+        public void SigningCredentials_AddDevelopmentCertificateCanGenerateCertificate()
+        {
+            // Arrange
+            var credentials = new List<SigningCredentials>();
+
+            // Act
+            credentials.AddDevelopmentCertificate();
+
+            // Assert
+            Assert.Equal(1, credentials.Count);
+            Assert.Equal(SecurityAlgorithms.RsaSha256, credentials[0].Algorithm);
+            Assert.NotNull(credentials[0].Kid);
+        }
+#endif
+
         [Fact]
         public void SigningCredentials_AddEphemeralKeyThrowsAnExceptionForNullCredentials()
         {

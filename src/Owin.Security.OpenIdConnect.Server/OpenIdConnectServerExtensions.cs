@@ -319,33 +319,7 @@ namespace Owin
                 case SecurityAlgorithms.RsaSha384Signature:
                 case SecurityAlgorithms.RsaSha512Signature:
                 {
-                    // Note: a 1024-bit key might be returned by RSA.Create() on .NET Desktop/Mono,
-                    // where RSACryptoServiceProvider is still the default implementation and
-                    // where custom implementations can be registered via CryptoConfig.
-                    // To ensure the key size is always acceptable, replace it if necessary.
-                    var rsa = RSA.Create();
-
-                    if (rsa.KeySize < 2048)
-                    {
-                        rsa.KeySize = 2048;
-                    }
-
-                    if (rsa.KeySize < 2048 && rsa is RSACryptoServiceProvider)
-                    {
-                        rsa.Dispose();
-#if SUPPORTS_CNG
-                        rsa = new RSACng(2048);
-#else
-                        rsa = new RSACryptoServiceProvider(2048);
-#endif
-                    }
-
-                    if (rsa.KeySize < 2048)
-                    {
-                        throw new InvalidOperationException("The ephemeral key generation failed.");
-                    }
-
-                    var key = new RsaSecurityKey(rsa);
+                    var key = new RsaSecurityKey(OpenIdConnectServerHelpers.GenerateRsaKey(2048));
                     key.KeyId = key.GetKeyIdentifier();
 
                     credentials.Add(new SigningCredentials(key, algorithm));

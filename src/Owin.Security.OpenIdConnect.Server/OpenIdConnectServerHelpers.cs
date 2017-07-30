@@ -25,6 +25,36 @@ namespace Owin.Security.OpenIdConnect.Server
 {
     internal static class OpenIdConnectServerHelpers
     {
+        public static RSA GenerateRsaKey(int size)
+        {
+            // Note: a 1024-bit key might be returned by RSA.Create() on .NET Desktop/Mono,
+            // where RSACryptoServiceProvider is still the default implementation and
+            // where custom implementations can be registered via CryptoConfig.
+            // To ensure the key size is always acceptable, replace it if necessary.
+            var rsa = RSA.Create();
+
+            if (rsa.KeySize < size)
+            {
+                rsa.KeySize = size;
+            }
+
+            if (rsa.KeySize < size && rsa is RSACryptoServiceProvider)
+            {
+                rsa.Dispose();
+#if SUPPORTS_CNG
+                rsa = new RSACng(size);
+#else
+                rsa = new RSACryptoServiceProvider(size);
+#endif
+            }
+
+            if (rsa.KeySize < size)
+            {
+                throw new InvalidOperationException("The RSA key generation failed.");
+            }
+
+            return rsa;
+        }
 
         public static X509Certificate2 GetCertificate(StoreName name, StoreLocation location, string thumbprint)
         {
