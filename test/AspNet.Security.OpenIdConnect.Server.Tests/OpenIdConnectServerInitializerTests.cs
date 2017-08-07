@@ -145,9 +145,11 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 return client.GetAsync("/");
             });
 
-            Assert.Equal("At least one signing key must be registered when using JWT as the access token format. " +
-                         "Consider registering a X.509 certificate using 'services.AddOpenIddict().AddSigningCertificate()' " +
-                         "or call 'services.AddOpenIddict().AddEphemeralSigningKey()' to use an ephemeral key.", exception.Message);
+            Assert.Equal(
+                "At least one signing key must be registered when using JWT as the access token format. " +
+                "Consider registering a X.509 certificate using 'options.SigningCredentials.AddCertificate()' " +
+                "or 'options.SigningCredentials.AddDevelopmentCertificate()' or call " +
+                "'options.SigningCredentials.AddEphemeralKey()' to use an ephemeral key.", exception.Message);
         }
 
         [Fact]
