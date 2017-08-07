@@ -109,8 +109,9 @@ namespace AspNet.Security.OpenIdConnect.Server
             {
                 throw new InvalidOperationException(
                     "At least one signing key must be registered when using JWT as the access token format. " +
-                    "Consider registering a X.509 certificate using 'services.AddOpenIddict().AddSigningCertificate()' " +
-                    "or call 'services.AddOpenIddict().AddEphemeralSigningKey()' to use an ephemeral key.");
+                    "Consider registering a X.509 certificate using 'options.SigningCredentials.AddCertificate()' " +
+                    "or 'options.SigningCredentials.AddDevelopmentCertificate()' or call " +
+                    "'options.SigningCredentials.AddEphemeralKey()' to use an ephemeral key.");
             }
 
             // Make sure that none of the default schemes points to the configured scheme.

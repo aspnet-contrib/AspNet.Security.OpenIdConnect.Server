@@ -84,9 +84,10 @@ namespace Owin.Security.OpenIdConnect.Server
             // Ensure at least one signing certificate/key was registered if an access token handler was registered.
             if (Options.AccessTokenHandler != null && Options.SigningCredentials.Count == 0)
             {
-                throw new ArgumentException("At least one signing key must be registered when using JWT as the access token format. " +
-                                            "Consider registering a X.509 certificate using 'services.AddOpenIddict().AddSigningCertificate()' " +
-                                            "or call 'services.AddOpenIddict().AddEphemeralSigningKey()' to use an ephemeral key.", nameof(options));
+                throw new ArgumentException(
+                    "At least one signing key must be registered when using JWT as the access token format. " +
+                    "Consider registering a X.509 certificate using 'options.SigningCredentials.AddCertificate()' " +
+                    "or call 'options.SigningCredentials.AddEphemeralKey()' to use an ephemeral key.", nameof(options));
             }
 
             if (Options.Logger == null)
@@ -101,9 +102,10 @@ namespace Owin.Security.OpenIdConnect.Server
                 var discriminator = new AppProperties(properties).AppName;
                 if (string.IsNullOrEmpty(discriminator))
                 {
-                    throw new InvalidOperationException("The application name cannot be resolved from the OWIN application builder. " +
-                                                        "Consider manually setting the 'DataProtectionProvider' property in the " +
-                                                        "options using 'DataProtectionProvider.Create([unique application name])'.");
+                    throw new InvalidOperationException(
+                        "The application name cannot be resolved from the OWIN application builder. " +
+                        "Consider manually setting the 'DataProtectionProvider' property in the " +
+                        "options using 'DataProtectionProvider.Create([unique application name])'.");
                 }
 
                 Options.DataProtectionProvider = DataProtectionProvider.Create(discriminator);
