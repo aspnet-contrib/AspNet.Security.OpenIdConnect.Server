@@ -33,7 +33,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.0' ">
-    <DefineConstants>$(DefineConstants);SUPPORTS_CERTIFICATE_CREATION</DefineConstants>
+    <DefineConstants>$(DefineConstants);SUPPORTS_CERTIFICATE_GENERATION</DefineConstants>
   </PropertyGroup>
 
 </Project>

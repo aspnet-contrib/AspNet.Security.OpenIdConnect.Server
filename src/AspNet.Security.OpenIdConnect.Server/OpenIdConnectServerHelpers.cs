@@ -70,7 +70,6 @@ namespace AspNet.Security.OpenIdConnect.Server
             }
         }
 
-#if SUPPORTS_CERTIFICATE_CREATION
         public static X509Certificate2 GetDevelopmentCertificate(X500DistinguishedName subject)
         {
             using (var store = new X509Store(StoreName.My, StoreLocation.CurrentUser))
@@ -101,6 +100,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             }
         }
 
+#if SUPPORTS_CERTIFICATE_GENERATION
         public static X509Certificate2 GenerateDevelopmentCertificate(X500DistinguishedName subject)
         {
             using (var key = GenerateRsaKey(2048))
