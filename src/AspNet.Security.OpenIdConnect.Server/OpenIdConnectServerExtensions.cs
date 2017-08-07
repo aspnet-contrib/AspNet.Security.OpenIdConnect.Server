@@ -302,7 +302,6 @@ namespace Microsoft.AspNetCore.Builder
             return credentials.AddCertificate(certificate);
         }
 
-#if SUPPORTS_CERTIFICATE_CREATION
         /// <summary>
         /// Registers (and generates if necessary) a user-specific development certificate
         /// used to sign the tokens issued by the OpenID Connect server.
@@ -345,6 +344,7 @@ namespace Microsoft.AspNetCore.Builder
                 certificate = null;
             }
 
+#if SUPPORTS_CERTIFICATE_GENERATION
             // If no appropriate certificate can be found, generate
             // and persist a new certificate in the specified store.
             if (certificate == null)
@@ -354,8 +354,10 @@ namespace Microsoft.AspNetCore.Builder
             }
 
             return credentials.AddCertificate(certificate);
-        }
+#else
+            throw new PlatformNotSupportedException("X.509 certificate generation is not supported on this platform.");
 #endif
+        }
 
         /// <summary>
         /// Adds a new ephemeral key used to sign the tokens issued by the OpenID Connect server:

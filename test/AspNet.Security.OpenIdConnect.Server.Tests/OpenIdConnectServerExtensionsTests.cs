@@ -317,7 +317,6 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
             Assert.NotNull(credentials[0].Kid);
         }
 
-#if SUPPORTS_CERTIFICATE_CREATION
         [Fact]
         public void SigningCredentials_AddDevelopmentCertificateThrowsAnExceptionForNullCredentials()
         {
@@ -348,6 +347,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
             Assert.Equal("subject", exception.ParamName);
         }
 
+#if SUPPORTS_CERTIFICATE_GENERATION
         [Fact]
         public void SigningCredentials_AddDevelopmentCertificateCanGenerateCertificate()
         {
@@ -361,6 +361,21 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
             Assert.Equal(1, credentials.Count);
             Assert.Equal(SecurityAlgorithms.RsaSha256, credentials[0].Algorithm);
             Assert.NotNull(credentials[0].Kid);
+        }
+#else
+        [Fact]
+        public void SigningCredentials_ThrowsAnExceptionOnUnsupportedPlatforms()
+        {
+            // Arrange
+            var credentials = new List<SigningCredentials>();
+
+            // Act and assert
+            var exception = Assert.Throws<PlatformNotSupportedException>(delegate
+            {
+                credentials.AddDevelopmentCertificate();
+            });
+
+            Assert.Equal("X.509 certificate generation is not supported on this platform.", exception.Message);
         }
 #endif
 
