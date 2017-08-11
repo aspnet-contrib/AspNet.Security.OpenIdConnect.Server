@@ -2,7 +2,7 @@
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Claims;
-using Microsoft.IdentityModel.Protocols;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Nancy.Security;
 
 namespace Nancy.Client.Modules
@@ -32,12 +32,10 @@ namespace Nancy.Client.Modules
                 }
             };
         }
-        protected ClaimsPrincipal Principal
-        {
-            get { return Context.GetMSOwinUser(); }
-        }
 
-        protected string AccessToken
+        private ClaimsPrincipal Principal => Context.GetMSOwinUser();
+
+        private string AccessToken
         {
             get
             {

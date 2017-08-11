@@ -182,29 +182,29 @@ namespace Owin.Security.OpenIdConnect.Server
 
             switch (algorithm)
             {
-            case SecurityAlgorithms.RsaSha256:
-            case SecurityAlgorithms.HmacSha256:
-            case SecurityAlgorithms.EcdsaSha256:
-            case SecurityAlgorithms.RsaSha256Signature:
-            case SecurityAlgorithms.HmacSha256Signature:
-            case SecurityAlgorithms.EcdsaSha256Signature:
-                return SHA256.Create();
+                case SecurityAlgorithms.RsaSha256:
+                case SecurityAlgorithms.HmacSha256:
+                case SecurityAlgorithms.EcdsaSha256:
+                case SecurityAlgorithms.RsaSha256Signature:
+                case SecurityAlgorithms.HmacSha256Signature:
+                case SecurityAlgorithms.EcdsaSha256Signature:
+                    return SHA256.Create();
 
-            case SecurityAlgorithms.RsaSha384:
-            case SecurityAlgorithms.HmacSha384:
-            case SecurityAlgorithms.EcdsaSha384:
-            case SecurityAlgorithms.RsaSha384Signature:
-            case SecurityAlgorithms.HmacSha384Signature:
-            case SecurityAlgorithms.EcdsaSha384Signature:
-                return SHA384.Create();
+                case SecurityAlgorithms.RsaSha384:
+                case SecurityAlgorithms.HmacSha384:
+                case SecurityAlgorithms.EcdsaSha384:
+                case SecurityAlgorithms.RsaSha384Signature:
+                case SecurityAlgorithms.HmacSha384Signature:
+                case SecurityAlgorithms.EcdsaSha384Signature:
+                    return SHA384.Create();
 
-            case SecurityAlgorithms.RsaSha512:
-            case SecurityAlgorithms.HmacSha512:
-            case SecurityAlgorithms.EcdsaSha512:
-            case SecurityAlgorithms.RsaSha512Signature:
-            case SecurityAlgorithms.HmacSha512Signature:
-            case SecurityAlgorithms.EcdsaSha512Signature:
-                return SHA512.Create();
+                case SecurityAlgorithms.RsaSha512:
+                case SecurityAlgorithms.HmacSha512:
+                case SecurityAlgorithms.EcdsaSha512:
+                case SecurityAlgorithms.RsaSha512Signature:
+                case SecurityAlgorithms.HmacSha512Signature:
+                case SecurityAlgorithms.EcdsaSha512Signature:
+                    return SHA512.Create();
             }
 
             throw new NotSupportedException($"The hash algorithm cannot be inferred from the '{algorithm}' signature algorithm.");
@@ -219,50 +219,50 @@ namespace Owin.Security.OpenIdConnect.Server
 
             switch (algorithm)
             {
-            case SecurityAlgorithms.EcdsaSha256:
-            case SecurityAlgorithms.EcdsaSha256Signature:
-                return SecurityAlgorithms.EcdsaSha256;
+                case SecurityAlgorithms.EcdsaSha256:
+                case SecurityAlgorithms.EcdsaSha256Signature:
+                    return SecurityAlgorithms.EcdsaSha256;
 
-            case SecurityAlgorithms.EcdsaSha384:
-            case SecurityAlgorithms.EcdsaSha384Signature:
-                return SecurityAlgorithms.EcdsaSha384;
+                case SecurityAlgorithms.EcdsaSha384:
+                case SecurityAlgorithms.EcdsaSha384Signature:
+                    return SecurityAlgorithms.EcdsaSha384;
 
-            case SecurityAlgorithms.EcdsaSha512:
-            case SecurityAlgorithms.EcdsaSha512Signature:
-                return SecurityAlgorithms.EcdsaSha512;
+                case SecurityAlgorithms.EcdsaSha512:
+                case SecurityAlgorithms.EcdsaSha512Signature:
+                    return SecurityAlgorithms.EcdsaSha512;
 
-            case SecurityAlgorithms.HmacSha256:
-            case SecurityAlgorithms.HmacSha256Signature:
-                return SecurityAlgorithms.HmacSha256;
+                case SecurityAlgorithms.HmacSha256:
+                case SecurityAlgorithms.HmacSha256Signature:
+                    return SecurityAlgorithms.HmacSha256;
 
-            case SecurityAlgorithms.HmacSha384:
-            case SecurityAlgorithms.HmacSha384Signature:
-                return SecurityAlgorithms.HmacSha384;
+                case SecurityAlgorithms.HmacSha384:
+                case SecurityAlgorithms.HmacSha384Signature:
+                    return SecurityAlgorithms.HmacSha384;
 
-            case SecurityAlgorithms.HmacSha512:
-            case SecurityAlgorithms.HmacSha512Signature:
-                return SecurityAlgorithms.HmacSha512;
+                case SecurityAlgorithms.HmacSha512:
+                case SecurityAlgorithms.HmacSha512Signature:
+                    return SecurityAlgorithms.HmacSha512;
 
-            case SecurityAlgorithms.RsaSha256:
-            case SecurityAlgorithms.RsaSha256Signature:
-                return SecurityAlgorithms.RsaSha256;
+                case SecurityAlgorithms.RsaSha256:
+                case SecurityAlgorithms.RsaSha256Signature:
+                    return SecurityAlgorithms.RsaSha256;
 
-            case SecurityAlgorithms.RsaSha384:
-            case SecurityAlgorithms.RsaSha384Signature:
-                return SecurityAlgorithms.RsaSha384;
+                case SecurityAlgorithms.RsaSha384:
+                case SecurityAlgorithms.RsaSha384Signature:
+                    return SecurityAlgorithms.RsaSha384;
 
-            case SecurityAlgorithms.RsaSha512:
-            case SecurityAlgorithms.RsaSha512Signature:
-                return SecurityAlgorithms.RsaSha512;
+                case SecurityAlgorithms.RsaSha512:
+                case SecurityAlgorithms.RsaSha512Signature:
+                    return SecurityAlgorithms.RsaSha512;
 
-            case SecurityAlgorithms.RsaOaepKeyWrap:
-                return "RSA-OAEP";
+                case SecurityAlgorithms.RsaOaepKeyWrap:
+                    return "RSA-OAEP";
 
-            case SecurityAlgorithms.RsaV15KeyWrap:
-                return "RSA1_5";
+                case SecurityAlgorithms.RsaV15KeyWrap:
+                    return "RSA1_5";
 
-            default:
-                return null;
+                default:
+                    return null;
             }
         }
 

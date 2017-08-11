@@ -208,7 +208,7 @@ namespace Nancy.Server.Modules
         /// <summary>
         /// Gets the IOwinContext instance associated with the current request.
         /// </summary>
-        protected IOwinContext OwinContext
+        private IOwinContext OwinContext
         {
             get
             {
@@ -225,9 +225,9 @@ namespace Nancy.Server.Modules
         /// <summary>
         /// Gets the <see cref="ClaimsPrincipal"/> instance associated with the current request.
         /// </summary>
-        protected ClaimsPrincipal User => OwinContext.Authentication.User;
+        private ClaimsPrincipal User => OwinContext.Authentication.User;
 
-        protected async Task<Application> GetApplicationAsync(string identifier, CancellationToken cancellationToken)
+        private async Task<Application> GetApplicationAsync(string identifier, CancellationToken cancellationToken)
         {
             using (var context = new ApplicationContext())
             {

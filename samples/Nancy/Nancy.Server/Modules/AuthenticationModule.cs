@@ -64,7 +64,7 @@ namespace Nancy.Server.Modules
         /// <summary>
         /// Gets the IAuthenticationManager instance associated with the current request.
         /// </summary>
-        protected IAuthenticationManager AuthenticationManager
+        private IAuthenticationManager AuthenticationManager
         {
             get
             {

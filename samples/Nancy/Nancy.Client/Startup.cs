@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Microsoft.IdentityModel.Protocols;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
 using Microsoft.Owin.Security.OpenIdConnect;
@@ -37,6 +37,7 @@ namespace Nancy.Client
                 // retrieve the identity provider's configuration and spare you from setting
                 // the different endpoints URIs or the token validation parameters explicitly.
                 Authority = "http://localhost:54541/",
+                RequireHttpsMetadata = false,
 
                 // Note: these settings must match the application details inserted in
                 // the database at the server level (see ApplicationContextInitializer.cs).
@@ -102,7 +103,7 @@ namespace Nancy.Client
                     // Attach the id_token stored in the authentication cookie to the logout request.
                     RedirectToIdentityProvider = notification =>
                     {
-                        if (notification.ProtocolMessage.RequestType == OpenIdConnectRequestType.LogoutRequest)
+                        if (notification.ProtocolMessage.RequestType == OpenIdConnectRequestType.Logout)
                         {
                             var token = notification.OwinContext.Authentication.User?.FindFirst(OpenIdConnectParameterNames.IdToken);
                             if (token != null)
