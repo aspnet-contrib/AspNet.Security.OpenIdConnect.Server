@@ -138,7 +138,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
             credentials.AddKey(key);
 
             // Assert
-            Assert.Equal(1, credentials.Count);
+            Assert.Single(credentials);
             Assert.Equal(SecurityAlgorithms.Aes256KW, credentials[0].Alg);
             Assert.Equal(SecurityAlgorithms.Aes256CbcHmacSha512, credentials[0].Enc);
         }
@@ -315,7 +315,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 password: "Owin.Security.OpenIdConnect.Server");
 
             // Assert
-            Assert.Equal(1, credentials.Count);
+            Assert.Single(credentials);
             Assert.Equal(SecurityAlgorithms.RsaSha256, credentials[0].Algorithm);
             Assert.NotNull(credentials[0].Kid);
         }
@@ -415,7 +415,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
             credentials.AddEphemeralKey(algorithm);
 
             // Assert
-            Assert.Equal(1, credentials.Count);
+            Assert.Single(credentials);
             Assert.Equal(algorithm, credentials[0].Algorithm);
             Assert.NotNull(credentials[0].Kid);
         }
@@ -430,7 +430,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
             credentials.AddEphemeralKey();
 
             // Assert
-            Assert.Equal(1, credentials.Count);
+            Assert.Single(credentials);
             Assert.Equal(SecurityAlgorithms.RsaSha256, credentials[0].Algorithm);
             Assert.NotNull(credentials[0].Kid);
         }
@@ -482,14 +482,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         }
 
 #if !SUPPORTS_ECDSA
-        [Theory]
-        [InlineData(SecurityAlgorithms.EcdsaSha256)]
-        [InlineData(SecurityAlgorithms.EcdsaSha384)]
-        [InlineData(SecurityAlgorithms.EcdsaSha512)]
-        [InlineData(SecurityAlgorithms.EcdsaSha256Signature)]
-        [InlineData(SecurityAlgorithms.EcdsaSha384Signature)]
-        [InlineData(SecurityAlgorithms.EcdsaSha512Signature)]
-        public void SigningCredentials_AddKey_ThrowsAnExceptionForEcdsaKeyOnUnsupportedPlatforms(string algorithm)
+        [Fact]
+        public void SigningCredentials_AddKey_ThrowsAnExceptionForEcdsaKeyOnUnsupportedPlatforms()
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
@@ -541,7 +535,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
             credentials.AddKey(key);
 
             // Assert
-            Assert.Equal(1, credentials.Count);
+            Assert.Single(credentials);
             Assert.Equal(algorithm, credentials[0].Algorithm);
         }
 

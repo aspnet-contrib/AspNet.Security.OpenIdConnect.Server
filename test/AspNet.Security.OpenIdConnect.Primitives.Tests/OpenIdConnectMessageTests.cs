@@ -39,7 +39,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
             });
 
             // Assert
-            Assert.Equal(0, message.GetParameters().Count());
+            Assert.Empty(message.GetParameters());
         }
 
         [Fact]
@@ -67,7 +67,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
             });
 
             // Assert
-            Assert.Equal(1, message.GetParameters().Count());
+            Assert.Single(message.GetParameters());
             Assert.Equal("Fabrikam", message.GetParameter("parameter"));
         }
 
@@ -521,7 +521,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
             message.SetParameter("null", null);
 
             // Assert
-            Assert.Equal(0, message.GetParameters().Count());
+            Assert.Empty(message.GetParameters());
         }
 
         [Fact]
@@ -537,7 +537,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
             message.SetParameter("value", new JValue(string.Empty));
 
             // Assert
-            Assert.Equal(0, message.GetParameters().Count());
+            Assert.Empty(message.GetParameters());
         }
 
         [Theory]

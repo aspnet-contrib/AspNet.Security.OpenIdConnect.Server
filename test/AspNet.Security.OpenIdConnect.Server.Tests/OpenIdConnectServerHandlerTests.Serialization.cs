@@ -2497,7 +2497,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     var keys = context.TokenValidationParameters.TokenDecryptionKeys.ToArray();
 
                     // Assert
-                    Assert.Equal(1, keys.Length);
+                    Assert.Single(keys);
                     Assert.NotSame(credentials, keys[0]);
                     Assert.Same(context.Options.EncryptingCredentials[1].Key, keys[0]);
                     Assert.IsType<SymmetricSecurityKey>(keys[0]);
@@ -2833,7 +2833,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     var keys = context.TokenValidationParameters.IssuerSigningKeys.ToArray();
 
                     // Assert
-                    Assert.Equal(1, keys.Length);
+                    Assert.Single(keys);
                     Assert.NotSame(credentials, keys[0]);
                     Assert.Same(context.Options.SigningCredentials[1].Key, keys[0]);
                     Assert.IsType<X509SecurityKey>(keys[0]);
