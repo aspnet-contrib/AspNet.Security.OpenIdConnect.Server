@@ -846,7 +846,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     // Assert
                     Assert.Same(credentials, context.SigningCredentials);
-                    Assert.IsAssignableFrom(typeof(SymmetricSecurityKey), context.SigningCredentials.Key);
+                    Assert.IsType<SymmetricSecurityKey>(context.SigningCredentials.Key);
 
                     return Task.FromResult(0);
                 };
@@ -894,7 +894,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     // Assert
                     Assert.Same(context.Options.SigningCredentials[0], context.SigningCredentials);
-                    Assert.IsAssignableFrom(typeof(AsymmetricSecurityKey), context.SigningCredentials.Key);
+                    Assert.IsType<X509SecurityKey>(context.SigningCredentials.Key);
 
                     return Task.FromResult(0);
                 };
@@ -1589,7 +1589,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     // Assert
                     Assert.NotSame(credentials, context.SigningCredentials);
                     Assert.Same(context.Options.SigningCredentials[1], context.SigningCredentials);
-                    Assert.IsAssignableFrom(typeof(AsymmetricSecurityKey), context.SigningCredentials.Key);
+                    Assert.IsType<X509SecurityKey>(context.SigningCredentials.Key);
 
                     return Task.FromResult(0);
                 };
@@ -1638,7 +1638,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 {
                     // Assert
                     Assert.Same(context.Options.SigningCredentials[0], context.SigningCredentials);
-                    Assert.IsAssignableFrom(typeof(AsymmetricSecurityKey), context.SigningCredentials.Key);
+                    Assert.IsType<X509SecurityKey>(context.SigningCredentials.Key);
 
                     return Task.FromResult(0);
                 };

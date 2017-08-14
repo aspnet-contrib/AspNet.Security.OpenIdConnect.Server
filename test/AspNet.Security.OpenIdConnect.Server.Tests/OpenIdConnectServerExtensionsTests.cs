@@ -256,7 +256,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 password: "Owin.Security.OpenIdConnect.Server");
 
             // Assert
-            Assert.Equal(1, credentials.Count);
+            Assert.Single(credentials);
             Assert.Equal(SecurityAlgorithms.RsaSha256Signature, credentials[0].Algorithm);
             Assert.NotNull(credentials[0].Kid);
         }
@@ -350,7 +350,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
             credentials.AddEphemeralKey(algorithm);
 
             // Assert
-            Assert.Equal(1, credentials.Count);
+            Assert.Single(credentials);
             Assert.Equal(algorithm, credentials[0].Algorithm);
             Assert.NotNull(credentials[0].Kid);
         }
@@ -365,7 +365,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
             credentials.AddEphemeralKey();
 
             // Assert
-            Assert.Equal(1, credentials.Count);
+            Assert.Single(credentials);
             Assert.Equal(SecurityAlgorithms.RsaSha256Signature, credentials[0].Algorithm);
             Assert.NotNull(credentials[0].Kid);
         }
@@ -417,11 +417,8 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
 #if !SUPPORTS_ECDSA
-        [Theory]
-        [InlineData(SecurityAlgorithms.EcdsaSha256Signature)]
-        [InlineData(SecurityAlgorithms.EcdsaSha384Signature)]
-        [InlineData(SecurityAlgorithms.EcdsaSha512Signature)]
-        public void AddKey_ThrowsAnExceptionForEcdsaKeyOnUnsupportedPlatforms(string algorithm)
+        [Fact]
+        public void AddKey_ThrowsAnExceptionForEcdsaKeyOnUnsupportedPlatforms()
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
@@ -473,7 +470,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
             credentials.AddKey(key);
 
             // Assert
-            Assert.Equal(1, credentials.Count);
+            Assert.Single(credentials);
             Assert.Equal(algorithm, credentials[0].Algorithm);
         }
 

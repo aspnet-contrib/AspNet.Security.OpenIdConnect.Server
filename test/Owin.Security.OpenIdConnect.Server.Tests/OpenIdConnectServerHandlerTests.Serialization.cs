@@ -786,7 +786,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     // Assert
                     Assert.Same(credentials, context.SigningCredentials);
-                    Assert.IsAssignableFrom(typeof(SymmetricSecurityKey), context.SigningCredentials.SigningKey);
+                    Assert.IsType<InMemorySymmetricSecurityKey>(context.SigningCredentials.SigningKey);
 
                     return Task.FromResult(0);
                 };
@@ -834,7 +834,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     // Assert
                     Assert.Same(context.Options.SigningCredentials[0], context.SigningCredentials);
-                    Assert.IsAssignableFrom(typeof(AsymmetricSecurityKey), context.SigningCredentials.SigningKey);
+                    Assert.IsType<X509AsymmetricSecurityKey>(context.SigningCredentials.SigningKey);
 
                     return Task.FromResult(0);
                 };
@@ -1486,7 +1486,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                     // Assert
                     Assert.NotSame(credentials, context.SigningCredentials);
                     Assert.Same(context.Options.SigningCredentials[1], context.SigningCredentials);
-                    Assert.IsAssignableFrom(typeof(AsymmetricSecurityKey), context.SigningCredentials.SigningKey);
+                    Assert.IsType<X509AsymmetricSecurityKey>(context.SigningCredentials.SigningKey);
 
                     return Task.FromResult(0);
                 };
@@ -1535,7 +1535,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 {
                     // Assert
                     Assert.Same(context.Options.SigningCredentials[0], context.SigningCredentials);
-                    Assert.IsAssignableFrom(typeof(AsymmetricSecurityKey), context.SigningCredentials.SigningKey);
+                    Assert.IsType<X509AsymmetricSecurityKey>(context.SigningCredentials.SigningKey);
 
                     return Task.FromResult(0);
                 };

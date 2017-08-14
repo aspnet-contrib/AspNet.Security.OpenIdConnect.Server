@@ -691,7 +691,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
             var algorithms = (string[]) response[OpenIdConnectConstants.Metadata.IdTokenSigningAlgValuesSupported];
 
             // Assert
-            Assert.Equal(1, algorithms.Count());
+            Assert.Single(algorithms);
         }
 
         [Theory]
@@ -1056,7 +1056,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
             var server = CreateAuthorizationServer(options =>
             {
                 options.SigningCredentials.Clear();
-                options.SigningCredentials.Add(new SigningCredentials(key, algorithm, algorithm));
+                options.SigningCredentials.Add(new SigningCredentials(key, algorithm, digest));
             });
 
             var client = new OpenIdConnectClient(server.HttpClient);

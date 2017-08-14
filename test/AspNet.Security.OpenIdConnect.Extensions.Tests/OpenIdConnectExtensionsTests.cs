@@ -91,7 +91,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
             // Act and assert
             var exception = Assert.Throws<ArgumentException>(() => claim.SetDestinations(destination));
 
-            Assert.Equal(exception.ParamName, "destinations");
+            Assert.Equal("destinations", exception.ParamName);
             Assert.StartsWith("Destinations cannot be null or empty.", exception.Message);
         }
 
@@ -155,7 +155,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
             var clone = identity.Clone(claim => claim.Type == OpenIdConnectConstants.Claims.Name);
 
             // Assert
-            Assert.Equal(1, clone.Claims.Count());
+            Assert.Single(clone.Claims);
             Assert.Null(clone.FindFirst(OpenIdConnectConstants.Claims.Subject));
             Assert.Equal("Bob le Bricoleur", clone.FindFirst(OpenIdConnectConstants.Claims.Name).Value);
         }
@@ -173,7 +173,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
             var clone = identity.Clone(claim => claim.Type == OpenIdConnectConstants.Claims.Name);
 
             // Assert
-            Assert.Equal(1, clone.Actor.Claims.Count());
+            Assert.Single(clone.Actor.Claims);
             Assert.Null(clone.Actor.FindFirst(OpenIdConnectConstants.Claims.Subject));
             Assert.Equal("Bob le Bricoleur", clone.Actor.FindFirst(OpenIdConnectConstants.Claims.Name).Value);
         }
@@ -192,7 +192,7 @@ namespace AspNet.Security.OpenIdConnect.Extensions.Tests
             var clone = principal.Clone(claim => claim.Type == OpenIdConnectConstants.Claims.Name);
 
             // Assert
-            Assert.Equal(1, clone.Claims.Count());
+            Assert.Single(clone.Claims);
             Assert.Null(clone.FindFirst(OpenIdConnectConstants.Claims.Subject));
             Assert.Equal("Bob le Bricoleur", clone.FindFirst(OpenIdConnectConstants.Claims.Name).Value);
         }

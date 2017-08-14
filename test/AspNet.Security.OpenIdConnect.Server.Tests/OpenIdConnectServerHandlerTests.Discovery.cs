@@ -694,7 +694,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
             var algorithms = (string[]) response[OpenIdConnectConstants.Metadata.IdTokenSigningAlgValuesSupported];
 
             // Assert
-            Assert.Equal(1, algorithms.Count());
+            Assert.Single(algorithms);
         }
 
         [Theory]

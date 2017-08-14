@@ -250,7 +250,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
                 password: "Owin.Security.OpenIdConnect.Server");
 
             // Assert
-            Assert.Equal(1, credentials.Count);
+            Assert.Single(credentials);
             Assert.Equal(SecurityAlgorithms.Sha256Digest, credentials[0].DigestAlgorithm);
             Assert.Equal(SecurityAlgorithms.RsaSha256Signature, credentials[0].SignatureAlgorithm);
             Assert.NotNull(credentials[0].SigningKeyIdentifier);
@@ -314,7 +314,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
             credentials.AddEphemeralKey(SecurityAlgorithms.RsaSha256Signature);
 
             // Assert
-            Assert.Equal(1, credentials.Count);
+            Assert.Single(credentials);
             Assert.Equal(SecurityAlgorithms.Sha256Digest, credentials[0].DigestAlgorithm);
             Assert.Equal(SecurityAlgorithms.RsaSha256Signature, credentials[0].SignatureAlgorithm);
             Assert.NotNull(credentials[0].SigningKeyIdentifier);
@@ -330,7 +330,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
             credentials.AddEphemeralKey();
 
             // Assert
-            Assert.Equal(1, credentials.Count);
+            Assert.Single(credentials);
             Assert.Equal(SecurityAlgorithms.Sha256Digest, credentials[0].DigestAlgorithm);
             Assert.Equal(SecurityAlgorithms.RsaSha256Signature, credentials[0].SignatureAlgorithm);
             Assert.NotNull(credentials[0].SigningKeyIdentifier);
@@ -412,7 +412,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
             credentials.AddKey(key);
 
             // Assert
-            Assert.Equal(1, credentials.Count);
+            Assert.Single(credentials);
             Assert.Equal(SecurityAlgorithms.Sha256Digest, credentials[0].DigestAlgorithm);
             Assert.Equal(algorithm, credentials[0].SignatureAlgorithm);
         }
