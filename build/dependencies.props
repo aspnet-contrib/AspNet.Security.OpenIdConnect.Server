@@ -5,14 +5,14 @@
     <AspNetContribOpenIdExtensionsVersion>2.0.0-*</AspNetContribOpenIdExtensionsVersion>
     <AspNetCoreVersion>2.0.0</AspNetCoreVersion>
     <CoreFxVersion>4.4.0</CoreFxVersion>
-    <IdentityModelVersion>1.0.4.403061554</IdentityModelVersion>
+    <IdentityModelVersion>5.2.0-preview1-408290725</IdentityModelVersion>
     <IdentityModelCoreVersion>2.1.4</IdentityModelCoreVersion>
     <JetBrainsVersion>10.3.0</JetBrainsVersion>
     <JsonNetVersion>10.0.2</JsonNetVersion>
     <MoqVersion>4.7.63</MoqVersion>
     <NetStandardImplicitPackageVersion>2.0.0</NetStandardImplicitPackageVersion>
     <NetStandardLibraryNetFrameworkVersion>2.0.0</NetStandardLibraryNetFrameworkVersion>
-    <OwinVersion>4.0.0-*</OwinVersion>
+    <OwinVersion>4.0.0-alpha1</OwinVersion>
     <RuntimeFrameworkVersion>2.0.0</RuntimeFrameworkVersion>
     <TestSdkVersion>15.3.0</TestSdkVersion>
     <XunitVersion>2.3.0-*</XunitVersion>
