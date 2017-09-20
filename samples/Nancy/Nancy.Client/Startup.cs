@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
 using Microsoft.Owin.Security.OpenIdConnect;
@@ -47,6 +49,18 @@ namespace Nancy.Client
                 PostLogoutRedirectUri = "http://localhost:56765/",
 
                 Scope = "openid profile offline_access",
+
+                SecurityTokenValidator = new JwtSecurityTokenHandler
+                {
+                    // Disable the built-in JWT claims mapping feature.
+                    InboundClaimTypeMap = new Dictionary<string, string>()
+                },
+
+                TokenValidationParameters = new TokenValidationParameters
+                {
+                    NameClaimType = "name",
+                    RoleClaimType = "role"
+                },
 
                 // Note: by default, the OIDC client throws an OpenIdConnectProtocolException
                 // when an error occurred during the authentication/authorization process.
