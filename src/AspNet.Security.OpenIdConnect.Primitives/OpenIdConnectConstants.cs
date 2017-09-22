@@ -30,6 +30,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives
             public const string Active = "active";
             public const string Address = "address";
             public const string Audience = "aud";
+            public const string AuthenticationContextReference = "acr";
+            public const string AuthenticationMethodReference = "amr";
             public const string AuthenticationTime = "auth_time";
             public const string AuthorizedParty = "azp";
             public const string Birthdate = "birthdate";
