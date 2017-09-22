@@ -522,7 +522,7 @@ namespace Owin.Security.OpenIdConnect.Server
 
             if (notification.HandledResponse || notification.Ticket != null)
             {
-                notification.Ticket.SetTokenUsage(OpenIdConnectConstants.TokenUsages.AuthorizationCode);
+                notification.Ticket?.SetTokenUsage(OpenIdConnectConstants.TokenUsages.AuthorizationCode);
 
                 return notification.Ticket;
             }
@@ -581,7 +581,7 @@ namespace Owin.Security.OpenIdConnect.Server
 
             if (notification.HandledResponse || notification.Ticket != null)
             {
-                notification.Ticket.SetTokenUsage(OpenIdConnectConstants.TokenUsages.AccessToken);
+                notification.Ticket?.SetTokenUsage(OpenIdConnectConstants.TokenUsages.AccessToken);
 
                 return notification.Ticket;
             }
@@ -698,7 +698,7 @@ namespace Owin.Security.OpenIdConnect.Server
 
             if (notification.HandledResponse || notification.Ticket != null)
             {
-                notification.Ticket.SetTokenUsage(OpenIdConnectConstants.TokenUsages.IdToken);
+                notification.Ticket?.SetTokenUsage(OpenIdConnectConstants.TokenUsages.IdToken);
 
                 return notification.Ticket;
             }
@@ -777,7 +777,7 @@ namespace Owin.Security.OpenIdConnect.Server
 
             if (notification.HandledResponse || notification.Ticket != null)
             {
-                notification.Ticket.SetTokenUsage(OpenIdConnectConstants.TokenUsages.RefreshToken);
+                notification.Ticket?.SetTokenUsage(OpenIdConnectConstants.TokenUsages.RefreshToken);
 
                 return notification.Ticket;
             }
