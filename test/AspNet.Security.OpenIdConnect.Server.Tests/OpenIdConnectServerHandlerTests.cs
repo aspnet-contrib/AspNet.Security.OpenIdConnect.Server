@@ -1040,6 +1040,107 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
             Assert.NotNull(response.RefreshToken);
         }
 
+        [Fact]
+        public async Task HandleSignInAsync_ProcessSigninResponse_AllowsOverridingDefaultTokensSelection()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
+                    context.Skip();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnHandleTokenRequest = context =>
+                {
+                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
+
+                    context.Validate(new ClaimsPrincipal(identity));
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnProcessSigninResponse = context =>
+                {
+                    context.IncludeAccessToken = false;
+                    context.IncludeAuthorizationCode = true;
+                    context.IncludeIdentityToken = true;
+                    context.IncludeRefreshToken = true;
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
+                GrantType = OpenIdConnectConstants.GrantTypes.Password,
+                Username = "johndoe",
+                Password = "A3ddj3w"
+            });
+
+            // Assert
+            Assert.Null(response.AccessToken);
+            Assert.NotNull(response.Code);
+            Assert.NotNull(response.IdToken);
+            Assert.NotNull(response.RefreshToken);
+        }
+
+        [Fact]
+        public async Task HandleSignInAsync_ProcessSigninResponse_AllowsHandlingResponse()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
+                    context.Skip();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnHandleTokenRequest = context =>
+                {
+                    var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
+
+                    context.Validate(new ClaimsPrincipal(identity));
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnProcessSigninResponse = context =>
+                {
+                    context.HandleResponse();
+
+                    context.HttpContext.Response.Headers[HeaderNames.ContentType] = "application/json";
+
+                    return context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(new
+                    {
+                        name = "Bob le Magnifique"
+                    }));
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
+                GrantType = OpenIdConnectConstants.GrantTypes.Password,
+                Username = "johndoe",
+                Password = "A3ddj3w"
+            });
+
+            // Assert
+            Assert.Equal("Bob le Magnifique", (string) response["name"]);
+        }
+
         [Theory]
         [InlineData("code")]
         [InlineData("code id_token")]
@@ -1063,6 +1164,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(new ClaimsPrincipal(identity));
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnProcessSigninResponse = context =>
+                {
+                    Assert.True(context.IncludeAuthorizationCode);
 
                     return Task.FromResult(0);
                 };
@@ -1311,6 +1419,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
                     return Task.FromResult(0);
                 };
+
+                options.Provider.OnProcessSigninResponse = context =>
+                {
+                    Assert.True(context.IncludeAccessToken);
+
+                    return Task.FromResult(0);
+                };
             });
 
             var client = new OpenIdConnectClient(server.CreateClient());
@@ -1358,6 +1473,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
                     return Task.FromResult(0);
                 };
+
+                options.Provider.OnProcessSigninResponse = context =>
+                {
+                    Assert.True(context.IncludeAccessToken);
+
+                    return Task.FromResult(0);
+                };
             });
 
             var client = new OpenIdConnectClient(server.CreateClient());
@@ -1401,6 +1523,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
                     return Task.FromResult(0);
                 };
+
+                options.Provider.OnProcessSigninResponse = context =>
+                {
+                    Assert.True(context.IncludeAccessToken);
+
+                    return Task.FromResult(0);
+                };
             });
 
             var client = new OpenIdConnectClient(server.CreateClient());
@@ -1435,6 +1564,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(new ClaimsPrincipal(identity));
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnProcessSigninResponse = context =>
+                {
+                    Assert.True(context.IncludeAccessToken);
 
                     return Task.FromResult(0);
                 };
@@ -1476,6 +1612,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
                     return Task.FromResult(0);
                 };
+
+                options.Provider.OnProcessSigninResponse = context =>
+                {
+                    Assert.True(context.IncludeAccessToken);
+
+                    return Task.FromResult(0);
+                };
             });
 
             var client = new OpenIdConnectClient(server.CreateClient());
@@ -1511,6 +1654,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(new ClaimsPrincipal(identity));
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnProcessSigninResponse = context =>
+                {
+                    Assert.True(context.IncludeAccessToken);
 
                     return Task.FromResult(0);
                 };
@@ -1588,6 +1738,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
                     return Task.FromResult(0);
                 };
+
+                options.Provider.OnProcessSigninResponse = context =>
+                {
+                    Assert.False(context.IncludeRefreshToken);
+
+                    return Task.FromResult(0);
+                };
             });
 
             var client = new OpenIdConnectClient(server.CreateClient());
@@ -1634,6 +1791,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
                     return Task.FromResult(0);
                 };
+
+                options.Provider.OnProcessSigninResponse = context =>
+                {
+                    Assert.True(context.IncludeRefreshToken);
+
+                    return Task.FromResult(0);
+                };
             });
 
             var client = new OpenIdConnectClient(server.CreateClient());
@@ -1676,6 +1840,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 options.Provider.OnValidateTokenRequest = context =>
                 {
                     context.Skip();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnProcessSigninResponse = context =>
+                {
+                    Assert.True(context.IncludeRefreshToken);
 
                     return Task.FromResult(0);
                 };
@@ -1725,6 +1896,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
                     return Task.FromResult(0);
                 };
+
+                options.Provider.OnProcessSigninResponse = context =>
+                {
+                    Assert.False(context.IncludeRefreshToken);
+
+                    return Task.FromResult(0);
+                };
             });
 
             var client = new OpenIdConnectClient(server.CreateClient());
@@ -1766,6 +1944,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     ticket.SetScopes(OpenIdConnectConstants.Scopes.OfflineAccess);
 
                     context.Validate(ticket);
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnProcessSigninResponse = context =>
+                {
+                    Assert.True(context.IncludeRefreshToken);
 
                     return Task.FromResult(0);
                 };
@@ -1814,6 +1999,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
                     return Task.FromResult(0);
                 };
+
+                options.Provider.OnProcessSigninResponse = context =>
+                {
+                    Assert.True(context.IncludeRefreshToken);
+
+                    return Task.FromResult(0);
+                };
             });
 
             var client = new OpenIdConnectClient(server.CreateClient());
@@ -1859,6 +2051,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
                     return Task.FromResult(0);
                 };
+
+                options.Provider.OnProcessSigninResponse = context =>
+                {
+                    Assert.True(context.IncludeRefreshToken);
+
+                    return Task.FromResult(0);
+                };
             });
 
             var client = new OpenIdConnectClient(server.CreateClient());
@@ -1892,6 +2091,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(new ClaimsPrincipal(identity));
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnProcessSigninResponse = context =>
+                {
+                    Assert.False(context.IncludeIdentityToken);
 
                     return Task.FromResult(0);
                 };
@@ -1934,6 +2140,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(new ClaimsPrincipal(identity));
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnProcessSigninResponse = context =>
+                {
+                    Assert.True(context.IncludeIdentityToken);
 
                     return Task.FromResult(0);
                 };
@@ -1985,6 +2198,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
                     return Task.FromResult(0);
                 };
+
+                options.Provider.OnProcessSigninResponse = context =>
+                {
+                    Assert.True(context.IncludeIdentityToken);
+
+                    return Task.FromResult(0);
+                };
             });
 
             var client = new OpenIdConnectClient(server.CreateClient());
@@ -2030,6 +2250,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
                     return Task.FromResult(0);
                 };
+
+                options.Provider.OnProcessSigninResponse = context =>
+                {
+                    Assert.True(context.IncludeIdentityToken);
+
+                    return Task.FromResult(0);
+                };
             });
 
             var client = new OpenIdConnectClient(server.CreateClient());
@@ -2064,6 +2291,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(new ClaimsPrincipal(identity));
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnProcessSigninResponse = context =>
+                {
+                    Assert.True(context.IncludeIdentityToken);
 
                     return Task.FromResult(0);
                 };
@@ -2106,6 +2340,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
                     return Task.FromResult(0);
                 };
+
+                options.Provider.OnProcessSigninResponse = context =>
+                {
+                    Assert.True(context.IncludeIdentityToken);
+
+                    return Task.FromResult(0);
+                };
             });
 
             var client = new OpenIdConnectClient(server.CreateClient());
@@ -2142,6 +2383,13 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                     identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
 
                     context.Validate(new ClaimsPrincipal(identity));
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnProcessSigninResponse = context =>
+                {
+                    Assert.True(context.IncludeIdentityToken);
 
                     return Task.FromResult(0);
                 };
@@ -2214,6 +2462,49 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
             });
 
             Assert.Equal("A response has already been sent.", exception.Message);
+        }
+
+        [Fact]
+        public async Task HandleSignOutAsync_ProcessSignoutResponse_AllowsHandlingResponse()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateLogoutRequest = context =>
+                {
+                    context.Validate();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnHandleLogoutRequest = context =>
+                {
+                    context.HandleResponse();
+
+                    return context.HttpContext.Authentication.SignOutAsync(
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
+                };
+
+                options.Provider.OnProcessSignoutResponse = context =>
+                {
+                    context.HandleResponse();
+
+                    context.HttpContext.Response.Headers[HeaderNames.ContentType] = "application/json";
+
+                    return context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(new
+                    {
+                        name = "Bob le Magnifique"
+                    }));
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(LogoutEndpoint, new OpenIdConnectRequest());
+
+            // Assert
+            Assert.Equal("Bob le Magnifique", (string) response["name"]);
         }
 
         [Fact]
@@ -2402,6 +2693,51 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
             Assert.Equal(OpenIdConnectConstants.Errors.InvalidGrant, response.Error);
             Assert.Equal("The token request was rejected by the authorization server.", response.ErrorDescription);
             Assert.Null(response.ErrorUri);
+        }
+
+        [Fact]
+        public async Task HandleUnauthorizedAsync_ProcessChallengeResponse_AllowsHandlingResponse()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnValidateTokenRequest = context =>
+                {
+                    context.Skip();
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnHandleTokenRequest = context =>
+                {
+                    return context.HttpContext.Authentication.ChallengeAsync(context.Options.AuthenticationScheme);
+                };
+
+                options.Provider.OnProcessChallengeResponse = context =>
+                {
+                    context.HandleResponse();
+
+                    context.HttpContext.Response.Headers[HeaderNames.ContentType] = "application/json";
+
+                    return context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(new
+                    {
+                        name = "Bob le Magnifique"
+                    }));
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
+                GrantType = OpenIdConnectConstants.GrantTypes.Password,
+                Username = "johndoe",
+                Password = "A3ddj3w"
+            });
+
+            // Assert
+            Assert.Equal("Bob le Magnifique", (string) response["name"]);
         }
 
         private static TestServer CreateAuthorizationServer(Action<OpenIdConnectServerOptions> configuration = null)

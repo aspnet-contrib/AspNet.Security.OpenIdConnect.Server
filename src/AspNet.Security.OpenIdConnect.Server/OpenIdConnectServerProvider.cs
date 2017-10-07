@@ -193,6 +193,24 @@ namespace AspNet.Security.OpenIdConnect.Server
             = context => Task.FromResult(0);
 
         /// <summary>
+        /// Represents an event called when processing a challenge response.
+        /// </summary>
+        public Func<ProcessChallengeResponseContext, Task> OnProcessChallengeResponse { get; set; }
+            = context => Task.FromResult(0);
+
+        /// <summary>
+        /// Represents an event called when processing a sign-in response.
+        /// </summary>
+        public Func<ProcessSigninResponseContext, Task> OnProcessSigninResponse { get; set; }
+            = context => Task.FromResult(0);
+
+        /// <summary>
+        /// Represents an event called when processing a sign-out response.
+        /// </summary>
+        public Func<ProcessSignoutResponseContext, Task> OnProcessSignoutResponse { get; set; }
+            = context => Task.FromResult(0);
+
+        /// <summary>
         /// Represents an event called before the authorization response is returned to the caller.
         /// </summary>
         public Func<ApplyAuthorizationResponseContext, Task> OnApplyAuthorizationResponse { get; set; }
@@ -512,6 +530,30 @@ namespace AspNet.Security.OpenIdConnect.Server
         /// <returns>A <see cref="Task"/> that can be used to monitor the asynchronous operation.</returns>
         public virtual Task HandleUserinfoRequest(HandleUserinfoRequestContext context)
             => OnHandleUserinfoRequest(context);
+
+        /// <summary>
+        /// Represents an event called when processing a challenge response.
+        /// </summary>
+        /// <param name="context">The context instance associated with this event.</param>
+        /// <returns>A <see cref="Task"/> that can be used to monitor the asynchronous operation.</returns>
+        public virtual Task ProcessChallengeResponse(ProcessChallengeResponseContext context)
+            => OnProcessChallengeResponse(context);
+
+        /// <summary>
+        /// Represents an event called when processing a sign-in response.
+        /// </summary>
+        /// <param name="context">The context instance associated with this event.</param>
+        /// <returns>A <see cref="Task"/> that can be used to monitor the asynchronous operation.</returns>
+        public virtual Task ProcessSigninResponse(ProcessSigninResponseContext context)
+            => OnProcessSigninResponse(context);
+
+        /// <summary>
+        /// Represents an event called when processing a sign-out response.
+        /// </summary>
+        /// <param name="context">The context instance associated with this event.</param>
+        /// <returns>A <see cref="Task"/> that can be used to monitor the asynchronous operation.</returns>
+        public virtual Task ProcessSignoutResponse(ProcessSignoutResponseContext context)
+            => OnProcessSignoutResponse(context);
 
         /// <summary>
         /// Represents an event called before the authorization response is returned to the caller.
