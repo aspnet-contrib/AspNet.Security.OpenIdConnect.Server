@@ -120,8 +120,8 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
             Assert.IsType<ArgumentException>(exception.InnerException);
             Assert.Equal("options", ((ArgumentException) exception.InnerException).ParamName);
             Assert.StartsWith("At least one signing key must be registered when using JWT as the access token format. " +
-                              "Consider registering a X.509 certificate using 'services.AddOpenIddict().AddSigningCertificate()' " +
-                              "or call 'services.AddOpenIddict().AddEphemeralSigningKey()' to use an ephemeral key.", exception.InnerException.Message);
+                              "Consider registering a X.509 certificate using 'options.SigningCredentials.AddCertificate()' " +
+                              "or call 'options.SigningCredentials.AddEphemeralKey()' to use an ephemeral key.", exception.InnerException.Message);
         }
 
         [Theory]

@@ -89,8 +89,8 @@ namespace Owin.Security.OpenIdConnect.Server
             if (Options.AccessTokenHandler != null && Options.SigningCredentials.Count == 0)
             {
                 throw new ArgumentException("At least one signing key must be registered when using JWT as the access token format. " +
-                                            "Consider registering a X.509 certificate using 'services.AddOpenIddict().AddSigningCertificate()' " +
-                                            "or call 'services.AddOpenIddict().AddEphemeralSigningKey()' to use an ephemeral key.", nameof(options));
+                                            "Consider registering a X.509 certificate using 'options.SigningCredentials.AddCertificate()' " +
+                                            "or call 'options.SigningCredentials.AddEphemeralKey()' to use an ephemeral key.", nameof(options));
             }
 
             if (Options.Logger == null)
