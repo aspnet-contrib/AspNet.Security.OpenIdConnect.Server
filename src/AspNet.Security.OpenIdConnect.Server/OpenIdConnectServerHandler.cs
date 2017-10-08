@@ -36,7 +36,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             [NotNull] ISystemClock clock)
             : base(options, logger, encoder, clock) { }
 
-        public async Task<bool> HandleRequestAsync()
+        public virtual async Task<bool> HandleRequestAsync()
         {
             var notification = new MatchEndpointContext(Context, Scheme, Options);
 
@@ -261,7 +261,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             throw new InvalidOperationException("An identity cannot be extracted from this request.");
         }
 
-        public Task SignInAsync(ClaimsPrincipal user, AuthenticationProperties properties)
+        public virtual Task SignInAsync(ClaimsPrincipal user, AuthenticationProperties properties)
         {
             return SignInAsync(new AuthenticationTicket(user, properties, Scheme.Name));
         }
@@ -325,8 +325,92 @@ namespace AspNet.Security.OpenIdConnect.Server
                 ticket.SetPresenters(presenter);
             }
 
-            // Only return an authorization code if the request is an authorization request and has response_type=code.
-            if (request.IsAuthorizationRequest() && request.HasResponseType(OpenIdConnectConstants.ResponseTypes.Code))
+            var notification = new ProcessSigninResponseContext(Context, Scheme, Options, ticket, request, response);
+
+            if (request.IsAuthorizationRequest())
+            {
+                // By default, return an authorization code if a response type containing code was specified.
+                notification.IncludeAuthorizationCode = request.HasResponseType(OpenIdConnectConstants.ResponseTypes.Code);
+
+                // By default, return an access token if a response type containing token was specified.
+                notification.IncludeAccessToken = request.HasResponseType(OpenIdConnectConstants.ResponseTypes.Token);
+
+                // By default, prevent a refresh token from being returned as the OAuth2 specification
+                // explicitly disallows returning a refresh token from the authorization endpoint.
+                // See https://tools.ietf.org/html/rfc6749#section-4.2.2 for more information.
+                notification.IncludeRefreshToken = false;
+
+                // By default, return an identity token if a response type containing code
+                // was specified and if the openid scope was explicitly or implicitly granted.
+                notification.IncludeIdentityToken =
+                    request.HasResponseType(OpenIdConnectConstants.ResponseTypes.IdToken) &&
+                    ticket.HasScope(OpenIdConnectConstants.Scopes.OpenId);
+            }
+
+            else
+            {
+                // By default, prevent an authorization code from being returned as this type of token
+                // cannot be issued from the token endpoint in the standard OAuth2/OpenID Connect flows.
+                notification.IncludeAuthorizationCode = false;
+
+                // By default, always return an access token.
+                notification.IncludeAccessToken = true;
+
+                // By default, only return a refresh token is the offline_access scope was granted and if
+                // sliding expiration is disabled or if the request is not a grant_type=refresh_token request.
+                notification.IncludeRefreshToken =
+                    ticket.HasScope(OpenIdConnectConstants.Scopes.OfflineAccess) &&
+                   (Options.UseSlidingExpiration || !request.IsRefreshTokenGrantType());
+
+                // By default, only return an identity token if the openid scope was granted.
+                notification.IncludeIdentityToken = ticket.HasScope(OpenIdConnectConstants.Scopes.OpenId);
+            }
+
+            await Provider.ProcessSigninResponse(notification);
+
+            if (notification.Result != null)
+            {
+                if (notification.Result.Handled)
+                {
+                    Logger.LogDebug("The sign-in response was handled in user code.");
+
+                    return true;
+                }
+
+                else if (notification.Result.Skipped)
+                {
+                    Logger.LogDebug("The default sign-in handling was skipped from user code.");
+
+                    return false;
+                }
+            }
+
+            // Flow the changes made to the ticket.
+            ticket = notification.Ticket;
+
+            // Ensure an authentication ticket has been provided or return
+            // an error code indicating that the request was rejected.
+            if (ticket == null)
+            {
+                Logger.LogError("The request was rejected because no authentication ticket was provided.");
+
+                if (request.IsAuthorizationRequest())
+                {
+                    return await SendAuthorizationResponseAsync(new OpenIdConnectResponse
+                    {
+                        Error = OpenIdConnectConstants.Errors.AccessDenied,
+                        ErrorDescription = "The authorization was denied by the resource owner."
+                    });
+                }
+
+                return await SendTokenResponseAsync(new OpenIdConnectResponse
+                {
+                    Error = OpenIdConnectConstants.Errors.InvalidGrant,
+                    ErrorDescription = "The token request was rejected by the authorization server."
+                });
+            }
+
+            if (notification.IncludeAuthorizationCode)
             {
                 // Make sure to create a copy of the authentication properties
                 // to avoid modifying the properties set on the original ticket.
@@ -335,10 +419,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                 response.Code = await SerializeAuthorizationCodeAsync(ticket.Principal, properties, request, response);
             }
 
-            // Only return an access token if the request is a token request
-            // or an authorization request that specifies response_type=token.
-            if (request.IsTokenRequest() || (request.IsAuthorizationRequest() &&
-                                             request.HasResponseType(OpenIdConnectConstants.ResponseTypes.Token)))
+            if (notification.IncludeAccessToken)
             {
                 // Make sure to create a copy of the authentication properties
                 // to avoid modifying the properties set on the original ticket.
@@ -400,35 +481,22 @@ namespace AspNet.Security.OpenIdConnect.Server
                 }
             }
 
-            // Only return a refresh token if the request is a token request that specifies scope=offline_access.
-            if (request.IsTokenRequest() && ticket.HasScope(OpenIdConnectConstants.Scopes.OfflineAccess))
+            if (notification.IncludeRefreshToken)
             {
-                // Note: when sliding expiration is disabled, don't return a new refresh token,
-                // unless the token request is not a grant_type=refresh_token request.
-                if (Options.UseSlidingExpiration || !request.IsRefreshTokenGrantType())
-                {
-                    // Make sure to create a copy of the authentication properties
-                    // to avoid modifying the properties set on the original ticket.
-                    var properties = ticket.Properties.Copy();
+                // Make sure to create a copy of the authentication properties
+                // to avoid modifying the properties set on the original ticket.
+                var properties = ticket.Properties.Copy();
 
-                    response.RefreshToken = await SerializeRefreshTokenAsync(ticket.Principal, properties, request, response);
-                }
+                response.RefreshToken = await SerializeRefreshTokenAsync(ticket.Principal, properties, request, response);
             }
 
-            // Only return an identity token if the openid scope was requested and granted
-            // to avoid generating and returning an unnecessary token to pure OAuth2 clients.
-            if (ticket.HasScope(OpenIdConnectConstants.Scopes.OpenId))
+            if (notification.IncludeIdentityToken)
             {
-                // Note: don't return an identity token if the request is an
-                // authorization request that doesn't use response_type=id_token.
-                if (request.IsTokenRequest() || request.HasResponseType(OpenIdConnectConstants.ResponseTypes.IdToken))
-                {
-                    // Make sure to create a copy of the authentication properties
-                    // to avoid modifying the properties set on the original ticket.
-                    var properties = ticket.Properties.Copy();
+                // Make sure to create a copy of the authentication properties
+                // to avoid modifying the properties set on the original ticket.
+                var properties = ticket.Properties.Copy();
 
-                    response.IdToken = await SerializeIdentityTokenAsync(ticket.Principal, properties, request, response);
-                }
+                response.IdToken = await SerializeIdentityTokenAsync(ticket.Principal, properties, request, response);
             }
 
             if (request.IsAuthorizationRequest())
@@ -439,7 +507,18 @@ namespace AspNet.Security.OpenIdConnect.Server
             return await SendTokenResponseAsync(response, ticket);
         }
 
-        public Task SignOutAsync(AuthenticationProperties properties)
+        public virtual Task SignOutAsync(AuthenticationProperties properties)
+        {
+            // Create a new ticket containing an empty identity and
+            // the authentication properties extracted from the context.
+            var ticket = new AuthenticationTicket(
+                new ClaimsPrincipal(new ClaimsIdentity()),
+                properties, Scheme.Name);
+
+            return HandleSignOutAsync(ticket);
+        }
+
+        private async Task<bool> HandleSignOutAsync(AuthenticationTicket ticket)
         {
             // Extract the OpenID Connect request from the ASP.NET Core context.
             // If it cannot be found or doesn't correspond to a logout request,
@@ -457,14 +536,49 @@ namespace AspNet.Security.OpenIdConnect.Server
                 throw new InvalidOperationException("A response has already been sent.");
             }
 
-            Logger.LogTrace("A log-out operation was triggered: {Properties}.", properties);
+            Logger.LogTrace("A log-out operation was triggered: {Properties}.", ticket.Properties.Items);
 
-            return SendLogoutResponseAsync(new OpenIdConnectResponse());
+            // Prepare a new OpenID Connect response.
+            response = new OpenIdConnectResponse();
+
+            var notification = new ProcessSignoutResponseContext(Context, Scheme, Options, ticket, request, response);
+            await Provider.ProcessSignoutResponse(notification);
+
+            if (notification.Result != null)
+            {
+                if (notification.Result.Handled)
+                {
+                    Logger.LogDebug("The sign-out response was handled in user code.");
+
+                    return true;
+                }
+
+                else if (notification.Result.Skipped)
+                {
+                    Logger.LogDebug("The default sign-out handling was skipped from user code.");
+
+                    return false;
+                }
+            }
+
+            return await SendLogoutResponseAsync(response);
         }
 
-        protected override Task HandleForbiddenAsync(AuthenticationProperties properties) => HandleChallengeAsync(properties);
+        protected override Task HandleForbiddenAsync(AuthenticationProperties properties)
+            => HandleChallengeAsync(properties);
 
         protected override Task HandleChallengeAsync(AuthenticationProperties properties)
+        {
+            // Create a new ticket containing an empty identity and
+            // the authentication properties extracted from the context.
+            var ticket = new AuthenticationTicket(
+                new ClaimsPrincipal(new ClaimsIdentity()),
+                properties, Scheme.Name);
+
+            return HandleUnauthorizedAsync(ticket);
+        }
+
+        private async Task<bool> HandleUnauthorizedAsync(AuthenticationTicket ticket)
         {
             // Extract the OpenID Connect request from the ASP.NET Core context.
             // If it cannot be found or doesn't correspond to an authorization
@@ -481,12 +595,6 @@ namespace AspNet.Security.OpenIdConnect.Server
             {
                 throw new InvalidOperationException("A response has already been sent.");
             }
-
-            // Create a new ticket containing an empty identity and
-            // the authentication properties extracted from the challenge.
-            var ticket = new AuthenticationTicket(
-                new ClaimsPrincipal(new ClaimsIdentity()),
-                properties, Scheme.Name);
 
             // Prepare a new OpenID Connect response.
             response = new OpenIdConnectResponse
@@ -515,14 +623,34 @@ namespace AspNet.Security.OpenIdConnect.Server
                     "The token request was rejected by the authorization server.";
             }
 
-            Logger.LogTrace("A challenge operation was triggered: {Properties}.", properties);
+            Logger.LogTrace("A challenge operation was triggered: {Properties}.", ticket.Properties.Items);
+
+            var notification = new ProcessChallengeResponseContext(Context, Scheme, Options, ticket, request, response);
+            await Provider.ProcessChallengeResponse(notification);
+
+            if (notification.Result != null)
+            {
+                if (notification.Result.Handled)
+                {
+                    Logger.LogDebug("The challenge response was handled in user code.");
+
+                    return true;
+                }
+
+                else if (notification.Result.Skipped)
+                {
+                    Logger.LogDebug("The default challenge handling was skipped from user code.");
+
+                    return false;
+                }
+            }
 
             if (request.IsAuthorizationRequest())
             {
-                return SendAuthorizationResponseAsync(response, ticket);
+                return await SendAuthorizationResponseAsync(response, ticket);
             }
 
-            return SendTokenResponseAsync(response, ticket);
+            return await SendTokenResponseAsync(response, ticket);
         }
 
         private async Task<bool> SendNativePageAsync(OpenIdConnectResponse response)
