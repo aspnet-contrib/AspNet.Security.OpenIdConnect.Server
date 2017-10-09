@@ -356,6 +356,69 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
             Assert.False((bool) response[OpenIdConnectConstants.Parameters.Active]);
         }
 
+        [Theory]
+        [InlineData(OpenIdConnectConstants.TokenTypeHints.AccessToken)]
+        [InlineData(OpenIdConnectConstants.TokenTypeHints.AuthorizationCode)]
+        [InlineData(OpenIdConnectConstants.TokenTypeHints.IdToken)]
+        [InlineData(OpenIdConnectConstants.TokenTypeHints.RefreshToken)]
+        public async Task InvokeIntrospectionEndpointAsync_TokenIsNotDeserializedTwice(string hint)
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAccessToken = context =>
+                {
+                    Assert.False(context.Request.HasProperty(nameof(options.Provider.OnDeserializeAccessToken)));
+                    context.Request.AddProperty(nameof(options.Provider.OnDeserializeAccessToken), new object());
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnDeserializeAuthorizationCode = context =>
+                {
+                    Assert.False(context.Request.HasProperty(nameof(options.Provider.OnDeserializeAuthorizationCode)));
+                    context.Request.AddProperty(nameof(options.Provider.OnDeserializeAuthorizationCode), new object());
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnDeserializeIdentityToken = context =>
+                {
+                    Assert.False(context.Request.HasProperty(nameof(options.Provider.OnDeserializeIdentityToken)));
+                    context.Request.AddProperty(nameof(options.Provider.OnDeserializeIdentityToken), new object());
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnDeserializeRefreshToken = context =>
+                {
+                    Assert.False(context.Request.HasProperty(nameof(options.Provider.OnDeserializeRefreshToken)));
+                    context.Request.AddProperty(nameof(options.Provider.OnDeserializeRefreshToken), new object());
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnValidateIntrospectionRequest = context =>
+                {
+                    context.Skip();
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+            {
+                Token = "SlAV32hkKG",
+                TokenTypeHint = hint
+            });
+
+            // Assert
+            Assert.False((bool) response[OpenIdConnectConstants.Parameters.Active]);
+        }
+
         [Fact]
         public async Task InvokeIntrospectionEndpointAsync_ConfidentialTokenCausesAnErrorWhenValidationIsSkipped()
         {

@@ -327,8 +327,71 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                          "client_id was specified by the client application.", exception.Message);
         }
 
+        [Theory]
+        [InlineData(OpenIdConnectConstants.TokenTypeHints.AccessToken)]
+        [InlineData(OpenIdConnectConstants.TokenTypeHints.AuthorizationCode)]
+        [InlineData(OpenIdConnectConstants.TokenTypeHints.IdToken)]
+        [InlineData(OpenIdConnectConstants.TokenTypeHints.RefreshToken)]
+        public async Task InvokeRevocationEndpointAsync_TokenIsNotDeserializedTwice(string hint)
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAccessToken = context =>
+                {
+                    Assert.False(context.Request.HasProperty(nameof(options.Provider.OnDeserializeAccessToken)));
+                    context.Request.AddProperty(nameof(options.Provider.OnDeserializeAccessToken), new object());
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnDeserializeAuthorizationCode = context =>
+                {
+                    Assert.False(context.Request.HasProperty(nameof(options.Provider.OnDeserializeAuthorizationCode)));
+                    context.Request.AddProperty(nameof(options.Provider.OnDeserializeAuthorizationCode), new object());
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnDeserializeIdentityToken = context =>
+                {
+                    Assert.False(context.Request.HasProperty(nameof(options.Provider.OnDeserializeIdentityToken)));
+                    context.Request.AddProperty(nameof(options.Provider.OnDeserializeIdentityToken), new object());
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnDeserializeRefreshToken = context =>
+                {
+                    Assert.False(context.Request.HasProperty(nameof(options.Provider.OnDeserializeRefreshToken)));
+                    context.Request.AddProperty(nameof(options.Provider.OnDeserializeRefreshToken), new object());
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnValidateRevocationRequest = context =>
+                {
+                    context.Validate("Contoso");
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(RevocationEndpoint, new OpenIdConnectRequest
+            {
+                Token = "SlAV32hkKG",
+                TokenTypeHint = hint
+            });
+
+            // Assert
+            Assert.Empty(response.GetParameters());
+        }
+
         [Fact]
-        public async Task InvokeRevocationEndpointAsync_ValidateRevocationRequest_ConfidentialTokenCausesAnErrorWhenValidationIsSkipped()
+        public async Task InvokeRevocationEndpointAsync_ConfidentialTokenCausesAnErrorWhenValidationIsSkipped()
         {
             // Arrange
             var server = CreateAuthorizationServer(options =>
@@ -686,6 +749,90 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal("Bob le Magnifique", (string) response["name"]);
+        }
+
+        [Fact]
+        public async Task InvokeRevocationEndpointAsync_EmptyResponseIsReturnedForRevokedToken()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAuthorizationCode = context =>
+                {
+                    Assert.Equal("2YotnFZFEjr1zCsicMWpAA", context.AuthorizationCode);
+
+                    context.Ticket = new AuthenticationTicket(
+                        new ClaimsPrincipal(),
+                        new AuthenticationProperties(),
+                        context.Options.AuthenticationScheme);
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnValidateRevocationRequest = context =>
+                {
+                    context.Validate("Contoso");
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnHandleRevocationRequest = context =>
+                {
+                    context.Revoked = true;
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(RevocationEndpoint, new OpenIdConnectRequest
+            {
+                Token = "2YotnFZFEjr1zCsicMWpAA"
+            });
+
+            // Assert
+            Assert.Empty(response.GetParameters());
+        }
+
+        [Fact]
+        public async Task InvokeRevocationEndpointAsync_ErrorResponseIsReturnedForNonRevokedToken()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAuthorizationCode = context =>
+                {
+                    Assert.Equal("2YotnFZFEjr1zCsicMWpAA", context.AuthorizationCode);
+
+                    context.Ticket = new AuthenticationTicket(
+                        new ClaimsPrincipal(),
+                        new AuthenticationProperties(),
+                        context.Options.AuthenticationScheme);
+
+                    return Task.FromResult(0);
+                };
+
+                options.Provider.OnValidateRevocationRequest = context =>
+                {
+                    context.Validate("Contoso");
+
+                    return Task.FromResult(0);
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(RevocationEndpoint, new OpenIdConnectRequest
+            {
+                Token = "2YotnFZFEjr1zCsicMWpAA"
+            });
+
+            // Assert
+            Assert.Equal(OpenIdConnectConstants.Errors.UnsupportedTokenType, response.Error);
+            Assert.Equal("The specified token cannot be revoked.", response.ErrorDescription);
         }
 
         [Fact]
