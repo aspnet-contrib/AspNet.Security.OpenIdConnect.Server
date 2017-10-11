@@ -14,7 +14,7 @@ namespace AspNet.Security.OpenIdConnect.Server
     /// Represents the context class associated with the
     /// <see cref="OpenIdConnectServerProvider.ProcessSigninResponse"/> event.
     /// </summary>
-    public class ProcessSigninResponseContext : BaseControlContext
+    public class ProcessSigninResponseContext : BaseValidatingTicketContext
     {
         /// <summary>
         /// Creates a new instance of the <see cref="ProcessSigninResponseContext"/> class.
@@ -25,26 +25,14 @@ namespace AspNet.Security.OpenIdConnect.Server
             AuthenticationTicket ticket,
             OpenIdConnectRequest request,
             OpenIdConnectResponse response)
-            : base(context)
+            : base(context, options, request, ticket)
         {
-            Options = options;
-            Ticket = ticket;
-            Request = request;
+            Validate();
             Response = response;
         }
 
         /// <summary>
-        /// Gets the options used by the OpenID Connect server.
-        /// </summary>
-        public OpenIdConnectServerOptions Options { get; }
-
-        /// <summary>
-        /// Gets the authorization or token request.
-        /// </summary>
-        public new OpenIdConnectRequest Request { get; }
-
-        /// <summary>
-        /// Gets the authorization or token response.
+        /// Gets the OpenID Connect response.
         /// </summary>
         public new OpenIdConnectResponse Response { get; }
 

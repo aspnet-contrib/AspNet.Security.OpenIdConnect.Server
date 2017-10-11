@@ -5,8 +5,8 @@
  */
 
 using AspNet.Security.OpenIdConnect.Primitives;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Authentication;
 
 namespace AspNet.Security.OpenIdConnect.Server
 {
@@ -14,7 +14,7 @@ namespace AspNet.Security.OpenIdConnect.Server
     /// Represents the context class associated with the
     /// <see cref="OpenIdConnectServerProvider.ProcessSignoutResponse"/> event.
     /// </summary>
-    public class ProcessSignoutResponseContext : BaseControlContext
+    public class ProcessSignoutResponseContext : BaseValidatingContext
     {
         /// <summary>
         /// Creates a new instance of the <see cref="ProcessSignoutResponseContext"/> class.
@@ -22,30 +22,24 @@ namespace AspNet.Security.OpenIdConnect.Server
         public ProcessSignoutResponseContext(
             HttpContext context,
             OpenIdConnectServerOptions options,
-            AuthenticationTicket ticket,
+            AuthenticationProperties properties,
             OpenIdConnectRequest request,
             OpenIdConnectResponse response)
-            : base(context)
+            : base(context, options, request)
         {
-            Options = options;
-            Ticket = ticket;
-            Request = request;
+            Validate();
+            Properties = properties;
             Response = response;
         }
 
         /// <summary>
-        /// Gets the options used by the OpenID Connect server.
-        /// </summary>
-        public OpenIdConnectServerOptions Options { get; }
-
-        /// <summary>
-        /// Gets the logout request.
-        /// </summary>
-        public new OpenIdConnectRequest Request { get; }
-
-        /// <summary>
-        /// Gets the logout response.
+        /// Gets the OpenID Connect response.
         /// </summary>
         public new OpenIdConnectResponse Response { get; }
+
+        /// <summary>
+        /// Gets or sets the authentication properties.
+        /// </summary>
+        public AuthenticationProperties Properties { get; set; }
     }
 }

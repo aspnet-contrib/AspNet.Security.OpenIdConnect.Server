@@ -7,7 +7,6 @@
 using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
-using Microsoft.Owin.Security.Notifications;
 
 namespace Owin.Security.OpenIdConnect.Server
 {
@@ -15,7 +14,7 @@ namespace Owin.Security.OpenIdConnect.Server
     /// Represents the context class associated with the
     /// <see cref="OpenIdConnectServerProvider.ProcessSigninResponse"/> event.
     /// </summary>
-    public class ProcessSigninResponseContext : BaseNotification<OpenIdConnectServerOptions>
+    public class ProcessSigninResponseContext : BaseValidatingTicketContext
     {
         /// <summary>
         /// Creates a new instance of the <see cref="ProcessSigninResponseContext"/> class.
@@ -26,27 +25,16 @@ namespace Owin.Security.OpenIdConnect.Server
             AuthenticationTicket ticket,
             OpenIdConnectRequest request,
             OpenIdConnectResponse response)
-            : base(context, options)
+            : base(context, options, request, ticket)
         {
-            Ticket = ticket;
-            Request = request;
+            Validate();
             Response = response;
         }
 
         /// <summary>
-        /// Gets the authorization or token request.
-        /// </summary>
-        public new OpenIdConnectRequest Request { get; }
-
-        /// <summary>
-        /// Gets the authorization or token response.
+        /// Gets the OpenID Connect response.
         /// </summary>
         public new OpenIdConnectResponse Response { get; }
-
-        /// <summary>
-        /// Gets the authentication ticket.
-        /// </summary>
-        public AuthenticationTicket Ticket { get; }
 
         /// <summary>
         /// Gets or sets a boolean indicating whether an access token
