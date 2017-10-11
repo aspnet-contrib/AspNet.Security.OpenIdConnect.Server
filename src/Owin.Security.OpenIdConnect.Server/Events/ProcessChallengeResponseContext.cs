@@ -7,7 +7,6 @@
 using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
-using Microsoft.Owin.Security.Notifications;
 
 namespace Owin.Security.OpenIdConnect.Server
 {
@@ -15,7 +14,7 @@ namespace Owin.Security.OpenIdConnect.Server
     /// Represents the context class associated with the
     /// <see cref="OpenIdConnectServerProvider.ProcessChallengeResponse"/> event.
     /// </summary>
-    public class ProcessChallengeResponseContext : BaseNotification<OpenIdConnectServerOptions>
+    public class ProcessChallengeResponseContext : BaseValidatingContext
     {
         /// <summary>
         /// Creates a new instance of the <see cref="ProcessChallengeResponseContext"/> class.
@@ -23,29 +22,24 @@ namespace Owin.Security.OpenIdConnect.Server
         public ProcessChallengeResponseContext(
             IOwinContext context,
             OpenIdConnectServerOptions options,
-            AuthenticationTicket ticket,
+            AuthenticationProperties properties,
             OpenIdConnectRequest request,
             OpenIdConnectResponse response)
-            : base(context, options)
+            : base(context, options, request)
         {
-            Ticket = ticket;
-            Request = request;
+            Validate();
+            Properties = properties;
             Response = response;
         }
 
         /// <summary>
-        /// Gets the authorization or token request.
-        /// </summary>
-        public new OpenIdConnectRequest Request { get; }
-
-        /// <summary>
-        /// Gets the authorization or token response.
+        /// Gets the OpenID Connect response.
         /// </summary>
         public new OpenIdConnectResponse Response { get; }
 
         /// <summary>
-        /// Gets the authentication ticket.
+        /// Gets or sets the authentication properties.
         /// </summary>
-        public AuthenticationTicket Ticket { get; }
+        public AuthenticationProperties Properties { get; set; }
     }
 }

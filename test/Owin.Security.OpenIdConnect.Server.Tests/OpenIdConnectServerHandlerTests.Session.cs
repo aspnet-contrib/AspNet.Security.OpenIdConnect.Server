@@ -322,8 +322,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                 options.Provider.OnHandleLogoutRequest = context =>
                 {
-                    context.OwinContext.Authentication.SignOut(
-                        OpenIdConnectServerDefaults.AuthenticationType);
+                    context.OwinContext.Authentication.SignOut(context.Options.AuthenticationType);
                     context.HandleResponse();
 
                     return Task.CompletedTask;
@@ -366,8 +365,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
 
                 options.Provider.OnHandleLogoutRequest = context =>
                 {
-                    context.OwinContext.Authentication.SignOut(
-                        OpenIdConnectServerDefaults.AuthenticationType);
+                    context.OwinContext.Authentication.SignOut(context.Options.AuthenticationType);
                     context.HandleResponse();
 
                     return Task.CompletedTask;

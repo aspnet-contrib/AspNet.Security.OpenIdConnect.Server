@@ -14,7 +14,7 @@ namespace AspNet.Security.OpenIdConnect.Server
     /// Represents the context class associated with the
     /// <see cref="OpenIdConnectServerProvider.ProcessChallengeResponse"/> event.
     /// </summary>
-    public class ProcessChallengeResponseContext : HandleRequestContext<OpenIdConnectServerOptions>
+    public class ProcessChallengeResponseContext : BaseValidatingContext
     {
         /// <summary>
         /// Creates a new instance of the <see cref="ProcessChallengeResponseContext"/> class.
@@ -23,29 +23,24 @@ namespace AspNet.Security.OpenIdConnect.Server
             HttpContext context,
             AuthenticationScheme scheme,
             OpenIdConnectServerOptions options,
-            AuthenticationTicket ticket,
+            AuthenticationProperties properties,
             OpenIdConnectRequest request,
             OpenIdConnectResponse response)
-            : base(context, scheme, options)
+            : base(context, scheme, options, request)
         {
-            Ticket = ticket;
-            Request = request;
+            Validate();
+            Properties = properties;
             Response = response;
         }
 
         /// <summary>
-        /// Gets the authorization or token request.
-        /// </summary>
-        public new OpenIdConnectRequest Request { get; }
-
-        /// <summary>
-        /// Gets the authorization or token response.
+        /// Gets the OpenID Connect response.
         /// </summary>
         public new OpenIdConnectResponse Response { get; }
 
         /// <summary>
-        /// Gets the authentication ticket.
+        /// Gets or sets the authentication properties.
         /// </summary>
-        public AuthenticationTicket Ticket { get; }
+        public AuthenticationProperties Properties { get; set; }
     }
 }

@@ -405,6 +405,30 @@ namespace Owin.Security.OpenIdConnect.Server
                 return false;
             }
 
+            else if (notification.IsRejected)
+            {
+                Logger.LogError("The request was rejected with the following error: {Error} ; {Description}",
+                                /* Error: */ notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                                /* Description: */ notification.ErrorDescription);
+
+                if (request.IsAuthorizationRequest())
+                {
+                    return await SendAuthorizationResponseAsync(new OpenIdConnectResponse
+                    {
+                        Error = notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                        ErrorDescription = notification.ErrorDescription,
+                        ErrorUri = notification.ErrorUri
+                    });
+                }
+
+                return await SendTokenResponseAsync(new OpenIdConnectResponse
+                {
+                    Error = notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = notification.ErrorDescription,
+                    ErrorUri = notification.ErrorUri
+                });
+            }
+
             // Flow the changes made to the ticket.
             ticket = notification.Ticket;
 
@@ -528,15 +552,9 @@ namespace Owin.Security.OpenIdConnect.Server
         }
 
         private Task<bool> HandleLogoutAsync(AuthenticationResponseRevoke context)
-        {
-            // Create a new ticket containing an empty identity and
-            // the authentication properties extracted from the challenge.
-            var ticket = new AuthenticationTicket(new ClaimsIdentity(), context.Properties);
+            => HandleLogoutAsync(context.Properties);
 
-            return HandleLogoutAsync(ticket);
-        }
-
-        private async Task<bool> HandleLogoutAsync(AuthenticationTicket ticket)
+        private async Task<bool> HandleLogoutAsync(AuthenticationProperties properties)
         {
             // Extract the OpenID Connect request from the OWIN/Katana context.
             // If it cannot be found or doesn't correspond to a logout request,
@@ -554,12 +572,12 @@ namespace Owin.Security.OpenIdConnect.Server
                 throw new InvalidOperationException("A response has already been sent.");
             }
 
-            Logger.LogTrace("A log-out operation was triggered: {Properties}.", ticket.Properties.Dictionary);
+            Logger.LogTrace("A log-out operation was triggered: {Properties}.", properties.Dictionary);
 
             // Prepare a new OpenID Connect response.
             response = new OpenIdConnectResponse();
 
-            var notification = new ProcessSignoutResponseContext(Context, Options, ticket, request, response);
+            var notification = new ProcessSignoutResponseContext(Context, Options, properties, request, response);
             await Options.Provider.ProcessSignoutResponse(notification);
 
             if (notification.HandledResponse)
@@ -576,19 +594,27 @@ namespace Owin.Security.OpenIdConnect.Server
                 return false;
             }
 
+            else if (notification.IsRejected)
+            {
+                Logger.LogError("The request was rejected with the following error: {Error} ; {Description}",
+                                /* Error: */ notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                                /* Description: */ notification.ErrorDescription);
+
+                return await SendLogoutResponseAsync(new OpenIdConnectResponse
+                {
+                    Error = notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = notification.ErrorDescription,
+                    ErrorUri = notification.ErrorUri
+                });
+            }
+
             return await SendLogoutResponseAsync(response);
         }
 
         private Task<bool> HandleChallengeAsync(AuthenticationResponseChallenge context)
-        {
-            // Create a new ticket containing an empty identity and
-            // the authentication properties extracted from the challenge.
-            var ticket = new AuthenticationTicket(new ClaimsIdentity(), context.Properties);
+            => HandleChallengeAsync(context.Properties);
 
-            return HandleChallengeAsync(ticket);
-        }
-
-        private async Task<bool> HandleChallengeAsync(AuthenticationTicket ticket)
+        private async Task<bool> HandleChallengeAsync(AuthenticationProperties properties)
         {
             // Extract the OpenID Connect request from the OWIN/Katana context.
             // If it cannot be found or doesn't correspond to an authorization
@@ -609,15 +635,15 @@ namespace Owin.Security.OpenIdConnect.Server
             // Prepare a new OpenID Connect response.
             response = new OpenIdConnectResponse
             {
-                Error = ticket.GetProperty(OpenIdConnectConstants.Properties.Error),
-                ErrorDescription = ticket.GetProperty(OpenIdConnectConstants.Properties.ErrorDescription),
-                ErrorUri = ticket.GetProperty(OpenIdConnectConstants.Properties.ErrorUri)
+                Error = properties.GetProperty(OpenIdConnectConstants.Properties.Error),
+                ErrorDescription = properties.GetProperty(OpenIdConnectConstants.Properties.ErrorDescription),
+                ErrorUri = properties.GetProperty(OpenIdConnectConstants.Properties.ErrorUri)
             };
 
             // Remove the error/error_description/error_uri properties from the ticket.
-            ticket.RemoveProperty(OpenIdConnectConstants.Properties.Error)
-                  .RemoveProperty(OpenIdConnectConstants.Properties.ErrorDescription)
-                  .RemoveProperty(OpenIdConnectConstants.Properties.ErrorUri);
+            properties.RemoveProperty(OpenIdConnectConstants.Properties.Error)
+                      .RemoveProperty(OpenIdConnectConstants.Properties.ErrorDescription)
+                      .RemoveProperty(OpenIdConnectConstants.Properties.ErrorUri);
 
             if (string.IsNullOrEmpty(response.Error))
             {
@@ -633,9 +659,9 @@ namespace Owin.Security.OpenIdConnect.Server
                     "The token request was rejected by the authorization server.";
             }
 
-            Logger.LogTrace("A challenge operation was triggered: {Properties}.", ticket.Properties.Dictionary);
+            Logger.LogTrace("A challenge operation was triggered: {Properties}.", properties.Dictionary);
 
-            var notification = new ProcessChallengeResponseContext(Context, Options, ticket, request, response);
+            var notification = new ProcessChallengeResponseContext(Context, Options, properties, request, response);
             await Options.Provider.ProcessChallengeResponse(notification);
 
             if (notification.HandledResponse)
@@ -651,6 +677,37 @@ namespace Owin.Security.OpenIdConnect.Server
 
                 return false;
             }
+
+            else if (notification.IsRejected)
+            {
+                Logger.LogError("The request was rejected with the following error: {Error} ; {Description}",
+                                /* Error: */ notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                                /* Description: */ notification.ErrorDescription);
+
+                if (request.IsAuthorizationRequest())
+                {
+                    return await SendAuthorizationResponseAsync(new OpenIdConnectResponse
+                    {
+                        Error = notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                        ErrorDescription = notification.ErrorDescription,
+                        ErrorUri = notification.ErrorUri
+                    });
+                }
+
+                return await SendTokenResponseAsync(new OpenIdConnectResponse
+                {
+                    Error = notification.Error ?? OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = notification.ErrorDescription,
+                    ErrorUri = notification.ErrorUri
+                });
+            }
+
+            // Flow the changes made to the properties.
+            properties = notification.Properties;
+
+            // Create a new ticket containing an empty identity and
+            // the authentication properties extracted from the context.
+            var ticket = new AuthenticationTicket(new ClaimsIdentity(), properties);
 
             if (request.IsAuthorizationRequest())
             {
