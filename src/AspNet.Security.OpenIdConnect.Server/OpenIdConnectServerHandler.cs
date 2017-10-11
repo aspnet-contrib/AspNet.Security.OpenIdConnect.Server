@@ -556,7 +556,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             response = new OpenIdConnectResponse();
 
             var notification = new ProcessSignoutResponseContext(Context, Scheme, Options, properties, request, response);
-            await Options.Provider.ProcessSignoutResponse(notification);
+            await Provider.ProcessSignoutResponse(notification);
 
             if (notification.Result != null)
             {
@@ -646,7 +646,7 @@ namespace AspNet.Security.OpenIdConnect.Server
             Logger.LogTrace("A challenge operation was triggered: {Properties}.", properties.Items);
 
             var notification = new ProcessChallengeResponseContext(Context, Scheme, Options, properties, request, response);
-            await Options.Provider.ProcessChallengeResponse(notification);
+            await Provider.ProcessChallengeResponse(notification);
 
             if (notification.Result != null)
             {
