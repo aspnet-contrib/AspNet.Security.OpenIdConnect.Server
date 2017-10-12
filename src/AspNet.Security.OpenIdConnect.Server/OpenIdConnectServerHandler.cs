@@ -721,7 +721,7 @@ namespace AspNet.Security.OpenIdConnect.Server
 
                 Response.Headers[HeaderNames.CacheControl] = "no-cache";
                 Response.Headers[HeaderNames.Pragma] = "no-cache";
-                Response.Headers[HeaderNames.Expires] = "-1";
+                Response.Headers[HeaderNames.Expires] = "Thu, 01 Jan 1970 00:00:00 GMT";
 
                 buffer.Seek(offset: 0, loc: SeekOrigin.Begin);
                 await buffer.CopyToAsync(Response.Body, 4096, Context.RequestAborted);
@@ -764,7 +764,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                     default:
                         Response.Headers[HeaderNames.CacheControl] = "no-cache";
                         Response.Headers[HeaderNames.Pragma] = "no-cache";
-                        Response.Headers[HeaderNames.Expires] = "-1";
+                        Response.Headers[HeaderNames.Expires] = "Thu, 01 Jan 1970 00:00:00 GMT";
 
                         break;
                 }

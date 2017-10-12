@@ -747,7 +747,7 @@ namespace Owin.Security.OpenIdConnect.Server
 
                 Response.Headers.Set("Cache-Control", "no-cache");
                 Response.Headers.Set("Pragma", "no-cache");
-                Response.Headers.Set("Expires", "-1");
+                Response.Headers.Set("Expires", "Thu, 01 Jan 1970 00:00:00 GMT");
 
                 buffer.Seek(offset: 0, loc: SeekOrigin.Begin);
                 await buffer.CopyToAsync(Response.Body, 4096, Request.CallCancelled);
@@ -790,7 +790,7 @@ namespace Owin.Security.OpenIdConnect.Server
                     default:
                         Response.Headers["Cache-Control"] = "no-cache";
                         Response.Headers["Pragma"] = "no-cache";
-                        Response.Headers["Expires"] = "-1";
+                        Response.Headers["Expires"] = "Thu, 01 Jan 1970 00:00:00 GMT";
 
                         break;
                 }
