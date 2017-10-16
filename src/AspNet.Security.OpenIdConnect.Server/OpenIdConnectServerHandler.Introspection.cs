@@ -225,10 +225,42 @@ namespace AspNet.Security.OpenIdConnect.Server
             // See https://tools.ietf.org/html/rfc7662#section-2.1
             if (ticket == null)
             {
-                ticket = await DeserializeAccessTokenAsync(request.Token, request) ??
-                         await DeserializeAuthorizationCodeAsync(request.Token, request) ??
-                         await DeserializeIdentityTokenAsync(request.Token, request) ??
-                         await DeserializeRefreshTokenAsync(request.Token, request);
+                // To avoid calling the same deserialization methods twice,
+                // an additional check is made to exclude the corresponding
+                // method when an explicit token_type_hint was specified.
+                switch (request.TokenTypeHint)
+                {
+                    case OpenIdConnectConstants.TokenTypeHints.AccessToken:
+                        ticket = await DeserializeAuthorizationCodeAsync(request.Token, request) ??
+                                 await DeserializeIdentityTokenAsync(request.Token, request) ??
+                                 await DeserializeRefreshTokenAsync(request.Token, request);
+                        break;
+
+                    case OpenIdConnectConstants.TokenTypeHints.AuthorizationCode:
+                        ticket = await DeserializeAccessTokenAsync(request.Token, request) ??
+                                 await DeserializeIdentityTokenAsync(request.Token, request) ??
+                                 await DeserializeRefreshTokenAsync(request.Token, request);
+                        break;
+
+                    case OpenIdConnectConstants.TokenTypeHints.IdToken:
+                        ticket = await DeserializeAccessTokenAsync(request.Token, request) ??
+                                 await DeserializeAuthorizationCodeAsync(request.Token, request) ??
+                                 await DeserializeRefreshTokenAsync(request.Token, request);
+                        break;
+
+                    case OpenIdConnectConstants.TokenTypeHints.RefreshToken:
+                        ticket = await DeserializeAccessTokenAsync(request.Token, request) ??
+                                 await DeserializeAuthorizationCodeAsync(request.Token, request) ??
+                                 await DeserializeIdentityTokenAsync(request.Token, request);
+                        break;
+
+                    default:
+                        ticket = await DeserializeAccessTokenAsync(request.Token, request) ??
+                                 await DeserializeAuthorizationCodeAsync(request.Token, request) ??
+                                 await DeserializeIdentityTokenAsync(request.Token, request) ??
+                                 await DeserializeRefreshTokenAsync(request.Token, request);
+                        break;
+                }
             }
 
             if (ticket == null)

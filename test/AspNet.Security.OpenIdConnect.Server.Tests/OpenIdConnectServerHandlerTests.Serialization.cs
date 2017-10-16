@@ -2312,6 +2312,44 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
+        public async Task DeserializeAuthorizationCodeAsync_AllowsReturningNullTicket()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAuthorizationCode = context =>
+                {
+                    // Assert
+                    Assert.Equal("authorization_code", context.AuthorizationCode);
+
+                    context.Ticket = null;
+                    context.HandleDeserialization();
+
+                    return Task.CompletedTask;
+                };
+
+                options.Provider.OnValidateIntrospectionRequest = context =>
+                {
+                    context.Skip();
+
+                    return Task.CompletedTask;
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+            {
+                Token = "authorization_code",
+                TokenTypeHint = OpenIdConnectConstants.TokenTypeHints.AuthorizationCode
+            });
+
+            // Assert
+            Assert.False((bool) response[OpenIdConnectConstants.Claims.Active]);
+        }
+
+        [Fact]
         public async Task DeserializeAuthorizationCodeAsync_ThrowsAnExceptionForNullDataFormat()
         {
             // Arrange
@@ -2427,6 +2465,44 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.True((bool) response[OpenIdConnectConstants.Claims.Active]);
+        }
+
+        [Fact]
+        public async Task DeserializeAccessTokenAsync_AllowsReturningNullTicket()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeAccessToken = context =>
+                {
+                    // Assert
+                    Assert.Equal("access_token", context.AccessToken);
+
+                    context.Ticket = null;
+                    context.HandleDeserialization();
+
+                    return Task.CompletedTask;
+                };
+
+                options.Provider.OnValidateIntrospectionRequest = context =>
+                {
+                    context.Skip();
+
+                    return Task.CompletedTask;
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+            {
+                Token = "access_token",
+                TokenTypeHint = OpenIdConnectConstants.TokenTypeHints.AccessToken
+            });
+
+            // Assert
+            Assert.False((bool) response[OpenIdConnectConstants.Claims.Active]);
         }
 
         [Fact]
@@ -2715,6 +2791,44 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.True((bool) response[OpenIdConnectConstants.Claims.Active]);
+        }
+
+        [Fact]
+        public async Task DeserializeIdentityTokenAsync_AllowsReturningNullTicket()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeIdentityToken = context =>
+                {
+                    // Assert
+                    Assert.Equal("id_token", context.IdentityToken);
+
+                    context.Ticket = null;
+                    context.HandleDeserialization();
+
+                    return Task.CompletedTask;
+                };
+
+                options.Provider.OnValidateIntrospectionRequest = context =>
+                {
+                    context.Skip();
+
+                    return Task.CompletedTask;
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+            {
+                Token = "id_token",
+                TokenTypeHint = OpenIdConnectConstants.TokenTypeHints.IdToken
+            });
+
+            // Assert
+            Assert.False((bool) response[OpenIdConnectConstants.Claims.Active]);
         }
 
         [Fact]
@@ -3017,6 +3131,44 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.True((bool) response[OpenIdConnectConstants.Claims.Active]);
+        }
+
+        [Fact]
+        public async Task DeserializeRefreshTokenAsync_AllowsReturningNullTicket()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.Provider.OnDeserializeRefreshToken = context =>
+                {
+                    // Assert
+                    Assert.Equal("refresh_token", context.RefreshToken);
+
+                    context.Ticket = null;
+                    context.HandleDeserialization();
+
+                    return Task.CompletedTask;
+                };
+
+                options.Provider.OnValidateIntrospectionRequest = context =>
+                {
+                    context.Skip();
+
+                    return Task.CompletedTask;
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(IntrospectionEndpoint, new OpenIdConnectRequest
+            {
+                Token = "refresh_token",
+                TokenTypeHint = OpenIdConnectConstants.TokenTypeHints.RefreshToken
+            });
+
+            // Assert
+            Assert.False((bool) response[OpenIdConnectConstants.Claims.Active]);
         }
 
         [Fact]
