@@ -427,7 +427,7 @@ namespace Owin.Security.OpenIdConnect.Server
                 notification.ResponseMode =
                     request.IsFormPostResponseMode() ? OpenIdConnectConstants.ResponseModes.FormPost :
                     request.IsFragmentResponseMode() ? OpenIdConnectConstants.ResponseModes.Fragment :
-                    request.IsQueryResponseMode() ? OpenIdConnectConstants.ResponseModes.Query : null;
+                    request.IsQueryResponseMode()    ? OpenIdConnectConstants.ResponseModes.Query    : null;
             }
 
             await Options.Provider.ApplyAuthorizationResponse(notification);
