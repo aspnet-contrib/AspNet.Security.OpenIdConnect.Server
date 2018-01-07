@@ -70,6 +70,17 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         }
 
         [Fact]
+        public void Equals_UsesSequenceEqualForArrays()
+        {
+            // Arrange
+            var parameter = new OpenIdConnectParameter(new[] { "Fabrikam", "Contoso" });
+
+            // Act and assert
+            Assert.True(parameter.Equals(new string[] { "Fabrikam", "Contoso" }));
+            Assert.False(parameter.Equals(new string[] { "Contoso", "Fabrikam" }));
+        }
+
+        [Fact]
         public void Equals_UsesDeepEqualsForJsonArrays()
         {
             // Arrange
@@ -77,6 +88,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
 
             // Act and assert
             Assert.True(parameter.Equals(new JArray(new[] { 0, 1, 2, 3 })));
+            Assert.False(parameter.Equals(new JArray(new[] { 3, 2, 1, 0 })));
         }
 
         [Fact]
@@ -218,13 +230,41 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         }
 
         [Fact]
-        public void GetParameter_ReturnsNullForOutOfRangeIndex()
+        public void GetParameter_ReturnsNullForOutOfRangeArrayIndex()
+        {
+            // Arrange
+            var parameter = new OpenIdConnectParameter(new[]
+            {
+                "Fabrikam",
+                "Contoso"
+            });
+
+            // Act and assert
+            Assert.Null(parameter.GetParameter(2));
+        }
+
+        [Fact]
+        public void GetParameter_ReturnsNullForArrays()
+        {
+            // Arrange
+            var parameter = new OpenIdConnectParameter(new[]
+            {
+                "Fabrikam",
+                "Contoso"
+            });
+
+            // Act and assert
+            Assert.Null(parameter.GetParameter("Fabrikam"));
+        }
+
+        [Fact]
+        public void GetParameter_ReturnsNullForOutOfRangeJsonArrayIndex()
         {
             // Arrange
             var parameter = new OpenIdConnectParameter(new JArray
             {
                 "Fabrikam",
-                "Contoso",
+                "Contoso"
             });
 
             // Act and assert
@@ -248,7 +288,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
             var parameter = new OpenIdConnectParameter(new JArray
             {
                 "Fabrikam",
-                "Contoso",
+                "Contoso"
             });
 
             // Act and assert
@@ -283,7 +323,21 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         }
 
         [Fact]
-        public void GetParameter_ReturnsExpectedParameter()
+        public void GetParameter_ReturnsExpectedNodeForArray()
+        {
+            // Arrange
+            var parameter = new OpenIdConnectParameter(new[]
+            {
+                "Fabrikam",
+                "Contoso"
+            });
+
+            // Act and assert
+            Assert.Equal("Fabrikam", (string) parameter.GetParameter(0));
+        }
+
+        [Fact]
+        public void GetParameter_ReturnsExpectedParameterForJsonObject()
         {
             // Arrange
             var parameter = new OpenIdConnectParameter(new JObject
@@ -296,13 +350,13 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         }
 
         [Fact]
-        public void GetParameter_ReturnsExpectedNode()
+        public void GetParameter_ReturnsExpectedNodeForJsonArray()
         {
             // Arrange
             var parameter = new OpenIdConnectParameter(new JArray
             {
                 "Fabrikam",
-                "Contoso",
+                "Contoso"
             });
 
             // Act and assert
@@ -317,6 +371,23 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
 
             // Act and assert
             Assert.Empty(parameter.GetParameters());
+        }
+
+        [Fact]
+        public void GetParameters_ReturnsExpectedParametersForArrays()
+        {
+            // Arrange
+            var parameters = new[]
+            {
+                "Fabrikam",
+                "Contoso"
+            };
+
+            var parameter = new OpenIdConnectParameter(parameters);
+
+            // Act and assert
+            Assert.Equal(parameters, from element in parameter.GetParameters()
+                                     select (string) element.Value);
         }
 
         [Fact]
@@ -336,7 +407,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
             var parameters = new[]
             {
                 "Fabrikam",
-                "Contoso",
+                "Contoso"
             };
 
             var parameter = new OpenIdConnectParameter(new JArray(parameters));
@@ -353,7 +424,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
             var parameters = new[]
             {
                 "Fabrikam",
-                "Contoso",
+                "Contoso"
             };
 
             var parameter = new OpenIdConnectParameter(new JArray(parameters));
@@ -385,6 +456,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
             Assert.True(OpenIdConnectParameter.IsNullOrEmpty(new OpenIdConnectParameter((bool?) null)));
             Assert.True(OpenIdConnectParameter.IsNullOrEmpty(new OpenIdConnectParameter((long?) null)));
             Assert.True(OpenIdConnectParameter.IsNullOrEmpty(new OpenIdConnectParameter((string) null)));
+            Assert.True(OpenIdConnectParameter.IsNullOrEmpty(new OpenIdConnectParameter((string[]) null)));
             Assert.True(OpenIdConnectParameter.IsNullOrEmpty(new OpenIdConnectParameter((JArray) null)));
             Assert.True(OpenIdConnectParameter.IsNullOrEmpty(new OpenIdConnectParameter((JObject) null)));
             Assert.True(OpenIdConnectParameter.IsNullOrEmpty(new OpenIdConnectParameter((JValue) null)));
@@ -395,6 +467,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         {
             // Arrange, act and assert
             Assert.True(OpenIdConnectParameter.IsNullOrEmpty(new OpenIdConnectParameter(string.Empty)));
+            Assert.True(OpenIdConnectParameter.IsNullOrEmpty(new OpenIdConnectParameter(new string[0])));
             Assert.True(OpenIdConnectParameter.IsNullOrEmpty(new OpenIdConnectParameter(new JArray())));
             Assert.True(OpenIdConnectParameter.IsNullOrEmpty(new OpenIdConnectParameter(new JObject())));
             Assert.True(OpenIdConnectParameter.IsNullOrEmpty(new OpenIdConnectParameter(new JValue(string.Empty))));
@@ -409,6 +482,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
             Assert.False(OpenIdConnectParameter.IsNullOrEmpty(new OpenIdConnectParameter(42)));
             Assert.False(OpenIdConnectParameter.IsNullOrEmpty(new OpenIdConnectParameter((long?) 42)));
             Assert.False(OpenIdConnectParameter.IsNullOrEmpty(new OpenIdConnectParameter("Fabrikam")));
+            Assert.False(OpenIdConnectParameter.IsNullOrEmpty(new OpenIdConnectParameter(new[] { "Fabrikam" })));
             Assert.False(OpenIdConnectParameter.IsNullOrEmpty(new OpenIdConnectParameter(new JArray("Fabrikam"))));
             Assert.False(OpenIdConnectParameter.IsNullOrEmpty(new OpenIdConnectParameter(new JObject { ["property"] = "value" })));
             Assert.False(OpenIdConnectParameter.IsNullOrEmpty(new OpenIdConnectParameter(new JValue("Fabrikam"))));
@@ -432,6 +506,20 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
 
             // Act and assert
             Assert.Equal("Fabrikam", parameter.ToString());
+        }
+
+        [Fact]
+        public void ToString_ReturnsSimpleRepresentationForArrays()
+        {
+            // Arrange
+            var parameter = new OpenIdConnectParameter(new[]
+            {
+                "Fabrikam",
+                "Contoso"
+            });
+
+            // Act and assert
+            Assert.Equal("Fabrikam, Contoso", parameter.ToString());
         }
 
         [Fact]
@@ -494,10 +582,15 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         {
             // Arrange, act and assert
             Assert.False((bool) new OpenIdConnectParameter("Fabrikam"));
-            Assert.False((bool) (OpenIdConnectParameter?) null);
-
             Assert.Null((bool?) new OpenIdConnectParameter("Fabrikam"));
-            Assert.Null((bool?) (OpenIdConnectParameter?) null);
+        }
+
+        [Fact]
+        public void BoolConverter_ReturnsDefaultValueForUnsupportedArrays()
+        {
+            // Arrange, act and assert
+            Assert.False((bool) new OpenIdConnectParameter(new[] { "Fabrikam", "Contoso" }));
+            Assert.Null((bool?) new OpenIdConnectParameter(new[] { "Fabrikam", "Contoso" }));
         }
 
         [Fact]
@@ -505,10 +598,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         {
             // Arrange, act and assert
             Assert.False((bool) new OpenIdConnectParameter(new JArray()));
-            Assert.False((bool) (OpenIdConnectParameter?) null);
-
             Assert.Null((bool?) new OpenIdConnectParameter(new JArray()));
-            Assert.Null((bool?) (OpenIdConnectParameter?) null);
         }
 
         [Fact]
@@ -567,7 +657,6 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         {
             // Arrange, act and assert
             Assert.Null((JArray) new OpenIdConnectParameter("Fabrikam"));
-            Assert.Null((JArray) (OpenIdConnectParameter?) null);
         }
 
         [Fact]
@@ -575,7 +664,6 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         {
             // Arrange, act and assert
             Assert.Null((JArray) new OpenIdConnectParameter(new JObject()));
-            Assert.Null((JArray) (OpenIdConnectParameter?) null);
         }
 
         [Fact]
@@ -598,6 +686,13 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         {
             // Arrange, act and assert
             Assert.Equal(new JArray("Contoso", "Fabrikam"), (JArray) new OpenIdConnectParameter(@"[""Contoso"",""Fabrikam""]"));
+        }
+
+        [Fact]
+        public void JArrayConverter_CanConvertFromArrays()
+        {
+            // Arrange, act and assert
+            Assert.Equal(new JArray("Contoso", "Fabrikam"), (JArray) new OpenIdConnectParameter(new[] { "Contoso", "Fabrikam" }));
         }
 
         [Fact]
@@ -626,7 +721,13 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         {
             // Arrange, act and assert
             Assert.Null((JObject) new OpenIdConnectParameter("Fabrikam"));
-            Assert.Null((JObject) (OpenIdConnectParameter?) null);
+        }
+
+        [Fact]
+        public void JObjectConverter_ReturnsDefaultValueForUnsupportedArrays()
+        {
+            // Arrange, act and assert
+            Assert.Null((JObject) new OpenIdConnectParameter(new[] { "Fabrikam", "Contoso" }));
         }
 
         [Fact]
@@ -634,7 +735,6 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         {
             // Arrange, act and assert
             Assert.Null((JObject) new OpenIdConnectParameter(new JArray()));
-            Assert.Null((JObject) (OpenIdConnectParameter?) null);
         }
 
         [Fact]
@@ -685,7 +785,6 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         {
             // Arrange, act and assert
             Assert.Null((JValue) new OpenIdConnectParameter(new JArray()));
-            Assert.Null((JValue) (OpenIdConnectParameter?) null);
         }
 
         [Fact]
@@ -710,10 +809,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         {
             // Arrange, act and assert
             Assert.Equal(0, (long) new OpenIdConnectParameter());
-            Assert.Equal(0, (long) (OpenIdConnectParameter?) null);
-
             Assert.Null((long?) new OpenIdConnectParameter());
-            Assert.Null((long?) (OpenIdConnectParameter?) null);
         }
 
         [Fact]
@@ -721,10 +817,15 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         {
             // Arrange, act and assert
             Assert.Equal(0, (long) new OpenIdConnectParameter("Fabrikam"));
-            Assert.Equal(0, (long) (OpenIdConnectParameter?) null);
-
             Assert.Null((long?) new OpenIdConnectParameter("Fabrikam"));
-            Assert.Null((long?) (OpenIdConnectParameter?) null);
+        }
+
+        [Fact]
+        public void LongConverter_ReturnsDefaultValueForUnsupportedArrays()
+        {
+            // Arrange, act and assert
+            Assert.Equal(0, (long) new OpenIdConnectParameter(new[] { "Fabrikam", "Contoso" }));
+            Assert.Null((long?) new OpenIdConnectParameter(new[] { "Fabrikam", "Contoso" }));
         }
 
         [Fact]
@@ -732,10 +833,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         {
             // Arrange, act and assert
             Assert.Equal(0, (long) new OpenIdConnectParameter(new JArray()));
-            Assert.Equal(0, (long) (OpenIdConnectParameter?) null);
-
             Assert.Null((long?) new OpenIdConnectParameter(new JArray()));
-            Assert.Null((long?) (OpenIdConnectParameter?) null);
         }
 
         [Fact]
@@ -782,11 +880,17 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         }
 
         [Fact]
+        public void StringConverter_ReturnsDefaultValueForArrays()
+        {
+            // Arrange, act and assert
+            Assert.Null((string) new OpenIdConnectParameter(new[] { "Fabrikam", "Contoso" }));
+        }
+
+        [Fact]
         public void StringConverter_ReturnsDefaultValueForUnsupportedJsonValues()
         {
             // Arrange, act and assert
             Assert.Null((string) new OpenIdConnectParameter(new JArray()));
-            Assert.Null((string) (OpenIdConnectParameter?) null);
         }
 
         [Fact]
@@ -808,10 +912,23 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         }
 
         [Fact]
+        public void StringArrayConverter_CanCreateParameterFromArray()
+        {
+            // Arrange
+            var array = new[] { "Fabrikam", "Contoso" };
+
+            // Act
+            var parameter = new OpenIdConnectParameter(array);
+
+            // Assert
+            Assert.Same(array, parameter.Value);
+        }
+
+        [Fact]
         public void StringArrayConverter_CanCreateParameterFromStringValue()
         {
             // Arrange, act and assert
-            Assert.Equal(new JArray("Fabrikam"), (JArray) new OpenIdConnectParameter(new[] { "Fabrikam" }));
+            Assert.Equal(new[] { "Fabrikam" }, (string[]) new OpenIdConnectParameter("Fabrikam"));
         }
 
         [Fact]
@@ -819,7 +936,13 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         {
             // Arrange, act and assert
             Assert.Null((string[]) new OpenIdConnectParameter());
-            Assert.Null((string[]) (OpenIdConnectParameter?) null);
+        }
+
+        [Fact]
+        public void StringArrayConverter_ReturnsSingleElementArrayForStringValue()
+        {
+            // Arrange, act and assert
+            Assert.Equal(new[] { "Fabrikam" }, (string[]) new OpenIdConnectParameter("Fabrikam"));
         }
 
         [Fact]
@@ -827,7 +950,6 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         {
             // Arrange, act and assert
             Assert.Null((string[]) new OpenIdConnectParameter(42));
-            Assert.Null((string[]) new OpenIdConnectParameter("Fabrikam"));
         }
 
         [Fact]

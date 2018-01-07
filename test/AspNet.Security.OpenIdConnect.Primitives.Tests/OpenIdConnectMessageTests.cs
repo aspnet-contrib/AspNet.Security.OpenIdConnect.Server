@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -69,6 +70,34 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
             // Assert
             Assert.Single(message.GetParameters());
             Assert.Equal("Fabrikam", message.GetParameter("parameter"));
+        }
+
+        [Fact]
+        public void Constructor_SupportsMultiValuedParameters()
+        {
+            // Arrange and act
+            var message = new OpenIdConnectMessage(new[]
+            {
+                new KeyValuePair<string, string[]>("parameter", new[] { "Fabrikam", "Contoso" })
+            });
+
+            // Assert
+            Assert.Single(message.GetParameters());
+            Assert.Equal(new[] { "Fabrikam", "Contoso" }, (string[]) message.GetParameter("parameter"));
+        }
+
+        [Fact]
+        public void Constructor_ExtractsSingleValuedParameters()
+        {
+            // Arrange and act
+            var message = new OpenIdConnectMessage(new[]
+            {
+                new KeyValuePair<string, string[]>("parameter", new[] { "Fabrikam" })
+            });
+
+            // Assert
+            Assert.Single(message.GetParameters());
+            Assert.Equal("Fabrikam", message.GetParameter("parameter")?.Value);
         }
 
         [Theory]

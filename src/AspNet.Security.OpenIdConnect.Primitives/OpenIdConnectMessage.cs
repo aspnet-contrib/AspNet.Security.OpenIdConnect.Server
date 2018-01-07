@@ -119,7 +119,16 @@ namespace AspNet.Security.OpenIdConnect.Primitives
                     continue;
                 }
 
-                AddParameter(parameter.Key, string.Join(",", parameter.Value));
+                // Note: the core OAuth2 specification requires that request parameters
+                // not be present more than once but derived specifications like the
+                // token exchange RFC deliberately allow specifying multiple resource
+                // parameters with the same name to represent a multi-valued parameter.
+                switch (parameter.Value?.Length ?? 0)
+                {
+                    case 0:  AddParameter(parameter.Key, default);            break;
+                    case 1:  AddParameter(parameter.Key, parameter.Value[0]); break;
+                    default: AddParameter(parameter.Key, parameter.Value);    break;
+                }
             }
         }
 
@@ -141,7 +150,16 @@ namespace AspNet.Security.OpenIdConnect.Primitives
                     continue;
                 }
 
-                AddParameter(parameter.Key, (string) parameter.Value);
+                // Note: the core OAuth2 specification requires that request parameters
+                // not be present more than once but derived specifications like the
+                // token exchange RFC deliberately allow specifying multiple resource
+                // parameters with the same name to represent a multi-valued parameter.
+                switch (parameter.Value.Count)
+                {
+                    case 0:  AddParameter(parameter.Key, default);                   break;
+                    case 1:  AddParameter(parameter.Key, parameter.Value[0]);        break;
+                    default: AddParameter(parameter.Key, parameter.Value.ToArray()); break;
+                }
             }
         }
 
@@ -302,7 +320,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives
                 return (T) value;
             }
 
-            return default(T);
+            return default;
         }
 
         /// <summary>

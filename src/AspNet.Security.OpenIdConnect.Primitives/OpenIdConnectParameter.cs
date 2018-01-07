@@ -6,6 +6,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -13,8 +15,8 @@ using Newtonsoft.Json.Linq;
 namespace AspNet.Security.OpenIdConnect.Primitives
 {
     /// <summary>
-    /// Represents an OpenID Connect parameter value, that can be either
-    /// a primitive value or a complex JSON representation containing child nodes.
+    /// Represents an OpenID Connect parameter value, that can be either a primitive value,
+    /// an array of strings or a complex JSON representation containing child nodes.
     /// </summary>
     public struct OpenIdConnectParameter : IEquatable<OpenIdConnectParameter>
     {
@@ -85,7 +87,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives
         /// <param name="value">The parameter value.</param>
         public OpenIdConnectParameter(string[] value)
         {
-            Value = new JArray(value);
+            Value = value;
         }
 
         /// <summary>
@@ -103,9 +105,10 @@ namespace AspNet.Security.OpenIdConnect.Primitives
         public OpenIdConnectParameter? this[string name] => GetParameter(name);
 
         /// <summary>
-        /// Gets the associated value, that can be either a primitive
-        /// CLR type (e.g bool, string, long) or a complex JSON object.
+        /// Gets the associated value, that can be either a primitive CLR type
+        /// (e.g bool, string, long), an array of strings or a complex JSON object.
         /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
         public object Value { get; }
 
         /// <summary>
@@ -127,6 +130,12 @@ namespace AspNet.Security.OpenIdConnect.Primitives
             if (Value == null || parameter.Value == null)
             {
                 return false;
+            }
+
+            // If the two parameters are string arrays, use SequenceEqual.
+            if (Value is string[] && parameter.Value is string[])
+            {
+                return ((string[]) Value).SequenceEqual((string[]) parameter.Value);
             }
 
             // If the two parameters are JSON values, use JToken.DeepEquals.
@@ -198,28 +207,39 @@ namespace AspNet.Security.OpenIdConnect.Primitives
                 throw new ArgumentOutOfRangeException(nameof(index), "The item index cannot be negative.");
             }
 
-            // If the value is not an array, return null.
-            var array = Value as JArray;
-            if (array == null)
+            if (Value is string[] array)
             {
-                return null;
+                // If the specified index goes beyond the
+                // number of items in the array, return null.
+                if (index >= array.Length)
+                {
+                    return null;
+                }
+
+                return new OpenIdConnectParameter(array[index]);
             }
 
-            // If the specified index goes beyond the
-            // number of items in the array, return null.
-            if (index >= array.Count)
+            // If the value is not a JSON array, return null.
+            if (Value is JArray token)
             {
-                return null;
+                // If the specified index goes beyond the
+                // number of items in the array, return null.
+                if (index >= token.Count)
+                {
+                    return null;
+                }
+
+                // If the item doesn't exist, return a null parameter.
+                var value = token[index];
+                if (value == null)
+                {
+                    return null;
+                }
+
+                return new OpenIdConnectParameter(value);
             }
 
-            // If the item doesn't exist, return a null parameter.
-            var value = array[index];
-            if (value == null)
-            {
-                return null;
-            }
-
-            return new OpenIdConnectParameter(value);
+            return null;
         }
 
         /// <summary>
@@ -257,6 +277,14 @@ namespace AspNet.Security.OpenIdConnect.Primitives
         /// <returns>An enumeration of all the parameters associated with the current instance.</returns>
         public IEnumerable<KeyValuePair<string, OpenIdConnectParameter>> GetParameters()
         {
+            if (Value is string[] array)
+            {
+                for (var index = 0; index < array.Length; index++)
+                {
+                    yield return new KeyValuePair<string, OpenIdConnectParameter>(null, array[index]);
+                }
+            }
+
             var token = Value as JToken;
             if (token == null)
             {
@@ -288,6 +316,11 @@ namespace AspNet.Security.OpenIdConnect.Primitives
             if (Value == null)
             {
                 return string.Empty;
+            }
+
+            if (Value is string[] array)
+            {
+                return string.Join(", ", array);
             }
 
             var token = Value as JToken;
@@ -338,7 +371,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives
         /// </summary>
         /// <param name="parameter">The parameter to convert.</param>
         /// <returns>The converted value.</returns>
-        public static explicit operator bool? (OpenIdConnectParameter? parameter) => Convert<bool?>(parameter);
+        public static explicit operator bool?(OpenIdConnectParameter? parameter) => Convert<bool?>(parameter);
 
         /// <summary>
         /// Converts an <see cref="OpenIdConnectParameter"/> instance to a <see cref="JArray"/>.
@@ -453,15 +486,10 @@ namespace AspNet.Security.OpenIdConnect.Primitives
         /// <returns>The converted parameter.</returns>
         private static T Convert<T>(OpenIdConnectParameter? parameter)
         {
-            if (parameter == null)
-            {
-                return default(T);
-            }
-
-            var value = parameter.Value.Value;
+            var value = parameter?.Value;
             if (value == null)
             {
-                return default(T);
+                return default;
             }
 
             if (value is T)
@@ -477,21 +505,34 @@ namespace AspNet.Security.OpenIdConnect.Primitives
                 if (token == null)
                 {
                     // Note: when the parameter is represented as a string, try to
-                    // deserialize it if requested type is a JArray or a JObject.
+                    // deserialize it if the requested type is a JArray or a JObject.
                     if (value is string)
                     {
+                        if (typeof(T) == typeof(string[]))
+                        {
+                            return (T) (object) new string[] { (string) value };
+                        }
+
                         if (typeof(T) == typeof(JArray))
                         {
                             return (T) (object) JArray.Parse((string) value);
                         }
 
-                        else if (typeof(T) == typeof(JObject))
+                        if (typeof(T) == typeof(JObject))
                         {
                             return (T) (object) JObject.Parse((string) value);
                         }
                     }
 
-                    token = new JValue(value);
+                    if (value is string[])
+                    {
+                        token = new JArray(value);
+                    }
+
+                    else
+                    {
+                        token = new JValue(value);
+                    }
                 }
 
                 return token.ToObject<T>();
@@ -504,7 +545,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives
                                               exception is JsonReaderException ||
                                               exception is JsonSerializationException)
             {
-                return default(T);
+                return default;
             }
 
             // Other exceptions will be automatically re-thrown.
@@ -528,16 +569,31 @@ namespace AspNet.Security.OpenIdConnect.Primitives
                 return string.IsNullOrEmpty((string) value);
             }
 
+            if (value is string[] array)
+            {
+                return array.Length == 0;
+            }
+
             var token = value as JToken;
             if (token == null)
             {
                 return false;
             }
 
-            return (token.Type == JTokenType.Array && !token.HasValues) ||
-                   (token.Type == JTokenType.Object && !token.HasValues) ||
-                   (token.Type == JTokenType.String && string.IsNullOrEmpty((string) token)) ||
-                   (token.Type == JTokenType.Null);
+            switch (token.Type)
+            {
+                case JTokenType.Array:
+                case JTokenType.Object:
+                    return !token.HasValues;
+
+                case JTokenType.String:
+                    return string.IsNullOrEmpty((string) token);
+
+                case JTokenType.Null:
+                    return true;
+
+                default: return false;
+            }
         }
     }
 }
