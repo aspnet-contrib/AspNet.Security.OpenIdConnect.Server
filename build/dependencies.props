@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <AngleSharpVersion>0.9.9</AngleSharpVersion>
-    <AspNetContribOpenIdExtensionsVersion>2.0.0-*</AspNetContribOpenIdExtensionsVersion>
+    <AspNetContribOpenIdExtensionsVersion>2.0.0-rc2-final</AspNetContribOpenIdExtensionsVersion>
     <AspNetCoreVersion>2.0.0</AspNetCoreVersion>
     <CoreFxVersion>4.4.0</CoreFxVersion>
     <IdentityModelVersion>5.2.0-preview1-408290725</IdentityModelVersion>
