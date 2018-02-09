@@ -11,6 +11,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Primitives;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
@@ -24,7 +25,7 @@ namespace AspNet.Security.OpenIdConnect.Server
         {
             // Metadata requests must be made via GET.
             // See http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationRequest
-            if (!string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase))
+            if (!HttpMethods.IsGet(Request.Method))
             {
                 Logger.LogError("The configuration request was rejected because an invalid " +
                                 "HTTP method was specified: {Method}.", Request.Method);
@@ -332,7 +333,7 @@ namespace AspNet.Security.OpenIdConnect.Server
         {
             // Metadata requests must be made via GET.
             // See http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationRequest
-            if (!string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase))
+            if (!HttpMethods.IsGet(Request.Method))
             {
                 Logger.LogError("The cryptography request was rejected because an invalid " +
                                 "HTTP method was specified: {Method}.", Request.Method);

@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Primitives;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -23,12 +24,12 @@ namespace AspNet.Security.OpenIdConnect.Server
             // Note: logout requests must be made via GET but POST requests
             // are also accepted to allow flowing large logout payloads.
             // See https://openid.net/specs/openid-connect-session-1_0.html#RPLogout
-            if (string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase))
+            if (HttpMethods.IsGet(Request.Method))
             {
                 request = new OpenIdConnectRequest(Request.Query);
             }
 
-            else if (string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase))
+            else if (HttpMethods.IsPost(Request.Method))
             {
                 // See http://openid.net/specs/openid-connect-core-1_0.html#FormSerialization
                 if (string.IsNullOrEmpty(Request.ContentType))

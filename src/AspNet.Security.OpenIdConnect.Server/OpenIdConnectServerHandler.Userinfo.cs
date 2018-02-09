@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Primitives;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
@@ -22,12 +23,12 @@ namespace AspNet.Security.OpenIdConnect.Server
         {
             OpenIdConnectRequest request;
 
-            if (string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase))
+            if (HttpMethods.IsGet(Request.Method))
             {
                 request = new OpenIdConnectRequest(Request.Query);
             }
 
-            else if (string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase))
+            else if (HttpMethods.IsPost(Request.Method))
             {
                 // Note: if no Content-Type header was specified, assume the userinfo request
                 // doesn't contain any parameter and create an empty OpenIdConnectRequest.

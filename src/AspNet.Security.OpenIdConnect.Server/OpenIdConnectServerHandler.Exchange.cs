@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
@@ -24,7 +25,7 @@ namespace AspNet.Security.OpenIdConnect.Server
     {
         private async Task<bool> InvokeTokenEndpointAsync()
         {
-            if (!string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase))
+            if (!HttpMethods.IsPost(Request.Method))
             {
                 Logger.LogError("The token request was rejected because an invalid " +
                                 "HTTP method was specified: {Method}.", Request.Method);
