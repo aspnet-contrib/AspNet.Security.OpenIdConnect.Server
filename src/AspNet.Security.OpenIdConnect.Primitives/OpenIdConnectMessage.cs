@@ -177,16 +177,16 @@ namespace AspNet.Security.OpenIdConnect.Primitives
         /// <summary>
         /// Gets the dictionary containing the parameters.
         /// </summary>
-        protected Dictionary<string, OpenIdConnectParameter> Parameters { get; } =
-            new Dictionary<string, OpenIdConnectParameter>(StringComparer.Ordinal);
+        protected Dictionary<string, OpenIdConnectParameter> Parameters { get; }
+            = new Dictionary<string, OpenIdConnectParameter>(StringComparer.Ordinal);
 
         /// <summary>
         /// Gets the dictionary containing the properties associated with this OpenID Connect message.
         /// Note: these properties are not meant to be publicly shared and shouldn't be serialized.
         /// </summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        protected Dictionary<string, object> Properties { get; } =
-            new Dictionary<string, object>(StringComparer.Ordinal);
+        protected Dictionary<string, object> Properties { get; }
+            = new Dictionary<string, object>(StringComparer.Ordinal);
 
         /// <summary>
         /// Adds a parameter.
@@ -433,9 +433,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives
                 throw new ArgumentException("The property name cannot be null or empty.", nameof(name));
             }
 
-            // If the property value is null, remove the
-            // corresponding entry from the collection.
-            if (value == null || (value is string && string.IsNullOrEmpty((string) value)))
+            // If the property value is null, remove the corresponding entry from the collection.
+            if (value == null || (value is string text && string.IsNullOrEmpty(text)))
             {
                 Properties.Remove(name);
             }

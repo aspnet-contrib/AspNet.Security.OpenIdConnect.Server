@@ -88,6 +88,8 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
 
             // Act and assert
             Assert.True(parameter.Equals(new JArray(new[] { 0, 1, 2, 3 })));
+            Assert.False(parameter.Equals(new JArray()));
+            Assert.False(parameter.Equals(new JArray(new[] { 0, 1, 2 })));
             Assert.False(parameter.Equals(new JArray(new[] { 3, 2, 1, 0 })));
         }
 
@@ -104,6 +106,18 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
             Assert.True(parameter.Equals(new JObject
             {
                 ["field"] = new JArray(new[] { 0, 1, 2, 3 })
+            }));
+
+            Assert.False(parameter.Equals(new JObject()));
+
+            Assert.False(parameter.Equals(new JObject
+            {
+                ["field"] = "value"
+            }));
+
+            Assert.False(parameter.Equals(new JObject
+            {
+                ["field"] = new JArray(new[] { 0, 1, 2 })
             }));
         }
 

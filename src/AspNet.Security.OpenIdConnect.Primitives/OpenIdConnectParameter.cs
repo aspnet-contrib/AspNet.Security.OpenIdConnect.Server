@@ -18,77 +18,56 @@ namespace AspNet.Security.OpenIdConnect.Primitives
     /// Represents an OpenID Connect parameter value, that can be either a primitive value,
     /// an array of strings or a complex JSON representation containing child nodes.
     /// </summary>
-    public struct OpenIdConnectParameter : IEquatable<OpenIdConnectParameter>
+    public readonly struct OpenIdConnectParameter : IEquatable<OpenIdConnectParameter>
     {
         /// <summary>
         /// Initializes a new OpenID Connect
         /// parameter using the specified value.
         /// </summary>
         /// <param name="value">The parameter value.</param>
-        public OpenIdConnectParameter(bool value)
-        {
-            Value = value;
-        }
+        public OpenIdConnectParameter(bool value) => Value = value;
 
         /// <summary>
         /// Initializes a new OpenID Connect
         /// parameter using the specified value.
         /// </summary>
         /// <param name="value">The parameter value.</param>
-        public OpenIdConnectParameter(bool? value)
-        {
-            Value = value;
-        }
+        public OpenIdConnectParameter(bool? value) => Value = value;
 
         /// <summary>
         /// Initializes a new OpenID Connect
         /// parameter using the specified value.
         /// </summary>
         /// <param name="value">The parameter value.</param>
-        public OpenIdConnectParameter(JToken value)
-        {
-            Value = value;
-        }
+        public OpenIdConnectParameter(JToken value) => Value = value;
 
         /// <summary>
         /// Initializes a new OpenID Connect
         /// parameter using the specified value.
         /// </summary>
         /// <param name="value">The parameter value.</param>
-        public OpenIdConnectParameter(long value)
-        {
-            Value = value;
-        }
+        public OpenIdConnectParameter(long value) => Value = value;
 
         /// <summary>
         /// Initializes a new OpenID Connect
         /// parameter using the specified value.
         /// </summary>
         /// <param name="value">The parameter value.</param>
-        public OpenIdConnectParameter(long? value)
-        {
-            Value = value;
-        }
+        public OpenIdConnectParameter(long? value) => Value = value;
 
         /// <summary>
         /// Initializes a new OpenID Connect
         /// parameter using the specified value.
         /// </summary>
         /// <param name="value">The parameter value.</param>
-        public OpenIdConnectParameter(string value)
-        {
-            Value = value;
-        }
+        public OpenIdConnectParameter(string value) => Value = value;
 
         /// <summary>
         /// Initializes a new OpenID Connect
         /// parameter using the specified value.
         /// </summary>
         /// <param name="value">The parameter value.</param>
-        public OpenIdConnectParameter(string[] value)
-        {
-            Value = value;
-        }
+        public OpenIdConnectParameter(string[] value) => Value = value;
 
         /// <summary>
         /// Gets the child item corresponding to the specified index.
@@ -119,48 +98,40 @@ namespace AspNet.Security.OpenIdConnect.Primitives
         /// <returns><c>true</c> if the two instances are equal, <c>false</c> otherwise.</returns>
         public bool Equals(OpenIdConnectParameter parameter)
         {
-            // If the two parameters reference the same instance, return true.
-            // Note: true will also be returned if the two parameters are null.
-            if (ReferenceEquals(Value, parameter.Value))
+            switch (Value)
             {
-                return true;
-            }
+                // If the two parameters reference the same instance, return true.
+                // Note: true will also be returned if the two parameters are null.
+                case var value when ReferenceEquals(value, parameter.Value):
+                    return true;
 
-            // If one of the two parameters is null, return false.
-            if (Value == null || parameter.Value == null)
-            {
-                return false;
-            }
+                // If one of the two parameters is null, return false.
+                case null:
+                case var _ when parameter.Value == null:
+                    return false;
 
-            // If the two parameters are string arrays, use SequenceEqual.
-            if (Value is string[] && parameter.Value is string[])
-            {
-                return ((string[]) Value).SequenceEqual((string[]) parameter.Value);
-            }
+                // If the two parameters are string arrays, use SequenceEqual().
+                case string[] array when parameter.Value is string[] other:
+                    return array.SequenceEqual(other);
 
-            // If the two parameters are JSON values, use JToken.DeepEquals.
-            if (Value is JToken && parameter.Value is JToken)
-            {
-                return JToken.DeepEquals((JToken) Value, ((JToken) parameter.Value));
-            }
+                // If the two parameters are JSON values, use JToken.DeepEquals().
+                case JToken token when parameter.Value is JToken other:
+                    return JToken.DeepEquals(token, other);
 
-            // If the current instance is a JValue, compare the
-            // underlying value to the other parameter value.
-            if (Value is JValue)
-            {
-                return ((JValue) Value).Value != null &&
-                       ((JValue) Value).Value.Equals(parameter.Value);
-            }
+                // If the current instance is a JValue, compare the
+                // underlying value to the other parameter value.
+                case JValue value:
+                    return value.Value != null && value.Value.Equals(parameter.Value);
 
-            // If the other parameter is a JValue, compare the
-            // underlying value to the current parameter value.
-            if (parameter.Value is JValue)
-            {
-                return ((JValue) parameter.Value).Value != null &&
-                       ((JValue) parameter.Value).Value.Equals(Value);
-            }
+                // If the other parameter is a JValue, compare the
+                // underlying value to the current parameter value.
+                case var value when parameter.Value is JValue other:
+                    return other.Value != null && other.Value.Equals(value);
 
-            return Value.Equals(parameter.Value);
+                // Otherwise, directly compare the two underlying values.
+                default:
+                    return Value.Equals(parameter.Value);
+            }
         }
 
         /// <summary>
@@ -170,30 +141,15 @@ namespace AspNet.Security.OpenIdConnect.Primitives
         /// <param name="value">The other object to which to compare this instance.</param>
         /// <returns><c>true</c> if the two instances are equal, <c>false</c> otherwise.</returns>
         public override bool Equals(object value)
-        {
-            if (value is OpenIdConnectParameter)
-            {
-                return Equals((OpenIdConnectParameter) value);
-            }
-
-            return false;
-        }
+            => value is OpenIdConnectParameter parameter && Equals(parameter);
 
         /// <summary>
         /// Returns the hash code of the current <see cref="OpenIdConnectParameter"/> instance.
         /// </summary>
         /// <returns>The hash code for the current instance.</returns>
-        public override int GetHashCode()
-        {
-            if (Value == null)
-            {
-                return 0;
-            }
-
-            // Note: if the value is a JValue, JSON.NET will automatically
-            // return the hash code corresponding to the underlying value.
-            return Value.GetHashCode();
-        }
+        // Note: if the value is a JValue, JSON.NET will automatically
+        // return the hash code corresponding to the underlying value.
+        public override int GetHashCode() => Value?.GetHashCode() ?? 0;
 
         /// <summary>
         /// Gets the child item corresponding to the specified index.
@@ -254,21 +210,19 @@ namespace AspNet.Security.OpenIdConnect.Primitives
                 throw new ArgumentException("The item name cannot be null or empty.", nameof(name));
             }
 
-            // If the parameter is not a JSON.NET object, return null.
-            var container = Value as JObject;
-            if (container == null)
+            if (Value is JObject dictionary)
             {
-                return null;
+                // If the item doesn't exist, return a null parameter.
+                var value = dictionary[name];
+                if (value == null)
+                {
+                    return null;
+                }
+
+                return new OpenIdConnectParameter(value);
             }
 
-            // If the item doesn't exist, return a null parameter.
-            var value = container[name];
-            if (value == null)
-            {
-                return null;
-            }
-
-            return new OpenIdConnectParameter(value);
+            return null;
         }
 
         /// <summary>
@@ -285,23 +239,20 @@ namespace AspNet.Security.OpenIdConnect.Primitives
                 }
             }
 
-            var token = Value as JToken;
-            if (token == null)
+            if (Value is JToken token)
             {
-                yield break;
-            }
-
-            foreach (var parameter in token.Children())
-            {
-                var property = parameter as JProperty;
-                if (property == null)
+                foreach (var parameter in token.Children())
                 {
-                    yield return new KeyValuePair<string, OpenIdConnectParameter>(null, parameter);
+                    var property = parameter as JProperty;
+                    if (property == null)
+                    {
+                        yield return new KeyValuePair<string, OpenIdConnectParameter>(null, parameter);
 
-                    continue;
+                        continue;
+                    }
+
+                    yield return new KeyValuePair<string, OpenIdConnectParameter>(property.Name, property.Value);
                 }
-
-                yield return new KeyValuePair<string, OpenIdConnectParameter>(property.Name, property.Value);
             }
 
             yield break;
@@ -313,34 +264,24 @@ namespace AspNet.Security.OpenIdConnect.Primitives
         /// <returns>The <see cref="string"/> representation associated with the parameter value.</returns>
         public override string ToString()
         {
-            if (Value == null)
+            switch (Value)
             {
-                return string.Empty;
-            }
+                case null:
+                case JValue value when value.Value == null:
+                    return string.Empty;
 
-            if (Value is string[] array)
-            {
-                return string.Join(", ", array);
-            }
+                case string[] array:
+                    return string.Join(", ", array);
 
-            var token = Value as JToken;
-            if (token == null)
-            {
-                return Value.ToString();
-            }
+                case JValue value:
+                    return value.Value.ToString();
 
-            var value = token as JValue;
-            if (value == null)
-            {
-                return token.ToString(Formatting.None);
-            }
+                case JToken token:
+                    return token.ToString(Formatting.None);
 
-            if (value.Value == null)
-            {
-                return string.Empty;
+                default:
+                    return Value.ToString();
             }
-
-            return value.Value.ToString();
         }
 
         /// <summary>
@@ -486,56 +427,36 @@ namespace AspNet.Security.OpenIdConnect.Primitives
         /// <returns>The converted parameter.</returns>
         private static T Convert<T>(OpenIdConnectParameter? parameter)
         {
-            var value = parameter?.Value;
-            if (value == null)
-            {
-                return default;
-            }
-
-            if (value is T)
-            {
-                return (T) value;
-            }
-
             try
             {
-                // Note: the value is either a JSON object or a
-                // primitive type that can be used with JValue.
-                var token = value as JToken;
-                if (token == null)
+                switch (parameter?.Value)
                 {
+                    case null:
+                        return default;
+
+                    case T value:
+                        return value;
+
+                    case string value when typeof(T) == typeof(string[]):
+                        return (T) (object) new string[] { value };
+
                     // Note: when the parameter is represented as a string, try to
                     // deserialize it if the requested type is a JArray or a JObject.
-                    if (value is string)
-                    {
-                        if (typeof(T) == typeof(string[]))
-                        {
-                            return (T) (object) new string[] { (string) value };
-                        }
+                    case string value when typeof(T) == typeof(JArray):
+                        return (T) (object) JArray.Parse(value);
 
-                        if (typeof(T) == typeof(JArray))
-                        {
-                            return (T) (object) JArray.Parse((string) value);
-                        }
+                    case string value when typeof(T) == typeof(JObject):
+                        return (T) (object) JObject.Parse(value);
 
-                        if (typeof(T) == typeof(JObject))
-                        {
-                            return (T) (object) JObject.Parse((string) value);
-                        }
-                    }
+                    case string[] array:
+                        return new JArray(array).ToObject<T>();
 
-                    if (value is string[])
-                    {
-                        token = new JArray(value);
-                    }
+                    case JToken token:
+                        return token.ToObject<T>();
 
-                    else
-                    {
-                        token = new JValue(value);
-                    }
+                    default:
+                        return new JValue(parameter?.Value).ToObject<T>();
                 }
-
-                return token.ToObject<T>();
             }
 
             // Swallow the conversion exceptions thrown by JSON.NET.
@@ -558,41 +479,28 @@ namespace AspNet.Security.OpenIdConnect.Primitives
         /// <returns><c>true</c> if the parameter is null or empty, <c>false</c> otherwise.</returns>
         public static bool IsNullOrEmpty(OpenIdConnectParameter parameter)
         {
-            var value = parameter.Value;
-            if (value == null)
+            switch (parameter.Value)
             {
-                return true;
-            }
-
-            if (value is string)
-            {
-                return string.IsNullOrEmpty((string) value);
-            }
-
-            if (value is string[] array)
-            {
-                return array.Length == 0;
-            }
-
-            var token = value as JToken;
-            if (token == null)
-            {
-                return false;
-            }
-
-            switch (token.Type)
-            {
-                case JTokenType.Array:
-                case JTokenType.Object:
-                    return !token.HasValues;
-
-                case JTokenType.String:
-                    return string.IsNullOrEmpty((string) token);
-
-                case JTokenType.Null:
+                case null:
                     return true;
 
-                default: return false;
+                case string value:
+                    return string.IsNullOrEmpty(value);
+
+                case string[] array:
+                    return array.Length == 0;
+
+                case JValue value when value.Value is string text:
+                    return string.IsNullOrEmpty(text);
+
+                case JArray array:
+                    return !array.HasValues;
+
+                case JToken token:
+                    return !token.HasValues;
+
+                default:
+                    return false;
             }
         }
     }
