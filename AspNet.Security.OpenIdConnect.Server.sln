@@ -3,6 +3,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26228.4
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{09D07360-66CE-4721-8D22-BF74EAF72604}"
+	ProjectSection(SolutionItems) = preProject
+		build\common.props = build\common.props
+		build\dependencies.props = build\dependencies.props
+		build\key.snk = build\key.snk
+		build\packages.props = build\packages.props
+		build\repo.props = build\repo.props
+		build\tests.props = build\tests.props
+		build\version.props = build\version.props
+	EndProjectSection
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{630C29B2-7346-47B1-A3AD-B2D8C0464A9A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{FF6097D2-F92B-4AA8-A547-AE90C25DC7AC}"
@@ -25,9 +36,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Owin.Security.OpenIdConnect
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Owin.Security.OpenIdConnect.Server", "src\Owin.Security.OpenIdConnect.Server\Owin.Security.OpenIdConnect.Server.csproj", "{84A2AA3D-F33A-4908-AEBE-6653CDA75844}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nancy.Client", "samples\Nancy\Nancy.Client\Nancy.Client.csproj", "{922B11BE-16FF-4CD8-9C42-DD59613C1389}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nancy.Client", "samples\Nancy\Nancy.Client\Nancy.Client.csproj", "{922B11BE-16FF-4CD8-9C42-DD59613C1389}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nancy.Server", "samples\Nancy\Nancy.Server\Nancy.Server.csproj", "{E970D74E-B32C-4323-8A22-92862AEA5344}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nancy.Server", "samples\Nancy\Nancy.Server\Nancy.Server.csproj", "{E970D74E-B32C-4323-8A22-92862AEA5344}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNet.Security.OpenIdConnect.Extensions.Tests", "test\AspNet.Security.OpenIdConnect.Extensions.Tests\AspNet.Security.OpenIdConnect.Extensions.Tests.csproj", "{8F443F73-CA00-425C-B74C-98E0D91DCD71}"
 EndProject
@@ -131,5 +142,8 @@ Global
 		{EFC8FA3D-2361-4808-A52C-E1690D41A6D9} = {630C29B2-7346-47B1-A3AD-B2D8C0464A9A}
 		{7BDA3A43-9335-4004-977A-BFB2EC7683A1} = {96FF51F9-A2F3-4DBB-B825-A3FC16747697}
 		{107D65D4-FA06-4B51-88B6-BFE1FDF8972D} = {630C29B2-7346-47B1-A3AD-B2D8C0464A9A}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {92BC5F49-13B8-4932-A293-07C8C85C5796}
 	EndGlobalSection
 EndGlobal
