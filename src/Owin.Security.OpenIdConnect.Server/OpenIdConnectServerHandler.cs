@@ -470,40 +470,17 @@ namespace Owin.Security.OpenIdConnect.Server
                 var properties = ticket.Properties.Copy();
 
                 // When receiving a grant_type=refresh_token request, determine whether the client application
-                // requests a limited set of scopes/resources and replace the corresponding properties if necessary.
-                // Note: at this stage, request.GetResources() cannot return more items than the ones that were initially granted
-                // by the resource owner as the "resources" parameter is always validated when receiving the token request.
-                if (request.IsTokenRequest() && request.IsRefreshTokenGrantType())
+                // requests a limited set of scopes and replace the corresponding properties if necessary.
+                if (!string.IsNullOrEmpty(request.Scope) && request.IsTokenRequest() && request.IsRefreshTokenGrantType())
                 {
-                    if (!string.IsNullOrEmpty(request.Resource))
-                    {
-                        Logger.LogDebug("The access token resources will be limited to the resources requested " +
-                                        "by the client application: {Resources}.", request.GetResources());
+                    Logger.LogDebug("The access token scopes will be limited to the scopes requested " +
+                                    "by the client application: {Scopes}.", request.GetScopes());
 
-                        // Replace the resources initially granted by the resources listed by the client
-                        // application in the token request. Note: request.GetResources() automatically
-                        // removes duplicate entries, so additional filtering is not necessary.
-                        properties.SetProperty(OpenIdConnectConstants.Properties.Resources,
-                            new JArray(request.GetResources()).ToString(Formatting.None));
-                    }
-
-                    if (!string.IsNullOrEmpty(request.Scope))
-                    {
-                        Logger.LogDebug("The access token scopes will be limited to the scopes requested " +
-                                        "by the client application: {Scopes}.", request.GetScopes());
-
-                        // Replace the scopes initially granted by the scopes listed by the client
-                        // application in the token request. Note: request.GetScopes() automatically
-                        // removes duplicate entries, so additional filtering is not necessary.
-                        properties.SetProperty(OpenIdConnectConstants.Properties.Scopes,
-                            new JArray(request.GetScopes()).ToString(Formatting.None));
-                    }
-                }
-
-                var resources = ticket.GetResources();
-                if (request.IsAuthorizationCodeGrantType() || !new HashSet<string>(resources).SetEquals(request.GetResources()))
-                {
-                    response.Resource = string.Join(" ", resources);
+                    // Replace the scopes initially granted by the scopes listed by the client
+                    // application in the token request. Note: request.GetScopes() automatically
+                    // removes duplicate entries, so additional filtering is not necessary.
+                    properties.SetProperty(OpenIdConnectConstants.Properties.Scopes,
+                        new JArray(request.GetScopes()).ToString(Formatting.None));
                 }
 
                 var scopes = ticket.GetScopes();

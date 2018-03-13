@@ -1295,59 +1295,6 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
-        public async Task HandleSignInAsync_ResourcesCanBeOverridenForRefreshTokenRequests()
-        {
-            // Arrange
-            var server = CreateAuthorizationServer(options =>
-            {
-                options.Provider.OnDeserializeRefreshToken = context =>
-                {
-                    Assert.Equal("8xLOxBtZp8", context.RefreshToken);
-
-                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
-                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
-
-                    context.Ticket = new AuthenticationTicket(
-                        new ClaimsPrincipal(identity),
-                        new AuthenticationProperties(),
-                        OpenIdConnectServerDefaults.AuthenticationScheme);
-
-                    context.Ticket.SetResources("http://www.fabrikam.com/", "http://www.contoso.com/");
-
-                    return Task.CompletedTask;
-                };
-
-                options.Provider.OnSerializeAccessToken = context =>
-                {
-                    // Assert
-                    Assert.Equal(new[] { "http://www.fabrikam.com/" }, context.Ticket.GetResources());
-
-                    return Task.CompletedTask;
-                };
-
-                options.Provider.OnValidateTokenRequest = context =>
-                {
-                    context.Skip();
-
-                    return Task.CompletedTask;
-                };
-            });
-
-            var client = new OpenIdConnectClient(server.CreateClient());
-
-            // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
-            {
-                GrantType = OpenIdConnectConstants.GrantTypes.RefreshToken,
-                RefreshToken = "8xLOxBtZp8",
-                Resource = "http://www.fabrikam.com/"
-            });
-
-            // Assert
-            Assert.NotNull(response.AccessToken);
-        }
-
-        [Fact]
         public async Task HandleSignInAsync_ScopesCanBeOverridenForRefreshTokenRequests()
         {
             // Arrange
@@ -1401,52 +1348,6 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.NotNull(response.AccessToken);
-        }
-
-        [Fact]
-        public async Task HandleSignInAsync_ResourcesAreReturnedWhenTheyDifferFromRequestedResources()
-        {
-            // Arrange
-            var server = CreateAuthorizationServer(options =>
-            {
-                options.Provider.OnValidateTokenRequest = context =>
-                {
-                    context.Skip();
-
-                    return Task.CompletedTask;
-                };
-
-                options.Provider.OnHandleTokenRequest = context =>
-                {
-                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
-                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
-
-                    var ticket = new AuthenticationTicket(
-                        new ClaimsPrincipal(identity),
-                        new AuthenticationProperties(),
-                        OpenIdConnectServerDefaults.AuthenticationScheme);
-
-                    ticket.SetResources("http://www.fabrikam.com/");
-
-                    context.Validate(ticket);
-
-                    return Task.CompletedTask;
-                };
-            });
-
-            var client = new OpenIdConnectClient(server.CreateClient());
-
-            // Act
-            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
-            {
-                GrantType = OpenIdConnectConstants.GrantTypes.Password,
-                Username = "johndoe",
-                Password = "A3ddj3w",
-                Resource = "http://www.fabrikam.com/ http://www.contoso.com/"
-            });
-
-            // Assert
-            Assert.Equal("http://www.fabrikam.com/", response.Resource);
         }
 
         [Fact]

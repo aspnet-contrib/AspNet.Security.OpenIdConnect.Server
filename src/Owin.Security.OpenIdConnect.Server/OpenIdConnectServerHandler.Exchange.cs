@@ -434,37 +434,6 @@ namespace Owin.Security.OpenIdConnect.Server
                     }
                 }
 
-                if (request.IsRefreshTokenGrantType() && !string.IsNullOrEmpty(request.Resource))
-                {
-                    // When an explicit resource parameter has been included in the token request
-                    // but was missing from the initial request, the request MUST be rejected.
-                    var resources = ticket.GetResources();
-                    if (!resources.Any())
-                    {
-                        Logger.LogError("The token request was rejected because the 'resource' parameter was not allowed.");
-
-                        return await SendTokenResponseAsync(new OpenIdConnectResponse
-                        {
-                            Error = OpenIdConnectConstants.Errors.InvalidGrant,
-                            ErrorDescription = "The 'resource' parameter is not valid in this context."
-                        });
-                    }
-
-                    // When an explicit resource parameter has been included in the token request,
-                    // the authorization server MUST ensure that it doesn't contain resources
-                    // that were not allowed during the initial authorization/token request.
-                    else if (!new HashSet<string>(resources).IsSupersetOf(request.GetResources()))
-                    {
-                        Logger.LogError("The token request was rejected because the 'resource' parameter was not valid.");
-
-                        return await SendTokenResponseAsync(new OpenIdConnectResponse
-                        {
-                            Error = OpenIdConnectConstants.Errors.InvalidGrant,
-                            ErrorDescription = "The specified 'resource' parameter is invalid."
-                        });
-                    }
-                }
-
                 if (request.IsRefreshTokenGrantType() && !string.IsNullOrEmpty(request.Scope))
                 {
                     // When an explicit scope parameter has been included in the token request

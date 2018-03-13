@@ -94,6 +94,15 @@ namespace AspNet.Security.OpenIdConnect.Primitives
         }
 
         /// <summary>
+        /// Gets or sets the "audience" parameters.
+        /// </summary>
+        public string[] Audiences
+        {
+            get => (string[]) GetParameter(OpenIdConnectConstants.Parameters.Audience);
+            set => SetParameter(OpenIdConnectConstants.Parameters.Audience, value);
+        }
+
+        /// <summary>
         /// Gets or sets the "claims" parameter.
         /// </summary>
         public JObject Claims
@@ -319,11 +328,11 @@ namespace AspNet.Security.OpenIdConnect.Primitives
         }
 
         /// <summary>
-        /// Gets or sets the "resource" parameter.
+        /// Gets or sets the "resource" parameters.
         /// </summary>
-        public string Resource
+        public string[] Resources
         {
-            get => (string) GetParameter(OpenIdConnectConstants.Parameters.Resource);
+            get => (string[]) GetParameter(OpenIdConnectConstants.Parameters.Resource);
             set => SetParameter(OpenIdConnectConstants.Parameters.Resource, value);
         }
 

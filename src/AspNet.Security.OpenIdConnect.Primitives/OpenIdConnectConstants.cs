@@ -205,6 +205,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives
             public const string Active = "active";
             public const string AcrValues = "acr_values";
             public const string Assertion = "assertion";
+            public const string Audience = "audience";
             public const string Claims = "claims";
             public const string ClaimsLocales = "claims_locales";
             public const string ClientAssertion = "client_assertion";
