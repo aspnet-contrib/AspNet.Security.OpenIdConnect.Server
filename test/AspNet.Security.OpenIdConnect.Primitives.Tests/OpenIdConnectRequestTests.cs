@@ -40,6 +40,13 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
 
                 yield return new object[]
                 {
+                    /* property: */ nameof(OpenIdConnectRequest.Audiences),
+                    /* name: */ OpenIdConnectConstants.Parameters.Audience,
+                    /* value: */ new OpenIdConnectParameter(new[] { "Fabrikam", "Contoso" })
+                };
+
+                yield return new object[]
+                {
                     /* property: */ nameof(OpenIdConnectRequest.Claims),
                     /* name: */ OpenIdConnectConstants.Parameters.Claims,
                     /* value: */ new OpenIdConnectParameter(new JObject { ["userinfo"] = new JObject() })
@@ -222,9 +229,9 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
 
                 yield return new object[]
                 {
-                    /* property: */ nameof(OpenIdConnectRequest.Resource),
+                    /* property: */ nameof(OpenIdConnectRequest.Resources),
                     /* name: */ OpenIdConnectConstants.Parameters.Resource,
-                    /* value: */ new OpenIdConnectParameter("802A3E3E-DCCA-4EFC-89FA-7D82FE8C27E4")
+                    /* value: */ new OpenIdConnectParameter(new[] { "https://fabrikam.com/", "https://contoso.com/" })
                 };
 
                 yield return new object[]

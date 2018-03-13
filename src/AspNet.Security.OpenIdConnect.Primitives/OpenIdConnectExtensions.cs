@@ -39,25 +39,6 @@ namespace AspNet.Security.OpenIdConnect.Primitives
         }
 
         /// <summary>
-        /// Extracts the resources from an <see cref="OpenIdConnectRequest"/>.
-        /// </summary>
-        /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
-        public static IEnumerable<string> GetResources([NotNull] this OpenIdConnectRequest request)
-        {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            if (string.IsNullOrEmpty(request.Resource))
-            {
-                return Enumerable.Empty<string>();
-            }
-
-            return GetValues(request.Resource, OpenIdConnectConstants.Separators.Space).Distinct(StringComparer.Ordinal);
-        }
-
-        /// <summary>
         /// Extracts the scopes from an <see cref="OpenIdConnectRequest"/>.
         /// </summary>
         /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>

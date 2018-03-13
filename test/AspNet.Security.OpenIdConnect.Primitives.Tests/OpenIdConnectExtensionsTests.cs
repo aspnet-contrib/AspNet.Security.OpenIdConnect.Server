@@ -50,44 +50,6 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         }
 
         [Fact]
-        public void GetResources_ThrowsAnExceptionForNullRequest()
-        {
-            // Arrange
-            var request = (OpenIdConnectRequest) null;
-
-            // Act and assert
-            var exception = Assert.Throws<ArgumentNullException>(delegate
-            {
-                request.GetResources();
-            });
-
-            Assert.Equal("request", exception.ParamName);
-        }
-
-        [Theory]
-        [InlineData(null, new string[0])]
-        [InlineData("fabrikam", new[] { "fabrikam" })]
-        [InlineData("fabrikam ", new[] { "fabrikam" })]
-        [InlineData(" fabrikam ", new[] { "fabrikam" })]
-        [InlineData("fabrikam contoso", new[] { "fabrikam", "contoso" })]
-        [InlineData("fabrikam     contoso", new[] { "fabrikam", "contoso" })]
-        [InlineData("fabrikam contoso ", new[] { "fabrikam", "contoso" })]
-        [InlineData(" fabrikam contoso", new[] { "fabrikam", "contoso" })]
-        [InlineData("fabrikam fabrikam contoso", new[] { "fabrikam", "contoso" })]
-        [InlineData("fabrikam FABRIKAM contoso", new[] { "fabrikam", "FABRIKAM", "contoso" })]
-        public void GetResources_ReturnsExpectedResources(string resource, string[] resources)
-        {
-            // Arrange
-            var request = new OpenIdConnectRequest
-            {
-                Resource = resource
-            };
-
-            // Act and assert
-            Assert.Equal(resources, request.GetResources());
-        }
-
-        [Fact]
         public void GetScopes_ThrowsAnExceptionForNullRequest()
         {
             // Arrange

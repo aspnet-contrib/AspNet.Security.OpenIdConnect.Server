@@ -139,15 +139,6 @@ namespace AspNet.Security.OpenIdConnect.Primitives
         }
 
         /// <summary>
-        /// Gets or sets the "resource" parameter.
-        /// </summary>
-        public string Resource
-        {
-            get => (string) GetParameter(OpenIdConnectConstants.Parameters.Resource);
-            set => SetParameter(OpenIdConnectConstants.Parameters.Resource, value);
-        }
-
-        /// <summary>
         /// Gets or sets the "scope" parameter.
         /// </summary>
         public string Scope
