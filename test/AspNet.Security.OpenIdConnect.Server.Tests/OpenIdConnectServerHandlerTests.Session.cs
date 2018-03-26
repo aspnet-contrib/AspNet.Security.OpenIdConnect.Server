@@ -377,6 +377,11 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
                 options.Provider.OnApplyLogoutResponse = context =>
                 {
                     context.Response["custom_parameter"] = "custom_value";
+                    context.Response["parameter_with_multiple_values"] = new[]
+                    {
+                        "custom_value_1",
+                        "custom_value_2"
+                    };
 
                     return Task.CompletedTask;
                 };
@@ -392,6 +397,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
 
             // Assert
             Assert.Equal("custom_value", (string) response["custom_parameter"]);
+            Assert.Equal(new[] { "custom_value_1", "custom_value_2" }, (string[]) response["parameter_with_multiple_values"]);
         }
 
         [Fact]
