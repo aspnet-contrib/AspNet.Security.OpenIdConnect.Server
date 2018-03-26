@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Text.Encodings.Web;
@@ -29,8 +30,8 @@ namespace AspNet.Security.OpenIdConnect.Client
         /// Initializes a new instance of the OpenID Connect client.
         /// </summary>
         public OpenIdConnectClient()
+            : this(new HttpClient())
         {
-            HttpClient = new HttpClient();
         }
 
         /// <summary>
@@ -38,13 +39,29 @@ namespace AspNet.Security.OpenIdConnect.Client
         /// </summary>
         /// <param name="client">The HTTP client used to communicate with the OpenID Connect server.</param>
         public OpenIdConnectClient([NotNull] HttpClient client)
+            : this(client, new HtmlParser())
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the OpenID Connect client.
+        /// </summary>
+        /// <param name="client">The HTTP client used to communicate with the OpenID Connect server.</param>
+        /// <param name="parser">The HTML parser used to parse the responses returned by the OpenID Connect server.</param>
+        public OpenIdConnectClient([NotNull] HttpClient client, [NotNull] HtmlParser parser)
         {
             if (client == null)
             {
                 throw new ArgumentNullException(nameof(client));
             }
 
+            if (parser == null)
+            {
+                throw new ArgumentNullException(nameof(parser));
+            }
+
             HttpClient = client;
+            HtmlParser = parser;
         }
 
         /// <summary>
@@ -54,15 +71,19 @@ namespace AspNet.Security.OpenIdConnect.Client
         public HttpClient HttpClient { get; }
 
         /// <summary>
+        /// Gets the underlying HTML parser used to parse the
+        /// responses returned by the OpenID Connect server.
+        /// </summary>
+        public HtmlParser HtmlParser { get; }
+
+        /// <summary>
         /// Sends an empty OpenID Connect request to the given endpoint using GET
         /// and converts the returned response to an OpenID Connect response.
         /// </summary>
         /// <param name="uri">The endpoint to which the request is sent.</param>
         /// <returns>The OpenID Connect response returned by the server.</returns>
         public Task<OpenIdConnectResponse> GetAsync([NotNull] string uri)
-        {
-            return GetAsync(uri, new OpenIdConnectRequest());
-        }
+            => GetAsync(uri, new OpenIdConnectRequest());
 
         /// <summary>
         /// Sends an empty OpenID Connect request to the given endpoint using GET
@@ -71,9 +92,7 @@ namespace AspNet.Security.OpenIdConnect.Client
         /// <param name="uri">The endpoint to which the request is sent.</param>
         /// <returns>The OpenID Connect response returned by the server.</returns>
         public Task<OpenIdConnectResponse> GetAsync([NotNull] Uri uri)
-        {
-            return GetAsync(uri, new OpenIdConnectRequest());
-        }
+            => GetAsync(uri, new OpenIdConnectRequest());
 
         /// <summary>
         /// Sends a generic OpenID Connect request to the given endpoint using GET
@@ -82,8 +101,7 @@ namespace AspNet.Security.OpenIdConnect.Client
         /// <param name="uri">The endpoint to which the request is sent.</param>
         /// <param name="request">The OpenID Connect request to send.</param>
         /// <returns>The OpenID Connect response returned by the server.</returns>
-        public Task<OpenIdConnectResponse> GetAsync(
-            [NotNull] string uri, [NotNull] OpenIdConnectRequest request)
+        public Task<OpenIdConnectResponse> GetAsync([NotNull] string uri, [NotNull] OpenIdConnectRequest request)
         {
             if (request == null)
             {
@@ -105,11 +123,8 @@ namespace AspNet.Security.OpenIdConnect.Client
         /// <param name="uri">The endpoint to which the request is sent.</param>
         /// <param name="request">The OpenID Connect request to send.</param>
         /// <returns>The OpenID Connect response returned by the server.</returns>
-        public Task<OpenIdConnectResponse> GetAsync(
-            [NotNull] Uri uri, [NotNull] OpenIdConnectRequest request)
-        {
-            return SendAsync(HttpMethod.Get, uri, request);
-        }
+        public Task<OpenIdConnectResponse> GetAsync([NotNull] Uri uri, [NotNull] OpenIdConnectRequest request)
+            => SendAsync(HttpMethod.Get, uri, request);
 
         /// <summary>
         /// Sends a generic OpenID Connect request to the given endpoint using POST
@@ -118,8 +133,7 @@ namespace AspNet.Security.OpenIdConnect.Client
         /// <param name="uri">The endpoint to which the request is sent.</param>
         /// <param name="request">The OpenID Connect request to send.</param>
         /// <returns>The OpenID Connect response returned by the server.</returns>
-        public Task<OpenIdConnectResponse> PostAsync(
-            [NotNull] string uri, [NotNull] OpenIdConnectRequest request)
+        public Task<OpenIdConnectResponse> PostAsync([NotNull] string uri, [NotNull] OpenIdConnectRequest request)
         {
             if (request == null)
             {
@@ -141,11 +155,8 @@ namespace AspNet.Security.OpenIdConnect.Client
         /// <param name="uri">The endpoint to which the request is sent.</param>
         /// <param name="request">The OpenID Connect request to send.</param>
         /// <returns>The OpenID Connect response returned by the server.</returns>
-        public Task<OpenIdConnectResponse> PostAsync(
-            [NotNull] Uri uri, [NotNull] OpenIdConnectRequest request)
-        {
-            return SendAsync(HttpMethod.Post, uri, request);
-        }
+        public Task<OpenIdConnectResponse> PostAsync([NotNull] Uri uri, [NotNull] OpenIdConnectRequest request)
+            => SendAsync(HttpMethod.Post, uri, request);
 
         /// <summary>
         /// Sends a generic OpenID Connect request to the given endpoint and
@@ -240,17 +251,28 @@ namespace AspNet.Security.OpenIdConnect.Client
                                             "is associated with the HTTP client.", nameof(uri));
             }
 
-            var parameters = new Dictionary<string, string>();
+            return await GetResponseAsync(await HttpClient.SendAsync(CreateRequestMessage(request, method, uri)));
+        }
+
+        private HttpRequestMessage CreateRequestMessage(OpenIdConnectRequest request, HttpMethod method, Uri uri)
+        {
+            // Note: a dictionary is deliberately not used here to allow multiple parameters with the
+            // same name to be specified. While initially not allowed by the core OAuth2 specification,
+            // this is required for derived drafts like the OAuth2 token exchange specification.
+            var parameters = new List<KeyValuePair<string, string>>();
 
             foreach (var parameter in request.GetParameters())
             {
-                var value = (string) parameter.Value;
-                if (string.IsNullOrEmpty(value))
+                var values = (string[]) parameter.Value;
+                if (values == null)
                 {
                     continue;
                 }
 
-                parameters.Add(parameter.Key, value);
+                foreach (var value in values)
+                {
+                    parameters.Add(new KeyValuePair<string, string>(parameter.Key, value));
+                }
             }
 
             if (method == HttpMethod.Get && parameters.Count != 0)
@@ -284,14 +306,17 @@ namespace AspNet.Security.OpenIdConnect.Client
                 message.Content = new FormUrlEncodedContent(parameters);
             }
 
-            var response = await HttpClient.SendAsync(message, HttpCompletionOption.ResponseHeadersRead);
+            return message;
+        }
 
-            if (response.Headers.Location != null)
+        private async Task<OpenIdConnectResponse> GetResponseAsync(HttpResponseMessage message)
+        {
+            if (message.Headers.Location != null)
             {
-                var payload = response.Headers.Location.Fragment;
+                var payload = message.Headers.Location.Fragment;
                 if (string.IsNullOrEmpty(payload))
                 {
-                    payload = response.Headers.Location.Query;
+                    payload = message.Headers.Location.Query;
                 }
 
                 if (string.IsNullOrEmpty(payload))
@@ -299,54 +324,62 @@ namespace AspNet.Security.OpenIdConnect.Client
                     return new OpenIdConnectResponse();
                 }
 
-                var result = new OpenIdConnectResponse();
-
-                using (var tokenizer = new StringTokenizer(payload, OpenIdConnectConstants.Separators.Ampersand).GetEnumerator())
+                string UnescapeDataString(string value)
                 {
-                    while (tokenizer.MoveNext())
+                    if (string.IsNullOrEmpty(value))
                     {
-                        var parameter = tokenizer.Current;
-                        if (parameter.Length == 0)
-                        {
-                            continue;
-                        }
-
-                        // Always skip the first char (# or ?).
-                        if (parameter.Offset == 0)
-                        {
-                            parameter = parameter.Subsegment(1, parameter.Length - 1);
-                        }
-
-                        var index = parameter.IndexOf('=');
-                        if (index == -1)
-                        {
-                            continue;
-                        }
-
-                        var name = parameter.Substring(0, index);
-                        if (string.IsNullOrEmpty(name))
-                        {
-                            continue;
-                        }
-
-                        var value = parameter.Substring(index + 1, parameter.Length - (index + 1));
-                        if (string.IsNullOrEmpty(value))
-                        {
-                            continue;
-                        }
-
-                        result.AddParameter(
-                            Uri.UnescapeDataString(name.Replace('+', ' ')),
-                            Uri.UnescapeDataString(value.Replace('+', ' ')));
+                        return null;
                     }
+
+                    return Uri.UnescapeDataString(value.Replace('+', ' '));
                 }
 
-                return result;
+                // Note: a dictionary is deliberately not used here to allow multiple parameters with the
+                // same name to be retrieved. While initially not allowed by the core OAuth2 specification,
+                // this is required for derived drafts like the OAuth2 token exchange specification.
+                var parameters = new List<KeyValuePair<string, string>>();
+
+                foreach (var element in new StringTokenizer(payload, OpenIdConnectConstants.Separators.Ampersand))
+                {
+                    var segment = element;
+                    if (segment.Length == 0)
+                    {
+                        continue;
+                    }
+
+                    // Always skip the first char (# or ?).
+                    if (segment.Offset == 0)
+                    {
+                        segment = segment.Subsegment(1, segment.Length - 1);
+                    }
+
+                    var index = segment.IndexOf('=');
+                    if (index == -1)
+                    {
+                        continue;
+                    }
+
+                    var name = UnescapeDataString(segment.Substring(0, index));
+                    if (string.IsNullOrEmpty(name))
+                    {
+                        continue;
+                    }
+
+                    var value = UnescapeDataString(segment.Substring(index + 1, segment.Length - (index + 1)));
+
+                    parameters.Add(new KeyValuePair<string, string>(name, value));
+                }
+
+                return new OpenIdConnectResponse(
+                    from parameter in parameters
+                    group parameter by parameter.Key into grouping
+                    let values = grouping.Select(parameter => parameter.Value)
+                    select new KeyValuePair<string, StringValues>(grouping.Key, values.ToArray()));
             }
 
-            else if (string.Equals(response.Content?.Headers?.ContentType?.MediaType, "application/json", StringComparison.OrdinalIgnoreCase))
+            else if (string.Equals(message.Content?.Headers?.ContentType?.MediaType, "application/json", StringComparison.OrdinalIgnoreCase))
             {
-                using (var stream = await response.Content.ReadAsStreamAsync())
+                using (var stream = await message.Content.ReadAsStreamAsync())
                 using (var reader = new JsonTextReader(new StreamReader(stream)))
                 {
                     var serializer = JsonSerializer.CreateDefault();
@@ -355,13 +388,15 @@ namespace AspNet.Security.OpenIdConnect.Client
                 }
             }
 
-            else if (string.Equals(response.Content?.Headers?.ContentType?.MediaType, "text/html", StringComparison.OrdinalIgnoreCase))
+            else if (string.Equals(message.Content?.Headers?.ContentType?.MediaType, "text/html", StringComparison.OrdinalIgnoreCase))
             {
-                using (var stream = await response.Content.ReadAsStreamAsync())
+                using (var stream = await message.Content.ReadAsStreamAsync())
+                using (var document = await HtmlParser.ParseAsync(stream))
                 {
-                    var result = new OpenIdConnectResponse();
-
-                    var document = await new HtmlParser().ParseAsync(stream);
+                    // Note: a dictionary is deliberately not used here to allow multiple parameters with the
+                    // same name to be retrieved. While initially not allowed by the core OAuth2 specification,
+                    // this is required for derived drafts like the OAuth2 token exchange specification.
+                    var parameters = new List<KeyValuePair<string, string>>();
 
                     foreach (var element in document.Body.GetElementsByTagName("input"))
                     {
@@ -372,24 +407,27 @@ namespace AspNet.Security.OpenIdConnect.Client
                         }
 
                         var value = element.GetAttribute("value");
-                        if (string.IsNullOrEmpty(value))
-                        {
-                            continue;
-                        }
 
-                        result.AddParameter(name, value);
+                        parameters.Add(new KeyValuePair<string, string>(name, value));
                     }
 
-                    return result;
+                    return new OpenIdConnectResponse(
+                        from parameter in parameters
+                        group parameter by parameter.Key into grouping
+                        let values = grouping.Select(parameter => parameter.Value)
+                        select new KeyValuePair<string, StringValues>(grouping.Key, values.ToArray()));
                 }
             }
 
-            else if (string.Equals(response.Content?.Headers?.ContentType?.MediaType, "text/plain", StringComparison.OrdinalIgnoreCase))
+            else if (string.Equals(message.Content?.Headers?.ContentType?.MediaType, "text/plain", StringComparison.OrdinalIgnoreCase))
             {
-                using (var stream = await response.Content.ReadAsStreamAsync())
+                using (var stream = await message.Content.ReadAsStreamAsync())
                 using (var reader = new StreamReader(stream))
                 {
-                    var result = new OpenIdConnectResponse();
+                    // Note: a dictionary is deliberately not used here to allow multiple parameters with the
+                    // same name to be retrieved. While initially not allowed by the core OAuth2 specification,
+                    // this is required for derived drafts like the OAuth2 token exchange specification.
+                    var parameters = new List<KeyValuePair<string, string>>();
 
                     for (var line = await reader.ReadLineAsync(); line != null; line = await reader.ReadLineAsync())
                     {
@@ -399,10 +437,22 @@ namespace AspNet.Security.OpenIdConnect.Client
                             continue;
                         }
 
-                        result.AddParameter(line.Substring(0, index), line.Substring(index + 1));
+                        var name = line.Substring(0, index);
+                        if (string.IsNullOrEmpty(name))
+                        {
+                            continue;
+                        }
+
+                        var value = line.Substring(index + 1);
+
+                        parameters.Add(new KeyValuePair<string, string>(name, value));
                     }
 
-                    return result;
+                    return new OpenIdConnectResponse(
+                        from parameter in parameters
+                        group parameter by parameter.Key into grouping
+                        let values = grouping.Select(parameter => parameter.Value)
+                        select new KeyValuePair<string, StringValues>(grouping.Key, values.ToArray()));
                 }
             }
 
