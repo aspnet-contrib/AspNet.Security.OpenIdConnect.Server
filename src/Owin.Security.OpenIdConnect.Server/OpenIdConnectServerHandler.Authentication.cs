@@ -478,20 +478,24 @@ namespace Owin.Security.OpenIdConnect.Server
                 response.State = request.State;
             }
 
-            // Create a new parameters dictionary holding the name/value pairs.
-            var parameters = new Dictionary<string, string>();
+            // Note: a dictionary is deliberately not used here to allow multiple parameters with the
+            // same name to be specified. While initially not allowed by the core OAuth2 specification,
+            // this is now accepted by derived drafts like the OAuth2 token exchange specification.
+            // For consistency, multiple parameters with the same name are also supported by this endpoint.
+            var parameters = new List<KeyValuePair<string, string>>();
 
             foreach (var parameter in response.GetParameters())
             {
-                // Ignore null or empty parameters, including JSON
-                // objects that can't be represented as strings.
-                var value = (string) parameter.Value;
-                if (string.IsNullOrEmpty(value))
+                var values = (string[]) parameter.Value;
+                if (values == null)
                 {
                     continue;
                 }
 
-                parameters.Add(parameter.Key, value);
+                foreach (var value in values)
+                {
+                    parameters.Add(new KeyValuePair<string, string>(parameter.Key, value));
+                }
             }
 
             // Note: at this stage, the redirect_uri parameter MUST be trusted.
@@ -570,7 +574,12 @@ namespace Owin.Security.OpenIdConnect.Server
                                           "'{RedirectUri}' using the query response mode: {Response}.",
                                           notification.RedirectUri, response);
 
-                    var location = WebUtilities.AddQueryString(notification.RedirectUri, parameters);
+                    var location = notification.RedirectUri;
+
+                    foreach (var parameter in parameters)
+                    {
+                        location = WebUtilities.AddQueryString(location, parameter.Key, parameter.Value);
+                    }
 
                     Response.Redirect(location);
                     return true;
