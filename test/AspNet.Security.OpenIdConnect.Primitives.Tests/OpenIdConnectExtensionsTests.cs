@@ -12,6 +12,44 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
     public class OpenIdConnectExtensionsTests
     {
         [Fact]
+        public void GetAcrValues_ThrowsAnExceptionForNullRequest()
+        {
+            // Arrange
+            var request = (OpenIdConnectRequest) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                request.GetAcrValues();
+            });
+
+            Assert.Equal("request", exception.ParamName);
+        }
+
+        [Theory]
+        [InlineData(null, new string[0])]
+        [InlineData("mod-pr", new[] { "mod-pr" })]
+        [InlineData("mod-pr ", new[] { "mod-pr" })]
+        [InlineData(" mod-pr ", new[] { "mod-pr" })]
+        [InlineData("mod-pr mod-mf", new[] { "mod-pr", "mod-mf" })]
+        [InlineData("mod-pr     mod-mf", new[] { "mod-pr", "mod-mf" })]
+        [InlineData("mod-pr mod-mf ", new[] { "mod-pr", "mod-mf" })]
+        [InlineData(" mod-pr mod-mf", new[] { "mod-pr", "mod-mf" })]
+        [InlineData("mod-pr mod-pr mod-mf", new[] { "mod-pr", "mod-mf" })]
+        [InlineData("mod-pr MOD-PR mod-mf", new[] { "mod-pr", "MOD-PR", "mod-mf" })]
+        public void GetAcrValues_ReturnsExpectedAcrValues(string value, string[] values)
+        {
+            // Arrange
+            var request = new OpenIdConnectRequest
+            {
+                AcrValues = value
+            };
+
+            // Act and assert
+            Assert.Equal(values, request.GetAcrValues());
+        }
+
+        [Fact]
         public void GetResources_ThrowsAnExceptionForNullRequest()
         {
             // Arrange
