@@ -20,6 +20,25 @@ namespace AspNet.Security.OpenIdConnect.Primitives
     public static class OpenIdConnectExtensions
     {
         /// <summary>
+        /// Extracts the authentication context class values from an <see cref="OpenIdConnectRequest"/>.
+        /// </summary>
+        /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
+        public static IEnumerable<string> GetAcrValues([NotNull] this OpenIdConnectRequest request)
+        {
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
+            if (string.IsNullOrEmpty(request.AcrValues))
+            {
+                return Enumerable.Empty<string>();
+            }
+
+            return GetValues(request.AcrValues, OpenIdConnectConstants.Separators.Space).Distinct(StringComparer.Ordinal);
+        }
+
+        /// <summary>
         /// Extracts the resources from an <see cref="OpenIdConnectRequest"/>.
         /// </summary>
         /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
