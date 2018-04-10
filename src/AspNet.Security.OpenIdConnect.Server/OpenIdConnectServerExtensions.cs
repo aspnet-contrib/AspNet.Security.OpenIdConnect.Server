@@ -516,7 +516,8 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             // If the signing key is an asymmetric security key, ensure it has a private key.
-            if (key is AsymmetricSecurityKey asymmetricSecurityKey && !asymmetricSecurityKey.HasPrivateKey)
+            if (key is AsymmetricSecurityKey asymmetricSecurityKey &&
+                asymmetricSecurityKey.PrivateKeyStatus == PrivateKeyStatus.DoesNotExist)
             {
                 throw new InvalidOperationException("The asymmetric signing key doesn't contain the required private key.");
             }

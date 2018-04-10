@@ -527,7 +527,7 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         {
             // Arrange
             var credentials = new List<SigningCredentials>();
-            var key = Mock.Of<AsymmetricSecurityKey>(mock => !mock.HasPrivateKey);
+            var key = Mock.Of<AsymmetricSecurityKey>(mock => mock.PrivateKeyStatus == PrivateKeyStatus.DoesNotExist);
 
             // Act and assert
             var exception = Assert.Throws<InvalidOperationException>(delegate
