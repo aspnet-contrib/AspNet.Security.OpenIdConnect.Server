@@ -7,6 +7,7 @@
 using System;
 using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.Owin;
+using Microsoft.Owin.Security.Notifications;
 
 namespace Owin.Security.OpenIdConnect.Server
 {
@@ -52,6 +53,7 @@ namespace Owin.Security.OpenIdConnect.Server
         /// </summary>
         public virtual void Skip()
         {
+            State = NotificationResultState.Continue;
             IsSkipped = true;
             IsRejected = false;
             IsValidated = false;
@@ -62,6 +64,7 @@ namespace Owin.Security.OpenIdConnect.Server
         /// </summary>
         public override void Reject()
         {
+            State = NotificationResultState.Continue;
             IsSkipped = false;
             IsRejected = true;
             IsValidated = false;

@@ -54,6 +54,7 @@ namespace AspNet.Security.OpenIdConnect.Server
         /// </summary>
         public virtual void Skip()
         {
+            Result = null;
             IsSkipped = true;
             IsRejected = false;
             IsValidated = false;
@@ -64,6 +65,7 @@ namespace AspNet.Security.OpenIdConnect.Server
         /// </summary>
         public override void Reject()
         {
+            Result = null;
             IsSkipped = false;
             IsRejected = true;
             IsValidated = false;
