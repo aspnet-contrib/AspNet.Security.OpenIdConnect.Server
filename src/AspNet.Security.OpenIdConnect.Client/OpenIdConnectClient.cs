@@ -331,7 +331,7 @@ namespace AspNet.Security.OpenIdConnect.Client
                         return null;
                     }
 
-                    return Uri.UnescapeDataString(value.Replace('+', ' '));
+                    return Uri.UnescapeDataString(value.Replace("+", "%20"));
                 }
 
                 // Note: a dictionary is deliberately not used here to allow multiple parameters with the
