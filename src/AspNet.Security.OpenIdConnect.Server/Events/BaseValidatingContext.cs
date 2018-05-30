@@ -74,6 +74,7 @@ namespace AspNet.Security.OpenIdConnect.Server
         /// </summary>
         public virtual void Validate()
         {
+            Result = null;
             IsValidated = true;
             IsRejected = false;
         }
@@ -83,6 +84,7 @@ namespace AspNet.Security.OpenIdConnect.Server
         /// </summary>
         public virtual void Reject()
         {
+            Result = null;
             IsRejected = true;
             IsValidated = false;
         }
