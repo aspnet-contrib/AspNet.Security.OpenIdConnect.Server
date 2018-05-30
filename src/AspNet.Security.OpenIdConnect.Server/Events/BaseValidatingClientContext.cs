@@ -6,6 +6,7 @@
 
 using System;
 using AspNet.Security.OpenIdConnect.Primitives;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 
 namespace AspNet.Security.OpenIdConnect.Server
@@ -52,7 +53,7 @@ namespace AspNet.Security.OpenIdConnect.Server
         /// </summary>
         public virtual void Skip()
         {
-            Result = null;
+            State = EventResultState.Continue;
             IsSkipped = true;
             IsRejected = false;
             IsValidated = false;
@@ -63,7 +64,7 @@ namespace AspNet.Security.OpenIdConnect.Server
         /// </summary>
         public override void Reject()
         {
-            Result = null;
+            State = EventResultState.Continue;
             IsSkipped = false;
             IsRejected = true;
             IsValidated = false;

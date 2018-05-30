@@ -79,7 +79,7 @@ namespace AspNet.Security.OpenIdConnect.Server
         /// </summary>
         public virtual void Validate()
         {
-            Result = null;
+            State = EventResultState.Continue;
             IsValidated = true;
             IsRejected = false;
         }
@@ -89,7 +89,7 @@ namespace AspNet.Security.OpenIdConnect.Server
         /// </summary>
         public virtual void Reject()
         {
-            Result = null;
+            State = EventResultState.Continue;
             IsRejected = true;
             IsValidated = false;
         }

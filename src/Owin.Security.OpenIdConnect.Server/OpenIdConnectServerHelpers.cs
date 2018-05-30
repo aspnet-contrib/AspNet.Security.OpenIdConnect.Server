@@ -283,6 +283,16 @@ namespace Owin.Security.OpenIdConnect.Server
                 return null;
             }
 
+            string UnescapeDataString(string value)
+            {
+                if (string.IsNullOrEmpty(value))
+                {
+                    return null;
+                }
+
+                return Uri.UnescapeDataString(value.Replace("+", "%20"));
+            }
+
             try
             {
                 var value = header.Substring("Basic ".Length).Trim();
@@ -295,8 +305,8 @@ namespace Owin.Security.OpenIdConnect.Server
                 }
 
                 return new KeyValuePair<string, string>(
-                    /* client_id: */ data.Substring(0, index),
-                    /* client_secret: */ data.Substring(index + 1));
+                    /* client_id: */ UnescapeDataString(data.Substring(0, index)),
+                    /* client_secret: */ UnescapeDataString(data.Substring(index + 1)));
             }
 
             catch
