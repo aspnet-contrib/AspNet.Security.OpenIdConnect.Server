@@ -73,6 +73,7 @@ namespace Owin.Security.OpenIdConnect.Server
         /// </summary>
         public virtual void Validate()
         {
+            State = NotificationResultState.Continue;
             IsValidated = true;
             IsRejected = false;
         }
@@ -82,6 +83,7 @@ namespace Owin.Security.OpenIdConnect.Server
         /// </summary>
         public virtual void Reject()
         {
+            State = NotificationResultState.Continue;
             IsRejected = true;
             IsValidated = false;
         }
