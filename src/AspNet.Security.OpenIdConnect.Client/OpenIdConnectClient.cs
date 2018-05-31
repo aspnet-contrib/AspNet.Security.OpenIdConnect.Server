@@ -263,8 +263,16 @@ namespace AspNet.Security.OpenIdConnect.Client
 
             foreach (var parameter in request.GetParameters())
             {
+                // If the parameter is null or empty, send an empty value.
+                if (OpenIdConnectParameter.IsNullOrEmpty(parameter.Value))
+                {
+                    parameters.Add(new KeyValuePair<string, string>(parameter.Key, string.Empty));
+
+                    continue;
+                }
+
                 var values = (string[]) parameter.Value;
-                if (values == null)
+                if (values == null || values.Length == 0)
                 {
                     continue;
                 }

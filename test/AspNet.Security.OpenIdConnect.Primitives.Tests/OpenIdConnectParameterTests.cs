@@ -939,10 +939,12 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         }
 
         [Fact]
-        public void StringArrayConverter_CanCreateParameterFromStringValue()
+        public void StringArrayConverter_CanCreateParameterFromPrimitiveValues()
         {
             // Arrange, act and assert
             Assert.Equal(new[] { "Fabrikam" }, (string[]) new OpenIdConnectParameter("Fabrikam"));
+            Assert.Equal(new[] { "False" }, (string[]) new OpenIdConnectParameter(false));
+            Assert.Equal(new[] { "42" }, (string[]) new OpenIdConnectParameter(42));
         }
 
         [Fact]
@@ -960,17 +962,9 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         }
 
         [Fact]
-        public void StringArrayConverter_ReturnsDefaultValueForUnsupportedPrimitiveValues()
-        {
-            // Arrange, act and assert
-            Assert.Null((string[]) new OpenIdConnectParameter(42));
-        }
-
-        [Fact]
         public void StringArrayConverter_ReturnsDefaultValueForUnsupportedJsonValues()
         {
             // Arrange, act and assert
-            Assert.Null((string[]) new OpenIdConnectParameter(new JValue(42)));
             Assert.Null((string[]) new OpenIdConnectParameter(new JObject()));
         }
 
@@ -978,6 +972,9 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         public void StringArrayConverter_CanConvertFromJsonValues()
         {
             // Arrange, act and assert
+            Assert.Equal(new[] { "Fabrikam" }, (string[]) new OpenIdConnectParameter(new JValue("Fabrikam")));
+            Assert.Equal(new[] { "False" }, (string[]) new OpenIdConnectParameter(new JValue(false)));
+            Assert.Equal(new[] { "42" }, (string[]) new OpenIdConnectParameter(new JValue(42)));
             Assert.Equal(new[] { "Fabrikam" }, (string[]) new OpenIdConnectParameter(new JArray("Fabrikam")));
             Assert.Equal(new[] { "Fabrikam", "Contoso" }, (string[]) new OpenIdConnectParameter(new JArray(new[] { "Fabrikam", "Contoso" })));
         }
