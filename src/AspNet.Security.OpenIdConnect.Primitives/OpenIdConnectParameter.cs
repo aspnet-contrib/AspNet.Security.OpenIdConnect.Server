@@ -451,8 +451,14 @@ namespace AspNet.Security.OpenIdConnect.Primitives
                     case string[] array:
                         return new JArray(array).ToObject<T>();
 
+                    case JValue value when typeof(T) == typeof(string[]):
+                        return (T) (object) new string[] { value.ToObject<string>() };
+
                     case JToken token:
                         return token.ToObject<T>();
+
+                    case var value when typeof(T) == typeof(string[]):
+                        return (T) (object) new string[] { new JValue(value).ToObject<string>() };
 
                     default:
                         return new JValue(parameter?.Value).ToObject<T>();
