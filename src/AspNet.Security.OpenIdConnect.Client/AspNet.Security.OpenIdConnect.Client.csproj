@@ -20,7 +20,7 @@
     <PackageReference Include="AngleSharp" Version="$(AngleSharpVersion)" />
     <PackageReference Include="JetBrains.Annotations" Version="$(JetBrainsVersion)" PrivateAssets="All" />
     <PackageReference Include="Newtonsoft.Json" Version="$(JsonNetVersion)" />
-    <PackageReference Include="System.Text.Encodings.Web" Version="4.0.0" />
+    <PackageReference Include="System.Text.Encodings.Web" Version="$(WebEncodersVersion)" />
   </ItemGroup>
 
 </Project>

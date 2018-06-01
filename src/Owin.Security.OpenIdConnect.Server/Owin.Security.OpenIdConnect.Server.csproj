@@ -21,7 +21,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging" Version="$(AspNetCoreVersion)" />
     <PackageReference Include="Microsoft.IdentityModel.Protocol.Extensions" Version="$(IdentityModelVersion)" />
     <PackageReference Include="Microsoft.Owin.Security.Interop" Version="$(AspNetCoreVersion)" />
-    <PackageReference Include="System.Text.Encodings.Web" Version="4.0.0" />
+    <PackageReference Include="System.Text.Encodings.Web" Version="$(WebEncodersVersion)" />
   </ItemGroup>
 
   <ItemGroup>

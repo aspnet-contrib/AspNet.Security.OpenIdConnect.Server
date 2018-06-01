@@ -15,9 +15,10 @@
     <NetStandardImplicitPackageVersion>1.6.0</NetStandardImplicitPackageVersion>
     <MoqVersion>4.7.63</MoqVersion>
     <OwinVersion>3.0.1</OwinVersion>
-	<RazorVersion>3.2.3</RazorVersion>
+    <RazorVersion>3.2.3</RazorVersion>
     <RuntimeFrameworkVersion>1.0.0</RuntimeFrameworkVersion>
     <TestSdkVersion>15.0.0</TestSdkVersion>
+    <WebEncodersVersion>4.0.0</WebEncodersVersion>
     <XunitVersion>2.3.1</XunitVersion>
   </PropertyGroup>
 

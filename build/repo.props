@@ -1,6 +1,7 @@
 <Project>
 
   <ItemGroup>
+    <DotNetCoreRuntime Include="1.0.5" />
     <ExcludeFromTest Include="$(RepositoryRoot)test\Owin.Security.OpenIdConnect.Extensions.Tests\*.csproj" Condition="'$(OS)' != 'Windows_NT'"/>
     <ExcludeFromTest Include="$(RepositoryRoot)test\Owin.Security.OpenIdConnect.Server.Tests\*.csproj" Condition="'$(OS)' != 'Windows_NT'"/>
   </ItemGroup>
