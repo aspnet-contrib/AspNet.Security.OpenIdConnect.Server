@@ -246,6 +246,13 @@ namespace AspNet.Security.OpenIdConnect.Server
 
             notification.Scopes.Add(OpenIdConnectConstants.Scopes.OpenId);
 
+            notification.Claims.Add(OpenIdConnectConstants.Claims.Audience);
+            notification.Claims.Add(OpenIdConnectConstants.Claims.ExpiresAt);
+            notification.Claims.Add(OpenIdConnectConstants.Claims.IssuedAt);
+            notification.Claims.Add(OpenIdConnectConstants.Claims.Issuer);
+            notification.Claims.Add(OpenIdConnectConstants.Claims.JwtId);
+            notification.Claims.Add(OpenIdConnectConstants.Claims.Subject);
+
             notification.SubjectTypes.Add(OpenIdConnectConstants.SubjectTypes.Public);
 
             foreach (var credentials in Options.SigningCredentials)
@@ -313,6 +320,7 @@ namespace AspNet.Security.OpenIdConnect.Server
                 [OpenIdConnectConstants.Metadata.ResponseTypesSupported] = new JArray(notification.ResponseTypes),
                 [OpenIdConnectConstants.Metadata.ResponseModesSupported] = new JArray(notification.ResponseModes),
                 [OpenIdConnectConstants.Metadata.ScopesSupported] = new JArray(notification.Scopes),
+                [OpenIdConnectConstants.Metadata.ClaimsSupported] = new JArray(notification.Claims),
                 [OpenIdConnectConstants.Metadata.IdTokenSigningAlgValuesSupported] = new JArray(notification.IdTokenSigningAlgorithms),
                 [OpenIdConnectConstants.Metadata.CodeChallengeMethodsSupported] = new JArray(notification.CodeChallengeMethods),
                 [OpenIdConnectConstants.Metadata.SubjectTypesSupported] = new JArray(notification.SubjectTypes),

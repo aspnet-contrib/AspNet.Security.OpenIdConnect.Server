@@ -609,6 +609,27 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
+        public async Task InvokeConfigurationEndpointAsync_DefaultClaimsAreCorrectlyReturned()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer();
+
+            var client = new OpenIdConnectClient(server.HttpClient);
+
+            // Act
+            var response = await client.GetAsync(ConfigurationEndpoint);
+            var claims = (string[]) response[OpenIdConnectConstants.Metadata.ClaimsSupported];
+
+            // Assert
+            Assert.Contains(OpenIdConnectConstants.Claims.Audience, claims);
+            Assert.Contains(OpenIdConnectConstants.Claims.ExpiresAt, claims);
+            Assert.Contains(OpenIdConnectConstants.Claims.IssuedAt, claims);
+            Assert.Contains(OpenIdConnectConstants.Claims.Issuer, claims);
+            Assert.Contains(OpenIdConnectConstants.Claims.JwtId, claims);
+            Assert.Contains(OpenIdConnectConstants.Claims.Subject, claims);
+        }
+
+        [Fact]
         public async Task InvokeConfigurationEndpointAsync_DefaultSubjectTypesAreCorrectlyReturned()
         {
             // Arrange
