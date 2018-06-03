@@ -76,6 +76,12 @@ namespace AspNet.Security.OpenIdConnect.Server
         public string Issuer { get; set; }
 
         /// <summary>
+        /// Gets the list of claims supported by the authorization server.
+        /// </summary>
+        public ISet<string> Claims { get; } =
+            new HashSet<string>(StringComparer.Ordinal);
+
+        /// <summary>
         /// Gets a list of the code challenge methods
         /// supported by the authorization server.
         /// </summary>
