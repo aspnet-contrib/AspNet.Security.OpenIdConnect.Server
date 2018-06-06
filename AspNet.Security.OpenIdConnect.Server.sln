@@ -10,7 +10,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{09D07360
 		build\key.snk = build\key.snk
 		build\packages.props = build\packages.props
 		build\repo.props = build\repo.props
-		build\tests.props = build\tests.props
 		build\version.props = build\version.props
 	EndProjectSection
 EndProject
