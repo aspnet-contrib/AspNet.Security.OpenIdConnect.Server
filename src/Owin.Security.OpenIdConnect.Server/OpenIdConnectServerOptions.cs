@@ -144,26 +144,30 @@ namespace Owin.Security.OpenIdConnect.Server
 
         /// <summary>
         /// Gets or sets the period of time the authorization codes remain valid after being issued.
+        /// While not recommended, this property can be set to <c>null</c> to issue codes that never expire.
         /// </summary>
-        public TimeSpan AuthorizationCodeLifetime { get; set; } = TimeSpan.FromMinutes(5);
+        public TimeSpan? AuthorizationCodeLifetime { get; set; } = TimeSpan.FromMinutes(5);
 
         /// <summary>
         /// Gets or sets the period of time access tokens remain valid after being issued. The default value is 1 hour.
         /// The client application is expected to refresh or acquire a new access token after the token has expired.
+        /// While not recommended, this property can be set to <c>null</c> to issue access tokens that never expire.
         /// </summary>
-        public TimeSpan AccessTokenLifetime { get; set; } = TimeSpan.FromHours(1);
+        public TimeSpan? AccessTokenLifetime { get; set; } = TimeSpan.FromHours(1);
 
         /// <summary>
         /// Gets or sets the period of time identity tokens remain valid after being issued. The default value is 20 minutes.
         /// The client application is expected to refresh or acquire a new identity token after the token has expired.
+        /// While not recommended, this property can be set to <c>null</c> to issue identity tokens that never expire.
         /// </summary>
-        public TimeSpan IdentityTokenLifetime { get; set; } = TimeSpan.FromMinutes(20);
+        public TimeSpan? IdentityTokenLifetime { get; set; } = TimeSpan.FromMinutes(20);
 
         /// <summary>
         /// Gets or sets the period of time refresh tokens remain valid after being issued. The default value is 14 days.
         /// The client application is expected to start a whole new authentication flow after the refresh token has expired.
+        /// While not recommended, this property can be set to <c>null</c> to issue refresh tokens that never expire.
         /// </summary>
-        public TimeSpan RefreshTokenLifetime { get; set; } = TimeSpan.FromDays(14);
+        public TimeSpan? RefreshTokenLifetime { get; set; } = TimeSpan.FromDays(14);
 
         /// <summary>
         /// Gets or sets a boolean indicating whether new refresh tokens should be issued during a refresh token request.

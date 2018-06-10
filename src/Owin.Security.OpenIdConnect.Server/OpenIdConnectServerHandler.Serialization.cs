@@ -30,8 +30,13 @@ namespace Owin.Security.OpenIdConnect.Server
             // Create a new ticket containing the updated properties.
             var ticket = new AuthenticationTicket(identity, properties);
             ticket.Properties.IssuedUtc = Options.SystemClock.UtcNow;
-            ticket.Properties.ExpiresUtc = ticket.Properties.IssuedUtc;
-            ticket.Properties.ExpiresUtc += ticket.GetAuthorizationCodeLifetime() ?? Options.AuthorizationCodeLifetime;
+
+            // Only set the expiration date if a lifetime was specified in either the ticket or the options.
+            var lifetime = ticket.GetAuthorizationCodeLifetime() ?? Options.AuthorizationCodeLifetime;
+            if (lifetime.HasValue)
+            {
+                ticket.Properties.ExpiresUtc = ticket.Properties.IssuedUtc + lifetime.Value;
+            }
 
             // Associate a random identifier with the authorization code.
             ticket.SetTokenId(Guid.NewGuid().ToString());
@@ -110,8 +115,13 @@ namespace Owin.Security.OpenIdConnect.Server
             // Create a new ticket containing the updated properties and the filtered identity.
             var ticket = new AuthenticationTicket(identity, properties);
             ticket.Properties.IssuedUtc = Options.SystemClock.UtcNow;
-            ticket.Properties.ExpiresUtc = ticket.Properties.IssuedUtc;
-            ticket.Properties.ExpiresUtc += ticket.GetAccessTokenLifetime() ?? Options.AccessTokenLifetime;
+
+            // Only set the expiration date if a lifetime was specified in either the ticket or the options.
+            var lifetime = ticket.GetAccessTokenLifetime() ?? Options.AccessTokenLifetime;
+            if (lifetime.HasValue)
+            {
+                ticket.Properties.ExpiresUtc = ticket.Properties.IssuedUtc + lifetime.Value;
+            }
 
             // Associate a random identifier with the access token.
             ticket.SetTokenId(Guid.NewGuid().ToString());
@@ -266,8 +276,13 @@ namespace Owin.Security.OpenIdConnect.Server
             // Create a new ticket containing the updated properties and the filtered identity.
             var ticket = new AuthenticationTicket(identity, properties);
             ticket.Properties.IssuedUtc = Options.SystemClock.UtcNow;
-            ticket.Properties.ExpiresUtc = ticket.Properties.IssuedUtc;
-            ticket.Properties.ExpiresUtc += ticket.GetIdentityTokenLifetime() ?? Options.IdentityTokenLifetime;
+
+            // Only set the expiration date if a lifetime was specified in either the ticket or the options.
+            var lifetime = ticket.GetIdentityTokenLifetime() ?? Options.IdentityTokenLifetime;
+            if (lifetime.HasValue)
+            {
+                ticket.Properties.ExpiresUtc = ticket.Properties.IssuedUtc + lifetime.Value;
+            }
 
             // Associate a random identifier with the identity token.
             ticket.SetTokenId(Guid.NewGuid().ToString());
@@ -429,8 +444,13 @@ namespace Owin.Security.OpenIdConnect.Server
             // Create a new ticket containing the updated properties.
             var ticket = new AuthenticationTicket(identity, properties);
             ticket.Properties.IssuedUtc = Options.SystemClock.UtcNow;
-            ticket.Properties.ExpiresUtc = ticket.Properties.IssuedUtc;
-            ticket.Properties.ExpiresUtc += ticket.GetRefreshTokenLifetime() ?? Options.RefreshTokenLifetime;
+
+            // Only set the expiration date if a lifetime was specified in either the ticket or the options.
+            var lifetime = ticket.GetRefreshTokenLifetime() ?? Options.RefreshTokenLifetime;
+            if (lifetime.HasValue)
+            {
+                ticket.Properties.ExpiresUtc = ticket.Properties.IssuedUtc + lifetime.Value;
+            }
 
             // Associate a random identifier with the refresh token.
             ticket.SetTokenId(Guid.NewGuid().ToString());
