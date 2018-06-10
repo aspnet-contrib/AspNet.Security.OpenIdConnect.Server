@@ -25,6 +25,56 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
     public partial class OpenIdConnectServerHandlerTests
     {
         [Fact]
+        public async Task SerializeAuthorizationCodeAsync_ExpirationDateIsNotAddedWhenLifetimeIsNull()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.AuthorizationCodeLifetime = null;
+
+                options.Provider.OnSerializeAuthorizationCode = context =>
+                {
+                    // Assert
+                    Assert.NotNull(context.Ticket.Properties.IssuedUtc);
+                    Assert.Null(context.Ticket.Properties.ExpiresUtc);
+
+                    return Task.CompletedTask;
+                };
+
+                options.Provider.OnValidateAuthorizationRequest = context =>
+                {
+                    context.Validate();
+
+                    return Task.CompletedTask;
+                };
+
+                options.Provider.OnHandleAuthorizationRequest = context =>
+                {
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
+
+                    context.Validate(new ClaimsPrincipal(identity));
+
+                    return Task.CompletedTask;
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(AuthorizationEndpoint, new OpenIdConnectRequest
+            {
+                ClientId = "Fabrikam",
+                RedirectUri = "http://www.fabrikam.com/path",
+                ResponseType = OpenIdConnectConstants.ResponseTypes.Code,
+                Scope = OpenIdConnectConstants.Scopes.OpenId
+            });
+
+            // Assert
+            Assert.NotNull(response.Code);
+        }
+
+        [Fact]
         public async Task SerializeAuthorizationCodeAsync_ExpirationDateIsInferredFromCurrentDatetime()
         {
             // Arrange
@@ -429,6 +479,55 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
             // Assert
             Assert.Equal("7F82F1A3-8C9F-489F-B838-4B644B7C92B2", response.Code);
             format.Verify(mock => mock.Protect(It.IsAny<AuthenticationTicket>()), Times.Once());
+        }
+
+        [Fact]
+        public async Task SerializeAccessTokenAsync_ExpirationDateIsNotAddedWhenLifetimeIsNull()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.AccessTokenLifetime = null;
+
+                options.Provider.OnSerializeAccessToken = context =>
+                {
+                    // Assert
+                    Assert.NotNull(context.Ticket.Properties.IssuedUtc);
+                    Assert.Null(context.Ticket.Properties.ExpiresUtc);
+
+                    return Task.CompletedTask;
+                };
+
+                options.Provider.OnValidateTokenRequest = context =>
+                {
+                    context.Skip();
+
+                    return Task.CompletedTask;
+                };
+
+                options.Provider.OnHandleTokenRequest = context =>
+                {
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
+
+                    context.Validate(new ClaimsPrincipal(identity));
+
+                    return Task.CompletedTask;
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
+                GrantType = OpenIdConnectConstants.GrantTypes.Password,
+                Username = "johndoe",
+                Password = "A3ddj3w"
+            });
+
+            // Assert
+            Assert.NotNull(response.AccessToken);
         }
 
         [Fact]
@@ -1193,6 +1292,56 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
         }
 
         [Fact]
+        public async Task SerializeIdentityTokenAsync_ExpirationDateIsNotAddedWhenLifetimeIsNull()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.IdentityTokenLifetime = null;
+
+                options.Provider.OnSerializeIdentityToken = context =>
+                {
+                    // Assert
+                    Assert.NotNull(context.Ticket.Properties.IssuedUtc);
+                    Assert.Null(context.Ticket.Properties.ExpiresUtc);
+
+                    return Task.CompletedTask;
+                };
+
+                options.Provider.OnValidateTokenRequest = context =>
+                {
+                    context.Skip();
+
+                    return Task.CompletedTask;
+                };
+
+                options.Provider.OnHandleTokenRequest = context =>
+                {
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
+
+                    context.Validate(new ClaimsPrincipal(identity));
+
+                    return Task.CompletedTask;
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
+                GrantType = OpenIdConnectConstants.GrantTypes.Password,
+                Username = "johndoe",
+                Password = "A3ddj3w",
+                Scope = OpenIdConnectConstants.Scopes.OpenId
+            });
+
+            // Assert
+            Assert.NotNull(response.IdToken);
+        }
+
+        [Fact]
         public async Task SerializeIdentityTokenAsync_ExpirationDateIsInferredFromCurrentDatetime()
         {
             // Arrange
@@ -1870,6 +2019,63 @@ namespace AspNet.Security.OpenIdConnect.Server.Tests
             // Assert
             Assert.Equal("7F82F1A3-8C9F-489F-B838-4B644B7C92B2", response.IdToken);
             format.Verify(mock => mock.CreateEncodedJwt(It.IsAny<SecurityTokenDescriptor>()), Times.Once());
+        }
+
+        [Fact]
+        public async Task SerializeRefreshTokenAsync_ExpirationDateIsNotAddedWhenLifetimeIsNull()
+        {
+            // Arrange
+            var server = CreateAuthorizationServer(options =>
+            {
+                options.RefreshTokenLifetime = null;
+
+                options.Provider.OnSerializeRefreshToken = context =>
+                {
+                    // Assert
+                    Assert.NotNull(context.Ticket.Properties.IssuedUtc);
+                    Assert.Null(context.Ticket.Properties.ExpiresUtc);
+
+                    return Task.CompletedTask;
+                };
+
+                options.Provider.OnValidateTokenRequest = context =>
+                {
+                    context.Skip();
+
+                    return Task.CompletedTask;
+                };
+
+                options.Provider.OnHandleTokenRequest = context =>
+                {
+                    var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
+                    identity.AddClaim(OpenIdConnectConstants.Claims.Subject, "Bob le Magnifique");
+
+                    var ticket = new AuthenticationTicket(
+                        new ClaimsPrincipal(identity),
+                        new AuthenticationProperties(),
+                        OpenIdConnectServerDefaults.AuthenticationScheme);
+
+                    ticket.SetScopes(OpenIdConnectConstants.Scopes.OfflineAccess);
+
+                    context.Validate(ticket);
+
+                    return Task.CompletedTask;
+                };
+            });
+
+            var client = new OpenIdConnectClient(server.CreateClient());
+
+            // Act
+            var response = await client.PostAsync(TokenEndpoint, new OpenIdConnectRequest
+            {
+                GrantType = OpenIdConnectConstants.GrantTypes.Password,
+                Username = "johndoe",
+                Password = "A3ddj3w",
+                Scope = OpenIdConnectConstants.Scopes.OfflineAccess
+            });
+
+            // Assert
+            Assert.NotNull(response.RefreshToken);
         }
 
         [Fact]
