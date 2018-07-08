@@ -484,7 +484,8 @@ namespace Owin.Security.OpenIdConnect.Server
                 }
 
                 var scopes = ticket.GetScopes();
-                if (request.IsAuthorizationCodeGrantType() || !new HashSet<string>(scopes).SetEquals(request.GetScopes()))
+                if ((request.IsTokenRequest() && request.IsAuthorizationCodeGrantType()) ||
+                    !new HashSet<string>(scopes).SetEquals(request.GetScopes()))
                 {
                     response.Scope = string.Join(" ", scopes);
                 }

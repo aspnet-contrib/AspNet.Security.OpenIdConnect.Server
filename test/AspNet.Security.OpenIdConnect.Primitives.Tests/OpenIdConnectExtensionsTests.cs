@@ -88,6 +88,73 @@ namespace AspNet.Security.OpenIdConnect.Primitives.Tests
         }
 
         [Fact]
+        public void HasAcrValue_ThrowsAnExceptionForNullRequest()
+        {
+            // Arrange
+            var request = (OpenIdConnectRequest) null;
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentNullException>(delegate
+            {
+                request.HasAcrValue("mod-mf");
+            });
+
+            Assert.Equal("request", exception.ParamName);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public void HasAcrValue_ThrowsAnExceptionForNullOrEmptyAcrValue(string value)
+        {
+            // Arrange
+            var request = new OpenIdConnectRequest();
+
+            // Act and assert
+            var exception = Assert.Throws<ArgumentException>(delegate
+            {
+                request.HasAcrValue(value);
+            });
+
+            Assert.Equal("value", exception.ParamName);
+            Assert.StartsWith("The value cannot be null or empty.", exception.Message);
+        }
+
+        [Theory]
+        [InlineData(null, false)]
+        [InlineData("mod-mf", true)]
+        [InlineData("mod-mf mod-pr", true)]
+        [InlineData(" mod-mf mod-pr", true)]
+        [InlineData("mod-pr mod-mf", true)]
+        [InlineData("mod-pr mod-mf ", true)]
+        [InlineData("mod-pr mod-mf mod-cstm", true)]
+        [InlineData("mod-pr mod-mf mod-cstm ", true)]
+        [InlineData("mod-pr    mod-mf   mod-cstm ", true)]
+        [InlineData("mod-pr", false)]
+        [InlineData("mod-pr mod-cstm", false)]
+        [InlineData("MOD-MF", false)]
+        [InlineData("MOD-MF MOD-PR", false)]
+        [InlineData(" MOD-MF MOD-PR", false)]
+        [InlineData("MOD-PR MOD-MF", false)]
+        [InlineData("MOD-PR MOD-MF ", false)]
+        [InlineData("MOD-PR MOD-MF MOD-CSTM", false)]
+        [InlineData("MOD-PR MOD-MF MOD-CSTM ", false)]
+        [InlineData("MOD-PR    MOD-MF   MOD-CSTM ", false)]
+        [InlineData("MOD-PR", false)]
+        [InlineData("MOD-PR MOD-CSTM", false)]
+        public void HasAcrValue_ReturnsExpectedResult(string value, bool result)
+        {
+            // Arrange
+            var request = new OpenIdConnectRequest
+            {
+                AcrValues = value
+            };
+
+            // Act and assert
+            Assert.Equal(result, request.HasAcrValue("mod-mf"));
+        }
+
+        [Fact]
         public void HasPrompt_ThrowsAnExceptionForNullRequest()
         {
             // Arrange
