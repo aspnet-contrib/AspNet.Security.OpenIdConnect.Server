@@ -470,13 +470,15 @@ namespace AspNet.Security.OpenIdConnect.Server
                 }
 
                 var resources = ticket.GetResources();
-                if (request.IsAuthorizationCodeGrantType() || !new HashSet<string>(resources).SetEquals(request.GetResources()))
+                if ((request.IsTokenRequest() && request.IsAuthorizationCodeGrantType()) ||
+                    !new HashSet<string>(resources).SetEquals(request.GetResources()))
                 {
                     response.Resource = string.Join(" ", resources);
                 }
 
                 var scopes = ticket.GetScopes();
-                if (request.IsAuthorizationCodeGrantType() || !new HashSet<string>(scopes).SetEquals(request.GetScopes()))
+                if ((request.IsTokenRequest() && request.IsAuthorizationCodeGrantType()) ||
+                    !new HashSet<string>(scopes).SetEquals(request.GetScopes()))
                 {
                     response.Scope = string.Join(" ", scopes);
                 }

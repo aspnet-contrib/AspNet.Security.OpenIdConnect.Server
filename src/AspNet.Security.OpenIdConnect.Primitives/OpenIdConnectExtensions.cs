@@ -77,6 +77,31 @@ namespace AspNet.Security.OpenIdConnect.Primitives
         }
 
         /// <summary>
+        /// Determines whether the requested authentication context class values contain the specified item.
+        /// </summary>
+        /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
+        /// <param name="value">The component to look for in the parameter.</param>
+        public static bool HasAcrValue([NotNull] this OpenIdConnectRequest request, [NotNull] string value)
+        {
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
+            if (string.IsNullOrEmpty(value))
+            {
+                throw new ArgumentException("The value cannot be null or empty.", nameof(value));
+            }
+
+            if (string.IsNullOrEmpty(request.AcrValues))
+            {
+                return false;
+            }
+
+            return HasValue(request.AcrValues, value, OpenIdConnectConstants.Separators.Space);
+        }
+
+        /// <summary>
         /// Determines whether the requested prompt contains the specified value.
         /// </summary>
         /// <param name="request">The <see cref="OpenIdConnectRequest"/> instance.</param>
