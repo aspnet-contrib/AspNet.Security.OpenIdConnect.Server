@@ -112,6 +112,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives
             public const string InvalidRequestObject = "invalid_request_object";
             public const string InvalidRequestUri = "invalid_request_uri";
             public const string InvalidScope = "invalid_scope";
+            public const string InvalidToken = "invalid_token";
             public const string LoginRequired = "login_required";
             public const string RegistrationNotSupported = "registration_not_supported";
             public const string RequestNotSupported = "request_not_supported";
@@ -231,6 +232,7 @@ namespace AspNet.Security.OpenIdConnect.Primitives
             public const string Password = "password";
             public const string PostLogoutRedirectUri = "post_logout_redirect_uri";
             public const string Prompt = "prompt";
+            public const string Realm = "realm";
             public const string RedirectUri = "redirect_uri";
             public const string RefreshToken = "refresh_token";
             public const string Registration = "registration";
@@ -303,6 +305,12 @@ namespace AspNet.Security.OpenIdConnect.Primitives
         {
             public static readonly char[] Ampersand = { '&' };
             public static readonly char[] Space = { ' ' };
+        }
+
+        public static class Schemes
+        {
+            public const string Basic = "Basic";
+            public const string Bearer = "Bearer";
         }
 
         public static class Scopes
