@@ -250,7 +250,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
             });
 
             // Assert
-            Assert.Equal(OpenIdConnectConstants.Errors.InvalidGrant, response.Error);
+            Assert.Equal(OpenIdConnectConstants.Errors.InvalidToken, response.Error);
             Assert.Equal("The specified access token is not valid.", response.ErrorDescription);
         }
 
@@ -283,7 +283,7 @@ namespace Owin.Security.OpenIdConnect.Server.Tests
             });
 
             // Assert
-            Assert.Equal(OpenIdConnectConstants.Errors.InvalidGrant, response.Error);
+            Assert.Equal(OpenIdConnectConstants.Errors.InvalidToken, response.Error);
             Assert.Equal("The specified access token is no longer valid.", response.ErrorDescription);
         }
 

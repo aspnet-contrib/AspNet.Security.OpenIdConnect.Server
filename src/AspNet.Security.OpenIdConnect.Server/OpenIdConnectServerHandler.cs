@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Claims;
+using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
@@ -17,6 +18,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -736,7 +738,42 @@ namespace AspNet.Security.OpenIdConnect.Server
 
                 if (!string.IsNullOrEmpty(response.Error))
                 {
-                    Response.StatusCode = 400;
+                    // When client authentication is made using basic authentication, the authorization server MUST return
+                    // a 401 response with a valid WWW-Authenticate header containing the Basic scheme and a non-empty realm.
+                    // A similar error MAY be returned even when basic authentication is not used and MUST also be returned
+                    // when an invalid token is received by the userinfo endpoint using the Bearer authentication scheme.
+                    // To simplify the logic, a 401 response with the Bearer scheme is returned for invalid_token errors
+                    // and a 401 response with the Basic scheme is returned for invalid_client, even if the credentials
+                    // were specified in the request form instead of the HTTP headers, as allowed by the specification.
+                    string GetAuthenticationScheme()
+                    {
+                        switch (response.Error)
+                        {
+                            case OpenIdConnectConstants.Errors.InvalidClient: return OpenIdConnectConstants.Schemes.Basic;
+                            case OpenIdConnectConstants.Errors.InvalidToken:  return OpenIdConnectConstants.Schemes.Bearer;
+                            default:                                          return null;
+                        }
+                    }
+
+                    var scheme = GetAuthenticationScheme();
+                    if (!string.IsNullOrEmpty(scheme))
+                    {
+                        Response.StatusCode = 401;
+
+                        Response.Headers[HeaderNames.WWWAuthenticate] = new StringBuilder()
+                            .Append(scheme)
+                            .Append(' ')
+                            .Append(OpenIdConnectConstants.Parameters.Realm)
+                            .Append("=\"")
+                            .Append(Context.GetIssuer(Options))
+                            .Append('"')
+                            .ToString();
+                    }
+
+                    else
+                    {
+                        Response.StatusCode = 400;
+                    }
                 }
 
                 Response.ContentLength = buffer.Length;

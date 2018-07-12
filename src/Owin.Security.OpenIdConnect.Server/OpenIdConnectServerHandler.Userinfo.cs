@@ -189,7 +189,7 @@ namespace Owin.Security.OpenIdConnect.Server
                 // See http://openid.net/specs/openid-connect-core-1_0.html#UserInfoError
                 return await SendUserinfoResponseAsync(new OpenIdConnectResponse
                 {
-                    Error = OpenIdConnectConstants.Errors.InvalidGrant,
+                    Error = OpenIdConnectConstants.Errors.InvalidToken,
                     ErrorDescription = "The specified access token is not valid."
                 });
             }
@@ -206,7 +206,7 @@ namespace Owin.Security.OpenIdConnect.Server
                 // See http://openid.net/specs/openid-connect-core-1_0.html#UserInfoError
                 return await SendUserinfoResponseAsync(new OpenIdConnectResponse
                 {
-                    Error = OpenIdConnectConstants.Errors.InvalidGrant,
+                    Error = OpenIdConnectConstants.Errors.InvalidToken,
                     ErrorDescription = "The specified access token is no longer valid."
                 });
             }
