@@ -191,14 +191,9 @@ namespace AspNet.Security.OpenIdConnect.Server
             {
                 Logger.LogError("The userinfo request was rejected because the access token was invalid.");
 
-                // Note: an invalid token should result in an unauthorized response
-                // but returning a 401 status would invoke the previously registered
-                // authentication middleware and potentially replace it by a 302 response.
-                // To work around this limitation, a 400 error is returned instead.
-                // See http://openid.net/specs/openid-connect-core-1_0.html#UserInfoError
                 return await SendUserinfoResponseAsync(new OpenIdConnectResponse
                 {
-                    Error = OpenIdConnectConstants.Errors.InvalidGrant,
+                    Error = OpenIdConnectConstants.Errors.InvalidToken,
                     ErrorDescription = "The specified access token is not valid."
                 });
             }
@@ -208,14 +203,9 @@ namespace AspNet.Security.OpenIdConnect.Server
             {
                 Logger.LogError("The userinfo request was rejected because the access token was expired.");
 
-                // Note: an invalid token should result in an unauthorized response
-                // but returning a 401 status would invoke the previously registered
-                // authentication middleware and potentially replace it by a 302 response.
-                // To work around this limitation, a 400 error is returned instead.
-                // See http://openid.net/specs/openid-connect-core-1_0.html#UserInfoError
                 return await SendUserinfoResponseAsync(new OpenIdConnectResponse
                 {
-                    Error = OpenIdConnectConstants.Errors.InvalidGrant,
+                    Error = OpenIdConnectConstants.Errors.InvalidToken,
                     ErrorDescription = "The specified access token is no longer valid."
                 });
             }

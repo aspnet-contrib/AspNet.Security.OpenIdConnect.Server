@@ -745,6 +745,10 @@ namespace Owin.Security.OpenIdConnect.Server
 
                 writer.Flush();
 
+                // Note: when using basic authentication, returning an invalid_client error MUST result in
+                // an unauthorized response but returning a 401 status code would invoke the previously
+                // registered authentication middleware and potentially replace it by a 302 response.
+                // To work around this OWIN/Katana limitation, a 400 response code is always returned.
                 if (!string.IsNullOrEmpty(response.Error))
                 {
                     Response.StatusCode = 400;
