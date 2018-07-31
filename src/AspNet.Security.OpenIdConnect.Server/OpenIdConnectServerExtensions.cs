@@ -35,9 +35,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="builder">The authentication builder.</param>
         /// <returns>The authentication builder.</returns>
         public static AuthenticationBuilder AddOpenIdConnectServer([NotNull] this AuthenticationBuilder builder)
-        {
-            return builder.AddOpenIdConnectServer(OpenIdConnectServerDefaults.AuthenticationScheme);
-        }
+            => builder.AddOpenIdConnectServer(OpenIdConnectServerDefaults.AuthenticationScheme);
 
         /// <summary>
         /// Adds a new OpenID Connect server instance in the ASP.NET Core pipeline.
@@ -51,9 +49,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static AuthenticationBuilder AddOpenIdConnectServer(
             [NotNull] this AuthenticationBuilder builder,
             [NotNull] Action<OpenIdConnectServerOptions> configuration)
-        {
-            return builder.AddOpenIdConnectServer(OpenIdConnectServerDefaults.AuthenticationScheme, configuration);
-        }
+            => builder.AddOpenIdConnectServer(OpenIdConnectServerDefaults.AuthenticationScheme, configuration);
 
         /// <summary>
         /// Adds a new OpenID Connect server instance in the ASP.NET Core pipeline.
@@ -64,9 +60,7 @@ namespace Microsoft.Extensions.DependencyInjection
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         public static AuthenticationBuilder AddOpenIdConnectServer(
             [NotNull] this AuthenticationBuilder builder, [NotNull] string scheme)
-        {
-            return builder.AddOpenIdConnectServer(scheme, options => { });
-        }
+            => builder.AddOpenIdConnectServer(scheme, options => { });
 
         /// <summary>
         /// Adds a new OpenID Connect server instance in the ASP.NET Core pipeline.
@@ -155,6 +149,22 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IList<SigningCredentials> AddCertificate(
             [NotNull] this IList<SigningCredentials> credentials,
             [NotNull] Assembly assembly, [NotNull] string resource, [NotNull] string password)
+            => credentials.AddCertificate(assembly, resource, password, X509KeyStorageFlags.MachineKeySet);
+
+        /// <summary>
+        /// Adds a specific <see cref="X509Certificate2"/> retrieved from an
+        /// embedded resource to sign the tokens issued by the OpenID Connect server.
+        /// </summary>
+        /// <param name="credentials">The options used to configure the OpenID Connect server.</param>
+        /// <param name="assembly">The assembly containing the certificate.</param>
+        /// <param name="resource">The name of the embedded resource.</param>
+        /// <param name="password">The password used to open the certificate.</param>
+        /// <param name="flags">An enumeration of flags indicating how and where to store the private key of the certificate.</param>
+        /// <returns>The signing credentials.</returns>
+        public static IList<SigningCredentials> AddCertificate(
+            [NotNull] this IList<SigningCredentials> credentials,
+            [NotNull] Assembly assembly, [NotNull] string resource,
+            [NotNull] string password, X509KeyStorageFlags flags)
         {
             if (credentials == null)
             {
@@ -183,7 +193,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     throw new InvalidOperationException("The certificate was not found in the specified assembly.");
                 }
 
-                return credentials.AddCertificate(stream, password);
+                return credentials.AddCertificate(stream, password, flags);
             }
         }
 
@@ -198,9 +208,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IList<SigningCredentials> AddCertificate(
             [NotNull] this IList<SigningCredentials> credentials,
             [NotNull] Stream stream, [NotNull] string password)
-        {
-            return credentials.AddCertificate(stream, password, X509KeyStorageFlags.MachineKeySet);
-        }
+            => credentials.AddCertificate(stream, password, X509KeyStorageFlags.MachineKeySet);
 
         /// <summary>
         /// Adds a specific <see cref="X509Certificate2"/> contained in
